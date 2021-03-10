@@ -58,7 +58,15 @@ export function activate(context: vscode.ExtensionContext) {
 							slice_range.end_line, slice_range.end_col);
 						return {range};
 					});
-					active_editor.setDecorations(decoration_type, decorations)
+
+					active_editor.setDecorations(decoration_type, decorations)					
+
+					let callback = vscode.workspace.onDidChangeTextDocument(event => {
+						if (!active_editor) { return; }
+						if (event.document != active_editor.document) { return; }
+						active_editor.setDecorations(decoration_type, []);
+						callback.dispose();
+					})
 				}
 			} catch (exc) {
 				log("ERROR", exc);
