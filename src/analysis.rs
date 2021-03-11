@@ -45,6 +45,13 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
       self.relevant_spans.push(source_info.span);
     }
   }
+
+  fn visit_terminator_after_primary_effect(&mut self, state: &Self::FlowState, _terminator: &'mir mir::Terminator<'tcx>, location: Location) {
+    if state.relevant {
+      let source_info = self.body.source_info(location);
+      self.relevant_spans.push(source_info.span);
+    }
+  }
 }
 
 struct FindInitialSliceSet<'a, 'tcx> {
@@ -99,8 +106,7 @@ pub fn analyze(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<()> {
   write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut io::stdout().lock())?;
   println!("============");
 
-  //let borrowck_result = tcx.mir_borrowck(local_def_id);
-  // println!("{:#?}", borrowck_result);
+  // let borrowck_result = tcx.mir_borrowck(local_def_id);
 
   let source_map = tcx.sess.source_map();
   let mut finder = FindInitialSliceSet {
@@ -111,13 +117,15 @@ pub fn analyze(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<()> {
   finder.visit_body(body);
   println!("Initial slice set: {:?}", finder.slice_set);
 
-  let points_to_results = PointsToAnalysis
+  let points_to_results = PointsToAnalysis { tcx, body }
     .into_engine(tcx, body)
     .iterate_to_fixpoint();
 
   let relevance_results = RelevanceAnalysis {
     slice_set: finder.slice_set,
-    points_to: RefCell::new(ResultsRefCursor::new(body, &points_to_results)),
+    pointer_analysis: RefCell::new(ResultsRefCursor::new(body, &points_to_results)),
+    tcx, body, 
+    module: tcx.parent_module(body_id.hir_id).to_def_id(),
   }
   .into_engine(tcx, body)
   .iterate_to_fixpoint();

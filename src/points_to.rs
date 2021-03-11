@@ -1,7 +1,7 @@
-use rustc_middle::mir::{
-  self,
-  visit::{Visitor},
-  *,
+use rustc_hir::def_id::DefId;
+use rustc_middle::{
+  mir::{self, tcx::PlaceTy, visit::Visitor, *},
+  ty::{AdtFlags, ParamEnv, TyCtxt, TyKind},
 };
 use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, AnalysisDomain, JoinSemiLattice};
 use rustc_target::abi::VariantIdx;
@@ -25,25 +25,109 @@ pub struct PlacePrim {
 }
 
 impl PlacePrim {
-  pub fn from_place(place: Place) -> Option<Self> {
-    place.projection.iter().fold(Some(Vec::new()), |acc, elem| {
-      acc.and_then(|mut elems| {
-        let new_elem = match elem {
-          ProjectionElem::Field(field, _) => Some(ProjectionPrim::Field(field)),
-          _ => None,
+  pub fn ty<'tcx>(
+    &self,
+    local_decls: &impl HasLocalDecls<'tcx>,
+    tcx: TyCtxt<'tcx>,
+  ) -> PlaceTy<'tcx> {
+    let ty = local_decls.local_decls()[self.local].ty;
+    self
+      .projection
+      .iter()
+      .fold(PlaceTy::from_ty(ty), |place_ty, prim| {
+        let elem = match prim {
+          ProjectionPrim::Field(field) => ProjectionElem::Field(*field, ()),
+          ProjectionPrim::Downcast(idx) => ProjectionElem::Downcast(None, *idx),
         };
 
-        new_elem.map(move |new_elem| {
-          elems.push(new_elem);
-          elems
+        place_ty.projection_ty_core(tcx, ParamEnv::empty(), &elem, |ty, field, _| {
+          ty.field_ty(tcx, field)
         })
       })
-    }).map(|projection| {
-      PlacePrim {
-        local: place.local,
-        projection
+  }
+
+  pub fn sub_places<'tcx>(
+    &self,
+    local_decls: &impl HasLocalDecls<'tcx>,
+    tcx: TyCtxt<'tcx>,
+    module: DefId,
+  ) -> HashSet<PlacePrim> {
+    use TyKind::*;
+    let place_ty = self.ty(local_decls, tcx);
+    let ty = place_ty.ty;
+
+    let map_fields = |place: &PlacePrim, fields: Vec<usize>| {
+      fields
+        .into_iter()
+        .map(|i| {
+          let mut place = place.clone();
+          place
+            .projection
+            .push(ProjectionPrim::Field(Field::from_usize(i)));
+          place.sub_places(local_decls, tcx, module)
+        })
+        .fold(HashSet::new(), |s1, s2| &s1 | &s2)
+    };
+
+    let mut places: HashSet<_> = match ty.kind() {
+      Tuple(tys) => map_fields(self, (0..tys.types().count()).collect()),
+
+      Adt(def, _) => {
+        def
+          .variants
+          .iter_enumerated()
+          .map(|(idx, variant)| {
+            let mut place = self.clone();
+            if def.is_struct() {
+              // leave as is
+            } else if def.is_enum() {
+              place.projection.push(ProjectionPrim::Downcast(idx));
+            } else {
+              unimplemented!()
+            };
+
+            let public_fields = variant
+              .fields
+              .iter()
+              .enumerate()
+              .filter(|(_, field)| field.vis.is_accessible_from(module, tcx))
+              .map(|(i, _)| i)
+              .collect();
+
+            map_fields(&place, public_fields)
+          })
+          .fold(HashSet::new(), |s1, s2| &s1 | &s2)
       }
-    })
+
+      _ if ty.is_primitive_ty() || ty.is_ref() => HashSet::new(),
+      _ => unimplemented!("{:?} {:?}", self, ty),
+    };
+
+    places.insert(self.clone());
+    places
+  }
+
+  pub fn from_place(place: Place) -> Option<Self> {
+    place
+      .projection
+      .iter()
+      .fold(Some(Vec::new()), |acc, elem| {
+        acc.and_then(|mut elems| {
+          let new_elem = match elem {
+            ProjectionElem::Field(field, _) => Some(ProjectionPrim::Field(field)),
+            _ => None,
+          };
+
+          new_elem.map(move |new_elem| {
+            elems.push(new_elem);
+            elems
+          })
+        })
+      })
+      .map(|projection| PlacePrim {
+        local: place.local,
+        projection,
+      })
   }
 }
 
@@ -58,10 +142,10 @@ impl fmt::Debug for PlacePrim {
     for elem in self.projection.iter() {
       match elem {
         ProjectionPrim::Field(field) => {
-          write!(f, ".{:?}", field.index())?;
+          write!(f, ".{:?})", field.index())?;
         }
         ProjectionPrim::Downcast(index) => {
-          write!(f, "as {:?}", index)?;
+          write!(f, "as {:?})", index)?;
         }
       }
     }
@@ -83,7 +167,8 @@ impl PlacePrim {
 pub struct PointsToDomain(pub HashMap<PlacePrim, HashSet<PlacePrim>>);
 
 impl PointsToDomain {
-  pub fn points_to(&self, place: Place) -> HashSet<PlacePrim> {
+  // e.g. if if place = *x then output is all pointed locations of x
+  pub fn possible_prims(&self, place: Place) -> HashSet<PlacePrim> {
     let mut possibly_assigned = HashSet::new();
     possibly_assigned.insert(PlacePrim::local(place.local));
 
@@ -92,11 +177,14 @@ impl PointsToDomain {
       .fold(possibly_assigned, |acc, (_, projection)| match projection {
         ProjectionElem::Deref => {
           let mut possibly_assigned = HashSet::new();
-          for local in acc.iter() {
-            possibly_assigned = &possibly_assigned | &self.0[local];
+          for prim in acc.iter() {
+            if let Some(prims) = self.0.get(prim) {
+              possibly_assigned = &possibly_assigned | prims;
+            }
           }
           possibly_assigned
         }
+
         ProjectionElem::Field(field, _ty) => acc
           .into_iter()
           .map(|mut place| {
@@ -104,13 +192,39 @@ impl PointsToDomain {
             place
           })
           .collect(),
+
+        ProjectionElem::Downcast(_, variant) => acc
+          .into_iter()
+          .map(|mut place| {
+            place.projection.push(ProjectionPrim::Downcast(variant));
+            place
+          })
+          .collect(),
+
         _ => unimplemented!("{:?}", place),
       })
   }
 
+  pub fn points_to(&self, place: Place) -> &HashSet<PlacePrim> {
+    self
+      .0
+      .get(&PlacePrim::local(
+        place.as_local().expect(&format!("{:?}", place)),
+      ))
+      .expect(&format!("{:?}", place))
+  }
+
+  pub fn add_alias(&mut self, lplace: Place, rplace: Place) {
+    let rprims = self.points_to(rplace).clone();
+    for lprim in self.possible_prims(lplace).into_iter() {
+      let lprims = self.0.entry(lprim).or_insert_with(HashSet::new);
+      *lprims = &*lprims | &rprims;
+    }
+  }
+
   pub fn add_borrow(&mut self, lplace: Place, rplace: Place) {
-    let rprims = self.points_to(rplace);
-    for lprim in self.points_to(lplace).into_iter() {
+    let rprims = self.possible_prims(rplace);
+    for lprim in self.possible_prims(lplace).into_iter() {
       let lprims = self.0.entry(lprim).or_insert_with(HashSet::new);
       *lprims = &*lprims | &rprims;
     }
@@ -151,12 +265,12 @@ impl fmt::Debug for PointsToDomain {
 
 impl<C> DebugWithContext<C> for PointsToDomain {}
 
-struct TransferFunction<'a> {
-  analysis: &'a PointsToAnalysis,
+struct TransferFunction<'a, 'mir, 'tcx> {
+  analysis: &'a PointsToAnalysis<'mir, 'tcx>,
   state: &'a mut PointsToDomain,
 }
 
-impl<'a, 'tcx> Visitor<'tcx> for TransferFunction<'a> {
+impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
   fn visit_assign(&mut self, lplace: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
     self.super_assign(lplace, rvalue, location);
 
@@ -167,10 +281,56 @@ impl<'a, 'tcx> Visitor<'tcx> for TransferFunction<'a> {
       _ => {}
     }
   }
+
+  fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
+    match &terminator.kind {
+      TerminatorKind::Call {
+        func,
+        args,
+        destination: Some((dst_place, _)),
+        ..
+      } => {
+        let tcx = self.analysis.tcx;
+        let func_ty = func.ty(self.analysis.body.local_decls(), tcx);
+        match func_ty.kind() {
+          TyKind::FnDef(_, _) => {
+            let sig = func_ty.fn_sig(tcx).skip_binder();
+
+            let output_ty = sig.output();
+            if let TyKind::Ref(output_region, _, Mutability::Mut) = output_ty.kind() {
+              let possible_borrows = sig
+                .inputs()
+                .iter()
+                .zip(args.iter())
+                .filter(|(input_ty, _)| {
+                  if let TyKind::Ref(input_region, _, Mutability::Mut) = input_ty.kind() {
+                    input_region == output_region
+                  } else {
+                    false
+                  }
+                })
+                .for_each(|(_, op)| match op {
+                  Operand::Move(src_place) => {
+                    self.state.add_alias(*dst_place, *src_place);
+                  }
+                  _ => unimplemented!("{:?}", op),
+                });
+            }
+          }
+          _ => unimplemented!("{:?}", func_ty),
+        }
+      }
+      _ => {}
+    }
+  }
 }
 
-pub struct PointsToAnalysis;
-impl<'tcx> AnalysisDomain<'tcx> for PointsToAnalysis {
+pub struct PointsToAnalysis<'mir, 'tcx> {
+  pub tcx: TyCtxt<'tcx>,
+  pub body: &'mir Body<'tcx>,
+}
+
+impl<'mir, 'tcx> AnalysisDomain<'tcx> for PointsToAnalysis<'mir, 'tcx> {
   type Domain = PointsToDomain;
   const NAME: &'static str = "PointsToAnalysis";
 
@@ -183,7 +343,7 @@ impl<'tcx> AnalysisDomain<'tcx> for PointsToAnalysis {
   }
 }
 
-impl<'tcx> Analysis<'tcx> for PointsToAnalysis {
+impl<'mir, 'tcx> Analysis<'tcx> for PointsToAnalysis<'mir, 'tcx> {
   fn apply_statement_effect(
     &self,
     state: &mut Self::Domain,

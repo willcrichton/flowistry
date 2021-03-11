@@ -61,6 +61,8 @@ impl rustc_driver::Callbacks for Callbacks {
 }
 
 fn run() -> Result<()> {
+  env_logger::init();
+  
   let sysroot = "/Users/will/Code/rust/build/x86_64-apple-darwin/stage1".to_string();
   // let sysroot = String::from_utf8(
   //   Command::new("rustc")
