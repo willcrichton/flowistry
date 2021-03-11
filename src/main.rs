@@ -11,6 +11,7 @@ use rustc_middle::ty::TyCtxt;
 mod analysis;
 mod config;
 mod relevance;
+mod points_to;
 
 extern crate rustc_driver;
 extern crate rustc_graphviz;
@@ -20,6 +21,7 @@ extern crate rustc_interface;
 extern crate rustc_middle;
 extern crate rustc_mir;
 extern crate rustc_span;
+extern crate rustc_target;
 
 struct BorrowChecker<'tcx> {
   tcx: TyCtxt<'tcx>,

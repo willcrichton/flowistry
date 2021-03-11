@@ -1,5 +1,6 @@
 use crate::config::{Range, CONFIG};
-use crate::relevance::RelevanceAnalysis;
+use crate::points_to::{PointsToAnalysis, PlacePrim};
+use crate::relevance::{RelevanceAnalysis, RelevanceDomain};
 use anyhow::{Context, Result};
 use rustc_graphviz as dot;
 use rustc_middle::{
@@ -10,11 +11,15 @@ use rustc_middle::{
   },
   ty::TyCtxt,
 };
-use rustc_mir::dataflow::{graphviz, Analysis, AnalysisDomain, ResultsVisitor};
+use rustc_mir::dataflow::{
+  fmt::DebugWithContext, graphviz, Analysis, Results, ResultsRefCursor,
+  ResultsVisitor,
+};
 use rustc_mir::util::write_mir_fn;
 use rustc_span::Span;
 use serde::Serialize;
 use std::{
+  cell::RefCell,
   collections::HashSet,
   fs::File,
   io::{self, Write},
@@ -27,37 +32,29 @@ struct CollectResults<'a, 'tcx> {
 }
 
 impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
-  type FlowState = <RelevanceAnalysis as AnalysisDomain<'tcx>>::Domain;
+  type FlowState = RelevanceDomain;
 
-  fn visit_statement_before_primary_effect(
+  fn visit_statement_after_primary_effect(
     &mut self,
     state: &Self::FlowState,
-    statement: &'mir mir::Statement<'tcx>,
+    _statement: &'mir mir::Statement<'tcx>,
     location: Location,
   ) {
-    match &statement.kind {
-      StatementKind::Assign(assign) => {
-        let (place, _rvalue) = &**assign;
-        let local = place.local;
-        //println!("{:?} {:?} {:?}", state, local, state.contains(local));
-        if state.contains(local) {
-          let source_info = self.body.source_info(location);
-          self.relevant_spans.push(source_info.span);
-        }
-      }
-      _ => {}
+    if state.relevant {
+      let source_info = self.body.source_info(location);
+      self.relevant_spans.push(source_info.span);
     }
   }
 }
 
 struct FindInitialSliceSet<'a, 'tcx> {
   slice_span: Span,
-  slice_set: HashSet<(Local, Location)>,
+  slice_set: HashSet<PlacePrim>,
   body: &'a Body<'tcx>,
 }
 
 impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
-  fn visit_local(&mut self, local: &Local, context: PlaceContext, location: Location) {
+  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, location: Location) {
     let source_info = self.body.source_info(location);
     let span = source_info.span;
 
@@ -65,18 +62,31 @@ impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
       return;
     }
 
-    match context {
-      PlaceContext::NonMutatingUse(_) => {
-        self.slice_set.insert((*local, location));
-      }
-      _ => {}
-    };
+    if let Some(prim) = PlacePrim::from_place(*place) {
+      self.slice_set.insert(prim);
+    }
   }
 }
 
 #[derive(Serialize)]
 struct SliceOutput {
   ranges: Vec<Range>,
+}
+
+fn dump_results<'tcx, A>(path: &str, body: &Body<'tcx>, results: &Results<'tcx, A>) -> Result<()>
+where
+  A: Analysis<'tcx>,
+  A::Domain: DebugWithContext<A>,
+{
+  let graphviz = graphviz::Formatter::new(body, &results, graphviz::OutputStyle::AfterOnly);
+  let mut buf = Vec::new();
+  dot::render(&graphviz, &mut buf)?;
+  let mut file = File::create("/tmp/graph.dot")?;
+  file.write_all(&buf)?;
+  Command::new("dot")
+    .args(&["-Tpng", "/tmp/graph.dot", "-o", path])
+    .status()?;
+  Ok(())
 }
 
 pub fn analyze(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<()> {
@@ -101,28 +111,27 @@ pub fn analyze(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<()> {
   finder.visit_body(body);
   println!("Initial slice set: {:?}", finder.slice_set);
 
-  let mut visitor = CollectResults {
-    body,
-    relevant_spans: vec![],
-  };
-  let results = RelevanceAnalysis {
+  let points_to_results = PointsToAnalysis
+    .into_engine(tcx, body)
+    .iterate_to_fixpoint();
+
+  let relevance_results = RelevanceAnalysis {
     slice_set: finder.slice_set,
+    points_to: RefCell::new(ResultsRefCursor::new(body, &points_to_results)),
   }
   .into_engine(tcx, body)
   .iterate_to_fixpoint();
 
-  results.visit_reachable_with(body, &mut visitor);
-
   if config.debug {
-    let graphviz = graphviz::Formatter::new(body, &results, graphviz::OutputStyle::AfterOnly);
-    let mut buf = Vec::new();
-    dot::render(&graphviz, &mut buf)?;
-    let mut file = File::create("target/analysis.dot")?;
-    file.write_all(&buf)?;
-    Command::new("dot")
-      .args(&["-Tpng", "target/analysis.dot", "-o", "target/analysis.png"])
-      .status()?;
+    dump_results("target/points_to.png", body, &points_to_results)?;
+    dump_results("target/relevance.png", body, &relevance_results)?;
   }
+
+  let mut visitor = CollectResults {
+    body,
+    relevant_spans: vec![],
+  };
+  relevance_results.visit_reachable_with(body, &mut visitor);
 
   let ranges = visitor
     .relevant_spans

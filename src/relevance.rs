@@ -1,114 +1,121 @@
-use rustc_index::bit_set::{BitSet, HybridBitSet};
+use crate::points_to::{PlacePrim, PointsToAnalysis, PointsToDomain};
 use rustc_middle::mir::{
   self,
   visit::{PlaceContext, Visitor},
   *,
 };
-use rustc_mir::dataflow::{Analysis, AnalysisDomain, Backward};
-use std::collections::HashSet;
+use rustc_mir::dataflow::{
+  fmt::DebugWithContext, Analysis, AnalysisDomain, Backward, JoinSemiLattice, ResultsRefCursor,
+};
+use std::{cell::RefCell, collections::HashSet, fmt};
 
-pub type SliceSet = HashSet<(Local, Location)>;
+pub type SliceSet = HashSet<PlacePrim>;
 
-// #[derive(Clone, Debug, PartialEq, Eq)]
-// struct RelevanceDomain {
-//   relevant: BitSet<Local>
-// }
-
-// impl RelevanceDomain {
-//   fn bottom_value<'tcx>(body: &Body<'tcx>) -> Self {
-//     let relevant = BitSet::new_empty(body.local_decls().len());
-//     RelevanceDomain { relevant }
-//   }
-// }
-
-// impl JoinSemiLattice for RelevanceDomain {
-//   fn join(&mut self, other: &Self) -> bool {
-//       self.relevant.join(&other.relevant)
-//   }
-// }
-
-// impl<C> DebugWithContext<C> for RelevanceDomain {
-//   fn fmt_with(&self, ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//     self.relevant.fmt_with(ctxt, f)
-//   }
-
-//   fn fmt_diff_with(&self, old: &Self, ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//       self.relevant.fmt_diff_with(old.relevant, ctxt, f)
-//   }
-// }
-
-pub type RelevanceDomain = BitSet<Local>;
-
-struct CollectLocals {
-  locals: HybridBitSet<Local>,
+#[derive(Clone, PartialEq, Eq)]
+pub struct RelevanceDomain {
+  pub places: HashSet<PlacePrim>,
+  pub relevant: bool,
 }
 
-impl<'tcx> Visitor<'tcx> for CollectLocals {
-  fn visit_local(&mut self, local: &Local, _context: PlaceContext, _location: Location) {
-    self.locals.insert(*local);
+impl JoinSemiLattice for RelevanceDomain {
+  fn join(&mut self, other: &Self) -> bool {
+    let orig_len = self.places.len();
+    self.places = &self.places | &other.places;
+    orig_len != self.places.len()
   }
 }
 
-struct TransferFunction<'a> {
-  analysis: &'a RelevanceAnalysis,
+impl fmt::Debug for RelevanceDomain {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "({:?}, {:?})", self.places, self.relevant)
+  }
+}
+
+impl<C> DebugWithContext<C> for RelevanceDomain {}
+
+struct CollectPlaces<'a> {
+  places: HashSet<PlacePrim>,
+  points_to: &'a PointsToDomain,
+}
+
+impl<'a, 'tcx> Visitor<'tcx> for CollectPlaces<'a> {
+  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, _location: Location) {
+    let aliases = self.points_to.points_to(*place);
+    self.places = &self.places | &aliases;
+  }
+}
+
+struct TransferFunction<'a, 'b, 'mir, 'tcx> {
+  analysis: &'a RelevanceAnalysis<'b, 'mir, 'tcx>,
   state: &'a mut RelevanceDomain,
 }
 
-impl<'a, 'tcx> Visitor<'tcx> for TransferFunction<'a> {
-  // fn visit_statement(&mut self, stmt: &mir::Statement<'tcx>, location: Location) {
-  //   self.super_statement(stmt, location);
-
-  //   // When we reach a `StorageDead` statement, we can assume that any pointers to this memory
-  //   // are now invalid.
-  //   if let StatementKind::StorageDead(local) = stmt.kind {
-  //     self.gen_kill.kill(local);
-  //   }
+impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> {
+  fn visit_statement(&mut self, statement: &Statement<'tcx>, location: Location) {
+    match statement.kind {
+      StatementKind::Assign(_) => {
+        self.super_statement(statement, location);
+      }
+      _ => {
+        self.state.relevant = false;
+      }
+    }
+  }
 
   fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
     self.super_assign(place, rvalue, location);
 
-    let lvalue = place.local;
+    let points_to = self.analysis.points_to.borrow();
+    let points_to = points_to.get();
 
-    // Kill defined variables
-    let defined_relevant = self.state.remove(lvalue);
+    let possibly_assigned = points_to.points_to(*place);
 
-    // Add used variables if killed was relevant
-    if defined_relevant {
-      let mut collector = CollectLocals {
-        locals: HybridBitSet::new_empty(self.state.domain_size()),
+    let relevant_and_assigned = &self.state.places & &possibly_assigned;
+    self.state.relevant = !relevant_and_assigned.is_empty();
+
+    if self.state.relevant {
+      if possibly_assigned.len() == 1 {
+        assert!(self
+          .state
+          .places
+          .remove(possibly_assigned.iter().next().unwrap()));
+      }
+
+      let mut collector = CollectPlaces {
+        places: HashSet::new(),
+        points_to,
       };
       collector.visit_rvalue(rvalue, location);
-      self.state.union(&collector.locals);
+      self.state.places = &self.state.places | &collector.places;
     }
   }
 
-  fn visit_local(&mut self, local: &Local, _context: PlaceContext, location: Location) {
-    if self.analysis.slice_set.contains(&(*local, location)) {
-      self.state.insert(*local);
+  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, _location: Location) {
+    let points_to = self.analysis.points_to.borrow();
+    let points_to = points_to.get();
+    let prims = points_to.points_to(*place);
+    let overlap = &prims & &self.analysis.slice_set;
+    if !overlap.is_empty() {
+      self.state.places = &self.state.places | &prims;
     }
-  }
-
-  fn visit_rvalue(&mut self, rvalue: &Rvalue<'tcx>, location: Location) {
-    self.super_rvalue(rvalue, location);
-  }
-
-  fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
-    self.super_terminator(terminator, location);
   }
 }
 
-pub struct RelevanceAnalysis {
+pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   pub slice_set: SliceSet,
+  pub points_to: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, PointsToAnalysis>>,
 }
 
-impl<'tcx> AnalysisDomain<'tcx> for RelevanceAnalysis {
+impl<'a, 'mir, 'tcx> AnalysisDomain<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
   type Domain = RelevanceDomain;
   type Direction = Backward;
-  const NAME: &'static str = "RelevanceAnslysis";
+  const NAME: &'static str = "RelevanceAnalysis";
 
-  fn bottom_value(&self, body: &mir::Body<'tcx>) -> Self::Domain {
-    BitSet::new_empty(body.local_decls().len())
-    //RelevanceDomain::bottom_value(body)
+  fn bottom_value(&self, _body: &mir::Body<'tcx>) -> Self::Domain {
+    RelevanceDomain {
+      places: HashSet::new(),
+      relevant: false,
+    }
   }
 
   fn initialize_start_block(&self, _: &mir::Body<'tcx>, _: &mut Self::Domain) {
@@ -116,13 +123,18 @@ impl<'tcx> AnalysisDomain<'tcx> for RelevanceAnalysis {
   }
 }
 
-impl<'tcx> Analysis<'tcx> for RelevanceAnalysis {
+impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
   fn apply_statement_effect(
     &self,
     state: &mut Self::Domain,
     statement: &mir::Statement<'tcx>,
     location: Location,
   ) {
+    self
+      .points_to
+      .borrow_mut()
+      .seek_before_primary_effect(location);
+
     TransferFunction {
       state,
       analysis: self,
