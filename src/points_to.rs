@@ -83,7 +83,7 @@ impl PlacePrim {
             } else if def.is_enum() {
               place.projection.push(ProjectionPrim::Downcast(idx));
             } else {
-              unimplemented!()
+              unimplemented!("{:?}", def);
             };
 
             let public_fields = variant

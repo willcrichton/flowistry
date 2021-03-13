@@ -1,5 +1,5 @@
 use crate::config::{Range, CONFIG};
-use crate::points_to::{PointsToAnalysis, PlacePrim};
+use crate::points_to::{PlacePrim, PointsToAnalysis};
 use crate::relevance::{RelevanceAnalysis, RelevanceDomain};
 use anyhow::{Context, Result};
 use rustc_graphviz as dot;
@@ -11,10 +11,7 @@ use rustc_middle::{
   },
   ty::TyCtxt,
 };
-use rustc_mir::dataflow::{
-  fmt::DebugWithContext, graphviz, Analysis, Results, ResultsRefCursor,
-  ResultsVisitor,
-};
+use rustc_mir::dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results, ResultsVisitor};
 use rustc_mir::util::write_mir_fn;
 use rustc_span::Span;
 use serde::Serialize;
@@ -40,14 +37,19 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
     _statement: &'mir mir::Statement<'tcx>,
     location: Location,
   ) {
-    if state.relevant {
+    if state.statement_relevant {
       let source_info = self.body.source_info(location);
       self.relevant_spans.push(source_info.span);
     }
   }
 
-  fn visit_terminator_after_primary_effect(&mut self, state: &Self::FlowState, _terminator: &'mir mir::Terminator<'tcx>, location: Location) {
-    if state.relevant {
+  fn visit_terminator_after_primary_effect(
+    &mut self,
+    state: &Self::FlowState,
+    _terminator: &'mir mir::Terminator<'tcx>,
+    location: Location,
+  ) {
+    if state.statement_relevant {
       let source_info = self.body.source_info(location);
       self.relevant_spans.push(source_info.span);
     }
@@ -121,14 +123,10 @@ pub fn analyze(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<()> {
     .into_engine(tcx, body)
     .iterate_to_fixpoint();
 
-  let relevance_results = RelevanceAnalysis {
-    slice_set: finder.slice_set,
-    pointer_analysis: RefCell::new(ResultsRefCursor::new(body, &points_to_results)),
-    tcx, body, 
-    module: tcx.parent_module(body_id.hir_id).to_def_id(),
-  }
-  .into_engine(tcx, body)
-  .iterate_to_fixpoint();
+  let relevance_results =
+    RelevanceAnalysis::new(finder.slice_set, tcx, body_id, body, &points_to_results)
+      .into_engine(tcx, body)
+      .iterate_to_fixpoint();
 
   if config.debug {
     dump_results("target/points_to.png", body, &points_to_results)?;
