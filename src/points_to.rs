@@ -1,7 +1,7 @@
 use rustc_hir::def_id::DefId;
 use rustc_middle::{
   mir::{self, tcx::PlaceTy, visit::Visitor, *},
-  ty::{AdtFlags, ParamEnv, TyCtxt, TyKind},
+  ty::{ParamEnv, TyCtxt, TyKind},
 };
 use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, AnalysisDomain, JoinSemiLattice};
 use rustc_target::abi::VariantIdx;
@@ -99,35 +99,14 @@ impl PlacePrim {
           .fold(HashSet::new(), |s1, s2| &s1 | &s2)
       }
 
-      _ if ty.is_primitive_ty() || ty.is_ref() => HashSet::new(),
+      // TODO: is this correct, eps. for array types?
+      _ if ty.is_primitive_ty() || ty.is_ref() || ty.is_fn_ptr() || ty.is_array() => HashSet::new(),
+
       _ => unimplemented!("{:?} {:?}", self, ty),
     };
 
     places.insert(self.clone());
     places
-  }
-
-  pub fn from_place(place: Place) -> Option<Self> {
-    place
-      .projection
-      .iter()
-      .fold(Some(Vec::new()), |acc, elem| {
-        acc.and_then(|mut elems| {
-          let new_elem = match elem {
-            ProjectionElem::Field(field, _) => Some(ProjectionPrim::Field(field)),
-            _ => None,
-          };
-
-          new_elem.map(move |new_elem| {
-            elems.push(new_elem);
-            elems
-          })
-        })
-      })
-      .map(|projection| PlacePrim {
-        local: place.local,
-        projection,
-      })
   }
 }
 
@@ -282,7 +261,7 @@ impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
     }
   }
 
-  fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
+  fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, _location: Location) {
     match &terminator.kind {
       TerminatorKind::Call {
         func,
@@ -298,7 +277,7 @@ impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
 
             let output_ty = sig.output();
             if let TyKind::Ref(output_region, _, Mutability::Mut) = output_ty.kind() {
-              let possible_borrows = sig
+              sig
                 .inputs()
                 .iter()
                 .zip(args.iter())

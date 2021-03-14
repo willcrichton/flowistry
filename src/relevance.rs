@@ -1,5 +1,5 @@
 use crate::points_to::{PlacePrim, PointsToAnalysis, PointsToDomain};
-use log::{debug, info};
+use log::{debug};
 use rustc_hir::{def_id::DefId, BodyId};
 use rustc_middle::{
   mir::{
@@ -7,7 +7,7 @@ use rustc_middle::{
     visit::{PlaceContext, Visitor},
     *,
   },
-  ty::{subst::Subst, ParamEnv, TyCtxt, TyKind},
+  ty::{TyCtxt, TyKind},
 };
 use rustc_mir::dataflow::{
   fmt::DebugWithContext, Analysis, AnalysisDomain, Backward, JoinSemiLattice, Results,
@@ -19,7 +19,7 @@ use std::{
   fmt,
 };
 
-pub type SliceSet = HashSet<PlacePrim>;
+pub type SliceSet = HashSet<Location>;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct RelevanceDomain {
@@ -113,23 +113,28 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
 
   fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
     self.super_assign(place, rvalue, location);
+    self.state.statement_relevant = false;
 
     let pointer_analysis = self.analysis.pointer_analysis.borrow();
     let pointer_analysis = pointer_analysis.get();
 
     let possibly_mutated = pointer_analysis.possible_prims(*place);
 
+    debug!("checking assign {:?} = {:?} in context {:?}", place, rvalue, self.state.places);
     if self.any_relevant_mutated(&possibly_mutated) {
-      debug!("relevant assignment to {:?}", place);
+      debug!("  relevant assignment to {:?}", place);
 
       self.state.statement_relevant = true;
       self.state.path_relevant = true;
 
-      // NOT SURE THIS IS SOUND if mutating x.0 and x is relevant
       if possibly_mutated.len() == 1 {
         let definitely_mutated = possibly_mutated.iter().next().unwrap();
-        debug!("deleting {:?}", definitely_mutated);
+
+        // if mutating x.0 and x is relevant, this should return false 
+        // since x.0 is not in the relevant set, but it is a relevant mutation
         self.state.places.remove(definitely_mutated);
+
+        debug!("  deleting {:?}, remaining {:?}", definitely_mutated, self.state.places);
       }
 
       let mut collector = CollectPlaces {
@@ -139,33 +144,34 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       collector.visit_rvalue(rvalue, location);
 
       debug!(
-        "collected from rvalue {:?}, got places {:?}",
+        "  collected from rvalue {:?}, got places {:?}",
         rvalue, collector.places
       );
 
       self.state.places = &self.state.places | &collector.places;
+      debug!("  new places: {:?}", self.state.places);
     }
   }
 
-  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, _location: Location) {
-    let pointer_analysis = self.analysis.pointer_analysis.borrow();
-    let pointer_analysis = pointer_analysis.get();
-    let prims = pointer_analysis.possible_prims(*place);
-    let overlap = &prims & &self.analysis.slice_set;
-    if !overlap.is_empty() {
+  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, location: Location) {
+    if self.analysis.slice_set.contains(&location) {
+      let pointer_analysis = self.analysis.pointer_analysis.borrow();
+      let pointer_analysis = pointer_analysis.get();
+      let prims = pointer_analysis.possible_prims(*place);
       self.state.places = &self.state.places | &prims;
     }
   }
 
-  fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
+  fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, _location: Location) {
     let pointer_analysis = self.analysis.pointer_analysis.borrow();
     let pointer_analysis = pointer_analysis.get();
+    self.state.statement_relevant = false;
 
     self.state.path_relevant = match &terminator.kind {
       TerminatorKind::SwitchInt { discr, .. } => {
         if self.state.path_relevant {
           match discr {
-            Operand::Move(place) => {
+            Operand::Move(place) | Operand::Copy(place) => {
               let relevant_to_control = pointer_analysis.possible_prims(*place);
               self.state.places = &self.state.places | &relevant_to_control;
             }

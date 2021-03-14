@@ -1,6 +1,6 @@
 use crate::config::{Range, CONFIG};
-use crate::points_to::{PlacePrim, PointsToAnalysis};
-use crate::relevance::{RelevanceAnalysis, RelevanceDomain};
+use crate::points_to::{PointsToAnalysis};
+use crate::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use anyhow::{Context, Result};
 use rustc_graphviz as dot;
 use rustc_middle::{
@@ -16,7 +16,6 @@ use rustc_mir::util::write_mir_fn;
 use rustc_span::Span;
 use serde::Serialize;
 use std::{
-  cell::RefCell,
   collections::HashSet,
   fs::File,
   io::{self, Write},
@@ -58,12 +57,12 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
 
 struct FindInitialSliceSet<'a, 'tcx> {
   slice_span: Span,
-  slice_set: HashSet<PlacePrim>,
+  slice_set: SliceSet,
   body: &'a Body<'tcx>,
 }
 
 impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
-  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, location: Location) {
+  fn visit_place(&mut self, _place: &Place<'tcx>, _context: PlaceContext, location: Location) {
     let source_info = self.body.source_info(location);
     let span = source_info.span;
 
@@ -71,9 +70,7 @@ impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
       return;
     }
 
-    if let Some(prim) = PlacePrim::from_place(*place) {
-      self.slice_set.insert(prim);
-    }
+    self.slice_set.insert(location);
   }
 }
 
