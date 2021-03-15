@@ -74,7 +74,7 @@ fn main() {
 
 #[test]
 fn if_all_paths_irrelevant() {
-  let _src = r#"
+  let src = r#"
 fn main() {
   let x = 1;
   let y = if true { 1 } else { 2 };
@@ -82,11 +82,7 @@ fn main() {
 }
 "#;
 
-  /* TODO!!
-   * path_relevant doesn't seem to be working correctly here
-   */
-
-  //run(src, Range::line(4, 3, 4), vec![2, 4]);
+  run(src, Range::line(4, 3, 4), vec![2, 4]);
 }
 
 #[test]
@@ -137,7 +133,8 @@ fn main() {
 "#;
 
   /* TODO!
-   * probably same issue as if_all_paths_irrelevant
+   * while loop is considered relevant.
+   * probably only solved by generating post-dominator tree? TBD
    */
 
   //run(src, Range::line(7, 3, 4), vec![2, 7]);
@@ -182,7 +179,7 @@ fn main() {
 "#;
 
   /*
-   * TODO!!!
+   * TODO
    * This test currently fails b/c x = (2, 3) gets expanded to x.0 = 2, x.1 = 3
    * in the MIR. Slicer doesn't accumulate field-level assignments to eventually
    * kill the whole structure when each field has been set. (Possible feature?)
@@ -258,9 +255,11 @@ fn main() {
 "#;
 
   /*
-   * TODO!!
-   * apparently haven't implemented field-discrimination based on variant?
-   * should be done in placeprim... double check this
+   * TODO!
+   * Issue is that switch on discriminant(x) adds x to relevant set,
+   * and then any mutations to subfields of x are relevant.
+   * Not sure what the solution is beyond some kind of fancy flow-sensitivity,
+   * or maybe including discriminant(x) as a first-class PlacePrim
    */
 
   //run(src, Range::line(11, 5, 6), vec![3, 4, 5, 10, 11]);
@@ -386,6 +385,23 @@ fn main() {
 "#;
 
   run(src, Range::line(6, 3, 4), vec![4, 6]);
+}
+
+
+#[test]
+fn function_mut_input_field() {
+  // y should be relevant b/c it could be involved in computation of x
+  let src = r#"
+fn foo(x: (&mut i32,)) {}  
+
+fn main() {
+  let mut x = 1;
+  foo((&mut x,));
+  x;
+}
+"#;
+
+  run(src, Range::line(6, 3, 4), vec![4, 5, 6]);
 }
 
 #[test]

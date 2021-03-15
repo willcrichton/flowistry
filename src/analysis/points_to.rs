@@ -138,7 +138,7 @@ impl fmt::Debug for PlacePrim {
           write!(f, ".{:?})", field.index())?;
         }
         ProjectionPrim::Downcast(index) => {
-          write!(f, "as {:?})", index)?;
+          write!(f, " as {:?})", index)?;
         }
       }
     }

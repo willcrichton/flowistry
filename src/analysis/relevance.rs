@@ -7,7 +7,7 @@ use rustc_middle::{
     visit::{PlaceContext, Visitor},
     *,
   },
-  ty::{TyCtxt},
+  ty::TyCtxt,
 };
 use rustc_mir::dataflow::{
   fmt::DebugWithContext, Analysis, AnalysisDomain, Backward, JoinSemiLattice, Results,
@@ -21,22 +21,47 @@ use std::{
 
 pub type SliceSet = HashSet<Location>;
 
+// Previous strategy of representing path relevance as a bool didn't seem to work out
+// with out dataflow framework handles start/exit states and join? Adding a third unknown
+// state as bottom rather than defaulting to false seemed to work
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Relevant {
+  Yes,
+  No,
+  Unknown,
+}
+
+impl JoinSemiLattice for Relevant {
+  fn join(&mut self, other: &Self) -> bool {
+    let state = match (*self, *other) {
+      (Relevant::Yes, _) | (_, Relevant::Yes) => Relevant::Yes,
+      (Relevant::No, Relevant::Unknown) | (Relevant::Unknown, Relevant::No) => Relevant::No,
+      _ => Relevant::Unknown
+    };
+    if state != *self {
+      *self = state;
+      true
+    } else { 
+      false
+    }
+  }
+}
+
 #[derive(Clone, PartialEq, Eq)]
 pub struct RelevanceDomain {
   pub places: HashSet<PlacePrim>,
   pub statement_relevant: bool,
-  pub path_relevant: bool,
+  pub path_relevant: Relevant,
 }
 
 impl JoinSemiLattice for RelevanceDomain {
   fn join(&mut self, other: &Self) -> bool {
-    let orig_path_relevant = self.path_relevant;
     let orig_len = self.places.len();
-
     self.places = &self.places | &other.places;
-    self.path_relevant = self.path_relevant || other.path_relevant;
 
-    orig_len != self.places.len() || orig_path_relevant != self.path_relevant
+    let path_relevant_joined = self.path_relevant.join(&other.path_relevant);
+
+    orig_len != self.places.len() || path_relevant_joined
   }
 }
 
@@ -134,7 +159,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       debug!("  relevant assignment to {:?}", place);
 
       self.state.statement_relevant = true;
-      self.state.path_relevant = true;
+      self.state.path_relevant = Relevant::Yes;
 
       if possibly_mutated.len() == 1 {
         let definitely_mutated = possibly_mutated.iter().next().unwrap();
@@ -179,9 +204,9 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
     let pointer_analysis = pointer_analysis.get();
     self.state.statement_relevant = false;
 
-    self.state.path_relevant = match &terminator.kind {
+    let path_relevant = match &terminator.kind {
       TerminatorKind::SwitchInt { discr, .. } => {
-        if self.state.path_relevant {
+        if self.state.path_relevant == Relevant::Yes{
           match discr {
             Operand::Move(place) | Operand::Copy(place) => {
               let relevant_to_control = pointer_analysis.possible_prims(*place);
@@ -195,9 +220,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       }
 
       TerminatorKind::Call {
-        args,
-        destination,
-        ..
+        args, destination, ..
       } => {
         let any_relevant_mutable_inputs = args.iter().any(|arg| match arg {
           Operand::Move(place) | Operand::Copy(place) => {
@@ -247,6 +270,8 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       }
       _ => false,
     };
+
+    self.state.path_relevant = if path_relevant { Relevant::Yes } else { Relevant::No };
   }
 }
 
@@ -324,7 +349,7 @@ impl<'a, 'mir, 'tcx> AnalysisDomain<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> 
     RelevanceDomain {
       places: HashSet::new(),
       statement_relevant: false,
-      path_relevant: true,
+      path_relevant: Relevant::Unknown,
     }
   }
 
