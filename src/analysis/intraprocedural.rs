@@ -108,12 +108,14 @@ pub fn analyze_function(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<Slic
     let local_def_id = body_id.hir_id.owner;
     let body = tcx.optimized_mir(local_def_id);
 
-    debug!("MIR");
-    let mut buffer = Vec::new();
-    write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
-    debug!("{}", String::from_utf8_lossy(&buffer));
-    debug!("============");
-
+    if config.debug {
+      debug!("MIR");
+      let mut buffer = Vec::new();
+      write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
+      debug!("{}", String::from_utf8_lossy(&buffer));
+      debug!("============");
+    }
+   
     // let borrowck_result = tcx.mir_borrowck(local_def_id);
 
     let source_map = tcx.sess.source_map();

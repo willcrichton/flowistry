@@ -136,13 +136,12 @@ fn main() {
 }
 "#;
 
-  /* TODO! 
+  /* TODO!
    * probably same issue as if_all_paths_irrelevant
    */
 
   //run(src, Range::line(7, 3, 4), vec![2, 7]);
 }
-
 
 #[test]
 fn tuple_write_field_read_whole() {
@@ -192,7 +191,6 @@ fn main() {
   // run(src, Range::line(4, 3, 4), vec![3, 4]);
 }
 
-
 #[test]
 fn tuple_write_whole_read_field() {
   let src = r#"
@@ -215,7 +213,7 @@ fn main() {
   x.y = 3;
   x;
 }
-"#;  
+"#;
 
   run(src, Range::line(5, 3, 4), vec![3, 4, 5]);
 }
@@ -235,14 +233,14 @@ fn main() {
   }  
   x;
 }
-"#;  
-  
+"#;
+
   run(src, Range::line(10, 3, 4), vec![3, 4, 5, 7, 8, 10]);
 }
 
 #[test]
 fn enum_write_branch_read_branch() {
-  // Foo::Y code should be irrelevant 
+  // Foo::Y code should be irrelevant
   let _src = r#"
 fn main() {
   enum Foo { X(i32), Y(i32) }
@@ -257,14 +255,14 @@ fn main() {
     z;
   }
 }
-"#;  
+"#;
 
   /*
    * TODO!!
    * apparently haven't implemented field-discrimination based on variant?
    * should be done in placeprim... double check this
    */
-  
+
   //run(src, Range::line(11, 5, 6), vec![3, 4, 5, 10, 11]);
 }
 
@@ -341,7 +339,6 @@ fn main() {
   run(src, Range::line(6, 3, 4), vec![4, 5, 6]);
 }
 
-
 #[test]
 fn function_input() {
   let src = r#"
@@ -360,22 +357,24 @@ fn main() {
 
 #[test]
 fn function_mut_input() {
+  // y should be relevant b/c it could be involved in computation of x
   let src = r#"
-fn foo(x: &mut i32) {}  
+fn foo(x: &mut i32, y: i32) {}  
 
 fn main() {
   let mut x = 1;
-  foo(&mut x);
+  let y = 2;
+  foo(&mut x, y);
   x;
 }
 "#;
 
-  run(src, Range::line(6, 3, 4), vec![4, 5, 6]);
+  run(src, Range::line(7, 3, 4), vec![4, 5, 6, 7]);
 }
-
 
 #[test]
 fn function_ref_input() {
+  // call should be irrelevant b/c x can only be read
   let src = r#"
 fn foo(x: &i32) {}  
 
@@ -388,7 +387,6 @@ fn main() {
 
   run(src, Range::line(6, 3, 4), vec![4, 6]);
 }
-
 
 #[test]
 fn function_mut_output() {
@@ -423,5 +421,81 @@ fn main() {
   run(src, Range::line(8, 3, 4), vec![4, 5, 6, 8]);
 }
 
+#[test]
+fn function_mut_output_field_read_whole() {
+  let src = r#"
+fn foo(x: &mut (i32, i32)) -> &mut i32 { &mut x.0 }
 
+fn main() {
+  let mut x = (0, 1);
+  let y = foo(&mut x);
+  *y += 1;
+  x;
+}
+"#;
 
+  run(src, Range::line(7, 3, 4), vec![4, 5, 6, 7]);
+}
+
+#[test]
+fn function_mut_output_field_read_field() {
+  // Should conservatively assume returned value could be any field
+  let src = r#"
+fn foo(x: &mut (i32, i32)) -> &mut i32 { &mut x.0 }
+
+fn main() {
+  let mut x = (0, 1);
+  let y = foo(&mut x);
+  *y += 1;
+  x.1;
+}
+"#;
+
+  run(src, Range::line(7, 3, 6), vec![4, 5, 6, 7]);
+}
+
+#[test]
+fn closure_write_upvar() {
+  let src = r#"
+fn main() {
+  let mut x = 1;
+  let mut f = || { x += 1; };
+  f();
+  x;
+}
+"#;
+
+  // NOTE / TODO
+  // Seems like when a variable is captured as an upvar than explicitly passed as &mut,
+  // the MIR source map links the &mut back to the closure definition source range. 
+  // Hence this example has the closure defn as part of the slice, but not the others.  
+  run(src, Range::line(5, 3, 4), vec![2, 3, 4, 5]);
+} 
+
+#[test]
+fn closure_read_upvar() {
+  let src = r#"
+fn main() {
+  let mut x = 1;
+  let f = || { x + 1; };
+  f();
+  x;
+}
+"#;
+
+  run(src, Range::line(5, 3, 4), vec![2, 5]);
+}
+
+#[test]
+fn closure_mut_input() {
+  let src = r#"
+fn main() {
+  let mut x = 1;
+  let f = |y: &mut i32| { *y += 1; };
+  f(&mut x);
+  x;
+}
+"#;
+
+  run(src, Range::line(5, 3, 4), vec![2, 4, 5]);
+}

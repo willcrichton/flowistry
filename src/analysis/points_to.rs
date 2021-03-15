@@ -40,6 +40,12 @@ impl PlacePrim {
           ProjectionPrim::Downcast(idx) => ProjectionElem::Downcast(None, *idx),
         };
 
+        let place_ty = match place_ty.ty.kind() {
+          // If type is [closure@...] then this is actually referring to the upvars
+          TyKind::Closure(_def, substs) => PlaceTy::from_ty(substs.as_closure().tupled_upvars_ty()),
+          _ => place_ty,
+        };
+
         place_ty.projection_ty_core(tcx, ParamEnv::empty(), &elem, |ty, field, _| {
           ty.field_ty(tcx, field)
         })
@@ -99,8 +105,16 @@ impl PlacePrim {
           .fold(HashSet::new(), |s1, s2| &s1 | &s2)
       }
 
+      Closure(_def, substs) => {
+        let num_upvars =  substs.as_closure().upvar_tys().count();
+        map_fields(self, (0 .. num_upvars).collect())
+      }
+
       // TODO: is this correct, eps. for array types?
-      _ if ty.is_primitive_ty() || ty.is_ref() || ty.is_fn_ptr() || ty.is_array() => HashSet::new(),
+      _ if ty.is_primitive_ty() || ty.is_ref() || ty.is_array() => HashSet::new(),
+
+      // Functions don't hold any fields
+      _ if ty.is_fn_ptr() => HashSet::new(),
 
       _ => unimplemented!("{:?} {:?}", self, ty),
     };
@@ -184,20 +198,19 @@ impl PointsToDomain {
       })
   }
 
-  pub fn points_to(&self, place: Place) -> &HashSet<PlacePrim> {
-    self
-      .0
-      .get(&PlacePrim::local(
-        place.as_local().expect(&format!("{:?}", place)),
-      ))
-      .expect(&format!("{:?}", place))
+  pub fn points_to(&self, prim: &PlacePrim) -> Option<&HashSet<PlacePrim>> {
+    self.0.get(prim)
   }
 
   pub fn add_alias(&mut self, lplace: Place, rplace: Place) {
-    let rprims = self.points_to(rplace).clone();
+    let rprims = self.possible_prims(rplace);
+    let rprims_pointed = rprims
+      .into_iter()
+      .map(|prim| self.0.get(&prim).cloned().unwrap_or_else(HashSet::new))
+      .fold(HashSet::new(), |s1, s2| &s1 | &s2);
     for lprim in self.possible_prims(lplace).into_iter() {
       let lprims = self.0.entry(lprim).or_insert_with(HashSet::new);
-      *lprims = &*lprims | &rprims;
+      *lprims = &*lprims | &rprims_pointed;
     }
   }
 
@@ -253,10 +266,22 @@ impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
   fn visit_assign(&mut self, lplace: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
     self.super_assign(lplace, rvalue, location);
 
-    match *rvalue {
+    match &rvalue {
       Rvalue::Ref(_region, BorrowKind::Mut { .. }, rplace) => {
-        self.state.add_borrow(*lplace, rplace);
+        self.state.add_borrow(*lplace, *rplace);
       }
+      Rvalue::Use(op) => match op {
+        Operand::Move(rplace) | Operand::Copy(rplace) => {
+          if lplace
+            .ty(self.analysis.body.local_decls(), self.analysis.tcx)
+            .ty
+            .is_ref()
+          {
+            self.state.add_alias(*lplace, *rplace);
+          }
+        }
+        Operand::Constant(_) => {}
+      },
       _ => {}
     }
   }

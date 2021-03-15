@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import * as cp from 'child_process';
 
-const SLICER_PATH = '/Users/will/Code/rust-slicer/target/debug/ide';
+const SLICER_PATH = '/Users/will/Code/rust-slicer/target/debug/cli';
 let channel = vscode.window.createOutputChannel("Rust Slicer");
 let log = (...strs: any[]) => {
 	channel.appendLine(strs.map(obj => String(obj)).join('\t'));

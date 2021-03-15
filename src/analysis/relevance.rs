@@ -1,5 +1,5 @@
 use super::points_to::{PlacePrim, PointsToAnalysis, PointsToDomain};
-use log::{debug};
+use log::debug;
 use rustc_hir::{def_id::DefId, BodyId};
 use rustc_middle::{
   mir::{
@@ -7,7 +7,7 @@ use rustc_middle::{
     visit::{PlaceContext, Visitor},
     *,
   },
-  ty::{TyCtxt, TyKind},
+  ty::{TyCtxt},
 };
 use rustc_mir::dataflow::{
   fmt::DebugWithContext, Analysis, AnalysisDomain, Backward, JoinSemiLattice, Results,
@@ -92,8 +92,14 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
   fn any_relevant_mutated(&mut self, possibly_mutated: &HashSet<PlacePrim>) -> bool {
     self.state.places.iter().any(|relevant_prim| {
       possibly_mutated.iter().any(|mutated_prim| {
-        self.analysis.contains_prim(relevant_prim, mutated_prim)
-          || self.analysis.contains_prim(mutated_prim, relevant_prim)
+        self
+          .analysis
+          .sub_places(relevant_prim)
+          .contains(mutated_prim)
+          || self
+            .analysis
+            .sub_places(mutated_prim)
+            .contains(relevant_prim)
       })
     })
   }
@@ -120,7 +126,10 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
 
     let possibly_mutated = pointer_analysis.possible_prims(*place);
 
-    debug!("checking assign {:?} = {:?} in context {:?}", place, rvalue, self.state.places);
+    debug!(
+      "checking assign {:?} = {:?} in context {:?}",
+      place, rvalue, self.state.places
+    );
     if self.any_relevant_mutated(&possibly_mutated) {
       debug!("  relevant assignment to {:?}", place);
 
@@ -130,11 +139,14 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       if possibly_mutated.len() == 1 {
         let definitely_mutated = possibly_mutated.iter().next().unwrap();
 
-        // if mutating x.0 and x is relevant, this should return false 
+        // if mutating x.0 and x is relevant, this should return false
         // since x.0 is not in the relevant set, but it is a relevant mutation
         self.state.places.remove(definitely_mutated);
 
-        debug!("  deleting {:?}, remaining {:?}", definitely_mutated, self.state.places);
+        debug!(
+          "  deleting {:?}, remaining {:?}",
+          definitely_mutated, self.state.places
+        );
       }
 
       let mut collector = CollectPlaces {
@@ -183,48 +195,36 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       }
 
       TerminatorKind::Call {
-        func,
         args,
         destination,
         ..
       } => {
-        let tcx = self.analysis.tcx;
-        let func_ty = func.ty(self.analysis.body.local_decls(), tcx);
-        match func_ty.kind() {
-          TyKind::FnDef(_, _) => {
-            let sig = func_ty.fn_sig(tcx).skip_binder();
+        let any_relevant_mutable_inputs = args.iter().any(|arg| match arg {
+          Operand::Move(place) | Operand::Copy(place) => {
+            let prims = pointer_analysis.possible_prims(*place);
+            prims.iter().any(|prim| {
+              self.state.places.iter().any(|relevant| {
+                self.analysis.points_to_prim(prim, relevant)
+                  || self.analysis.points_to_prim(relevant, prim)
+              })
+            })
+          }
+          _ => false,
+        });
 
-            let any_relevant_mutable_inputs =
-              sig.inputs().iter().zip(args.iter()).any(|(ty, arg)| {
-                if let TyKind::Ref(_, _, Mutability::Mut) = ty.kind() {
-                  match arg {
-                    Operand::Move(place) => {
-                      let possibly_mutated = pointer_analysis.points_to(*place);
-                      self.any_relevant_mutated(&possibly_mutated)
-                    }
-                    _ => unimplemented!("{:?}", arg),
-                  }
-                } else {
-                  false
-                }
-              });
+        if any_relevant_mutable_inputs {
+          self.state.statement_relevant = true;
 
-            if any_relevant_mutable_inputs {
-              self.state.statement_relevant = true;
-
-              for arg in args.iter() {
-                match arg {
-                  Operand::Move(place) => {
-                    let prim = PlacePrim::local(place.as_local().expect(&format!("{:?}", place)));
-                    self.state.places.insert(prim);
-                  }
-                  _ => unimplemented!("{:?}", arg),
-                }
+          for arg in args.iter() {
+            match arg {
+              Operand::Move(place) => {
+                let prim = PlacePrim::local(place.as_local().expect(&format!("{:?}", place)));
+                self.state.places.insert(prim);
               }
+              _ => unimplemented!("{:?}", arg),
             }
           }
-          _ => unimplemented!("{:?}", func_ty),
-        };
+        }
 
         if let Some((dst_place, _)) = destination {
           let possibly_mutated = pointer_analysis.possible_prims(*dst_place);
@@ -280,13 +280,38 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     }
   }
 
-  fn contains_prim(&self, parent: &PlacePrim, child: &PlacePrim) -> bool {
+  fn sub_places(&self, prim: &PlacePrim) -> HashSet<PlacePrim> {
     self
       .sub_places
       .borrow_mut()
-      .entry(parent.clone())
-      .or_insert_with(|| parent.sub_places(self.body.local_decls(), self.tcx, self.module))
-      .contains(child)
+      .entry(prim.clone())
+      .or_insert_with(|| prim.sub_places(self.body.local_decls(), self.tcx, self.module))
+      .clone()
+  }
+
+  fn points_to_prim(&self, parent: &PlacePrim, child: &PlacePrim) -> bool {
+    if parent == child {
+      return true;
+    }
+
+    let pointer_analysis = self.pointer_analysis.borrow();
+    let pointer_analysis = pointer_analysis.get();
+
+    self.sub_places(parent).iter().any(|parent_sub| {
+      debug!(
+        "parent {:?} parent_sub {:?} child {:?}",
+        parent_sub, parent, child
+      );
+
+      pointer_analysis
+        .points_to(parent_sub)
+        .map(|pointed_prims| {
+          pointed_prims
+            .iter()
+            .any(|pointed_prim| self.points_to_prim(pointed_prim, child))
+        })
+        .unwrap_or(false)
+    })
   }
 }
 
