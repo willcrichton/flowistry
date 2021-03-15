@@ -1,6 +1,6 @@
+use super::points_to::PointsToAnalysis;
+use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use crate::config::{Range, CONFIG};
-use crate::points_to::{PointsToAnalysis};
-use crate::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use anyhow::{Context, Result};
 use rustc_graphviz as dot;
 use rustc_middle::{
@@ -14,7 +14,6 @@ use rustc_middle::{
 use rustc_mir::dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results, ResultsVisitor};
 use rustc_mir::util::write_mir_fn;
 use rustc_span::Span;
-use serde::Serialize;
 use std::{
   collections::HashSet,
   fs::File,
@@ -74,11 +73,6 @@ impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
   }
 }
 
-#[derive(Serialize)]
-struct SliceOutput {
-  ranges: Vec<Range>,
-}
-
 fn dump_results<'tcx, A>(path: &str, body: &Body<'tcx>, results: &Results<'tcx, A>) -> Result<()>
 where
   A: Analysis<'tcx>,
@@ -95,7 +89,23 @@ where
   Ok(())
 }
 
-pub fn analyze(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<()> {
+pub struct SliceOutput(Vec<Range>);
+
+impl SliceOutput {
+  pub fn new() -> Self {
+    SliceOutput(Vec::new())
+  }
+
+  pub fn merge(&mut self, other: SliceOutput) {
+    self.0.extend(other.0.into_iter());
+  }
+
+  pub fn ranges(&self) -> &Vec<Range> {
+    &self.0
+  }
+}
+
+pub fn analyze_function(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<SliceOutput> {
   let config = CONFIG.get().context("Config")?;
 
   let local_def_id = body_id.hir_id.owner;
@@ -141,8 +151,6 @@ pub fn analyze(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<()> {
     .into_iter()
     .map(|span| Range::from_span(span, source_map))
     .collect();
-  let output = SliceOutput { ranges };
-  println!("{}", serde_json::to_string(&output).unwrap());
 
-  Ok(())
+  Ok(SliceOutput(ranges))
 }

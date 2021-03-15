@@ -1,4 +1,4 @@
-use crate::points_to::{PlacePrim, PointsToAnalysis, PointsToDomain};
+use super::points_to::{PlacePrim, PointsToAnalysis, PointsToDomain};
 use log::{debug};
 use rustc_hir::{def_id::DefId, BodyId};
 use rustc_middle::{

@@ -1,13 +1,33 @@
 use once_cell::sync::OnceCell;
+use rustc_span::{source_map::SourceMap, BytePos, Span};
 use serde::Serialize;
-use rustc_span::{source_map::SourceMap, Span, BytePos};
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 pub struct Range {
   pub start_line: usize,
   pub start_col: usize,
   pub end_line: usize,
   pub end_col: usize,
+}
+
+impl Range {
+  pub fn line(line: usize, start: usize, end: usize) -> Range {
+    Range {
+      start_line: line,
+      start_col: start,
+      end_line: line,
+      end_col: end
+    }
+  }
+
+  pub fn substr(&self, s: &str) -> String {
+    let lines = s.split("\n").collect::<Vec<_>>();
+    if self.start_line != self.end_line {
+      unimplemented!()
+    } else {
+      lines[self.start_line][self.start_col..=self.end_col].to_owned()
+    }
+  }
 }
 
 impl Range {
@@ -31,12 +51,10 @@ impl Range {
   }
 }
 
-
 #[derive(Debug)]
 pub struct Config {
   pub range: Range,
-  pub debug: bool
+  pub debug: bool,
 }
 
 pub static CONFIG: OnceCell<Config> = OnceCell::new();
-  
