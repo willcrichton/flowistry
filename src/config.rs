@@ -1,4 +1,4 @@
-use once_cell::sync::OnceCell;
+use fluid_let::fluid_let;
 use rustc_span::{source_map::SourceMap, BytePos, Span};
 use serde::Serialize;
 
@@ -57,4 +57,4 @@ pub struct Config {
   pub debug: bool,
 }
 
-pub static CONFIG: OnceCell<Config> = OnceCell::new();
+fluid_let!(pub static CONFIG: Config);

@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import * as cp from 'child_process';
 
-const SLICER_PATH = '/Users/will/Code/rust-slicer/target/debug/rust-slicer';
+const SLICER_PATH = '/Users/will/Code/rust-slicer/target/debug/ide';
 let channel = vscode.window.createOutputChannel("Rust Slicer");
 let log = (...strs: any[]) => {
 	channel.appendLine(strs.map(obj => String(obj)).join('\t'));
@@ -59,7 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
 						return {range};
 					});
 
-					active_editor.setDecorations(decoration_type, decorations)					
+					active_editor.setDecorations(decoration_type, decorations)
 
 					let callback = vscode.workspace.onDidChangeTextDocument(event => {
 						if (!active_editor) { return; }

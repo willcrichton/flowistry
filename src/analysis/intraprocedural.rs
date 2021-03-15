@@ -2,6 +2,7 @@ use super::points_to::PointsToAnalysis;
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use crate::config::{Range, CONFIG};
 use anyhow::{Context, Result};
+use log::debug;
 use rustc_graphviz as dot;
 use rustc_middle::{
   mir::{
@@ -14,12 +15,7 @@ use rustc_middle::{
 use rustc_mir::dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results, ResultsVisitor};
 use rustc_mir::util::write_mir_fn;
 use rustc_span::Span;
-use std::{
-  collections::HashSet,
-  fs::File,
-  io::{self, Write},
-  process::Command,
-};
+use std::{collections::HashSet, fs::File, io::Write, process::Command};
 
 struct CollectResults<'a, 'tcx> {
   body: &'a Body<'tcx>,
@@ -106,51 +102,55 @@ impl SliceOutput {
 }
 
 pub fn analyze_function(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<SliceOutput> {
-  let config = CONFIG.get().context("Config")?;
+  CONFIG.get(|config| {
+    let config = config.context("Missing config")?;
 
-  let local_def_id = body_id.hir_id.owner;
-  let body = tcx.optimized_mir(local_def_id);
+    let local_def_id = body_id.hir_id.owner;
+    let body = tcx.optimized_mir(local_def_id);
 
-  println!("MIR");
-  write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut io::stdout().lock())?;
-  println!("============");
+    debug!("MIR");
+    let mut buffer = Vec::new();
+    write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
+    debug!("{}", String::from_utf8_lossy(&buffer));
+    debug!("============");
 
-  // let borrowck_result = tcx.mir_borrowck(local_def_id);
+    // let borrowck_result = tcx.mir_borrowck(local_def_id);
 
-  let source_map = tcx.sess.source_map();
-  let mut finder = FindInitialSliceSet {
-    slice_span: config.range.to_span(source_map),
-    slice_set: HashSet::new(),
-    body,
-  };
-  finder.visit_body(body);
-  println!("Initial slice set: {:?}", finder.slice_set);
+    let source_map = tcx.sess.source_map();
+    let mut finder = FindInitialSliceSet {
+      slice_span: config.range.to_span(source_map),
+      slice_set: HashSet::new(),
+      body,
+    };
+    finder.visit_body(body);
+    debug!("Initial slice set: {:?}", finder.slice_set);
 
-  let points_to_results = PointsToAnalysis { tcx, body }
-    .into_engine(tcx, body)
-    .iterate_to_fixpoint();
-
-  let relevance_results =
-    RelevanceAnalysis::new(finder.slice_set, tcx, body_id, body, &points_to_results)
+    let points_to_results = PointsToAnalysis { tcx, body }
       .into_engine(tcx, body)
       .iterate_to_fixpoint();
 
-  if config.debug {
-    dump_results("target/points_to.png", body, &points_to_results)?;
-    dump_results("target/relevance.png", body, &relevance_results)?;
-  }
+    let relevance_results =
+      RelevanceAnalysis::new(finder.slice_set, tcx, body_id, body, &points_to_results)
+        .into_engine(tcx, body)
+        .iterate_to_fixpoint();
 
-  let mut visitor = CollectResults {
-    body,
-    relevant_spans: vec![],
-  };
-  relevance_results.visit_reachable_with(body, &mut visitor);
+    if config.debug {
+      dump_results("target/points_to.png", body, &points_to_results)?;
+      dump_results("target/relevance.png", body, &relevance_results)?;
+    }
 
-  let ranges = visitor
-    .relevant_spans
-    .into_iter()
-    .map(|span| Range::from_span(span, source_map))
-    .collect();
+    let mut visitor = CollectResults {
+      body,
+      relevant_spans: vec![],
+    };
+    relevance_results.visit_reachable_with(body, &mut visitor);
 
-  Ok(SliceOutput(ranges))
+    let ranges = visitor
+      .relevant_spans
+      .into_iter()
+      .map(|span| Range::from_span(span, source_map))
+      .collect();
+
+    Ok(SliceOutput(ranges))
+  })
 }

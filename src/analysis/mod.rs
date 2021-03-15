@@ -1,5 +1,5 @@
 use crate::config::{Config, CONFIG};
-use anyhow::Result;
+use anyhow::{Error, Result};
 use rustc_hir::{itemlikevisit::ItemLikeVisitor, ForeignItem, ImplItem, Item, ItemKind, TraitItem};
 use rustc_middle::ty::TyCtxt;
 
@@ -37,6 +37,7 @@ impl<'hir, 'tcx> ItemLikeVisitor<'hir> for SliceVisitor<'tcx> {
 }
 
 struct Callbacks {
+  config: Option<Config>,
   output: Option<Result<SliceOutput>>,
 }
 
@@ -46,13 +47,15 @@ impl rustc_driver::Callbacks for Callbacks {
     _compiler: &rustc_interface::interface::Compiler,
     queries: &'tcx rustc_interface::Queries<'tcx>,
   ) -> rustc_driver::Compilation {
-    queries.global_ctxt().unwrap().take().enter(|tcx| {
-      let mut slice_visitor = SliceVisitor {
-        tcx,
-        output: Ok(SliceOutput::new()),
-      };
-      tcx.hir().krate().visit_all_item_likes(&mut slice_visitor);
-      self.output = Some(slice_visitor.output);
+    CONFIG.set(self.config.take().unwrap(), || {
+      queries.global_ctxt().unwrap().take().enter(|tcx| {
+        let mut slice_visitor = SliceVisitor {
+          tcx,
+          output: Ok(SliceOutput::new()),
+        };
+        tcx.hir().krate().visit_all_item_likes(&mut slice_visitor);
+        self.output = Some(slice_visitor.output);
+      });
     });
 
     rustc_driver::Compilation::Stop
@@ -60,8 +63,7 @@ impl rustc_driver::Callbacks for Callbacks {
 }
 
 pub fn slice(config: Config, args: impl AsRef<str>) -> Result<SliceOutput> {
-  env_logger::init();
-  CONFIG.set(config).expect("Could not set config");
+  let _ = env_logger::try_init();
 
   // mir-opt-level ensures that mir_promoted doesn't apply optimizations
   let args = format!("{} -Z mir-opt-level=0", args.as_ref())
@@ -69,13 +71,14 @@ pub fn slice(config: Config, args: impl AsRef<str>) -> Result<SliceOutput> {
     .map(str::to_string)
     .collect::<Vec<_>>();
 
-  let mut callbacks = Callbacks { output: None };
-  rustc_driver::catch_fatal_errors(|| {
-    rustc_driver::RunCompiler::new(&args, &mut callbacks)
-      .run()
-      .unwrap();
-  })
-  .unwrap();
+  let mut callbacks = Callbacks {
+    config: Some(config),
+    output: None,
+  };
+
+  rustc_driver::catch_fatal_errors(|| rustc_driver::RunCompiler::new(&args, &mut callbacks).run())
+    .map_err(|_| Error::msg("rustc panicked"))?
+    .map_err(|_| Error::msg("driver failed"))?;
 
   callbacks.output.unwrap()
 }
