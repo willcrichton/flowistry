@@ -16,6 +16,7 @@ use std::{
 pub enum ProjectionPrim {
   Field(Field),
   Downcast(VariantIdx),
+  Index,
 }
 
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -38,6 +39,7 @@ impl PlacePrim {
         let elem = match prim {
           ProjectionPrim::Field(field) => ProjectionElem::Field(*field, ()),
           ProjectionPrim::Downcast(idx) => ProjectionElem::Downcast(None, *idx),
+          ProjectionPrim::Index => ProjectionElem::Index(())
         };
 
         let place_ty = match place_ty.ty.kind() {
@@ -106,12 +108,22 @@ impl PlacePrim {
       }
 
       Closure(_def, substs) => {
-        let num_upvars =  substs.as_closure().upvar_tys().count();
-        map_fields(self, (0 .. num_upvars).collect())
+        let num_upvars = substs.as_closure().upvar_tys().count();
+        map_fields(self, (0..num_upvars).collect())
       }
 
-      // TODO: is this correct, eps. for array types?
-      _ if ty.is_primitive_ty() || ty.is_ref() || ty.is_array() => HashSet::new(),
+      Array(_, _) | Slice(_) => {
+        let mut places = HashSet::new();
+        let mut place = self.clone();
+        place.projection.push(ProjectionPrim::Index);
+        places.insert(place);
+        places
+      }
+
+      Param(_) => HashSet::new(),
+
+      // TODO: is this correct?
+      _ if ty.is_primitive_ty() || ty.is_ref() => HashSet::new(),
 
       // Functions don't hold any fields
       _ if ty.is_fn_ptr() => HashSet::new(),
@@ -139,6 +151,9 @@ impl fmt::Debug for PlacePrim {
         }
         ProjectionPrim::Downcast(index) => {
           write!(f, " as {:?})", index)?;
+        }
+        ProjectionPrim::Index => {
+          write!(f, "[])")?;
         }
       }
     }
@@ -190,6 +205,14 @@ impl PointsToDomain {
           .into_iter()
           .map(|mut place| {
             place.projection.push(ProjectionPrim::Downcast(variant));
+            place
+          })
+          .collect(),
+
+        ProjectionElem::Index(_) => acc
+          .into_iter()
+          .map(|mut place| {
+            place.projection.push(ProjectionPrim::Index);
             place
           })
           .collect(),
@@ -270,7 +293,7 @@ impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
       Rvalue::Ref(_region, BorrowKind::Mut { .. }, rplace) => {
         self.state.add_borrow(*lplace, *rplace);
       }
-      Rvalue::Use(op) => match op {
+      Rvalue::Use(op) | Rvalue::Cast(_, op, _) => match op {
         Operand::Move(rplace) | Operand::Copy(rplace) => {
           if lplace
             .ty(self.analysis.body.local_decls(), self.analysis.tcx)

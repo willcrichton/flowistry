@@ -2,7 +2,7 @@ use super::points_to::PointsToAnalysis;
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use crate::config::{Range, CONFIG};
 use anyhow::{Context, Result};
-use log::debug;
+use log::{debug, info};
 use rustc_graphviz as dot;
 use rustc_middle::{
   mir::{
@@ -109,13 +109,13 @@ pub fn analyze_function(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<Slic
     let body = tcx.optimized_mir(local_def_id);
 
     if config.debug {
-      debug!("MIR");
+      info!("MIR");
       let mut buffer = Vec::new();
       write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
-      debug!("{}", String::from_utf8_lossy(&buffer));
-      debug!("============");
+      info!("{}", String::from_utf8_lossy(&buffer));
+      info!("============");
     }
-   
+
     // let borrowck_result = tcx.mir_borrowck(local_def_id);
 
     let source_map = tcx.sess.source_map();

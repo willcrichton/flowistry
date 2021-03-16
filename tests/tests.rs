@@ -266,6 +266,46 @@ fn main() {
 }
 
 #[test]
+fn array_write() {
+  let src = r#"
+fn main() {
+  let mut x = [0; 1];
+  x[0] = 2;
+  x;
+}
+"#;
+
+  run(src, Range::line(4, 3, 4), vec![2, 3, 4]);
+}
+
+#[test]
+fn array_read() {
+  let src = r#"
+fn main() {
+  let x = [0; 1];
+  let y = x[0];
+  y;
+}
+"#;
+
+  run(src, Range::line(4, 3, 4), vec![2, 3, 4]);
+}
+
+#[test]
+fn slice_write() {
+  let src = r#"
+fn main() {
+  let mut x = [0u8; 2];
+  let y = &mut x[..1];
+  y[0] = 0;
+  x;
+}
+"#;
+
+  run(src, Range::line(5, 3, 4), vec![2, 3, 4, 5]);
+}
+
+#[test]
 fn pointer_write() {
   let src = r#"
 fn main() {
@@ -503,15 +543,29 @@ fn main() {
 }
 
 #[test]
-fn closure_mut_input() {
-  let src = r#"
+fn macro_read() {
+  let _src = r#"
 fn main() {
-  let mut x = 1;
-  let f = |y: &mut i32| { *y += 1; };
-  f(&mut x);
+  let x = vec![1, 2, 3];
   x;
 }
 "#;
 
-  run(src, Range::line(5, 3, 4), vec![2, 4, 5]);
+  // TODO: need to figure out macro source-map
+
+  // run(src, Range::line(3, 2, 3), vec![2, 3]);
+}
+
+#[test]
+fn generic_param() {
+  let src = r#"
+fn main() {}
+
+fn foo<T>(t: T) {
+  let x = t;
+  x;
+}
+"#;
+
+  run(src, Range::line(5, 3, 4), vec![4, 5]);
 }

@@ -35,7 +35,7 @@ impl JoinSemiLattice for Relevant {
   fn join(&mut self, other: &Self) -> bool {
     let state = match (*self, *other) {
       (Relevant::Yes, _) | (_, Relevant::Yes) => Relevant::Yes,
-      (Relevant::No, Relevant::Unknown) | (Relevant::Unknown, Relevant::No) => Relevant::No,
+      (Relevant::No, _) | (_, Relevant::No)  => Relevant::No,
       _ => Relevant::Unknown
     };
     if state != *self {
@@ -240,11 +240,11 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
 
           for arg in args.iter() {
             match arg {
-              Operand::Move(place) => {
+              Operand::Move(place) | Operand::Copy(place) => {
                 let prim = PlacePrim::local(place.as_local().expect(&format!("{:?}", place)));
                 self.state.places.insert(prim);
               }
-              _ => unimplemented!("{:?}", arg),
+              Operand::Constant(_) => {}
             }
           }
         }
@@ -255,8 +255,8 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
             let input_places: HashSet<_> = args
               .iter()
               .map(|arg| match arg {
-                Operand::Move(place) => pointer_analysis.possible_prims(*place).clone(),
-                _ => unimplemented!("{:?}", arg),
+                Operand::Move(place) | Operand::Copy(place) => pointer_analysis.possible_prims(*place).clone(),
+                Operand::Constant(_) => HashSet::new()
               })
               .flatten()
               .collect();
