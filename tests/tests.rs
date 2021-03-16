@@ -427,7 +427,6 @@ fn main() {
   run(src, Range::line(6, 3, 4), vec![4, 6]);
 }
 
-
 #[test]
 fn function_mut_input_field() {
   // y should be relevant b/c it could be involved in computation of x
@@ -443,6 +442,23 @@ fn main() {
 
   run(src, Range::line(6, 3, 4), vec![4, 5, 6]);
 }
+
+
+#[test]
+fn function_mut_input_whole() {
+  let src = r#"
+fn write(t: &mut (i32, i32)) {}
+
+fn main() {
+  let mut x = (1, 2);
+  write(&mut x);
+  x.0;
+}
+"#;
+
+  run(src, Range::line(6, 3, 6), vec![4, 5, 6]);
+}
+
 
 #[test]
 fn function_mut_output() {
@@ -510,6 +526,8 @@ fn main() {
   run(src, Range::line(7, 3, 6), vec![4, 5, 6, 7]);
 }
 
+
+
 #[test]
 fn closure_write_upvar() {
   let src = r#"
@@ -523,10 +541,10 @@ fn main() {
 
   // NOTE / TODO
   // Seems like when a variable is captured as an upvar than explicitly passed as &mut,
-  // the MIR source map links the &mut back to the closure definition source range. 
-  // Hence this example has the closure defn as part of the slice, but not the others.  
+  // the MIR source map links the &mut back to the closure definition source range.
+  // Hence this example has the closure defn as part of the slice, but not the others.
   run(src, Range::line(5, 3, 4), vec![2, 3, 4, 5]);
-} 
+}
 
 #[test]
 fn closure_read_upvar() {

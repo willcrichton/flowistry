@@ -35,13 +35,13 @@ impl JoinSemiLattice for Relevant {
   fn join(&mut self, other: &Self) -> bool {
     let state = match (*self, *other) {
       (Relevant::Yes, _) | (_, Relevant::Yes) => Relevant::Yes,
-      (Relevant::No, _) | (_, Relevant::No)  => Relevant::No,
-      _ => Relevant::Unknown
+      (Relevant::No, _) | (_, Relevant::No) => Relevant::No,
+      _ => Relevant::Unknown,
     };
     if state != *self {
       *self = state;
       true
-    } else { 
+    } else {
       false
     }
   }
@@ -204,9 +204,14 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
     let pointer_analysis = pointer_analysis.get();
     self.state.statement_relevant = false;
 
+    debug!(
+      "checking terminator {:?} in context {:?}",
+      terminator.kind, self.state.places
+    );
+
     let path_relevant = match &terminator.kind {
       TerminatorKind::SwitchInt { discr, .. } => {
-        if self.state.path_relevant == Relevant::Yes{
+        if self.state.path_relevant == Relevant::Yes {
           match discr {
             Operand::Move(place) | Operand::Copy(place) => {
               let relevant_to_control = pointer_analysis.possible_prims(*place);
@@ -227,6 +232,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
             let prims = pointer_analysis.possible_prims(*place);
             prims.iter().any(|prim| {
               self.state.places.iter().any(|relevant| {
+                debug!("  comparing relevant {:?} and mutated {:?}", relevant, prim);
                 self.analysis.points_to_prim(prim, relevant)
                   || self.analysis.points_to_prim(relevant, prim)
               })
@@ -255,8 +261,10 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
             let input_places: HashSet<_> = args
               .iter()
               .map(|arg| match arg {
-                Operand::Move(place) | Operand::Copy(place) => pointer_analysis.possible_prims(*place).clone(),
-                Operand::Constant(_) => HashSet::new()
+                Operand::Move(place) | Operand::Copy(place) => {
+                  pointer_analysis.possible_prims(*place).clone()
+                }
+                Operand::Constant(_) => HashSet::new(),
               })
               .flatten()
               .collect();
@@ -271,7 +279,11 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       _ => false,
     };
 
-    self.state.path_relevant = if path_relevant { Relevant::Yes } else { Relevant::No };
+    self.state.path_relevant = if path_relevant {
+      Relevant::Yes
+    } else {
+      Relevant::No
+    };
   }
 }
 
@@ -315,27 +327,22 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
   }
 
   fn points_to_prim(&self, parent: &PlacePrim, child: &PlacePrim) -> bool {
-    if parent == child {
-      return true;
-    }
-
     let pointer_analysis = self.pointer_analysis.borrow();
     let pointer_analysis = pointer_analysis.get();
 
     self.sub_places(parent).iter().any(|parent_sub| {
-      debug!(
-        "parent {:?} parent_sub {:?} child {:?}",
-        parent_sub, parent, child
-      );
-
-      pointer_analysis
-        .points_to(parent_sub)
-        .map(|pointed_prims| {
-          pointed_prims
-            .iter()
-            .any(|pointed_prim| self.points_to_prim(pointed_prim, child))
-        })
-        .unwrap_or(false)
+      if parent_sub == child {
+        true
+      } else {
+        pointer_analysis
+          .points_to(parent_sub)
+          .map(|pointed_prims| {
+            pointed_prims
+              .iter()
+              .any(|pointed_prim| self.points_to_prim(pointed_prim, child))
+          })
+          .unwrap_or(false)
+      }
     })
   }
 }
