@@ -1,7 +1,8 @@
 use crate::config::{Config, CONFIG};
 use anyhow::{Error, Result};
-use rustc_hir::{itemlikevisit::ItemLikeVisitor, ForeignItem, ImplItem, Item, ItemKind, TraitItem};
+use rustc_hir::{BodyId, ForeignItem, ImplItem, ImplItemKind, Item, ItemKind, TraitItem, itemlikevisit::ItemLikeVisitor};
 use rustc_middle::ty::TyCtxt;
+use rustc_span::{FileName, RealFileName, Span};
 
 pub use intraprocedural::SliceOutput;
 
@@ -11,28 +12,48 @@ mod relevance;
 
 struct SliceVisitor<'tcx> {
   tcx: TyCtxt<'tcx>,
+  slice_span: Span,
   output: Result<SliceOutput>,
+}
+
+impl<'tcx> SliceVisitor<'tcx> {
+  fn analyze(&mut self, body_span: Span, body_id: &BodyId) {
+    if !body_span.contains(self.slice_span) {
+      return;
+    }
+
+    let tcx = self.tcx;
+    let slice_span = self.slice_span;
+    take_mut::take(&mut self.output, move |output| {
+      output.and_then(move |mut output| {
+        let fn_output = intraprocedural::analyze_function(tcx, body_id, slice_span)?;
+        output.merge(fn_output);
+        Ok(output)
+      })
+    });
+  }
 }
 
 impl<'hir, 'tcx> ItemLikeVisitor<'hir> for SliceVisitor<'tcx> {
   fn visit_item(&mut self, item: &'hir Item<'hir>) {
     match &item.kind {
       ItemKind::Fn(_, _, body_id) => {
-        let tcx = self.tcx;
-        take_mut::take(&mut self.output, move |output| {
-          output.and_then(move |mut output| {
-            let fn_output = intraprocedural::analyze_function(tcx, body_id)?;
-            output.merge(fn_output);
-            Ok(output)
-          })
-        });
+        self.analyze(item.span, body_id);
+      }
+      _ => {}
+    }
+  }
+  
+  fn visit_impl_item(&mut self, impl_item: &'hir ImplItem<'hir>) {
+    match &impl_item.kind {
+      ImplItemKind::Fn(_, body_id) => {
+        self.analyze(impl_item.span, body_id);
       }
       _ => {}
     }
   }
 
   fn visit_trait_item(&mut self, _trait_item: &'hir TraitItem<'hir>) {}
-  fn visit_impl_item(&mut self, _impl_item: &'hir ImplItem<'hir>) {}
   fn visit_foreign_item(&mut self, _foreign_item: &'hir ForeignItem<'hir>) {}
 }
 
@@ -47,15 +68,32 @@ impl rustc_driver::Callbacks for Callbacks {
     _compiler: &rustc_interface::interface::Compiler,
     queries: &'tcx rustc_interface::Queries<'tcx>,
   ) -> rustc_driver::Compilation {
-    CONFIG.set(self.config.take().unwrap(), || {
-      queries.global_ctxt().unwrap().take().enter(|tcx| {
-        let mut slice_visitor = SliceVisitor {
-          tcx,
-          output: Ok(SliceOutput::new()),
-        };
+    queries.global_ctxt().unwrap().take().enter(|tcx| {
+      let config = self.config.take().unwrap();
+
+      let source_map = tcx.sess.source_map();
+      let files = source_map.files();
+      let source_file = files
+        .iter()
+        .find(|file| {
+          if let FileName::Real(RealFileName::Named(other_path)) = &file.name {
+            config.path == other_path.to_string_lossy()
+          } else {
+            false
+          }
+        })
+        .expect(&format!("Could not find file {}", config.path));
+      let slice_span = config.range.to_span(source_file);
+
+      let mut slice_visitor = SliceVisitor {
+        tcx,
+        slice_span,
+        output: Ok(SliceOutput::new()),
+      };
+      CONFIG.set(config, || {
         tcx.hir().krate().visit_all_item_likes(&mut slice_visitor);
-        self.output = Some(slice_visitor.output);
       });
+      self.output = Some(slice_visitor.output);
     });
 
     rustc_driver::Compilation::Stop

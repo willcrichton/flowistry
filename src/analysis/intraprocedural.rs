@@ -12,9 +12,8 @@ use rustc_middle::{
   },
   ty::TyCtxt,
 };
-use rustc_mir::dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results, ResultsVisitor};
-use rustc_mir::util::write_mir_fn;
-use rustc_span::Span;
+use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor};
+use rustc_span::{Span};
 use std::{collections::HashSet, fs::File, io::Write, process::Command};
 
 struct CollectResults<'a, 'tcx> {
@@ -69,11 +68,13 @@ impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
   }
 }
 
+#[cfg(feature = "custom-rustc")]
 fn dump_results<'tcx, A>(path: &str, body: &Body<'tcx>, results: &Results<'tcx, A>) -> Result<()>
 where
   A: Analysis<'tcx>,
   A::Domain: DebugWithContext<A>,
 {
+  use rustc_mir::dataflow::graphviz;
   let graphviz = graphviz::Formatter::new(body, &results, graphviz::OutputStyle::AfterOnly);
   let mut buf = Vec::new();
   dot::render(&graphviz, &mut buf)?;
@@ -101,14 +102,16 @@ impl SliceOutput {
   }
 }
 
-pub fn analyze_function(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<SliceOutput> {
+pub fn analyze_function(tcx: TyCtxt, body_id: &rustc_hir::BodyId, slice_span: Span) -> Result<SliceOutput> {
   CONFIG.get(|config| {
     let config = config.context("Missing config")?;
 
     let local_def_id = body_id.hir_id.owner;
     let body = tcx.optimized_mir(local_def_id);
 
+    #[cfg(feature = "custom-rustc")]
     if config.debug {
+      use rustc_mir::util::write_mir_fn;
       info!("MIR");
       let mut buffer = Vec::new();
       write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
@@ -118,9 +121,8 @@ pub fn analyze_function(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<Slic
 
     // let borrowck_result = tcx.mir_borrowck(local_def_id);
 
-    let source_map = tcx.sess.source_map();
     let mut finder = FindInitialSliceSet {
-      slice_span: config.range.to_span(source_map),
+      slice_span,
       slice_set: HashSet::new(),
       body,
     };
@@ -136,6 +138,7 @@ pub fn analyze_function(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<Slic
         .into_engine(tcx, body)
         .iterate_to_fixpoint();
 
+    #[cfg(feature = "custom-rustc")]
     if config.debug {
       dump_results("target/points_to.png", body, &points_to_results)?;
       dump_results("target/relevance.png", body, &relevance_results)?;
@@ -147,6 +150,7 @@ pub fn analyze_function(tcx: TyCtxt, body_id: &rustc_hir::BodyId) -> Result<Slic
     };
     relevance_results.visit_reachable_with(body, &mut visitor);
 
+    let source_map = tcx.sess.source_map();
     let ranges = visitor
       .relevant_spans
       .into_iter()

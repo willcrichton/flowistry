@@ -1,5 +1,5 @@
 use fluid_let::fluid_let;
-use rustc_span::{source_map::SourceMap, BytePos, Span};
+use rustc_span::{source_map::{SourceFile, SourceMap}, BytePos, Span};
 use serde::Serialize;
 
 #[derive(Serialize, Debug, Clone)]
@@ -16,7 +16,7 @@ impl Range {
       start_line: line,
       start_col: start,
       end_line: line,
-      end_col: end
+      end_col: end,
     }
   }
 
@@ -43,8 +43,7 @@ impl Range {
     }
   }
 
-  pub fn to_span(&self, source_map: &SourceMap) -> Span {
-    let source_file = source_map.lookup_source_file(BytePos(0));
+  pub fn to_span(&self, source_file: &SourceFile) -> Span {
     let start_pos = source_file.line_bounds(self.start_line).start + BytePos(self.start_col as u32);
     let end_pos = source_file.line_bounds(self.end_line).start + BytePos(self.end_col as u32);
     Span::with_root_ctxt(start_pos, end_pos)
@@ -53,6 +52,7 @@ impl Range {
 
 #[derive(Debug)]
 pub struct Config {
+  pub path: String,
   pub range: Range,
   pub debug: bool,
 }
