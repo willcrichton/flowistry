@@ -7,7 +7,7 @@ mod utils;
 fn variable_read() {
   let src = r#"
 fn main() {
-  let mut x = 1;
+  let x = 1;
   x;
 }
 "#;
@@ -54,6 +54,36 @@ fn main() {
 "#;
 
   run(src, Range::line(4, 3, 8), vec![2, 3, 4]);
+}
+
+#[test]
+fn variable_slice_from_middle() {
+  // should not include x += 3
+  let src = r#"
+fn main() {
+  let mut x = 1;
+  x += 2;
+  x;
+  x += 3;
+}
+"#;
+
+  run(src, Range::line(4, 3, 4), vec![2, 3, 4]);
+}
+
+#[test]
+fn variable_select_lhs() {
+  let _src = r#"
+fn main() {
+  let x = 1;
+  let y = x;
+}
+"#;
+
+  // TODO: need to figure out how to turn selections from LHS of assign
+  // into corresponding SliceSet span
+
+  //run(src, Range::line(3, 7, 8), vec![2, 3]);
 }
 
 #[test]
@@ -138,6 +168,27 @@ fn main() {
    */
 
   //run(src, Range::line(7, 3, 4), vec![2, 7]);
+}
+
+#[test]
+fn loop_break() {
+  let _src = r#"
+fn main() {
+  let mut x = 0;
+  loop {
+    if x == 10 {
+      break;
+    }
+    x += 1;
+  }
+  x;
+}
+"#;
+
+  // TODO
+  // need to include control flow keywords like loop/break
+
+  //run(src, Range::line(9, 3, 4), vec![2, 3, 4, 5, 7, 9]);
 }
 
 #[test]
@@ -316,7 +367,7 @@ fn main() {
 }
 "#;
 
-  run(src, Range::line(5, 3, 4), vec![4, 5]);
+  run(src, Range::line(5, 3, 4), vec![2, 3, 4, 5]);
 }
 
 #[test]
@@ -330,12 +381,12 @@ fn main() {
 }
 "#;
 
-  run(src, Range::line(5, 3, 4), vec![2, 4, 5]);
+  run(src, Range::line(5, 3, 4), vec![2, 3, 4, 5]);
 }
 
 #[test]
 fn pointer_ignore_reads() {
-  // y and n should be ignored
+  // n should be ignored
   let src = r#"
 fn main() {
   let mut x = 1;
@@ -346,6 +397,41 @@ fn main() {
 "#;
 
   run(src, Range::line(5, 3, 4), vec![2, 5]);
+}
+
+#[test]
+fn pointer_aliasing() {
+  let src = r#"
+fn main() {
+  let mut x = 1;
+  let y = &mut x;
+  let z = y;
+  *z = 2;
+  x;
+}
+"#;
+
+  run(src, Range::line(6, 3, 4), vec![2, 3, 4, 5, 6]);
+  
+}
+
+#[test]
+fn pointer_multiple_locations() {
+  let src = r#"
+fn main() {
+  let mut x = 1;
+  let mut y = 2;
+  let z = if true {
+    &mut x
+  } else {
+    &mut y
+  };
+  *z += 1;
+  *z;
+}
+"#;
+
+  run(src, Range::line(10, 3, 5), vec![2, 3, 4, 5, 7, 9, 10]);
 }
 
 #[test]
@@ -360,7 +446,7 @@ fn main() {
 }
 "#;
 
-  run(src, Range::line(6, 3, 4), vec![5, 6]);
+  run(src, Range::line(6, 3, 4), vec![2, 3, 4, 5, 6]);
 }
 
 #[test]
@@ -526,6 +612,21 @@ fn main() {
   run(src, Range::line(7, 3, 6), vec![4, 5, 6, 7]);
 }
 
+#[test]
+fn function_param() {
+  let _src = r#"
+fn foo(x: i32) {
+  let y = x + 1;
+  y;
+}
+
+fn main() {}
+"#;
+
+  // TODO: need to add support for function params
+
+  // run(src, Range::line(3, 3, 4), vec![1, 2, 3]);
+}
 
 
 #[test]
@@ -539,7 +640,7 @@ fn main() {
 }
 "#;
 
-  // NOTE / TODO
+  // NOTE
   // Seems like when a variable is captured as an upvar than explicitly passed as &mut,
   // the MIR source map links the &mut back to the closure definition source range.
   // Hence this example has the closure defn as part of the slice, but not the others.

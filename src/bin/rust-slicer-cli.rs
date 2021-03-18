@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use clap::clap_app;
 use regex::Regex;
 use rust_slicer::{Config, Range};
@@ -29,14 +29,20 @@ fn run() -> Result<()> {
     };
   }
 
-  let pkgid = String::from_utf8(Command::new("cargo").args(&["pkgid"]).output()?.stdout)?;
-  let crate_name = pkgid
-    .split("#")
-    .nth(1)
-    .context("Invalid pkgid")?
-    .split(":")
-    .nth(0)
-    .context("Invalid pkgid")?;
+  let metadata_bytes = Command::new("cargo").args(&["metadata"]).output()?.stdout;
+  let metadata_json: serde_json::Value = serde_json::from_slice(&metadata_bytes)?;
+  let workspace_members = metadata_json
+    .as_object()
+    .unwrap()
+    .get("workspace_members")
+    .unwrap()
+    .as_array()
+    .unwrap();
+  if workspace_members.len() > 1 {
+    bail!("Not implemented for workspace with more than 1 member");
+  }
+
+  let crate_name = workspace_members[0].as_str().unwrap().split(" ").nth(0).unwrap();
 
   let cargo_output = {
     let command = format!("rm -r target/debug/.fingerprint/{}*", crate_name);
@@ -44,6 +50,7 @@ fn run() -> Result<()> {
 
     let stderr = Command::new("cargo")
       .args(&["check", "-v"])
+      .env("RUSTFLAGS", "-A warnings")
       .output()?
       .stderr;
 
@@ -61,6 +68,17 @@ fn run() -> Result<()> {
       })
       .collect::<Vec<_>>()
   };
+
+  if command_lines.len() == 0 {
+    bail!(
+      r#"Failed to scrape rustc commands from Cargo. 
+  Detected crate name was `{}` 
+  Output of check -v was:
+{}"#,
+      crate_name,
+      cargo_output
+    );
+  }
 
   let mut args = command_lines[0]
     .split(" ")

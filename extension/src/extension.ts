@@ -5,6 +5,8 @@ import * as cp from 'child_process';
 import * as util from 'util';
 import * as path from 'path';
 
+const TOOLCHAIN = 'local';
+
 const exec = util.promisify(cp.exec);
 
 let channel = vscode.window.createOutputChannel("Rust Slicer");
@@ -28,36 +30,40 @@ interface SliceOutput {
 export async function activate(context: vscode.ExtensionContext) {
 	log('rust-slicer is activated');
 
-	let {stdout} = await exec('$(rustup which --toolchain nightly rustc) --print sysroot --print target-libdir');
+	let {stdout} = await exec(`$(rustup which --toolchain ${TOOLCHAIN} rustc) --print sysroot --print target-libdir`);
 	let [sysroot, lib_dir] = stdout.trim().split('\n');
-	log(sysroot, lib_dir, stdout.trim());
+	log("Sysroot", sysroot);
+  log("Rustc target-libdir", lib_dir);
 
 	let decoration_type = vscode.window.createTextEditorDecorationType({
 		backgroundColor: new vscode.ThemeColor('editor.findMatchHighlightBackground')
 	});
 
-	let active_editor = vscode.window.activeTextEditor;
 
 	let folders = vscode.workspace.workspaceFolders;
 	if (!folders || folders.length == 0) { return; }
 	let workspace_root = folders[0].uri.fsPath;
+  log("Workspace root", workspace_root);
 
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
 	let disposable = vscode.commands.registerCommand('rust-slicer.slice', async () => {
+	  let active_editor = vscode.window.activeTextEditor;
 		if (!active_editor) { return; }
 
 		let file_path = active_editor.document.fileName;
 		file_path = path.relative(workspace_root, file_path);
-		
+
 		let selection = active_editor.selection;
 
 		let env = {...process.env, DYLD_LIBRARY_PATH: lib_dir, LD_LIBRARY_PATH: lib_dir};
 		let cmd = `rust-slicer-cli ${file_path} ${sysroot} ${selection.start.line} ${selection.start.character} ${selection.end.line} ${selection.end.character}`;
 
 		try {
-			log("Running command:", cmd);
+			log("Running command:");
+			log(cmd);
+
 			let {stdout} = await exec(cmd, {env, cwd: workspace_root});
 
 			let lines = stdout.trim().split("\n");

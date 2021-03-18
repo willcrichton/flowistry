@@ -9,6 +9,7 @@ use std::{
   collections::{HashMap, HashSet},
   fmt,
 };
+use log::debug;
 
 // TODO: represent place without borrowing
 // features are
@@ -32,6 +33,7 @@ impl PlacePrim {
     tcx: TyCtxt<'tcx>,
   ) -> PlaceTy<'tcx> {
     let ty = local_decls.local_decls()[self.local].ty;
+    debug!("{:?} : {:?}", self, ty);
     self
       .projection
       .iter()
@@ -39,7 +41,7 @@ impl PlacePrim {
         let elem = match prim {
           ProjectionPrim::Field(field) => ProjectionElem::Field(*field, ()),
           ProjectionPrim::Downcast(idx) => ProjectionElem::Downcast(None, *idx),
-          ProjectionPrim::Index => ProjectionElem::Index(())
+          ProjectionPrim::Index => ProjectionElem::Index(()),
         };
 
         let place_ty = match place_ty.ty.kind() {
@@ -175,50 +177,70 @@ impl PlacePrim {
 pub struct PointsToDomain(pub HashMap<PlacePrim, HashSet<PlacePrim>>);
 
 impl PointsToDomain {
+  // TODO: better name for this function
   // e.g. if if place = *x then output is all pointed locations of x
-  pub fn possible_prims(&self, place: Place) -> HashSet<PlacePrim> {
+  pub fn possible_prims_and_pointers(&self, place: Place) -> (HashSet<PlacePrim>, HashSet<PlacePrim>) {
     let mut possibly_assigned = HashSet::new();
     possibly_assigned.insert(PlacePrim::local(place.local));
 
-    place
-      .iter_projections()
-      .fold(possibly_assigned, |acc, (_, projection)| match projection {
+    let (places, ptrs) = place.iter_projections().fold(
+      (possibly_assigned, HashSet::new()),
+      |(places, mut ptrs), (_, projection)| match projection {
         ProjectionElem::Deref => {
           let mut possibly_assigned = HashSet::new();
-          for prim in acc.iter() {
-            if let Some(prims) = self.0.get(prim) {
+          for prim in places.into_iter() {
+            if let Some(prims) = self.0.get(&prim) {
               possibly_assigned = &possibly_assigned | prims;
             }
+
+            ptrs.insert(prim);
           }
-          possibly_assigned
+
+          (possibly_assigned, ptrs)
         }
 
-        ProjectionElem::Field(field, _ty) => acc
-          .into_iter()
-          .map(|mut place| {
-            place.projection.push(ProjectionPrim::Field(field));
-            place
-          })
-          .collect(),
+        ProjectionElem::Field(field, _ty) => (
+          places
+            .into_iter()
+            .map(|mut place| {
+              place.projection.push(ProjectionPrim::Field(field));
+              place
+            })
+            .collect(),
+          ptrs,
+        ),
 
-        ProjectionElem::Downcast(_, variant) => acc
-          .into_iter()
-          .map(|mut place| {
-            place.projection.push(ProjectionPrim::Downcast(variant));
-            place
-          })
-          .collect(),
+        ProjectionElem::Downcast(_, variant) => (
+          places
+            .into_iter()
+            .map(|mut place| {
+              place.projection.push(ProjectionPrim::Downcast(variant));
+              place
+            })
+            .collect(),
+          ptrs,
+        ),
 
-        ProjectionElem::Index(_) => acc
-          .into_iter()
-          .map(|mut place| {
-            place.projection.push(ProjectionPrim::Index);
-            place
-          })
-          .collect(),
+        ProjectionElem::Index(_) => (
+          places
+            .into_iter()
+            .map(|mut place| {
+              place.projection.push(ProjectionPrim::Index);
+              place
+            })
+            .collect(),
+          ptrs,
+        ),
 
         _ => unimplemented!("{:?}", place),
-      })
+      },
+    );
+
+    (places, ptrs)
+  }
+
+  pub fn possible_prims(&self, place: Place) -> HashSet<PlacePrim> {
+    self.possible_prims_and_pointers(place).0
   }
 
   pub fn points_to(&self, prim: &PlacePrim) -> Option<&HashSet<PlacePrim>> {

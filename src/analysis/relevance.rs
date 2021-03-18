@@ -87,25 +87,6 @@ impl<'a, 'tcx> Visitor<'tcx> for CollectPlaces<'a> {
     let aliases = self.pointer_analysis.possible_prims(*place);
     self.places = &self.places | &aliases;
   }
-
-  fn visit_rvalue(&mut self, rvalue: &Rvalue<'tcx>, location: Location) {
-    match rvalue {
-      // special case for &*x == x
-      // TODO: does this need to be a special case?
-      Rvalue::Ref(_, _, place) => match place.projection.len() {
-        0 => self.super_rvalue(rvalue, location),
-        1 => {
-          if let ProjectionElem::Deref = place.projection[0] {
-            self.places.insert(PlacePrim::local(place.local));
-          } else {
-            unimplemented!("{:?}", rvalue);
-          }
-        }
-        _ => unimplemented!("{:?}", rvalue),
-      },
-      _ => self.super_rvalue(rvalue, location),
-    }
-  }
 }
 
 struct TransferFunction<'a, 'b, 'mir, 'tcx> {
@@ -128,28 +109,33 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
       })
     })
   }
+
+  fn add_relevant(&mut self, places: &HashSet<PlacePrim>) {
+    self.state.places = &self.state.places | places;
+    self.state.statement_relevant = true;
+    self.state.path_relevant = Relevant::Yes;
+  }
 }
 
 impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> {
   fn visit_statement(&mut self, statement: &Statement<'tcx>, location: Location) {
+    self.state.statement_relevant = false;
     match statement.kind {
       StatementKind::Assign(_) => {
         self.super_statement(statement, location);
       }
-      _ => {
-        self.state.statement_relevant = false;
-      }
+      _ => {}
     }
   }
 
   fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
     self.super_assign(place, rvalue, location);
-    self.state.statement_relevant = false;
 
     let pointer_analysis = self.analysis.pointer_analysis.borrow();
     let pointer_analysis = pointer_analysis.get();
 
-    let possibly_mutated = pointer_analysis.possible_prims(*place);
+    let (possibly_mutated, pointers_to_possibly_mutated) =
+      pointer_analysis.possible_prims_and_pointers(*place);
 
     debug!(
       "checking assign {:?} = {:?} in context {:?}",
@@ -158,9 +144,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
     if self.any_relevant_mutated(&possibly_mutated) {
       debug!("  relevant assignment to {:?}", place);
 
-      self.state.statement_relevant = true;
-      self.state.path_relevant = Relevant::Yes;
-
+      // TODO: better checking for strong udpates
       if possibly_mutated.len() == 1 {
         let definitely_mutated = possibly_mutated.iter().next().unwrap();
 
@@ -185,7 +169,9 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
         rvalue, collector.places
       );
 
-      self.state.places = &self.state.places | &collector.places;
+      self.add_relevant(&collector.places);
+      self.add_relevant(&pointers_to_possibly_mutated);
+
       debug!("  new places: {:?}", self.state.places);
     }
   }
@@ -195,8 +181,16 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       let pointer_analysis = self.analysis.pointer_analysis.borrow();
       let pointer_analysis = pointer_analysis.get();
       let prims = pointer_analysis.possible_prims(*place);
-      self.state.places = &self.state.places | &prims;
+      self.add_relevant(&prims);
     }
+  }
+
+  fn visit_local(&mut self, local: &Local, _context: PlaceContext, location: Location) {
+    if self.analysis.slice_set.contains(&location) {
+      let mut prims = HashSet::new();
+      prims.insert(PlacePrim::local(*local));
+      self.add_relevant(&prims);
+    }      
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, _location: Location) {
@@ -209,19 +203,17 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       terminator.kind, self.state.places
     );
 
-    let path_relevant = match &terminator.kind {
+    match &terminator.kind {
       TerminatorKind::SwitchInt { discr, .. } => {
         if self.state.path_relevant == Relevant::Yes {
           match discr {
             Operand::Move(place) | Operand::Copy(place) => {
               let relevant_to_control = pointer_analysis.possible_prims(*place);
-              self.state.places = &self.state.places | &relevant_to_control;
+              self.add_relevant(&relevant_to_control);
             }
-            _ => unimplemented!("{:?}", discr),
+            Operand::Constant(_) => {}
           };
         }
-
-        false
       }
 
       TerminatorKind::Call {
@@ -238,21 +230,21 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
               })
             })
           }
-          _ => false,
+          Operand::Constant(_) => false,
         });
 
         if any_relevant_mutable_inputs {
-          self.state.statement_relevant = true;
-
-          for arg in args.iter() {
-            match arg {
+          let relevant_inputs = args
+            .iter()
+            .filter_map(|arg| match arg {
               Operand::Move(place) | Operand::Copy(place) => {
                 let prim = PlacePrim::local(place.as_local().expect(&format!("{:?}", place)));
-                self.state.places.insert(prim);
+                Some(prim)
               }
-              Operand::Constant(_) => {}
-            }
-          }
+              Operand::Constant(_) => None,
+            })
+            .collect::<HashSet<_>>();
+          self.add_relevant(&relevant_inputs);
         }
 
         if let Some((dst_place, _)) = destination {
@@ -269,17 +261,14 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
               .flatten()
               .collect();
 
-            self.state.places = &self.state.places | &input_places;
-            self.state.statement_relevant = true;
+            self.add_relevant(&input_places);
           }
         }
-
-        self.state.statement_relevant
       }
-      _ => false,
+      _ => {}
     };
 
-    self.state.path_relevant = if path_relevant {
+    self.state.path_relevant = if self.state.statement_relevant {
       Relevant::Yes
     } else {
       Relevant::No
@@ -288,12 +277,12 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
 }
 
 pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
-  pub slice_set: SliceSet,
-  pub pointer_analysis: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, PointsToAnalysis<'mir, 'tcx>>>,
-  pub tcx: TyCtxt<'tcx>,
-  pub body: &'mir Body<'tcx>,
-  pub module: DefId,
-  pub sub_places: RefCell<HashMap<PlacePrim, HashSet<PlacePrim>>>,
+  slice_set: SliceSet,
+  pointer_analysis: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, PointsToAnalysis<'mir, 'tcx>>>,
+  tcx: TyCtxt<'tcx>,
+  body: &'mir Body<'tcx>,
+  module: DefId,
+  sub_places: RefCell<HashMap<PlacePrim, HashSet<PlacePrim>>>,
 }
 
 impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
@@ -360,9 +349,7 @@ impl<'a, 'mir, 'tcx> AnalysisDomain<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> 
     }
   }
 
-  fn initialize_start_block(&self, _: &mir::Body<'tcx>, _: &mut Self::Domain) {
-    // TODO?
-  }
+  fn initialize_start_block(&self, _: &mir::Body<'tcx>, _: &mut Self::Domain) {}
 }
 
 impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {

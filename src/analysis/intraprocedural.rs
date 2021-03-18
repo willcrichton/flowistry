@@ -3,7 +3,6 @@ use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use crate::config::{Range, CONFIG};
 use anyhow::{Context, Result};
 use log::{debug, info};
-use rustc_graphviz as dot;
 use rustc_middle::{
   mir::{
     self,
@@ -13,7 +12,7 @@ use rustc_middle::{
   ty::TyCtxt,
 };
 use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor};
-use rustc_span::{Span};
+use rustc_span::Span;
 use std::{collections::HashSet, fs::File, io::Write, process::Command};
 
 struct CollectResults<'a, 'tcx> {
@@ -39,12 +38,20 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
   fn visit_terminator_after_primary_effect(
     &mut self,
     state: &Self::FlowState,
-    _terminator: &'mir mir::Terminator<'tcx>,
+    terminator: &'mir mir::Terminator<'tcx>,
     location: Location,
   ) {
     if state.statement_relevant {
-      let source_info = self.body.source_info(location);
-      self.relevant_spans.push(source_info.span);
+      if let mir::TerminatorKind::SwitchInt { .. } = terminator.kind {
+        /* Conditional control flow gets source-mapped to the entire corresponding if/loop/etc.
+         * So eg if only one path is relevant, we mark the switch as relevant, but this would highlight
+         * the entire if statement. So for now just ignore this relevant mark and let the statements         
+         * get individually highlighted as relevant or not.
+         */
+      } else {
+        let source_info = self.body.source_info(location);
+        self.relevant_spans.push(source_info.span);
+      }
     }
   }
 }
@@ -75,6 +82,8 @@ where
   A::Domain: DebugWithContext<A>,
 {
   use rustc_mir::dataflow::graphviz;
+  use rustc_graphviz as dot;
+
   let graphviz = graphviz::Formatter::new(body, &results, graphviz::OutputStyle::AfterOnly);
   let mut buf = Vec::new();
   dot::render(&graphviz, &mut buf)?;
@@ -102,7 +111,11 @@ impl SliceOutput {
   }
 }
 
-pub fn analyze_function(tcx: TyCtxt, body_id: &rustc_hir::BodyId, slice_span: Span) -> Result<SliceOutput> {
+pub fn analyze_function(
+  tcx: TyCtxt,
+  body_id: &rustc_hir::BodyId,
+  slice_span: Span,
+) -> Result<SliceOutput> {
   CONFIG.get(|config| {
     let config = config.context("Missing config")?;
 
@@ -133,6 +146,11 @@ pub fn analyze_function(tcx: TyCtxt, body_id: &rustc_hir::BodyId, slice_span: Sp
       .into_engine(tcx, body)
       .iterate_to_fixpoint();
 
+    #[cfg(feature = "custom-rustc")]
+    if config.debug {
+      dump_results("target/points_to.png", body, &points_to_results)?;
+    }
+
     let relevance_results =
       RelevanceAnalysis::new(finder.slice_set, tcx, body_id, body, &points_to_results)
         .into_engine(tcx, body)
@@ -140,7 +158,6 @@ pub fn analyze_function(tcx: TyCtxt, body_id: &rustc_hir::BodyId, slice_span: Sp
 
     #[cfg(feature = "custom-rustc")]
     if config.debug {
-      dump_results("target/points_to.png", body, &points_to_results)?;
       dump_results("target/relevance.png", body, &relevance_results)?;
     }
 
