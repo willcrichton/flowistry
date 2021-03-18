@@ -15,47 +15,6 @@ use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisit
 use rustc_span::Span;
 use std::{collections::HashSet, fs::File, io::Write, process::Command};
 
-struct CollectResults<'a, 'tcx> {
-  body: &'a Body<'tcx>,
-  relevant_spans: Vec<Span>,
-}
-
-impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
-  type FlowState = RelevanceDomain;
-
-  fn visit_statement_after_primary_effect(
-    &mut self,
-    state: &Self::FlowState,
-    _statement: &'mir mir::Statement<'tcx>,
-    location: Location,
-  ) {
-    if state.statement_relevant {
-      let source_info = self.body.source_info(location);
-      self.relevant_spans.push(source_info.span);
-    }
-  }
-
-  fn visit_terminator_after_primary_effect(
-    &mut self,
-    state: &Self::FlowState,
-    terminator: &'mir mir::Terminator<'tcx>,
-    location: Location,
-  ) {
-    if state.statement_relevant {
-      if let mir::TerminatorKind::SwitchInt { .. } = terminator.kind {
-        /* Conditional control flow gets source-mapped to the entire corresponding if/loop/etc.
-         * So eg if only one path is relevant, we mark the switch as relevant, but this would highlight
-         * the entire if statement. So for now just ignore this relevant mark and let the statements         
-         * get individually highlighted as relevant or not.
-         */
-      } else {
-        let source_info = self.body.source_info(location);
-        self.relevant_spans.push(source_info.span);
-      }
-    }
-  }
-}
-
 struct FindInitialSliceSet<'a, 'tcx> {
   slice_span: Span,
   slice_set: SliceSet,
@@ -75,14 +34,71 @@ impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
   }
 }
 
+struct CollectResults<'a, 'tcx> {
+  body: &'a Body<'tcx>,
+  relevant_spans: Vec<Span>,
+  all_locals: HashSet<Local>,
+}
+
+impl<'a, 'tcx> CollectResults<'a, 'tcx> {
+  fn check_statement(&mut self, state: &RelevanceDomain, location: Location) {
+    if state.statement_relevant {
+      let source_info = self.body.source_info(location);
+      self.relevant_spans.push(source_info.span);
+    }
+  }
+
+  fn add_locals(&mut self, state: &RelevanceDomain) {
+    let locals = &state
+      .places
+      .iter()
+      .map(|place| place.local)
+      .collect::<HashSet<_>>();
+    self.all_locals = &self.all_locals | &locals;
+  }
+}
+
+impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
+  type FlowState = RelevanceDomain;
+
+  fn visit_statement_after_primary_effect(
+    &mut self,
+    state: &Self::FlowState,
+    _statement: &'mir mir::Statement<'tcx>,
+    location: Location,
+  ) {
+    self.add_locals(state);
+    self.check_statement(state, location);
+  }
+
+  fn visit_terminator_after_primary_effect(
+    &mut self,
+    state: &Self::FlowState,
+    terminator: &'mir mir::Terminator<'tcx>,
+    location: Location,
+  ) {
+    self.add_locals(state);
+
+    if let mir::TerminatorKind::SwitchInt { .. } = terminator.kind {
+      /* Conditional control flow gets source-mapped to the entire corresponding if/loop/etc.
+       * So eg if only one path is relevant, we mark the switch as relevant, but this would highlight
+       * the entire if statement. So for now just ignore this relevant mark and let the statements
+       * get individually highlighted as relevant or not.
+       */
+    } else {
+      self.check_statement(state, location);
+    }
+  }
+}
+
 #[cfg(feature = "custom-rustc")]
 fn dump_results<'tcx, A>(path: &str, body: &Body<'tcx>, results: &Results<'tcx, A>) -> Result<()>
 where
   A: Analysis<'tcx>,
   A::Domain: DebugWithContext<A>,
 {
-  use rustc_mir::dataflow::graphviz;
   use rustc_graphviz as dot;
+  use rustc_mir::dataflow::graphviz;
 
   let graphviz = graphviz::Formatter::new(body, &results, graphviz::OutputStyle::AfterOnly);
   let mut buf = Vec::new();
@@ -132,8 +148,6 @@ pub fn analyze_function(
       info!("============");
     }
 
-    // let borrowck_result = tcx.mir_borrowck(local_def_id);
-
     let mut finder = FindInitialSliceSet {
       slice_span,
       slice_set: HashSet::new(),
@@ -142,7 +156,8 @@ pub fn analyze_function(
     finder.visit_body(body);
     debug!("Initial slice set: {:?}", finder.slice_set);
 
-    let points_to_results = PointsToAnalysis { tcx, body }
+    let module = tcx.parent_module(body_id.hir_id).to_def_id();
+    let points_to_results = PointsToAnalysis { tcx, body, module }
       .into_engine(tcx, body)
       .iterate_to_fixpoint();
 
@@ -152,7 +167,7 @@ pub fn analyze_function(
     }
 
     let relevance_results =
-      RelevanceAnalysis::new(finder.slice_set, tcx, body_id, body, &points_to_results)
+      RelevanceAnalysis::new(finder.slice_set, tcx, module, body, &points_to_results)
         .into_engine(tcx, body)
         .iterate_to_fixpoint();
 
@@ -164,13 +179,20 @@ pub fn analyze_function(
     let mut visitor = CollectResults {
       body,
       relevant_spans: vec![],
+      all_locals: HashSet::new(),
     };
     relevance_results.visit_reachable_with(body, &mut visitor);
+
+    let local_spans = visitor
+      .all_locals
+      .into_iter()
+      .map(|local| body.local_decls().get(local).unwrap().source_info.span);
 
     let source_map = tcx.sess.source_map();
     let ranges = visitor
       .relevant_spans
       .into_iter()
+      .chain(local_spans)
       .map(|span| Range::from_span(span, source_map))
       .collect();
 

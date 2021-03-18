@@ -1,6 +1,6 @@
 use super::points_to::{PlacePrim, PointsToAnalysis, PointsToDomain};
 use log::debug;
-use rustc_hir::{def_id::DefId, BodyId};
+use rustc_hir::def_id::DefId;
 use rustc_middle::{
   mir::{
     self,
@@ -190,7 +190,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       let mut prims = HashSet::new();
       prims.insert(PlacePrim::local(*local));
       self.add_relevant(&prims);
-    }      
+    }
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, _location: Location) {
@@ -221,12 +221,15 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       } => {
         let any_relevant_mutable_inputs = args.iter().any(|arg| match arg {
           Operand::Move(place) | Operand::Copy(place) => {
-            let prims = pointer_analysis.possible_prims(*place);
-            prims.iter().any(|prim| {
+            let input_prims = pointer_analysis.possible_prims(*place);
+            input_prims.iter().any(|input_prim| {
               self.state.places.iter().any(|relevant| {
-                debug!("  comparing relevant {:?} and mutated {:?}", relevant, prim);
-                self.analysis.points_to_prim(prim, relevant)
-                  || self.analysis.points_to_prim(relevant, prim)
+                debug!(
+                  "  comparing relevant {:?} and mutated {:?}",
+                  relevant, input_prim
+                );
+                self.analysis.points_to_prim(input_prim, relevant)
+                  || self.analysis.points_to_prim(relevant, input_prim)
               })
             })
           }
@@ -289,12 +292,11 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
   pub fn new(
     slice_set: SliceSet,
     tcx: TyCtxt<'tcx>,
-    body_id: &BodyId,
+    module: DefId,
     body: &'mir Body<'tcx>,
     results: &'a Results<'tcx, PointsToAnalysis<'mir, 'tcx>>,
   ) -> Self {
     let pointer_analysis = RefCell::new(ResultsRefCursor::new(body, &results));
-    let module = tcx.parent_module(body_id.hir_id).to_def_id();
     let sub_places = RefCell::new(HashMap::new());
     RelevanceAnalysis {
       slice_set,
@@ -324,7 +326,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
         true
       } else {
         pointer_analysis
-          .points_to(parent_sub)
+          .mutably_points_to(parent_sub)
           .map(|pointed_prims| {
             pointed_prims
               .iter()

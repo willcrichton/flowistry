@@ -20,13 +20,15 @@ fn variable_assign() {
   // should not include line 1 b/c of overriding assignment
   let src = r#"
 fn main() {  
-  let mut x = 1;
+  let mut x = {
+    1
+  };
   x = 2;
   x;
 }
 "#;
 
-  run(src, Range::line(4, 3, 4), vec![3, 4]);
+  run(src, Range::line(6, 3, 4), vec![2, 5, 6]);
 }
 
 #[test]
@@ -84,6 +86,21 @@ fn main() {
   // into corresponding SliceSet span
 
   //run(src, Range::line(3, 7, 8), vec![2, 3]);
+}
+
+#[test]
+fn variable_slice_includes_lhs() {
+  // should not include x += 3
+  let src = r#"
+fn main() {
+  let x = {
+    1
+  };
+  x;
+}
+"#;
+
+  run(src, Range::line(5, 3, 4), vec![2, 3, 5]);
 }
 
 #[test]
@@ -210,13 +227,15 @@ fn tuple_write_field_read_field() {
   // shouldn't include line 1 b/c x.1 isn't relevant
   let src = r#"
 fn main() {
-  let mut x = (0, 1);
+  let mut x = {
+    (0, 1)
+  };
   x.0 = 1;
   x.0;
 }
 "#;
 
-  run(src, Range::line(4, 3, 6), vec![3, 4]);
+  run(src, Range::line(6, 3, 6), vec![2, 5, 6]);
 }
 
 #[test]
@@ -243,13 +262,15 @@ fn main() {
 fn tuple_write_whole_read_field() {
   let src = r#"
 fn main() {
-  let mut x = (0, 1);
+  let mut x = {
+    (0, 1)
+  };
   x = (2, 3);
   x.0;
 }
 "#;
 
-  run(src, Range::line(4, 3, 6), vec![3, 4]);
+  run(src, Range::line(6, 3, 6), vec![2, 5, 6]);
 }
 
 #[test]
@@ -264,6 +285,38 @@ fn main() {
 "#;
 
   run(src, Range::line(5, 3, 4), vec![3, 4, 5]);
+}
+
+#[test]
+fn struct_mut_ptr() {
+  let src = r#"
+fn main() {
+  struct Foo<'a>(&'a mut i32);
+  let mut x = 1;
+  let f = Foo(&mut x);
+  *f.0 += 1;
+  x;
+}
+"#;
+
+  run(src, Range::line(6, 3, 4), vec![3, 4, 5, 6]);
+}
+
+#[test]
+fn struct_mut_ptr_function() {
+  let src = r#"
+struct Foo<'a>(&'a mut i32);
+fn foo(f: Foo) {}
+
+fn main() {
+  let mut x = 0;
+  let f = Foo(&mut x);  
+  foo(f);
+  x;
+}
+"#;
+
+  run(src, Range::line(8, 3, 4), vec![5, 6, 7, 8]);
 }
 
 #[test]
@@ -614,7 +667,7 @@ fn main() {
 
 #[test]
 fn function_param() {
-  let _src = r#"
+  let src = r#"
 fn foo(x: i32) {
   let y = x + 1;
   y;
@@ -623,9 +676,7 @@ fn foo(x: i32) {
 fn main() {}
 "#;
 
-  // TODO: need to add support for function params
-
-  // run(src, Range::line(3, 3, 4), vec![1, 2, 3]);
+  run(src, Range::line(3, 3, 4), vec![1, 2, 3]);
 }
 
 
@@ -686,5 +737,5 @@ fn foo<T>(t: T) {
 }
 "#;
 
-  run(src, Range::line(5, 3, 4), vec![4, 5]);
+  run(src, Range::line(5, 3, 4), vec![3, 4, 5]);
 }

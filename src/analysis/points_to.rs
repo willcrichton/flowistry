@@ -1,3 +1,4 @@
+use log::debug;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{
   mir::{self, tcx::PlaceTy, visit::Visitor, *},
@@ -9,7 +10,6 @@ use std::{
   collections::{HashMap, HashSet},
   fmt,
 };
-use log::debug;
 
 // TODO: represent place without borrowing
 // features are
@@ -22,8 +22,8 @@ pub enum ProjectionPrim {
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PlacePrim {
-  local: Local,
-  projection: Vec<ProjectionPrim>,
+  pub local: Local,
+  pub projection: Vec<ProjectionPrim>,
 }
 
 impl PlacePrim {
@@ -33,7 +33,6 @@ impl PlacePrim {
     tcx: TyCtxt<'tcx>,
   ) -> PlaceTy<'tcx> {
     let ty = local_decls.local_decls()[self.local].ty;
-    debug!("{:?} : {:?}", self, ty);
     self
       .projection
       .iter()
@@ -174,12 +173,15 @@ impl PlacePrim {
 }
 
 #[derive(Clone, PartialEq, Eq)]
-pub struct PointsToDomain(pub HashMap<PlacePrim, HashSet<PlacePrim>>);
+pub struct PointsToDomain(pub HashMap<PlacePrim, HashSet<(PlacePrim, Mutability)>>);
 
 impl PointsToDomain {
   // TODO: better name for this function
   // e.g. if if place = *x then output is all pointed locations of x
-  pub fn possible_prims_and_pointers(&self, place: Place) -> (HashSet<PlacePrim>, HashSet<PlacePrim>) {
+  pub fn possible_prims_and_pointers(
+    &self,
+    place: Place,
+  ) -> (HashSet<PlacePrim>, HashSet<PlacePrim>) {
     let mut possibly_assigned = HashSet::new();
     possibly_assigned.insert(PlacePrim::local(place.local));
 
@@ -190,7 +192,11 @@ impl PointsToDomain {
           let mut possibly_assigned = HashSet::new();
           for prim in places.into_iter() {
             if let Some(prims) = self.0.get(&prim) {
-              possibly_assigned = &possibly_assigned | prims;
+              let prims = prims
+                .iter()
+                .map(|(prim, _)| prim.clone())
+                .collect::<HashSet<_>>();
+              possibly_assigned = &possibly_assigned | &prims;
             }
 
             ptrs.insert(prim);
@@ -243,28 +249,41 @@ impl PointsToDomain {
     self.possible_prims_and_pointers(place).0
   }
 
-  pub fn points_to(&self, prim: &PlacePrim) -> Option<&HashSet<PlacePrim>> {
-    self.0.get(prim)
+  pub fn mutably_points_to(&self, prim: &PlacePrim) -> Option<HashSet<PlacePrim>> {
+    self.0.get(prim).map(|prims| {
+      prims
+        .iter()
+        .filter_map(|(pointed_prim, mutability)| match mutability {
+          Mutability::Mut => Some(pointed_prim.clone()),
+          Mutability::Not => None,
+        })
+        .collect::<HashSet<_>>()
+    })
   }
 
-  pub fn add_alias(&mut self, lplace: Place, rplace: Place) {
+  pub fn add_alias(&mut self, lprim: PlacePrim, rplace: Place) {
+    debug!("add alias {:?} = {:?}", lprim, rplace);
     let rprims = self.possible_prims(rplace);
     let rprims_pointed = rprims
       .into_iter()
+      .map(|mut prim| {
+        prim.projection.extend(lprim.projection.iter().cloned());
+        prim
+      })
       .map(|prim| self.0.get(&prim).cloned().unwrap_or_else(HashSet::new))
       .fold(HashSet::new(), |s1, s2| &s1 | &s2);
-    for lprim in self.possible_prims(lplace).into_iter() {
-      let lprims = self.0.entry(lprim).or_insert_with(HashSet::new);
-      *lprims = &*lprims | &rprims_pointed;
-    }
+    let lprims = self.0.entry(lprim).or_insert_with(HashSet::new);
+    *lprims = &*lprims | &rprims_pointed;
   }
 
-  pub fn add_borrow(&mut self, lplace: Place, rplace: Place) {
-    let rprims = self.possible_prims(rplace);
-    for lprim in self.possible_prims(lplace).into_iter() {
-      let lprims = self.0.entry(lprim).or_insert_with(HashSet::new);
-      *lprims = &*lprims | &rprims;
-    }
+  pub fn add_borrow(&mut self, lprim: PlacePrim, rplace: Place, mutability: Mutability) {
+    let rprims = self
+      .possible_prims(rplace)
+      .into_iter()
+      .map(|prim| (prim, mutability))
+      .collect::<HashSet<_>>();
+    let lprims = self.0.entry(lprim).or_insert_with(HashSet::new);
+    *lprims = &*lprims | &rprims;
   }
 }
 
@@ -311,23 +330,114 @@ impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
   fn visit_assign(&mut self, lplace: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
     self.super_assign(lplace, rvalue, location);
 
-    match &rvalue {
-      Rvalue::Ref(_region, BorrowKind::Mut { .. }, rplace) => {
-        self.state.add_borrow(*lplace, *rplace);
+    let lprims = self
+      .state
+      .possible_prims(*lplace)
+      .into_iter()
+      .map(|lprim| {
+        lprim
+          .sub_places(
+            self.analysis.body.local_decls(),
+            self.analysis.tcx,
+            self.analysis.module,
+          )
+          .into_iter()
+          .map(|prim| (prim, lprim.projection.len()))
+          .collect::<HashSet<_>>()
+      })
+      .fold(HashSet::new(), |s1, s2| &s1 | &s2);
+
+    enum Assignment {
+      Alias,
+      Borrow(Mutability),
+    }
+
+    let assignment = match &rvalue {
+      Rvalue::Ref(_region, borrow_kind, rplace) => {
+        let mutability = match borrow_kind {
+          BorrowKind::Mut { .. } => Mutability::Mut,
+          _ => Mutability::Not,
+        };
+
+        Some((*rplace, Assignment::Borrow(mutability)))
       }
+
       Rvalue::Use(op) | Rvalue::Cast(_, op, _) => match op {
-        Operand::Move(rplace) | Operand::Copy(rplace) => {
-          if lplace
-            .ty(self.analysis.body.local_decls(), self.analysis.tcx)
-            .ty
-            .is_ref()
-          {
-            self.state.add_alias(*lplace, *rplace);
-          }
-        }
-        Operand::Constant(_) => {}
+        Operand::Move(rplace) | Operand::Copy(rplace) => Some((*rplace, Assignment::Alias)),
+        Operand::Constant(_) => None,
       },
-      _ => {}
+
+      _ => None,
+    };
+
+    // self
+    //   .state
+    //   .possible_prims(*rplace)
+    //   .into_iter()
+    //   .map(|prim| (prim, mutability))
+    //   .collect::<HashSet<_>>()
+
+    // self
+    //       .state
+    //       .possible_prims(*rplace)
+    //       .into_iter()
+    //       .map(|prim| {
+    //         self
+    //           .state
+    //           .0
+    //           .get(&prim)
+    //           .cloned()
+    //           .unwrap_or_else(HashSet::new)
+    //       })
+    //       .fold(HashSet::new(), |s1, s2| &s1 | &s2),
+
+    for (lprim, orig_projection_len) in lprims.into_iter() {
+      let lty = lprim
+        .ty(self.analysis.body.local_decls(), self.analysis.tcx)
+        .ty;
+
+      if let TyKind::Ref(_, _, _) = lty.kind() {
+        let (rplace, assign_type) = assignment.as_ref().unwrap();
+        let rprims = self
+          .state
+          .possible_prims(*rplace)
+          .into_iter()
+          .map(|rprim| {
+            let mut rprim = rprim.clone();
+            rprim.projection.extend(
+              lprim
+                .projection
+                .clone()
+                .into_iter()
+                .skip(orig_projection_len),
+            );
+
+            match assign_type {
+              Assignment::Alias => {
+                let rprim_points_to = self
+                  .state
+                  .0
+                  .get(&rprim)
+                  .cloned()
+                  .unwrap_or_else(HashSet::new);
+                rprim_points_to
+              }
+              Assignment::Borrow(mutability) => {
+                let mut rprims = HashSet::new();
+                rprims.insert((rprim, *mutability));
+                rprims
+              }
+            }
+          })
+          .fold(HashSet::new(), |s1, s2| &s1 | &s2);
+
+        let lprim_points_to = self
+          .state
+          .0
+          .entry(lprim.clone())
+          .or_insert_with(HashSet::new);
+        *lprim_points_to = &*lprim_points_to | &rprims;
+      }
     }
   }
 
@@ -341,32 +451,31 @@ impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
       } => {
         let tcx = self.analysis.tcx;
         let func_ty = func.ty(self.analysis.body.local_decls(), tcx);
-        match func_ty.kind() {
-          TyKind::FnDef(_, _) => {
-            let sig = func_ty.fn_sig(tcx).skip_binder();
+        let sig = func_ty.fn_sig(tcx).skip_binder();
+        let output_ty = sig.output();
 
-            let output_ty = sig.output();
-            if let TyKind::Ref(output_region, _, Mutability::Mut) = output_ty.kind() {
-              sig
-                .inputs()
-                .iter()
-                .zip(args.iter())
-                .filter(|(input_ty, _)| {
-                  if let TyKind::Ref(input_region, _, Mutability::Mut) = input_ty.kind() {
-                    input_region == output_region
-                  } else {
-                    false
-                  }
-                })
-                .for_each(|(_, op)| match op {
-                  Operand::Move(src_place) => {
-                    self.state.add_alias(*dst_place, *src_place);
-                  }
-                  _ => unimplemented!("{:?}", op),
-                });
-            }
-          }
-          _ => unimplemented!("{:?}", func_ty),
+        // TODO: what if mutable inputs could alias other inputs? is that possible?
+
+        if let TyKind::Ref(output_region, _, _) = output_ty.kind() {
+          sig
+            .inputs()
+            .iter()
+            .zip(args.iter())
+            .filter(|(input_ty, _)| {
+              if let TyKind::Ref(input_region, _, _) = input_ty.kind() {
+                input_region == output_region
+              } else {
+                false
+              }
+            })
+            .for_each(|(_, op)| match op {
+              Operand::Move(src_place) => {
+                for dst_prim in self.state.possible_prims(*dst_place) {
+                  self.state.add_alias(dst_prim, *src_place);
+                }
+              }
+              _ => unimplemented!("{:?}", op),
+            });
         }
       }
       _ => {}
@@ -377,6 +486,7 @@ impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
 pub struct PointsToAnalysis<'mir, 'tcx> {
   pub tcx: TyCtxt<'tcx>,
   pub body: &'mir Body<'tcx>,
+  pub module: DefId,
 }
 
 impl<'mir, 'tcx> AnalysisDomain<'tcx> for PointsToAnalysis<'mir, 'tcx> {

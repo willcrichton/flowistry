@@ -71,19 +71,21 @@ impl rustc_driver::Callbacks for Callbacks {
     queries.global_ctxt().unwrap().take().enter(|tcx| {
       let config = self.config.take().unwrap();
 
-      let source_map = tcx.sess.source_map();
-      let files = source_map.files();
-      let source_file = files
-        .iter()
-        .find(|file| {
-          if let FileName::Real(RealFileName::Named(other_path)) = &file.name {
-            config.path == other_path.to_string_lossy()
-          } else {
-            false
-          }
-        })
-        .expect(&format!("Could not find file {}", config.path));
-      let slice_span = config.range.to_span(source_file);
+      let slice_span = {
+        let source_map = tcx.sess.source_map();
+        let files = source_map.files();
+        let source_file = files
+          .iter()
+          .find(|file| {
+            if let FileName::Real(RealFileName::Named(other_path)) = &file.name {
+              config.path == other_path.to_string_lossy()
+            } else {
+              false
+            }
+          })
+          .expect(&format!("Could not find file {}", config.path));
+        config.range.to_span(source_file)
+      };
 
       let mut slice_visitor = SliceVisitor {
         tcx,

@@ -70,11 +70,18 @@ export async function activate(context: vscode.ExtensionContext) {
 			let last_line = lines[lines.length - 1];
 			let slice_output: SliceOutput = JSON.parse(last_line);
 
+
 			let decorations = slice_output.ranges.map(slice_range => {
 				let range = new vscode.Range(slice_range.start_line, slice_range.start_col,
 					slice_range.end_line, slice_range.end_col);
 				return {range};
 			});
+
+			if (decorations.length == 0) {
+				let selected_text = active_editor.document.getText(selection);
+				vscode.window.showInformationMessage(`Slice on "${selected_text}" did not generate any results`);
+				return;
+			}
 
 			active_editor.setDecorations(decoration_type, decorations)
 
@@ -86,6 +93,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			})
 		} catch (exc) {
 			log("ERROR", exc);
+			vscode.window.showErrorMessage(`Rust Slicer failed with error: ${exc}`);
 		}
 	});
 
