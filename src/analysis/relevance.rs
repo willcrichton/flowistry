@@ -84,8 +84,8 @@ struct CollectPlaces<'a> {
 
 impl<'a, 'tcx> Visitor<'tcx> for CollectPlaces<'a> {
   fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, _location: Location) {
-    let aliases = self.pointer_analysis.possible_prims(*place);
-    self.places = &self.places | &aliases;
+    let (aliases, pointers) = self.pointer_analysis.possible_prims_and_pointers(*place);
+    self.places = &(&self.places | &aliases) | &pointers;
   }
 }
 
@@ -138,8 +138,8 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       pointer_analysis.possible_prims_and_pointers(*place);
 
     debug!(
-      "checking assign {:?} = {:?} in context {:?}",
-      place, rvalue, self.state.places
+      "checking assign {:?} = {:?} in context {:?} (possibly mutated {:?})",
+      place, rvalue, self.state.places, possibly_mutated
     );
     if self.any_relevant_mutated(&possibly_mutated) {
       debug!("  relevant assignment to {:?}", place);
@@ -165,8 +165,8 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       collector.visit_rvalue(rvalue, location);
 
       debug!(
-        "  collected from rvalue {:?}, got places {:?}",
-        rvalue, collector.places
+        "  collected from rvalue {:?}, got places {:?} and pointers {:?}",
+        rvalue, collector.places, pointers_to_possibly_mutated
       );
 
       self.add_relevant(&collector.places);

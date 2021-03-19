@@ -42,11 +42,26 @@ fn run() -> Result<()> {
     bail!("Not implemented for workspace with more than 1 member");
   }
 
-  let crate_name = workspace_members[0].as_str().unwrap().split(" ").nth(0).unwrap();
+  let crate_name = workspace_members[0]
+    .as_str()
+    .unwrap()
+    .split(" ")
+    .nth(0)
+    .unwrap();
 
+  // TODO: extracting info from Cargo should only be done once per IDE session
   let cargo_output = {
-    let command = format!("rm -r target/debug/.fingerprint/{}*", crate_name);
-    Command::new("bash").args(&["-c", &command]).output()?;
+    Command::new("cargo")
+      .args(&[
+        "clean",
+        "--package",
+        crate_name,
+        "-Z",
+        "unstable-options",
+        "--profile",
+        "check",
+      ])
+      .output()?;
 
     let stderr = Command::new("cargo")
       .args(&["check", "-v"])
@@ -57,7 +72,6 @@ fn run() -> Result<()> {
     String::from_utf8(stderr)?
   };
 
-  // Extract the `rustc` commands from the "Running `...`" stderr output.
   let command_lines = {
     let re = Regex::new(r"^\s*Running `(.*)`").unwrap();
     cargo_output
@@ -83,27 +97,22 @@ fn run() -> Result<()> {
   let mut args = command_lines[0]
     .split(" ")
     .filter(|s| *s != "--error-format=json" && *s != "--json=diagnostic-rendered-ansi")
-    //.map(|s| if s.ends_with(".rs") { path } else { s })
     .chain(vec!["--sysroot", arg!("sysroot")])
     .collect::<Vec<_>>();
 
-  let remove_flags = vec!["--cfg", "--crate-type"]
-    .into_iter()
-    .collect::<HashSet<_>>();
-  let to_remove = args
-    .iter()
-    .enumerate()
-    .filter(|(_, s)| remove_flags.contains(*s))
-    .map(|(i, _)| i)
-    .collect::<Vec<_>>();
-  for i in to_remove.into_iter().rev() {
-    args.remove(i + 1);
-    args.remove(i);
-  }
-
-  args.extend_from_slice(&["--crate-type", "lib"]);
-
-  //println!("{:#?}", args);
+  // let remove_flags = vec!["--cfg", "--crate-type"]
+  //   .into_iter()
+  //   .collect::<HashSet<_>>();
+  // let to_remove = args
+  //   .iter()
+  //   .enumerate()
+  //   .filter(|(_, s)| remove_flags.contains(*s))
+  //   .map(|(i, _)| i)
+  //   .collect::<Vec<_>>();
+  // for i in to_remove.into_iter().rev() {
+  //   args.remove(i + 1);
+  //   args.remove(i);
+  // }
 
   let config = Config {
     path: arg!("path").to_owned(),

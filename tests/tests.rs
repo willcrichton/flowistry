@@ -503,7 +503,7 @@ fn main() {
 }
 
 #[test]
-fn function_output() {
+fn interprocedural_output() {
   let src = r#"
 fn foo() -> i32 { 1 }  
 
@@ -518,7 +518,7 @@ fn main() {
 }
 
 #[test]
-fn function_input() {
+fn interprocedural_input() {
   let src = r#"
 fn foo(x: i32) -> i32 { x }  
 
@@ -534,7 +534,7 @@ fn main() {
 }
 
 #[test]
-fn function_mut_input() {
+fn interprocedural_mut_input() {
   // y should be relevant b/c it could be involved in computation of x
   let src = r#"
 fn foo(x: &mut i32, y: i32) {}  
@@ -551,7 +551,7 @@ fn main() {
 }
 
 #[test]
-fn function_ref_input() {
+fn interprocedural_ref_input() {
   // call should be irrelevant b/c x can only be read
   let src = r#"
 fn foo(x: &i32) {}  
@@ -567,7 +567,7 @@ fn main() {
 }
 
 #[test]
-fn function_mut_input_field() {
+fn interprocedural_mut_input_field() {
   // y should be relevant b/c it could be involved in computation of x
   let src = r#"
 fn foo(x: (&mut i32,)) {}  
@@ -584,7 +584,7 @@ fn main() {
 
 
 #[test]
-fn function_mut_input_whole() {
+fn interprocedural_mut_input_whole() {
   let src = r#"
 fn write(t: &mut (i32, i32)) {}
 
@@ -600,7 +600,7 @@ fn main() {
 
 
 #[test]
-fn function_mut_output() {
+fn interprocedural_mut_output() {
   let src = r#"
 fn foo(x: &mut i32) -> &mut i32 { x }  
 
@@ -616,7 +616,7 @@ fn main() {
 }
 
 #[test]
-fn function_mut_output_lifetimes() {
+fn interprocedural_mut_output_lifetimes() {
   let src = r#"
 fn foo<'a, 'b>(x: &'a mut i32, y: &'b mut i32) -> &'b mut i32 { y }  
 
@@ -633,7 +633,7 @@ fn main() {
 }
 
 #[test]
-fn function_mut_output_field_read_whole() {
+fn interprocedural_mut_output_field_read_whole() {
   let src = r#"
 fn foo(x: &mut (i32, i32)) -> &mut i32 { &mut x.0 }
 
@@ -649,7 +649,7 @@ fn main() {
 }
 
 #[test]
-fn function_mut_output_field_read_field() {
+fn interprocedural_mut_output_field_read_field() {
   // Should conservatively assume returned value could be any field
   let src = r#"
 fn foo(x: &mut (i32, i32)) -> &mut i32 { &mut x.0 }
@@ -679,6 +679,21 @@ fn main() {}
   run(src, Range::line(3, 3, 4), vec![1, 2, 3]);
 }
 
+#[test]
+fn function_mut_ptr_param() {
+  let src = r#"
+fn foo(x: &mut i32) {
+  *x = 2;
+  let y = *x;
+  y;
+}
+
+fn main() {}
+"#;
+
+  run(src, Range::line(4, 3, 4), vec![1, 2, 3, 4]);
+
+}
 
 #[test]
 fn closure_write_upvar() {
