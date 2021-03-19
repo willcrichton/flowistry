@@ -1,4 +1,4 @@
-use super::points_to::PointsToAnalysis;
+use super::points_to::{NonlocalDecls, PointsToAnalysis};
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use crate::config::{Range, CONFIG};
 use anyhow::{Context, Result};
@@ -13,7 +13,7 @@ use rustc_middle::{
 };
 use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor};
 use rustc_span::Span;
-use std::{collections::HashSet, fs::File, io::Write, process::Command};
+use std::{collections::{HashSet}, fs::File, io::Write, process::Command};
 
 struct FindInitialSliceSet<'a, 'tcx> {
   slice_span: Span,
@@ -156,8 +156,12 @@ pub fn analyze_function(
     finder.visit_body(body);
     debug!("Initial slice set: {:?}", finder.slice_set);
 
+    
+
     let module = tcx.parent_module(body_id.hir_id).to_def_id();
-    let points_to_results = PointsToAnalysis { tcx, body, module }
+    let nonlocal_decls = NonlocalDecls::new(body, tcx, module);
+
+    let points_to_results = PointsToAnalysis::new(tcx, body, module, nonlocal_decls.clone())
       .into_engine(tcx, body)
       .iterate_to_fixpoint();
 
@@ -167,7 +171,7 @@ pub fn analyze_function(
     }
 
     let relevance_results =
-      RelevanceAnalysis::new(finder.slice_set, tcx, module, body, &points_to_results)
+      RelevanceAnalysis::new(finder.slice_set, tcx, module, body, &points_to_results, nonlocal_decls)
         .into_engine(tcx, body)
         .iterate_to_fixpoint();
 
@@ -186,7 +190,8 @@ pub fn analyze_function(
     let local_spans = visitor
       .all_locals
       .into_iter()
-      .map(|local| body.local_decls().get(local).unwrap().source_info.span);
+      // could be None if local is virtual
+      .filter_map(|local| body.local_decls().get(local).map(|decl| decl.source_info.span));
 
     let source_map = tcx.sess.source_map();
     let ranges = visitor

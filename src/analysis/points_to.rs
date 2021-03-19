@@ -2,7 +2,7 @@ use log::debug;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{
   mir::{self, tcx::PlaceTy, visit::Visitor, *},
-  ty::{ParamEnv, TyCtxt, TyKind},
+  ty::{ParamEnv, Ty, TyCtxt, TyKind},
 };
 use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, AnalysisDomain, JoinSemiLattice};
 use rustc_target::abi::VariantIdx;
@@ -26,13 +26,55 @@ pub struct PlacePrim {
   pub projection: Vec<ProjectionPrim>,
 }
 
+#[derive(Clone, Debug)]
+pub struct NonlocalDecls<'tcx> {
+  pub pointers: HashMap<PlacePrim, (PlacePrim, Mutability)>,
+  pub pointees: HashMap<PlacePrim, Ty<'tcx>>,
+}
+
+impl<'tcx> NonlocalDecls<'tcx> {
+  pub fn empty() -> Self {
+    NonlocalDecls {
+      pointers: HashMap::new(),
+      pointees: HashMap::new(),
+    }
+  }
+
+  pub fn new(body: &Body<'tcx>, tcx: TyCtxt<'tcx>, module: DefId) -> Self {
+    let mut pointers = HashMap::new();
+    let mut pointees = HashMap::new();
+    let mut cur_local = body.local_decls.len();
+    for arg in body.args_iter() {
+      let prim = PlacePrim::local(arg);
+      for subprim in prim.sub_places(body.local_decls(), &NonlocalDecls::empty(), tcx, module) {
+        let ty = subprim.ty(body.local_decls(), &NonlocalDecls::empty(), tcx);
+        if let TyKind::Ref(_, inner, mutability) = ty.ty.kind() {
+          let virtual_local = Local::from_usize(cur_local);
+          let virtual_prim = PlacePrim::local(virtual_local);
+          pointers.insert(subprim, (virtual_prim.clone(), *mutability));
+          pointees.insert(virtual_prim, *inner);
+          cur_local += 1;
+        }
+      }
+    }
+
+    NonlocalDecls { pointers, pointees }
+  }
+}
+
 impl PlacePrim {
   pub fn ty<'tcx>(
     &self,
     local_decls: &impl HasLocalDecls<'tcx>,
+    nonlocal_decls: &NonlocalDecls<'tcx>,
     tcx: TyCtxt<'tcx>,
   ) -> PlaceTy<'tcx> {
-    let ty = local_decls.local_decls()[self.local].ty;
+    let ty = nonlocal_decls
+      .pointees
+      .get(self)
+      .map(|ty| *ty)
+      .unwrap_or_else(|| local_decls.local_decls()[self.local].ty);
+
     self
       .projection
       .iter()
@@ -58,11 +100,12 @@ impl PlacePrim {
   pub fn sub_places<'tcx>(
     &self,
     local_decls: &impl HasLocalDecls<'tcx>,
+    nonlocal_decls: &NonlocalDecls<'tcx>,
     tcx: TyCtxt<'tcx>,
     module: DefId,
   ) -> HashSet<PlacePrim> {
     use TyKind::*;
-    let place_ty = self.ty(local_decls, tcx);
+    let place_ty = self.ty(local_decls, nonlocal_decls, tcx);
     let ty = place_ty.ty;
 
     let map_fields = |place: &PlacePrim, fields: Vec<usize>| {
@@ -73,7 +116,7 @@ impl PlacePrim {
           place
             .projection
             .push(ProjectionPrim::Field(Field::from_usize(i)));
-          place.sub_places(local_decls, tcx, module)
+          place.sub_places(local_decls, nonlocal_decls, tcx, module)
         })
         .fold(HashSet::new(), |s1, s2| &s1 | &s2)
     };
@@ -249,6 +292,10 @@ impl PointsToDomain {
     self.possible_prims_and_pointers(place).0
   }
 
+  pub fn points_to(&mut self, prim: PlacePrim) -> &mut HashSet<(PlacePrim, Mutability)> {
+    self.0.entry(prim).or_insert_with(HashSet::new)
+  }
+
   pub fn mutably_points_to(&self, prim: &PlacePrim) -> Option<HashSet<PlacePrim>> {
     self.0.get(prim).map(|prims| {
       prims
@@ -272,18 +319,8 @@ impl PointsToDomain {
       })
       .map(|prim| self.0.get(&prim).cloned().unwrap_or_else(HashSet::new))
       .fold(HashSet::new(), |s1, s2| &s1 | &s2);
-    let lprims = self.0.entry(lprim).or_insert_with(HashSet::new);
+    let lprims = self.points_to(lprim);
     *lprims = &*lprims | &rprims_pointed;
-  }
-
-  pub fn add_borrow(&mut self, lprim: PlacePrim, rplace: Place, mutability: Mutability) {
-    let rprims = self
-      .possible_prims(rplace)
-      .into_iter()
-      .map(|prim| (prim, mutability))
-      .collect::<HashSet<_>>();
-    let lprims = self.0.entry(lprim).or_insert_with(HashSet::new);
-    *lprims = &*lprims | &rprims;
   }
 }
 
@@ -338,6 +375,7 @@ impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
         lprim
           .sub_places(
             self.analysis.body.local_decls(),
+            &self.analysis.nonlocal_decls,
             self.analysis.tcx,
             self.analysis.module,
           )
@@ -370,30 +408,13 @@ impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
       _ => None,
     };
 
-    // self
-    //   .state
-    //   .possible_prims(*rplace)
-    //   .into_iter()
-    //   .map(|prim| (prim, mutability))
-    //   .collect::<HashSet<_>>()
-
-    // self
-    //       .state
-    //       .possible_prims(*rplace)
-    //       .into_iter()
-    //       .map(|prim| {
-    //         self
-    //           .state
-    //           .0
-    //           .get(&prim)
-    //           .cloned()
-    //           .unwrap_or_else(HashSet::new)
-    //       })
-    //       .fold(HashSet::new(), |s1, s2| &s1 | &s2),
-
     for (lprim, orig_projection_len) in lprims.into_iter() {
       let lty = lprim
-        .ty(self.analysis.body.local_decls(), self.analysis.tcx)
+        .ty(
+          self.analysis.body.local_decls(),
+          &self.analysis.nonlocal_decls,
+          self.analysis.tcx,
+        )
         .ty;
 
       if let TyKind::Ref(_, _, _) = lty.kind() {
@@ -431,11 +452,7 @@ impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
           })
           .fold(HashSet::new(), |s1, s2| &s1 | &s2);
 
-        let lprim_points_to = self
-          .state
-          .0
-          .entry(lprim.clone())
-          .or_insert_with(HashSet::new);
+        let lprim_points_to = self.state.points_to(lprim.clone());
         *lprim_points_to = &*lprim_points_to | &rprims;
       }
     }
@@ -487,6 +504,23 @@ pub struct PointsToAnalysis<'mir, 'tcx> {
   pub tcx: TyCtxt<'tcx>,
   pub body: &'mir Body<'tcx>,
   pub module: DefId,
+  pub nonlocal_decls: NonlocalDecls<'tcx>,
+}
+
+impl<'mir, 'tcx> PointsToAnalysis<'mir, 'tcx> {
+  pub fn new(
+    tcx: TyCtxt<'tcx>,
+    body: &'mir Body<'tcx>,
+    module: DefId,
+    nonlocal_decls: NonlocalDecls<'tcx>,
+  ) -> Self {
+    PointsToAnalysis {
+      tcx,
+      body,
+      module,
+      nonlocal_decls,
+    }
+  }
 }
 
 impl<'mir, 'tcx> AnalysisDomain<'tcx> for PointsToAnalysis<'mir, 'tcx> {
@@ -497,8 +531,11 @@ impl<'mir, 'tcx> AnalysisDomain<'tcx> for PointsToAnalysis<'mir, 'tcx> {
     PointsToDomain(HashMap::new())
   }
 
-  fn initialize_start_block(&self, _: &mir::Body<'tcx>, _: &mut Self::Domain) {
-    // TODO?
+  fn initialize_start_block(&self, _body: &mir::Body<'tcx>, state: &mut Self::Domain) {
+    for (nonlocal_ptr, (nonlocal_pointee, mutability)) in &self.nonlocal_decls.pointers {
+      let nonlocal_points_to = state.points_to(nonlocal_ptr.clone());
+      nonlocal_points_to.insert((nonlocal_pointee.clone(), *mutability));
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-use super::points_to::{PlacePrim, PointsToAnalysis, PointsToDomain};
+use super::points_to::{NonlocalDecls, PlacePrim, PointsToAnalysis, PointsToDomain};
 use log::debug;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{
@@ -286,6 +286,7 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   body: &'mir Body<'tcx>,
   module: DefId,
   sub_places: RefCell<HashMap<PlacePrim, HashSet<PlacePrim>>>,
+  nonlocal_decls: NonlocalDecls<'tcx>,
 }
 
 impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
@@ -295,6 +296,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     module: DefId,
     body: &'mir Body<'tcx>,
     results: &'a Results<'tcx, PointsToAnalysis<'mir, 'tcx>>,
+    nonlocal_decls: NonlocalDecls<'tcx>,
   ) -> Self {
     let pointer_analysis = RefCell::new(ResultsRefCursor::new(body, &results));
     let sub_places = RefCell::new(HashMap::new());
@@ -305,6 +307,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       body,
       module,
       sub_places,
+      nonlocal_decls,
     }
   }
 
@@ -313,7 +316,14 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       .sub_places
       .borrow_mut()
       .entry(prim.clone())
-      .or_insert_with(|| prim.sub_places(self.body.local_decls(), self.tcx, self.module))
+      .or_insert_with(|| {
+        prim.sub_places(
+          self.body.local_decls(),
+          &self.nonlocal_decls,
+          self.tcx,
+          self.module,
+        )
+      })
       .clone()
   }
 

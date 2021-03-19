@@ -94,25 +94,11 @@ fn run() -> Result<()> {
     );
   }
 
-  let mut args = command_lines[0]
+  let args = command_lines[0]
     .split(" ")
     .filter(|s| *s != "--error-format=json" && *s != "--json=diagnostic-rendered-ansi")
     .chain(vec!["--sysroot", arg!("sysroot")])
     .collect::<Vec<_>>();
-
-  // let remove_flags = vec!["--cfg", "--crate-type"]
-  //   .into_iter()
-  //   .collect::<HashSet<_>>();
-  // let to_remove = args
-  //   .iter()
-  //   .enumerate()
-  //   .filter(|(_, s)| remove_flags.contains(*s))
-  //   .map(|(i, _)| i)
-  //   .collect::<Vec<_>>();
-  // for i in to_remove.into_iter().rev() {
-  //   args.remove(i + 1);
-  //   args.remove(i);
-  // }
 
   let config = Config {
     path: arg!("path").to_owned(),
