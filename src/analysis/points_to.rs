@@ -1,4 +1,4 @@
-use log::debug;
+use log::{debug, warn};
 use rustc_hir::def_id::DefId;
 use rustc_middle::{
   mir::{self, tcx::PlaceTy, visit::Visitor, *},
@@ -423,6 +423,14 @@ impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
         .ty;
 
       if let TyKind::Ref(_, _, _) = lty.kind() {
+        if assignment.is_none() {
+          warn!(
+            "found assignment to pointer but `assignment` is None. In expr {:?} = {:?}",
+            lplace, rvalue
+          );
+          return;
+        }
+
         let (rplace, assign_type) = assignment.as_ref().unwrap();
         let rprims = self
           .state
