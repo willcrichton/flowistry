@@ -281,7 +281,12 @@ impl PointsToDomain {
           ptrs,
         ),
 
-        _ => unimplemented!("{:?}", place),
+        // TODO: can't seem to find a program that generates either of these projections?
+        // slicing with &x[..] produces a call to
+        // <T as std::ops::Index<std::ops::RangeTo<usize>>>::index(..)
+        ProjectionElem::ConstantIndex { .. } | ProjectionElem::Subslice { .. } => {
+          unimplemented!("{:?}", place)
+        }
       },
     );
 
@@ -472,7 +477,12 @@ impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
         let output_ty = sig.output();
 
         // TODO: what if mutable inputs could alias other inputs? is that possible?
+        // TODO: this code is now very different from the assignment case, need to
+        // scrutinize very closely (esp. b/c not using sub_places)
+        // TODO: this is absolutely not sound e.g. wrt lifetime constraints
 
+        // potentially related functions:
+        //   rustc_mir::borrow_check::path_utils::each_borrow_involving_path
         if let TyKind::Ref(output_region, _, _) = output_ty.kind() {
           sig
             .inputs()
@@ -486,12 +496,12 @@ impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
               }
             })
             .for_each(|(_, op)| match op {
-              Operand::Move(src_place) => {
+              Operand::Move(src_place) | Operand::Copy(src_place) => {
                 for dst_prim in self.state.possible_prims(*dst_place) {
                   self.state.add_alias(dst_prim, *src_place);
                 }
               }
-              _ => unimplemented!("{:?}", op),
+              Operand::Constant(_) => {}
             });
         }
       }

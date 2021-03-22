@@ -692,7 +692,21 @@ fn main() {}
 "#;
 
   run(src, Range::line(4, 3, 4), vec![1, 2, 3, 4]);
+}
 
+#[test]
+fn function_mut_ptr_param_field() {
+  let src = r#"
+fn foo(x: (&mut i32,)) {
+  *x.0 = 2;
+  let y = *x.0;
+  y;
+}
+
+fn main() {}
+"#;
+
+  run(src, Range::line(4, 3, 4), vec![1, 2, 3, 4]);
 }
 
 #[test]

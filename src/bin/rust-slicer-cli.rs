@@ -3,7 +3,6 @@ use clap::clap_app;
 use regex::Regex;
 use rust_slicer::{Config, Range};
 use serde::Serialize;
-use std::collections::HashSet;
 use std::process::Command;
 
 #[derive(Serialize)]

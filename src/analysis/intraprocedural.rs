@@ -156,8 +156,6 @@ pub fn analyze_function(
     finder.visit_body(body);
     debug!("Initial slice set: {:?}", finder.slice_set);
 
-    
-
     let module = tcx.parent_module(body_id.hir_id).to_def_id();
     let nonlocal_decls = NonlocalDecls::new(body, tcx, module);
 
