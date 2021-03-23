@@ -491,6 +491,7 @@ impl<'a, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'mir, 'tcx> {
 
         // potentially related functions:
         //   rustc_mir::borrow_check::path_utils::each_borrow_involving_path
+        //   rustc_mir::borrow_check::places_conflict::place_components_conflict
         if let TyKind::Ref(output_region, _, _) = output_ty.kind() {
           sig
             .inputs()

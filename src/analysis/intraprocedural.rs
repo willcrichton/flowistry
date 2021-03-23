@@ -1,5 +1,8 @@
+use super::borrow_ranges::BorrowRanges;
 use super::points_to::{NonlocalDecls, PointsToAnalysis};
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
+use super::place_index::PlaceIndices;
+
 use crate::config::{Range, CONFIG};
 use anyhow::{Context, Result};
 use log::{debug, info};
@@ -9,11 +12,11 @@ use rustc_middle::{
     visit::{PlaceContext, Visitor},
     *,
   },
-  ty::TyCtxt,
+  ty::{TyCtxt, WithOptConstParam},
 };
 use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor};
 use rustc_span::Span;
-use std::{collections::{HashSet}, fs::File, io::Write, process::Command};
+use std::{collections::HashSet, fs::File, io::Write, process::Command};
 
 struct FindInitialSliceSet<'a, 'tcx> {
   slice_span: Span,
@@ -136,7 +139,9 @@ pub fn analyze_function(
     let config = config.context("Missing config")?;
 
     let local_def_id = body_id.hir_id.owner;
-    let body = tcx.optimized_mir(local_def_id);
+    let (body, _) = tcx.mir_promoted(WithOptConstParam::unknown(local_def_id));
+    let body = body.borrow().clone();
+    let body = &body;
 
     #[cfg(feature = "custom-rustc")]
     if config.debug {
@@ -145,7 +150,31 @@ pub fn analyze_function(
       let mut buffer = Vec::new();
       write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
       info!("{}", String::from_utf8_lossy(&buffer));
-      info!("============");
+    }
+
+    let borrowck_result = tcx.mir_borrowck(local_def_id);
+    let borrow_ranges = BorrowRanges::new(
+      tcx, body,
+      &borrowck_result.borrow_set,
+      &borrowck_result.borrows_out_of_scope_at_location,
+    )
+    .into_engine(tcx, body)
+    .iterate_to_fixpoint();
+
+    /*let borrows = Borrows::from_borrowck_output(tcx, body, &borrowck_result.borrow_set, &borrowck_result);
+    let borrow_results = Results {
+      analysis: borrows,
+      entry_sets: borrowck_result.borrows_entry_sets.clone()
+    };*/
+
+    #[cfg(feature = "custom-rustc")]
+    if config.debug {
+      info!("borrow set {:#?}", borrowck_result.borrow_set);
+      info!(
+        "out of scope {:#?}",
+        borrowck_result.borrows_out_of_scope_at_location
+      );
+      dump_results("target/borrow_ranges.png", body, &borrow_ranges)?;
     }
 
     let mut finder = FindInitialSliceSet {
@@ -168,10 +197,21 @@ pub fn analyze_function(
       dump_results("target/points_to.png", body, &points_to_results)?;
     }
 
-    let relevance_results =
-      RelevanceAnalysis::new(finder.slice_set, tcx, module, body, &points_to_results, nonlocal_decls)
-        .into_engine(tcx, body)
-        .iterate_to_fixpoint();
+    let place_indices = PlaceIndices::build(body);
+
+    let relevance_results = RelevanceAnalysis::new(
+      finder.slice_set,
+      tcx,
+      module,
+      body,
+      &points_to_results,
+      nonlocal_decls,
+      &borrowck_result.borrow_set,
+      &borrow_ranges,
+      &place_indices
+    )
+    .into_engine(tcx, body)
+    .iterate_to_fixpoint();
 
     #[cfg(feature = "custom-rustc")]
     if config.debug {
@@ -189,7 +229,12 @@ pub fn analyze_function(
       .all_locals
       .into_iter()
       // could be None if local is virtual
-      .filter_map(|local| body.local_decls().get(local).map(|decl| decl.source_info.span));
+      .filter_map(|local| {
+        body
+          .local_decls()
+          .get(local)
+          .map(|decl| decl.source_info.span)
+      });
 
     let source_map = tcx.sess.source_map();
     let ranges = visitor

@@ -1,14 +1,19 @@
 use crate::config::{Config, CONFIG};
 use anyhow::{Error, Result};
-use rustc_hir::{BodyId, ForeignItem, ImplItem, ImplItemKind, Item, ItemKind, TraitItem, itemlikevisit::ItemLikeVisitor};
+use rustc_hir::{
+  itemlikevisit::ItemLikeVisitor, BodyId, ForeignItem, ImplItem, ImplItemKind, Item, ItemKind,
+  TraitItem,
+};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::{FileName, RealFileName, Span};
 
 pub use intraprocedural::SliceOutput;
 
+mod borrow_ranges;
 mod intraprocedural;
 mod points_to;
 mod relevance;
+mod place_index;
 
 struct SliceVisitor<'tcx> {
   tcx: TyCtxt<'tcx>,
@@ -43,7 +48,7 @@ impl<'hir, 'tcx> ItemLikeVisitor<'hir> for SliceVisitor<'tcx> {
       _ => {}
     }
   }
-  
+
   fn visit_impl_item(&mut self, impl_item: &'hir ImplItem<'hir>) {
     match &impl_item.kind {
       ImplItemKind::Fn(_, body_id) => {
@@ -116,6 +121,7 @@ pub fn slice(config: Config, args: impl AsRef<str>) -> Result<SliceOutput> {
     output: None,
   };
 
+  rustc_driver::init_rustc_env_logger();
   rustc_driver::catch_fatal_errors(|| rustc_driver::RunCompiler::new(&args, &mut callbacks).run())
     .map_err(|_| Error::msg("rustc panicked"))?
     .map_err(|_| Error::msg("driver failed"))?;
