@@ -1,9 +1,8 @@
 use super::{
+  aliases::Aliases,
   borrow_ranges::BorrowRanges,
-  place_index::{PlaceIndex, PlaceIndices},
-};
-use super::{
   place_index::PlaceSet,
+  place_index::{PlaceIndex, PlaceIndices},
   points_to::{NonlocalDecls, PlacePrim, PointsToAnalysis, PointsToDomain},
 };
 use log::debug;
@@ -147,11 +146,12 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
     }
 
     debug!("checking {:?} = {:?}", place, rvalue);
-    let mut possibly_mutated = self.analysis.mutated_places(*place);
+    let (possibly_mutated, pointers_to_mutated) = self.analysis.places_and_pointers(*place);
     debug!(
-      "  relevant {:?}, possibly_mutated {:?}",
+      "  relevant {:?}, possibly_mutated {:?}, pointers_to_mutated {:?}",
       fmt_places!(self.state.places),
-      fmt_places!(possibly_mutated)
+      fmt_places!(possibly_mutated),
+      fmt_places!(pointers_to_mutated)
     );
 
     let any_relevant_mutated = possibly_mutated.iter().any(|mutated_place| {
@@ -192,14 +192,13 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       };
       collector.visit_rvalue(rvalue, location);
 
-      possibly_mutated.remove(self.analysis.place_indices.index(place));
       debug!(
         "  adding relevant places {:?} and pointers to possibly mutated {:?}",
         fmt_places!(collector.places),
-        fmt_places!(possibly_mutated)
+        fmt_places!(pointers_to_mutated)
       );
       self.add_relevant_many(&collector.places);
-      self.add_relevant_many(&possibly_mutated);
+      self.add_relevant_many(&pointers_to_mutated);
     }
 
     // let pointer_analysis = self.analysis.pointer_analysis.borrow();
@@ -345,11 +344,11 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   tcx: TyCtxt<'tcx>,
   body: &'mir Body<'tcx>,
   module: DefId,
-  sub_places: RefCell<HashMap<PlacePrim, HashSet<PlacePrim>>>,
   nonlocal_decls: NonlocalDecls<'tcx>,
   borrow_set: &'a BorrowSet<'tcx>,
   borrow_ranges: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, BorrowRanges<'mir, 'tcx>>>,
   place_indices: &'a PlaceIndices<'tcx>,
+  aliases: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, Aliases<'a, 'mir, 'tcx>>>,
 }
 
 impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
@@ -363,21 +362,22 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     borrow_set: &'a BorrowSet<'tcx>,
     borrow_ranges: &'a Results<'tcx, BorrowRanges<'mir, 'tcx>>,
     place_indices: &'a PlaceIndices<'tcx>,
+    aliases: &'a Results<'tcx, Aliases<'a, 'mir, 'tcx>>,
   ) -> Self {
     let pointer_analysis = RefCell::new(ResultsRefCursor::new(body, &results));
-    let sub_places = RefCell::new(HashMap::new());
     let borrow_ranges = RefCell::new(ResultsRefCursor::new(body, &borrow_ranges));
+    let aliases = RefCell::new(ResultsRefCursor::new(body, aliases));
     RelevanceAnalysis {
       slice_set,
       pointer_analysis,
       tcx,
       body,
       module,
-      sub_places,
       nonlocal_decls,
       borrow_set,
       borrow_ranges,
       place_indices,
+      aliases,
     }
   }
 
@@ -402,26 +402,50 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     )
   }
 
-  fn mutated_places(&self, place: Place<'tcx>) -> PlaceSet {
+  fn places_and_pointers(&self, place: Place<'tcx>) -> (PlaceSet, PlaceSet) {
     let borrow_ranges = self.borrow_ranges.borrow();
-    let candidates = borrow_ranges.get();
+    let borrow_ranges = borrow_ranges.get();
+
+    let aliases = self.aliases.borrow();
+    let aliases = aliases.get();
 
     let mut places = self.place_indices.empty_set();
+    let mut pointers = self.place_indices.empty_set();
     places.insert(self.place_indices.index(&place));
 
-    for i in candidates.iter() {
+    for i in borrow_ranges.iter() {
       let borrow = &self.borrow_set[i];
-      if self.place_is_part(place, borrow.assigned_place) {
+
+      let mut borrow_aliases = aliases.iter_enumerated().filter_map(|(local, borrows)| {
+        if borrows.contains(i) {
+          Some(local)
+        } else {
+          None
+        }
+      });
+
+      let part_of_alias = borrow_aliases.any(|alias| {
+        self.place_is_part(place, Place {
+          local: alias, 
+          projection: self.tcx.intern_place_elems(&[])
+        })
+      });
+
+      if self.place_is_part(place, borrow.assigned_place) || part_of_alias {
         // println!(
         //   "  {:?} conflicts with {:?}, adding {:?}",
         //   place, borrow.assigned_place, borrow.borrowed_place
         // );
         places.insert(self.place_indices.index(&borrow.borrowed_place));
-        places.union(&self.mutated_places(borrow.borrowed_place));
+        pointers.insert(self.place_indices.index(&borrow.assigned_place));
+
+        let (sub_places, sub_pointers) = self.places_and_pointers(borrow.borrowed_place);
+        places.union(&sub_places);
+        pointers.union(&sub_pointers);
       }
     }
 
-    places
+    (places, pointers)
   }
 }
 
@@ -456,6 +480,10 @@ impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
       .borrow_ranges
       .borrow_mut()
       .seek_before_primary_effect(location);
+    self
+      .aliases
+      .borrow_mut()
+      .seek_before_primary_effect(location);
 
     TransferFunction {
       state,
@@ -476,6 +504,10 @@ impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
       .seek_before_primary_effect(location);
     self
       .borrow_ranges
+      .borrow_mut()
+      .seek_before_primary_effect(location);
+    self
+      .aliases
       .borrow_mut()
       .seek_before_primary_effect(location);
 

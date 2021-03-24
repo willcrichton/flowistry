@@ -14,6 +14,7 @@ mod intraprocedural;
 mod points_to;
 mod relevance;
 mod place_index;
+mod aliases;
 
 struct SliceVisitor<'tcx> {
   tcx: TyCtxt<'tcx>,

@@ -1,3 +1,4 @@
+use super::aliases::Aliases;
 use super::borrow_ranges::BorrowRanges;
 use super::place_index::PlaceIndices;
 use super::points_to::{NonlocalDecls, PointsToAnalysis};
@@ -41,7 +42,7 @@ struct CollectResults<'a, 'tcx> {
   body: &'a Body<'tcx>,
   relevant_spans: Vec<Span>,
   all_locals: HashSet<Local>,
-  place_indices: &'a PlaceIndices<'tcx>
+  place_indices: &'a PlaceIndices<'tcx>,
 }
 
 impl<'a, 'tcx> CollectResults<'a, 'tcx> {
@@ -142,33 +143,28 @@ pub fn analyze_function(
     let local_def_id = body_id.hir_id.owner;
     let borrowck_result = tcx.mir_borrowck(local_def_id);
     let body = &borrowck_result.intermediates.body;
+    let borrow_set = &borrowck_result.intermediates.borrow_set;
+    let outlives_constraints = &borrowck_result.intermediates.outlives_constraints;
+    let borrows_out_of_scope_at_location = &borrowck_result
+      .intermediates
+      .borrows_out_of_scope_at_location;
 
-    #[cfg(feature = "custom-rustc")]
+    //#[cfg(feature = "custom-rustc")]
     if config.debug {
       use rustc_mir::util::write_mir_fn;
       info!("MIR");
       let mut buffer = Vec::new();
       write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
       info!("{}", String::from_utf8_lossy(&buffer));
-      info!("borrow set {:#?}", borrowck_result.intermediates.borrow_set);
-      info!(
-        "out of scope {:#?}",
-        borrowck_result
-          .intermediates
-          .borrows_out_of_scope_at_location
-      );
+      info!("borrow set {:#?}", borrow_set);
+      info!("out of scope {:#?}", borrows_out_of_scope_at_location);
+      info!("outlives constraints {:#?}", outlives_constraints);
     }
 
-    let borrow_ranges = BorrowRanges::new(
-      tcx,
-      body,
-      &borrowck_result.intermediates.borrow_set,
-      &borrowck_result
-        .intermediates
-        .borrows_out_of_scope_at_location,
-    )
-    .into_engine(tcx, body)
-    .iterate_to_fixpoint();
+    let borrow_ranges = BorrowRanges::new(tcx, body, borrow_set, borrows_out_of_scope_at_location)
+      .into_engine(tcx, body)
+      .iterate_to_fixpoint();
+    let borrow_ranges = &borrow_ranges;
 
     /*let borrows = Borrows::from_borrowck_output(tcx, body, &borrowck_result.borrow_set, &borrowck_result);
     let borrow_results = Results {
@@ -176,9 +172,17 @@ pub fn analyze_function(
       entry_sets: borrowck_result.borrows_entry_sets.clone()
     };*/
 
-    #[cfg(feature = "custom-rustc")]
+    //#[cfg(feature = "custom-rustc")]
     if config.debug {
-      dump_results("target/borrow_ranges.png", body, &borrow_ranges)?;
+      dump_results("target/borrow_ranges.png", body, borrow_ranges)?;
+    }
+
+    let aliases = Aliases::new(tcx, body, borrow_set, borrow_ranges, outlives_constraints)
+      .into_engine(tcx, body)
+      .iterate_to_fixpoint();
+
+    if config.debug {
+      dump_results("target/aliases.png", body, &aliases)?;
     }
 
     let mut finder = FindInitialSliceSet {
@@ -196,7 +200,7 @@ pub fn analyze_function(
       .into_engine(tcx, body)
       .iterate_to_fixpoint();
 
-    #[cfg(feature = "custom-rustc")]
+    //#[cfg(feature = "custom-rustc")]
     if config.debug {
       dump_results("target/points_to.png", body, &points_to_results)?;
     }
@@ -210,9 +214,10 @@ pub fn analyze_function(
       body,
       &points_to_results,
       nonlocal_decls,
-      &borrowck_result.intermediates.borrow_set,
-      &borrow_ranges,
+      borrow_set,
+      borrow_ranges,
       &place_indices,
+      &aliases
     )
     .into_engine(tcx, body)
     .iterate_to_fixpoint();
@@ -226,7 +231,7 @@ pub fn analyze_function(
       body,
       relevant_spans: vec![],
       all_locals: HashSet::new(),
-      place_indices: &place_indices
+      place_indices: &place_indices,
     };
     relevance_results.visit_reachable_with(body, &mut visitor);
 
