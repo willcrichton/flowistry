@@ -25,7 +25,7 @@ impl Range {
     if self.start_line != self.end_line {
       unimplemented!()
     } else {
-      lines[self.start_line][self.start_col..=self.end_col].to_owned()
+      lines[self.start_line][self.start_col..self.end_col].to_owned()
     }
   }
 }

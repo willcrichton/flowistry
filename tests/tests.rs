@@ -240,22 +240,17 @@ fn main() {
 
 #[test]
 fn tuple_write_whole_read_whole() {
-  let _src = r#"
+  let src = r#"
 fn main() {
-  let mut x = (0, 1);
+  let mut x = {
+    (0, 1)
+  };
   x = (2, 3);
   x;
 }
 "#;
 
-  /*
-   * TODO
-   * This test currently fails b/c x = (2, 3) gets expanded to x.0 = 2, x.1 = 3
-   * in the MIR. Slicer doesn't accumulate field-level assignments to eventually
-   * kill the whole structure when each field has been set. (Possible feature?)
-   */
-
-  // run(src, Range::line(4, 3, 4), vec![3, 4]);
+  run(src, Range::line(6, 3, 4), vec![2, 5, 6]);
 }
 
 #[test]

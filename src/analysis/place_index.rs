@@ -1,9 +1,14 @@
 use rustc_data_structures::fx::FxIndexSet;
-use rustc_macros::HashStable;
-use rustc_middle::mir::{visit::{PlaceContext, Visitor}, *};
 use rustc_index::bit_set::BitSet;
+use rustc_macros::HashStable;
+use rustc_mir::dataflow::fmt::DebugWithContext;
+use rustc_middle::mir::{
+  visit::{PlaceContext, Visitor},
+  *,
+};
 
 use std::collections::HashSet;
+use std::fmt;
 
 rustc_index::newtype_index! {
   pub struct PlaceIndex {
@@ -31,12 +36,12 @@ pub struct PlaceIndices<'tcx> {
 impl<'tcx> PlaceIndices<'tcx> {
   pub fn build(body: &Body<'tcx>) -> Self {
     let mut place_collector = CollectPlaces {
-      index_set: FxIndexSet::default()
+      index_set: FxIndexSet::default(),
     };
     place_collector.visit_body(body);
 
     PlaceIndices {
-      index_set: place_collector.index_set
+      index_set: place_collector.index_set,
     }
   }
 
@@ -50,5 +55,11 @@ impl<'tcx> PlaceIndices<'tcx> {
 
   pub fn empty_set(&self) -> PlaceSet {
     BitSet::new_empty(self.index_set.len())
+  }
+}
+
+impl DebugWithContext<PlaceIndices<'_>> for PlaceIndex {
+  fn fmt_with(&self, ctxt: &PlaceIndices<'_>, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{:?}", ctxt.lookup(*self))
   }
 }

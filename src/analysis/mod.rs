@@ -111,7 +111,7 @@ pub fn slice(config: Config, args: impl AsRef<str>) -> Result<SliceOutput> {
   let _ = env_logger::try_init();
 
   // mir-opt-level ensures that mir_promoted doesn't apply optimizations
-  let args = format!("{} -Z mir-opt-level=0", args.as_ref())
+  let args = format!("{} -Z mir-opt-level=0 -Z identify-regions", args.as_ref())
     .split(" ")
     .map(str::to_string)
     .collect::<Vec<_>>();

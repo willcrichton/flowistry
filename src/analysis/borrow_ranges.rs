@@ -8,7 +8,7 @@ use rustc_middle::{
   ty::TyCtxt,
 };
 use rustc_mir::{
-  borrow_check::{borrow_conflicts_with_place, AccessDepth, PlaceConflictBias},
+  borrow_check::{borrow_conflicts_with_place, AccessDepth, PlaceConflictBias, PlaceExt},
   dataflow::{fmt::DebugWithContext, AnalysisDomain, GenKill, GenKillAnalysis},
 };
 use std::fmt;
@@ -124,7 +124,11 @@ impl<'a, 'tcx> GenKillAnalysis<'tcx> for BorrowRanges<'a, 'tcx> {
     match &stmt.kind {
       StatementKind::Assign(assign) => {
         let (lhs, rhs) = &**assign;
-        if let Rvalue::Ref(_, _, place) = *rhs {          
+        if let Rvalue::Ref(_, _, place) = *rhs {
+          if place.ignore_borrow(self.tcx, self.body, &self.borrow_set.locals_state_at_exit) {
+            return;
+          }
+
           let index = self.borrow_set.get_index_of(&location).unwrap_or_else(|| {
             panic!("could not find BorrowIndex for location {:?}", location);
           });
@@ -187,5 +191,3 @@ impl DebugWithContext<BorrowRanges<'_, '_>> for BorrowIndex {
     write!(f, "{:?}", ctxt.borrow_set[*self].reserve_location)
   }
 }
-
-// impl<'a, 'tcx, C> DebugWithContext<C> for BorrowRanges<'a, 'tcx> {}
