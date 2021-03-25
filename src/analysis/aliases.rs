@@ -1,5 +1,5 @@
 use super::borrow_ranges::BorrowRanges;
-use log::{warn, debug};
+use log::{debug, warn};
 use rustc_index::{bit_set::BitSet, vec::IndexVec};
 use rustc_middle::{
   mir::{
@@ -8,7 +8,7 @@ use rustc_middle::{
     visit::Visitor,
     *,
   },
-  ty::{RegionVid, TyCtxt, TyKind},
+  ty::RegionVid,
 };
 use rustc_mir::dataflow::{
   fmt::DebugWithContext, Analysis, AnalysisDomain, Results, ResultsRefCursor,
@@ -55,10 +55,7 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
           self.state[place.local].insert(borrow_idx);
         }
         None => {
-          let local = &self
-            .analysis
-            .region_to_local
-            .get(&constraint.sup);
+          let local = &self.analysis.region_to_local.get(&constraint.sup);
 
           if let Some(local) = local {
             let borrows = self.state[**local].clone();
@@ -100,8 +97,6 @@ impl<'tcx> Visitor<'tcx> for TransferFunction<'_, '_, '_, 'tcx> {
 }
 
 pub struct Aliases<'a, 'mir, 'tcx> {
-  tcx: TyCtxt<'tcx>,
-  body: &'mir Body<'tcx>,
   borrow_set: &'a BorrowSet<'tcx>,
   borrow_ranges: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, BorrowRanges<'mir, 'tcx>>>,
   outlives_constraints: &'a Vec<OutlivesConstraint>,
@@ -110,7 +105,6 @@ pub struct Aliases<'a, 'mir, 'tcx> {
 
 impl<'a, 'mir, 'tcx> Aliases<'a, 'mir, 'tcx> {
   pub fn new(
-    tcx: TyCtxt<'tcx>,
     body: &'mir Body<'tcx>,
     borrow_set: &'a BorrowSet<'tcx>,
     borrow_ranges: &'a Results<'tcx, BorrowRanges<'mir, 'tcx>>,
@@ -125,14 +119,14 @@ impl<'a, 'mir, 'tcx> Aliases<'a, 'mir, 'tcx> {
           let bb = &body.basic_blocks()[location.block];
           if location.statement_index == bb.statements.len() {
             match &bb.terminator.as_ref().unwrap().kind {
-              TerminatorKind::Call { args, destination, .. } => {
+              TerminatorKind::Call { destination, .. } => {
                 if let Some((place, _)) = destination {
                   Some((constraint.sub, place.local))
                 } else {
                   None
                 }
               }
-              _ => None
+              _ => None,
             }
           } else {
             let statement = &bb.statements[location.statement_index];
@@ -151,8 +145,6 @@ impl<'a, 'mir, 'tcx> Aliases<'a, 'mir, 'tcx> {
       .collect();
 
     Aliases {
-      tcx,
-      body,
       borrow_set,
       borrow_ranges,
       outlives_constraints,
@@ -224,11 +216,7 @@ impl<'tcx> Analysis<'tcx> for Aliases<'_, '_, 'tcx> {
 }
 
 impl DebugWithContext<Aliases<'_, '_, '_>> for AliasesDomain {
-  fn fmt_with(
-    &self,
-    _ctxt: &Aliases<'_, '_, '_>,
-    f: &mut fmt::Formatter<'_>,
-  ) -> fmt::Result {
+  fn fmt_with(&self, _ctxt: &Aliases<'_, '_, '_>, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     for (local, borrows) in self.iter_enumerated() {
       if borrows.count() > 0 {
         write!(f, "{:?}: {:?}, ", local, borrows)?;

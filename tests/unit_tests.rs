@@ -459,7 +459,6 @@ fn main() {
 "#;
 
   run(src, Range::line(6, 3, 4), vec![2, 3, 4, 5, 6]);
-  
 }
 
 #[test]
@@ -576,7 +575,6 @@ fn main() {
   run(src, Range::line(7, 3, 4), vec![4, 7]);
 }
 
-
 #[test]
 fn interprocedural_mut_input_field() {
   let src = r#"
@@ -592,7 +590,6 @@ fn main() {
   run(src, Range::line(6, 3, 4), vec![4, 5, 6]);
 }
 
-
 #[test]
 fn interprocedural_mut_input_whole() {
   let src = r#"
@@ -607,7 +604,6 @@ fn main() {
 
   run(src, Range::line(6, 3, 6), vec![4, 5, 6]);
 }
-
 
 #[test]
 fn interprocedural_mut_output() {
@@ -806,5 +802,4 @@ fn main() {
 "#;
 
   run(src, Range::line(3, 18, 19), vec![2, 3]);
-
 }

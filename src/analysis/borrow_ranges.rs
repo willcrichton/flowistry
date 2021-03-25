@@ -175,13 +175,14 @@ impl<'a, 'tcx> GenKillAnalysis<'tcx> for BorrowRanges<'a, 'tcx> {
       }
     }
   }
+
   fn call_return_effect(
     &self,
-    trans: &mut impl GenKill<Self::Idx>,
-    block: BasicBlock,
-    func: &Operand<'tcx>,
-    args: &[Operand<'tcx>],
-    return_place: Place<'tcx>,
+    _trans: &mut impl GenKill<Self::Idx>,
+    _block: BasicBlock,
+    _func: &Operand<'tcx>,
+    _args: &[Operand<'tcx>],
+    _return_place: Place<'tcx>,
   ) {
   }
 }

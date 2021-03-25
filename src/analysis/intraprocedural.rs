@@ -1,7 +1,6 @@
 use super::aliases::Aliases;
 use super::borrow_ranges::BorrowRanges;
 use super::place_index::PlaceIndices;
-use super::points_to::{NonlocalDecls, PointsToAnalysis};
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use crate::config::{Range, CONFIG};
 
@@ -13,10 +12,10 @@ use rustc_middle::{
     visit::{PlaceContext, Visitor},
     *,
   },
-  ty::{TyCtxt, WithOptConstParam},
+  ty::TyCtxt,
 };
 use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor};
-use rustc_span::{source_map::SourceMap, Span};
+use rustc_span::Span;
 use std::{collections::HashSet, fs::File, io::Write, process::Command};
 
 struct FindInitialSliceSet<'a, 'tcx> {
@@ -97,7 +96,6 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
   }
 }
 
-//#[cfg(feature = "custom-rustc")]
 fn dump_results<'tcx, A>(path: &str, body: &Body<'tcx>, results: &Results<'tcx, A>) -> Result<()>
 where
   A: Analysis<'tcx>,
@@ -170,12 +168,11 @@ pub fn analyze_function(
       .iterate_to_fixpoint();
     let borrow_ranges = &borrow_ranges;
 
-    //#[cfg(feature = "custom-rustc")]
     if config.debug {
       dump_results("target/borrow_ranges.png", body, borrow_ranges)?;
     }
 
-    let aliases = Aliases::new(tcx, body, borrow_set, borrow_ranges, outlives_constraints)
+    let aliases = Aliases::new(body, borrow_set, borrow_ranges, outlives_constraints)
       .into_engine(tcx, body)
       .iterate_to_fixpoint();
 
@@ -191,27 +188,12 @@ pub fn analyze_function(
     finder.visit_body(body);
     debug!("Initial slice set: {:?}", finder.slice_set);
 
-    let module = tcx.parent_module(body_id.hir_id).to_def_id();
-    let nonlocal_decls = NonlocalDecls::new(body, tcx, module);
-
-    let points_to_results = PointsToAnalysis::new(tcx, body, module, nonlocal_decls.clone())
-      .into_engine(tcx, body)
-      .iterate_to_fixpoint();
-
-    //#[cfg(feature = "custom-rustc")]
-    if config.debug {
-      dump_results("target/points_to.png", body, &points_to_results)?;
-    }
-
     let place_indices = PlaceIndices::build(body);
 
     let relevance_results = RelevanceAnalysis::new(
       finder.slice_set,
       tcx,
-      module,
       body,
-      &points_to_results,
-      nonlocal_decls,
       borrow_set,
       borrow_ranges,
       &place_indices,
@@ -220,7 +202,6 @@ pub fn analyze_function(
     .into_engine(tcx, body)
     .iterate_to_fixpoint();
 
-    //#[cfg(feature = "custom-rustc")]
     if config.debug {
       dump_results("target/relevance.png", body, &relevance_results)?;
     }

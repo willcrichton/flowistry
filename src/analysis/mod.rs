@@ -13,7 +13,6 @@ mod aliases;
 mod borrow_ranges;
 mod intraprocedural;
 mod place_index;
-mod points_to;
 mod relevance;
 
 struct SliceVisitor<'tcx> {

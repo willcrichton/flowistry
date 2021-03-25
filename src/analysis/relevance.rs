@@ -3,10 +3,8 @@ use super::{
   borrow_ranges::BorrowRanges,
   place_index::PlaceSet,
   place_index::{PlaceIndex, PlaceIndices},
-  points_to::{NonlocalDecls, PlacePrim, PointsToAnalysis, PointsToDomain},
 };
 use log::debug;
-use rustc_hir::def_id::DefId;
 use rustc_middle::{
   mir::{
     self,
@@ -14,22 +12,16 @@ use rustc_middle::{
     visit::{PlaceContext, Visitor},
     *,
   },
-  ty::{Const, TyCtxt, TyKind},
+  ty::{TyCtxt, TyKind},
 };
 use rustc_mir::{
   borrow_check::{borrow_conflicts_with_place, AccessDepth, PlaceConflictBias},
   dataflow::{
     fmt::{DebugWithAdapter, DebugWithContext},
-    impls::Borrows,
     Analysis, AnalysisDomain, Backward, JoinSemiLattice, Results, ResultsRefCursor,
   },
 };
-use rustc_span::DUMMY_SP;
-use std::{
-  cell::RefCell,
-  collections::{HashMap, HashSet},
-  fmt,
-};
+use std::{cell::RefCell, collections::HashSet, fmt};
 
 pub type SliceSet = HashSet<Location>;
 
@@ -204,50 +196,6 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       self.add_relevant_many(&collector.places);
       self.add_relevant_many(&pointers_to_mutated);
     }
-
-    // let pointer_analysis = self.analysis.pointer_analysis.borrow();
-    // let pointer_analysis = pointer_analysis.get();
-
-    // let (possibly_mutated, pointers_to_possibly_mutated) =
-    //   pointer_analysis.possible_prims_and_pointers(*place);
-
-    // debug!(
-    //   "checking assign {:?} = {:?} in context {:?} (possibly mutated {:?})",
-    //   place, rvalue, self.state.places, possibly_mutated
-    // );
-    // if self.any_relevant_mutated(&possibly_mutated) {
-    //   debug!("  relevant assignment to {:?}", place);
-
-    //   // TODO: better checking for strong udpates
-    //   if possibly_mutated.len() == 1 {
-    //     let definitely_mutated = possibly_mutated.iter().next().unwrap();
-
-    //     // if mutating x.0 and x is relevant, this should return false
-    //     // since x.0 is not in the relevant set, but it is a relevant mutation
-    //     self.state.places.remove(definitely_mutated);
-
-    //     debug!(
-    //       "  deleting {:?}, remaining {:?}",
-    //       definitely_mutated, self.state.places
-    //     );
-    //   }
-
-    //   let mut collector = CollectPlaces {
-    //     places: HashSet::new(),
-    //     pointer_analysis,
-    //   };
-    //   collector.visit_rvalue(rvalue, location);
-
-    //   debug!(
-    //     "  collected from rvalue {:?}, got places {:?} and pointers {:?}",
-    //     rvalue, collector.places, pointers_to_possibly_mutated
-    //   );
-
-    //   self.add_relevant(&collector.places);
-    //   self.add_relevant(&pointers_to_possibly_mutated);
-
-    //   debug!("  new places: {:?}", self.state.places);
-    // }
   }
 
   fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, location: Location) {
@@ -257,9 +205,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, _location: Location) {
-    // let pointer_analysis = self.analysis.pointer_analysis.borrow();
-    // let pointer_analysis = pointer_analysis.get();
-    // self.state.statement_relevant = false;
+    self.state.statement_relevant = false;
 
     debug!(
       "checking terminator {:?} in context {:?}",
@@ -284,7 +230,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
         });
 
         let dest_relevant = if let Some((dst, _)) = destination {
-          let (possibly_mutated, pointers_to_mutated) = self.analysis.places_and_pointers(*dst);
+          let (possibly_mutated, _) = self.analysis.places_and_pointers(*dst);
           // TODO: strong update to delete dest
           self.any_relevant(&possibly_mutated)
         } else {
@@ -313,74 +259,6 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       _ => {}
     }
 
-    // match &terminator.kind {
-    //   TerminatorKind::SwitchInt { discr, .. } => {
-    //     if self.state.path_relevant == Relevant::Yes {
-    //       match discr {
-    //         Operand::Move(place) | Operand::Copy(place) => {
-    //           let relevant_to_control = pointer_analysis.possible_prims(*place);
-    //           self.add_relevant(&relevant_to_control);
-    //         }
-    //         Operand::Constant(_) => {}
-    //       };
-    //     }
-    //   }
-
-    //   TerminatorKind::Call {
-    //     args, destination, ..
-    //   } => {
-    //     let any_relevant_mutable_inputs = args.iter().any(|arg| match arg {
-    //       Operand::Move(place) | Operand::Copy(place) => {
-    //         let input_prims = pointer_analysis.possible_prims(*place);
-    //         input_prims.iter().any(|input_prim| {
-    //           self.state.places.iter().any(|relevant| {
-    //             debug!(
-    //               "  comparing relevant {:?} and mutated {:?}",
-    //               relevant, input_prim
-    //             );
-    //             self.analysis.points_to_prim(input_prim, relevant)
-    //               || self.analysis.points_to_prim(relevant, input_prim)
-    //           })
-    //         })
-    //       }
-    //       Operand::Constant(_) => false,
-    //     });
-
-    //     if any_relevant_mutable_inputs {
-    //       let relevant_inputs = args
-    //         .iter()
-    //         .filter_map(|arg| match arg {
-    //           Operand::Move(place) | Operand::Copy(place) => {
-    //             let prim = PlacePrim::local(place.as_local().expect(&format!("{:?}", place)));
-    //             Some(prim)
-    //           }
-    //           Operand::Constant(_) => None,
-    //         })
-    //         .collect::<HashSet<_>>();
-    //       self.add_relevant(&relevant_inputs);
-    //     }
-
-    //     if let Some((dst_place, _)) = destination {
-    //       let possibly_mutated = pointer_analysis.possible_prims(*dst_place);
-    //       if self.any_relevant_mutated(&possibly_mutated) {
-    //         let input_places: HashSet<_> = args
-    //           .iter()
-    //           .map(|arg| match arg {
-    //             Operand::Move(place) | Operand::Copy(place) => {
-    //               pointer_analysis.possible_prims(*place).clone()
-    //             }
-    //             Operand::Constant(_) => HashSet::new(),
-    //           })
-    //           .flatten()
-    //           .collect();
-
-    //         self.add_relevant(&input_places);
-    //       }
-    //     }
-    //   }
-    //   _ => {}
-    // };
-
     self.state.path_relevant = if self.state.statement_relevant {
       Relevant::Yes
     } else {
@@ -391,11 +269,8 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
 
 pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   slice_set: SliceSet,
-  pointer_analysis: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, PointsToAnalysis<'mir, 'tcx>>>,
   tcx: TyCtxt<'tcx>,
   body: &'mir Body<'tcx>,
-  module: DefId,
-  nonlocal_decls: NonlocalDecls<'tcx>,
   borrow_set: &'a BorrowSet<'tcx>,
   borrow_ranges: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, BorrowRanges<'mir, 'tcx>>>,
   place_indices: &'a PlaceIndices<'tcx>,
@@ -406,25 +281,18 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
   pub fn new(
     slice_set: SliceSet,
     tcx: TyCtxt<'tcx>,
-    module: DefId,
     body: &'mir Body<'tcx>,
-    results: &'a Results<'tcx, PointsToAnalysis<'mir, 'tcx>>,
-    nonlocal_decls: NonlocalDecls<'tcx>,
     borrow_set: &'a BorrowSet<'tcx>,
     borrow_ranges: &'a Results<'tcx, BorrowRanges<'mir, 'tcx>>,
     place_indices: &'a PlaceIndices<'tcx>,
     aliases: &'a Results<'tcx, Aliases<'a, 'mir, 'tcx>>,
   ) -> Self {
-    let pointer_analysis = RefCell::new(ResultsRefCursor::new(body, &results));
     let borrow_ranges = RefCell::new(ResultsRefCursor::new(body, &borrow_ranges));
     let aliases = RefCell::new(ResultsRefCursor::new(body, aliases));
     RelevanceAnalysis {
       slice_set,
-      pointer_analysis,
       tcx,
       body,
-      module,
-      nonlocal_decls,
       borrow_set,
       borrow_ranges,
       place_indices,
@@ -440,15 +308,13 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
   }
 
   fn place_is_part(&self, part_place: Place<'tcx>, whole_place: Place<'tcx>) -> bool {
-    
-
     // borrow_conflicts_with_place considers it a bug if borrow_place is behind immutable deref, so special case this
-    // see places_conflict.rs:234-236    
+    // see places_conflict.rs:234-236
     {
       let access_place = part_place;
       let borrow_place = whole_place;
       if borrow_place.projection.len() > access_place.projection.len() {
-        for (i, elem) in borrow_place.projection[access_place.projection.len()..]
+        for (i, _elem) in borrow_place.projection[access_place.projection.len()..]
           .iter()
           .enumerate()
         {
@@ -550,10 +416,6 @@ impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
     location: Location,
   ) {
     self
-      .pointer_analysis
-      .borrow_mut()
-      .seek_before_primary_effect(location);
-    self
       .borrow_ranges
       .borrow_mut()
       .seek_before_primary_effect(location);
@@ -575,10 +437,6 @@ impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
     terminator: &mir::Terminator<'tcx>,
     location: Location,
   ) {
-    self
-      .pointer_analysis
-      .borrow_mut()
-      .seek_before_primary_effect(location);
     self
       .borrow_ranges
       .borrow_mut()

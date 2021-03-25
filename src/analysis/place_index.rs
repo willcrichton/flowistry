@@ -6,8 +6,6 @@ use rustc_middle::mir::{
   *,
 };
 use rustc_mir::dataflow::fmt::DebugWithContext;
-
-use std::collections::HashSet;
 use std::fmt;
 
 rustc_index::newtype_index! {
