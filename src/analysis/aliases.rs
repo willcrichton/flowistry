@@ -56,7 +56,6 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
         }
         None => {
           let local = &self.analysis.region_to_local.get(&constraint.sup);
-
           if let Some(local) = local {
             let borrows = self.state[**local].clone();
             debug!(
@@ -65,6 +64,7 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
             );
             self.state[place.local].union(&borrows);
           } else {
+            // NOTE: so far only observed this for &'static pointers
             warn!(
               "no region for local {:?} from constraint {:?} in context {:?} and {:?}",
               constraint.sup,

@@ -54,6 +54,14 @@ impl<'tcx> PlaceIndices<'tcx> {
   pub fn empty_set(&self) -> PlaceSet {
     BitSet::new_empty(self.index_set.len())
   }
+
+  pub fn vec_to_set(&self, places: &Vec<Place>) -> PlaceSet {
+    let mut set = self.empty_set();
+    for p in places {
+      set.insert(self.index(p));
+    }
+    set
+  }
 }
 
 impl DebugWithContext<PlaceIndices<'_>> for PlaceSet {

@@ -125,22 +125,8 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
       })
     })
   }
-}
 
-impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> {
-  fn visit_statement(&mut self, statement: &Statement<'tcx>, location: Location) {
-    self.state.statement_relevant = false;
-    match &statement.kind {
-      StatementKind::Assign(_) => {
-        self.super_statement(statement, location);
-      }
-      _ => {}
-    }
-  }
-
-  fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
-    self.super_assign(place, rvalue, location);
-
+  fn check_mutation(&mut self, place: Place<'tcx>, input_places: &PlaceSet) {
     macro_rules! fmt_places {
       ($places:expr) => {
         DebugWithAdapter {
@@ -150,8 +136,8 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       };
     }
 
-    debug!("checking {:?} = {:?}", place, rvalue);
-    let (possibly_mutated, pointers_to_mutated) = self.analysis.places_and_pointers(*place);
+    debug!("checking {:?}", place);
+    let (possibly_mutated, pointers_to_mutated) = self.analysis.places_and_pointers(place);
     debug!(
       "  relevant {:?}, possibly_mutated {:?}, pointers_to_mutated {:?}",
       fmt_places!(self.state.places),
@@ -182,20 +168,38 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
         debug!("  after deletion: {:?}", fmt_places!(self.state.places));
       }
 
-      let mut collector = CollectPlaceIndices {
-        places: self.analysis.place_indices.empty_set(),
-        place_indices: self.analysis.place_indices,
-      };
-      collector.visit_rvalue(rvalue, location);
-
       debug!(
         "  adding relevant places {:?} and pointers to possibly mutated {:?}",
-        fmt_places!(collector.places),
+        fmt_places!(input_places),
         fmt_places!(pointers_to_mutated)
       );
-      self.add_relevant_many(&collector.places);
+      self.add_relevant_many(input_places);
       self.add_relevant_many(&pointers_to_mutated);
     }
+  }
+}
+
+impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> {
+  fn visit_statement(&mut self, statement: &Statement<'tcx>, location: Location) {
+    self.state.statement_relevant = false;
+    match &statement.kind {
+      StatementKind::Assign(_) => {
+        self.super_statement(statement, location);
+      }
+      _ => {}
+    }
+  }
+
+  fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
+    self.super_assign(place, rvalue, location);
+
+    let mut collector = CollectPlaceIndices {
+      places: self.analysis.place_indices.empty_set(),
+      place_indices: self.analysis.place_indices,
+    };
+    collector.visit_rvalue(rvalue, location);
+
+    self.check_mutation(*place, &collector.places);
   }
 
   fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, location: Location) {
@@ -223,24 +227,19 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
             Operand::Constant(_) => None,
           })
           .collect::<Vec<_>>();
+        let input_places_set = self.analysis.place_indices.vec_to_set(&input_places);
 
         let any_mut_ptrs_to_relevant = input_places.iter().any(|arg| {
           let (places, _) = self.analysis.places_and_pointers(*arg);
           self.any_relevant(&places)
         });
 
-        let dest_relevant = if let Some((dst, _)) = destination {
-          let (possibly_mutated, _) = self.analysis.places_and_pointers(*dst);
-          // TODO: strong update to delete dest
-          self.any_relevant(&possibly_mutated)
-        } else {
-          false
-        };
+        if any_mut_ptrs_to_relevant {
+          self.add_relevant_many(&input_places_set);
+        }
 
-        if dest_relevant || any_mut_ptrs_to_relevant {
-          for place in input_places {
-            self.add_relevant(place);
-          }
+        if let Some((dst, _)) = destination {
+          self.check_mutation(*dst, &input_places_set);
         }
       }
 
@@ -354,7 +353,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     for i in borrow_ranges.iter() {
       let borrow = &self.borrow_set[i];
 
-      // Ignore immutable borrows for now
+      // Ignore immutable borrows
       if borrow.kind.to_mutbl_lossy() != Mutability::Mut {
         continue;
       }
@@ -390,6 +389,17 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
 
     (places, pointers)
   }
+
+  fn seek_results(&self, location: Location) {
+    self
+      .borrow_ranges
+      .borrow_mut()
+      .seek_before_primary_effect(location);
+    self
+      .aliases
+      .borrow_mut()
+      .seek_before_primary_effect(location);
+  }
 }
 
 impl<'a, 'mir, 'tcx> AnalysisDomain<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
@@ -415,15 +425,7 @@ impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
     statement: &mir::Statement<'tcx>,
     location: Location,
   ) {
-    self
-      .borrow_ranges
-      .borrow_mut()
-      .seek_before_primary_effect(location);
-    self
-      .aliases
-      .borrow_mut()
-      .seek_before_primary_effect(location);
-
+    self.seek_results(location);
     TransferFunction {
       state,
       analysis: self,
@@ -437,15 +439,7 @@ impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
     terminator: &mir::Terminator<'tcx>,
     location: Location,
   ) {
-    self
-      .borrow_ranges
-      .borrow_mut()
-      .seek_before_primary_effect(location);
-    self
-      .aliases
-      .borrow_mut()
-      .seek_before_primary_effect(location);
-
+    self.seek_results(location);
     TransferFunction {
       state,
       analysis: self,

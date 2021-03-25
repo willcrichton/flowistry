@@ -6,6 +6,7 @@ use crate::config::{Range, CONFIG};
 
 use anyhow::{bail, Context, Result};
 use log::{debug, info};
+use rustc_graphviz as dot;
 use rustc_middle::{
   mir::{
     self,
@@ -14,7 +15,9 @@ use rustc_middle::{
   },
   ty::TyCtxt,
 };
+use rustc_mir::dataflow::graphviz;
 use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor};
+use rustc_mir::util::write_mir_fn;
 use rustc_span::Span;
 use std::{collections::HashSet, fs::File, io::Write, process::Command};
 
@@ -48,7 +51,6 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
   fn check_statement(&mut self, state: &RelevanceDomain, location: Location) {
     if state.statement_relevant {
       let span = self.body.source_info(location).span;
-
       self.relevant_spans.push(span);
     }
   }
@@ -101,9 +103,6 @@ where
   A: Analysis<'tcx>,
   A::Domain: DebugWithContext<A>,
 {
-  use rustc_graphviz as dot;
-  use rustc_mir::dataflow::graphviz;
-
   let graphviz = graphviz::Formatter::new(body, &results, graphviz::OutputStyle::AfterOnly);
   let mut buf = Vec::new();
   dot::render(&graphviz, &mut buf)?;
@@ -151,9 +150,7 @@ pub fn analyze_function(
       .intermediates
       .borrows_out_of_scope_at_location;
 
-    //#[cfg(feature = "custom-rustc")]
     if config.debug {
-      use rustc_mir::util::write_mir_fn;
       info!("MIR");
       let mut buffer = Vec::new();
       write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
