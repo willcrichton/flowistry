@@ -120,6 +120,19 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
     self.state.statement_relevant = true;
     self.state.path_relevant = Relevant::Yes;
   }
+
+  fn any_relevant(&mut self, possibly_mutated: &PlaceSet) -> bool {
+    possibly_mutated.iter().any(|mutated_place| {
+      self.state.places.iter().any(|relevant_place| {
+        self
+          .analysis
+          .place_index_is_part(mutated_place, relevant_place)
+          || self
+            .analysis
+            .place_index_is_part(relevant_place, mutated_place)
+      })
+    })
+  }
 }
 
 impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> {
@@ -154,16 +167,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       fmt_places!(pointers_to_mutated)
     );
 
-    let any_relevant_mutated = possibly_mutated.iter().any(|mutated_place| {
-      self.state.places.iter().any(|relevant_place| {
-        self
-          .analysis
-          .place_index_is_part(mutated_place, relevant_place)
-          || self
-            .analysis
-            .place_index_is_part(relevant_place, mutated_place)
-      })
-    });
+    let any_relevant_mutated = self.any_relevant(&possibly_mutated);
 
     if any_relevant_mutated {
       // strong update
@@ -257,10 +261,57 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
     // let pointer_analysis = pointer_analysis.get();
     // self.state.statement_relevant = false;
 
-    // debug!(
-    //   "checking terminator {:?} in context {:?}",
-    //   terminator.kind, self.state.places
-    // );
+    debug!(
+      "checking terminator {:?} in context {:?}",
+      terminator.kind, self.state.places
+    );
+
+    match &terminator.kind {
+      TerminatorKind::Call {
+        args, destination, ..
+      } => {
+        let input_places = args
+          .iter()
+          .filter_map(|arg| match arg {
+            Operand::Move(place) | Operand::Copy(place) => Some(*place),
+            Operand::Constant(_) => None,
+          })
+          .collect::<Vec<_>>();
+
+        let any_mut_ptrs_to_relevant = input_places.iter().any(|arg| {
+          let (places, _) = self.analysis.places_and_pointers(*arg);
+          self.any_relevant(&places)
+        });
+
+        let dest_relevant = if let Some((dst, _)) = destination {
+          let (possibly_mutated, pointers_to_mutated) = self.analysis.places_and_pointers(*dst);
+          // TODO: strong update to delete dest
+          self.any_relevant(&possibly_mutated)
+        } else {
+          false
+        };
+
+        if dest_relevant || any_mut_ptrs_to_relevant {
+          for place in input_places {
+            self.add_relevant(place);
+          }
+        }
+      }
+
+      TerminatorKind::SwitchInt { discr, .. } => {
+        if self.state.path_relevant == Relevant::Yes {
+          match discr {
+            Operand::Move(place) | Operand::Copy(place) => {
+              let (places, _) = self.analysis.places_and_pointers(*place);
+              self.add_relevant_many(&places);
+            }
+            Operand::Constant(_) => {}
+          }
+        }
+      }
+
+      _ => {}
+    }
 
     // match &terminator.kind {
     //   TerminatorKind::SwitchInt { discr, .. } => {
@@ -330,11 +381,11 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
     //   _ => {}
     // };
 
-    // self.state.path_relevant = if self.state.statement_relevant {
-    //   Relevant::Yes
-    // } else {
-    //   Relevant::No
-    // };
+    self.state.path_relevant = if self.state.statement_relevant {
+      Relevant::Yes
+    } else {
+      Relevant::No
+    };
   }
 }
 
@@ -416,6 +467,11 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     for i in borrow_ranges.iter() {
       let borrow = &self.borrow_set[i];
 
+      // Ignore immutable borrows for now
+      if borrow.kind.to_mutbl_lossy() != Mutability::Mut {
+        continue;
+      }
+
       let mut borrow_aliases = aliases.iter_enumerated().filter_map(|(local, borrows)| {
         if borrows.contains(i) {
           Some(local)
@@ -425,10 +481,13 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       });
 
       let part_of_alias = borrow_aliases.any(|alias| {
-        self.place_is_part(place, Place {
-          local: alias, 
-          projection: self.tcx.intern_place_elems(&[])
-        })
+        self.place_is_part(
+          place,
+          Place {
+            local: alias,
+            projection: self.tcx.intern_place_elems(&[]),
+          },
+        )
       });
 
       if self.place_is_part(place, borrow.assigned_place) || part_of_alias {

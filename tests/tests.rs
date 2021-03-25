@@ -562,6 +562,23 @@ fn main() {
 }
 
 #[test]
+fn interprocedural_mut_input_irrelevant() {
+  let src = r#"
+fn foo(x: &mut i32) {}  
+
+fn main() {
+  let mut x = 1;
+  let mut y = 2;
+  foo(&mut y);
+  x;
+}
+"#;
+
+  run(src, Range::line(7, 3, 4), vec![4, 7]);
+}
+
+
+#[test]
 fn interprocedural_mut_input_field() {
   // y should be relevant b/c it could be involved in computation of x
   let src = r#"

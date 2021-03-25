@@ -24,8 +24,8 @@ struct TransferFunction<'a, 'b, 'mir, 'tcx> {
   state: &'a mut AliasesDomain,
 }
 
-impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> {
-  fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
+impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
+  fn process(&mut self, place: Place<'tcx>, location: Location) {
     let borrow_ranges = self.analysis.borrow_ranges.borrow();
     let borrow_ranges = borrow_ranges.get();
 
@@ -41,7 +41,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
         }
       });
 
-    debug!("checking {:?} = {:?}", place, rvalue);
+    debug!("checking {:?}", place);
     for constraint in constraints {
       debug!("  against constraint {:?}", constraint);
       let borrow = borrow_ranges.iter().find(|borrow_idx| {
@@ -78,6 +78,23 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
   }
 }
 
+impl<'tcx> Visitor<'tcx> for TransferFunction<'_, '_, '_, 'tcx> {
+  fn visit_assign(&mut self, place: &Place<'tcx>, _rvalue: &Rvalue<'tcx>, location: Location) {
+    self.process(*place, location);
+  }
+
+  fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
+    match &terminator.kind {
+      TerminatorKind::Call { destination, .. } => {
+        if let Some((place, _)) = destination {
+          self.process(*place, location);
+        }
+      }
+      _ => {}
+    }
+  }
+}
+
 pub struct Aliases<'a, 'mir, 'tcx> {
   tcx: TyCtxt<'tcx>,
   body: &'mir Body<'tcx>,
@@ -103,8 +120,16 @@ impl<'a, 'mir, 'tcx> Aliases<'a, 'mir, 'tcx> {
         if let Locations::Single(location) = constraint.locations {
           let bb = &body.basic_blocks()[location.block];
           if location.statement_index == bb.statements.len() {
-            // TODO
-            None
+            match &bb.terminator.as_ref().unwrap().kind {
+              TerminatorKind::Call { args, destination, .. } => {
+                if let Some((place, _)) = destination {
+                  Some((constraint.sub, place.local))
+                } else {
+                  None
+                }
+              }
+              _ => None
+            }
           } else {
             let statement = &bb.statements[location.statement_index];
             if let StatementKind::Assign(assign) = &statement.kind {
