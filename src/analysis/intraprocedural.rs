@@ -16,7 +16,7 @@ use rustc_middle::{
   ty::{TyCtxt, WithOptConstParam},
 };
 use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor};
-use rustc_span::Span;
+use rustc_span::{source_map::SourceMap, Span};
 use std::{collections::HashSet, fs::File, io::Write, process::Command};
 
 struct FindInitialSliceSet<'a, 'tcx> {
@@ -48,8 +48,9 @@ struct CollectResults<'a, 'tcx> {
 impl<'a, 'tcx> CollectResults<'a, 'tcx> {
   fn check_statement(&mut self, state: &RelevanceDomain, location: Location) {
     if state.statement_relevant {
-      let source_info = self.body.source_info(location);
-      self.relevant_spans.push(source_info.span);
+      let span = self.body.source_info(location).span;
+
+      self.relevant_spans.push(span);
     }
   }
 
@@ -224,6 +225,7 @@ pub fn analyze_function(
       dump_results("target/relevance.png", body, &relevance_results)?;
     }
 
+    let source_map = tcx.sess.source_map();
     let mut visitor = CollectResults {
       body,
       relevant_spans: vec![],
@@ -235,15 +237,8 @@ pub fn analyze_function(
     let local_spans = visitor
       .all_locals
       .into_iter()
-      // could be None if local is virtual
-      .filter_map(|local| {
-        body
-          .local_decls()
-          .get(local)
-          .map(|decl| decl.source_info.span)
-      });
+      .map(|local| body.local_decls()[local].source_info.span);
 
-    let source_map = tcx.sess.source_map();
     let ranges = visitor
       .relevant_spans
       .into_iter()

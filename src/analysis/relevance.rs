@@ -14,7 +14,7 @@ use rustc_middle::{
     visit::{PlaceContext, Visitor},
     *,
   },
-  ty::{Const, TyCtxt},
+  ty::{Const, TyCtxt, TyKind},
 };
 use rustc_mir::{
   borrow_check::{borrow_conflicts_with_place, AccessDepth, PlaceConflictBias},
@@ -440,6 +440,27 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
   }
 
   fn place_is_part(&self, part_place: Place<'tcx>, whole_place: Place<'tcx>) -> bool {
+    
+
+    // borrow_conflicts_with_place considers it a bug if borrow_place is behind immutable deref, so special case this
+    // see places_conflict.rs:234-236    
+    {
+      let access_place = part_place;
+      let borrow_place = whole_place;
+      if borrow_place.projection.len() > access_place.projection.len() {
+        for (i, elem) in borrow_place.projection[access_place.projection.len()..]
+          .iter()
+          .enumerate()
+        {
+          let proj_base = &borrow_place.projection[..access_place.projection.len() + i];
+          let base_ty = Place::ty_from(borrow_place.local, proj_base, self.body, self.tcx).ty;
+          if let TyKind::Ref(_, _, Mutability::Not) = base_ty.kind() {
+            return false;
+          }
+        }
+      }
+    }
+
     borrow_conflicts_with_place(
       self.tcx,
       self.body,

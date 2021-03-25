@@ -9,12 +9,12 @@ use rustc_span::{FileName, RealFileName, Span};
 
 pub use intraprocedural::SliceOutput;
 
+mod aliases;
 mod borrow_ranges;
 mod intraprocedural;
+mod place_index;
 mod points_to;
 mod relevance;
-mod place_index;
-mod aliases;
 
 struct SliceVisitor<'tcx> {
   tcx: TyCtxt<'tcx>,

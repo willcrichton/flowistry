@@ -1,5 +1,5 @@
 use super::borrow_ranges::BorrowRanges;
-use log::debug;
+use log::{warn, debug};
 use rustc_index::{bit_set::BitSet, vec::IndexVec};
 use rustc_middle::{
   mir::{
@@ -58,20 +58,24 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
           let local = &self
             .analysis
             .region_to_local
-            .get(&constraint.sup)
-            .expect(&format!(
-              "no region for local {:?} from constraint {:?} in context {:?} and {:#?}",
+            .get(&constraint.sup);
+
+          if let Some(local) = local {
+            let borrows = self.state[**local].clone();
+            debug!(
+              "    found transitive borrows {:?} from local {:?}",
+              borrows, local
+            );
+            self.state[place.local].union(&borrows);
+          } else {
+            warn!(
+              "no region for local {:?} from constraint {:?} in context {:?} and {:?}",
               constraint.sup,
               constraint,
               self.analysis.region_to_local,
               self.analysis.outlives_constraints
-            ));
-          let borrows = self.state[**local].clone();
-          debug!(
-            "    found transitive borrows {:?} from local {:?}",
-            borrows, local
-          );
-          self.state[place.local].union(&borrows);
+            );
+          }
         }
       }
     }

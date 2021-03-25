@@ -7,11 +7,15 @@ use tempfile::NamedTempFile;
 
 use rust_slicer::{Config, Range, SliceOutput};
 
-fn check_lines(expected: Vec<usize>, actual: SliceOutput, src: &str) {
+fn check_lines(expected: Vec<usize>, actual: SliceOutput, src: &str, filename: String) {
   let expected = expected.into_iter().collect::<HashSet<_>>();
   let mut in_slice = HashSet::new();
 
   for range in actual.ranges() {
+    if range.filename != filename {
+      continue;
+    }
+
     let lines = range.start_line..=range.end_line;
     if !lines.clone().all(|line| expected.contains(&line)) {
       panic!("Unexpected slice:\n {} ({:?})", range.substr(src), range);
@@ -71,7 +75,7 @@ pub fn run(src: impl AsRef<str>, mut range: Range, lines: Vec<usize>) {
     );
 
     let output = rust_slicer::slice(config, args)?;
-    check_lines(lines, output, &src);
+    check_lines(lines, output, &src, path.to_string_lossy().into_owned());
 
     f.close()?;
     Ok(())

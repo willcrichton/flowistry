@@ -1,5 +1,5 @@
 use fluid_let::fluid_let;
-use rustc_span::{source_map::{SourceFile, SourceMap}, BytePos, Span};
+use rustc_span::{source_map::{SourceFile, SourceMap}, BytePos, Span, FileName};
 use serde::Serialize;
 
 #[derive(Serialize, Debug, Clone)]
@@ -8,6 +8,7 @@ pub struct Range {
   pub start_col: usize,
   pub end_line: usize,
   pub end_col: usize,
+  pub filename: String
 }
 
 impl Range {
@@ -17,6 +18,7 @@ impl Range {
       start_col: start,
       end_line: line,
       end_col: end,
+      filename: "".to_owned()
     }
   }
 
@@ -35,11 +37,17 @@ impl Range {
     let lines = source_map.span_to_lines(span).unwrap();
     let start_line = lines.lines.first().unwrap();
     let end_line = lines.lines.last().unwrap();
+    let filename = if let FileName::Real(filename) = source_map.span_to_filename(span) {
+      filename.local_path().to_string_lossy().into_owned()
+    } else {
+      unimplemented!()
+    };
     Range {
       start_line: start_line.line_index,
       start_col: start_line.start_col.0,
       end_line: end_line.line_index,
       end_col: end_line.end_col.0,
+      filename
     }
   }
 

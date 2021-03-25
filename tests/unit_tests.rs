@@ -90,7 +90,6 @@ fn main() {
 
 #[test]
 fn variable_slice_includes_lhs() {
-  // should not include x += 3
   let src = r#"
 fn main() {
   let x = {
@@ -580,7 +579,6 @@ fn main() {
 
 #[test]
 fn interprocedural_mut_input_field() {
-  // y should be relevant b/c it could be involved in computation of x
   let src = r#"
 fn foo(x: (&mut i32,)) {}  
 
@@ -642,6 +640,23 @@ fn main() {
 "#;
 
   run(src, Range::line(8, 3, 4), vec![4, 5, 6, 8]);
+}
+
+#[test]
+fn interprocedural_mut_output_lifetimes_outlives() {
+  let src = r#"
+fn foo<'a, 'b: 'a>(x: &'a mut i32, y: &'b mut i32) -> &'a mut i32 { x }  
+
+fn main() {
+  let mut x = 1;
+  let mut y = 2;
+  let z = foo(&mut x, &mut y);
+  *z += 1;
+  y;
+}
+"#;
+
+  run(src, Range::line(8, 3, 4), vec![4, 5, 6, 7, 8]);
 }
 
 #[test]
@@ -779,4 +794,17 @@ fn foo<T>(t: T) {
 "#;
 
   run(src, Range::line(5, 3, 4), vec![3, 4, 5]);
+}
+
+#[test]
+fn string_print() {
+  let src = r#"
+fn main() {
+  let x = "a";
+  println!("{}", x);
+}
+"#;
+
+  run(src, Range::line(3, 18, 19), vec![2, 3]);
+
 }

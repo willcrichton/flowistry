@@ -106,6 +106,7 @@ fn run() -> Result<()> {
       start_col: arg!("start_col").parse::<usize>()?,
       end_line: arg!("end_line").parse::<usize>()?,
       end_col: arg!("end_col").parse::<usize>()?,
+      filename: arg!("path").to_owned()
     },
     debug: matches.is_present("debug"),
   };
