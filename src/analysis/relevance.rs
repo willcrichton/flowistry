@@ -432,11 +432,8 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       });
 
       if self.place_is_part(place, borrow.assigned_place) || part_of_alias {
-        // println!(
-        //   "  {:?} conflicts with {:?}, adding {:?}",
-        //   place, borrow.assigned_place, borrow.borrowed_place
-        // );
         places.insert(self.place_indices.index(&borrow.borrowed_place));
+        pointers.insert(self.place_indices.index(&place));
         pointers.insert(self.place_indices.index(&borrow.assigned_place));
 
         let (sub_places, sub_pointers) = self.places_and_pointers(borrow.borrowed_place);

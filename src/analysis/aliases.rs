@@ -15,6 +15,7 @@ use rustc_mir::dataflow::{
 };
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::fmt;
 
 pub type AliasesDomain = IndexVec<Local, BitSet<BorrowIndex>>;
 
@@ -54,8 +55,18 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
           self.state[place.local].insert(borrow_idx);
         }
         None => {
-          let local = &self.analysis.region_to_local[&constraint.sup];
-          let borrows = self.state[*local].clone();
+          let local = &self
+            .analysis
+            .region_to_local
+            .get(&constraint.sup)
+            .expect(&format!(
+              "no region for local {:?} from constraint {:?} in context {:?} and {:#?}",
+              constraint.sup,
+              constraint,
+              self.analysis.region_to_local,
+              self.analysis.outlives_constraints
+            ));
+          let borrows = self.state[**local].clone();
           debug!(
             "    found transitive borrows {:?} from local {:?}",
             borrows, local
@@ -90,19 +101,21 @@ impl<'a, 'mir, 'tcx> Aliases<'a, 'mir, 'tcx> {
       .iter()
       .filter_map(|constraint| {
         if let Locations::Single(location) = constraint.locations {
-          let statement = &body.basic_blocks()[location.block].statements[location.statement_index];
-
-          if constraint.category == ConstraintCategory::Assignment {
+          let bb = &body.basic_blocks()[location.block];
+          if location.statement_index == bb.statements.len() {
+            // TODO
+            None
+          } else {
+            let statement = &bb.statements[location.statement_index];
             if let StatementKind::Assign(assign) = &statement.kind {
               let place = assign.0;
               Some((constraint.sub, place.local))
             } else {
               unimplemented!("{:?}", statement)
             }
-          } else {
-            None
           }
         } else {
+          // TODO
           None
         }
       })
@@ -181,4 +194,17 @@ impl<'tcx> Analysis<'tcx> for Aliases<'_, '_, 'tcx> {
   }
 }
 
-impl DebugWithContext<Aliases<'_, '_, '_>> for AliasesDomain {}
+impl DebugWithContext<Aliases<'_, '_, '_>> for AliasesDomain {
+  fn fmt_with(
+    &self,
+    _ctxt: &Aliases<'_, '_, '_>,
+    f: &mut fmt::Formatter<'_>,
+  ) -> fmt::Result {
+    for (local, borrows) in self.iter_enumerated() {
+      if borrows.count() > 0 {
+        write!(f, "{:?}: {:?}, ", local, borrows)?;
+      }
+    }
+    Ok(())
+  }
+}

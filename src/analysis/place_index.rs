@@ -1,11 +1,11 @@
 use rustc_data_structures::fx::FxIndexSet;
 use rustc_index::bit_set::BitSet;
 use rustc_macros::HashStable;
-use rustc_mir::dataflow::fmt::DebugWithContext;
 use rustc_middle::mir::{
   visit::{PlaceContext, Visitor},
   *,
 };
+use rustc_mir::dataflow::fmt::DebugWithContext;
 
 use std::collections::HashSet;
 use std::fmt;
@@ -58,8 +58,12 @@ impl<'tcx> PlaceIndices<'tcx> {
   }
 }
 
-impl DebugWithContext<PlaceIndices<'_>> for PlaceIndex {
+impl DebugWithContext<PlaceIndices<'_>> for PlaceSet {
   fn fmt_with(&self, ctxt: &PlaceIndices<'_>, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{:?}", ctxt.lookup(*self))
+    write!(f, "{{")?;
+    for i in self.iter() {
+      write!(f, "{:?}, ", ctxt.lookup(i))?;
+    }
+    write!(f, "}}")
   }
 }

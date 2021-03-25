@@ -3,9 +3,9 @@ use super::borrow_ranges::BorrowRanges;
 use super::place_index::PlaceIndices;
 use super::points_to::{NonlocalDecls, PointsToAnalysis};
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
-
 use crate::config::{Range, CONFIG};
-use anyhow::{Context, Result};
+
+use anyhow::{bail, Context, Result};
 use log::{debug, info};
 use rustc_middle::{
   mir::{
@@ -96,7 +96,7 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
   }
 }
 
-#[cfg(feature = "custom-rustc")]
+//#[cfg(feature = "custom-rustc")]
 fn dump_results<'tcx, A>(path: &str, body: &Body<'tcx>, results: &Results<'tcx, A>) -> Result<()>
 where
   A: Analysis<'tcx>,
@@ -110,9 +110,12 @@ where
   dot::render(&graphviz, &mut buf)?;
   let mut file = File::create("/tmp/graph.dot")?;
   file.write_all(&buf)?;
-  Command::new("dot")
+  let status = Command::new("dot")
     .args(&["-Tpng", "/tmp/graph.dot", "-o", path])
     .status()?;
+  if !status.success() {
+    bail!("dot for {} failed", path)
+  };
   Ok(())
 }
 
@@ -166,12 +169,6 @@ pub fn analyze_function(
       .iterate_to_fixpoint();
     let borrow_ranges = &borrow_ranges;
 
-    /*let borrows = Borrows::from_borrowck_output(tcx, body, &borrowck_result.borrow_set, &borrowck_result);
-    let borrow_results = Results {
-      analysis: borrows,
-      entry_sets: borrowck_result.borrows_entry_sets.clone()
-    };*/
-
     //#[cfg(feature = "custom-rustc")]
     if config.debug {
       dump_results("target/borrow_ranges.png", body, borrow_ranges)?;
@@ -217,12 +214,12 @@ pub fn analyze_function(
       borrow_set,
       borrow_ranges,
       &place_indices,
-      &aliases
+      &aliases,
     )
     .into_engine(tcx, body)
     .iterate_to_fixpoint();
 
-    #[cfg(feature = "custom-rustc")]
+    //#[cfg(feature = "custom-rustc")]
     if config.debug {
       dump_results("target/relevance.png", body, &relevance_results)?;
     }
