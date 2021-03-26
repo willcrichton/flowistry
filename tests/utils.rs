@@ -74,7 +74,9 @@ pub fn run(src: impl AsRef<str>, mut range: Range, lines: Vec<usize>) {
       *SYSROOT
     );
 
-    let output = rust_slicer::slice(config, args)?;
+    let args = args.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
+
+    let output = rust_slicer::slice(config, &args)?;
     check_lines(lines, output, &src, path.to_string_lossy().into_owned());
 
     f.close()?;

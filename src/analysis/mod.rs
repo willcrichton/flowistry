@@ -68,6 +68,10 @@ struct Callbacks {
 }
 
 impl rustc_driver::Callbacks for Callbacks {
+  fn config(&mut self, config: &mut rustc_interface::Config) {
+    println!("{:?}", config.crate_cfg);
+  }
+
   fn after_analysis<'tcx>(
     &mut self,
     _compiler: &rustc_interface::interface::Compiler,
@@ -88,7 +92,7 @@ impl rustc_driver::Callbacks for Callbacks {
               false
             }
           })
-          .expect(&format!("Could not find file {}", config.path));
+          .expect(&format!("Could not find file {} out of files {:#?}", config.path, **files));
         config.range.to_span(source_file)
       };
 
@@ -107,21 +111,19 @@ impl rustc_driver::Callbacks for Callbacks {
   }
 }
 
-pub fn slice(config: Config, args: impl AsRef<str>) -> Result<SliceOutput> {
+pub fn slice(config: Config, args: &[String]) -> Result<SliceOutput> {
   let _ = env_logger::try_init();
 
+  let mut args = args.to_vec();
+
   // mir-opt-level ensures that mir_promoted doesn't apply optimizations
-  let args = format!("{} -Z mir-opt-level=0 -Z identify-regions", args.as_ref())
-    .split(" ")
-    .map(str::to_string)
-    .collect::<Vec<_>>();
+  args.extend("-Z mir-opt-level=0 -Z identify-regions".split(" ").map(|s| s.to_owned()));
 
   let mut callbacks = Callbacks {
     config: Some(config),
     output: None,
   };
 
-  rustc_driver::init_rustc_env_logger();
   rustc_driver::catch_fatal_errors(|| rustc_driver::RunCompiler::new(&args, &mut callbacks).run())
     .map_err(|_| Error::msg("rustc panicked"))?
     .map_err(|_| Error::msg("driver failed"))?;

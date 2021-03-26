@@ -53,8 +53,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (!active_editor) { return; }
 
 		let file_path = active_editor.document.fileName;
-		file_path = path.relative(workspace_root, file_path);
-
 		let selection = active_editor.selection;
 
 		let env = {...process.env, DYLD_LIBRARY_PATH: lib_dir, LD_LIBRARY_PATH: lib_dir};
