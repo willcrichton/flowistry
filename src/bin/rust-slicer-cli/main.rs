@@ -1,4 +1,3 @@
-
 use anyhow::{Context, Result};
 use clap::clap_app;
 use rust_slicer::{Config, Range};

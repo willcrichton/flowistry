@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use regex::Regex;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -85,12 +85,23 @@ pub fn get_flags(target_path: &str) -> Result<Vec<String>> {
 
   let graph = UnitGraph::run_cargo_and_build()?;
 
-  let target_unit = graph
-    .find_unit_containing(&target_path)
-    .context(format!(
-      "Could not find unit with source directory for {}",
-      target_path.display()
-    ))?;
+  let target_unit = graph.find_unit_containing(&target_path).context(format!(
+    "Could not find unit with source directory for {}",
+    target_path.display()
+  ))?;
+
+  // Run cargo check to generate dependency rmetas
+  {
+    let check = Command::new("cargo")
+      .args(&["check", "--package", &target_unit.target.name])
+      .output()?;
+    if !check.status.success() {
+      bail!(
+        "cargo check failed with error: {}",
+        String::from_utf8(check.stderr)?
+      );
+    }
+  }
 
   let rmeta_paths = gather_rmeta_paths()?;
 

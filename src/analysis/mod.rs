@@ -92,7 +92,10 @@ impl rustc_driver::Callbacks for Callbacks {
               false
             }
           })
-          .expect(&format!("Could not find file {} out of files {:#?}", config.path, **files));
+          .expect(&format!(
+            "Could not find file {} out of files {:#?}",
+            config.path, **files
+          ));
         config.range.to_span(source_file)
       };
 
@@ -117,7 +120,11 @@ pub fn slice(config: Config, args: &[String]) -> Result<SliceOutput> {
   let mut args = args.to_vec();
 
   // mir-opt-level ensures that mir_promoted doesn't apply optimizations
-  args.extend("-Z mir-opt-level=0 -Z identify-regions".split(" ").map(|s| s.to_owned()));
+  args.extend(
+    "-Z mir-opt-level=0 -Z identify-regions"
+      .split(" ")
+      .map(|s| s.to_owned()),
+  );
 
   let mut callbacks = Callbacks {
     config: Some(config),
