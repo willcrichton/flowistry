@@ -8,19 +8,14 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
-
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
     - uses: actions-rs/toolchain@v1
       with:
-          toolchain: nightly
-          components: rust-src,rustc-dev,llvm-tools-preview
-          override: true
+          profile: minimal
+    - run: git clone -b expose-borrowck-info https://github.com/willcrichton/rust && cd rust && ./x.py build && rustup link local build/x86_64-unknown-linux-gnu && cd ..
+    - uses: actions/checkout@v1      
+    - run: rustup override set local
     - uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --release 
