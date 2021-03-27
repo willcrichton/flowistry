@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 use clap::clap_app;
+use log::debug;
 use rust_slicer::{Config, Range};
 use serde::Serialize;
 
@@ -11,6 +12,8 @@ struct SliceOutput {
 }
 
 fn run() -> Result<()> {
+  let _ = env_logger::try_init();
+  
   let matches = clap_app!(app =>
     (@arg debug: -d)
     (@arg path:)
@@ -30,6 +33,7 @@ fn run() -> Result<()> {
 
   let mut flags = unit_graph::get_flags(arg!("path"))?;
   flags.extend_from_slice(&["--sysroot".into(), arg!("sysroot").into()]);
+  debug!("Generated rustc command:\n{}", flags.join(" "));
 
   let config = Config {
     path: arg!("path").to_owned(),

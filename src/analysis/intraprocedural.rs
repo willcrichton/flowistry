@@ -1,8 +1,8 @@
 use super::aliases::Aliases;
 use super::borrow_ranges::BorrowRanges;
 use super::place_index::PlaceIndices;
-use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use super::post_dominators::compute_post_dominators;
+use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use crate::config::{Range, CONFIG};
 
 use anyhow::{bail, Context, Result};
@@ -46,6 +46,7 @@ struct CollectResults<'a, 'tcx> {
   relevant_spans: Vec<Span>,
   all_locals: HashSet<Local>,
   place_indices: &'a PlaceIndices<'tcx>,
+  local_blacklist: HashSet<Local>,
 }
 
 impl<'a, 'tcx> CollectResults<'a, 'tcx> {
@@ -72,11 +73,20 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
   fn visit_statement_after_primary_effect(
     &mut self,
     state: &Self::FlowState,
-    _statement: &'mir mir::Statement<'tcx>,
+    statement: &'mir mir::Statement<'tcx>,
     location: Location,
   ) {
     self.add_locals(state);
-    self.check_statement(state, location);
+
+    if let StatementKind::Assign(box (lhs, Rvalue::Discriminant(_))) = statement.kind {
+      /* For whatever reason, in statements like `match x { None => .. }` then the discriminant
+       * is source-mapped to the first match pattern (e.g. None above) which produces incorrect highlighting.
+       * So for now, we just explictly ignore relevant statements/locals of the form `_1 = discriminant(..)`
+       */
+      self.local_blacklist.insert(lhs.local);
+    } else {
+      self.check_statement(state, location);
+    }
   }
 
   fn visit_terminator_after_primary_effect(
@@ -165,10 +175,14 @@ pub fn analyze_function(
     let post_dominators = compute_post_dominators(body.clone());
     for bb in body.basic_blocks().indices() {
       if post_dominators.is_reachable(bb) {
-        debug!("{:?} doimnated by {:?}", bb, post_dominators.immediate_dominator(bb));
+        debug!(
+          "{:?} doimnated by {:?}",
+          bb,
+          post_dominators.immediate_dominator(bb)
+        );
       }
     }
-  
+
     let borrow_ranges = BorrowRanges::new(tcx, body, borrow_set, borrows_out_of_scope_at_location)
       .into_engine(tcx, body)
       .iterate_to_fixpoint();
@@ -204,7 +218,7 @@ pub fn analyze_function(
       borrow_ranges,
       &place_indices,
       &aliases,
-      post_dominators
+      post_dominators,
     )
     .into_engine(tcx, body)
     .iterate_to_fixpoint();
@@ -219,11 +233,12 @@ pub fn analyze_function(
       relevant_spans: vec![],
       all_locals: HashSet::new(),
       place_indices: &place_indices,
+      local_blacklist: HashSet::new(),
     };
     relevance_results.visit_reachable_with(body, &mut visitor);
 
-    let local_spans = visitor
-      .all_locals
+    let all_locals = &visitor.all_locals - &visitor.local_blacklist;
+    let local_spans = all_locals
       .into_iter()
       .map(|local| body.local_decls()[local].source_info.span);
 
