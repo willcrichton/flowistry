@@ -136,10 +136,17 @@ pub fn get_flags(target_path: &str) -> Result<Vec<String>> {
     .iter()
     .map(|dep| {
       let dep_unit = &graph.units[dep.index];
-      let rmeta_path = &rmeta_paths[&dep_unit.target.name];
+
+      // packages like `percent-encoding` are translated to `percent_encoding`
+      let package_name = dep_unit.target.name.replace("-", "_");
+
+      let rmeta_path = &rmeta_paths
+        .get(&package_name)
+        .expect(&format!("Missing rmeta for `{}`", package_name));
+
       vec![
         "--extern".into(),
-        format!("{}={}", dep_unit.target.name, rmeta_path),
+        format!("{}={}", package_name, rmeta_path),
       ]
     })
     .flatten();
