@@ -3,8 +3,7 @@ use clap::clap_app;
 use log::debug;
 use rust_slicer::{Config, Range};
 use serde::Serialize;
-
-mod unit_graph;
+use generate_rustc_flags::generate_rustc_flags;
 
 #[derive(Serialize)]
 struct SliceOutput {
@@ -17,7 +16,6 @@ fn run() -> Result<()> {
   let matches = clap_app!(app =>
     (@arg debug: -d)
     (@arg path:)
-    (@arg sysroot:)
     (@arg start_line:)
     (@arg start_col:)
     (@arg end_line:)
@@ -31,8 +29,7 @@ fn run() -> Result<()> {
     };
   }
 
-  let mut flags = unit_graph::get_flags(arg!("path"))?;
-  flags.extend_from_slice(&["--sysroot".into(), arg!("sysroot").into()]);
+  let flags = generate_rustc_flags(arg!("path"))?;
   debug!("Generated rustc command:\n{}", flags.join(" "));
 
   let config = Config {
