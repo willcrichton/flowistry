@@ -112,8 +112,6 @@ impl rustc_driver::Callbacks for Callbacks {
 }
 
 pub fn slice(config: Config, args: &[String]) -> Result<SliceOutput> {
-  let _ = env_logger::try_init();
-
   let mut args = args.to_vec();
 
   // mir-opt-level ensures that mir_promoted doesn't apply optimizations

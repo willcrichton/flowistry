@@ -798,3 +798,22 @@ fn main() {
 
   run(src, Range::line(3, 18, 19), vec![2, 3]);
 }
+
+
+#[test]
+fn match_test() {
+  let src = r#"
+fn main() {
+  let x = 1;
+  let y = match Some(x) {
+    None => 
+      1,
+    Some(x) => 
+      x,
+  };
+  y;
+}
+"#;
+
+  run(src, Range::line(9, 3, 4), vec![2, 3, 5, 6, 7, 9]);
+}
