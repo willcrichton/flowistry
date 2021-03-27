@@ -30,9 +30,8 @@ interface SliceOutput {
 export async function activate(context: vscode.ExtensionContext) {
 	log('rust-slicer is activated');
 
-	let {stdout} = await exec(`$(rustup which --toolchain ${TOOLCHAIN} rustc) --print sysroot --print target-libdir`);
-	let [sysroot, lib_dir] = stdout.trim().split('\n');
-	log("Sysroot", sysroot);
+	let {stdout} = await exec(`$(rustup which --toolchain ${TOOLCHAIN} rustc) --print target-libdir`);
+	let lib_dir = stdout.trim();
   log("Rustc target-libdir", lib_dir);
 
 	let decoration_type = vscode.window.createTextEditorDecorationType({
@@ -56,7 +55,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		let selection = active_editor.selection;
 
 		let env = {...process.env, DYLD_LIBRARY_PATH: lib_dir, LD_LIBRARY_PATH: lib_dir};
-		let cmd = `rust-slicer-cli ${file_path} ${sysroot} ${selection.start.line} ${selection.start.character} ${selection.end.line} ${selection.end.character}`;
+		let cmd = `rust-slicer-cli ${file_path} ${selection.start.line} ${selection.start.character} ${selection.end.line} ${selection.end.character}`;
 
 		try {
 			log("Running command:");
