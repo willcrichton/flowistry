@@ -13,6 +13,7 @@ extern crate rustc_mir;
 extern crate rustc_serialize;
 extern crate rustc_span;
 extern crate rustc_target;
+extern crate smallvec;
 
 mod analysis;
 mod config;

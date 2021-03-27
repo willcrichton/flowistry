@@ -12,6 +12,7 @@ struct SliceOutput {
 
 fn run() -> Result<()> {
   let matches = clap_app!(app =>
+    (@arg debug: -d)
     (@arg path:)
     (@arg sysroot:)
     (@arg start_line:)

@@ -167,7 +167,7 @@ fn main() {
 
 #[test]
 fn while_cond_irrelevant() {
-  let _src = r#"
+  let src = r#"
 fn main() {
   let mut x = 1;
   let mut y = 2;
@@ -178,12 +178,7 @@ fn main() {
 }
 "#;
 
-  /* TODO!
-   * while loop is considered relevant.
-   * probably only solved by generating post-dominator tree? TBD
-   */
-
-  //run(src, Range::line(7, 3, 4), vec![2, 7]);
+  run(src, Range::line(7, 3, 4), vec![2, 7]);
 }
 
 #[test]
