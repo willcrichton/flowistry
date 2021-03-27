@@ -5,6 +5,7 @@ use super::{
   place_index::{PlaceIndex, PlaceIndices},
 };
 use log::debug;
+use rustc_data_structures::graph::dominators::Dominators;
 use rustc_middle::{
   mir::{
     self,
@@ -98,19 +99,21 @@ struct TransferFunction<'a, 'b, 'mir, 'tcx> {
 }
 
 impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
-  fn add_relevant(&mut self, place: Place<'tcx>) {
-    self
-      .state
-      .places
-      .insert(self.analysis.place_indices.index(&place));
-    self.state.statement_relevant = true;
-    self.state.path_relevant = Relevant::Yes;
-  }
-
-  fn add_relevant_many(&mut self, places: &PlaceSet) {
+  fn add_relevant(&mut self, places: &PlaceSet) {
     self.state.places.union(places);
     self.state.statement_relevant = true;
-    self.state.path_relevant = Relevant::Yes;
+
+    let current_block = self.analysis.current_block.borrow();
+    let preds = &self.analysis.body.predecessors()[*current_block];
+    let dominates_all_preds = preds.iter().all(|pred_bb| {
+      self
+        .analysis
+        .post_dominators
+        .is_dominated_by(*pred_bb, *current_block)
+    });
+    if !dominates_all_preds {
+      self.state.path_relevant = Relevant::Yes;
+    }
   }
 
   fn any_relevant(&mut self, possibly_mutated: &PlaceSet) -> bool {
@@ -173,8 +176,8 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
         fmt_places!(input_places),
         fmt_places!(pointers_to_mutated)
       );
-      self.add_relevant_many(input_places);
-      self.add_relevant_many(&pointers_to_mutated);
+      self.add_relevant(input_places);
+      self.add_relevant(&pointers_to_mutated);
     }
   }
 }
@@ -204,11 +207,22 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
 
   fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, location: Location) {
     if self.analysis.slice_set.contains(&location) {
-      self.add_relevant(*place);
+      let mut indices = self.analysis.place_indices.empty_set();
+      indices.insert(self.analysis.place_indices.index(place));
+      self.add_relevant(&indices);
     }
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, _location: Location) {
+    // Ignore FalseEdge nodes since they can trip up the soundness of path_relevance wrt the post-dominator tree.
+    // eg a FalseEdge node always post-dominates a while-loop condition so it would set path_relevant to false,
+    // but while-body state gets propagated through the FalseEdge node which cause the while-condition to be incorrectly
+    // marked as irrelevant when it is relevant to the while-body
+    match &terminator.kind {
+      TerminatorKind::FalseEdge { .. }  => { return; }
+      _ => {}
+    }
+
     self.state.statement_relevant = false;
 
     debug!(
@@ -235,7 +249,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
         });
 
         if any_mut_ptrs_to_relevant {
-          self.add_relevant_many(&input_places_set);
+          self.add_relevant(&input_places_set);
         }
 
         if let Some((dst, _)) = destination {
@@ -248,7 +262,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
           match discr {
             Operand::Move(place) | Operand::Copy(place) => {
               let (places, _) = self.analysis.places_and_pointers(*place);
-              self.add_relevant_many(&places);
+              self.add_relevant(&places);
             }
             Operand::Constant(_) => {}
           }
@@ -274,6 +288,8 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   borrow_ranges: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, BorrowRanges<'mir, 'tcx>>>,
   place_indices: &'a PlaceIndices<'tcx>,
   aliases: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, Aliases<'a, 'mir, 'tcx>>>,
+  post_dominators: Dominators<BasicBlock>,
+  current_block: RefCell<BasicBlock>,
 }
 
 impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
@@ -285,9 +301,11 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     borrow_ranges: &'a Results<'tcx, BorrowRanges<'mir, 'tcx>>,
     place_indices: &'a PlaceIndices<'tcx>,
     aliases: &'a Results<'tcx, Aliases<'a, 'mir, 'tcx>>,
+    post_dominators: Dominators<BasicBlock>,
   ) -> Self {
     let borrow_ranges = RefCell::new(ResultsRefCursor::new(body, &borrow_ranges));
     let aliases = RefCell::new(ResultsRefCursor::new(body, aliases));
+    let current_block = RefCell::new(body.basic_blocks().indices().next().unwrap());
     RelevanceAnalysis {
       slice_set,
       tcx,
@@ -296,6 +314,8 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       borrow_ranges,
       place_indices,
       aliases,
+      post_dominators,
+      current_block,
     }
   }
 
@@ -391,6 +411,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
   }
 
   fn seek_results(&self, location: Location) {
+    *self.current_block.borrow_mut() = location.block;
     self
       .borrow_ranges
       .borrow_mut()

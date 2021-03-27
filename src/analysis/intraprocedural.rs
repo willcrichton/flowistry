@@ -2,6 +2,7 @@ use super::aliases::Aliases;
 use super::borrow_ranges::BorrowRanges;
 use super::place_index::PlaceIndices;
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
+use super::post_dominators::compute_post_dominators;
 use crate::config::{Range, CONFIG};
 
 use anyhow::{bail, Context, Result};
@@ -143,6 +144,7 @@ pub fn analyze_function(
 
     let local_def_id = body_id.hir_id.owner;
     let borrowck_result = tcx.mir_borrowck(local_def_id);
+
     let body = &borrowck_result.intermediates.body;
     let borrow_set = &borrowck_result.intermediates.borrow_set;
     let outlives_constraints = &borrowck_result.intermediates.outlives_constraints;
@@ -160,6 +162,13 @@ pub fn analyze_function(
       info!("outlives constraints {:#?}", outlives_constraints);
     }
 
+    let post_dominators = compute_post_dominators(body.clone());
+    for bb in body.basic_blocks().indices() {
+      if post_dominators.is_reachable(bb) {
+        debug!("{:?} doimnated by {:?}", bb, post_dominators.immediate_dominator(bb));
+      }
+    }
+  
     let borrow_ranges = BorrowRanges::new(tcx, body, borrow_set, borrows_out_of_scope_at_location)
       .into_engine(tcx, body)
       .iterate_to_fixpoint();
@@ -195,6 +204,7 @@ pub fn analyze_function(
       borrow_ranges,
       &place_indices,
       &aliases,
+      post_dominators
     )
     .into_engine(tcx, body)
     .iterate_to_fixpoint();

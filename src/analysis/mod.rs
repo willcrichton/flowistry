@@ -13,6 +13,7 @@ mod aliases;
 mod borrow_ranges;
 mod intraprocedural;
 mod place_index;
+mod post_dominators;
 mod relevance;
 
 struct SliceVisitor<'tcx> {
@@ -68,10 +69,6 @@ struct Callbacks {
 }
 
 impl rustc_driver::Callbacks for Callbacks {
-  fn config(&mut self, config: &mut rustc_interface::Config) {
-    println!("{:?}", config.crate_cfg);
-  }
-
   fn after_analysis<'tcx>(
     &mut self,
     _compiler: &rustc_interface::interface::Compiler,
@@ -120,6 +117,7 @@ pub fn slice(config: Config, args: &[String]) -> Result<SliceOutput> {
   let mut args = args.to_vec();
 
   // mir-opt-level ensures that mir_promoted doesn't apply optimizations
+  // TODO: is this still necessary?
   args.extend(
     "-Z mir-opt-level=0 -Z identify-regions"
       .split(" ")
