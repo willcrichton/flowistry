@@ -11,7 +11,7 @@ pub use intraprocedural::SliceOutput;
 
 mod aliases;
 mod borrow_ranges;
-mod intraprocedural;
+pub mod intraprocedural;
 mod place_index;
 mod post_dominators;
 mod relevance;
@@ -84,14 +84,14 @@ impl rustc_driver::Callbacks for Callbacks {
           .iter()
           .find(|file| {
             if let FileName::Real(RealFileName::Named(other_path)) = &file.name {
-              config.path == other_path.to_string_lossy()
+              config.range.filename == other_path.to_string_lossy()
             } else {
               false
             }
           })
           .expect(&format!(
             "Could not find file {} out of files {:#?}",
-            config.path, **files
+            config.range.filename, **files
           ));
         config.range.to_span(source_file)
       };

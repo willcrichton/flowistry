@@ -128,6 +128,7 @@ where
   Ok(())
 }
 
+#[derive(Debug)]
 pub struct SliceOutput(Vec<Range>);
 
 impl SliceOutput {
@@ -219,6 +220,7 @@ pub fn analyze_function(
       &place_indices,
       &aliases,
       post_dominators,
+      config.eval_mode
     )
     .into_engine(tcx, body)
     .iterate_to_fixpoint();

@@ -56,16 +56,18 @@ pub fn run(src: impl AsRef<str>, mut range: Range, lines: Vec<usize>) {
     let src = src.as_ref().trim();
     f.as_file_mut().write(src.as_bytes())?;
 
+    let path = f.path();
+    range.filename = path.to_string_lossy().to_string();
+    
     range.start_line -= 1;
     range.end_line -= 1;
     range.start_col -= 1;
     range.end_col -= 1;
 
-    let path = f.path();
     let config = Config {
       range,
-      path: path.to_string_lossy().to_string(),
       debug: false,
+      ..Default::default()
     };
 
     let args = format!(

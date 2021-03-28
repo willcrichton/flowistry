@@ -1,6 +1,10 @@
 use fluid_let::fluid_let;
-use rustc_span::{source_map::{SourceFile, SourceMap}, BytePos, Span, FileName};
+use rustc_span::{
+  source_map::{SourceFile, SourceMap},
+  BytePos, FileName, Span,
+};
 use serde::Serialize;
+use std::default::Default;
 
 #[derive(Serialize, Debug, Clone)]
 pub struct Range {
@@ -8,7 +12,7 @@ pub struct Range {
   pub start_col: usize,
   pub end_line: usize,
   pub end_col: usize,
-  pub filename: String
+  pub filename: String,
 }
 
 impl Range {
@@ -18,7 +22,7 @@ impl Range {
       start_col: start,
       end_line: line,
       end_col: end,
-      filename: "".to_owned()
+      filename: "".to_owned(),
     }
   }
 
@@ -34,20 +38,32 @@ impl Range {
 
 impl Range {
   pub fn from_span(span: Span, source_map: &SourceMap) -> Self {
-    let lines = source_map.span_to_lines(span).unwrap();
-    let start_line = lines.lines.first().unwrap();
-    let end_line = lines.lines.last().unwrap();
     let filename = if let FileName::Real(filename) = source_map.span_to_filename(span) {
       filename.local_path().to_string_lossy().into_owned()
     } else {
       unimplemented!()
     };
+
+    let lines = source_map.span_to_lines(span).unwrap();
+    if lines.lines.len() == 0 {
+      return Range {
+        start_line: 0,
+        start_col: 0,
+        end_line: 0,
+        end_col: 0,
+        filename,
+      };
+    }
+
+    let start_line = lines.lines.first().unwrap();
+    let end_line = lines.lines.last().unwrap();
+    
     Range {
       start_line: start_line.line_index,
       start_col: start_line.start_col.0,
       end_line: end_line.line_index,
       end_col: end_line.end_col.0,
-      filename
+      filename,
     }
   }
 
@@ -58,11 +74,27 @@ impl Range {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize)]
+pub enum EvalMode {
+  Standard,
+  LikeC,
+}
+
+#[derive(Debug, Clone)]
 pub struct Config {
-  pub path: String,
   pub range: Range,
   pub debug: bool,
+  pub eval_mode: EvalMode,
+}
+
+impl Default for Config {
+  fn default() -> Self {
+    Config {
+      range: Range::line(0, 0, 0),
+      debug: false,
+      eval_mode: EvalMode::Standard,
+    }
+  }
 }
 
 fluid_let!(pub static CONFIG: Config);

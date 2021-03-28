@@ -1,3 +1,5 @@
+use crate::config::EvalMode;
+
 use super::{
   aliases::Aliases,
   borrow_ranges::BorrowRanges,
@@ -234,6 +236,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       TerminatorKind::Call {
         args, destination, ..
       } => {
+        debug!("A");
         let input_places = args
           .iter()
           .filter_map(|arg| match arg {
@@ -290,6 +293,7 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   aliases: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, Aliases<'a, 'mir, 'tcx>>>,
   post_dominators: Dominators<BasicBlock>,
   current_block: RefCell<BasicBlock>,
+  eval_mode: EvalMode
 }
 
 impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
@@ -302,6 +306,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     place_indices: &'a PlaceIndices<'tcx>,
     aliases: &'a Results<'tcx, Aliases<'a, 'mir, 'tcx>>,
     post_dominators: Dominators<BasicBlock>,
+    eval_mode: EvalMode
   ) -> Self {
     let borrow_ranges = RefCell::new(ResultsRefCursor::new(body, &borrow_ranges));
     let aliases = RefCell::new(ResultsRefCursor::new(body, aliases));
@@ -316,6 +321,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       aliases,
       post_dominators,
       current_block,
+      eval_mode
     }
   }
 
@@ -374,7 +380,15 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       let borrow = &self.borrow_set[i];
 
       // Ignore immutable borrows
-      if borrow.kind.to_mutbl_lossy() != Mutability::Mut {
+      if self.eval_mode == EvalMode::Standard && borrow.kind.to_mutbl_lossy() != Mutability::Mut {
+        continue;
+      }
+
+      // fixed an issue in progs like 
+      //   _1 = &mut 2; _2 = &mut (*1); 
+      // where places_and_pointers((*1)) is queried, and (*1) conflicts with _2 and recurse on (*1)
+      // TODO: is exact equality the correct guard or something more general?
+      if borrow.borrowed_place == place {
         continue;
       }
 
@@ -400,7 +414,8 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
         places.insert(self.place_indices.index(&borrow.borrowed_place));
         pointers.insert(self.place_indices.index(&place));
         pointers.insert(self.place_indices.index(&borrow.assigned_place));
-
+        
+        // debug!("place {:?} is part of {:?} so recursing on borrow {:?}", place, borrow.assigned_place, borrow);
         let (sub_places, sub_pointers) = self.places_and_pointers(borrow.borrowed_place);
         places.union(&sub_places);
         pointers.union(&sub_pointers);
