@@ -33,7 +33,6 @@ fn run() -> Result<()> {
   debug!("Generated rustc command:\n{}", flags.join(" "));
 
   let config = Config {
-    path: arg!("path").to_owned(),
     range: Range {
       start_line: arg!("start_line").parse::<usize>()?,
       start_col: arg!("start_col").parse::<usize>()?,
@@ -42,6 +41,8 @@ fn run() -> Result<()> {
       filename: arg!("path").to_owned(),
     },
     debug: matches.is_present("debug"),
+    //eval_mode: rust_slicer::config::EvalMode::LikeC
+    ..Default::default()
   };
 
   let output = rust_slicer::slice(config, &flags)?;

@@ -15,8 +15,8 @@ extern crate rustc_span;
 extern crate rustc_target;
 extern crate smallvec;
 
-mod analysis;
-mod config;
+pub mod analysis;
+pub mod config;
 
 pub use analysis::{slice, SliceOutput};
 pub use config::{Config, Range};

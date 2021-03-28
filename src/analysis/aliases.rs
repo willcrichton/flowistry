@@ -66,12 +66,13 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
           } else {
             // NOTE: so far only observed this for &'static pointers
             warn!(
-              "no region for local {:?} from constraint {:?} in context {:?} and {:?}",
-              constraint.sup,
-              constraint,
-              self.analysis.region_to_local,
-              self.analysis.outlives_constraints
+              "no region for local {:?} from constraint {:?} ",
+              constraint.sup, constraint,
             );
+            debug!(
+              "in context {:?} and {:?}",
+              self.analysis.region_to_local, self.analysis.outlives_constraints
+            )
           }
         }
       }
@@ -134,7 +135,8 @@ impl<'a, 'mir, 'tcx> Aliases<'a, 'mir, 'tcx> {
               let place = assign.0;
               Some((constraint.sub, place.local))
             } else {
-              unimplemented!("{:?}", statement)
+              warn!("no alias generated from statement `{:?}`", statement);
+              None
             }
           }
         } else {
@@ -143,6 +145,8 @@ impl<'a, 'mir, 'tcx> Aliases<'a, 'mir, 'tcx> {
         }
       })
       .collect();
+
+    debug!("region_to_local: {:#?}", region_to_local);
 
     Aliases {
       borrow_set,
