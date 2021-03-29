@@ -392,7 +392,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
         continue;
       }
 
-      let mut borrow_aliases = aliases.iter_enumerated().filter_map(|(local, borrows)| {
+      let borrow_aliases = aliases.iter_enumerated().filter_map(|(local, borrows)| {
         if borrows.contains(i) {
           Some(local)
         } else {
@@ -400,22 +400,28 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
         }
       });
 
-      let part_of_alias = borrow_aliases.any(|alias| {
+      let part_of_aliases = borrow_aliases.filter(|alias| {
         self.place_is_part(
           place,
           Place {
-            local: alias,
+            local: *alias,
             projection: self.tcx.intern_place_elems(&[]),
           },
         )
-      });
+      }).collect::<Vec<_>>();
 
-      if self.place_is_part(place, borrow.assigned_place) || part_of_alias {
+      if self.place_is_part(place, borrow.assigned_place) || part_of_aliases.len() > 0 {
         places.insert(self.place_indices.index(&borrow.borrowed_place));
         pointers.insert(self.place_indices.index(&place));
         pointers.insert(self.place_indices.index(&borrow.assigned_place));
         
-        // debug!("place {:?} is part of {:?} so recursing on borrow {:?}", place, borrow.assigned_place, borrow);
+        debug!("place {:?} recursing on borrow {:?}", place, borrow);
+        if part_of_aliases.len() > 0 {
+          debug!("  because part of aliases {:?}", part_of_aliases)
+        } else {
+          debug!("  because part of borrow {:?}", borrow.assigned_place)
+        };
+        
         let (sub_places, sub_pointers) = self.places_and_pointers(borrow.borrowed_place);
         places.union(&sub_places);
         pointers.union(&sub_pointers);

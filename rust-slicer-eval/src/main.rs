@@ -26,7 +26,7 @@ impl rustc_driver::Callbacks for Callbacks {
   ) -> rustc_driver::Compilation {
     queries.global_ctxt().unwrap().take().enter(|tcx| {
       let mut eval_visitor = EvalCrateVisitor::new(tcx);
-      tcx.hir().krate().visit_all_item_likes(&mut eval_visitor);
+      tcx.hir().krate().par_visit_all_item_likes(&mut eval_visitor);
       println!("{}", serde_json::to_string(&eval_visitor.eval_results).unwrap());
     });
 

@@ -1,11 +1,13 @@
-use crate::config::{Config, CONFIG};
+use crate::config::Config;
 use anyhow::{Error, Result};
+use log::debug;
 use rustc_hir::{
   itemlikevisit::ItemLikeVisitor, BodyId, ForeignItem, ImplItem, ImplItemKind, Item, ItemKind,
   TraitItem,
 };
 use rustc_middle::ty::TyCtxt;
 use rustc_span::{FileName, RealFileName, Span};
+use std::time::Instant;
 
 pub use intraprocedural::SliceOutput;
 
@@ -20,6 +22,7 @@ struct SliceVisitor<'tcx> {
   tcx: TyCtxt<'tcx>,
   slice_span: Span,
   output: Result<SliceOutput>,
+  config: Config,
 }
 
 impl<'tcx> SliceVisitor<'tcx> {
@@ -30,9 +33,15 @@ impl<'tcx> SliceVisitor<'tcx> {
 
     let tcx = self.tcx;
     let slice_span = self.slice_span;
+    let config = &self.config;
     take_mut::take(&mut self.output, move |output| {
       output.and_then(move |mut output| {
-        let fn_output = intraprocedural::analyze_function(tcx, body_id, slice_span)?;
+        let start = Instant::now();
+        let fn_output = intraprocedural::analyze_function(config, tcx, body_id, slice_span)?;
+        debug!(
+          "Finished in {} seconds",
+          start.elapsed().as_nanos() as f64 / 1e9
+        );
         output.merge(fn_output);
         Ok(output)
       })
@@ -99,11 +108,10 @@ impl rustc_driver::Callbacks for Callbacks {
       let mut slice_visitor = SliceVisitor {
         tcx,
         slice_span,
+        config,
         output: Ok(SliceOutput::new()),
       };
-      CONFIG.set(config, || {
-        tcx.hir().krate().visit_all_item_likes(&mut slice_visitor);
-      });
+      tcx.hir().krate().visit_all_item_likes(&mut slice_visitor);
       self.output = Some(slice_visitor.output);
     });
 
@@ -114,10 +122,8 @@ impl rustc_driver::Callbacks for Callbacks {
 pub fn slice(config: Config, args: &[String]) -> Result<SliceOutput> {
   let mut args = args.to_vec();
 
-  // mir-opt-level ensures that mir_promoted doesn't apply optimizations
-  // TODO: is this still necessary?
   args.extend(
-    "-Z mir-opt-level=0 -Z identify-regions"
+    "-Z identify-regions -A warnings"
       .split(" ")
       .map(|s| s.to_owned()),
   );
