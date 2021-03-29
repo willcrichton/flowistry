@@ -44,10 +44,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	let workspace_root = folders[0].uri.fsPath;
   log("Workspace root", workspace_root);
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('rust-slicer.slice', async () => {
+	let slice =  async (standard: boolean) => {
 	  let active_editor = vscode.window.activeTextEditor;
 		if (!active_editor) { return; }
 
@@ -55,7 +52,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		let selection = active_editor.selection;
 
 		let env = {...process.env, DYLD_LIBRARY_PATH: lib_dir, LD_LIBRARY_PATH: lib_dir};
-		let cmd = `rust-slicer-cli ${file_path} ${selection.start.line} ${selection.start.character} ${selection.end.line} ${selection.end.character}`;
+		let mode = standard ? '' : '-l';
+		let cmd = `rust-slicer-cli ${mode} ${file_path} ${selection.start.line} ${selection.start.character} ${selection.end.line} ${selection.end.character} `;
 
 		try {
 			log("Running command:");
@@ -92,8 +90,15 @@ export async function activate(context: vscode.ExtensionContext) {
 			log("ERROR", exc);
 			vscode.window.showErrorMessage(`Rust Slicer failed with error: ${exc}`);
 		}
-	});
+	};
 
+	// The command has been defined in the package.json file
+	// Now provide the implementation of the command with registerCommand
+	// The commandId parameter must match the command field in package.json
+	let disposable = vscode.commands.registerCommand('rust-slicer.slice', () => slice(true));
+	context.subscriptions.push(disposable);
+
+	disposable = vscode.commands.registerCommand('rust-slicer.slice_c', () => slice(false));
 	context.subscriptions.push(disposable);
 }
 

@@ -3,9 +3,9 @@ use super::borrow_ranges::BorrowRanges;
 use super::place_index::PlaceIndices;
 use super::post_dominators::compute_post_dominators;
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
-use crate::config::{Range, CONFIG};
+use crate::config::{Config, Range};
 
-use anyhow::{bail, Context, Result};
+use anyhow::{bail, Result};
 use log::{debug, info};
 use rustc_graphviz as dot;
 use rustc_middle::{
@@ -146,111 +146,110 @@ impl SliceOutput {
 }
 
 pub fn analyze_function(
+  config: &Config,
   tcx: TyCtxt,
   body_id: &rustc_hir::BodyId,
   slice_span: Span,
 ) -> Result<SliceOutput> {
-  CONFIG.get(|config| {
-    let config = config.context("Missing config")?;
+  let local_def_id = body_id.hir_id.owner;
+  let borrowck_result = tcx.mir_borrowck(local_def_id);
 
-    let local_def_id = body_id.hir_id.owner;
-    let borrowck_result = tcx.mir_borrowck(local_def_id);
+  let body = &borrowck_result.intermediates.body;
+  let borrow_set = &borrowck_result.intermediates.borrow_set;
+  let outlives_constraints = &borrowck_result.intermediates.outlives_constraints;
+  let borrows_out_of_scope_at_location = &borrowck_result
+    .intermediates
+    .borrows_out_of_scope_at_location;
+  let constraint_sccs = &borrowck_result.intermediates.constraint_sccs;
 
-    let body = &borrowck_result.intermediates.body;
-    let borrow_set = &borrowck_result.intermediates.borrow_set;
-    let outlives_constraints = &borrowck_result.intermediates.outlives_constraints;
-    let borrows_out_of_scope_at_location = &borrowck_result
-      .intermediates
-      .borrows_out_of_scope_at_location;
+  if config.debug {
+    info!("MIR");
+    let mut buffer = Vec::new();
+    write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
+    info!("{}", String::from_utf8_lossy(&buffer));
+    info!("borrow set {:#?}", borrow_set);
+    info!("out of scope {:#?}", borrows_out_of_scope_at_location);
+    info!("outlives constraints {:#?}", outlives_constraints);
+    info!("sccs {:#?}", constraint_sccs);
+  }
 
-    if config.debug {
-      info!("MIR");
-      let mut buffer = Vec::new();
-      write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
-      info!("{}", String::from_utf8_lossy(&buffer));
-      info!("borrow set {:#?}", borrow_set);
-      info!("out of scope {:#?}", borrows_out_of_scope_at_location);
-      info!("outlives constraints {:#?}", outlives_constraints);
+  let post_dominators = compute_post_dominators(body.clone());
+  for bb in body.basic_blocks().indices() {
+    if post_dominators.is_reachable(bb) {
+      debug!(
+        "{:?} dominated by {:?}",
+        bb,
+        post_dominators.immediate_dominator(bb)
+      );
     }
+  }
 
-    let post_dominators = compute_post_dominators(body.clone());
-    for bb in body.basic_blocks().indices() {
-      if post_dominators.is_reachable(bb) {
-        debug!(
-          "{:?} doimnated by {:?}",
-          bb,
-          post_dominators.immediate_dominator(bb)
-        );
-      }
-    }
+  let borrow_ranges = BorrowRanges::new(tcx, body, borrow_set, borrows_out_of_scope_at_location)
+    .into_engine(tcx, body)
+    .iterate_to_fixpoint();
+  let borrow_ranges = &borrow_ranges;
 
-    let borrow_ranges = BorrowRanges::new(tcx, body, borrow_set, borrows_out_of_scope_at_location)
-      .into_engine(tcx, body)
-      .iterate_to_fixpoint();
-    let borrow_ranges = &borrow_ranges;
+  if config.debug {
+    dump_results("target/borrow_ranges.png", body, borrow_ranges)?;
+  }
 
-    if config.debug {
-      dump_results("target/borrow_ranges.png", body, borrow_ranges)?;
-    }
-
-    let aliases = Aliases::new(body, borrow_set, borrow_ranges, outlives_constraints)
-      .into_engine(tcx, body)
-      .iterate_to_fixpoint();
-
-    if config.debug {
-      dump_results("target/aliases.png", body, &aliases)?;
-    }
-
-    let mut finder = FindInitialSliceSet {
-      slice_span,
-      slice_set: HashSet::new(),
-      body,
-    };
-    finder.visit_body(body);
-    debug!("Initial slice set: {:?}", finder.slice_set);
-
-    let place_indices = PlaceIndices::build(body);
-
-    let relevance_results = RelevanceAnalysis::new(
-      finder.slice_set,
-      tcx,
-      body,
-      borrow_set,
-      borrow_ranges,
-      &place_indices,
-      &aliases,
-      post_dominators,
-      config.eval_mode
-    )
+  let aliases = Aliases::new(tcx, body, borrow_set, borrow_ranges, outlives_constraints, constraint_sccs)
     .into_engine(tcx, body)
     .iterate_to_fixpoint();
 
-    if config.debug {
-      dump_results("target/relevance.png", body, &relevance_results)?;
-    }
+  if config.debug {
+    dump_results("target/aliases.png", body, &aliases)?;
+  }
 
-    let source_map = tcx.sess.source_map();
-    let mut visitor = CollectResults {
-      body,
-      relevant_spans: vec![],
-      all_locals: HashSet::new(),
-      place_indices: &place_indices,
-      local_blacklist: HashSet::new(),
-    };
-    relevance_results.visit_reachable_with(body, &mut visitor);
+  let mut finder = FindInitialSliceSet {
+    slice_span,
+    slice_set: HashSet::new(),
+    body,
+  };
+  finder.visit_body(body);
+  debug!("Initial slice set: {:?}", finder.slice_set);
 
-    let all_locals = &visitor.all_locals - &visitor.local_blacklist;
-    let local_spans = all_locals
-      .into_iter()
-      .map(|local| body.local_decls()[local].source_info.span);
+  let place_indices = PlaceIndices::build(body);
 
-    let ranges = visitor
-      .relevant_spans
-      .into_iter()
-      .chain(local_spans)
-      .map(|span| Range::from_span(span, source_map))
-      .collect();
+  let relevance_results = RelevanceAnalysis::new(
+    finder.slice_set,
+    tcx,
+    body,
+    borrow_set,
+    borrow_ranges,
+    &place_indices,
+    &aliases,
+    post_dominators,
+    config.eval_mode,
+  )
+  .into_engine(tcx, body)
+  .iterate_to_fixpoint();
 
-    Ok(SliceOutput(ranges))
-  })
+  if config.debug {
+    dump_results("target/relevance.png", body, &relevance_results)?;
+  }
+
+  let source_map = tcx.sess.source_map();
+  let mut visitor = CollectResults {
+    body,
+    relevant_spans: vec![],
+    all_locals: HashSet::new(),
+    place_indices: &place_indices,
+    local_blacklist: HashSet::new(),
+  };
+  relevance_results.visit_reachable_with(body, &mut visitor);
+
+  let all_locals = &visitor.all_locals - &visitor.local_blacklist;
+  let local_spans = all_locals
+    .into_iter()
+    .map(|local| body.local_decls()[local].source_info.span);
+
+  let ranges = visitor
+    .relevant_spans
+    .into_iter()
+    .chain(local_spans)
+    .map(|span| Range::from_span(span, source_map))
+    .collect();
+
+  Ok(SliceOutput(ranges))
 }

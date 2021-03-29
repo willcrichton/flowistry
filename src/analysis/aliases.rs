@@ -4,11 +4,11 @@ use rustc_index::{bit_set::BitSet, vec::IndexVec};
 use rustc_middle::{
   mir::{
     borrows::{BorrowIndex, BorrowSet},
-    regions::{Locations, OutlivesConstraint},
+    regions::{OutlivesConstraint},
     visit::Visitor,
     *,
   },
-  ty::RegionVid,
+  ty::{subst::GenericArgKind, RegionKind, RegionVid, TyCtxt},
 };
 use rustc_mir::dataflow::{
   fmt::DebugWithContext, Analysis, AnalysisDomain, Results, ResultsRefCursor,
@@ -25,56 +25,41 @@ struct TransferFunction<'a, 'b, 'mir, 'tcx> {
 }
 
 impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
-  fn process(&mut self, place: Place<'tcx>, location: Location) {
+  fn process(&mut self, place: Place<'tcx>) {
     let borrow_ranges = self.analysis.borrow_ranges.borrow();
     let borrow_ranges = borrow_ranges.get();
 
-    let constraints = self
-      .analysis
-      .outlives_constraints
-      .iter()
-      .filter(|constraint| {
-        if let Locations::Single(constraint_location) = constraint.locations {
-          constraint_location == location
+    let ty = place
+      .ty(self.analysis.body.local_decls(), self.analysis.tcx)
+      .ty;
+    let ty_regions = ty
+      .walk()
+      .filter_map(|ty| {
+        if let GenericArgKind::Lifetime(RegionKind::ReVar(region)) = ty.unpack() {
+          Some(*region)
         } else {
-          false
+          None
         }
-      });
+      })
+      .collect::<HashSet<_>>();
 
-    debug!("checking {:?}", place);
-    for constraint in constraints {
-      debug!("  against constraint {:?}", constraint);
-      let borrow = borrow_ranges.iter().find(|borrow_idx| {
-        let borrow = &self.analysis.borrow_set[*borrow_idx];
-        borrow.region == constraint.sup
-      });
+    for region in ty_regions {
+      let ty_borrows = borrow_ranges
+        .iter()
+        .filter(|idx| {
+          let borrow = &self.analysis.borrow_set[*idx];
+          let borrow_scc = self.analysis.constraint_sccs.scc(borrow.region);
+          self
+            .analysis
+            .region_ancestors
+            .get(&region)
+            .map(|ancestors| ancestors.contains(&borrow_scc))
+            .unwrap_or(false)
+        })
+        .collect::<Vec<_>>();
 
-      match borrow {
-        Some(borrow_idx) => {
-          debug!("    found borrow {:?}", borrow_idx);
-          self.state[place.local].insert(borrow_idx);
-        }
-        None => {
-          let local = &self.analysis.region_to_local.get(&constraint.sup);
-          if let Some(local) = local {
-            let borrows = self.state[**local].clone();
-            debug!(
-              "    found transitive borrows {:?} from local {:?}",
-              borrows, local
-            );
-            self.state[place.local].union(&borrows);
-          } else {
-            // NOTE: so far only observed this for &'static pointers
-            warn!(
-              "no region for local {:?} from constraint {:?} ",
-              constraint.sup, constraint,
-            );
-            debug!(
-              "in context {:?} and {:?}",
-              self.analysis.region_to_local, self.analysis.outlives_constraints
-            )
-          }
-        }
+      for idx in ty_borrows {
+        self.state[place.local].insert(idx);
       }
     }
   }
@@ -82,14 +67,14 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
 
 impl<'tcx> Visitor<'tcx> for TransferFunction<'_, '_, '_, 'tcx> {
   fn visit_assign(&mut self, place: &Place<'tcx>, _rvalue: &Rvalue<'tcx>, location: Location) {
-    self.process(*place, location);
+    self.process(*place);
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
     match &terminator.kind {
       TerminatorKind::Call { destination, .. } => {
         if let Some((place, _)) = destination {
-          self.process(*place, location);
+          self.process(*place);
         }
       }
       _ => {}
@@ -98,61 +83,43 @@ impl<'tcx> Visitor<'tcx> for TransferFunction<'_, '_, '_, 'tcx> {
 }
 
 pub struct Aliases<'a, 'mir, 'tcx> {
+  tcx: TyCtxt<'tcx>,
+  body: &'mir Body<'tcx>,
   borrow_set: &'a BorrowSet<'tcx>,
   borrow_ranges: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, BorrowRanges<'mir, 'tcx>>>,
-  outlives_constraints: &'a Vec<OutlivesConstraint>,
-  region_to_local: HashMap<RegionVid, Local>,
+  region_ancestors: HashMap<RegionVid, HashSet<ConstraintSccIndex>>,
+  constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>, // region_to_local: HashMap<RegionVid, Local>,
 }
 
 impl<'a, 'mir, 'tcx> Aliases<'a, 'mir, 'tcx> {
   pub fn new(
+    tcx: TyCtxt<'tcx>,
     body: &'mir Body<'tcx>,
     borrow_set: &'a BorrowSet<'tcx>,
     borrow_ranges: &'a Results<'tcx, BorrowRanges<'mir, 'tcx>>,
     outlives_constraints: &'a Vec<OutlivesConstraint>,
+    constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>,
   ) -> Self {
     let borrow_ranges = RefCell::new(ResultsRefCursor::new(body, borrow_ranges));
 
-    let region_to_local = outlives_constraints
+    let max_region = outlives_constraints
       .iter()
-      .filter_map(|constraint| {
-        if let Locations::Single(location) = constraint.locations {
-          let bb = &body.basic_blocks()[location.block];
-          if location.statement_index == bb.statements.len() {
-            match &bb.terminator.as_ref().unwrap().kind {
-              TerminatorKind::Call { destination, .. } => {
-                if let Some((place, _)) = destination {
-                  Some((constraint.sub, place.local))
-                } else {
-                  None
-                }
-              }
-              _ => None,
-            }
-          } else {
-            let statement = &bb.statements[location.statement_index];
-            if let StatementKind::Assign(assign) = &statement.kind {
-              let place = assign.0;
-              Some((constraint.sub, place.local))
-            } else {
-              warn!("no alias generated from statement `{:?}`", statement);
-              None
-            }
-          }
-        } else {
-          // TODO
-          None
-        }
-      })
-      .collect();
+      .map(|constraint| constraint.sup.as_usize().max(constraint.sub.as_usize()))
+      .max()
+      .unwrap_or(0)
+      + 1;
 
-    debug!("region_to_local: {:#?}", region_to_local);
+    let root_region = RegionVid::from_usize(0);
+    let root_scc = constraint_sccs.scc(root_region);
+    let region_ancestors = compute_region_ancestors(constraint_sccs, max_region, root_scc);
 
     Aliases {
+      tcx,
+      body,
       borrow_set,
       borrow_ranges,
-      outlives_constraints,
-      region_to_local,
+      region_ancestors,
+      constraint_sccs, // region_to_local,
     }
   }
 }
@@ -228,4 +195,57 @@ impl DebugWithContext<Aliases<'_, '_, '_>> for AliasesDomain {
     }
     Ok(())
   }
+}
+
+use rustc_data_structures::graph::scc::Sccs;
+use rustc_middle::mir::regions::ConstraintSccIndex;
+// use rustc_index::vec::IndexVec;
+use std::collections::{hash_map::Entry, HashSet};
+use std::hash::Hash;
+
+fn merge<K: Eq + Hash, V>(
+  mut h1: HashMap<K, V>,
+  h2: HashMap<K, V>,
+  conflict: impl Fn(&V, &V) -> V,
+) -> HashMap<K, V> {
+  for (k, v) in h2.into_iter() {
+    match h1.entry(k) {
+      Entry::Vacant(entry) => {
+        entry.insert(v);
+      }
+      Entry::Occupied(mut entry) => {
+        let entry = entry.get_mut();
+        *entry = conflict(&*entry, &v);
+      }
+    }
+  }
+  h1
+}
+
+fn compute_region_ancestors(
+  sccs: &Sccs<RegionVid, ConstraintSccIndex>,
+  max_region: usize,
+  node: ConstraintSccIndex,
+) -> HashMap<RegionVid, HashSet<ConstraintSccIndex>> {
+  let mut initial_hash = HashSet::new();
+  initial_hash.insert(node);
+  sccs
+    .successors(node)
+    .iter()
+    .map(|child| {
+      let in_child = (0..max_region)
+        .map(|i| RegionVid::from_usize(i))
+        .filter(|r| sccs.scc(*r) == *child)
+        .map(|r| (r, initial_hash.clone()))
+        .collect::<HashMap<_, _>>();
+      let grandchildren = compute_region_ancestors(sccs, max_region, *child)
+        .into_iter()
+        .map(|(region, mut parents)| {
+          parents.insert(node);
+          (region, parents)
+        })
+        .collect::<HashMap<_, _>>();
+      merge(in_child, grandchildren, |h1, h2| h1 | h2)
+    })
+    .fold(HashMap::new(), |h1, h2| merge(h1, h2, |h1, h2| h1 | h2))
 }
