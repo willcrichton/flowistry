@@ -51,8 +51,6 @@ fn run() -> Result<()> {
     .map_err(|_| Error::msg("rustc panicked"))?
     .map_err(|_| Error::msg("driver failed"))?;
 
-
-
   Ok(())
 }
 

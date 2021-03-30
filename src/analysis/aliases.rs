@@ -1,20 +1,18 @@
-use super::borrow_ranges::BorrowRanges;
 use rustc_index::{bit_set::BitSet, vec::IndexVec};
 use rustc_middle::{
   mir::{
     borrows::{BorrowIndex, BorrowSet},
-    regions::{OutlivesConstraint},
+    regions::OutlivesConstraint,
     visit::Visitor,
     *,
   },
   ty::{subst::GenericArgKind, RegionKind, RegionVid, TyCtxt},
 };
-use rustc_mir::dataflow::{
-  fmt::DebugWithContext, Analysis, AnalysisDomain, Results, ResultsRefCursor,
-};
-use std::cell::RefCell;
+use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, AnalysisDomain};
 use std::collections::HashMap;
 use std::fmt;
+
+// TODO: aliases no longer needs to be a dataflow pass, can just be a visitor
 
 pub type AliasesDomain = IndexVec<Local, BitSet<BorrowIndex>>;
 
@@ -25,9 +23,6 @@ struct TransferFunction<'a, 'b, 'mir, 'tcx> {
 
 impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
   fn process(&mut self, place: Place<'tcx>) {
-    let borrow_ranges = self.analysis.borrow_ranges.borrow();
-    let borrow_ranges = borrow_ranges.get();
-
     let ty = place
       .ty(self.analysis.body.local_decls(), self.analysis.tcx)
       .ty;
@@ -43,8 +38,10 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
       .collect::<HashSet<_>>();
 
     for region in ty_regions {
-      let ty_borrows = borrow_ranges
-        .iter()
+      let ty_borrows = self
+        .analysis
+        .borrow_set
+        .indices()
         .filter(|idx| {
           let borrow = &self.analysis.borrow_set[*idx];
           let borrow_scc = self.analysis.constraint_sccs.scc(borrow.region);
@@ -85,7 +82,6 @@ pub struct Aliases<'a, 'mir, 'tcx> {
   tcx: TyCtxt<'tcx>,
   body: &'mir Body<'tcx>,
   borrow_set: &'a BorrowSet<'tcx>,
-  borrow_ranges: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, BorrowRanges<'mir, 'tcx>>>,
   region_ancestors: HashMap<RegionVid, HashSet<ConstraintSccIndex>>,
   constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>, // region_to_local: HashMap<RegionVid, Local>,
 }
@@ -95,12 +91,9 @@ impl<'a, 'mir, 'tcx> Aliases<'a, 'mir, 'tcx> {
     tcx: TyCtxt<'tcx>,
     body: &'mir Body<'tcx>,
     borrow_set: &'a BorrowSet<'tcx>,
-    borrow_ranges: &'a Results<'tcx, BorrowRanges<'mir, 'tcx>>,
     outlives_constraints: &'a Vec<OutlivesConstraint>,
     constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>,
   ) -> Self {
-    let borrow_ranges = RefCell::new(ResultsRefCursor::new(body, borrow_ranges));
-
     let max_region = outlives_constraints
       .iter()
       .map(|constraint| constraint.sup.as_usize().max(constraint.sub.as_usize()))
@@ -116,7 +109,6 @@ impl<'a, 'mir, 'tcx> Aliases<'a, 'mir, 'tcx> {
       tcx,
       body,
       borrow_set,
-      borrow_ranges,
       region_ancestors,
       constraint_sccs, // region_to_local,
     }
@@ -144,11 +136,6 @@ impl<'tcx> Analysis<'tcx> for Aliases<'_, '_, 'tcx> {
     statement: &Statement<'tcx>,
     location: Location,
   ) {
-    self
-      .borrow_ranges
-      .borrow_mut()
-      .seek_after_primary_effect(location);
-
     TransferFunction {
       state,
       analysis: self,
@@ -162,11 +149,6 @@ impl<'tcx> Analysis<'tcx> for Aliases<'_, '_, 'tcx> {
     terminator: &Terminator<'tcx>,
     location: Location,
   ) {
-    self
-      .borrow_ranges
-      .borrow_mut()
-      .seek_after_primary_effect(location);
-
     TransferFunction {
       state,
       analysis: self,

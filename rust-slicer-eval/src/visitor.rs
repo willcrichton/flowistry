@@ -3,8 +3,7 @@ use rust_slicer::config::{Config, EvalMode, Range};
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
   itemlikevisit::ParItemLikeVisitor,
-  BodyId, ImplItemKind, ItemKind, Local,
-  ExprKind, Expr
+  BodyId, Expr, ExprKind, ImplItemKind, ItemKind, Local,
 };
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::Span;
@@ -12,22 +11,23 @@ use serde::Serialize;
 use std::sync::Mutex;
 use std::time::Instant;
 
-struct EvalBodyVisitor {
+struct EvalBodyVisitor<'tcx> {
+  tcx: TyCtxt<'tcx>,
   spans: Vec<Span>,
 }
 
-impl Visitor<'v> for EvalBodyVisitor {
-  type Map = Map<'v>;
+impl Visitor<'tcx> for EvalBodyVisitor<'tcx> {
+  type Map = Map<'tcx>;
 
   fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
-    NestedVisitorMap::None
+    NestedVisitorMap::OnlyBodies(self.tcx.hir())
   }
 
-  fn visit_local(&mut self, local: &'v Local<'v>) {
+  fn visit_local(&mut self, local: &'tcx Local<'tcx>) {
     self.spans.push(local.span);
   }
 
-  fn visit_expr(&mut self, ex: &'v Expr<'v>) {    
+  fn visit_expr(&mut self, ex: &'tcx Expr<'tcx>) {
     match ex.kind {
       ExprKind::Assign(_, _, _) | ExprKind::AssignOp(_, _, _) => {
         self.spans.push(ex.span);
@@ -48,7 +48,8 @@ pub struct EvalCrateVisitor<'tcx> {
 pub struct EvalResult {
   mode: EvalMode,
   slice: Range,
-  function: Range,
+  function_range: Range,
+  function_path: String,
   output: Vec<Range>,
   duration: f64,
 }
@@ -64,8 +65,15 @@ impl EvalCrateVisitor<'tcx> {
   fn analyze(&self, body_span: Span, body_id: &BodyId) {
     let body = self.tcx.hir().body(*body_id);
 
-    let mut body_visitor = EvalBodyVisitor { spans: Vec::new() };
+    let mut body_visitor = EvalBodyVisitor {
+      tcx: self.tcx,
+      spans: Vec::new(),
+    };
     body_visitor.visit_expr(&body.value);
+
+    let def_id = self.tcx.hir().body_owner_def_id(*body_id).to_def_id();
+    let function_path = &self.tcx.def_path_debug_str(def_id);
+    debug!("Visiting {}", function_path);
 
     let eval_results = body_visitor
       .spans
@@ -73,6 +81,7 @@ impl EvalCrateVisitor<'tcx> {
       .map(|span| {
         let source_map = self.tcx.sess.source_map();
         let tcx = self.tcx;
+
         [EvalMode::Standard, EvalMode::LikeC]
           .iter()
           .cloned()
@@ -84,13 +93,16 @@ impl EvalCrateVisitor<'tcx> {
             };
 
             let start = Instant::now();
-            let output =
-              rust_slicer::analysis::intraprocedural::analyze_function(&config, tcx, body_id, span)
-                .unwrap();
+            let output = rust_slicer::analysis::intraprocedural::analyze_function(
+              &config, tcx, *body_id, span,
+            )
+            .unwrap();
+
             EvalResult {
               mode: eval_mode,
               slice: config.range,
-              function: Range::from_span(body_span, source_map),
+              function_range: Range::from_span(body_span, source_map),
+              function_path: function_path.clone(),
               output: output.ranges().to_vec(),
               duration: (start.elapsed().as_nanos() as f64) / 10e9,
             }
@@ -107,28 +119,26 @@ impl EvalCrateVisitor<'tcx> {
   }
 }
 
-impl<'hir, 'tcx> ParItemLikeVisitor<'hir> for EvalCrateVisitor<'tcx> {
-  fn visit_item(&self, item: &'hir rustc_hir::Item<'hir>) {
+impl ParItemLikeVisitor<'tcx> for EvalCrateVisitor<'tcx> {
+  fn visit_item(&self, item: &'tcx rustc_hir::Item<'tcx>) {
     match &item.kind {
       ItemKind::Fn(_, _, body_id) => {
-        debug!("Visiting function {}", item.ident);
         self.analyze(item.span, body_id);
       }
       _ => {}
     }
   }
 
-  fn visit_impl_item(&self, impl_item: &'hir rustc_hir::ImplItem<'hir>) {
+  fn visit_impl_item(&self, impl_item: &'tcx rustc_hir::ImplItem<'tcx>) {
     match &impl_item.kind {
       ImplItemKind::Fn(_, body_id) => {
-        debug!("Visiting impl function {}", impl_item.ident);
         self.analyze(impl_item.span, body_id);
       }
       _ => {}
     }
   }
 
-  fn visit_trait_item(&self, _trait_item: &'hir rustc_hir::TraitItem<'hir>) {}
+  fn visit_trait_item(&self, _trait_item: &'tcx rustc_hir::TraitItem<'tcx>) {}
 
-  fn visit_foreign_item(&self, _foreign_item: &'hir rustc_hir::ForeignItem<'hir>) {}
+  fn visit_foreign_item(&self, _foreign_item: &'tcx rustc_hir::ForeignItem<'tcx>) {}
 }
