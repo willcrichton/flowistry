@@ -1,4 +1,4 @@
-#![feature(rustc_private, box_patterns)]
+#![feature(rustc_private, box_patterns, in_band_lifetimes)]
 #![feature(const_panic)] // needed for rustc_index::newtype_index
 
 extern crate rustc_data_structures;

@@ -760,6 +760,22 @@ fn main() {
 }
 
 #[test]
+fn closure_slice_inside() {
+  let src = r#"
+fn main() {
+  let x = Some(1);
+  x.and_then(
+    |y| {
+      let z = y + 1; 
+      Some(z)
+  });
+}
+"#;
+
+  run(src, Range::line(6, 12, 13), vec![4, 5, 6]);
+}
+
+#[test]
 fn macro_read() {
   let _src = r#"
 fn main() {
@@ -798,7 +814,6 @@ fn main() {
 
   run(src, Range::line(3, 18, 19), vec![2, 3]);
 }
-
 
 #[test]
 fn match_test() {
