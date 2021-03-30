@@ -1,9 +1,10 @@
 use log::debug;
 use rust_slicer::config::{Config, EvalMode, Range};
 use rustc_hir::{
-  intravisit::{NestedVisitorMap, Visitor},
+  intravisit::{self, NestedVisitorMap, Visitor},
   itemlikevisit::ParItemLikeVisitor,
   BodyId, ImplItemKind, ItemKind, Local,
+  ExprKind, Expr
 };
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::Span;
@@ -25,6 +26,17 @@ impl Visitor<'v> for EvalBodyVisitor {
   fn visit_local(&mut self, local: &'v Local<'v>) {
     self.spans.push(local.span);
   }
+
+  fn visit_expr(&mut self, ex: &'v Expr<'v>) {    
+    match ex.kind {
+      ExprKind::Assign(_, _, _) | ExprKind::AssignOp(_, _, _) => {
+        self.spans.push(ex.span);
+      }
+      _ => {
+        intravisit::walk_expr(self, ex);
+      }
+    }
+  }
 }
 
 pub struct EvalCrateVisitor<'tcx> {
@@ -36,6 +48,7 @@ pub struct EvalCrateVisitor<'tcx> {
 pub struct EvalResult {
   mode: EvalMode,
   slice: Range,
+  function: Range,
   output: Vec<Range>,
   duration: f64,
 }
@@ -48,7 +61,7 @@ impl EvalCrateVisitor<'tcx> {
     }
   }
 
-  fn analyze(&self, _body_span: Span, body_id: &BodyId) {
+  fn analyze(&self, body_span: Span, body_id: &BodyId) {
     let body = self.tcx.hir().body(*body_id);
 
     let mut body_visitor = EvalBodyVisitor { spans: Vec::new() };
@@ -77,6 +90,7 @@ impl EvalCrateVisitor<'tcx> {
             EvalResult {
               mode: eval_mode,
               slice: config.range,
+              function: Range::from_span(body_span, source_map),
               output: output.ranges().to_vec(),
               duration: (start.elapsed().as_nanos() as f64) / 10e9,
             }

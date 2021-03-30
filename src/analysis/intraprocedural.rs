@@ -6,7 +6,7 @@ use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use crate::config::{Config, Range};
 
 use anyhow::{bail, Result};
-use log::{debug, info};
+use log::debug;
 use rustc_graphviz as dot;
 use rustc_middle::{
   mir::{
@@ -20,7 +20,7 @@ use rustc_mir::dataflow::graphviz;
 use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor};
 use rustc_mir::util::write_mir_fn;
 use rustc_span::Span;
-use std::{collections::HashSet, fs::File, io::Write, process::Command};
+use std::{collections::HashSet, fs::File, io::Write, process::Command, time::Instant};
 
 struct FindInitialSliceSet<'a, 'tcx> {
   slice_span: Span,
@@ -145,15 +145,22 @@ impl SliceOutput {
   }
 }
 
+fn elapsed(name: &str, start: Instant) {
+  debug!("{} took {}s", name, start.elapsed().as_nanos() as f64 / 1e9)
+}
+
 pub fn analyze_function(
   config: &Config,
   tcx: TyCtxt,
-  body_id: &rustc_hir::BodyId,
+  body_id: rustc_hir::BodyId,
   slice_span: Span,
 ) -> Result<SliceOutput> {
-  let local_def_id = body_id.hir_id.owner;
+  let start = Instant::now();
+  let local_def_id = tcx.hir().body_owner_def_id(body_id);
   let borrowck_result = tcx.mir_borrowck(local_def_id);
+  elapsed("borrowck", start);
 
+  let start = Instant::now();
   let body = &borrowck_result.intermediates.body;
   let borrow_set = &borrowck_result.intermediates.borrow_set;
   let outlives_constraints = &borrowck_result.intermediates.outlives_constraints;
@@ -162,16 +169,13 @@ pub fn analyze_function(
     .borrows_out_of_scope_at_location;
   let constraint_sccs = &borrowck_result.intermediates.constraint_sccs;
 
-  if config.debug {
-    info!("MIR");
-    let mut buffer = Vec::new();
-    write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
-    info!("{}", String::from_utf8_lossy(&buffer));
-    info!("borrow set {:#?}", borrow_set);
-    info!("out of scope {:#?}", borrows_out_of_scope_at_location);
-    info!("outlives constraints {:#?}", outlives_constraints);
-    info!("sccs {:#?}", constraint_sccs);
-  }
+  let mut buffer = Vec::new();
+  write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
+  debug!("{}", String::from_utf8(buffer)?);
+  debug!("borrow set {:#?}", borrow_set);
+  debug!("out of scope {:#?}", borrows_out_of_scope_at_location);
+  debug!("outlives constraints {:#?}", outlives_constraints);
+  debug!("sccs {:#?}", constraint_sccs);
 
   let post_dominators = compute_post_dominators(body.clone());
   for bb in body.basic_blocks().indices() {
@@ -193,9 +197,16 @@ pub fn analyze_function(
     dump_results("target/borrow_ranges.png", body, borrow_ranges)?;
   }
 
-  let aliases = Aliases::new(tcx, body, borrow_set, borrow_ranges, outlives_constraints, constraint_sccs)
-    .into_engine(tcx, body)
-    .iterate_to_fixpoint();
+  let aliases = Aliases::new(
+    tcx,
+    body,
+    borrow_set,
+    borrow_ranges,
+    outlives_constraints,
+    constraint_sccs,
+  )
+  .into_engine(tcx, body)
+  .iterate_to_fixpoint();
 
   if config.debug {
     dump_results("target/aliases.png", body, &aliases)?;
@@ -210,7 +221,9 @@ pub fn analyze_function(
   debug!("Initial slice set: {:?}", finder.slice_set);
 
   let place_indices = PlaceIndices::build(body);
+  elapsed("pre-relevance", start);
 
+  let start = Instant::now();
   let relevance_results = RelevanceAnalysis::new(
     finder.slice_set,
     tcx,
@@ -224,6 +237,7 @@ pub fn analyze_function(
   )
   .into_engine(tcx, body)
   .iterate_to_fixpoint();
+  elapsed("relevance", start);
 
   if config.debug {
     dump_results("target/relevance.png", body, &relevance_results)?;

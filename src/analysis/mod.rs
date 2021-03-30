@@ -2,10 +2,11 @@ use crate::config::Config;
 use anyhow::{Error, Result};
 use log::debug;
 use rustc_hir::{
-  itemlikevisit::ItemLikeVisitor, BodyId, ForeignItem, ImplItem, ImplItemKind, Item, ItemKind,
-  TraitItem,
+  intravisit::{self, NestedVisitorMap, Visitor},
+  itemlikevisit::ItemLikeVisitor,
+  BodyId, ForeignItem, ImplItem, Item, TraitItem,
 };
-use rustc_middle::ty::TyCtxt;
+use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::{FileName, RealFileName, Span};
 use std::time::Instant;
 
@@ -18,15 +19,15 @@ mod place_index;
 mod post_dominators;
 mod relevance;
 
-struct SliceVisitor<'tcx> {
+struct VisitorContext<'tcx> {
   tcx: TyCtxt<'tcx>,
   slice_span: Span,
   output: Result<SliceOutput>,
   config: Config,
 }
 
-impl<'tcx> SliceVisitor<'tcx> {
-  fn analyze(&mut self, body_span: Span, body_id: &BodyId) {
+impl VisitorContext<'_> {
+  fn analyze(&mut self, body_span: Span, body_id: BodyId) {
     if !body_span.contains(self.slice_span) {
       return;
     }
@@ -49,27 +50,36 @@ impl<'tcx> SliceVisitor<'tcx> {
   }
 }
 
-impl<'hir, 'tcx> ItemLikeVisitor<'hir> for SliceVisitor<'tcx> {
-  fn visit_item(&mut self, item: &'hir Item<'hir>) {
-    match &item.kind {
-      ItemKind::Fn(_, _, body_id) => {
-        self.analyze(item.span, body_id);
-      }
-      _ => {}
-    }
+struct SliceItemVisitor<'a, 'tcx>(&'a mut VisitorContext<'tcx>);
+
+impl Visitor<'tcx> for SliceItemVisitor<'_, 'tcx> {
+  type Map = Map<'tcx>;
+
+  fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
+    NestedVisitorMap::OnlyBodies(self.0.tcx.hir())
   }
 
-  fn visit_impl_item(&mut self, impl_item: &'hir ImplItem<'hir>) {
-    match &impl_item.kind {
-      ImplItemKind::Fn(_, body_id) => {
-        self.analyze(impl_item.span, body_id);
-      }
-      _ => {}
-    }
+  fn visit_nested_body(&mut self, id: BodyId) {
+    intravisit::walk_body(self, self.0.tcx.hir().body(id));
+    self.0.analyze(self.0.tcx.hir().span(id.hir_id), id);
+  }
+}
+
+struct SliceVisitor<'tcx>(VisitorContext<'tcx>);
+
+impl ItemLikeVisitor<'tcx> for SliceVisitor<'tcx> {
+  fn visit_item(&mut self, item: &'tcx Item<'tcx>) {
+    let mut item_visitor = SliceItemVisitor(&mut self.0);
+    item_visitor.visit_item(item);
   }
 
-  fn visit_trait_item(&mut self, _trait_item: &'hir TraitItem<'hir>) {}
-  fn visit_foreign_item(&mut self, _foreign_item: &'hir ForeignItem<'hir>) {}
+  fn visit_impl_item(&mut self, impl_item: &'tcx ImplItem<'tcx>) {
+    let mut item_visitor = SliceItemVisitor(&mut self.0);
+    item_visitor.visit_impl_item(impl_item);
+  }
+
+  fn visit_trait_item(&mut self, _trait_item: &'tcx TraitItem<'tcx>) {}
+  fn visit_foreign_item(&mut self, _foreign_item: &'tcx ForeignItem<'tcx>) {}
 }
 
 struct Callbacks {
@@ -105,14 +115,14 @@ impl rustc_driver::Callbacks for Callbacks {
         config.range.to_span(source_file)
       };
 
-      let mut slice_visitor = SliceVisitor {
+      let mut slice_visitor = SliceVisitor(VisitorContext {
         tcx,
         slice_span,
         config,
         output: Ok(SliceOutput::new()),
-      };
+      });
       tcx.hir().krate().visit_all_item_likes(&mut slice_visitor);
-      self.output = Some(slice_visitor.output);
+      self.output = Some(slice_visitor.0.output);
     });
 
     rustc_driver::Compilation::Stop

@@ -1,5 +1,4 @@
 use super::borrow_ranges::BorrowRanges;
-use log::{debug, warn};
 use rustc_index::{bit_set::BitSet, vec::IndexVec};
 use rustc_middle::{
   mir::{
@@ -66,11 +65,11 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
 }
 
 impl<'tcx> Visitor<'tcx> for TransferFunction<'_, '_, '_, 'tcx> {
-  fn visit_assign(&mut self, place: &Place<'tcx>, _rvalue: &Rvalue<'tcx>, location: Location) {
+  fn visit_assign(&mut self, place: &Place<'tcx>, _rvalue: &Rvalue<'tcx>, _location: Location) {
     self.process(*place);
   }
 
-  fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
+  fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, _location: Location) {
     match &terminator.kind {
       TerminatorKind::Call { destination, .. } => {
         if let Some((place, _)) = destination {
