@@ -1,5 +1,4 @@
 use super::aliases::Aliases;
-use super::borrow_ranges::BorrowRanges;
 use super::place_index::PlaceIndices;
 use super::post_dominators::compute_post_dominators;
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
@@ -164,16 +163,12 @@ pub fn analyze_function(
   let body = &borrowck_result.intermediates.body;
   let borrow_set = &borrowck_result.intermediates.borrow_set;
   let outlives_constraints = &borrowck_result.intermediates.outlives_constraints;
-  let borrows_out_of_scope_at_location = &borrowck_result
-    .intermediates
-    .borrows_out_of_scope_at_location;
   let constraint_sccs = &borrowck_result.intermediates.constraint_sccs;
 
   let mut buffer = Vec::new();
   write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
   debug!("{}", String::from_utf8(buffer)?);
   debug!("borrow set {:#?}", borrow_set);
-  debug!("out of scope {:#?}", borrows_out_of_scope_at_location);
   debug!("outlives constraints {:#?}", outlives_constraints);
   debug!("sccs {:#?}", constraint_sccs);
 
@@ -188,20 +183,10 @@ pub fn analyze_function(
     }
   }
 
-  let borrow_ranges = BorrowRanges::new(tcx, body, borrow_set, borrows_out_of_scope_at_location)
-    .into_engine(tcx, body)
-    .iterate_to_fixpoint();
-  let borrow_ranges = &borrow_ranges;
-
-  if config.debug {
-    dump_results("target/borrow_ranges.png", body, borrow_ranges)?;
-  }
-
   let aliases = Aliases::new(
     tcx,
     body,
     borrow_set,
-    borrow_ranges,
     outlives_constraints,
     constraint_sccs,
   )
@@ -229,7 +214,6 @@ pub fn analyze_function(
     tcx,
     body,
     borrow_set,
-    borrow_ranges,
     &place_indices,
     &aliases,
     post_dominators,

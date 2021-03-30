@@ -38,10 +38,11 @@ impl Range {
 
 impl Range {
   pub fn from_span(span: Span, source_map: &SourceMap) -> Self {
-    let filename = if let FileName::Real(filename) = source_map.span_to_filename(span) {
+    let filename = source_map.span_to_filename(span);
+    let filename = if let FileName::Real(filename) = filename {
       filename.local_path().to_string_lossy().into_owned()
     } else {
-      unimplemented!()
+      unimplemented!("Range::from_span doesn't support {:?}", filename)
     };
 
     let lines = source_map.span_to_lines(span).unwrap();

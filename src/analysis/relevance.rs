@@ -2,7 +2,6 @@ use crate::config::EvalMode;
 
 use super::{
   aliases::Aliases,
-  borrow_ranges::BorrowRanges,
   place_index::PlaceSet,
   place_index::{PlaceIndex, PlaceIndices},
 };
@@ -150,6 +149,22 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
       fmt_places!(pointers_to_mutated)
     );
 
+    // in the case where _2 = &mut 1 and _2 is never (relevantly) used, then we special case to ignore
+    // this situation: a pointer to a relevant value is being directly assigned but the pointer itself is
+    // not relevant.
+    //
+    // TODO: any more general mechanism to avoid this case? previously was captured by use of BorrowRanges
+    // so the borrow _2 was not in scope and hence not surfaced in `pointers_to_mutated`.
+    if !place.is_indirect() {
+      let singleton_set = self.analysis.place_indices.vec_to_set(&vec![place]);
+      if pointers_to_mutated.contains(singleton_set.iter().next().unwrap())
+        && !self.any_relevant(&singleton_set)
+      {
+        debug!("Ignoring assignment to {:?}", place);
+        return;
+      }
+    }
+
     let any_relevant_mutated = self.any_relevant(&possibly_mutated);
 
     if any_relevant_mutated {
@@ -221,7 +236,9 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
     // but while-body state gets propagated through the FalseEdge node which cause the while-condition to be incorrectly
     // marked as irrelevant when it is relevant to the while-body
     match &terminator.kind {
-      TerminatorKind::FalseEdge { .. }  => { return; }
+      TerminatorKind::FalseEdge { .. } => {
+        return;
+      }
       _ => {}
     }
 
@@ -288,12 +305,11 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   tcx: TyCtxt<'tcx>,
   body: &'mir Body<'tcx>,
   borrow_set: &'a BorrowSet<'tcx>,
-  borrow_ranges: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, BorrowRanges<'mir, 'tcx>>>,
   place_indices: &'a PlaceIndices<'tcx>,
   aliases: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, Aliases<'a, 'mir, 'tcx>>>,
   post_dominators: Dominators<BasicBlock>,
   current_block: RefCell<BasicBlock>,
-  eval_mode: EvalMode
+  eval_mode: EvalMode,
 }
 
 impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
@@ -302,13 +318,11 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     tcx: TyCtxt<'tcx>,
     body: &'mir Body<'tcx>,
     borrow_set: &'a BorrowSet<'tcx>,
-    borrow_ranges: &'a Results<'tcx, BorrowRanges<'mir, 'tcx>>,
     place_indices: &'a PlaceIndices<'tcx>,
     aliases: &'a Results<'tcx, Aliases<'a, 'mir, 'tcx>>,
     post_dominators: Dominators<BasicBlock>,
-    eval_mode: EvalMode
+    eval_mode: EvalMode,
   ) -> Self {
-    let borrow_ranges = RefCell::new(ResultsRefCursor::new(body, &borrow_ranges));
     let aliases = RefCell::new(ResultsRefCursor::new(body, aliases));
     let current_block = RefCell::new(body.basic_blocks().indices().next().unwrap());
     RelevanceAnalysis {
@@ -316,12 +330,11 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       tcx,
       body,
       borrow_set,
-      borrow_ranges,
       place_indices,
       aliases,
       post_dominators,
       current_block,
-      eval_mode
+      eval_mode,
     }
   }
 
@@ -366,9 +379,6 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
   }
 
   fn places_and_pointers(&self, place: Place<'tcx>) -> (PlaceSet, PlaceSet) {
-    let borrow_ranges = self.borrow_ranges.borrow();
-    let borrow_ranges = borrow_ranges.get();
-
     let aliases = self.aliases.borrow();
     let aliases = aliases.get();
 
@@ -376,7 +386,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     let mut pointers = self.place_indices.empty_set();
     places.insert(self.place_indices.index(&place));
 
-    for i in borrow_ranges.iter() {
+    for i in self.borrow_set.indices() {
       let borrow = &self.borrow_set[i];
 
       // Ignore immutable borrows
@@ -384,8 +394,8 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
         continue;
       }
 
-      // fixed an issue in progs like 
-      //   _1 = &mut 2; _2 = &mut (*1); 
+      // fixed an issue in progs like
+      //   _1 = &mut 2; _2 = &mut (*1);
       // where places_and_pointers((*1)) is queried, and (*1) conflicts with _2 and recurse on (*1)
       // TODO: is exact equality the correct guard or something more general?
       if borrow.borrowed_place == place {
@@ -400,28 +410,30 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
         }
       });
 
-      let part_of_aliases = borrow_aliases.filter(|alias| {
-        self.place_is_part(
-          place,
-          Place {
-            local: *alias,
-            projection: self.tcx.intern_place_elems(&[]),
-          },
-        )
-      }).collect::<Vec<_>>();
+      let part_of_aliases = borrow_aliases
+        .filter(|alias| {
+          self.place_is_part(
+            place,
+            Place {
+              local: *alias,
+              projection: self.tcx.intern_place_elems(&[]),
+            },
+          )
+        })
+        .collect::<Vec<_>>();
 
       if self.place_is_part(place, borrow.assigned_place) || part_of_aliases.len() > 0 {
         places.insert(self.place_indices.index(&borrow.borrowed_place));
         pointers.insert(self.place_indices.index(&place));
         pointers.insert(self.place_indices.index(&borrow.assigned_place));
-        
+
         debug!("place {:?} recursing on borrow {:?}", place, borrow);
         if part_of_aliases.len() > 0 {
           debug!("  because part of aliases {:?}", part_of_aliases)
         } else {
           debug!("  because part of borrow {:?}", borrow.assigned_place)
         };
-        
+
         let (sub_places, sub_pointers) = self.places_and_pointers(borrow.borrowed_place);
         places.union(&sub_places);
         pointers.union(&sub_pointers);
@@ -433,10 +445,6 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
 
   fn seek_results(&self, location: Location) {
     *self.current_block.borrow_mut() = location.block;
-    self
-      .borrow_ranges
-      .borrow_mut()
-      .seek_before_primary_effect(location);
     self
       .aliases
       .borrow_mut()
