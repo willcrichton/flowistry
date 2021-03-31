@@ -425,6 +425,21 @@ fn main() {
   run(src, Range::line(5, 3, 4), vec![2, 3, 4, 5]);
 }
 
+
+#[test]
+fn pointer_read() {
+  let src = r#"
+fn main() {
+  let x = 1;
+  let y = &x;
+  let z = *y + 1;
+  z;
+}
+"#;
+
+  run(src, Range::line(5, 3, 4), vec![2, 3, 4, 5]);
+}
+
 #[test]
 fn pointer_increment() {
   let src = r#"
@@ -451,7 +466,7 @@ fn main() {
 }
 "#;
 
-  run(src, Range::line(5, 3, 4), vec![2, 5]);
+  run(src, Range::line(5, 3, 4), vec![2, 3, 5]);
 }
 
 #[test]
@@ -517,6 +532,7 @@ fn main() {
 
   run(src, Range::line(6, 3, 4), vec![4, 5, 6]);
 }
+
 
 #[test]
 fn interprocedural_input() {
@@ -697,6 +713,22 @@ fn main() {
 }
 
 #[test]
+fn interprocedural_ref_output() {
+  let src = r#"
+fn foo(x: &i32) -> &i32 { x }  
+
+fn main() {
+  let mut x = 1;
+  let y = foo(&x);
+  let z = *y;
+  z;
+}
+"#;
+
+  run(src, Range::line(7, 3, 4), vec![4, 5, 6, 7]);
+}
+
+#[test]
 fn function_param() {
   let src = r#"
 fn foo(x: i32) {
@@ -739,6 +771,26 @@ fn main() {}
 
   run(src, Range::line(4, 3, 4), vec![1, 2, 3, 4]);
 }
+
+#[test]
+fn function_lifetime_outlives_spurious_alias() {
+  // given our algorithm of estimating aliases from lifetimes, `w` and `x` are considered
+  // to aliases `y` and `z` given the constraint `'b: 'a`
+  let src = r#"
+fn foo<'a, 'b: 'a>(x: &'a mut i32, y: &'b mut i32) -> &'a mut i32 {
+  let z = y;
+  let w = x;
+  *w = 1;
+  z
+}
+
+fn main() {}
+"#;
+
+  run(src, Range::line(5, 3, 4), vec![1, 2, 3, 4, 5]);
+}
+
+
 
 #[test]
 fn closure_write_upvar() {

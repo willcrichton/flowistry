@@ -47,12 +47,12 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
               .tcx
               .mk_place_field(last_place, Field::from_usize(i), ty);
             self.place_stack.push(place);
-            ty.super_visit_with(self);
+            self.visit_ty(ty);
             self.place_stack.pop();
           }
         }
         ty::AdtKind::Union => {
-          unimplemented!()
+          warn!("unimplemented {:?}", ty);
         }
         ty::AdtKind::Enum => {
           for (i, variant) in adt_def.variants.iter().enumerate() {
@@ -66,7 +66,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
                 .tcx
                 .mk_place_field(cast_place, Field::from_usize(j), ty);
               self.place_stack.push(place);
-              ty.super_visit_with(self);
+              self.visit_ty(ty);
               self.place_stack.pop();
             }
           }
@@ -76,15 +76,19 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
       TyKind::Array(elem_ty, _) | TyKind::Slice(elem_ty) => {
         let place = self.tcx.mk_place_index(last_place, Local::from_usize(0));
         self.place_stack.push(place);
-        elem_ty.super_visit_with(self);
+        self.visit_ty(elem_ty);
         self.place_stack.pop();
       }
 
-      TyKind::Ref(region, inner, _) => {
+      TyKind::Ref(region, elem_ty, _) => {
         self.visit_region(region);
         self.place_stack.push(self.tcx.mk_place_deref(last_place));
-        inner.super_visit_with(self);
+        self.visit_ty(elem_ty);
         self.place_stack.pop();
+      }
+
+      TyKind::Closure(_, substs) => {
+        self.visit_ty(substs.as_closure().tupled_upvars_ty());
       }
 
       _ => {
@@ -167,6 +171,7 @@ impl AliasVisitor<'_, '_, 'tcx> {
     );
 
     for (region, sub_place) in region_collector.regions {
+      let sub_place_deref = self.tcx.mk_place_deref(sub_place);
       let ty_borrows = self
         .borrow_set
         .indices()
@@ -182,13 +187,13 @@ impl AliasVisitor<'_, '_, 'tcx> {
         .collect::<Vec<_>>();
 
       for idx in ty_borrows {
-        let place_idx = self.place_indices.insert(&sub_place);
+        let place_idx = self.place_indices.insert(&sub_place_deref);
         let nborrows = self.borrow_set.len();
         self
           .aliases
           .0
           .ensure_contains_elem(place_idx, || BitSet::new_empty(nborrows));
-        debug!("alias {:?} to {:?}", sub_place, idx);
+        debug!("alias {:?} to {:?}", sub_place_deref, idx);
         self.aliases.0[place_idx].insert(idx);
       }
     }

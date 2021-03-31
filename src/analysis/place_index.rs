@@ -89,3 +89,19 @@ impl DebugWithContext<PlaceIndices<'_>> for PlaceSet {
     write!(f, "}}")
   }
 }
+
+impl DebugWithContext<PlaceIndices<'_>> for Vec<PlaceIndex> {
+  fn fmt_with(&self, ctxt: &PlaceIndices<'_>, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{{")?;
+    let n = self.len();
+    for (i, index) in self.iter().enumerate() {
+      let place = format!("{:?}", ctxt.lookup(*index));
+      let place_sanitized = rustc_graphviz::LabelText::LabelStr(Cow::from(place)).to_dot_string();
+      write!(f, "{}", place_sanitized)?;
+      if i < n - 1 {
+        write!(f, ", ")?;
+      }
+    }
+    write!(f, "}}")
+  }
+}
