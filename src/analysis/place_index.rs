@@ -6,6 +6,7 @@ use rustc_middle::mir::{
   *,
 };
 use rustc_mir::dataflow::fmt::DebugWithContext;
+use std::borrow::Cow;
 use std::fmt;
 
 rustc_index::newtype_index! {
@@ -43,6 +44,11 @@ impl<'tcx> PlaceIndices<'tcx> {
     }
   }
 
+  pub fn insert(&mut self, place: &Place<'tcx>) -> PlaceIndex {
+    self.index_set.insert(*place);
+    self.index(place)
+  }
+
   pub fn index(&self, place: &Place<'tcx>) -> PlaceIndex {
     PlaceIndex::from(self.index_set.get_index_of(place).unwrap())
   }
@@ -62,13 +68,23 @@ impl<'tcx> PlaceIndices<'tcx> {
     }
     set
   }
+
+  pub fn count(&self) -> usize {
+    self.index_set.len()
+  }
 }
 
 impl DebugWithContext<PlaceIndices<'_>> for PlaceSet {
   fn fmt_with(&self, ctxt: &PlaceIndices<'_>, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{{")?;
-    for i in self.iter() {
-      write!(f, "{:?}, ", ctxt.lookup(i))?;
+    let n = self.count();
+    for (i, index) in self.iter().enumerate() {
+      let place = format!("{:?}", ctxt.lookup(index));
+      let place_sanitized = rustc_graphviz::LabelText::LabelStr(Cow::from(place)).to_dot_string();
+      write!(f, "{}", place_sanitized)?;
+      if i < n - 1 {
+        write!(f, ", ")?;
+      }
     }
     write!(f, "}}")
   }

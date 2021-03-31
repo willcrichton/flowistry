@@ -397,6 +397,19 @@ fn main() {
 
   run(src, Range::line(5, 3, 4), vec![2, 3, 4, 5]);
 }
+#[test]
+fn slice_ptr_elem_write() {
+  let src = r#"
+fn main() {
+  let mut x = 1;
+  let y = [&mut x];
+  *y[0] = 0;
+  x;
+}
+"#;
+
+  run(src, Range::line(5, 3, 4), vec![2, 3, 4, 5]);
+}
 
 #[test]
 fn pointer_write() {
