@@ -117,19 +117,6 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
     }
   }
 
-  fn any_relevant(&mut self, possibly_mutated: &PlaceSet) -> bool {
-    possibly_mutated.iter().any(|mutated_place| {
-      self.state.places.iter().any(|relevant_place| {
-        self
-          .analysis
-          .place_index_is_part(mutated_place, relevant_place)
-          || self
-            .analysis
-            .place_index_is_part(relevant_place, mutated_place)
-      })
-    })
-  }
-
   fn check_mutation(&mut self, place: Place<'tcx>, input_places: &PlaceSet) {
     macro_rules! fmt_places {
       ($places:expr) => {
@@ -140,61 +127,42 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
       };
     }
 
-    debug!("checking {:?}", place);
-    let (possibly_mutated, pointers_to_mutated) = self.analysis.places_and_pointers(place);
+    // is `place` in the relevant set?
     debug!(
-      "  relevant {:?}, possibly_mutated {:?}, pointers_to_mutated {:?}",
-      fmt_places!(self.state.places),
-      fmt_places!(possibly_mutated),
-      fmt_places!(pointers_to_mutated)
+      "checking {:?} with relevant = {:?}",
+      place,
+      fmt_places!(self.state.places)
     );
-
-    // in the case where _2 = &mut 1 and _2 is never (relevantly) used, then we special case to ignore
-    // this situation: a pointer to a relevant value is being directly assigned but the pointer itself is
-    // not relevant.
-    //
-    // TODO: any more general mechanism to avoid this case? previously was captured by use of BorrowRanges
-    // so the borrow _2 was not in scope and hence not surfaced in `pointers_to_mutated`.
-    if !place.is_indirect() {
-      let singleton_set = self.analysis.place_indices.vec_to_set(&vec![place]);
-      if pointers_to_mutated.contains(singleton_set.iter().next().unwrap())
-        && !self.any_relevant(&singleton_set)
-      {
-        debug!("Ignoring assignment to {:?}", place);
-        return;
-      }
-    }
-
-    let any_relevant_mutated = self.any_relevant(&possibly_mutated);
-
-    if any_relevant_mutated {
-      // strong update
-      if possibly_mutated.count() == 1 {
-        debug!("  deleting {:?}", fmt_places!(possibly_mutated));
-        let definitely_mutated = possibly_mutated.iter().next().unwrap();
-        let to_delete = self
-          .state
-          .places
-          .iter()
-          .filter(|relevant_place| {
-            self
-              .analysis
-              .place_index_is_part(*relevant_place, definitely_mutated)
+    let place_index = self.analysis.place_indices.index(&place);
+    let relevant_mutated = self
+      .state
+      .places
+      .iter()
+      .map(|relevant| {
+        self
+          .analysis
+          .aliases(relevant)
+          .into_iter()
+          .chain(vec![relevant].into_iter())
+          .filter(|alias| {
+            self.analysis.place_index_is_part(place_index, *alias)
+              || self.analysis.place_index_is_part(*alias, place_index)
           })
-          .collect::<Vec<_>>();
-        for i in to_delete {
-          self.state.places.remove(i);
-        }
-        debug!("  after deletion: {:?}", fmt_places!(self.state.places));
+      })
+      .flatten()
+      .fold(self.analysis.place_indices.empty_set(), |mut set, p| {
+        set.insert(p);
+        set
+      });
+
+    if relevant_mutated.count() > 0 {
+      debug!("  relevant_mutated: {:?}", fmt_places!(relevant_mutated));
+
+      if relevant_mutated.count() == 1 {
+        self.state.places.subtract(&relevant_mutated);
       }
 
-      debug!(
-        "  adding relevant places {:?} and pointers to possibly mutated {:?}",
-        fmt_places!(input_places),
-        fmt_places!(pointers_to_mutated)
-      );
       self.add_relevant(input_places);
-      self.add_relevant(&pointers_to_mutated);
     }
   }
 }
@@ -260,16 +228,11 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
             Operand::Move(place) | Operand::Copy(place) => Some(*place),
             Operand::Constant(_) => None,
           })
-          .collect::<Vec<_>>();
+          .collect();
         let input_places_set = self.analysis.place_indices.vec_to_set(&input_places);
 
-        let any_mut_ptrs_to_relevant = input_places.iter().any(|arg| {
-          let (places, _) = self.analysis.places_and_pointers(*arg);
-          self.any_relevant(&places)
-        });
-
-        if any_mut_ptrs_to_relevant {
-          self.add_relevant(&input_places_set);
+        for input_place in input_places {
+          self.check_mutation(input_place, &input_places_set);
         }
 
         if let Some((dst, _)) = destination {
@@ -281,8 +244,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
         if self.state.path_relevant == Relevant::Yes {
           match discr {
             Operand::Move(place) | Operand::Copy(place) => {
-              let (places, _) = self.analysis.places_and_pointers(*place);
-              self.add_relevant(&places);
+              self.add_relevant(&self.analysis.place_indices.vec_to_set(&vec![*place]));
             }
             Operand::Constant(_) => {}
           }
@@ -337,6 +299,39 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     }
   }
 
+  fn aliases(&self, place: PlaceIndex) -> Vec<PlaceIndex> {
+    let all_borrows = self.borrow_set.indices();
+    all_borrows
+      .filter_map(move |borrow_index| {
+        let borrow = &self.borrow_set[borrow_index];
+        if self.eval_mode == EvalMode::Standard && borrow.kind.to_mutbl_lossy() != Mutability::Mut {
+          return None;
+        }
+
+        let aliases = vec![self.place_indices.index(&borrow.borrowed_place)]
+          .into_iter()
+          .chain(self.aliases.aliases(borrow_index))
+          .collect::<Vec<_>>();
+
+        let matched_aliases = aliases
+          .iter()
+          .cloned()
+          .filter(|alias| {
+            self.place_index_is_part(place, *alias) || self.place_index_is_part(*alias, place)
+          })
+          .collect::<Vec<_>>();
+
+        if matched_aliases.len() > 0 {
+          //debug!("  relevant {:?} matches aliases {:?} so including all aliases {:?}", self.place_indices.lookup(relevant), fmt_places!(matched_aliases), fmt_places!(aliases));
+          Some(aliases.into_iter())
+        } else {
+          None
+        }
+      })
+      .flatten()
+      .collect()
+  }
+
   fn place_index_is_part(&self, part_place: PlaceIndex, whole_place: PlaceIndex) -> bool {
     self.place_is_part(
       self.place_indices.lookup(part_place),
@@ -376,58 +371,6 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       PlaceConflictBias::Overlap,
     )
   }
-
-  fn places_and_pointers(&self, place: Place<'tcx>) -> (PlaceSet, PlaceSet) {
-    let mut places = self.place_indices.empty_set();
-    let mut pointers = self.place_indices.empty_set();
-    places.insert(self.place_indices.index(&place));
-
-    for i in self.borrow_set.indices() {
-      let borrow = &self.borrow_set[i];
-
-      // Ignore immutable borrows
-      if self.eval_mode == EvalMode::Standard && borrow.kind.to_mutbl_lossy() != Mutability::Mut {
-        continue;
-      }
-
-      // fixed an issue in progs like
-      //   _1 = &mut 2; _2 = &mut (*1);
-      // where places_and_pointers((*1)) is queried, and (*1) conflicts with _2 and recurse on (*1)
-      // TODO: is exact equality the correct guard or something more general?
-      if borrow.borrowed_place == place {
-        continue;
-      }
-
-      let borrow_aliases = self.aliases.aliases(i);
-
-      let part_of_aliases = borrow_aliases
-        .filter(|alias| self.place_is_part(place, self.place_indices.lookup(*alias)))
-        .collect::<Vec<_>>();
-
-      if self.place_is_part(place, borrow.assigned_place) || part_of_aliases.len() > 0 {
-        places.insert(self.place_indices.index(&borrow.borrowed_place));
-        pointers.insert(self.place_indices.index(&place));
-        pointers.insert(self.place_indices.index(&borrow.assigned_place));
-
-        debug!("  place {:?} recursing on borrow {:?}", place, borrow);
-        if part_of_aliases.len() > 0 {
-          debug!("  because part of aliases {:?}", part_of_aliases)
-        } else {
-          debug!("  because part of borrow {:?}", borrow.assigned_place)
-        };
-
-        let (sub_places, sub_pointers) = self.places_and_pointers(borrow.borrowed_place);
-        places.union(&sub_places);
-        pointers.union(&sub_pointers);
-      }
-    }
-
-    (places, pointers)
-  }
-
-  fn seek_results(&self, location: Location) {
-    *self.current_block.borrow_mut() = location.block;
-  }
 }
 
 impl<'a, 'mir, 'tcx> AnalysisDomain<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
@@ -453,7 +396,7 @@ impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
     statement: &mir::Statement<'tcx>,
     location: Location,
   ) {
-    self.seek_results(location);
+    *self.current_block.borrow_mut() = location.block;
     TransferFunction {
       state,
       analysis: self,
@@ -467,7 +410,7 @@ impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
     terminator: &mir::Terminator<'tcx>,
     location: Location,
   ) {
-    self.seek_results(location);
+    *self.current_block.borrow_mut() = location.block;
     TransferFunction {
       state,
       analysis: self,
