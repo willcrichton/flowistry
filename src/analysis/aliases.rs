@@ -91,6 +91,8 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
         self.visit_ty(substs.as_closure().tupled_upvars_ty());
       }
 
+      _ if ty.is_primitive_ty() => {}
+
       _ => {
         warn!("unimplemented {:?}", ty);
       }
