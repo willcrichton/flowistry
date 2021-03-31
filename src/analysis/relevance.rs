@@ -7,6 +7,7 @@ use super::{
 };
 use log::debug;
 use rustc_data_structures::graph::dominators::Dominators;
+use rustc_index::vec::IndexVec;
 use rustc_middle::{
   mir::{
     self,
@@ -139,10 +140,8 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
       .places
       .iter()
       .map(|relevant| {
-        self
-          .analysis
-          .aliases(relevant)
-          .into_iter()
+        self.analysis.aliases[relevant]
+          .iter()
           .chain(vec![relevant].into_iter())
           .filter(|alias| {
             self.analysis.place_index_is_part(place_index, *alias)
@@ -221,7 +220,6 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       TerminatorKind::Call {
         args, destination, ..
       } => {
-        debug!("A");
         let input_places = args
           .iter()
           .filter_map(|arg| match arg {
@@ -268,7 +266,7 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   body: &'mir Body<'tcx>,
   borrow_set: &'a BorrowSet<'tcx>,
   place_indices: &'a PlaceIndices<'tcx>,
-  aliases: &'a Aliases,
+  aliases: IndexVec<PlaceIndex, PlaceSet>,
   post_dominators: Dominators<BasicBlock>,
   current_block: RefCell<BasicBlock>,
   eval_mode: EvalMode,
@@ -281,12 +279,13 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     body: &'mir Body<'tcx>,
     borrow_set: &'a BorrowSet<'tcx>,
     place_indices: &'a PlaceIndices<'tcx>,
-    aliases: &'a Aliases,
+    alias_analysis: &'a Aliases,
     post_dominators: Dominators<BasicBlock>,
     eval_mode: EvalMode,
   ) -> Self {
     let current_block = RefCell::new(body.basic_blocks().indices().next().unwrap());
-    RelevanceAnalysis {
+    let aliases = IndexVec::from_elem_n(place_indices.empty_set(), place_indices.count());
+    let mut analysis = RelevanceAnalysis {
       slice_set,
       tcx,
       body,
@@ -296,40 +295,49 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       post_dominators,
       current_block,
       eval_mode,
-    }
+    };
+    analysis.compute_aliases(alias_analysis);
+    analysis
   }
 
-  fn aliases(&self, place: PlaceIndex) -> Vec<PlaceIndex> {
-    let all_borrows = self.borrow_set.indices();
-    all_borrows
-      .filter_map(move |borrow_index| {
-        let borrow = &self.borrow_set[borrow_index];
-        if self.eval_mode == EvalMode::Standard && borrow.kind.to_mutbl_lossy() != Mutability::Mut {
-          return None;
-        }
+  fn compute_aliases(&mut self, alias_analysis: &'a Aliases) {
+    for place in self.place_indices.indices() {
+      let all_borrows = self.borrow_set.indices();
+      let aliases = all_borrows
+        .filter_map(|borrow_index| {
+          let borrow = &self.borrow_set[borrow_index];
+          if self.eval_mode == EvalMode::Standard && borrow.kind.to_mutbl_lossy() != Mutability::Mut
+          {
+            return None;
+          }
 
-        let aliases = vec![self.place_indices.index(&borrow.borrowed_place)]
-          .into_iter()
-          .chain(self.aliases.aliases(borrow_index))
-          .collect::<Vec<_>>();
+          let aliases = vec![self.place_indices.index(&borrow.borrowed_place)]
+            .into_iter()
+            .chain(alias_analysis.aliases(borrow_index))
+            .collect::<Vec<_>>();
 
-        let matched_aliases = aliases
-          .iter()
-          .cloned()
-          .filter(|alias| {
-            self.place_index_is_part(place, *alias) || self.place_index_is_part(*alias, place)
-          })
-          .collect::<Vec<_>>();
+          let matched_aliases = aliases
+            .iter()
+            .cloned()
+            .filter(|alias| {
+              self.place_index_is_part(place, *alias) || self.place_index_is_part(*alias, place)
+            })
+            .collect::<Vec<_>>();
 
-        if matched_aliases.len() > 0 {
-          //debug!("  relevant {:?} matches aliases {:?} so including all aliases {:?}", self.place_indices.lookup(relevant), fmt_places!(matched_aliases), fmt_places!(aliases));
-          Some(aliases.into_iter())
-        } else {
-          None
-        }
-      })
-      .flatten()
-      .collect()
+          if matched_aliases.len() > 0 {
+            //debug!("  relevant {:?} matches aliases {:?} so including all aliases {:?}", self.place_indices.lookup(relevant), fmt_places!(matched_aliases), fmt_places!(aliases));
+            Some(aliases.into_iter())
+          } else {
+            None
+          }
+        })
+        .flatten()
+        .collect::<Vec<_>>();
+
+      for alias in aliases {
+        self.aliases[place].insert(alias);
+      }
+    }
   }
 
   fn place_index_is_part(&self, part_place: PlaceIndex, whole_place: PlaceIndex) -> bool {

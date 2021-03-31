@@ -5,7 +5,7 @@ use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use crate::config::{Config, Range};
 
 use anyhow::{bail, Result};
-use log::debug;
+use log::{info, debug};
 use rustc_graphviz as dot;
 use rustc_middle::{
   mir::{
@@ -145,7 +145,7 @@ impl SliceOutput {
 }
 
 fn elapsed(name: &str, start: Instant) {
-  debug!("{} took {}s", name, start.elapsed().as_nanos() as f64 / 1e9)
+  info!("{} took {}s", name, start.elapsed().as_nanos() as f64 / 1e9)
 }
 
 pub fn analyze_function(
@@ -217,7 +217,6 @@ pub fn analyze_function(
   )
   .into_engine(tcx, body)
   .iterate_to_fixpoint();
-  elapsed("relevance", start);
 
   if config.debug {
     dump_results("target/relevance.png", body, &relevance_results)?;
@@ -232,6 +231,7 @@ pub fn analyze_function(
     local_blacklist: HashSet::new(),
   };
   relevance_results.visit_reachable_with(body, &mut visitor);
+  elapsed("relevance", start);
 
   let all_locals = &visitor.all_locals - &visitor.local_blacklist;
   let local_spans = all_locals

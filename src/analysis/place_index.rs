@@ -44,6 +44,10 @@ impl<'tcx> PlaceIndices<'tcx> {
     }
   }
 
+  pub fn indices<'a>(&'a self) -> impl Iterator<Item=PlaceIndex> + 'a {
+    self.index_set.iter().map(move |place| self.index(place))
+  }
+
   pub fn insert(&mut self, place: &Place<'tcx>) -> PlaceIndex {
     self.index_set.insert(*place);
     self.index(place)
