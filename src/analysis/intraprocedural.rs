@@ -1,4 +1,4 @@
-use super::aliases::Aliases;
+use super::aliases::compute_aliases;
 use super::place_index::PlaceIndices;
 use super::post_dominators::compute_post_dominators;
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
@@ -183,19 +183,17 @@ pub fn analyze_function(
     }
   }
 
-  let aliases = Aliases::new(
+  let mut place_indices = PlaceIndices::build(body);
+
+  let aliases = compute_aliases(
     tcx,
     body,
     borrow_set,
     outlives_constraints,
     constraint_sccs,
-  )
-  .into_engine(tcx, body)
-  .iterate_to_fixpoint();
-
-  if config.debug {
-    dump_results("target/aliases.png", body, &aliases)?;
-  }
+    &mut place_indices,
+  );
+  debug!("aliases {:?}", aliases);
 
   let mut finder = FindInitialSliceSet {
     slice_span,
@@ -204,8 +202,6 @@ pub fn analyze_function(
   };
   finder.visit_body(body);
   debug!("Initial slice set: {:?}", finder.slice_set);
-
-  let place_indices = PlaceIndices::build(body);
   elapsed("pre-relevance", start);
 
   let start = Instant::now();

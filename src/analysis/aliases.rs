@@ -1,67 +1,140 @@
+use super::place_index::{PlaceIndex, PlaceIndices};
+use log::{debug, warn};
+use rustc_data_structures::graph::scc::Sccs;
 use rustc_index::{bit_set::BitSet, vec::IndexVec};
 use rustc_middle::{
   mir::{
     borrows::{BorrowIndex, BorrowSet},
-    regions::OutlivesConstraint,
+    regions::{ConstraintSccIndex, OutlivesConstraint},
     visit::Visitor,
     *,
   },
-  ty::{subst::GenericArgKind, RegionKind, RegionVid, TyCtxt},
+  ty::{self, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeFoldable, TypeVisitor},
 };
-use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, AnalysisDomain};
-use std::collections::HashMap;
-use std::fmt;
-
+use rustc_target::abi::VariantIdx;
+use std::collections::{hash_map::Entry, HashMap, HashSet};
+use std::hash::Hash;
+use std::ops::ControlFlow;
 // TODO: aliases no longer needs to be a dataflow pass, can just be a visitor
 
-pub type AliasesDomain = IndexVec<Local, BitSet<BorrowIndex>>;
-
-struct TransferFunction<'a, 'b, 'mir, 'tcx> {
-  analysis: &'a Aliases<'b, 'mir, 'tcx>,
-  state: &'a mut AliasesDomain,
+struct CollectRegions<'tcx> {
+  tcx: TyCtxt<'tcx>,
+  place_stack: Vec<Place<'tcx>>,
+  regions: HashMap<RegionVid, Place<'tcx>>,
 }
 
-impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
-  fn process(&mut self, place: Place<'tcx>) {
-    let ty = place
-      .ty(self.analysis.body.local_decls(), self.analysis.tcx)
-      .ty;
-    let ty_regions = ty
-      .walk()
-      .filter_map(|ty| {
-        if let GenericArgKind::Lifetime(RegionKind::ReVar(region)) = ty.unpack() {
-          Some(*region)
+impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
+  fn visit_ty(&mut self, ty: Ty<'tcx>) -> ControlFlow<Self::BreakTy> {
+    let last_place = *self.place_stack.last().unwrap();
+
+    match ty.kind() {
+      TyKind::Tuple(fields) => {
+        for (i, field) in fields.iter().enumerate() {
+          let place = self
+            .tcx
+            .mk_place_field(last_place, Field::from_usize(i), field.expect_ty());
+          self.place_stack.push(place);
+          field.super_visit_with(self);
+          self.place_stack.pop();
+        }
+      }
+
+      TyKind::Adt(adt_def, subst) => match adt_def.adt_kind() {
+        ty::AdtKind::Struct => {
+          for (i, field) in adt_def.all_fields().enumerate() {
+            let ty = field.ty(self.tcx, subst);
+            let place = self
+              .tcx
+              .mk_place_field(last_place, Field::from_usize(i), ty);
+            self.place_stack.push(place);
+            ty.super_visit_with(self);
+            self.place_stack.pop();
+          }
+        }
+        ty::AdtKind::Union => {
+          unimplemented!()
+        }
+        ty::AdtKind::Enum => {
+          for (i, variant) in adt_def.variants.iter().enumerate() {
+            let cast_place =
+              self
+                .tcx
+                .mk_place_downcast(last_place, adt_def, VariantIdx::from_usize(i));
+            for (j, field) in variant.fields.iter().enumerate() {
+              let ty = field.ty(self.tcx, subst);
+              let place = self
+                .tcx
+                .mk_place_field(cast_place, Field::from_usize(j), ty);
+              self.place_stack.push(place);
+              ty.super_visit_with(self);
+              self.place_stack.pop();
+            }
+          }
+        }
+      },
+
+      TyKind::Array(elem_ty, _) | TyKind::Slice(elem_ty) => {
+        let place = self.tcx.mk_place_index(last_place, Local::from_usize(0));
+        self.place_stack.push(place);
+        elem_ty.super_visit_with(self);
+        self.place_stack.pop();
+      }
+
+      TyKind::Ref(region, inner, _) => {
+        self.visit_region(region);
+        self.place_stack.push(self.tcx.mk_place_deref(last_place));
+        inner.super_visit_with(self);
+        self.place_stack.pop();
+      }
+
+      _ => {
+        warn!("unimplemented {:?}", ty);
+      }
+    };
+
+    ControlFlow::Continue(())
+  }
+
+  fn visit_region(&mut self, region: ty::Region<'tcx>) -> ControlFlow<Self::BreakTy> {
+    if let RegionKind::ReVar(region) = region {
+      self
+        .regions
+        .insert(*region, *self.place_stack.last().unwrap());
+    }
+
+    ControlFlow::Continue(())
+  }
+}
+
+#[derive(Debug)]
+pub struct Aliases(IndexVec<PlaceIndex, BitSet<BorrowIndex>>);
+
+impl Aliases {
+  pub fn aliases<'a>(&'a self, borrow: BorrowIndex) -> impl Iterator<Item = PlaceIndex> + 'a {
+    self
+      .0
+      .iter_enumerated()
+      .filter_map(move |(place, borrows)| {
+        if borrows.contains(borrow) {
+          Some(place)
         } else {
           None
         }
       })
-      .collect::<HashSet<_>>();
-
-    for region in ty_regions {
-      let ty_borrows = self
-        .analysis
-        .borrow_set
-        .indices()
-        .filter(|idx| {
-          let borrow = &self.analysis.borrow_set[*idx];
-          let borrow_scc = self.analysis.constraint_sccs.scc(borrow.region);
-          self
-            .analysis
-            .region_ancestors
-            .get(&region)
-            .map(|ancestors| ancestors.contains(&borrow_scc))
-            .unwrap_or(false)
-        })
-        .collect::<Vec<_>>();
-
-      for idx in ty_borrows {
-        self.state[place.local].insert(idx);
-      }
-    }
   }
 }
 
-impl<'tcx> Visitor<'tcx> for TransferFunction<'_, '_, '_, 'tcx> {
+pub struct AliasVisitor<'a, 'mir, 'tcx> {
+  tcx: TyCtxt<'tcx>,
+  body: &'mir Body<'tcx>,
+  borrow_set: &'a BorrowSet<'tcx>,
+  region_ancestors: HashMap<RegionVid, HashSet<ConstraintSccIndex>>,
+  constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>, // region_to_local: HashMap<RegionVid, Local>,
+  place_indices: &'a mut PlaceIndices<'tcx>,
+  aliases: Aliases,
+}
+
+impl<'tcx> Visitor<'tcx> for AliasVisitor<'_, '_, 'tcx> {
   fn visit_assign(&mut self, place: &Place<'tcx>, _rvalue: &Rvalue<'tcx>, _location: Location) {
     self.process(*place);
   }
@@ -78,111 +151,87 @@ impl<'tcx> Visitor<'tcx> for TransferFunction<'_, '_, '_, 'tcx> {
   }
 }
 
-pub struct Aliases<'a, 'mir, 'tcx> {
+impl AliasVisitor<'_, '_, 'tcx> {
+  fn process(&mut self, place: Place<'tcx>) {
+    let ty = place.ty(self.body.local_decls(), self.tcx).ty;
+
+    let mut region_collector = CollectRegions {
+      tcx: self.tcx,
+      place_stack: vec![place],
+      regions: HashMap::new(),
+    };
+    region_collector.visit_ty(ty);
+    debug!(
+      "visited {:?} : {:?} and found regions {:?}",
+      place, ty, region_collector.regions
+    );
+
+    for (region, sub_place) in region_collector.regions {
+      let ty_borrows = self
+        .borrow_set
+        .indices()
+        .filter(|idx| {
+          let borrow = &self.borrow_set[*idx];
+          let borrow_scc = self.constraint_sccs.scc(borrow.region);
+          self
+            .region_ancestors
+            .get(&region)
+            .map(|ancestors| ancestors.contains(&borrow_scc))
+            .unwrap_or(false)
+        })
+        .collect::<Vec<_>>();
+
+      for idx in ty_borrows {
+        let place_idx = self.place_indices.insert(&sub_place);
+        let nborrows = self.borrow_set.len();
+        self
+          .aliases
+          .0
+          .ensure_contains_elem(place_idx, || BitSet::new_empty(nborrows));
+        debug!("alias {:?} to {:?}", sub_place, idx);
+        self.aliases.0[place_idx].insert(idx);
+      }
+    }
+  }
+}
+
+pub fn compute_aliases(
   tcx: TyCtxt<'tcx>,
   body: &'mir Body<'tcx>,
   borrow_set: &'a BorrowSet<'tcx>,
-  region_ancestors: HashMap<RegionVid, HashSet<ConstraintSccIndex>>,
-  constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>, // region_to_local: HashMap<RegionVid, Local>,
+  outlives_constraints: &'a Vec<OutlivesConstraint>,
+  constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>,
+  place_indices: &'a mut PlaceIndices<'tcx>,
+) -> Aliases {
+  let max_region = outlives_constraints
+    .iter()
+    .map(|constraint| constraint.sup.as_usize().max(constraint.sub.as_usize()))
+    .max()
+    .unwrap_or(0)
+    + 1;
+
+  let root_region = RegionVid::from_usize(0);
+  let root_scc = constraint_sccs.scc(root_region);
+  let region_ancestors = compute_region_ancestors(constraint_sccs, max_region, root_scc);
+
+  let aliases = Aliases(IndexVec::from_elem_n(
+    BitSet::new_empty(borrow_set.len()),
+    place_indices.count(),
+  ));
+
+  let mut visitor = AliasVisitor {
+    tcx,
+    body,
+    borrow_set,
+    region_ancestors,
+    constraint_sccs,
+    place_indices,
+    aliases,
+  };
+  visitor.visit_body(body);
+
+  visitor.aliases
 }
-
-impl<'a, 'mir, 'tcx> Aliases<'a, 'mir, 'tcx> {
-  pub fn new(
-    tcx: TyCtxt<'tcx>,
-    body: &'mir Body<'tcx>,
-    borrow_set: &'a BorrowSet<'tcx>,
-    outlives_constraints: &'a Vec<OutlivesConstraint>,
-    constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>,
-  ) -> Self {
-    let max_region = outlives_constraints
-      .iter()
-      .map(|constraint| constraint.sup.as_usize().max(constraint.sub.as_usize()))
-      .max()
-      .unwrap_or(0)
-      + 1;
-
-    let root_region = RegionVid::from_usize(0);
-    let root_scc = constraint_sccs.scc(root_region);
-    let region_ancestors = compute_region_ancestors(constraint_sccs, max_region, root_scc);
-
-    Aliases {
-      tcx,
-      body,
-      borrow_set,
-      region_ancestors,
-      constraint_sccs, // region_to_local,
-    }
-  }
-}
-
-impl<'tcx> AnalysisDomain<'tcx> for Aliases<'_, '_, 'tcx> {
-  type Domain = AliasesDomain;
-  const NAME: &'static str = "Aliases";
-
-  fn bottom_value(&self, body: &Body<'tcx>) -> Self::Domain {
-    IndexVec::from_elem_n(
-      BitSet::new_empty(self.borrow_set.len()),
-      body.local_decls().len(),
-    )
-  }
-
-  fn initialize_start_block(&self, _: &Body<'tcx>, _: &mut Self::Domain) {}
-}
-
-impl<'tcx> Analysis<'tcx> for Aliases<'_, '_, 'tcx> {
-  fn apply_statement_effect(
-    &self,
-    state: &mut Self::Domain,
-    statement: &Statement<'tcx>,
-    location: Location,
-  ) {
-    TransferFunction {
-      state,
-      analysis: self,
-    }
-    .visit_statement(statement, location);
-  }
-
-  fn apply_terminator_effect(
-    &self,
-    state: &mut Self::Domain,
-    terminator: &Terminator<'tcx>,
-    location: Location,
-  ) {
-    TransferFunction {
-      state,
-      analysis: self,
-    }
-    .visit_terminator(terminator, location);
-  }
-
-  fn apply_call_return_effect(
-    &self,
-    _state: &mut Self::Domain,
-    _block: BasicBlock,
-    _func: &Operand<'tcx>,
-    _args: &[Operand<'tcx>],
-    _return_place: Place<'tcx>,
-  ) {
-  }
-}
-
-impl DebugWithContext<Aliases<'_, '_, '_>> for AliasesDomain {
-  fn fmt_with(&self, _ctxt: &Aliases<'_, '_, '_>, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    for (local, borrows) in self.iter_enumerated() {
-      if borrows.count() > 0 {
-        write!(f, "{:?}: {:?}, ", local, borrows)?;
-      }
-    }
-    Ok(())
-  }
-}
-
-use rustc_data_structures::graph::scc::Sccs;
-use rustc_middle::mir::regions::ConstraintSccIndex;
-// use rustc_index::vec::IndexVec;
-use std::collections::{hash_map::Entry, HashSet};
-use std::hash::Hash;
 
 fn merge<K: Eq + Hash, V>(
   mut h1: HashMap<K, V>,

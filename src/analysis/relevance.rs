@@ -20,7 +20,7 @@ use rustc_mir::{
   borrow_check::{borrow_conflicts_with_place, AccessDepth, PlaceConflictBias},
   dataflow::{
     fmt::{DebugWithAdapter, DebugWithContext},
-    Analysis, AnalysisDomain, Backward, JoinSemiLattice, Results, ResultsRefCursor,
+    Analysis, AnalysisDomain, Backward, JoinSemiLattice,
   },
 };
 use std::{cell::RefCell, collections::HashSet, fmt};
@@ -306,7 +306,7 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   body: &'mir Body<'tcx>,
   borrow_set: &'a BorrowSet<'tcx>,
   place_indices: &'a PlaceIndices<'tcx>,
-  aliases: RefCell<ResultsRefCursor<'a, 'mir, 'tcx, Aliases<'a, 'mir, 'tcx>>>,
+  aliases: &'a Aliases,
   post_dominators: Dominators<BasicBlock>,
   current_block: RefCell<BasicBlock>,
   eval_mode: EvalMode,
@@ -319,11 +319,10 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     body: &'mir Body<'tcx>,
     borrow_set: &'a BorrowSet<'tcx>,
     place_indices: &'a PlaceIndices<'tcx>,
-    aliases: &'a Results<'tcx, Aliases<'a, 'mir, 'tcx>>,
+    aliases: &'a Aliases,
     post_dominators: Dominators<BasicBlock>,
     eval_mode: EvalMode,
   ) -> Self {
-    let aliases = RefCell::new(ResultsRefCursor::new(body, aliases));
     let current_block = RefCell::new(body.basic_blocks().indices().next().unwrap());
     RelevanceAnalysis {
       slice_set,
@@ -379,9 +378,6 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
   }
 
   fn places_and_pointers(&self, place: Place<'tcx>) -> (PlaceSet, PlaceSet) {
-    let aliases = self.aliases.borrow();
-    let aliases = aliases.get();
-
     let mut places = self.place_indices.empty_set();
     let mut pointers = self.place_indices.empty_set();
     places.insert(self.place_indices.index(&place));
@@ -402,24 +398,10 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
         continue;
       }
 
-      let borrow_aliases = aliases.iter_enumerated().filter_map(|(local, borrows)| {
-        if borrows.contains(i) {
-          Some(local)
-        } else {
-          None
-        }
-      });
+      let borrow_aliases = self.aliases.aliases(i);
 
       let part_of_aliases = borrow_aliases
-        .filter(|alias| {
-          self.place_is_part(
-            place,
-            Place {
-              local: *alias,
-              projection: self.tcx.intern_place_elems(&[]),
-            },
-          )
-        })
+        .filter(|alias| self.place_is_part(place, self.place_indices.lookup(*alias)))
         .collect::<Vec<_>>();
 
       if self.place_is_part(place, borrow.assigned_place) || part_of_aliases.len() > 0 {
@@ -427,7 +409,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
         pointers.insert(self.place_indices.index(&place));
         pointers.insert(self.place_indices.index(&borrow.assigned_place));
 
-        debug!("place {:?} recursing on borrow {:?}", place, borrow);
+        debug!("  place {:?} recursing on borrow {:?}", place, borrow);
         if part_of_aliases.len() > 0 {
           debug!("  because part of aliases {:?}", part_of_aliases)
         } else {
@@ -445,10 +427,6 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
 
   fn seek_results(&self, location: Location) {
     *self.current_block.borrow_mut() = location.block;
-    self
-      .aliases
-      .borrow_mut()
-      .seek_before_primary_effect(location);
   }
 }
 
