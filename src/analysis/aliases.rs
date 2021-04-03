@@ -91,6 +91,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
         self.visit_ty(substs.as_closure().tupled_upvars_ty());
       }
 
+      TyKind::RawPtr(_) => {}
       _ if ty.is_primitive_ty() => {}
 
       _ => {

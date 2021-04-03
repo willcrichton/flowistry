@@ -5,8 +5,9 @@ use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use crate::config::{Config, Range};
 
 use anyhow::{bail, Result};
-use log::{info, debug};
+use log::{debug, info};
 use rustc_graphviz as dot;
+use rustc_hir::BodyId;
 use rustc_middle::{
   mir::{
     self,
@@ -19,7 +20,15 @@ use rustc_mir::dataflow::graphviz;
 use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor};
 use rustc_mir::util::write_mir_fn;
 use rustc_span::Span;
-use std::{collections::HashSet, fs::File, io::Write, process::Command, time::Instant};
+use std::{
+  cell::RefCell,
+  collections::{HashMap, HashSet},
+  fs::File,
+  io::Write,
+  process::Command,
+  thread_local,
+  time::Instant,
+};
 
 struct FindInitialSliceSet<'a, 'tcx> {
   slice_span: Span,
@@ -42,6 +51,7 @@ impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
 
 struct CollectResults<'a, 'tcx> {
   body: &'a Body<'tcx>,
+  relevant_locals: HashSet<Local>,
   relevant_spans: Vec<Span>,
   all_locals: HashSet<Local>,
   place_indices: &'a PlaceIndices<'tcx>,
@@ -57,12 +67,12 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
   }
 
   fn add_locals(&mut self, state: &RelevanceDomain) {
-    let locals = &state
+    let locals = state
       .places
       .iter()
       .map(|place| self.place_indices.lookup(place).local)
       .collect::<HashSet<_>>();
-    self.all_locals = &self.all_locals | &locals;
+    self.all_locals = &self.all_locals | &(&locals - &self.relevant_locals);
   }
 }
 
@@ -85,6 +95,12 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
       self.local_blacklist.insert(lhs.local);
     } else {
       self.check_statement(state, location);
+
+      if state.statement_relevant {
+        if let StatementKind::Assign(box (place, _)) = statement.kind {
+          self.all_locals.insert(place.local);
+        }
+      }
     }
   }
 
@@ -127,7 +143,7 @@ where
   Ok(())
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SliceOutput(Vec<Range>);
 
 impl SliceOutput {
@@ -148,102 +164,133 @@ fn elapsed(name: &str, start: Instant) {
   info!("{} took {}s", name, start.elapsed().as_nanos() as f64 / 1e9)
 }
 
+#[derive(Hash, PartialEq, Eq, Clone)]
+struct CacheKey(BodyId, Option<Span>, Vec<Local>);
+
+thread_local! {
+  static ANALYSIS_CACHE: RefCell<HashMap<CacheKey, (SliceOutput, HashSet<Local>)>> = RefCell::new(HashMap::new());
+}
+
 pub fn analyze_function(
   config: &Config,
   tcx: TyCtxt,
-  body_id: rustc_hir::BodyId,
-  slice_span: Span,
-) -> Result<SliceOutput> {
-  let start = Instant::now();
-  let local_def_id = tcx.hir().body_owner_def_id(body_id);
-  let borrowck_result = tcx.mir_borrowck(local_def_id);
-  elapsed("borrowck", start);
+  body_id: BodyId,
+  slice_span: Option<Span>,
+  relevant_locals: Vec<Local>,
+) -> Result<(SliceOutput, HashSet<Local>)> {
+  let analyze = || -> Result<_> {
+    let start = Instant::now();
+    let local_def_id = tcx.hir().body_owner_def_id(body_id);
+    let borrowck_result = tcx.mir_borrowck(local_def_id);
+    elapsed("borrowck", start);
 
-  let start = Instant::now();
-  let body = &borrowck_result.intermediates.body;
-  let borrow_set = &borrowck_result.intermediates.borrow_set;
-  let outlives_constraints = &borrowck_result.intermediates.outlives_constraints;
-  let constraint_sccs = &borrowck_result.intermediates.constraint_sccs;
+    let start = Instant::now();
+    let body = &borrowck_result.intermediates.body;
+    let borrow_set = &borrowck_result.intermediates.borrow_set;
+    let outlives_constraints = &borrowck_result.intermediates.outlives_constraints;
+    let constraint_sccs = &borrowck_result.intermediates.constraint_sccs;
 
-  let mut buffer = Vec::new();
-  write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
-  debug!("{}", String::from_utf8(buffer)?);
-  debug!("borrow set {:#?}", borrow_set);
-  debug!("outlives constraints {:#?}", outlives_constraints);
-  debug!("sccs {:#?}", constraint_sccs);
+    let mut buffer = Vec::new();
+    write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
+    debug!("{}", String::from_utf8(buffer)?);
+    debug!("borrow set {:#?}", borrow_set);
+    debug!("outlives constraints {:#?}", outlives_constraints);
+    debug!("sccs {:#?}", constraint_sccs);
 
-  let post_dominators = compute_post_dominators(body.clone());
-  for bb in body.basic_blocks().indices() {
-    if post_dominators.is_reachable(bb) {
-      debug!(
-        "{:?} dominated by {:?}",
-        bb,
-        post_dominators.immediate_dominator(bb)
-      );
+    let post_dominators = compute_post_dominators(body.clone());
+    for bb in body.basic_blocks().indices() {
+      if post_dominators.is_reachable(bb) {
+        debug!(
+          "{:?} dominated by {:?}",
+          bb,
+          post_dominators.immediate_dominator(bb)
+        );
+      }
     }
-  }
 
-  let mut place_indices = PlaceIndices::build(body);
+    let mut place_indices = PlaceIndices::build(body);
 
-  let aliases = compute_aliases(
-    tcx,
-    body,
-    borrow_set,
-    outlives_constraints,
-    constraint_sccs,
-    &mut place_indices,
-  );
-  debug!("aliases {:?}", aliases);
+    let aliases = compute_aliases(
+      tcx,
+      body,
+      borrow_set,
+      outlives_constraints,
+      constraint_sccs,
+      &mut place_indices,
+    );
+    debug!("aliases {:?}", aliases);
 
-  let mut finder = FindInitialSliceSet {
-    slice_span,
-    slice_set: HashSet::new(),
-    body,
+    let slice_set = if let Some(slice_span) = slice_span {
+      let mut finder = FindInitialSliceSet {
+        slice_span,
+        slice_set: HashSet::new(),
+        body,
+      };
+      finder.visit_body(body);
+      finder.slice_set
+    } else {
+      HashSet::new()
+    };
+
+    debug!("Initial slice set: {:?}", slice_set);
+    elapsed("pre-relevance", start);
+
+    let start = Instant::now();
+    let relevant_locals = relevant_locals.iter().cloned().collect::<HashSet<_>>();
+    let relevance_results = RelevanceAnalysis::new(
+      config,
+      slice_set,
+      relevant_locals.clone(),
+      tcx,
+      body_id,
+      body,
+      borrow_set,
+      &place_indices,
+      &aliases,
+      post_dominators,
+    )
+    .into_engine(tcx, body)
+    .iterate_to_fixpoint();
+
+    if config.debug {
+      dump_results("target/relevance.png", body, &relevance_results)?;
+    }
+
+    let source_map = tcx.sess.source_map();
+    let mut visitor = CollectResults {
+      body,
+      relevant_spans: vec![],
+      relevant_locals: relevant_locals.clone(),
+      all_locals: HashSet::new(),
+      place_indices: &place_indices,
+      local_blacklist: HashSet::new(),
+    };
+    relevance_results.visit_reachable_with(body, &mut visitor);
+    elapsed("relevance", start);
+
+    let all_locals = &visitor.all_locals - &visitor.local_blacklist;
+    let local_spans = all_locals
+      .into_iter()
+      .map(|local| body.local_decls()[local].source_info.span);
+
+    let ranges = visitor
+      .relevant_spans
+      .into_iter()
+      .chain(local_spans)
+      .map(|span| Range::from_span(span, source_map))
+      .collect();
+
+    Ok((SliceOutput(ranges), visitor.all_locals))
   };
-  finder.visit_body(body);
-  debug!("Initial slice set: {:?}", finder.slice_set);
-  elapsed("pre-relevance", start);
 
-  let start = Instant::now();
-  let relevance_results = RelevanceAnalysis::new(
-    finder.slice_set,
-    tcx,
-    body,
-    borrow_set,
-    &place_indices,
-    &aliases,
-    post_dominators,
-    config.eval_mode,
-  )
-  .into_engine(tcx, body)
-  .iterate_to_fixpoint();
+  ANALYSIS_CACHE.with(|cache| {
+    let key = CacheKey(body_id, slice_span.clone(), relevant_locals.clone());
 
-  if config.debug {
-    dump_results("target/relevance.png", body, &relevance_results)?;
-  }
+    if !cache.borrow().contains_key(&key) {
+      let results = analyze()?;
+      cache.borrow_mut().insert(key.clone(), results);
+    }
 
-  let source_map = tcx.sess.source_map();
-  let mut visitor = CollectResults {
-    body,
-    relevant_spans: vec![],
-    all_locals: HashSet::new(),
-    place_indices: &place_indices,
-    local_blacklist: HashSet::new(),
-  };
-  relevance_results.visit_reachable_with(body, &mut visitor);
-  elapsed("relevance", start);
-
-  let all_locals = &visitor.all_locals - &visitor.local_blacklist;
-  let local_spans = all_locals
-    .into_iter()
-    .map(|local| body.local_decls()[local].source_info.span);
-
-  let ranges = visitor
-    .relevant_spans
-    .into_iter()
-    .chain(local_spans)
-    .map(|span| Range::from_span(span, source_map))
-    .collect();
-
-  Ok(SliceOutput(ranges))
+    Ok(cache.borrow().get(&key).unwrap().clone())
+  })
 }
