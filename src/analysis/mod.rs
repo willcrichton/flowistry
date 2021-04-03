@@ -37,7 +37,8 @@ impl VisitorContext<'_> {
     take_mut::take(&mut self.output, move |output| {
       output.and_then(move |mut output| {
         let start = Instant::now();
-        let fn_output = intraprocedural::analyze_function(config, tcx, body_id, slice_span)?;
+        let (fn_output, _) =
+          intraprocedural::analyze_function(config, tcx, body_id, Some(slice_span), Vec::new())?;
         debug!(
           "Finished in {} seconds",
           start.elapsed().as_nanos() as f64 / 1e9

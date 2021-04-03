@@ -76,9 +76,21 @@ impl Range {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize)]
-pub enum EvalMode {
-  Standard,
-  LikeC,
+pub enum BorrowMode {
+  DistinguishMut,
+  IgnoreMut
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize)]
+pub enum ContextMode {
+  SigOnly,
+  Recurse,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize)]
+pub struct EvalMode {
+  pub borrow_mode: BorrowMode,
+  pub context_mode: ContextMode,
 }
 
 #[derive(Debug, Clone)]
@@ -93,7 +105,10 @@ impl Default for Config {
     Config {
       range: Range::line(0, 0, 0),
       debug: false,
-      eval_mode: EvalMode::Standard,
+      eval_mode: EvalMode {
+        borrow_mode: BorrowMode::DistinguishMut,
+        context_mode: ContextMode::SigOnly
+      }
     }
   }
 }

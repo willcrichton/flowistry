@@ -1,5 +1,6 @@
+use itertools::iproduct;
 use log::debug;
-use rust_slicer::config::{Config, EvalMode, Range};
+use rust_slicer::config::{BorrowMode, Config, ContextMode, EvalMode, Range};
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
   itemlikevisit::ParItemLikeVisitor,
@@ -46,7 +47,8 @@ pub struct EvalCrateVisitor<'tcx> {
 
 #[derive(Debug, Serialize)]
 pub struct EvalResult {
-  mode: EvalMode,
+  borrow_mode: BorrowMode,
+  context_mode: ContextMode,
   slice: Range,
   function_range: Range,
   function_path: String,
@@ -82,31 +84,40 @@ impl EvalCrateVisitor<'tcx> {
         let source_map = self.tcx.sess.source_map();
         let tcx = self.tcx;
 
-        [EvalMode::Standard, EvalMode::LikeC]
-          .iter()
-          .cloned()
-          .map(move |eval_mode| {
-            let config = Config {
-              range: Range::from_span(span, source_map),
-              debug: false,
-              eval_mode,
-            };
+        iproduct!(
+          vec![BorrowMode::DistinguishMut, BorrowMode::IgnoreMut].into_iter(),
+          vec![ContextMode::Recurse, ContextMode::SigOnly].into_iter()
+        )
+        .map(move |(borrow_mode, context_mode)| {
+          let config = Config {
+            range: Range::from_span(span, source_map),
+            debug: false,
+            eval_mode: EvalMode {
+              borrow_mode,
+              context_mode,
+            },
+          };
 
-            let start = Instant::now();
-            let output = rust_slicer::analysis::intraprocedural::analyze_function(
-              &config, tcx, *body_id, span,
-            )
-            .unwrap();
+          let start = Instant::now();
+          let (output, _) = rust_slicer::analysis::intraprocedural::analyze_function(
+            &config,
+            tcx,
+            *body_id,
+            Some(span),
+            Vec::new()
+          )
+          .unwrap();
 
-            EvalResult {
-              mode: eval_mode,
-              slice: config.range,
-              function_range: Range::from_span(body_span, source_map),
-              function_path: function_path.clone(),
-              output: output.ranges().to_vec(),
-              duration: (start.elapsed().as_nanos() as f64) / 10e9,
-            }
-          })
+          EvalResult {
+            context_mode,
+            borrow_mode,
+            slice: config.range,
+            function_range: Range::from_span(body_span, source_map),
+            function_path: function_path.clone(),
+            output: output.ranges().to_vec(),
+            duration: (start.elapsed().as_nanos() as f64) / 10e9,
+          }
+        })
       })
       .flatten()
       .collect::<Vec<_>>();
