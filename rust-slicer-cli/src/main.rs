@@ -1,9 +1,13 @@
 use anyhow::{Context, Result};
 use clap::clap_app;
-use log::debug;
-use rust_slicer::{Config, Range, config::{EvalMode, BorrowMode, ContextMode}};
-use serde::Serialize;
 use generate_rustc_flags::generate_rustc_flags;
+use log::debug;
+use rust_slicer::{
+  config::{ContextMode, EvalMode, MutabilityMode, PointerMode},
+  Config, Range,
+};
+use serde::Serialize;
+use std::env;
 
 #[derive(Serialize)]
 struct SliceOutput {
@@ -12,11 +16,12 @@ struct SliceOutput {
 
 fn run() -> Result<()> {
   let _ = env_logger::try_init();
-  
+
   let matches = clap_app!(app =>
     (@arg debug: -d)
-    (@arg likec: -l)
-    (@arg recurse: -r)
+    (@arg nomut: --nomut)
+    (@arg recurse: --recurse)
+    (@arg conserv: --conserv)
     (@arg path:)
     (@arg start_line:)
     (@arg start_col:)
@@ -31,7 +36,11 @@ fn run() -> Result<()> {
     };
   }
 
-  let flags = generate_rustc_flags(arg!("path"))?;
+  let (flags, env) = generate_rustc_flags(arg!("path"))?;
+  for (k, v) in env {
+    env::set_var(k, v);
+  }
+
   debug!("Generated rustc command:\n{}", flags.join(" "));
 
   let config = Config {
@@ -44,9 +53,22 @@ fn run() -> Result<()> {
     },
     debug: matches.is_present("debug"),
     eval_mode: EvalMode {
-      borrow_mode: if matches.is_present("likec") { BorrowMode::IgnoreMut } else { BorrowMode::DistinguishMut },
-      context_mode: if matches.is_present("recurse") { ContextMode::Recurse } else { ContextMode::SigOnly }
-    }
+      mutability_mode: if matches.is_present("nomut") {
+        MutabilityMode::IgnoreMut
+      } else {
+        MutabilityMode::DistinguishMut
+      },
+      context_mode: if matches.is_present("recurse") {
+        ContextMode::Recurse
+      } else {
+        ContextMode::SigOnly
+      },
+      pointer_mode: if matches.is_present("conserv") {
+        PointerMode::Conservative
+      } else {
+        PointerMode::Precise
+      },
+    },
   };
 
   let output = rust_slicer::slice(config, &flags)?;

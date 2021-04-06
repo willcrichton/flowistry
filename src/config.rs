@@ -1,3 +1,4 @@
+use anyhow::{anyhow, bail, Result};
 use fluid_let::fluid_let;
 use rustc_span::{
   source_map::{SourceFile, SourceMap},
@@ -6,7 +7,7 @@ use rustc_span::{
 use serde::Serialize;
 use std::default::Default;
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Range {
   pub start_line: usize,
   pub start_col: usize,
@@ -37,35 +38,37 @@ impl Range {
 }
 
 impl Range {
-  pub fn from_span(span: Span, source_map: &SourceMap) -> Self {
+  pub fn from_span(span: Span, source_map: &SourceMap) -> Result<Self> {
     let filename = source_map.span_to_filename(span);
     let filename = if let FileName::Real(filename) = filename {
       filename.local_path().to_string_lossy().into_owned()
     } else {
-      unimplemented!("Range::from_span doesn't support {:?}", filename)
+      bail!("Range::from_span doesn't support {:?}", filename)
     };
 
-    let lines = source_map.span_to_lines(span).unwrap();
+    let lines = source_map
+      .span_to_lines(span)
+      .map_err(|e| anyhow!("{:?}", e))?;
     if lines.lines.len() == 0 {
-      return Range {
+      return Ok(Range {
         start_line: 0,
         start_col: 0,
         end_line: 0,
         end_col: 0,
         filename,
-      };
+      });
     }
 
     let start_line = lines.lines.first().unwrap();
     let end_line = lines.lines.last().unwrap();
-    
-    Range {
+
+    Ok(Range {
       start_line: start_line.line_index,
       start_col: start_line.start_col.0,
       end_line: end_line.line_index,
       end_col: end_line.end_col.0,
       filename,
-    }
+    })
   }
 
   pub fn to_span(&self, source_file: &SourceFile) -> Span {
@@ -75,25 +78,32 @@ impl Range {
   }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize)]
-pub enum BorrowMode {
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Hash)]
+pub enum MutabilityMode {
   DistinguishMut,
-  IgnoreMut
+  IgnoreMut,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Hash)]
 pub enum ContextMode {
   SigOnly,
   Recurse,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize)]
-pub struct EvalMode {
-  pub borrow_mode: BorrowMode,
-  pub context_mode: ContextMode,
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Hash)]
+pub enum PointerMode {
+  Precise,
+  Conservative,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Hash)]
+pub struct EvalMode {
+  pub mutability_mode: MutabilityMode,
+  pub context_mode: ContextMode,
+  pub pointer_mode: PointerMode,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Config {
   pub range: Range,
   pub debug: bool,
@@ -106,9 +116,10 @@ impl Default for Config {
       range: Range::line(0, 0, 0),
       debug: false,
       eval_mode: EvalMode {
-        borrow_mode: BorrowMode::DistinguishMut,
-        context_mode: ContextMode::SigOnly
-      }
+        mutability_mode: MutabilityMode::DistinguishMut,
+        context_mode: ContextMode::SigOnly,
+        pointer_mode: PointerMode::Precise,
+      },
     }
   }
 }

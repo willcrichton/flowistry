@@ -3,10 +3,9 @@ use super::{
   place_index::PlaceSet,
   place_index::{PlaceIndex, PlaceIndices},
 };
-use crate::config::{BorrowMode, Config, ContextMode};
-use log::{debug, info};
+use crate::config::{Config, ContextMode, MutabilityMode, PointerMode};
+use log::debug;
 use rustc_data_structures::graph::dominators::Dominators;
-use rustc_hir::BodyId;
 use rustc_index::vec::IndexVec;
 use rustc_middle::{
   mir::{
@@ -25,7 +24,11 @@ use rustc_mir::{
   },
 };
 use rustc_span::Span;
-use std::{cell::RefCell, collections::HashSet, fmt};
+use std::{
+  cell::RefCell,
+  collections::{HashMap, HashSet},
+  fmt,
+};
 
 pub type SliceSet = HashSet<Location>;
 
@@ -96,30 +99,40 @@ impl<'a, 'tcx> Visitor<'tcx> for CollectPlaceIndices<'a, 'tcx> {
   }
 }
 
-struct TransferFunction<'a, 'b, 'mir, 'tcx> {
-  analysis: &'a RelevanceAnalysis<'b, 'mir, 'tcx>,
-  state: &'a mut RelevanceDomain,
+pub(super) struct TransferFunction<'a, 'b, 'mir, 'tcx> {
+  pub(super) analysis: &'a RelevanceAnalysis<'b, 'mir, 'tcx>,
+  pub(super) state: &'a mut RelevanceDomain,
+}
+
+macro_rules! fmt_places {
+  ($places:expr, $analysis:expr) => {
+    DebugWithAdapter {
+      this: &$places,
+      ctxt: $analysis.place_indices,
+    }
+  };
 }
 
 impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
-  fn add_relevant(&mut self, places: &PlaceSet) {
+  pub(super) fn add_relevant(&mut self, places: &PlaceSet) {
     self.state.places.union(places);
     self.state.statement_relevant = true;
 
     let current_block = self.analysis.current_block.borrow();
     let preds = &self.analysis.body.predecessors()[*current_block];
     let dominates_all_preds = preds.iter().all(|pred_bb| {
-      self
-        .analysis
-        .post_dominators
-        .is_dominated_by(*pred_bb, *current_block)
+      self.analysis.post_dominators.is_reachable(*pred_bb)
+        && self
+          .analysis
+          .post_dominators
+          .is_dominated_by(*pred_bb, *current_block)
     });
     if !dominates_all_preds {
       self.state.path_relevant = Relevant::Yes;
     }
   }
 
-  fn relevant_places(&self, place: Place<'tcx>) -> PlaceSet {
+  pub(super) fn relevant_places(&self, place: Place<'tcx>) -> PlaceSet {
     let place_index = self.analysis.place_indices.index(&place);
     self
       .state
@@ -142,130 +155,22 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
   }
 
   fn check_mutation(&mut self, place: Place<'tcx>, input_places: &PlaceSet) {
-    macro_rules! fmt_places {
-      ($places:expr) => {
-        DebugWithAdapter {
-          this: &$places,
-          ctxt: self.analysis.place_indices,
-        }
-      };
-    }
-
     // is `place` in the relevant set?
-    debug!(
-      "checking {:?} with relevant = {:?}",
-      place,
-      fmt_places!(self.state.places)
-    );
     let relevant_mutated = self.relevant_places(place);
+    debug!(
+      "checking {:?} with relevant = {:?} and relevant mutated = {:?}",
+      place,
+      fmt_places!(self.state.places, self.analysis),
+      fmt_places!(relevant_mutated, self.analysis)
+    );
 
     if relevant_mutated.count() > 0 {
-      debug!("  relevant_mutated: {:?}", fmt_places!(relevant_mutated));
-
       if relevant_mutated.count() == 1 {
         self.state.places.subtract(&relevant_mutated);
       }
 
       self.add_relevant(input_places);
     }
-  }
-
-  fn slice_into_procedure(
-    &mut self,
-    call: &TerminatorKind<'tcx>,
-    input_places: &[Place<'tcx>],
-  ) -> bool {
-    let (func, destination) = if let TerminatorKind::Call {
-      func, destination, ..
-    } = call
-    {
-      (func, destination)
-    } else {
-      return false;
-    };
-
-    let func = if let Some(func) = func.constant() {
-      func
-    } else {
-      return false;
-    };
-
-    let def_id = if let TyKind::FnDef(def_id, _) = func.literal.ty.kind() {
-      def_id
-    } else {
-      return false;
-    };
-
-    let node = if let Some(node) = self.analysis.tcx.hir().get_if_local(*def_id) {
-      node
-    } else {
-      return false;
-    };
-
-    let body_id = if let Some(body_id) = node.body_id() {
-      body_id
-    } else {
-      return false;
-    };
-
-    // Recursive call
-    if body_id == self.analysis.body_id {
-      return false;
-    }
-
-    let relevant_inputs = input_places.iter().enumerate().filter_map(|(i, arg)| {
-      if self.relevant_places(*arg).count() > 0 {
-        Some(Local::from_usize(1 + i))
-      } else {
-        None
-      }
-    });
-
-    let relevant_return = if let Some((dst, _)) = destination {
-      if self.relevant_places(*dst).count() > 0 {
-        vec![RETURN_PLACE]
-      } else {
-        vec![]
-      }
-    } else {
-      vec![]
-    };
-
-    let relevant_locals = relevant_inputs
-      .chain(relevant_return.into_iter())
-      .collect::<HashSet<_>>();
-
-    info!(
-      "Recursing into {}",
-      self.analysis.tcx.def_path_debug_str(*def_id)
-    );
-    let (_, mutated_locals) = super::intraprocedural::analyze_function(
-      self.analysis.config,
-      self.analysis.tcx,
-      body_id,
-      None,
-      relevant_locals.iter().cloned().collect::<Vec<_>>(),
-    )
-    .unwrap();
-
-    let relevant_and_mutated_locals = &relevant_locals & &mutated_locals;
-
-    if relevant_and_mutated_locals.len() > 0 {
-      let relevant_inputs = mutated_locals
-        .iter()
-        .filter_map(|local| {
-          let i = local.as_usize();
-          if 1 <= i && i <= input_places.len() {
-            Some(input_places[i - 1])
-          } else {
-            None
-          }
-        })
-        .collect::<Vec<_>>();
-      self.add_relevant(&self.analysis.place_indices.vec_to_set(&relevant_inputs));
-    }
-
-    true
   }
 }
 
@@ -391,14 +296,13 @@ impl Visitor<'tcx> for FindSpans {
 }
 
 pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
-  config: &'a Config,
+  pub(super) config: &'a Config,
   slice_set: SliceSet,
   relevant_locals: PlaceSet,
-  tcx: TyCtxt<'tcx>,
-  body_id: BodyId,
+  pub(super) tcx: TyCtxt<'tcx>,
   body: &'mir Body<'tcx>,
   borrow_set: &'a BorrowSet<'tcx>,
-  place_indices: &'a PlaceIndices<'tcx>,
+  pub(super) place_indices: &'a PlaceIndices<'tcx>,
   aliases: IndexVec<PlaceIndex, PlaceSet>,
   post_dominators: Dominators<BasicBlock>,
   current_block: RefCell<BasicBlock>,
@@ -410,7 +314,6 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     slice_set: SliceSet,
     relevant_locals_set: HashSet<Local>,
     tcx: TyCtxt<'tcx>,
-    body_id: BodyId,
     body: &'mir Body<'tcx>,
     borrow_set: &'a BorrowSet<'tcx>,
     place_indices: &'a PlaceIndices<'tcx>,
@@ -433,7 +336,6 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       slice_set,
       relevant_locals,
       tcx,
-      body_id,
       body,
       borrow_set,
       place_indices,
@@ -448,10 +350,17 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
   fn compute_aliases(&mut self, alias_analysis: &'a Aliases) {
     for place in self.place_indices.indices() {
       let all_borrows = self.borrow_set.indices();
+
+      let synthetic_aliases = if self.config.eval_mode.pointer_mode == PointerMode::Conservative {
+        alias_analysis.synthetic_aliases(place)
+      } else {
+        Box::new(vec![].into_iter())
+      };
+
       let aliases = all_borrows
         .filter_map(|borrow_index| {
           let borrow = &self.borrow_set[borrow_index];
-          if self.config.eval_mode.borrow_mode == BorrowMode::DistinguishMut
+          if self.config.eval_mode.mutability_mode == MutabilityMode::DistinguishMut
             && borrow.kind.to_mutbl_lossy() != Mutability::Mut
           {
             return None;
@@ -480,10 +389,22 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
         .flatten()
         .collect::<Vec<_>>();
 
-      for alias in aliases {
+      for alias in aliases.into_iter().chain(synthetic_aliases) {
         self.aliases[place].insert(alias);
       }
     }
+
+    debug!(
+      "computed aliases {:?}",
+      self
+        .aliases
+        .iter_enumerated()
+        .map(|(k, v)| (
+          self.place_indices.lookup(k),
+          format!("{:?}", fmt_places!(v, self))
+        ))
+        .collect::<HashMap<_, _>>()
+    );
   }
 
   fn place_index_is_part(&self, part_place: PlaceIndex, whole_place: PlaceIndex) -> bool {

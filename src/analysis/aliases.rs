@@ -9,23 +9,28 @@ use rustc_middle::{
     visit::Visitor,
     *,
   },
-  ty::{self, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeFoldable, TypeVisitor},
+  ty::{self, RegionKind, RegionVid, Ty, TyS, TyCtxt, TyKind,  TypeFoldable, TypeVisitor},
 };
 use rustc_target::abi::VariantIdx;
 use std::collections::{hash_map::Entry, HashMap, HashSet};
 use std::hash::Hash;
 use std::ops::ControlFlow;
-// TODO: aliases no longer needs to be a dataflow pass, can just be a visitor
 
 struct CollectRegions<'tcx> {
   tcx: TyCtxt<'tcx>,
   place_stack: Vec<Place<'tcx>>,
+  ty_stack: Vec<Ty<'tcx>>,
   regions: HashMap<RegionVid, Place<'tcx>>,
 }
 
 impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
   fn visit_ty(&mut self, ty: Ty<'tcx>) -> ControlFlow<Self::BreakTy> {
+    if self.ty_stack.iter().any(|visited_ty| TyS::same_type(ty, visited_ty)) {
+      return ControlFlow::Continue(());
+    }
+
     let last_place = *self.place_stack.last().unwrap();
+    self.ty_stack.push(ty);
 
     match ty.kind() {
       TyKind::Tuple(fields) => {
@@ -99,6 +104,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
       }
     };
 
+    self.ty_stack.pop();
     ControlFlow::Continue(())
   }
 
@@ -113,13 +119,32 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
   }
 }
 
+pub(super) fn interior_pointers<'tcx>(
+  place: Place<'tcx>,
+  tcx: TyCtxt<'tcx>,
+  body: &Body<'tcx>,
+) -> HashMap<RegionVid, Place<'tcx>> {
+  let ty = place.ty(body.local_decls(), tcx).ty;
+  let mut region_collector = CollectRegions {
+    tcx,
+    place_stack: vec![place],
+    ty_stack: Vec::new(),
+    regions: HashMap::new(),
+  };
+  region_collector.visit_ty(ty);
+  region_collector.regions
+}
+
 #[derive(Debug)]
-pub struct Aliases(IndexVec<PlaceIndex, BitSet<BorrowIndex>>);
+pub struct Aliases {
+  borrow_aliases: IndexVec<PlaceIndex, BitSet<BorrowIndex>>,
+  pub(super) synthetic_aliases: HashMap<PlaceIndex, HashSet<PlaceIndex>>,
+}
 
 impl Aliases {
   pub fn aliases<'a>(&'a self, borrow: BorrowIndex) -> impl Iterator<Item = PlaceIndex> + 'a {
     self
-      .0
+      .borrow_aliases
       .iter_enumerated()
       .filter_map(move |(place, borrows)| {
         if borrows.contains(borrow) {
@@ -129,16 +154,27 @@ impl Aliases {
         }
       })
   }
+
+  pub fn synthetic_aliases<'a>(
+    &'a self,
+    place: PlaceIndex,
+  ) -> Box<dyn Iterator<Item = PlaceIndex> + 'a> {
+    match self.synthetic_aliases.get(&place) {
+      Some(s) => Box::new(s.iter().cloned()),
+      None => Box::new(vec![].into_iter()),
+    }
+  }
 }
 
 pub struct AliasVisitor<'a, 'mir, 'tcx> {
   tcx: TyCtxt<'tcx>,
   body: &'mir Body<'tcx>,
   borrow_set: &'a BorrowSet<'tcx>,
-  region_ancestors: HashMap<RegionVid, HashSet<ConstraintSccIndex>>,
-  constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>, // region_to_local: HashMap<RegionVid, Local>,
-  place_indices: &'a mut PlaceIndices<'tcx>,
-  aliases: Aliases,
+  pub(super) region_ancestors: HashMap<RegionVid, HashSet<ConstraintSccIndex>>,
+  pub(super) constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>, // region_to_local: HashMap<RegionVid, Local>,
+  pub(super) place_indices: &'a mut PlaceIndices<'tcx>,
+  pub(super) aliases: Aliases,
+  pub(super) input_regions: HashMap<RegionVid, Place<'tcx>>,
 }
 
 impl<'tcx> Visitor<'tcx> for AliasVisitor<'_, '_, 'tcx> {
@@ -160,21 +196,12 @@ impl<'tcx> Visitor<'tcx> for AliasVisitor<'_, '_, 'tcx> {
 
 impl AliasVisitor<'_, '_, 'tcx> {
   fn process(&mut self, place: Place<'tcx>) {
-    let ty = place.ty(self.body.local_decls(), self.tcx).ty;
+    let regions = interior_pointers(place, self.tcx, self.body);
+    debug!("visited {:?} and found regions {:?}", place, regions);
 
-    let mut region_collector = CollectRegions {
-      tcx: self.tcx,
-      place_stack: vec![place],
-      regions: HashMap::new(),
-    };
-    region_collector.visit_ty(ty);
-    debug!(
-      "visited {:?} : {:?} and found regions {:?}",
-      place, ty, region_collector.regions
-    );
+    for (region, sub_place) in regions {
+      self.handle_synthetic_aliases(region, sub_place);
 
-    for (region, sub_place) in region_collector.regions {
-      let sub_place_deref = self.tcx.mk_place_deref(sub_place);
       let ty_borrows = self
         .borrow_set
         .indices()
@@ -189,18 +216,29 @@ impl AliasVisitor<'_, '_, 'tcx> {
         })
         .collect::<Vec<_>>();
 
+      let sub_place_deref = self.tcx.mk_place_deref(sub_place);
+      let sub_place_idx = self.place_indices.insert(&sub_place_deref);
+
       for idx in ty_borrows {
-        let place_idx = self.place_indices.insert(&sub_place_deref);
         let nborrows = self.borrow_set.len();
         self
           .aliases
-          .0
-          .ensure_contains_elem(place_idx, || BitSet::new_empty(nborrows));
+          .borrow_aliases
+          .ensure_contains_elem(sub_place_idx, || BitSet::new_empty(nborrows));
         debug!("alias {:?} to {:?}", sub_place_deref, idx);
-        self.aliases.0[place_idx].insert(idx);
+        self.aliases.borrow_aliases[sub_place_idx].insert(idx);
       }
     }
   }
+}
+
+fn body_inputs<'tcx>(body: &Body<'tcx>, tcx: TyCtxt<'tcx>) -> Vec<Place<'tcx>> {
+  (0..body.arg_count)
+    .map(|i| Place {
+      local: Local::from_usize(i + 1),
+      projection: tcx.intern_place_elems(&[]),
+    })
+    .collect::<Vec<_>>()
 }
 
 pub fn compute_aliases(
@@ -222,10 +260,21 @@ pub fn compute_aliases(
   let root_scc = constraint_sccs.scc(root_region);
   let region_ancestors = compute_region_ancestors(constraint_sccs, max_region, root_scc);
 
-  let aliases = Aliases(IndexVec::from_elem_n(
-    BitSet::new_empty(borrow_set.len()),
-    place_indices.count(),
-  ));
+  let aliases = Aliases {
+    borrow_aliases: IndexVec::from_elem_n(
+      BitSet::new_empty(borrow_set.len()),
+      place_indices.count(),
+    ),
+    synthetic_aliases: HashMap::default(),
+  };
+
+  let input_regions = body_inputs(body, tcx)
+    .into_iter()
+    .map(|place| interior_pointers(place, tcx, body))
+    .fold(HashMap::new(), |mut h1, h2| {
+      h1.extend(h2);
+      h1
+    });
 
   let mut visitor = AliasVisitor {
     tcx,
@@ -235,8 +284,13 @@ pub fn compute_aliases(
     constraint_sccs,
     place_indices,
     aliases,
+    input_regions: input_regions.clone(),
   };
   visitor.visit_body(body);
+
+  for input_place in input_regions.values() {
+    visitor.process(*input_place);
+  }
 
   visitor.aliases
 }
@@ -267,13 +321,25 @@ fn compute_region_ancestors(
 ) -> HashMap<RegionVid, HashSet<ConstraintSccIndex>> {
   let mut initial_hash = HashSet::new();
   initial_hash.insert(node);
+
+  let regions_in_scc = |idx| {
+    (0..max_region)
+      .map(|i| RegionVid::from_usize(i))
+      .filter(|r| sccs.scc(*r) == idx)
+      .collect::<Vec<_>>()
+  };
+
+  let mut initial_map = HashMap::new();
+  for r in regions_in_scc(node) {
+    initial_map.insert(r, initial_hash.clone());
+  }
+
   sccs
     .successors(node)
     .iter()
     .map(|child| {
-      let in_child = (0..max_region)
-        .map(|i| RegionVid::from_usize(i))
-        .filter(|r| sccs.scc(*r) == *child)
+      let in_child = regions_in_scc(*child)
+        .into_iter()
         .map(|r| (r, initial_hash.clone()))
         .collect::<HashMap<_, _>>();
       let grandchildren = compute_region_ancestors(sccs, max_region, *child)
@@ -285,5 +351,6 @@ fn compute_region_ancestors(
         .collect::<HashMap<_, _>>();
       merge(in_child, grandchildren, |h1, h2| h1 | h2)
     })
-    .fold(HashMap::new(), |h1, h2| merge(h1, h2, |h1, h2| h1 | h2))
+    .fold(initial_map, |h1, h2| merge(h1, h2, |h1, h2| h1 | h2))
 }
+
