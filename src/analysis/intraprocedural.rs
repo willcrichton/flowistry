@@ -1,8 +1,9 @@
 use super::aliases::compute_aliases;
+use super::eval_extensions;
 use super::place_index::PlaceIndices;
 use super::post_dominators::compute_post_dominators;
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
-use crate::config::{Config, Range};
+use crate::config::{Config, PointerMode, Range};
 
 use anyhow::{bail, Result};
 use log::{debug, info};
@@ -165,10 +166,11 @@ fn elapsed(name: &str, start: Instant) {
 }
 
 #[derive(Hash, PartialEq, Eq, Clone)]
-struct CacheKey(BodyId, Option<Span>, Vec<Local>);
+struct CacheKey(Config, BodyId, Option<Span>, Vec<Local>);
 
 thread_local! {
   static ANALYSIS_CACHE: RefCell<HashMap<CacheKey, (SliceOutput, HashSet<Local>)>> = RefCell::new(HashMap::new());
+  pub static BODY_STACK: RefCell<Vec<BodyId>> = RefCell::new(Vec::new());
 }
 
 pub fn analyze_function(
@@ -210,6 +212,23 @@ pub fn analyze_function(
 
     let mut place_indices = PlaceIndices::build(body);
 
+    let should_be_conservative = config.eval_mode.pointer_mode == PointerMode::Conservative;
+    let conservative_sccs = if should_be_conservative {
+      Some(eval_extensions::generate_conservative_constraints(
+        tcx,
+        body,
+        outlives_constraints,
+      ))
+    } else {
+      None
+    };
+
+    let constraint_sccs = if should_be_conservative {
+      conservative_sccs.as_ref().unwrap()
+    } else {
+      constraint_sccs
+    };
+
     let aliases = compute_aliases(
       tcx,
       body,
@@ -242,7 +261,6 @@ pub fn analyze_function(
       slice_set,
       relevant_locals.clone(),
       tcx,
-      body_id,
       body,
       borrow_set,
       &place_indices,
@@ -277,17 +295,27 @@ pub fn analyze_function(
       .relevant_spans
       .into_iter()
       .chain(local_spans)
-      .map(|span| Range::from_span(span, source_map))
+      .filter_map(|span| Range::from_span(span, source_map).ok())
       .collect();
 
     Ok((SliceOutput(ranges), visitor.all_locals))
   };
 
   ANALYSIS_CACHE.with(|cache| {
-    let key = CacheKey(body_id, slice_span.clone(), relevant_locals.clone());
+    let key = CacheKey(
+      config.clone(),
+      body_id,
+      slice_span.clone(),
+      relevant_locals.clone(),
+    );
 
     if !cache.borrow().contains_key(&key) {
-      let results = analyze()?;
+      let results = BODY_STACK.with(|body_stack| {
+        body_stack.borrow_mut().push(body_id);
+        let results = analyze();
+        body_stack.borrow_mut().pop();
+        results
+      })?;
       cache.borrow_mut().insert(key.clone(), results);
     }
 

@@ -13,6 +13,7 @@ use std::time::Instant;
 pub use intraprocedural::SliceOutput;
 
 mod aliases;
+mod eval_extensions;
 pub mod intraprocedural;
 mod place_index;
 mod post_dominators;
