@@ -15,7 +15,6 @@ pub use intraprocedural::SliceOutput;
 mod aliases;
 mod eval_extensions;
 pub mod intraprocedural;
-mod place_index;
 mod post_dominators;
 mod relevance;
 

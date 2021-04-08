@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use clap::clap_app;
-use generate_rustc_flags::generate_rustc_flags;
+use generate_rustc_flags::{generate_rustc_flags, CliFeatures};
 use log::debug;
 use rust_slicer::{
   config::{ContextMode, EvalMode, MutabilityMode, PointerMode},
@@ -36,7 +36,8 @@ fn run() -> Result<()> {
     };
   }
 
-  let (flags, env) = generate_rustc_flags(arg!("path"))?;
+  let features = CliFeatures::from_command_line(&[], false, true)?;
+  let (flags, env) = generate_rustc_flags(arg!("path"), features)?;
   for (k, v) in env {
     env::set_var(k, v);
   }

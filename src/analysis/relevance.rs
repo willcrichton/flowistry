@@ -1,16 +1,10 @@
-use super::{
-  aliases::Aliases,
-  place_index::PlaceSet,
-  place_index::{PlaceIndex, PlaceIndices},
-};
-use crate::config::{Config, ContextMode, MutabilityMode, PointerMode};
+use super::aliases::{interior_pointers, Aliases, PlaceSet};
+use crate::config::{Config, ContextMode};
 use log::debug;
 use rustc_data_structures::graph::dominators::Dominators;
-use rustc_index::vec::IndexVec;
 use rustc_middle::{
   mir::{
     self,
-    borrows::BorrowSet,
     visit::{PlaceContext, Visitor},
     *,
   },
@@ -18,17 +12,10 @@ use rustc_middle::{
 };
 use rustc_mir::{
   borrow_check::{borrow_conflicts_with_place, AccessDepth, PlaceConflictBias},
-  dataflow::{
-    fmt::{DebugWithAdapter, DebugWithContext},
-    Analysis, AnalysisDomain, Backward, JoinSemiLattice,
-  },
+  dataflow::{fmt::DebugWithContext, Analysis, AnalysisDomain, Backward, JoinSemiLattice},
 };
 use rustc_span::Span;
-use std::{
-  cell::RefCell,
-  collections::{HashMap, HashSet},
-  fmt,
-};
+use std::{cell::RefCell, collections::HashSet, fmt};
 
 pub type SliceSet = HashSet<Location>;
 
@@ -59,63 +46,55 @@ impl JoinSemiLattice for Relevant {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct RelevanceDomain {
-  pub places: PlaceSet,
+pub struct RelevanceDomain<'tcx> {
+  pub places: PlaceSet<'tcx>,
   pub statement_relevant: bool,
   pub path_relevant: Relevant,
 }
 
-impl JoinSemiLattice for RelevanceDomain {
+impl JoinSemiLattice for RelevanceDomain<'tcx> {
   fn join(&mut self, other: &Self) -> bool {
-    let places_changed = self.places.join(&other.places);
+    let places_changed = {
+      if other.places.is_subset(&self.places) {
+        false
+      } else {
+        self.places = &self.places | &other.places;
+        true
+      }
+    };
     let path_relevant_changed = self.path_relevant.join(&other.path_relevant);
     places_changed || path_relevant_changed
   }
 }
 
-impl DebugWithContext<RelevanceAnalysis<'_, '_, '_>> for RelevanceDomain {
-  fn fmt_with(
-    &self,
-    ctxt: &RelevanceAnalysis<'_, '_, '_>,
-    f: &mut fmt::Formatter<'_>,
-  ) -> fmt::Result {
-    self.places.fmt_with(ctxt.place_indices, f)?;
+impl<C> DebugWithContext<C> for RelevanceDomain<'tcx> {
+  fn fmt_with(&self, _ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(
       f,
-      " {:?}, {:?}",
-      self.statement_relevant, self.path_relevant
+      "{:?}, {:?}, {:?}",
+      self.places, self.statement_relevant, self.path_relevant
     )
   }
 }
 
-struct CollectPlaceIndices<'a, 'tcx> {
-  places: PlaceSet,
-  place_indices: &'a PlaceIndices<'tcx>,
+struct CollectPlaces<'tcx> {
+  places: PlaceSet<'tcx>,
 }
 
-impl<'a, 'tcx> Visitor<'tcx> for CollectPlaceIndices<'a, 'tcx> {
+impl Visitor<'tcx> for CollectPlaces<'tcx> {
   fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, _location: Location) {
-    self.places.insert(self.place_indices.index(place));
+    self.places.insert(*place);
   }
 }
 
 pub(super) struct TransferFunction<'a, 'b, 'mir, 'tcx> {
   pub(super) analysis: &'a RelevanceAnalysis<'b, 'mir, 'tcx>,
-  pub(super) state: &'a mut RelevanceDomain,
-}
-
-macro_rules! fmt_places {
-  ($places:expr, $analysis:expr) => {
-    DebugWithAdapter {
-      this: &$places,
-      ctxt: $analysis.place_indices,
-    }
-  };
+  pub(super) state: &'a mut RelevanceDomain<'tcx>,
 }
 
 impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
-  pub(super) fn add_relevant(&mut self, places: &PlaceSet) {
-    self.state.places.union(places);
+  pub(super) fn add_relevant(&mut self, places: &PlaceSet<'tcx>) {
+    self.state.places = &self.state.places | places;
     self.state.statement_relevant = true;
 
     let current_block = self.analysis.current_block.borrow();
@@ -132,43 +111,58 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
     }
   }
 
-  pub(super) fn relevant_places(&self, place: Place<'tcx>) -> PlaceSet {
-    let place_index = self.analysis.place_indices.index(&place);
+  pub(super) fn relevant_places(&self, mutated_place: Place<'tcx>) -> PlaceSet<'tcx> {
+    let mutated_places = self.analysis.possible_places(mutated_place);
     self
       .state
       .places
       .iter()
-      .map(|relevant| {
-        self.analysis.aliases[relevant]
-          .iter()
-          .chain(vec![relevant].into_iter())
-          .filter(|alias| {
-            self.analysis.place_index_is_part(place_index, *alias)
-              || self.analysis.place_index_is_part(*alias, place_index)
+      .filter(|relevant_place| {
+        let relevant_places = self.analysis.possible_places(**relevant_place);
+        // println!(
+        //   "relevant {:?} / {:?}, mutated {:?} / {:?}",
+        //   relevant_place, relevant_places, mutated_place, mutated_places
+        // );
+        relevant_places.iter().any(|relevant_place| {
+          mutated_places.iter().any(|mutated_place| {
+            self.analysis.place_is_part(*relevant_place, *mutated_place)
+              || self.analysis.place_is_part(*mutated_place, *relevant_place)
           })
+        })
       })
-      .flatten()
-      .fold(self.analysis.place_indices.empty_set(), |mut set, p| {
-        set.insert(p);
-        set
-      })
+      .cloned()
+      .collect::<HashSet<_>>()
   }
 
-  fn check_mutation(&mut self, place: Place<'tcx>, input_places: &PlaceSet) {
+  fn check_mutation(&mut self, place: Place<'tcx>, input_places: &PlaceSet<'tcx>) {
     // is `place` in the relevant set?
     let relevant_mutated = self.relevant_places(place);
     debug!(
       "checking {:?} with relevant = {:?} and relevant mutated = {:?}",
-      place,
-      fmt_places!(self.state.places, self.analysis),
-      fmt_places!(relevant_mutated, self.analysis)
+      place, self.state.places, relevant_mutated,
     );
 
-    if relevant_mutated.count() > 0 {
-      if relevant_mutated.count() == 1 {
-        self.state.places.subtract(&relevant_mutated);
-      }
+    if relevant_mutated.len() > 0 {
+      // if relevant_mutated.count() == 1 {
+      self.state.places = &self.state.places - &relevant_mutated;
+      // }
 
+      let pointers = place
+        .iter_projections()
+        .filter_map(|(place_ref, projection_elem)| {
+          if let ProjectionElem::Deref = projection_elem {
+            let place = Place {
+              local: place_ref.local,
+              projection: self.analysis.tcx.intern_place_elems(place_ref.projection),
+            };
+            Some(place)
+          } else {
+            None
+          }
+        })
+        .collect::<HashSet<_>>();
+
+      self.add_relevant(&pointers);
       self.add_relevant(input_places);
     }
   }
@@ -188,9 +182,8 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
   fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
     self.super_assign(place, rvalue, location);
 
-    let mut collector = CollectPlaceIndices {
-      places: self.analysis.place_indices.empty_set(),
-      place_indices: self.analysis.place_indices,
+    let mut collector = CollectPlaces {
+      places: HashSet::new(),
     };
     collector.visit_rvalue(rvalue, location);
 
@@ -199,9 +192,9 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
 
   fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, location: Location) {
     if self.analysis.slice_set.contains(&location) {
-      let mut indices = self.analysis.place_indices.empty_set();
-      indices.insert(self.analysis.place_indices.index(place));
-      self.add_relevant(&indices);
+      let mut relevant = HashSet::new();
+      relevant.insert(*place);
+      self.add_relevant(&relevant);
     }
   }
 
@@ -243,14 +236,27 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
         };
 
         if !could_recurse {
-          let input_places_set = self.analysis.place_indices.vec_to_set(&input_places);
+          let tcx = self.analysis.tcx;
+          let input_places = input_places.into_iter().collect::<HashSet<_>>();
+          let input_mut_ptrs = input_places
+            .iter()
+            .map(|place| {
+              interior_pointers(*place, tcx, self.analysis.body)
+                .into_iter()
+                .filter_map(|(_, (place, mutability))| match mutability {
+                  Mutability::Mut => Some(place),
+                  Mutability::Not => None,
+                })
+            })
+            .flatten()
+            .collect::<Vec<_>>();
 
-          for input_place in input_places {
-            self.check_mutation(input_place, &input_places_set);
+          for input_mut_ptr in input_mut_ptrs {
+            self.check_mutation(tcx.mk_place_deref(input_mut_ptr), &input_places);
           }
 
           if let Some((dst, _)) = destination {
-            self.check_mutation(*dst, &input_places_set);
+            self.check_mutation(*dst, &input_places);
           }
         }
       }
@@ -259,7 +265,9 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
         if self.state.path_relevant == Relevant::Yes {
           match discr {
             Operand::Move(place) | Operand::Copy(place) => {
-              self.add_relevant(&self.analysis.place_indices.vec_to_set(&vec![*place]));
+              let mut relevant = HashSet::new();
+              relevant.insert(*place);
+              self.add_relevant(&relevant);
             }
             Operand::Constant(_) => {}
           }
@@ -298,12 +306,10 @@ impl Visitor<'tcx> for FindSpans {
 pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   pub(super) config: &'a Config,
   slice_set: SliceSet,
-  relevant_locals: PlaceSet,
+  relevant_locals: PlaceSet<'tcx>,
   pub(super) tcx: TyCtxt<'tcx>,
   body: &'mir Body<'tcx>,
-  borrow_set: &'a BorrowSet<'tcx>,
-  pub(super) place_indices: &'a PlaceIndices<'tcx>,
-  aliases: IndexVec<PlaceIndex, PlaceSet>,
+  alias_analysis: &'a Aliases<'tcx>,
   post_dominators: Dominators<BasicBlock>,
   current_block: RefCell<BasicBlock>,
 }
@@ -315,103 +321,63 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     relevant_locals_set: HashSet<Local>,
     tcx: TyCtxt<'tcx>,
     body: &'mir Body<'tcx>,
-    borrow_set: &'a BorrowSet<'tcx>,
-    place_indices: &'a PlaceIndices<'tcx>,
-    alias_analysis: &'a Aliases,
+    alias_analysis: &'a Aliases<'tcx>,
     post_dominators: Dominators<BasicBlock>,
   ) -> Self {
     let current_block = RefCell::new(body.basic_blocks().indices().next().unwrap());
-    let aliases = IndexVec::from_elem_n(place_indices.empty_set(), place_indices.count());
-
-    let mut relevant_locals = place_indices.empty_set();
+    let mut relevant_locals = HashSet::new();
     for local in &relevant_locals_set {
-      relevant_locals.insert(place_indices.index(&Place {
+      relevant_locals.insert(Place {
         local: *local,
         projection: tcx.intern_place_elems(&[]),
-      }));
+      });
     }
 
-    let mut analysis = RelevanceAnalysis {
+    RelevanceAnalysis {
       config,
       slice_set,
       relevant_locals,
       tcx,
       body,
-      borrow_set,
-      place_indices,
-      aliases,
+      alias_analysis,
       post_dominators,
       current_block,
-    };
-    analysis.compute_aliases(alias_analysis);
-    analysis
-  }
-
-  fn compute_aliases(&mut self, alias_analysis: &'a Aliases) {
-    for place in self.place_indices.indices() {
-      let all_borrows = self.borrow_set.indices();
-
-      let synthetic_aliases = if self.config.eval_mode.pointer_mode == PointerMode::Conservative {
-        alias_analysis.synthetic_aliases(place)
-      } else {
-        Box::new(vec![].into_iter())
-      };
-
-      let aliases = all_borrows
-        .filter_map(|borrow_index| {
-          let borrow = &self.borrow_set[borrow_index];
-          if self.config.eval_mode.mutability_mode == MutabilityMode::DistinguishMut
-            && borrow.kind.to_mutbl_lossy() != Mutability::Mut
-          {
-            return None;
-          }
-
-          let aliases = vec![self.place_indices.index(&borrow.borrowed_place)]
-            .into_iter()
-            .chain(alias_analysis.aliases(borrow_index))
-            .collect::<Vec<_>>();
-
-          let matched_aliases = aliases
-            .iter()
-            .cloned()
-            .filter(|alias| {
-              self.place_index_is_part(place, *alias) || self.place_index_is_part(*alias, place)
-            })
-            .collect::<Vec<_>>();
-
-          if matched_aliases.len() > 0 {
-            //debug!("  relevant {:?} matches aliases {:?} so including all aliases {:?}", self.place_indices.lookup(relevant), fmt_places!(matched_aliases), fmt_places!(aliases));
-            Some(aliases.into_iter())
-          } else {
-            None
-          }
-        })
-        .flatten()
-        .collect::<Vec<_>>();
-
-      for alias in aliases.into_iter().chain(synthetic_aliases) {
-        self.aliases[place].insert(alias);
-      }
     }
-
-    debug!(
-      "computed aliases {:?}",
-      self
-        .aliases
-        .iter_enumerated()
-        .map(|(k, v)| (
-          self.place_indices.lookup(k),
-          format!("{:?}", fmt_places!(v, self))
-        ))
-        .collect::<HashMap<_, _>>()
-    );
   }
 
-  fn place_index_is_part(&self, part_place: PlaceIndex, whole_place: PlaceIndex) -> bool {
-    self.place_is_part(
-      self.place_indices.lookup(part_place),
-      self.place_indices.lookup(whole_place),
-    )
+  fn possible_places(&self, place: Place<'tcx>) -> PlaceSet<'tcx> {
+    let init_place = Place {
+      local: place.local,
+      projection: self.tcx.intern_place_elems(&[]),
+    };
+    let mut init_set = HashSet::new();
+    init_set.insert(init_place);
+
+    place
+      .iter_projections()
+      .fold(init_set, |places, (_, projection_elem)| {
+        places
+          .into_iter()
+          .map(|place| {
+            let mut projection = place.projection.to_vec();
+            projection.push(projection_elem);
+            Place {
+              local: place.local,
+              projection: self.tcx.intern_place_elems(&projection),
+            }
+          })
+          .map(|place| {
+            let borrows = self
+              .alias_analysis
+              .borrow_aliases
+              .get(&place)
+              .cloned()
+              .unwrap_or_else(HashSet::new);
+            borrows.into_iter().chain(vec![place].into_iter())
+          })
+          .flatten()
+          .collect::<HashSet<_>>()
+      })
   }
 
   fn place_is_part(&self, part_place: Place<'tcx>, whole_place: Place<'tcx>) -> bool {
@@ -449,7 +415,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
 }
 
 impl<'a, 'mir, 'tcx> AnalysisDomain<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
-  type Domain = RelevanceDomain;
+  type Domain = RelevanceDomain<'tcx>;
   type Direction = Backward;
   const NAME: &'static str = "RelevanceAnalysis";
 
