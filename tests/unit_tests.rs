@@ -466,7 +466,7 @@ fn main() {
 }
 "#;
 
-  run(src, Range::line(5, 3, 4), vec![2, 3, 5]);
+  run(src, Range::line(5, 3, 4), vec![2, 5]);
 }
 
 #[test]

@@ -1,6 +1,5 @@
 use super::aliases::compute_aliases;
 use super::eval_extensions;
-use super::place_index::PlaceIndices;
 use super::post_dominators::compute_post_dominators;
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use crate::config::{Config, PointerMode, Range};
@@ -55,7 +54,6 @@ struct CollectResults<'a, 'tcx> {
   relevant_locals: HashSet<Local>,
   relevant_spans: Vec<Span>,
   all_locals: HashSet<Local>,
-  place_indices: &'a PlaceIndices<'tcx>,
   local_blacklist: HashSet<Local>,
 }
 
@@ -71,14 +69,14 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
     let locals = state
       .places
       .iter()
-      .map(|place| self.place_indices.lookup(place).local)
+      .map(|place| place.local)
       .collect::<HashSet<_>>();
     self.all_locals = &self.all_locals | &(&locals - &self.relevant_locals);
   }
 }
 
 impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
-  type FlowState = RelevanceDomain;
+  type FlowState = RelevanceDomain<'tcx>;
 
   fn visit_statement_after_primary_effect(
     &mut self,
@@ -210,8 +208,6 @@ pub fn analyze_function(
       }
     }
 
-    let mut place_indices = PlaceIndices::build(body);
-
     let should_be_conservative = config.eval_mode.pointer_mode == PointerMode::Conservative;
     let conservative_sccs = if should_be_conservative {
       Some(eval_extensions::generate_conservative_constraints(
@@ -229,15 +225,7 @@ pub fn analyze_function(
       constraint_sccs
     };
 
-    let aliases = compute_aliases(
-      tcx,
-      body,
-      borrow_set,
-      outlives_constraints,
-      constraint_sccs,
-      &mut place_indices,
-    );
-    debug!("aliases {:?}", aliases);
+    let aliases = compute_aliases(tcx, body, borrow_set, outlives_constraints, constraint_sccs);
 
     let slice_set = if let Some(slice_span) = slice_span {
       let mut finder = FindInitialSliceSet {
@@ -262,8 +250,6 @@ pub fn analyze_function(
       relevant_locals.clone(),
       tcx,
       body,
-      borrow_set,
-      &place_indices,
       &aliases,
       post_dominators,
     )
@@ -280,7 +266,6 @@ pub fn analyze_function(
       relevant_spans: vec![],
       relevant_locals: relevant_locals.clone(),
       all_locals: HashSet::new(),
-      place_indices: &place_indices,
       local_blacklist: HashSet::new(),
     };
     relevance_results.visit_reachable_with(body, &mut visitor);

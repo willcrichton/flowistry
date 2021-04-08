@@ -1,7 +1,7 @@
 use super::aliases::{interior_pointers, AliasVisitor};
-use super::relevance::TransferFunction;
 use super::intraprocedural::BODY_STACK;
-use log::{ info, };
+use super::relevance::TransferFunction;
+use log::info;
 use rustc_data_structures::graph::scc::Sccs;
 use rustc_middle::{
   mir::{
@@ -12,8 +12,7 @@ use rustc_middle::{
   ty::{RegionVid, TyCtxt, TyKind, TyS},
 };
 use rustc_mir::borrow_check::constraints::OutlivesConstraintSet;
-use std::collections::{HashSet};
-
+use std::collections::HashSet;
 
 impl AliasVisitor<'_, '_, 'tcx> {
   pub(super) fn handle_synthetic_aliases(&mut self, region: RegionVid, sub_place: Place<'tcx>) {
@@ -25,14 +24,12 @@ impl AliasVisitor<'_, '_, 'tcx> {
         .map(|ancestors| ancestors.contains(&input_scc))
         .unwrap_or(false);
       if is_alias {
-        let sub_place_idx = self.place_indices.insert(&sub_place);
         let alias_set = self
           .aliases
           .synthetic_aliases
-          .entry(sub_place_idx)
+          .entry(sub_place)
           .or_insert_with(HashSet::new);
-        let input_place_deref = self.place_indices.insert(input_place);
-        alias_set.insert(input_place_deref);
+        alias_set.insert(*input_place);
       }
     }
   }
@@ -66,10 +63,10 @@ impl FindConstraints<'_, 'tcx> {
 
     let constraints = place1_pointers
       .iter()
-      .map(|(region1, sub_place1)| {
+      .map(|(region1, (sub_place1, _))| {
         place2_pointers
           .iter()
-          .filter_map(move |(region2, sub_place2)| {
+          .filter_map(move |(region2, (sub_place2, _))| {
             if TyS::same_type(deref_ty(*sub_place1), deref_ty(*sub_place2)) {
               Some((*region1, *region2))
             } else {
@@ -196,14 +193,17 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
     };
 
     let recursive = BODY_STACK.with(|body_stack| {
-      body_stack.borrow().iter().any(|visited_id| *visited_id == body_id)
+      body_stack
+        .borrow()
+        .iter()
+        .any(|visited_id| *visited_id == body_id)
     });
     if recursive {
       return false;
     }
 
     let relevant_inputs = input_places.iter().enumerate().filter_map(|(i, arg)| {
-      if self.relevant_places(*arg).count() > 0 {
+      if self.relevant_places(*arg).len() > 0 {
         Some(Local::from_usize(1 + i))
       } else {
         None
@@ -211,7 +211,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
     });
 
     let relevant_return = if let Some((dst, _)) = destination {
-      if self.relevant_places(*dst).count() > 0 {
+      if self.relevant_places(*dst).len() > 0 {
         vec![RETURN_PLACE]
       } else {
         vec![]
@@ -250,8 +250,8 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
             None
           }
         })
-        .collect::<Vec<_>>();
-      self.add_relevant(&self.analysis.place_indices.vec_to_set(&relevant_inputs));
+        .collect::<HashSet<_>>();
+      self.add_relevant(&relevant_inputs);
     }
 
     true
