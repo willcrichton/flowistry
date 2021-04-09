@@ -1,6 +1,7 @@
 use super::aliases::{interior_pointers, Aliases, PlaceSet};
 use crate::config::{Config, ContextMode};
 use log::debug;
+use maplit::hashset;
 use rustc_data_structures::graph::dominators::Dominators;
 use rustc_middle::{
   mir::{
@@ -112,13 +113,19 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
   }
 
   pub(super) fn relevant_places(&self, mutated_place: Place<'tcx>) -> PlaceSet<'tcx> {
-    let mutated_places = self.analysis.possible_places(mutated_place);
+    let normalize = |place| {
+      self
+        .analysis
+        .alias_analysis
+        .normalize(place, self.analysis.tcx)
+    };
+    let mutated_places = normalize(mutated_place);
     self
       .state
       .places
       .iter()
       .filter(|relevant_place| {
-        let relevant_places = self.analysis.possible_places(**relevant_place);
+        let relevant_places = normalize(**relevant_place);
         // println!(
         //   "relevant {:?} / {:?}, mutated {:?} / {:?}",
         //   relevant_place, relevant_places, mutated_place, mutated_places
@@ -251,6 +258,8 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
             .flatten()
             .collect::<Vec<_>>();
 
+          // println!("input mut ptrs: {:?}", input_mut_ptrs);
+
           for input_mut_ptr in input_mut_ptrs {
             self.check_mutation(tcx.mk_place_deref(input_mut_ptr), &input_places);
           }
@@ -343,41 +352,6 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       post_dominators,
       current_block,
     }
-  }
-
-  fn possible_places(&self, place: Place<'tcx>) -> PlaceSet<'tcx> {
-    let init_place = Place {
-      local: place.local,
-      projection: self.tcx.intern_place_elems(&[]),
-    };
-    let mut init_set = HashSet::new();
-    init_set.insert(init_place);
-
-    place
-      .iter_projections()
-      .fold(init_set, |places, (_, projection_elem)| {
-        places
-          .into_iter()
-          .map(|place| {
-            let mut projection = place.projection.to_vec();
-            projection.push(projection_elem);
-            Place {
-              local: place.local,
-              projection: self.tcx.intern_place_elems(&projection),
-            }
-          })
-          .map(|place| {
-            let borrows = self
-              .alias_analysis
-              .borrow_aliases
-              .get(&place)
-              .cloned()
-              .unwrap_or_else(HashSet::new);
-            borrows.into_iter().chain(vec![place].into_iter())
-          })
-          .flatten()
-          .collect::<HashSet<_>>()
-      })
   }
 
   fn place_is_part(&self, part_place: Place<'tcx>, whole_place: Place<'tcx>) -> bool {
