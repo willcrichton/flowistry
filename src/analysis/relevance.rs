@@ -1,7 +1,6 @@
 use super::aliases::{interior_pointers, Aliases, PlaceSet};
-use crate::config::{Config, ContextMode};
+use crate::config::{Config, ContextMode, MutabilityMode};
 use log::debug;
-use maplit::hashset;
 use rustc_data_structures::graph::dominators::Dominators;
 use rustc_middle::{
   mir::{
@@ -16,7 +15,11 @@ use rustc_mir::{
   dataflow::{fmt::DebugWithContext, Analysis, AnalysisDomain, Backward, JoinSemiLattice},
 };
 use rustc_span::Span;
-use std::{cell::RefCell, collections::HashSet, fmt};
+use std::{
+  cell::RefCell,
+  collections::{HashMap, HashSet},
+  fmt,
+};
 
 pub type SliceSet = HashSet<Location>;
 
@@ -113,28 +116,21 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
   }
 
   pub(super) fn relevant_places(&self, mutated_place: Place<'tcx>) -> PlaceSet<'tcx> {
-    let normalize = |place| {
-      self
-        .analysis
-        .alias_analysis
-        .normalize(place, self.analysis.tcx)
-    };
-    let mutated_places = normalize(mutated_place);
+    let mutated_places = self.analysis.aliases(mutated_place);
+    debug!("  mutated {:?} / {:?}", mutated_place, mutated_places);
+
     self
       .state
       .places
       .iter()
       .filter(|relevant_place| {
-        let relevant_places = normalize(**relevant_place);
-        // println!(
-        //   "relevant {:?} / {:?}, mutated {:?} / {:?}",
-        //   relevant_place, relevant_places, mutated_place, mutated_places
-        // );
-        relevant_places.iter().any(|relevant_place| {
-          mutated_places.iter().any(|mutated_place| {
-            self.analysis.place_is_part(*relevant_place, *mutated_place)
-              || self.analysis.place_is_part(*mutated_place, *relevant_place)
-          })
+        mutated_places.iter().any(|mutated_place| {
+          self
+            .analysis
+            .place_is_part(**relevant_place, *mutated_place)
+            || self
+              .analysis
+              .place_is_part(*mutated_place, **relevant_place)
         })
       })
       .cloned()
@@ -252,7 +248,13 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
                 .into_iter()
                 .filter_map(|(_, (place, mutability))| match mutability {
                   Mutability::Mut => Some(place),
-                  Mutability::Not => None,
+                  Mutability::Not => {
+                    if self.analysis.config.eval_mode.mutability_mode == MutabilityMode::IgnoreMut {
+                      Some(place)
+                    } else {
+                      None
+                    }
+                  }
                 })
             })
             .flatten()
@@ -318,9 +320,10 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   relevant_locals: PlaceSet<'tcx>,
   pub(super) tcx: TyCtxt<'tcx>,
   body: &'mir Body<'tcx>,
-  alias_analysis: &'a Aliases<'tcx>,
   post_dominators: Dominators<BasicBlock>,
   current_block: RefCell<BasicBlock>,
+  alias_analysis: &'a Aliases<'tcx>,
+  aliases: RefCell<HashMap<Place<'tcx>, PlaceSet<'tcx>>>,
 }
 
 impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
@@ -342,6 +345,8 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       });
     }
 
+    let aliases = RefCell::new(HashMap::new());
+
     RelevanceAnalysis {
       config,
       slice_set,
@@ -349,9 +354,18 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       tcx,
       body,
       alias_analysis,
+      aliases,
       post_dominators,
       current_block,
     }
+  }
+
+  fn aliases(&self, place: Place<'tcx>) -> PlaceSet<'tcx> {
+    let mut aliases = self.aliases.borrow_mut();
+    aliases
+      .entry(place)
+      .or_insert_with(|| self.alias_analysis.aliases(place, self.tcx, self.body))
+      .clone()
   }
 
   fn place_is_part(&self, part_place: Place<'tcx>, whole_place: Place<'tcx>) -> bool {

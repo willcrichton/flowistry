@@ -1,4 +1,4 @@
-use super::aliases::{interior_pointers, AliasVisitor};
+use super::aliases::interior_pointers;
 use super::intraprocedural::BODY_STACK;
 use super::relevance::TransferFunction;
 use log::info;
@@ -13,27 +13,6 @@ use rustc_middle::{
 };
 use rustc_mir::borrow_check::constraints::OutlivesConstraintSet;
 use std::collections::HashSet;
-
-impl AliasVisitor<'_, '_, 'tcx> {
-  pub(super) fn handle_synthetic_aliases(&mut self, region: RegionVid, sub_place: Place<'tcx>) {
-    // for (input_region, input_place) in &self.input_regions {
-    //   let input_scc = self.constraint_sccs.scc(*input_region);
-    //   let is_alias = self
-    //     .region_ancestors
-    //     .get(&region)
-    //     .map(|ancestors| ancestors.contains(&input_scc))
-    //     .unwrap_or(false);
-    //   if is_alias {
-    //     let alias_set = self
-    //       .aliases
-    //       .synthetic_aliases
-    //       .entry(sub_place)
-    //       .or_insert_with(HashSet::new);
-    //     alias_set.insert(*input_place);
-    //   }
-    // }
-  }
-}
 
 struct FindConstraints<'a, 'tcx> {
   tcx: TyCtxt<'tcx>,
