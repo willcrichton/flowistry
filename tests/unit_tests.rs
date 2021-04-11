@@ -496,7 +496,7 @@ fn main() {
     &mut y
   };
   *z += 1;
-  *z;
+  x;
 }
 "#;
 
@@ -504,7 +504,7 @@ fn main() {
 }
 
 #[test]
-fn pointer_transitive() {
+fn pointer_nested() {
   let src = r#"
 fn main() {
   let mut x = 1;
@@ -516,6 +516,35 @@ fn main() {
 "#;
 
   run(src, Range::line(6, 3, 4), vec![2, 3, 4, 5, 6]);
+}
+
+#[test]
+fn pointer_reborrow() {
+  let src = r#"
+fn main() {
+  let mut x = 1;
+  let mut y = &mut x;
+  let z = &mut *y;
+  *z = 2;
+  x;
+}
+"#;
+
+  run(src, Range::line(6, 3, 4), vec![2, 3, 4, 5, 6]);
+}
+
+#[test]
+fn pointer_mutate_field() {
+  let src = r#"
+fn main() {
+  let mut x = (1,);
+  let mut y = &mut x;
+  (*y).0 = 2;
+  x;
+}
+"#;
+
+  run(src, Range::line(5, 3, 4), vec![2, 3, 4, 5]);
 }
 
 #[test]
