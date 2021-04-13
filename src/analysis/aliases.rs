@@ -298,19 +298,24 @@ pub fn compute_aliases(
     let mut changed = false;
     let prev_aliases = aliases.loans.clone();
     for (region, places) in aliases.loans.iter_enumerated_mut() {
-      let alias_regions = region_ancestors[&region]
-        .iter()
-        .map(|scc_index| regions_in_scc[scc_index].iter())
-        .flatten();
+      let alias_places = region_ancestors
+        .get(&region)
+        .map(|sccs| {
+          let alias_regions = sccs
+            .iter()
+            .map(|scc_index| regions_in_scc[scc_index].iter())
+            .flatten();
 
-      let alias_places = alias_regions
-        .filter_map(|region| {
-          prev_aliases
-            .get(region)
-            .map(|places| places.clone().into_iter())
+          alias_regions
+            .filter_map(|region| {
+              prev_aliases
+                .get(region)
+                .map(|places| places.clone().into_iter())
+            })
+            .flatten()
+            .collect::<HashSet<_>>()
         })
-        .flatten()
-        .collect::<HashSet<_>>();
+        .unwrap_or_else(HashSet::new);
 
       let n = places.len();
       places.extend(alias_places.into_iter());
