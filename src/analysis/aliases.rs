@@ -249,12 +249,19 @@ pub fn compute_aliases(
     .unwrap_or(0)
     + 1;
 
+  let regions_in_constraint = outlives_constraints
+    .iter()
+    .map(|constraint| vec![constraint.sup, constraint.sub].into_iter())
+    .flatten()
+    .collect::<HashSet<_>>();
   let mut regions_in_scc =
     IndexVec::from_elem_n(BitSet::new_empty(max_region), constraint_sccs.num_sccs());
   for region in 0..max_region {
     let region = RegionVid::from_usize(region);
-    let scc = constraint_sccs.scc(region);
-    regions_in_scc[scc].insert(region);
+    if regions_in_constraint.contains(&region) {
+      let scc = constraint_sccs.scc(region);
+      regions_in_scc[scc].insert(region);
+    }
   }
 
   let root_region = RegionVid::from_usize(0);
