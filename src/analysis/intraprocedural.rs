@@ -225,7 +225,7 @@ pub fn analyze_function(
       constraint_sccs
     };
 
-    let aliases = compute_aliases(tcx, body, borrow_set, outlives_constraints, constraint_sccs);
+    let aliases = compute_aliases(config, tcx, body, borrow_set, outlives_constraints, constraint_sccs);
 
     let slice_set = if let Some(slice_span) = slice_span {
       let mut finder = FindInitialSliceSet {
