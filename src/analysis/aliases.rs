@@ -1,7 +1,8 @@
+use super::intraprocedural::elapsed;
+use super::places_conflict::{self, PlaceConflictBias};
 use log::{debug, warn};
-use maplit::hashset;
 use rustc_data_structures::graph::scc::Sccs;
-use rustc_index::vec::IndexVec;
+use rustc_index::{bit_set::BitSet, vec::IndexVec};
 use rustc_middle::{
   mir::{
     borrows::BorrowSet,
@@ -10,16 +11,20 @@ use rustc_middle::{
   },
   ty::{self, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS, TypeFoldable, TypeVisitor},
 };
+use rustc_mir::borrow_check::AccessDepth;
 use rustc_target::abi::VariantIdx;
+use std::cell::RefCell;
 use std::collections::{hash_map::Entry, HashMap, HashSet};
 use std::hash::Hash;
 use std::ops::ControlFlow;
+use std::time::Instant;
 
 pub type PlaceSet<'tcx> = HashSet<Place<'tcx>>;
 
 struct CollectRegions<'tcx> {
   tcx: TyCtxt<'tcx>,
-  place_stack: Vec<Place<'tcx>>,
+  local: Local,
+  place_stack: Vec<PlaceElem<'tcx>>,
   ty_stack: Vec<Ty<'tcx>>,
   regions: HashMap<RegionVid, (Place<'tcx>, Mutability)>,
 }
@@ -34,16 +39,15 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
       return ControlFlow::Continue(());
     }
 
-    let last_place = *self.place_stack.last().unwrap();
     self.ty_stack.push(ty);
 
     match ty.kind() {
       TyKind::Tuple(fields) => {
         for (i, field) in fields.iter().enumerate() {
-          let place = self
-            .tcx
-            .mk_place_field(last_place, Field::from_usize(i), field.expect_ty());
-          self.place_stack.push(place);
+          self.place_stack.push(ProjectionElem::Field(
+            Field::from_usize(i),
+            field.expect_ty(),
+          ));
           field.super_visit_with(self);
           self.place_stack.pop();
         }
@@ -53,46 +57,47 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
         ty::AdtKind::Struct => {
           for (i, field) in adt_def.all_fields().enumerate() {
             let ty = field.ty(self.tcx, subst);
-            let place = self
-              .tcx
-              .mk_place_field(last_place, Field::from_usize(i), ty);
-            self.place_stack.push(place);
+            self
+              .place_stack
+              .push(ProjectionElem::Field(Field::from_usize(i), ty));
             self.visit_ty(ty);
             self.place_stack.pop();
           }
         }
         ty::AdtKind::Union => {
-          warn!("unimplemented {:?}", ty);
+          // unsafe, so ignore
         }
         ty::AdtKind::Enum => {
           for (i, variant) in adt_def.variants.iter().enumerate() {
-            let cast_place =
-              self
-                .tcx
-                .mk_place_downcast(last_place, adt_def, VariantIdx::from_usize(i));
+            let variant_index = VariantIdx::from_usize(i);
+            let cast = PlaceElem::Downcast(
+              Some(adt_def.variants[variant_index].ident.name),
+              variant_index,
+            );
+            self.place_stack.push(cast);
             for (j, field) in variant.fields.iter().enumerate() {
               let ty = field.ty(self.tcx, subst);
-              let place = self
-                .tcx
-                .mk_place_field(cast_place, Field::from_usize(j), ty);
-              self.place_stack.push(place);
+              let field = ProjectionElem::Field(Field::from_usize(j), ty);
+              self.place_stack.push(field);
               self.visit_ty(ty);
               self.place_stack.pop();
             }
+            self.place_stack.pop();
           }
         }
       },
 
       TyKind::Array(elem_ty, _) | TyKind::Slice(elem_ty) => {
-        let place = self.tcx.mk_place_index(last_place, Local::from_usize(0));
-        self.place_stack.push(place);
+        self
+          .place_stack
+          .push(ProjectionElem::Index(Local::from_usize(0)));
         self.visit_ty(elem_ty);
         self.place_stack.pop();
       }
 
       TyKind::Ref(region, elem_ty, _) => {
         self.visit_region(region);
-        self.place_stack.push(self.tcx.mk_place_deref(last_place));
+        self.place_stack.push(ProjectionElem::Deref);
         self.visit_ty(elem_ty);
         self.place_stack.pop();
       }
@@ -101,11 +106,19 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
         self.visit_ty(substs.as_closure().tupled_upvars_ty());
       }
 
-      TyKind::RawPtr(_) | TyKind::Projection(_) => {}
+      TyKind::RawPtr(_)
+      | TyKind::Projection(_)
+      | TyKind::FnDef(_, _)
+      | TyKind::FnPtr(_)
+      | TyKind::Opaque(_, _)
+      | TyKind::Foreign(_)
+      | TyKind::Dynamic(_, _)
+      | TyKind::Never => {}
+
       _ if ty.is_primitive_ty() => {}
 
       _ => {
-        warn!("unimplemented {:?}", ty);
+        warn!("unimplemented {:?} ({:?})", ty, ty.kind());
       }
     };
 
@@ -125,9 +138,12 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
         } else {
           Mutability::Mut
         };
-        self
-          .regions
-          .insert(*region, (*self.place_stack.last().unwrap(), mutability));
+
+        let place = Place {
+          local: self.local,
+          projection: self.tcx.intern_place_elems(&self.place_stack),
+        };
+        self.regions.insert(*region, (place, mutability));
       }
       RegionKind::ReStatic => {}
       _ => unreachable!("{:?}: {:?}", self.ty_stack.first().unwrap(), region),
@@ -145,7 +161,8 @@ pub(super) fn interior_pointers<'tcx>(
   let ty = place.ty(body.local_decls(), tcx).ty;
   let mut region_collector = CollectRegions {
     tcx,
-    place_stack: vec![place],
+    local: place.local,
+    place_stack: vec![],
     ty_stack: Vec::new(),
     regions: HashMap::new(),
   };
@@ -153,105 +170,62 @@ pub(super) fn interior_pointers<'tcx>(
   region_collector.regions
 }
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct Aliases<'tcx>(IndexVec<RegionVid, PlaceSet<'tcx>>);
+pub struct Aliases<'a, 'tcx> {
+  loans: IndexVec<RegionVid, PlaceSet<'tcx>>,
+  loan_cache: RefCell<HashMap<Place<'tcx>, PlaceSet<'tcx>>>,
+  body: &'a Body<'tcx>,
+  tcx: TyCtxt<'tcx>,
+}
 
-impl Aliases<'tcx> {
-  pub fn aliases(
-    &self,
-    orig_place: Place<'tcx>,
-    tcx: TyCtxt<'tcx>,
-    body: &Body<'tcx>,
-  ) -> PlaceSet<'tcx> {
-    // let mut aliases =
-    //   if let Some((ptr_place, ProjectionElem::Deref)) = place.iter_projections().last() {
-    //     let ty = ptr_place.ty(body.local_decls(), tcx).ty;
-    //     let region = if let TyKind::Ref(RegionKind::ReVar(region), _, _) = ty.kind() {
-    //       *region
-    //     } else {
-    //       unreachable!("{:?}", ty.kind())
-    //     };
+impl Aliases<'a, 'tcx> {
+  pub fn loans(&self, place: Place<'tcx>) -> PlaceSet<'tcx> {
+    let compute_loans = || {
+      self
+        .loans
+        .iter()
+        .filter_map(|loans| {
+          loans
+            .iter()
+            .any(|loan| self.place_is_part(*loan, place) || self.place_is_part(place, *loan))
+            .then(|| loans.clone().into_iter())
+        })
+        .flatten()
+        .chain(vec![place].into_iter())
+        .collect::<HashSet<_>>()
+    };
 
-    //     self
-    //       .0
-    //       .get(&region)
-    //       .cloned()
-    //       .unwrap_or_else(HashSet::new)
-    //   } else {
-    //     HashSet::new()
-    //   };
-    // aliases.insert(place);
-    // aliases
+    self
+      .loan_cache
+      .borrow_mut()
+      .entry(place)
+      .or_insert_with(compute_loans)
+      .clone()
+  }
 
-    debug!(
-      "initial place {:?} of type {:?}",
-      orig_place,
-      orig_place.ty(body.local_decls(), tcx).ty
-    );
-
-    orig_place.projection.iter().fold(
-      hashset!(Place {
-        local: orig_place.local,
-        projection: tcx.intern_place_elems(&[])
-      }),
-      |places, projection_elem| {
-        places
-          .into_iter()
-          .filter_map(|place| {
-            let ty = place.ty(body.local_decls(), tcx).ty;
-            Some(match projection_elem {
-              ProjectionElem::Deref => {
-                if ty.builtin_deref(false).is_none() {
-                  return None;
-                }
-
-                let place = tcx.mk_place_deref(place);
-
-                let region = if let TyKind::Ref(RegionKind::ReVar(region), _, _) = ty.kind() {
-                  region
-                } else {
-                  return Some(hashset![place].into_iter());
-                };
-
-                self
-                  .0
-                  .get(*region)
-                  .map(|loans| {
-                    loans
-                      .clone()
-                      .into_iter()
-                      .chain(vec![place].into_iter())
-                      .collect::<HashSet<_>>()
-                      .into_iter()
-                  })
-                  .unwrap_or_else(|| hashset! {place}.into_iter())
-              }
-
-              _ => {
-                let mut projection = place.projection.to_vec();
-                projection.push(projection_elem);
-                hashset!(Place {
-                  local: place.local,
-                  projection: tcx.intern_place_elems(&projection)
-                })
-                .into_iter()
-              }
-            })
-          })
-          .flatten()
-          .collect::<HashSet<_>>()
+  pub fn place_is_part(&self, part_place: Place<'tcx>, whole_place: Place<'tcx>) -> bool {
+    // debug!("comparing {:?} and {:?}", whole_place, part_place);
+    places_conflict::borrow_conflicts_with_place(
+      self.tcx,
+      self.body,
+      whole_place,
+      BorrowKind::Mut {
+        allow_two_phase_borrow: true,
       },
+      part_place.as_ref(),
+      AccessDepth::Deep,
+      PlaceConflictBias::Overlap,
     )
   }
 }
 
 pub fn compute_aliases(
   tcx: TyCtxt<'tcx>,
-  body: &'mir Body<'tcx>,
+  body: &'a Body<'tcx>,
   borrow_set: &'a BorrowSet<'tcx>,
   outlives_constraints: &'a Vec<OutlivesConstraint>,
   constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>,
-) -> Aliases<'tcx> {
+) -> Aliases<'a, 'tcx> {
+  let start = Instant::now();
   let max_region = outlives_constraints
     .iter()
     .map(|constraint| constraint.sup.as_usize().max(constraint.sub.as_usize()))
@@ -259,46 +233,57 @@ pub fn compute_aliases(
     .unwrap_or(0)
     + 1;
 
+  let mut regions_in_scc =
+    IndexVec::from_elem_n(BitSet::new_empty(max_region), constraint_sccs.num_sccs());
+  for region in 0..max_region {
+    let region = RegionVid::from_usize(region);
+    let scc = constraint_sccs.scc(region);
+    regions_in_scc[scc].insert(region);
+  }
+
   let root_region = RegionVid::from_usize(0);
   let root_scc = constraint_sccs.scc(root_region);
-  let region_ancestors = compute_region_ancestors(constraint_sccs, max_region, root_scc);
+  let region_ancestors = compute_region_ancestors(constraint_sccs, &regions_in_scc, root_scc);
   debug!("region ancestors: {:#?}", region_ancestors);
 
-  let mut aliases = Aliases(IndexVec::from_elem_n(HashSet::new(), max_region));
+  let mut aliases = Aliases {
+    loans: IndexVec::from_elem_n(HashSet::new(), max_region),
+    loan_cache: RefCell::new(HashMap::new()),
+    body,
+    tcx,
+  };
 
   for (_, borrow) in borrow_set.iter_enumerated() {
     let mutability = borrow.kind.to_mutbl_lossy();
-    if mutability != Mutability::Mut {
-      continue;
+    if mutability == Mutability::Mut {
+      aliases.loans[borrow.region].insert(borrow.borrowed_place);
     }
-
-    aliases.0[borrow.region].insert(borrow.borrowed_place);
   }
 
-  for local in body.args_iter() {
+  for local in body.local_decls().indices() {
     let place = Place {
       local,
       projection: tcx.intern_place_elems(&[]),
     };
 
     for (region, (sub_place, mutability)) in interior_pointers(place, tcx, body) {
-      if mutability != Mutability::Mut {
-        continue;
+      if mutability == Mutability::Mut {
+        aliases.loans[region].insert(tcx.mk_place_deref(sub_place));
       }
-
-      aliases.0[region].insert(tcx.mk_place_deref(sub_place));
     }
   }
+  elapsed("Alias setup", start);
 
-  debug!("initial aliases {:#?}", aliases);
+  debug!("initial aliases {:#?}", aliases.loans);
 
+  let start = Instant::now();
   loop {
     let mut changed = false;
-    let prev_aliases = aliases.0.clone();
-    for (region, places) in aliases.0.iter_enumerated_mut() {
+    let prev_aliases = aliases.loans.clone();
+    for (region, places) in aliases.loans.iter_enumerated_mut() {
       let alias_regions = region_ancestors[&region]
         .iter()
-        .map(|scc_index| regions_in_scc(constraint_sccs, max_region, *scc_index).into_iter())
+        .map(|scc_index| regions_in_scc[scc_index].iter())
         .flatten();
 
       let alias_places = alias_regions
@@ -315,16 +300,41 @@ pub fn compute_aliases(
       changed = places.len() > n;
     }
 
+    // TODO: needed for parity with Oxide, but doesn't seem to be needed for actual correctness?
+    // for (_, borrow) in borrow_set.iter_enumerated() {
+    //   let place = borrow.borrowed_place;
+    //   if let Some(ProjectionElem::Deref) = place.projection.first() {
+    //     let outer_projection = &place.projection[1..];
+    //     let ty = body.local_decls()[place.local].ty;
+    //     if let TyKind::Ref(RegionKind::ReVar(region), _, _) = ty.kind() {
+    //       let new_loans = aliases.loans[*region].clone().into_iter().map(|loan| {
+    //         let mut projection = loan.projection.to_vec();
+    //         projection.extend_from_slice(outer_projection);
+    //         Place {
+    //           local: loan.local,
+    //           projection: tcx.intern_place_elems(&projection),
+    //         }
+    //       });
+    //       aliases
+    //         .loans
+    //         .get_mut(borrow.region)
+    //         .unwrap()
+    //         .extend(new_loans);
+    //     }
+    //   }
+    // }
+
     if !changed {
       break;
     }
   }
 
-  for v in aliases.0.iter_mut() {
+  for v in aliases.loans.iter_mut() {
     *v = v.iter().map(|place| tcx.erase_regions(*place)).collect();
   }
+  elapsed("Alias compute", start);
 
-  debug!("Aliases: {:#?}", aliases);
+  debug!("Aliases: {:#?}", aliases.loans);
 
   aliases
 }
@@ -332,7 +342,7 @@ pub fn compute_aliases(
 fn hashmap_merge<K: Eq + Hash, V>(
   mut h1: HashMap<K, V>,
   h2: HashMap<K, V>,
-  conflict: impl Fn(&V, &V) -> V,
+  conflict: impl Fn(&mut V, V),
 ) -> HashMap<K, V> {
   for (k, v) in h2.into_iter() {
     match h1.entry(k) {
@@ -341,54 +351,47 @@ fn hashmap_merge<K: Eq + Hash, V>(
       }
       Entry::Occupied(mut entry) => {
         let entry = entry.get_mut();
-        *entry = conflict(&*entry, &v);
+        conflict(entry, v);
       }
     }
   }
   h1
 }
 
-fn regions_in_scc(
-  sccs: &Sccs<RegionVid, ConstraintSccIndex>,
-  max_region: usize,
-  idx: ConstraintSccIndex,
-) -> Vec<RegionVid> {
-  (0..max_region)
-    .map(|i| RegionVid::from_usize(i))
-    .filter(|r| sccs.scc(*r) == idx)
-    .collect::<Vec<_>>()
-}
-
 fn compute_region_ancestors(
   sccs: &Sccs<RegionVid, ConstraintSccIndex>,
-  max_region: usize,
+  regions_in_scc: &IndexVec<ConstraintSccIndex, BitSet<RegionVid>>,
   node: ConstraintSccIndex,
-) -> HashMap<RegionVid, HashSet<ConstraintSccIndex>> {
-  let initial_hash = hashset! {node};
+) -> HashMap<RegionVid, BitSet<ConstraintSccIndex>> {
+  let new_set = || BitSet::new_empty(sccs.num_sccs());
+  let set_merge = |s1: &mut BitSet<ConstraintSccIndex>, s2: BitSet<ConstraintSccIndex>| {
+    s1.union(&s2);
+  };
+
+  let mut initial_set = new_set();
+  initial_set.insert(node);
 
   let mut initial_map = HashMap::new();
-  for r in regions_in_scc(sccs, max_region, node) {
-    initial_map.insert(r, initial_hash.clone());
+  for r in regions_in_scc[node].iter() {
+    initial_map.insert(r, initial_set.clone());
   }
 
   sccs
     .successors(node)
     .iter()
     .map(|child| {
-      let in_child = regions_in_scc(sccs, max_region, *child)
-        .into_iter()
-        .map(|r| (r, initial_hash.clone()))
+      let in_child = regions_in_scc[*child]
+        .iter()
+        .map(|r| (r, initial_set.clone()))
         .collect::<HashMap<_, _>>();
-      let grandchildren = compute_region_ancestors(sccs, max_region, *child)
+      let grandchildren = compute_region_ancestors(sccs, regions_in_scc, *child)
         .into_iter()
         .map(|(region, mut parents)| {
           parents.insert(node);
           (region, parents)
         })
         .collect::<HashMap<_, _>>();
-      hashmap_merge(in_child, grandchildren, |h1, h2| h1 | h2)
+      hashmap_merge(in_child, grandchildren, set_merge)
     })
-    .fold(initial_map, |h1, h2| {
-      hashmap_merge(h1, h2, |h1, h2| h1 | h2)
-    })
+    .fold(initial_map, |h1, h2| hashmap_merge(h1, h2, set_merge))
 }

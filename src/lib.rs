@@ -1,6 +1,7 @@
 #![feature(rustc_private, box_patterns, in_band_lifetimes)]
 #![feature(const_panic)] // needed for rustc_index::newtype_index
 #![feature(control_flow_enum)] // needed for alias analysis
+#![feature(or_patterns)] // for places_conflict
 
 extern crate rustc_data_structures;
 extern crate rustc_driver;

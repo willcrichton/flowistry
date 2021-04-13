@@ -61,7 +61,7 @@ fn run() -> Result<()> {
   )?;
 
   let source_path = matches.value_of("path").context("Missing path")?;
-  let (flags, env) = generate_rustc_flags(source_path, features)?;
+  let (flags, env) = generate_rustc_flags(source_path, features, true)?;
   for (k, v) in env {
     env::set_var(k, v);
   }

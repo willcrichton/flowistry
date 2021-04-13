@@ -37,7 +37,7 @@ fn run() -> Result<()> {
   }
 
   let features = CliFeatures::from_command_line(&[], false, true)?;
-  let (flags, env) = generate_rustc_flags(arg!("path"), features)?;
+  let (flags, env) = generate_rustc_flags(arg!("path"), features, false)?;
   for (k, v) in env {
     env::set_var(k, v);
   }

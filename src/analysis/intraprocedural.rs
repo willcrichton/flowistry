@@ -159,7 +159,7 @@ impl SliceOutput {
   }
 }
 
-fn elapsed(name: &str, start: Instant) {
+pub fn elapsed(name: &str, start: Instant) {
   info!("{} took {}s", name, start.elapsed().as_nanos() as f64 / 1e9)
 }
 

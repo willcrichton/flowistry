@@ -425,7 +425,6 @@ fn main() {
   run(src, Range::line(5, 3, 4), vec![2, 3, 4, 5]);
 }
 
-
 #[test]
 fn pointer_read() {
   let src = r#"
@@ -457,6 +456,7 @@ fn main() {
 #[test]
 fn pointer_ignore_reads() {
   // n should be ignored
+  // TODO: line 3 should also be ignored
   let src = r#"
 fn main() {
   let mut x = 1;
@@ -466,7 +466,7 @@ fn main() {
 }
 "#;
 
-  run(src, Range::line(5, 3, 4), vec![2, 5]);
+  run(src, Range::line(5, 3, 4), vec![2, 3, 5]);
 }
 
 #[test]
@@ -534,6 +534,22 @@ fn main() {
 }
 
 #[test]
+fn pointer_reborrow_nested() {
+  let src = r#"
+fn main() {
+  let mut x: i32 = 1;    
+  let mut y = &mut x;
+  let z = &mut y; 
+  let w = &mut **z;
+  *w = 2;
+  *y;
+}
+"#;
+
+  run(src, Range::line(7, 3, 5), vec![2, 3, 4, 5, 6, 7]);
+}
+
+#[test]
 fn pointer_mutate_field() {
   let src = r#"
 fn main() {
@@ -561,7 +577,6 @@ fn main() {
 
   run(src, Range::line(6, 3, 4), vec![4, 5, 6]);
 }
-
 
 #[test]
 fn interprocedural_input() {
@@ -818,8 +833,6 @@ fn main() {}
 
   run(src, Range::line(5, 3, 4), vec![1, 2, 3, 4, 5]);
 }
-
-
 
 #[test]
 fn closure_write_upvar() {
