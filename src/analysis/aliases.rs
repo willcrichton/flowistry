@@ -225,10 +225,26 @@ pub fn compute_aliases(
   outlives_constraints: &'a Vec<OutlivesConstraint>,
   constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>,
 ) -> Aliases<'a, 'tcx> {
+  let all_regions = body
+    .local_decls()
+    .indices()
+    .map(|local| {
+      let place = Place {
+        local,
+        projection: tcx.intern_place_elems(&[]),
+      };
+
+      interior_pointers(place, tcx, body)
+    })
+    .fold(HashMap::new(), |mut h1, h2| {
+      h1.extend(h2);
+      h1
+    });
+
   let start = Instant::now();
-  let max_region = outlives_constraints
-    .iter()
-    .map(|constraint| constraint.sup.as_usize().max(constraint.sub.as_usize()))
+  let max_region = all_regions
+    .keys()
+    .map(|region| region.as_usize())
     .max()
     .unwrap_or(0)
     + 1;
@@ -253,6 +269,12 @@ pub fn compute_aliases(
     tcx,
   };
 
+  for (region, (sub_place, mutability)) in all_regions {
+    if mutability == Mutability::Mut {
+      aliases.loans[region].insert(tcx.mk_place_deref(sub_place));
+    }
+  }
+
   for (_, borrow) in borrow_set.iter_enumerated() {
     let mutability = borrow.kind.to_mutbl_lossy();
     if mutability == Mutability::Mut {
@@ -260,18 +282,6 @@ pub fn compute_aliases(
     }
   }
 
-  for local in body.local_decls().indices() {
-    let place = Place {
-      local,
-      projection: tcx.intern_place_elems(&[]),
-    };
-
-    for (region, (sub_place, mutability)) in interior_pointers(place, tcx, body) {
-      if mutability == Mutability::Mut {
-        aliases.loans[region].insert(tcx.mk_place_deref(sub_place));
-      }
-    }
-  }
   elapsed("Alias setup", start);
 
   debug!("initial aliases {:#?}", aliases.loans);
