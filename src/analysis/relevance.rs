@@ -8,18 +8,13 @@ use rustc_middle::{
     visit::{PlaceContext, Visitor},
     *,
   },
-  ty::{TyCtxt, TyKind},
+  ty::TyCtxt,
 };
-use rustc_mir::{
-  borrow_check::{borrow_conflicts_with_place, AccessDepth, PlaceConflictBias},
-  dataflow::{fmt::DebugWithContext, Analysis, AnalysisDomain, Backward, JoinSemiLattice},
+use rustc_mir::dataflow::{
+  fmt::DebugWithContext, Analysis, AnalysisDomain, Backward, JoinSemiLattice,
 };
 use rustc_span::Span;
-use std::{
-  cell::RefCell,
-  collections::{HashMap, HashSet},
-  fmt,
-};
+use std::{cell::RefCell, collections::HashSet, fmt};
 
 pub type SliceSet = HashSet<Location>;
 
@@ -116,7 +111,8 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
   }
 
   pub(super) fn relevant_places(&self, mutated_place: Place<'tcx>) -> PlaceSet<'tcx> {
-    let mutated_places = self.analysis.aliases(mutated_place);
+    // let mutated_places = self.analysis.aliases(mutated_place);
+    let mutated_places = self.analysis.alias_analysis.loans(mutated_place);
     debug!("  mutated {:?} / {:?}", mutated_place, mutated_places);
 
     self
@@ -127,9 +123,11 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
         mutated_places.iter().any(|mutated_place| {
           self
             .analysis
+            .alias_analysis
             .place_is_part(**relevant_place, *mutated_place)
             || self
               .analysis
+              .alias_analysis
               .place_is_part(*mutated_place, **relevant_place)
         })
       })
@@ -139,11 +137,12 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
 
   fn check_mutation(&mut self, place: Place<'tcx>, input_places: &PlaceSet<'tcx>) {
     // is `place` in the relevant set?
-    let relevant_mutated = self.relevant_places(place);
     debug!(
-      "checking {:?} with relevant = {:?} and relevant mutated = {:?}",
-      place, self.state.places, relevant_mutated,
+      "checking {:?} with relevant = {:?}",
+      place, self.state.places,
     );
+    let relevant_mutated = self.relevant_places(place);
+    debug!("  relevant mutated = {:?}", relevant_mutated);
 
     if relevant_mutated.len() > 0 {
       // if relevant_mutated.count() == 1 {
@@ -322,8 +321,7 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   body: &'mir Body<'tcx>,
   post_dominators: Dominators<BasicBlock>,
   current_block: RefCell<BasicBlock>,
-  alias_analysis: &'a Aliases<'tcx>,
-  aliases: RefCell<HashMap<Place<'tcx>, PlaceSet<'tcx>>>,
+  alias_analysis: &'a Aliases<'a, 'tcx>,
 }
 
 impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
@@ -333,7 +331,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     relevant_locals_set: HashSet<Local>,
     tcx: TyCtxt<'tcx>,
     body: &'mir Body<'tcx>,
-    alias_analysis: &'a Aliases<'tcx>,
+    alias_analysis: &'a Aliases<'a, 'tcx>,
     post_dominators: Dominators<BasicBlock>,
   ) -> Self {
     let current_block = RefCell::new(body.basic_blocks().indices().next().unwrap());
@@ -345,8 +343,6 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       });
     }
 
-    let aliases = RefCell::new(HashMap::new());
-
     RelevanceAnalysis {
       config,
       slice_set,
@@ -354,51 +350,9 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       tcx,
       body,
       alias_analysis,
-      aliases,
       post_dominators,
       current_block,
     }
-  }
-
-  fn aliases(&self, place: Place<'tcx>) -> PlaceSet<'tcx> {
-    let mut aliases = self.aliases.borrow_mut();
-    aliases
-      .entry(place)
-      .or_insert_with(|| self.alias_analysis.aliases(place, self.tcx, self.body))
-      .clone()
-  }
-
-  fn place_is_part(&self, part_place: Place<'tcx>, whole_place: Place<'tcx>) -> bool {
-    // borrow_conflicts_with_place considers it a bug if borrow_place is behind immutable deref, so special case this
-    // see places_conflict.rs:234-236
-    {
-      let access_place = part_place;
-      let borrow_place = whole_place;
-      if borrow_place.projection.len() > access_place.projection.len() {
-        for (i, _elem) in borrow_place.projection[access_place.projection.len()..]
-          .iter()
-          .enumerate()
-        {
-          let proj_base = &borrow_place.projection[..access_place.projection.len() + i];
-          let base_ty = Place::ty_from(borrow_place.local, proj_base, self.body, self.tcx).ty;
-          if let TyKind::Ref(_, _, Mutability::Not) = base_ty.kind() {
-            return false;
-          }
-        }
-      }
-    }
-
-    borrow_conflicts_with_place(
-      self.tcx,
-      self.body,
-      whole_place,
-      BorrowKind::Mut {
-        allow_two_phase_borrow: true,
-      },
-      part_place.as_ref(),
-      AccessDepth::Deep,
-      PlaceConflictBias::Overlap,
-    )
   }
 }
 

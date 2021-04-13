@@ -17,7 +17,7 @@ mod eval_extensions;
 pub mod intraprocedural;
 mod post_dominators;
 mod relevance;
-
+mod places_conflict;
 struct VisitorContext<'tcx> {
   tcx: TyCtxt<'tcx>,
   slice_span: Span,
