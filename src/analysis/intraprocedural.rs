@@ -55,6 +55,8 @@ struct CollectResults<'a, 'tcx> {
   relevant_spans: Vec<Span>,
   all_locals: HashSet<Local>,
   local_blacklist: HashSet<Local>,
+  num_relevant_instructions: usize,
+  num_instructions: usize
 }
 
 impl<'a, 'tcx> CollectResults<'a, 'tcx> {
@@ -101,6 +103,11 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
         }
       }
     }
+
+    if state.statement_relevant {
+      self.num_relevant_instructions += 1;
+    }
+    self.num_instructions += 1;
   }
 
   fn visit_terminator_after_primary_effect(
@@ -120,6 +127,11 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
     } else {
       self.check_statement(state, location);
     }
+
+    if state.statement_relevant {
+      self.num_relevant_instructions += 1;
+    }
+    self.num_instructions += 1;
   }
 }
 
@@ -143,19 +155,27 @@ where
 }
 
 #[derive(Debug, Clone)]
-pub struct SliceOutput(Vec<Range>);
+pub struct SliceOutput {
+  spans: Vec<Range>,
+  pub num_instructions: usize,
+  pub num_relevant_instructions: usize
+}
 
 impl SliceOutput {
   pub fn new() -> Self {
-    SliceOutput(Vec::new())
+    SliceOutput {
+      spans: Vec::new(),
+      num_instructions: 0,
+      num_relevant_instructions: 0
+    }
   }
 
   pub fn merge(&mut self, other: SliceOutput) {
-    self.0.extend(other.0.into_iter());
+    self.spans.extend(other.spans.into_iter());
   }
 
   pub fn ranges(&self) -> &Vec<Range> {
-    &self.0
+    &self.spans
   }
 }
 
@@ -267,6 +287,8 @@ pub fn analyze_function(
       relevant_locals: relevant_locals.clone(),
       all_locals: HashSet::new(),
       local_blacklist: HashSet::new(),
+      num_relevant_instructions: 0,
+      num_instructions: 0
     };
     relevance_results.visit_reachable_with(body, &mut visitor);
     elapsed("relevance", start);
@@ -283,7 +305,11 @@ pub fn analyze_function(
       .filter_map(|span| Range::from_span(span, source_map).ok())
       .collect();
 
-    Ok((SliceOutput(ranges), visitor.all_locals))
+    Ok((SliceOutput {
+      spans: ranges,
+      num_instructions: visitor.num_instructions,
+      num_relevant_instructions: visitor.num_relevant_instructions
+    }, visitor.all_locals))
   };
 
   ANALYSIS_CACHE.with(|cache| {
