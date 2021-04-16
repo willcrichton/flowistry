@@ -71,10 +71,14 @@ impl Range {
     })
   }
 
-  pub fn to_span(&self, source_file: &SourceFile) -> Span {
+  pub fn to_span(&self, source_file: &SourceFile) -> Option<Span> {
+    if self.end_line >= source_file.lines.len() {
+      return None;
+    }
+
     let start_pos = source_file.line_bounds(self.start_line).start + BytePos(self.start_col as u32);
     let end_pos = source_file.line_bounds(self.end_line).start + BytePos(self.end_col as u32);
-    Span::with_root_ctxt(start_pos, end_pos)
+    Some(Span::with_root_ctxt(start_pos, end_pos))
   }
 }
 
