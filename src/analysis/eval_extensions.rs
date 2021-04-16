@@ -1,5 +1,5 @@
 use super::aliases::interior_pointers;
-use super::intraprocedural::BODY_STACK;
+use super::intraprocedural::{SliceLocation, BODY_STACK};
 use super::relevance::TransferFunction;
 use log::info;
 use rustc_data_structures::graph::scc::Sccs;
@@ -211,8 +211,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       self.analysis.config,
       self.analysis.tcx,
       body_id,
-      None,
-      relevant_locals.iter().cloned().collect::<Vec<_>>(),
+      &SliceLocation::LocalsOnExit(relevant_locals.iter().cloned().collect::<Vec<_>>())
     )
     .unwrap();
 

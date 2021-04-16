@@ -14,9 +14,9 @@ use rustc_mir::dataflow::{
   fmt::DebugWithContext, Analysis, AnalysisDomain, Backward, JoinSemiLattice,
 };
 use rustc_span::Span;
-use std::{cell::RefCell, collections::HashSet, fmt};
+use std::{cell::RefCell, collections::{HashSet, HashMap}, fmt};
 
-pub type SliceSet = HashSet<Location>;
+pub type SliceSet<'tcx> = HashMap<Location, PlaceSet<'tcx>>;
 
 // Previous strategy of representing path relevance as a bool didn't seem to work out
 // with out dataflow framework handles start/exit states and join? Adding a third unknown
@@ -168,6 +168,12 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
       self.add_relevant(input_places);
     }
   }
+
+  fn check_slice_set(&mut self, location: Location) {
+    self.analysis.slice_set.get(&location).map(|places| {
+      self.add_relevant(places);
+    });
+  }
 }
 
 impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> {
@@ -192,15 +198,9 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
     self.check_mutation(*place, &collector.places);
   }
 
-  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, location: Location) {
-    if self.analysis.slice_set.contains(&location) {
-      let mut relevant = HashSet::new();
-      relevant.insert(*place);
-      self.add_relevant(&relevant);
-    }
-  }
+  fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
+    self.super_terminator(terminator, location);
 
-  fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, _location: Location) {
     // Ignore FalseEdge nodes since they can trip up the soundness of path_relevance wrt the post-dominator tree.
     // eg a FalseEdge node always post-dominates a while-loop condition so it would set path_relevant to false,
     // but while-body state gets propagated through the FalseEdge node which cause the while-condition to be incorrectly
@@ -231,7 +231,8 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
           })
           .collect::<Vec<_>>();
 
-        let could_recurse = if self.analysis.config.eval_mode.context_mode == ContextMode::Recurse {
+        let eval_mode = self.analysis.config.eval_mode;
+        let could_recurse = if eval_mode.context_mode == ContextMode::Recurse {
           self.slice_into_procedure(&terminator.kind, &input_places)
         } else {
           false
@@ -248,18 +249,12 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
                 .filter_map(|(_, (place, mutability))| match mutability {
                   Mutability::Mut => Some(place),
                   Mutability::Not => {
-                    if self.analysis.config.eval_mode.mutability_mode == MutabilityMode::IgnoreMut {
-                      Some(place)
-                    } else {
-                      None
-                    }
+                    (eval_mode.mutability_mode == MutabilityMode::IgnoreMut).then(|| place)
                   }
                 })
             })
             .flatten()
             .collect::<Vec<_>>();
-
-          // println!("input mut ptrs: {:?}", input_mut_ptrs);
 
           for input_mut_ptr in input_mut_ptrs {
             self.check_mutation(tcx.mk_place_deref(input_mut_ptr), &input_places);
@@ -315,8 +310,7 @@ impl Visitor<'tcx> for FindSpans {
 
 pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   pub(super) config: &'a Config,
-  slice_set: SliceSet,
-  relevant_locals: PlaceSet<'tcx>,
+  slice_set: SliceSet<'tcx>,
   pub(super) tcx: TyCtxt<'tcx>,
   body: &'mir Body<'tcx>,
   post_dominators: Dominators<BasicBlock>,
@@ -327,26 +321,17 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
 impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
   pub fn new(
     config: &'a Config,
-    slice_set: SliceSet,
-    relevant_locals_set: HashSet<Local>,
+    slice_set: SliceSet<'tcx>,
     tcx: TyCtxt<'tcx>,
     body: &'mir Body<'tcx>,
     alias_analysis: &'a Aliases<'a, 'tcx>,
     post_dominators: Dominators<BasicBlock>,
   ) -> Self {
     let current_block = RefCell::new(body.basic_blocks().indices().next().unwrap());
-    let mut relevant_locals = HashSet::new();
-    for local in &relevant_locals_set {
-      relevant_locals.insert(Place {
-        local: *local,
-        projection: tcx.intern_place_elems(&[]),
-      });
-    }
 
     RelevanceAnalysis {
       config,
       slice_set,
-      relevant_locals,
       tcx,
       body,
       alias_analysis,
@@ -363,7 +348,7 @@ impl<'a, 'mir, 'tcx> AnalysisDomain<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> 
 
   fn bottom_value(&self, _body: &mir::Body<'tcx>) -> Self::Domain {
     RelevanceDomain {
-      places: self.relevant_locals.clone(),
+      places: PlaceSet::new(),
       statement_relevant: false,
       path_relevant: Relevant::Unknown,
     }
@@ -380,11 +365,12 @@ impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
     location: Location,
   ) {
     *self.current_block.borrow_mut() = location.block;
-    TransferFunction {
+    let mut tf = TransferFunction {
       state,
       analysis: self,
-    }
-    .visit_statement(statement, location);
+    };
+    tf.visit_statement(statement, location);
+    tf.check_slice_set(location);    
   }
 
   fn apply_terminator_effect(
@@ -394,11 +380,12 @@ impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
     location: Location,
   ) {
     *self.current_block.borrow_mut() = location.block;
-    TransferFunction {
+    let mut tf = TransferFunction {
       state,
       analysis: self,
-    }
-    .visit_terminator(terminator, location);
+    };
+    tf.visit_terminator(terminator, location);
+    tf.check_slice_set(location);    
   }
 
   fn apply_call_return_effect(

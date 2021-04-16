@@ -15,44 +15,43 @@ use serde::Serialize;
 use std::sync::Mutex;
 use std::time::Instant;
 
-struct EvalBodyVisitor<'tcx> {
-  tcx: TyCtxt<'tcx>,
-  spans: Vec<Span>,
-  body_span: Span,
+// struct EvalBodyVisitor<'tcx> {
+//   tcx: TyCtxt<'tcx>,
+//   spans: Vec<Span>,
+//   body_span: Span,
+// }
 
-}
+// impl EvalBodyVisitor<'_> {
+//   fn add_span(&mut self, span: Span) {
+//     if self.body_span.contains(span) {
+//       self.spans.push(span);
+//     }
+//   }
+// }
 
-impl EvalBodyVisitor<'_> {
-  fn add_span(&mut self, span: Span) {
-    if self.body_span.contains(span) {
-      self.spans.push(span);
-    }
-  }
-}
+// impl Visitor<'tcx> for EvalBodyVisitor<'tcx> {
+//   type Map = Map<'tcx>;
 
-impl Visitor<'tcx> for EvalBodyVisitor<'tcx> {
-  type Map = Map<'tcx>;
+//   fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
+//     NestedVisitorMap::OnlyBodies(self.tcx.hir())
+//   }
 
-  fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
-    NestedVisitorMap::OnlyBodies(self.tcx.hir())
-  }
+//   fn visit_local(&mut self, local: &'tcx Local<'tcx>) {
+//     intravisit::walk_local(self, local);
+//     self.add_span(local.span);
+//   }
 
-  fn visit_local(&mut self, local: &'tcx Local<'tcx>) {
-    intravisit::walk_local(self, local);
-    self.add_span(local.span);
-  }
+//   fn visit_expr(&mut self, ex: &'tcx Expr<'tcx>) {
+//     intravisit::walk_expr(self, ex);
 
-  fn visit_expr(&mut self, ex: &'tcx Expr<'tcx>) {
-    intravisit::walk_expr(self, ex);
-
-    match ex.kind {
-      ExprKind::Assign(_, _, _) | ExprKind::AssignOp(_, _, _) => {
-        self.add_span(ex.span);
-      }
-      _ => {}
-    }
-  }
-}
+//     match ex.kind {
+//       ExprKind::Assign(_, _, _) | ExprKind::AssignOp(_, _, _) => {
+//         self.add_span(ex.span);
+//       }
+//       _ => {}
+//     }
+//   }
+// }
 
 pub struct EvalCrateVisitor<'tcx> {
   tcx: TyCtxt<'tcx>,
@@ -103,23 +102,35 @@ impl EvalCrateVisitor<'tcx> {
     let (token_stream, _) = rustc_parse::maybe_file_to_stream(&self.tcx.sess.parse_sess, source_file.clone(), None).unwrap();
     let tokens = &flatten_stream(token_stream);
 
-    let body = self.tcx.hir().body(*body_id);
-
-    let mut body_visitor = EvalBodyVisitor {
-      tcx: self.tcx,
-      spans: Vec::new(),
-      body_span
-    };
-    body_visitor.visit_expr(&body.value);
-
-    let def_id = self.tcx.hir().body_owner_def_id(*body_id).to_def_id();
-    let function_path = &self.tcx.def_path_debug_str(def_id);
+    let local_def_id = self.tcx.hir().body_owner_def_id(*body_id)
+    let function_path = &self.tcx.def_path_debug_str(local_def_id.to_def_id());
     debug!("Visiting {}", function_path);
 
-    let eval_results = body_visitor
-      .spans
-      .into_iter()
-      .map(|span| {
+    // let body = self.tcx.hir().body(*body_id);
+    // let mut body_visitor = EvalBodyVisitor {
+    //   tcx: self.tcx,
+    //   spans: Vec::new(),
+    //   body_span
+    // };
+    // body_visitor.visit_expr(&body.value);
+    // let body_spans = body_visitor.spans.into_iter();
+    
+    let borrowck_result = tcx.mir_borrowck(local_def_id);
+    let body = &borrowck_result.intermediates.body;
+    let return_locations = body.basic_blocks().iter_enumerated().filter_map(|(block, bb_data)| {
+      if let TerminatorKind::Return = bb_data.terminator().kind {
+        let statement_index = bb_data.statements.len();
+        Some(Location { block, statement_index })
+      } else {
+        None
+      }
+    }).collect::<Vec<_>>();
+    let body_spans = body.local_decls().indices().map(|local| {
+      
+    });
+
+
+    let eval_results = body_spans.map(|span| {
         let source_map = self.tcx.sess.source_map();
         let tcx = self.tcx;
 
