@@ -10,7 +10,7 @@ use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::{FileName, RealFileName, Span};
 use std::time::Instant;
 
-pub use intraprocedural::SliceOutput;
+pub use intraprocedural::{SliceLocation, SliceOutput};
 
 mod aliases;
 mod eval_extensions;
@@ -38,7 +38,7 @@ impl VisitorContext<'_> {
       output.and_then(move |mut output| {
         let start = Instant::now();
         let (fn_output, _) =
-          intraprocedural::analyze_function(config, tcx, body_id, Some(slice_span), Vec::new())?;
+          intraprocedural::analyze_function(config, tcx, body_id, &SliceLocation::Span(slice_span))?;
         debug!(
           "Finished in {} seconds",
           start.elapsed().as_nanos() as f64 / 1e9

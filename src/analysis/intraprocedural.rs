@@ -32,12 +32,12 @@ use std::{
 
 struct FindInitialSliceSet<'a, 'tcx> {
   slice_span: Span,
-  slice_set: SliceSet,
+  slice_set: SliceSet<'tcx>,
   body: &'a Body<'tcx>,
 }
 
 impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
-  fn visit_place(&mut self, _place: &Place<'tcx>, _context: PlaceContext, location: Location) {
+  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, location: Location) {
     let source_info = self.body.source_info(location);
     let span = source_info.span;
 
@@ -45,13 +45,13 @@ impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
       return;
     }
 
-    self.slice_set.insert(location);
+    self.slice_set.entry(location).or_insert_with(HashSet::new).insert(*place);
   }
 }
 
 struct CollectResults<'a, 'tcx> {
   body: &'a Body<'tcx>,
-  relevant_locals: HashSet<Local>,
+  // relevant_locals: HashSet<Local>,
   relevant_spans: Vec<Span>,
   all_locals: HashSet<Local>,
   local_blacklist: HashSet<Local>,
@@ -73,7 +73,7 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
       .iter()
       .map(|place| place.local)
       .collect::<HashSet<_>>();
-    self.all_locals = &self.all_locals | &(&locals - &self.relevant_locals);
+    self.all_locals = &self.all_locals | &locals; //&(&locals - &self.relevant_locals);
   }
 }
 
@@ -184,19 +184,60 @@ pub fn elapsed(name: &str, start: Instant) {
 }
 
 #[derive(Hash, PartialEq, Eq, Clone)]
-struct CacheKey(Config, BodyId, Option<Span>, Vec<Local>);
+struct CacheKey(Config, BodyId, SliceLocation);
 
 thread_local! {
   static ANALYSIS_CACHE: RefCell<HashMap<CacheKey, (SliceOutput, HashSet<Local>)>> = RefCell::new(HashMap::new());
   pub static BODY_STACK: RefCell<Vec<BodyId>> = RefCell::new(Vec::new());
+} 
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum SliceLocation {
+  Span(Span),
+  LocalsOnExit(Vec<Local>)
+}
+
+impl SliceLocation {
+  fn to_slice_set(&self, tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> SliceSet<'tcx> {
+    match self {
+      SliceLocation::Span(slice_span) => {
+        let mut finder = FindInitialSliceSet {
+          slice_span: *slice_span,
+          slice_set: HashMap::new(),
+          body,
+        };
+        finder.visit_body(body);
+        finder.slice_set
+      }
+      SliceLocation::LocalsOnExit(locals) => {
+        let return_locations = body.basic_blocks().iter_enumerated().filter_map(|(block, bb_data)| {
+          if let TerminatorKind::Return = bb_data.terminator().kind {
+            let statement_index = bb_data.statements.len();
+            Some(Location { block, statement_index })
+          } else {
+            None
+          }
+        });
+
+        return_locations.map(|location| {
+          let places = locals.iter().cloned().map(|local| {
+            Place {
+              local,
+              projection: tcx.intern_place_elems(&[])
+            }
+          }).collect::<HashSet<_>>();
+          (location, places)
+        }).collect::<HashMap<_, _>>()
+      }
+    }
+  }
 }
 
 pub fn analyze_function(
   config: &Config,
   tcx: TyCtxt,
   body_id: BodyId,
-  slice_span: Option<Span>,
-  relevant_locals: Vec<Local>,
+  slice_location: &SliceLocation,
 ) -> Result<(SliceOutput, HashSet<Local>)> {
   let analyze = || -> Result<_> {
     let start = Instant::now();
@@ -247,27 +288,15 @@ pub fn analyze_function(
 
     let aliases = compute_aliases(config, tcx, body, borrow_set, outlives_constraints, constraint_sccs);
 
-    let slice_set = if let Some(slice_span) = slice_span {
-      let mut finder = FindInitialSliceSet {
-        slice_span,
-        slice_set: HashSet::new(),
-        body,
-      };
-      finder.visit_body(body);
-      finder.slice_set
-    } else {
-      HashSet::new()
-    };
+    let slice_set = slice_location.to_slice_set(tcx, body);
 
     debug!("Initial slice set: {:?}", slice_set);
     elapsed("pre-relevance", start);
 
     let start = Instant::now();
-    let relevant_locals = relevant_locals.iter().cloned().collect::<HashSet<_>>();
     let relevance_results = RelevanceAnalysis::new(
       config,
       slice_set,
-      relevant_locals.clone(),
       tcx,
       body,
       &aliases,
@@ -284,7 +313,6 @@ pub fn analyze_function(
     let mut visitor = CollectResults {
       body,
       relevant_spans: vec![],
-      relevant_locals: relevant_locals.clone(),
       all_locals: HashSet::new(),
       local_blacklist: HashSet::new(),
       num_relevant_instructions: 0,
@@ -316,8 +344,7 @@ pub fn analyze_function(
     let key = CacheKey(
       config.clone(),
       body_id,
-      slice_span.clone(),
-      relevant_locals.clone(),
+      slice_location.clone(),
     );
 
     if !cache.borrow().contains_key(&key) {
