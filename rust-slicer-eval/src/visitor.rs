@@ -1,6 +1,7 @@
 use itertools::iproduct;
 use log::debug;
 use rust_slicer::config::{Config, ContextMode, EvalMode, MutabilityMode, PointerMode, Range};
+use rust_slicer::analysis::intraprocedural;
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
   itemlikevisit::ParItemLikeVisitor,
@@ -11,9 +12,11 @@ use rustc_middle::{
   ty::{TyCtxt},
 };
 use rustc_span::{Span};
+use rustc_data_structures::sync::{par_iter, ParallelIterator};
 use serde::Serialize;
 use std::sync::Mutex;
 use std::time::Instant;
+use rand::{seq::IteratorRandom, thread_rng};
 
 // struct EvalBodyVisitor<'tcx> {
 //   tcx: TyCtxt<'tcx>,
@@ -63,7 +66,7 @@ pub struct EvalResult {
   mutability_mode: MutabilityMode,
   context_mode: ContextMode,
   pointer_mode: PointerMode,
-  slice: Range,
+  sliced_local: usize,
   function_range: Range,
   function_path: String,
   output: Vec<Range>,
@@ -84,6 +87,8 @@ fn flatten_stream(stream: TokenStream) -> Vec<Token> {
   }).flatten().collect()
 }
 
+const SAMPLE_SIZE: usize = 100;
+
 impl EvalCrateVisitor<'tcx> {
   pub fn new(tcx: TyCtxt<'tcx>) -> Self {
     EvalCrateVisitor {
@@ -102,7 +107,7 @@ impl EvalCrateVisitor<'tcx> {
     let (token_stream, _) = rustc_parse::maybe_file_to_stream(&self.tcx.sess.parse_sess, source_file.clone(), None).unwrap();
     let tokens = &flatten_stream(token_stream);
 
-    let local_def_id = self.tcx.hir().body_owner_def_id(*body_id)
+    let local_def_id = self.tcx.hir().body_owner_def_id(*body_id);
     let function_path = &self.tcx.def_path_debug_str(local_def_id.to_def_id());
     debug!("Visiting {}", function_path);
 
@@ -114,23 +119,13 @@ impl EvalCrateVisitor<'tcx> {
     // };
     // body_visitor.visit_expr(&body.value);
     // let body_spans = body_visitor.spans.into_iter();
-    
-    let borrowck_result = tcx.mir_borrowck(local_def_id);
+
+    let borrowck_result = self.tcx.mir_borrowck(local_def_id);
     let body = &borrowck_result.intermediates.body;
-    let return_locations = body.basic_blocks().iter_enumerated().filter_map(|(block, bb_data)| {
-      if let TerminatorKind::Return = bb_data.terminator().kind {
-        let statement_index = bb_data.statements.len();
-        Some(Location { block, statement_index })
-      } else {
-        None
-      }
-    }).collect::<Vec<_>>();
-    let body_spans = body.local_decls().indices().map(|local| {
-      
-    });
+    let mut rng = thread_rng();
+    let locals = body.local_decls.indices().choose_multiple(&mut rng, SAMPLE_SIZE);
 
-
-    let eval_results = body_spans.map(|span| {
+    let eval_results = par_iter(locals).map(|local| {
         let source_map = self.tcx.sess.source_map();
         let tcx = self.tcx;
 
@@ -141,22 +136,20 @@ impl EvalCrateVisitor<'tcx> {
         )
         .filter_map(move |(mutability_mode, context_mode, pointer_mode)| {
           let config = Config {
-            range: Range::from_span(span, source_map).ok()?,
-            debug: false,
             eval_mode: EvalMode {
               mutability_mode,
               context_mode,
               pointer_mode,
             },
+            ..Default::default()
           };
 
           let start = Instant::now();
-          let (output, _) = rust_slicer::analysis::intraprocedural::analyze_function(
+          let (output, _) = intraprocedural::analyze_function(
             &config,
             tcx,
             *body_id,
-            Some(span),
-            Vec::new(),
+            &intraprocedural::SliceLocation::LocalsOnExit(vec![local])
           )
           .unwrap();
 
@@ -170,7 +163,7 @@ impl EvalCrateVisitor<'tcx> {
             context_mode,
             mutability_mode,
             pointer_mode,
-            slice: config.range,
+            sliced_local: local.as_usize(),
             function_range: Range::from_span(body_span, source_map).ok()?,
             function_path: function_path.clone(),
             output: output.ranges().to_vec(),
@@ -182,6 +175,8 @@ impl EvalCrateVisitor<'tcx> {
           })
         })
       })
+      .collect::<Vec<_>>()
+      .into_iter()
       .flatten()
       .collect::<Vec<_>>();
 

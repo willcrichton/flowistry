@@ -11,6 +11,7 @@ use serde::Serialize;
 
 use crate::visitor::EvalCrateVisitor;
 
+extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_hir;
 extern crate rustc_interface;

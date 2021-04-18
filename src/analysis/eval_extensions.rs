@@ -132,6 +132,8 @@ pub fn generate_conservative_constraints<'tcx>(
   constraint_set.compute_sccs(&constraint_graph, RegionVid::from_usize(0))
 }
 
+const MAX_DEPTH: usize = 2;
+
 impl TransferFunction<'_, '_, '_, 'tcx> {
   pub(super) fn slice_into_procedure(
     &mut self,
@@ -171,15 +173,16 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       return false;
     };
 
-    let recursive = BODY_STACK.with(|body_stack| {
-      body_stack
-        .borrow()
+    let (recursive, depth) = BODY_STACK.with(|body_stack| {
+      let body_stack = body_stack.borrow();
+      (body_stack
         .iter()
-        .any(|visited_id| *visited_id == body_id)
+        .any(|visited_id| *visited_id == body_id), body_stack.len())
     });
-    if recursive {
+    if recursive || depth >= MAX_DEPTH {
       return false;
     }
+
 
     let relevant_inputs = input_places.iter().enumerate().filter_map(|(i, arg)| {
       if self.relevant_places(*arg).len() > 0 {
