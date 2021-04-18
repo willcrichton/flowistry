@@ -15,9 +15,9 @@ pub use intraprocedural::{SliceLocation, SliceOutput};
 mod aliases;
 mod eval_extensions;
 pub mod intraprocedural;
+mod places_conflict;
 mod post_dominators;
 mod relevance;
-mod places_conflict;
 struct VisitorContext<'tcx> {
   tcx: TyCtxt<'tcx>,
   slice_span: Span,
@@ -37,8 +37,12 @@ impl VisitorContext<'_> {
     take_mut::take(&mut self.output, move |output| {
       output.and_then(move |mut output| {
         let start = Instant::now();
-        let (fn_output, _) =
-          intraprocedural::analyze_function(config, tcx, body_id, &SliceLocation::Span(slice_span))?;
+        let (fn_output, _) = intraprocedural::analyze_function(
+          config,
+          tcx,
+          body_id,
+          &SliceLocation::Span(slice_span),
+        )?;
         debug!(
           "Finished in {} seconds",
           start.elapsed().as_nanos() as f64 / 1e9
