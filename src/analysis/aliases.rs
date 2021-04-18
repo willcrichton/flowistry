@@ -1,6 +1,6 @@
 use super::intraprocedural::elapsed;
 use super::places_conflict::{self, PlaceConflictBias};
-use crate::config::{MutabilityMode, Config};
+use crate::config::{Config, MutabilityMode};
 use log::{debug, warn};
 use rustc_data_structures::graph::scc::Sccs;
 use rustc_index::{bit_set::BitSet, vec::IndexVec};
@@ -279,14 +279,18 @@ pub fn compute_aliases(
   };
 
   for (region, (sub_place, mutability)) in all_regions {
-    if mutability == Mutability::Mut || config.eval_mode.mutability_mode == MutabilityMode::IgnoreMut {
+    if mutability == Mutability::Mut
+      || config.eval_mode.mutability_mode == MutabilityMode::IgnoreMut
+    {
       aliases.loans[region].insert(tcx.mk_place_deref(sub_place));
     }
   }
 
   for (_, borrow) in borrow_set.iter_enumerated() {
     let mutability = borrow.kind.to_mutbl_lossy();
-    if mutability == Mutability::Mut || config.eval_mode.mutability_mode == MutabilityMode::IgnoreMut {
+    if mutability == Mutability::Mut
+      || config.eval_mode.mutability_mode == MutabilityMode::IgnoreMut
+    {
       aliases.loans[borrow.region].insert(borrow.borrowed_place);
     }
   }

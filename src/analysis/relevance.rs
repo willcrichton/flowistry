@@ -14,7 +14,11 @@ use rustc_mir::dataflow::{
   fmt::DebugWithContext, Analysis, AnalysisDomain, Backward, JoinSemiLattice,
 };
 use rustc_span::Span;
-use std::{cell::RefCell, collections::{HashSet, HashMap}, fmt};
+use std::{
+  cell::RefCell,
+  collections::{HashMap, HashSet},
+  fmt,
+};
 
 pub type SliceSet<'tcx> = HashMap<Location, PlaceSet<'tcx>>;
 
@@ -370,7 +374,7 @@ impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
       analysis: self,
     };
     tf.visit_statement(statement, location);
-    tf.check_slice_set(location);    
+    tf.check_slice_set(location);
   }
 
   fn apply_terminator_effect(
@@ -385,7 +389,7 @@ impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
       analysis: self,
     };
     tf.visit_terminator(terminator, location);
-    tf.check_slice_set(location);    
+    tf.check_slice_set(location);
   }
 
   fn apply_call_return_effect(

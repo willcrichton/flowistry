@@ -175,14 +175,14 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
 
     let (recursive, depth) = BODY_STACK.with(|body_stack| {
       let body_stack = body_stack.borrow();
-      (body_stack
-        .iter()
-        .any(|visited_id| *visited_id == body_id), body_stack.len())
+      (
+        body_stack.iter().any(|visited_id| *visited_id == body_id),
+        body_stack.len(),
+      )
     });
     if recursive || depth >= MAX_DEPTH {
       return false;
     }
-
 
     let relevant_inputs = input_places.iter().enumerate().filter_map(|(i, arg)| {
       if self.relevant_places(*arg).len() > 0 {
@@ -214,7 +214,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       self.analysis.config,
       self.analysis.tcx,
       body_id,
-      &SliceLocation::LocalsOnExit(relevant_locals.iter().cloned().collect::<Vec<_>>())
+      &SliceLocation::LocalsOnExit(relevant_locals.iter().cloned().collect::<Vec<_>>()),
     )
     .unwrap();
 

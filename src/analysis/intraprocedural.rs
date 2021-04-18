@@ -45,7 +45,11 @@ impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
       return;
     }
 
-    self.slice_set.entry(location).or_insert_with(HashSet::new).insert(*place);
+    self
+      .slice_set
+      .entry(location)
+      .or_insert_with(HashSet::new)
+      .insert(*place);
   }
 }
 
@@ -56,7 +60,7 @@ struct CollectResults<'a, 'tcx> {
   all_locals: HashSet<Local>,
   local_blacklist: HashSet<Local>,
   num_relevant_instructions: usize,
-  num_instructions: usize
+  num_instructions: usize,
 }
 
 impl<'a, 'tcx> CollectResults<'a, 'tcx> {
@@ -158,7 +162,7 @@ where
 pub struct SliceOutput {
   spans: Vec<Range>,
   pub num_instructions: usize,
-  pub num_relevant_instructions: usize
+  pub num_relevant_instructions: usize,
 }
 
 impl SliceOutput {
@@ -166,7 +170,7 @@ impl SliceOutput {
     SliceOutput {
       spans: Vec::new(),
       num_instructions: 0,
-      num_relevant_instructions: 0
+      num_relevant_instructions: 0,
     }
   }
 
@@ -189,12 +193,12 @@ struct CacheKey(Config, BodyId, SliceLocation);
 thread_local! {
   static ANALYSIS_CACHE: RefCell<HashMap<CacheKey, (SliceOutput, HashSet<Local>)>> = RefCell::new(HashMap::new());
   pub static BODY_STACK: RefCell<Vec<BodyId>> = RefCell::new(Vec::new());
-} 
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum SliceLocation {
   Span(Span),
-  LocalsOnExit(Vec<Local>)
+  LocalsOnExit(Vec<Local>),
 }
 
 impl SliceLocation {
@@ -210,24 +214,35 @@ impl SliceLocation {
         finder.slice_set
       }
       SliceLocation::LocalsOnExit(locals) => {
-        let return_locations = body.basic_blocks().iter_enumerated().filter_map(|(block, bb_data)| {
-          if let TerminatorKind::Return = bb_data.terminator().kind {
-            let statement_index = bb_data.statements.len();
-            Some(Location { block, statement_index })
-          } else {
-            None
-          }
-        });
+        let return_locations =
+          body
+            .basic_blocks()
+            .iter_enumerated()
+            .filter_map(|(block, bb_data)| {
+              if let TerminatorKind::Return = bb_data.terminator().kind {
+                let statement_index = bb_data.statements.len();
+                Some(Location {
+                  block,
+                  statement_index,
+                })
+              } else {
+                None
+              }
+            });
 
-        return_locations.map(|location| {
-          let places = locals.iter().cloned().map(|local| {
-            Place {
-              local,
-              projection: tcx.intern_place_elems(&[])
-            }
-          }).collect::<HashSet<_>>();
-          (location, places)
-        }).collect::<HashMap<_, _>>()
+        return_locations
+          .map(|location| {
+            let places = locals
+              .iter()
+              .cloned()
+              .map(|local| Place {
+                local,
+                projection: tcx.intern_place_elems(&[]),
+              })
+              .collect::<HashSet<_>>();
+            (location, places)
+          })
+          .collect::<HashMap<_, _>>()
       }
     }
   }
@@ -286,7 +301,14 @@ pub fn analyze_function(
       constraint_sccs
     };
 
-    let aliases = compute_aliases(config, tcx, body, borrow_set, outlives_constraints, constraint_sccs);
+    let aliases = compute_aliases(
+      config,
+      tcx,
+      body,
+      borrow_set,
+      outlives_constraints,
+      constraint_sccs,
+    );
 
     let slice_set = slice_location.to_slice_set(tcx, body);
 
@@ -294,16 +316,10 @@ pub fn analyze_function(
     elapsed("pre-relevance", start);
 
     let start = Instant::now();
-    let relevance_results = RelevanceAnalysis::new(
-      config,
-      slice_set,
-      tcx,
-      body,
-      &aliases,
-      post_dominators,
-    )
-    .into_engine(tcx, body)
-    .iterate_to_fixpoint();
+    let relevance_results =
+      RelevanceAnalysis::new(config, slice_set, tcx, body, &aliases, post_dominators)
+        .into_engine(tcx, body)
+        .iterate_to_fixpoint();
 
     if config.debug {
       dump_results("target/relevance.png", body, &relevance_results)?;
@@ -316,7 +332,7 @@ pub fn analyze_function(
       all_locals: HashSet::new(),
       local_blacklist: HashSet::new(),
       num_relevant_instructions: 0,
-      num_instructions: 0
+      num_instructions: 0,
     };
     relevance_results.visit_reachable_with(body, &mut visitor);
     elapsed("relevance", start);
@@ -333,19 +349,18 @@ pub fn analyze_function(
       .filter_map(|span| Range::from_span(span, source_map).ok())
       .collect();
 
-    Ok((SliceOutput {
-      spans: ranges,
-      num_instructions: visitor.num_instructions,
-      num_relevant_instructions: visitor.num_relevant_instructions
-    }, visitor.all_locals))
+    Ok((
+      SliceOutput {
+        spans: ranges,
+        num_instructions: visitor.num_instructions,
+        num_relevant_instructions: visitor.num_relevant_instructions,
+      },
+      visitor.all_locals,
+    ))
   };
 
   ANALYSIS_CACHE.with(|cache| {
-    let key = CacheKey(
-      config.clone(),
-      body_id,
-      slice_location.clone(),
-    );
+    let key = CacheKey(config.clone(), body_id, slice_location.clone());
 
     if !cache.borrow().contains_key(&key) {
       let results = BODY_STACK.with(|body_stack| {

@@ -1,22 +1,19 @@
 use itertools::iproduct;
 use log::debug;
-use rust_slicer::config::{Config, ContextMode, EvalMode, MutabilityMode, PointerMode, Range};
+use rand::{seq::IteratorRandom, thread_rng};
 use rust_slicer::analysis::intraprocedural;
+use rust_slicer::config::{Config, ContextMode, EvalMode, MutabilityMode, PointerMode, Range};
+use rustc_data_structures::sync::{par_iter, ParallelIterator};
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
   itemlikevisit::ParItemLikeVisitor,
   BodyId, Expr, ExprKind, ImplItemKind, ItemKind, Local,
 };
-use rustc_middle::{
-  hir::map::Map,
-  ty::{TyCtxt},
-};
-use rustc_span::{Span};
-use rustc_data_structures::sync::{par_iter, ParallelIterator};
+use rustc_middle::{hir::map::Map, ty::TyCtxt};
+use rustc_span::Span;
 use serde::Serialize;
 use std::sync::Mutex;
 use std::time::Instant;
-use rand::{seq::IteratorRandom, thread_rng};
 
 // struct EvalBodyVisitor<'tcx> {
 //   tcx: TyCtxt<'tcx>,
@@ -77,14 +74,19 @@ pub struct EvalResult {
   duration: f64,
 }
 
-use rustc_ast::{token::Token, tokenstream::{TokenTree, TokenStream}};
+use rustc_ast::{
+  token::Token,
+  tokenstream::{TokenStream, TokenTree},
+};
 fn flatten_stream(stream: TokenStream) -> Vec<Token> {
-  stream.into_trees().map(|tree| {
-    match tree {
+  stream
+    .into_trees()
+    .map(|tree| match tree {
       TokenTree::Token(token) => vec![token].into_iter(),
-      TokenTree::Delimited(_, _, stream) => flatten_stream(stream).into_iter()
-    }
-  }).flatten().collect()
+      TokenTree::Delimited(_, _, stream) => flatten_stream(stream).into_iter(),
+    })
+    .flatten()
+    .collect()
 }
 
 const SAMPLE_SIZE: usize = 100;
@@ -104,7 +106,9 @@ impl EvalCrateVisitor<'tcx> {
       return;
     }
 
-    let (token_stream, _) = rustc_parse::maybe_file_to_stream(&self.tcx.sess.parse_sess, source_file.clone(), None).unwrap();
+    let (token_stream, _) =
+      rustc_parse::maybe_file_to_stream(&self.tcx.sess.parse_sess, source_file.clone(), None)
+        .unwrap();
     let tokens = &flatten_stream(token_stream);
 
     let local_def_id = self.tcx.hir().body_owner_def_id(*body_id);
@@ -123,9 +127,13 @@ impl EvalCrateVisitor<'tcx> {
     let borrowck_result = self.tcx.mir_borrowck(local_def_id);
     let body = &borrowck_result.intermediates.body;
     let mut rng = thread_rng();
-    let locals = body.local_decls.indices().choose_multiple(&mut rng, SAMPLE_SIZE);
+    let locals = body
+      .local_decls
+      .indices()
+      .choose_multiple(&mut rng, SAMPLE_SIZE);
 
-    let eval_results = par_iter(locals).map(|local| {
+    let eval_results = par_iter(locals)
+      .map(|local| {
         let source_map = self.tcx.sess.source_map();
         let tcx = self.tcx;
 
@@ -149,15 +157,20 @@ impl EvalCrateVisitor<'tcx> {
             &config,
             tcx,
             *body_id,
-            &intraprocedural::SliceLocation::LocalsOnExit(vec![local])
+            &intraprocedural::SliceLocation::LocalsOnExit(vec![local]),
           )
           .unwrap();
 
           let num_tokens = tokens.len();
-          let slice_spans = output.ranges().iter().filter_map(|range| range.to_span(&source_file)).collect::<Vec<_>>();
-          let num_relevant_tokens = tokens.iter().filter(|token| {
-            slice_spans.iter().any(|span| span.contains(token.span))
-          }).count();
+          let slice_spans = output
+            .ranges()
+            .iter()
+            .filter_map(|range| range.to_span(&source_file))
+            .collect::<Vec<_>>();
+          let num_relevant_tokens = tokens
+            .iter()
+            .filter(|token| slice_spans.iter().any(|span| span.contains(token.span)))
+            .count();
 
           Some(EvalResult {
             context_mode,
