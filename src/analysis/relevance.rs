@@ -1,6 +1,7 @@
 use super::aliases::{interior_pointers, Aliases, PlaceSet};
 use crate::config::{Config, ContextMode, MutabilityMode};
 use log::debug;
+use maplit::hashset;
 use rustc_data_structures::graph::dominators::Dominators;
 use rustc_middle::{
   mir::{
@@ -49,10 +50,22 @@ impl JoinSemiLattice for Relevant {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+pub enum RelevanceTrace<'tcx> {
+  NotRelevant,
+  Relevant { mutated: PlaceSet<'tcx> },
+}
+
+impl RelevanceTrace<'_> {
+  pub fn reset(&mut self) {
+    *self = RelevanceTrace::NotRelevant;
+  }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RelevanceDomain<'tcx> {
   pub places: PlaceSet<'tcx>,
-  pub statement_relevant: bool,
   pub path_relevant: Relevant,
+  pub statement_relevant: RelevanceTrace<'tcx>,
 }
 
 impl JoinSemiLattice for RelevanceDomain<'tcx> {
@@ -95,10 +108,32 @@ pub(super) struct TransferFunction<'a, 'b, 'mir, 'tcx> {
   pub(super) state: &'a mut RelevanceDomain<'tcx>,
 }
 
+#[derive(Debug)]
+pub enum MutationKind {
+  Strong,
+  Weak,
+}
+
 impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
-  pub(super) fn add_relevant(&mut self, places: &PlaceSet<'tcx>) {
-    self.state.places = &self.state.places | places;
-    self.state.statement_relevant = true;
+  pub(super) fn add_relevant(
+    &mut self,
+    mutated: &Vec<(Place<'tcx>, MutationKind)>,
+    used: &PlaceSet<'tcx>,
+  ) {
+    let to_delete = mutated
+      .iter()
+      .filter_map(|(place, mutation)| match mutation {
+        MutationKind::Strong => Some(*place),
+        _ => None,
+      })
+      .collect::<HashSet<_>>();
+
+    self.state.places = &self.state.places - &to_delete;
+
+    self.state.places.extend(used.iter().cloned());
+    self.state.statement_relevant = RelevanceTrace::Relevant {
+      mutated: mutated.iter().map(|(place, _)| *place).collect(),
+    };
 
     let current_block = self.analysis.current_block.borrow();
     let preds = &self.analysis.body.predecessors()[*current_block];
@@ -114,8 +149,10 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
     }
   }
 
-  pub(super) fn relevant_places(&self, mutated_place: Place<'tcx>) -> PlaceSet<'tcx> {
-    // let mutated_places = self.analysis.aliases(mutated_place);
+  pub(super) fn relevant_places(
+    &self,
+    mutated_place: Place<'tcx>,
+  ) -> Vec<(Place<'tcx>, MutationKind)> {
     let mutated_places = self.analysis.alias_analysis.loans(mutated_place);
     debug!("  mutated {:?} / {:?}", mutated_place, mutated_places);
 
@@ -123,23 +160,39 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
       .state
       .places
       .iter()
-      .filter(|relevant_place| {
-        mutated_places.iter().any(|mutated_place| {
-          self
-            .analysis
-            .alias_analysis
-            .place_is_part(**relevant_place, *mutated_place)
-            || self
-              .analysis
-              .alias_analysis
-              .place_is_part(*mutated_place, **relevant_place)
-        })
+      .filter_map(|relevant_place| {
+        let (relevant_sub_part, relevant_super_part): (Vec<_>, Vec<_>) = mutated_places
+          .iter()
+          .map(|mutated_place| {
+            (
+              self
+                .analysis
+                .alias_analysis
+                .place_is_part(*relevant_place, *mutated_place),
+              self
+                .analysis
+                .alias_analysis
+                .place_is_part(*mutated_place, *relevant_place),
+            )
+          })
+          .unzip();
+
+        if relevant_super_part.into_iter().any(|x| x) {
+          Some((*relevant_place, MutationKind::Strong))
+        } else if relevant_sub_part.into_iter().any(|x| x) {
+          Some((*relevant_place, MutationKind::Weak))
+        } else {
+          None
+        }
       })
-      .cloned()
-      .collect::<HashSet<_>>()
+      .collect::<Vec<_>>()
   }
 
-  fn check_mutation(&mut self, place: Place<'tcx>, input_places: &PlaceSet<'tcx>) {
+  pub fn is_relevant(&mut self, place: Place<'tcx>) -> bool {
+    self.relevant_places(place).len() > 0
+  }
+
+  fn check_mutation(&mut self, place: Place<'tcx>, input_places: &PlaceSet<'tcx>) -> bool {
     // is `place` in the relevant set?
     debug!(
       "checking {:?} with relevant = {:?}",
@@ -149,10 +202,6 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
     debug!("  relevant mutated = {:?}", relevant_mutated);
 
     if relevant_mutated.len() > 0 {
-      // if relevant_mutated.count() == 1 {
-      self.state.places = &self.state.places - &relevant_mutated;
-      // }
-
       let pointers = place
         .iter_projections()
         .filter_map(|(place_ref, projection_elem)| {
@@ -168,21 +217,26 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
         })
         .collect::<HashSet<_>>();
 
-      self.add_relevant(&pointers);
-      self.add_relevant(input_places);
+      self.add_relevant(&vec![], &pointers);
+      self.add_relevant(&relevant_mutated, input_places);
+      debug!("  updated relevant: {:?}", self.state.places);
+
+      true
+    } else {
+      false
     }
   }
 
   fn check_slice_set(&mut self, location: Location) {
     self.analysis.slice_set.get(&location).map(|places| {
-      self.add_relevant(places);
+      self.add_relevant(&vec![], places);
     });
   }
 }
 
 impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> {
   fn visit_statement(&mut self, statement: &Statement<'tcx>, location: Location) {
-    self.state.statement_relevant = false;
+    self.state.statement_relevant.reset();
     match &statement.kind {
       StatementKind::Assign(_) => {
         self.super_statement(statement, location);
@@ -216,12 +270,15 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       _ => {}
     }
 
-    self.state.statement_relevant = false;
+    self.state.statement_relevant.reset();
 
     debug!(
       "checking terminator {:?} in context {:?}",
       terminator.kind, self.state.places
     );
+
+    let tcx = self.analysis.tcx;
+    let eval_mode = self.analysis.config.eval_mode;
 
     match &terminator.kind {
       TerminatorKind::Call {
@@ -229,39 +286,52 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       } => {
         let input_places = args
           .iter()
-          .filter_map(|arg| match arg {
-            Operand::Move(place) | Operand::Copy(place) => Some(*place),
+          .enumerate()
+          .filter_map(|(i, arg)| match arg {
+            Operand::Move(place) | Operand::Copy(place) => Some((i, *place)),
             Operand::Constant(_) => None,
+          })
+          .collect::<Vec<_>>();
+
+        let input_mut_ptrs = input_places
+          .iter()
+          .map(|(i, place)| {
+            let ptr_places = interior_pointers(*place, tcx, self.analysis.body)
+              .into_iter()
+              .filter_map(|(_, (place, mutability))| match mutability {
+                Mutability::Mut => Some(place),
+                Mutability::Not => {
+                  (eval_mode.mutability_mode == MutabilityMode::IgnoreMut).then(|| place)
+                }
+              })
+              .map(|ptr_place| tcx.mk_place_deref(ptr_place))
+              .filter(|deref_place| self.is_relevant(*deref_place))
+              .collect::<HashSet<_>>();
+
+            (*i, ptr_places)
           })
           .collect::<Vec<_>>();
 
         let eval_mode = self.analysis.config.eval_mode;
         let could_recurse = if eval_mode.context_mode == ContextMode::Recurse {
-          self.slice_into_procedure(&terminator.kind, &input_places)
+          self.slice_into_procedure(&terminator.kind, &input_places, &input_mut_ptrs)
         } else {
           false
         };
 
         if !could_recurse {
           let tcx = self.analysis.tcx;
-          let input_places = input_places.into_iter().collect::<HashSet<_>>();
-          let input_mut_ptrs = input_places
-            .iter()
-            .map(|place| {
-              interior_pointers(*place, tcx, self.analysis.body)
-                .into_iter()
-                .filter_map(|(_, (place, mutability))| match mutability {
-                  Mutability::Mut => Some(place),
-                  Mutability::Not => {
-                    (eval_mode.mutability_mode == MutabilityMode::IgnoreMut).then(|| place)
-                  }
-                })
-            })
-            .flatten()
-            .collect::<Vec<_>>();
+          let input_places = input_places
+            .into_iter()
+            .map(|(_, place)| place)
+            .collect::<HashSet<_>>();
 
-          for input_mut_ptr in input_mut_ptrs {
-            self.check_mutation(tcx.mk_place_deref(input_mut_ptr), &input_places);
+          for (_, ptrs) in input_mut_ptrs {
+            for ptr in ptrs {
+              if self.check_mutation(ptr, &input_places) {
+                break;
+              }
+            }
           }
 
           if let Some((dst, _)) = destination {
@@ -276,7 +346,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
             Operand::Move(place) | Operand::Copy(place) => {
               let mut relevant = HashSet::new();
               relevant.insert(*place);
-              self.add_relevant(&relevant);
+              self.add_relevant(&vec![], &relevant);
             }
             Operand::Constant(_) => {}
           }
@@ -286,11 +356,12 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       _ => {}
     }
 
-    self.state.path_relevant = if self.state.statement_relevant {
-      Relevant::Yes
-    } else {
-      Relevant::No
-    };
+    self.state.path_relevant =
+      if let RelevanceTrace::Relevant { .. } = self.state.statement_relevant {
+        Relevant::Yes
+      } else {
+        Relevant::No
+      };
   }
 }
 
@@ -353,7 +424,7 @@ impl<'a, 'mir, 'tcx> AnalysisDomain<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> 
   fn bottom_value(&self, _body: &mir::Body<'tcx>) -> Self::Domain {
     RelevanceDomain {
       places: PlaceSet::new(),
-      statement_relevant: false,
+      statement_relevant: RelevanceTrace::NotRelevant,
       path_relevant: Relevant::Unknown,
     }
   }
