@@ -466,7 +466,7 @@ fn main() {
 }
 "#;
 
-  run(src, Range::line(5, 3, 4), vec![2, 3, 5]);
+  run(src, Range::line(5, 3, 4), vec![2, 5]);
 }
 
 #[test]
@@ -938,4 +938,22 @@ fn main() {
 "#;
 
   run(src, Range::line(9, 3, 4), vec![2, 3, 5, 6, 7, 9]);
+}
+
+
+#[test]
+fn strong_update_conditional() {
+  let src = r#"
+fn main() {
+  let mut x = 
+    1;
+  x = 1;
+  let mut y = 2;
+  let z = if true { &mut x } else { &mut y };
+  *z += 1;
+  x;
+}
+"#;
+
+  run(src, Range::line(8, 3, 4), vec![2, 4, 5, 6, 7, 8]);
 }

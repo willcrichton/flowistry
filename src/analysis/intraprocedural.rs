@@ -1,11 +1,12 @@
-use super::aliases::compute_aliases;
+use super::aliases::{compute_aliases, PlaceSet};
 use super::eval_extensions;
 use super::post_dominators::compute_post_dominators;
-use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
+use super::relevance::{RelevanceAnalysis, RelevanceDomain, RelevanceTrace, SliceSet};
 use crate::config::{Config, PointerMode, Range};
 
 use anyhow::{bail, Result};
 use log::{debug, info};
+use maplit::hashset;
 use rustc_graphviz as dot;
 use rustc_hir::BodyId;
 use rustc_middle::{
@@ -20,6 +21,7 @@ use rustc_mir::dataflow::graphviz;
 use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor};
 use rustc_mir::util::write_mir_fn;
 use rustc_span::Span;
+use serde::Serialize;
 use std::{
   cell::RefCell,
   collections::{HashMap, HashSet},
@@ -55,17 +57,18 @@ impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
 
 struct CollectResults<'a, 'tcx> {
   body: &'a Body<'tcx>,
-  // relevant_locals: HashSet<Local>,
   relevant_spans: Vec<Span>,
   all_locals: HashSet<Local>,
   local_blacklist: HashSet<Local>,
   num_relevant_instructions: usize,
   num_instructions: usize,
+  input_places: Vec<Place<'tcx>>,
+  mutated_inputs: HashSet<usize>,
 }
 
 impl<'a, 'tcx> CollectResults<'a, 'tcx> {
   fn check_statement(&mut self, state: &RelevanceDomain, location: Location) {
-    if state.statement_relevant {
+    if let RelevanceTrace::Relevant { .. } = state.statement_relevant {
       let span = self.body.source_info(location).span;
       self.relevant_spans.push(span);
     }
@@ -78,6 +81,16 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
       .map(|place| place.local)
       .collect::<HashSet<_>>();
     self.all_locals = &self.all_locals | &locals; //&(&locals - &self.relevant_locals);
+
+    if let RelevanceTrace::Relevant { mutated, .. } = &state.statement_relevant {
+      let mutated_inputs = self
+        .input_places
+        .iter()
+        .enumerate()
+        .filter_map(|(i, place)| mutated.contains(place).then(|| i));
+
+      self.mutated_inputs.extend(mutated_inputs);
+    }
   }
 }
 
@@ -101,14 +114,14 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
     } else {
       self.check_statement(state, location);
 
-      if state.statement_relevant {
+      if let RelevanceTrace::Relevant { .. } = state.statement_relevant {
         if let StatementKind::Assign(box (place, _)) = statement.kind {
           self.all_locals.insert(place.local);
         }
       }
     }
 
-    if state.statement_relevant {
+    if let RelevanceTrace::Relevant { .. } = state.statement_relevant {
       self.num_relevant_instructions += 1;
     }
     self.num_instructions += 1;
@@ -132,7 +145,7 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
       self.check_statement(state, location);
     }
 
-    if state.statement_relevant {
+    if let RelevanceTrace::Relevant { .. } = state.statement_relevant {
       self.num_relevant_instructions += 1;
     }
     self.num_instructions += 1;
@@ -158,28 +171,32 @@ where
   Ok(())
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct SliceOutput {
-  spans: Vec<Range>,
+  ranges: Vec<Range>,
   pub num_instructions: usize,
   pub num_relevant_instructions: usize,
+  pub mutated_inputs: HashSet<usize>,
 }
 
 impl SliceOutput {
   pub fn new() -> Self {
     SliceOutput {
-      spans: Vec::new(),
+      ranges: Vec::new(),
       num_instructions: 0,
       num_relevant_instructions: 0,
+      mutated_inputs: hashset![],
     }
   }
 
   pub fn merge(&mut self, other: SliceOutput) {
-    self.spans.extend(other.spans.into_iter());
+    self.ranges.extend(other.ranges.into_iter());
+    self.num_instructions = other.num_instructions;
+    self.num_relevant_instructions = other.num_relevant_instructions;
   }
 
   pub fn ranges(&self) -> &Vec<Range> {
-    &self.spans
+    &self.ranges
   }
 }
 
@@ -187,22 +204,26 @@ pub fn elapsed(name: &str, start: Instant) {
   info!("{} took {}s", name, start.elapsed().as_nanos() as f64 / 1e9)
 }
 
-#[derive(Hash, PartialEq, Eq, Clone)]
-struct CacheKey(Config, BodyId, SliceLocation);
+// #[derive(Hash, PartialEq, Eq, Clone)]
+// struct CacheKey(Config, BodyId, SliceLocation);
 
 thread_local! {
-  static ANALYSIS_CACHE: RefCell<HashMap<CacheKey, (SliceOutput, HashSet<Local>)>> = RefCell::new(HashMap::new());
+  // static ANALYSIS_CACHE: RefCell<HashMap<CacheKey, SliceOutput>> = RefCell::new(HashMap::new());
   pub static BODY_STACK: RefCell<Vec<BodyId>> = RefCell::new(Vec::new());
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum SliceLocation {
+pub enum SliceLocation<'tcx> {
   Span(Span),
-  LocalsOnExit(Vec<Local>),
+  PlacesOnExit(Vec<Place<'tcx>>),
 }
 
-impl SliceLocation {
-  fn to_slice_set(&self, tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> SliceSet<'tcx> {
+impl SliceLocation<'tcx> {
+  fn to_slice_set(
+    &self,
+    tcx: TyCtxt<'tcx>,
+    body: &Body<'tcx>,
+  ) -> (SliceSet<'tcx>, Vec<Place<'tcx>>) {
     match self {
       SliceLocation::Span(slice_span) => {
         let mut finder = FindInitialSliceSet {
@@ -211,9 +232,9 @@ impl SliceLocation {
           body,
         };
         finder.visit_body(body);
-        finder.slice_set
+        (finder.slice_set, vec![])
       }
-      SliceLocation::LocalsOnExit(locals) => {
+      SliceLocation::PlacesOnExit(places) => {
         let return_locations =
           body
             .basic_blocks()
@@ -230,19 +251,13 @@ impl SliceLocation {
               }
             });
 
-        return_locations
-          .map(|location| {
-            let places = locals
-              .iter()
-              .cloned()
-              .map(|local| Place {
-                local,
-                projection: tcx.intern_place_elems(&[]),
-              })
-              .collect::<HashSet<_>>();
-            (location, places)
-          })
-          .collect::<HashMap<_, _>>()
+        let place_set = places.iter().cloned().collect::<HashSet<_>>();
+        (
+          return_locations
+            .map(|location| (location, place_set.clone()))
+            .collect::<HashMap<_, _>>(),
+          places.clone(),
+        )
       }
     }
   }
@@ -250,10 +265,10 @@ impl SliceLocation {
 
 pub fn analyze_function(
   config: &Config,
-  tcx: TyCtxt,
+  tcx: TyCtxt<'tcx>,
   body_id: BodyId,
-  slice_location: &SliceLocation,
-) -> Result<(SliceOutput, HashSet<Local>)> {
+  slice_location: &SliceLocation<'tcx>,
+) -> Result<SliceOutput> {
   let analyze = || -> Result<_> {
     let start = Instant::now();
     let local_def_id = tcx.hir().body_owner_def_id(body_id);
@@ -310,7 +325,7 @@ pub fn analyze_function(
       constraint_sccs,
     );
 
-    let slice_set = slice_location.to_slice_set(tcx, body);
+    let (slice_set, input_places) = slice_location.to_slice_set(tcx, body);
 
     debug!("Initial slice set: {:?}", slice_set);
     elapsed("pre-relevance", start);
@@ -333,6 +348,8 @@ pub fn analyze_function(
       local_blacklist: HashSet::new(),
       num_relevant_instructions: 0,
       num_instructions: 0,
+      input_places,
+      mutated_inputs: HashSet::new(),
     };
     relevance_results.visit_reachable_with(body, &mut visitor);
     elapsed("relevance", start);
@@ -349,29 +366,27 @@ pub fn analyze_function(
       .filter_map(|span| Range::from_span(span, source_map).ok())
       .collect();
 
-    Ok((
-      SliceOutput {
-        spans: ranges,
-        num_instructions: visitor.num_instructions,
-        num_relevant_instructions: visitor.num_relevant_instructions,
-      },
-      visitor.all_locals,
-    ))
+    Ok(SliceOutput {
+      ranges,
+      num_instructions: visitor.num_instructions,
+      num_relevant_instructions: visitor.num_relevant_instructions,
+      mutated_inputs: visitor.mutated_inputs,
+    })
   };
 
-  ANALYSIS_CACHE.with(|cache| {
-    let key = CacheKey(config.clone(), body_id, slice_location.clone());
+  // ANALYSIS_CACHE.with(|cache| {
+  //   let key = CacheKey(config.clone(), body_id, slice_location.clone());
 
-    if !cache.borrow().contains_key(&key) {
-      let results = BODY_STACK.with(|body_stack| {
-        body_stack.borrow_mut().push(body_id);
-        let results = analyze();
-        body_stack.borrow_mut().pop();
-        results
-      })?;
-      cache.borrow_mut().insert(key.clone(), results);
-    }
-
-    Ok(cache.borrow().get(&key).unwrap().clone())
+  //   if !cache.borrow().contains_key(&key) {
+  BODY_STACK.with(|body_stack| {
+    body_stack.borrow_mut().push(body_id);
+    let results = analyze();
+    body_stack.borrow_mut().pop();
+    results
   })
+  // cache.borrow_mut().insert(key.clone(), results);
+  //   }
+
+  //   Ok(cache.borrow().get(&key).unwrap().clone())
+  // })
 }

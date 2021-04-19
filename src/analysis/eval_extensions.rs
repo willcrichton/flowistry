@@ -1,7 +1,7 @@
-use super::aliases::interior_pointers;
+use super::aliases::{interior_pointers, PlaceSet};
 use super::intraprocedural::{SliceLocation, BODY_STACK};
-use super::relevance::TransferFunction;
-use log::info;
+use super::relevance::{MutationKind, TransferFunction};
+use log::{debug, info};
 use rustc_data_structures::graph::scc::Sccs;
 use rustc_middle::{
   mir::{
@@ -138,8 +138,10 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
   pub(super) fn slice_into_procedure(
     &mut self,
     call: &TerminatorKind<'tcx>,
-    input_places: &[Place<'tcx>],
+    input_places: &[(usize, Place<'tcx>)],
+    input_mut_ptrs: &[(usize, PlaceSet<'tcx>)],
   ) -> bool {
+    let tcx = self.analysis.tcx;
     let (func, destination) = if let TerminatorKind::Call {
       func, destination, ..
     } = call
@@ -161,7 +163,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       return false;
     };
 
-    let node = if let Some(node) = self.analysis.tcx.hir().get_if_local(*def_id) {
+    let node = if let Some(node) = tcx.hir().get_if_local(*def_id) {
       node
     } else {
       return false;
@@ -184,17 +186,26 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       return false;
     }
 
-    let relevant_inputs = input_places.iter().enumerate().filter_map(|(i, arg)| {
-      if self.relevant_places(*arg).len() > 0 {
-        Some(Local::from_usize(1 + i))
-      } else {
-        None
-      }
-    });
+    let relevant_inputs = input_mut_ptrs
+      .iter()
+      .map(|(i, places)| {
+        let (_, orig_input) = input_places.iter().find(|(j, _)| i == j).unwrap();
+        places.iter().map(move |place| {
+          let mut projection = &place.projection[orig_input.projection.len()..];
+          Place {
+            local: Local::from_usize(*i + 1),
+            projection: tcx.intern_place_elems(projection),
+          }
+        })
+      })
+      .flatten();
 
     let relevant_return = if let Some((dst, _)) = destination {
-      if self.relevant_places(*dst).len() > 0 {
-        vec![RETURN_PLACE]
+      if self.is_relevant(*dst) {
+        vec![Place {
+          local: RETURN_PLACE,
+          projection: tcx.intern_place_elems(&[]),
+        }]
       } else {
         vec![]
       }
@@ -202,37 +213,58 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       vec![]
     };
 
-    let relevant_locals = relevant_inputs
+    let relevant_places = relevant_inputs
       .chain(relevant_return.into_iter())
       .collect::<HashSet<_>>();
 
     info!(
-      "Recursing into {}",
-      self.analysis.tcx.def_path_debug_str(*def_id)
+      "Recursing into {} on places {:?}",
+      tcx.def_path_debug_str(*def_id),
+      relevant_places
     );
-    let (_, mutated_locals) = super::intraprocedural::analyze_function(
+    let recursive_inputs = relevant_places.iter().cloned().collect::<Vec<_>>();
+    let results = super::intraprocedural::analyze_function(
       self.analysis.config,
-      self.analysis.tcx,
+      tcx,
       body_id,
-      &SliceLocation::LocalsOnExit(relevant_locals.iter().cloned().collect::<Vec<_>>()),
+      &SliceLocation::PlacesOnExit(recursive_inputs.clone()),
     )
     .unwrap();
 
-    let relevant_and_mutated_locals = &relevant_locals & &mutated_locals;
+    let max_arg = input_places.iter().map(|(j, _)| *j).max().unwrap();
 
-    if relevant_and_mutated_locals.len() > 0 {
-      let relevant_inputs = mutated_locals
+    if results.mutated_inputs.len() > 0 {
+      let mutated_inputs = results
+        .mutated_inputs
         .iter()
-        .filter_map(|local| {
-          let i = local.as_usize();
-          if 1 <= i && i <= input_places.len() {
-            Some(input_places[i - 1])
-          } else {
-            None
-          }
+        .map(|index| recursive_inputs[*index])
+        .collect::<HashSet<_>>();
+
+      debug!("Mutated inputs {:?}", mutated_inputs);
+
+      let relevant_inputs = mutated_inputs
+        .iter()
+        .filter_map(|callee_place| {
+          let i = callee_place.local.as_usize();
+          let is_argument = 1 <= i && i <= max_arg;
+          is_argument.then(|| {
+            let (_, caller_place) = input_places.iter().find(|(j, _)| *j == i - 1).unwrap();
+            let mut projection = caller_place.projection.to_vec();
+            projection.extend(callee_place.projection.iter());
+            Place {
+              local: caller_place.local,
+              projection: tcx.intern_place_elems(&projection),
+            }
+          })
         })
         .collect::<HashSet<_>>();
-      self.add_relevant(&relevant_inputs);
+      self.add_relevant(
+        &mutated_inputs
+          .into_iter()
+          .map(|place| (place, MutationKind::Weak))
+          .collect(),
+        &relevant_inputs,
+      );
     }
 
     true

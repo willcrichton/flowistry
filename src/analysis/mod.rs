@@ -37,7 +37,7 @@ impl VisitorContext<'_> {
     take_mut::take(&mut self.output, move |output| {
       output.and_then(move |mut output| {
         let start = Instant::now();
-        let (fn_output, _) = intraprocedural::analyze_function(
+        let fn_output = intraprocedural::analyze_function(
           config,
           tcx,
           body_id,

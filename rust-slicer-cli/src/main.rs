@@ -6,13 +6,8 @@ use rust_slicer::{
   config::{ContextMode, EvalMode, MutabilityMode, PointerMode},
   Config, Range,
 };
-use serde::Serialize;
 use std::env;
 
-#[derive(Serialize)]
-struct SliceOutput {
-  ranges: Vec<Range>,
-}
 
 fn run() -> Result<()> {
   let _ = env_logger::try_init();
@@ -73,10 +68,7 @@ fn run() -> Result<()> {
   };
 
   let output = rust_slicer::slice(config, &flags)?;
-  let cli_output = SliceOutput {
-    ranges: output.ranges().clone(),
-  };
-  println!("{}", serde_json::to_string(&cli_output)?);
+  println!("{}", serde_json::to_string(&output)?);
 
   Ok(())
 }

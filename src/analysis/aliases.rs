@@ -185,10 +185,11 @@ impl Aliases<'a, 'tcx> {
         .loans
         .iter()
         .filter_map(|loans| {
-          loans
+          let matches_loan = loans
             .iter()
-            .any(|loan| self.place_is_part(*loan, place) || self.place_is_part(place, *loan))
-            .then(|| loans.clone().into_iter())
+            .any(|loan| self.place_is_part(*loan, place) || self.place_is_part(place, *loan));
+          let is_deref = place.is_indirect();
+          (matches_loan && is_deref).then(|| loans.clone().into_iter())
         })
         .flatten()
         .chain(vec![place].into_iter())
