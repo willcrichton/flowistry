@@ -1,4 +1,4 @@
-use super::aliases::{interior_pointers, Aliases, PlaceSet};
+use super::aliases::{interior_pointers, Aliases, PlaceSet, PlaceRelation};
 use crate::config::{Config, ContextMode, MutabilityMode};
 use log::debug;
 use maplit::hashset;
@@ -86,11 +86,31 @@ impl JoinSemiLattice for RelevanceDomain<'tcx> {
 
 impl<C> DebugWithContext<C> for RelevanceDomain<'tcx> {
   fn fmt_with(&self, _ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let format_place = |place: Place| {
+      let mut s = format!("{:?}", place.local);
+      for elem in place.projection.iter() {
+        s = match elem {
+          ProjectionElem::Deref => format!("(*{})", s),
+          ProjectionElem::Field(field, _) => format!("{}.{:?}", s, field.as_usize()),
+          ProjectionElem::Index(_) => format!("{}[]", s),
+          _ => format!("TODO({})", s)
+        };
+      }
+      s
+    };
+
+    let format_places = |places: &PlaceSet| {
+      places.iter().map(|place| format_place(*place)).collect::<Vec<_>>().join(", ")
+    };
+
     write!(
       f,
       "{}, {}, {:?}",
-      dot::escape_html(&format!("{:?}", self.places)),
-      dot::escape_html(&format!("{:?}", self.statement_relevant)),
+      format_places(&self.places),
+      match self.statement_relevant {
+        RelevanceTrace::NotRelevant => "NotRelevant".to_string(),
+        RelevanceTrace::Relevant { .. } => "Relevant".to_string()
+      },
       self.path_relevant
     )
   }
@@ -165,30 +185,24 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
       .places
       .iter()
       .filter_map(|relevant_place| {
-        let (relevant_sub_part, relevant_super_part): (Vec<_>, Vec<_>) = mutated_places
+        let relations = mutated_places
           .iter()
-          .map(|mutated_place| {
-            (
-              self
-                .analysis
-                .alias_analysis
-                .place_is_part(*relevant_place, *mutated_place),
-              self
-                .analysis
-                .alias_analysis
-                .place_is_part(*mutated_place, *relevant_place),
-            )
+          .filter_map(|mutated_place| {
+            match self.analysis.alias_analysis.place_relation(*relevant_place, *mutated_place) {
+              PlaceRelation::Disjoint => None,
+              relation => Some(relation)
+            }          
           })
-          .unzip();
+          .collect::<Vec<_>>();
 
-        if relevant_super_part.into_iter().any(|x| x) {
+        if relations.iter().any(|relation| *relation == PlaceRelation::Sub) {
           let mutation_kind = if definitely_mutated {
             MutationKind::Strong
           } else {
             MutationKind::Weak
           };
           Some((*relevant_place, mutation_kind))
-        } else if relevant_sub_part.into_iter().any(|x| x) {
+        } else if relations.iter().any(|relation| *relation == PlaceRelation::Super) {
           Some((*relevant_place, MutationKind::Weak))
         } else {
           None
