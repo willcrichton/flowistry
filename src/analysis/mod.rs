@@ -6,7 +6,7 @@ use rustc_hir::{
   itemlikevisit::ItemLikeVisitor,
   BodyId, ForeignItem, ImplItem, Item, TraitItem,
 };
-use rustc_middle::{hir::map::Map, ty::TyCtxt};
+use rustc_middle::{hir::map::Map, mir::{Local, Place}, ty::TyCtxt};
 use rustc_span::{FileName, RealFileName, Span};
 use std::time::Instant;
 
@@ -37,12 +37,14 @@ impl VisitorContext<'_> {
     take_mut::take(&mut self.output, move |output| {
       output.and_then(move |mut output| {
         let start = Instant::now();
-        let fn_output = intraprocedural::analyze_function(
-          config,
-          tcx,
-          body_id,
-          &SliceLocation::Span(slice_span),
-        )?;
+        let slice_location = match config.local {
+          Some(local) => SliceLocation::PlacesOnExit(vec![Place {
+            local: Local::from_usize(local),
+            projection: tcx.intern_place_elems(&[]),
+          }]),
+          None => SliceLocation::Span(slice_span),
+        };
+        let fn_output = intraprocedural::analyze_function(config, tcx, body_id, &slice_location)?;
         debug!(
           "Finished in {} seconds",
           start.elapsed().as_nanos() as f64 / 1e9

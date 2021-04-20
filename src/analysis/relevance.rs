@@ -3,6 +3,7 @@ use crate::config::{Config, ContextMode, MutabilityMode};
 use log::debug;
 use maplit::hashset;
 use rustc_data_structures::graph::dominators::Dominators;
+use rustc_graphviz as dot;
 use rustc_middle::{
   mir::{
     self,
@@ -87,8 +88,10 @@ impl<C> DebugWithContext<C> for RelevanceDomain<'tcx> {
   fn fmt_with(&self, _ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(
       f,
-      "{:?}, {:?}, {:?}",
-      self.places, self.statement_relevant, self.path_relevant
+      "{}, {}, {:?}",
+      dot::escape_html(&format!("{:?}", self.places)),
+      dot::escape_html(&format!("{:?}", self.statement_relevant)),
+      self.path_relevant
     )
   }
 }
@@ -152,6 +155,7 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
   pub(super) fn relevant_places(
     &self,
     mutated_place: Place<'tcx>,
+    definitely_mutated: bool,
   ) -> Vec<(Place<'tcx>, MutationKind)> {
     let mutated_places = self.analysis.alias_analysis.loans(mutated_place);
     debug!("  mutated {:?} / {:?}", mutated_place, mutated_places);
@@ -178,7 +182,12 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
           .unzip();
 
         if relevant_super_part.into_iter().any(|x| x) {
-          Some((*relevant_place, MutationKind::Strong))
+          let mutation_kind = if definitely_mutated {
+            MutationKind::Strong
+          } else {
+            MutationKind::Weak
+          };
+          Some((*relevant_place, mutation_kind))
         } else if relevant_sub_part.into_iter().any(|x| x) {
           Some((*relevant_place, MutationKind::Weak))
         } else {
@@ -189,16 +198,21 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
   }
 
   pub fn is_relevant(&mut self, place: Place<'tcx>) -> bool {
-    self.relevant_places(place).len() > 0
+    self.relevant_places(place, false).len() > 0
   }
 
-  fn check_mutation(&mut self, place: Place<'tcx>, input_places: &PlaceSet<'tcx>) -> bool {
+  fn check_mutation(
+    &mut self,
+    place: Place<'tcx>,
+    input_places: &PlaceSet<'tcx>,
+    definitely_mutated: bool,
+  ) -> bool {
     // is `place` in the relevant set?
     debug!(
       "checking {:?} with relevant = {:?}",
       place, self.state.places,
     );
-    let relevant_mutated = self.relevant_places(place);
+    let relevant_mutated = self.relevant_places(place, definitely_mutated);
     debug!("  relevant mutated = {:?}", relevant_mutated);
 
     if relevant_mutated.len() > 0 {
@@ -253,7 +267,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
     };
     collector.visit_rvalue(rvalue, location);
 
-    self.check_mutation(*place, &collector.places);
+    self.check_mutation(*place, &collector.places, true);
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
@@ -328,14 +342,14 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
 
           for (_, ptrs) in input_mut_ptrs {
             for ptr in ptrs {
-              if self.check_mutation(ptr, &input_places) {
+              if self.check_mutation(ptr, &input_places, false) {
                 break;
               }
             }
           }
 
           if let Some((dst, _)) = destination {
-            self.check_mutation(*dst, &input_places);
+            self.check_mutation(*dst, &input_places, true);
           }
         }
       }
