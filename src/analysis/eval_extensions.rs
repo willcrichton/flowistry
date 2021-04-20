@@ -191,7 +191,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       .map(|(i, places)| {
         let (_, orig_input) = input_places.iter().find(|(j, _)| i == j).unwrap();
         places.iter().map(move |place| {
-          let mut projection = &place.projection[orig_input.projection.len()..];
+          let projection = &place.projection[orig_input.projection.len()..];
           Place {
             local: Local::from_usize(*i + 1),
             projection: tcx.intern_place_elems(projection),

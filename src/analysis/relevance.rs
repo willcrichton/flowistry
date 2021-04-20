@@ -1,9 +1,7 @@
 use super::aliases::{interior_pointers, Aliases, PlaceSet, PlaceRelation};
 use crate::config::{Config, ContextMode, MutabilityMode};
 use log::debug;
-use maplit::hashset;
 use rustc_data_structures::graph::dominators::Dominators;
-use rustc_graphviz as dot;
 use rustc_middle::{
   mir::{
     self,
@@ -191,7 +189,7 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
             match self.analysis.alias_analysis.place_relation(*relevant_place, *mutated_place) {
               PlaceRelation::Disjoint => None,
               relation => Some(relation)
-            }          
+            }
           })
           .collect::<Vec<_>>();
 
@@ -348,7 +346,6 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
         };
 
         if !could_recurse {
-          let tcx = self.analysis.tcx;
           let input_places = input_places
             .into_iter()
             .map(|(_, place)| place)
@@ -418,7 +415,7 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   body: &'mir Body<'tcx>,
   post_dominators: Dominators<BasicBlock>,
   current_block: RefCell<BasicBlock>,
-  alias_analysis: &'a Aliases<'a, 'tcx>,
+  alias_analysis: &'a Aliases<'tcx>,
 }
 
 impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
@@ -427,7 +424,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     slice_set: SliceSet<'tcx>,
     tcx: TyCtxt<'tcx>,
     body: &'mir Body<'tcx>,
-    alias_analysis: &'a Aliases<'a, 'tcx>,
+    alias_analysis: &'a Aliases<'tcx>,
     post_dominators: Dominators<BasicBlock>,
   ) -> Self {
     let current_block = RefCell::new(body.basic_blocks().indices().next().unwrap());
