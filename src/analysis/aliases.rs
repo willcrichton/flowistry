@@ -1,5 +1,4 @@
 use super::intraprocedural::elapsed;
-use super::places_conflict::{self, PlaceConflictBias};
 use crate::config::{Config, MutabilityMode};
 use log::{debug, warn};
 use rustc_data_structures::graph::scc::Sccs;
@@ -12,7 +11,6 @@ use rustc_middle::{
   },
   ty::{self, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS, TypeFoldable, TypeVisitor},
 };
-use rustc_mir::borrow_check::AccessDepth;
 use rustc_target::abi::VariantIdx;
 use std::cell::RefCell;
 use std::collections::{hash_map::Entry, HashMap, HashSet};
@@ -171,11 +169,9 @@ pub(super) fn interior_pointers<'tcx>(
   region_collector.regions
 }
 
-pub struct Aliases<'a, 'tcx> {
+pub struct Aliases<'tcx> {
   loans: IndexVec<RegionVid, PlaceSet<'tcx>>,
-  loan_cache: RefCell<HashMap<Place<'tcx>, PlaceSet<'tcx>>>,
-  body: &'a Body<'tcx>,
-  tcx: TyCtxt<'tcx>,
+  loan_cache: RefCell<HashMap<Place<'tcx>, PlaceSet<'tcx>>>
 }
 
 #[derive(PartialEq, Eq)]
@@ -191,7 +187,7 @@ impl PlaceRelation {
   }
 }
 
-impl Aliases<'a, 'tcx> {
+impl Aliases<'tcx> {
   pub fn loans(&self, place: Place<'tcx>) -> PlaceSet<'tcx> {
     let compute_loans = || {
       self
@@ -258,7 +254,7 @@ pub fn compute_aliases(
   borrow_set: &'a BorrowSet<'tcx>,
   outlives_constraints: &'a Vec<OutlivesConstraint>,
   constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>,
-) -> Aliases<'a, 'tcx> {
+) -> Aliases<'tcx> {
   let all_regions = body
     .local_decls()
     .indices()
@@ -306,8 +302,6 @@ pub fn compute_aliases(
   let mut aliases = Aliases {
     loans: IndexVec::from_elem_n(HashSet::new(), max_region),
     loan_cache: RefCell::new(HashMap::new()),
-    body,
-    tcx,
   };
 
   for (region, (sub_place, mutability)) in all_regions {

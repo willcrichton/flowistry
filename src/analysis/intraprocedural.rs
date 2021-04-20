@@ -1,4 +1,4 @@
-use super::aliases::{compute_aliases, PlaceSet};
+use super::aliases::{compute_aliases};
 use super::eval_extensions;
 use super::post_dominators::compute_post_dominators;
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, RelevanceTrace, SliceSet};
@@ -231,7 +231,6 @@ pub enum SliceLocation<'tcx> {
 impl SliceLocation<'tcx> {
   fn to_slice_set(
     &self,
-    tcx: TyCtxt<'tcx>,
     body: &Body<'tcx>,
   ) -> (SliceSet<'tcx>, Vec<Place<'tcx>>) {
     match self {
@@ -335,7 +334,7 @@ pub fn analyze_function(
       constraint_sccs,
     );
 
-    let (slice_set, input_places) = slice_location.to_slice_set(tcx, body);
+    let (slice_set, input_places) = slice_location.to_slice_set(body);
 
     debug!("Initial slice set: {:?}", slice_set);
     elapsed("pre-relevance", start);
