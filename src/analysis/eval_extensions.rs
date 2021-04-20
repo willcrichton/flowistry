@@ -237,27 +237,33 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       let mutated_inputs = results
         .mutated_inputs
         .iter()
-        .map(|index| recursive_inputs[*index])
+        .filter_map(|index| {
+          let callee_place = recursive_inputs[*index];
+          (callee_place.local != RETURN_PLACE).then(|| callee_place)
+        })
+        .map(|callee_place| {
+          let i = callee_place.local.as_usize();
+          let (_, caller_place) = input_places.iter().find(|(j, _)| *j == i - 1).unwrap();
+          let mut projection = caller_place.projection.to_vec();
+          projection.extend(callee_place.projection.iter());
+          Place {
+            local: caller_place.local,
+            projection: tcx.intern_place_elems(&projection),
+          }
+        })
         .collect::<HashSet<_>>();
 
       debug!("Mutated inputs {:?}", mutated_inputs);
 
-      let relevant_inputs = mutated_inputs
+      let relevant_inputs = results
+        .relevant_inputs
         .iter()
-        .filter_map(|callee_place| {
-          let i = callee_place.local.as_usize();
-          let is_argument = 1 <= i && i <= max_arg;
-          is_argument.then(|| {
-            let (_, caller_place) = input_places.iter().find(|(j, _)| *j == i - 1).unwrap();
-            let mut projection = caller_place.projection.to_vec();
-            projection.extend(callee_place.projection.iter());
-            Place {
-              local: caller_place.local,
-              projection: tcx.intern_place_elems(&projection),
-            }
-          })
+        .map(|index| {
+          let (_, caller_place) = input_places.iter().find(|(j, _)| *j == *index).unwrap();
+          *caller_place
         })
         .collect::<HashSet<_>>();
+
       self.add_relevant(
         &mutated_inputs
           .into_iter()

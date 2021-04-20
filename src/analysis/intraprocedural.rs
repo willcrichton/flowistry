@@ -64,6 +64,7 @@ struct CollectResults<'a, 'tcx> {
   num_instructions: usize,
   input_places: Vec<Place<'tcx>>,
   mutated_inputs: HashSet<usize>,
+  relevant_inputs: HashSet<usize>
 }
 
 impl<'a, 'tcx> CollectResults<'a, 'tcx> {
@@ -81,6 +82,13 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
       .map(|place| place.local)
       .collect::<HashSet<_>>();
     self.all_locals = &self.all_locals | &locals; //&(&locals - &self.relevant_locals);
+
+    for place in state.places.iter() {
+      let local = place.local.as_usize();
+      if 1 <= local && local <= self.body.arg_count {
+        self.relevant_inputs.insert(local - 1);
+      }
+    }
 
     if let RelevanceTrace::Relevant { mutated, .. } = &state.statement_relevant {
       let mutated_inputs = self
@@ -177,6 +185,7 @@ pub struct SliceOutput {
   pub num_instructions: usize,
   pub num_relevant_instructions: usize,
   pub mutated_inputs: HashSet<usize>,
+  pub relevant_inputs: HashSet<usize>,
 }
 
 impl SliceOutput {
@@ -186,6 +195,7 @@ impl SliceOutput {
       num_instructions: 0,
       num_relevant_instructions: 0,
       mutated_inputs: hashset![],
+      relevant_inputs: hashset![],
     }
   }
 
@@ -349,7 +359,8 @@ pub fn analyze_function(
       num_relevant_instructions: 0,
       num_instructions: 0,
       input_places,
-      mutated_inputs: HashSet::new(),
+      mutated_inputs: hashset![],
+      relevant_inputs: hashset![],
     };
     relevance_results.visit_reachable_with(body, &mut visitor);
     elapsed("relevance", start);
@@ -371,6 +382,7 @@ pub fn analyze_function(
       num_instructions: visitor.num_instructions,
       num_relevant_instructions: visitor.num_relevant_instructions,
       mutated_inputs: visitor.mutated_inputs,
+      relevant_inputs: visitor.relevant_inputs,
     })
   };
 
