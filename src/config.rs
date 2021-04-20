@@ -112,6 +112,7 @@ pub struct Config {
   pub range: Range,
   pub debug: bool,
   pub eval_mode: EvalMode,
+  pub local: Option<usize>
 }
 
 impl Default for Config {
@@ -124,6 +125,7 @@ impl Default for Config {
         context_mode: ContextMode::SigOnly,
         pointer_mode: PointerMode::Precise,
       },
+      local: None
     }
   }
 }

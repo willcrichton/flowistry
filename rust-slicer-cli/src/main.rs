@@ -17,6 +17,7 @@ fn run() -> Result<()> {
     (@arg nomut: --nomut)
     (@arg recurse: --recurse)
     (@arg conserv: --conserv)
+    (@arg local: --local +takes_value)
     (@arg path:)
     (@arg start_line:)
     (@arg start_col:)
@@ -47,6 +48,7 @@ fn run() -> Result<()> {
       end_col: arg!("end_col").parse::<usize>()?,
       filename: arg!("path").to_owned(),
     },
+    local: if matches.is_present("local") { Some(arg!("local").parse::<usize>()?) } else { None },
     debug: matches.is_present("debug"),
     eval_mode: EvalMode {
       mutability_mode: if matches.is_present("nomut") {
