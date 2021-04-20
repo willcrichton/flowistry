@@ -178,6 +178,19 @@ pub struct Aliases<'a, 'tcx> {
   tcx: TyCtxt<'tcx>,
 }
 
+#[derive(PartialEq, Eq)]
+pub enum PlaceRelation {
+  Super,
+  Sub,
+  Disjoint
+}
+
+impl PlaceRelation {
+  pub fn overlaps(&self) -> bool {
+    *self != PlaceRelation::Disjoint
+  }
+}
+
 impl Aliases<'a, 'tcx> {
   pub fn loans(&self, place: Place<'tcx>) -> PlaceSet<'tcx> {
     let compute_loans = || {
@@ -187,7 +200,7 @@ impl Aliases<'a, 'tcx> {
         .filter_map(|loans| {
           let matches_loan = loans
             .iter()
-            .any(|loan| self.place_is_part(*loan, place) || self.place_is_part(place, *loan));
+            .any(|loan| self.place_relation(*loan, place).overlaps());
           let is_deref = place.is_indirect();
           (matches_loan && is_deref).then(|| loans.clone().into_iter())
         })
@@ -204,19 +217,37 @@ impl Aliases<'a, 'tcx> {
       .clone()
   }
 
-  pub fn place_is_part(&self, part_place: Place<'tcx>, whole_place: Place<'tcx>) -> bool {
-    // debug!("comparing {:?} and {:?}", whole_place, part_place);
-    places_conflict::borrow_conflicts_with_place(
-      self.tcx,
-      self.body,
-      whole_place,
-      BorrowKind::Mut {
-        allow_two_phase_borrow: true,
-      },
-      part_place.as_ref(),
-      AccessDepth::Deep,
-      PlaceConflictBias::Overlap,
-    )
+  pub fn place_relation(&self, part_place: Place<'tcx>, whole_place: Place<'tcx>) -> PlaceRelation {
+    let locals_match = part_place.local == whole_place.local;
+
+    let projections_match = part_place
+      .projection
+      .iter()
+      .zip(whole_place.projection.iter())
+      .all(|(elem1, elem2)| {
+        use ProjectionElem::*;
+        match (elem1, elem2) {
+          (Deref, Deref) => true,
+          (Field(f1, _), Field(f2, _)) => f1 == f2,
+          (Index(_), Index(_)) => true,
+          (ConstantIndex { .. }, ConstantIndex { .. }) => true,
+          (Subslice { .. }, Subslice { .. }) => true,
+          (Downcast(_, v1), Downcast(_, v2)) => v1 == v2,
+          _ => false,
+        }
+      });
+
+    let is_sub_part = part_place.projection.len() >= whole_place.projection.len();
+
+    if locals_match && projections_match {
+      if is_sub_part {
+        PlaceRelation::Sub
+      } else {
+        PlaceRelation::Super
+      }
+    } else {
+      PlaceRelation::Disjoint
+    }
   }
 }
 
