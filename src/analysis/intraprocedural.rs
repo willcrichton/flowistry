@@ -1,4 +1,4 @@
-use super::aliases::{compute_aliases};
+use super::aliases::compute_aliases;
 use super::eval_extensions;
 use super::post_dominators::compute_post_dominators;
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, RelevanceTrace, SliceSet};
@@ -64,7 +64,7 @@ struct CollectResults<'a, 'tcx> {
   num_instructions: usize,
   input_places: Vec<Place<'tcx>>,
   mutated_inputs: HashSet<usize>,
-  relevant_inputs: HashSet<usize>
+  relevant_inputs: HashSet<usize>,
 }
 
 impl<'a, 'tcx> CollectResults<'a, 'tcx> {
@@ -91,6 +91,7 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
     }
 
     if let RelevanceTrace::Relevant { mutated, .. } = &state.statement_relevant {
+      println!("mutated {:?}", mutated);
       let mutated_inputs = self
         .input_places
         .iter()
@@ -203,6 +204,8 @@ impl SliceOutput {
     self.ranges.extend(other.ranges.into_iter());
     self.num_instructions = other.num_instructions;
     self.num_relevant_instructions = other.num_relevant_instructions;
+    self.mutated_inputs = other.mutated_inputs;
+    self.relevant_inputs = other.relevant_inputs;
   }
 
   pub fn ranges(&self) -> &Vec<Range> {
@@ -229,10 +232,7 @@ pub enum SliceLocation<'tcx> {
 }
 
 impl SliceLocation<'tcx> {
-  fn to_slice_set(
-    &self,
-    body: &Body<'tcx>,
-  ) -> (SliceSet<'tcx>, Vec<Place<'tcx>>) {
+  fn to_slice_set(&self, body: &Body<'tcx>) -> (SliceSet<'tcx>, Vec<Place<'tcx>>) {
     match self {
       SliceLocation::Span(slice_span) => {
         let mut finder = FindInitialSliceSet {
@@ -278,7 +278,9 @@ pub fn analyze_function(
   body_id: BodyId,
   slice_location: &SliceLocation<'tcx>,
 ) -> Result<SliceOutput> {
-  let analyze = || -> Result<_> {
+  BODY_STACK.with(|body_stack| {
+    body_stack.borrow_mut().push(body_id);
+
     let start = Instant::now();
     let local_def_id = tcx.hir().body_owner_def_id(body_id);
     let borrowck_result = tcx.mir_borrowck(local_def_id);
@@ -345,7 +347,7 @@ pub fn analyze_function(
         .into_engine(tcx, body)
         .iterate_to_fixpoint();
 
-    if config.debug {
+    if config.debug && body_stack.borrow().len() == 1 {
       dump_results("target/relevance.png", body, &relevance_results)?;
     }
 
@@ -376,6 +378,8 @@ pub fn analyze_function(
       .filter_map(|span| Range::from_span(span, source_map).ok())
       .collect();
 
+    body_stack.borrow_mut().pop();
+
     Ok(SliceOutput {
       ranges,
       num_instructions: visitor.num_instructions,
@@ -383,21 +387,5 @@ pub fn analyze_function(
       mutated_inputs: visitor.mutated_inputs,
       relevant_inputs: visitor.relevant_inputs,
     })
-  };
-
-  // ANALYSIS_CACHE.with(|cache| {
-  //   let key = CacheKey(config.clone(), body_id, slice_location.clone());
-
-  //   if !cache.borrow().contains_key(&key) {
-  BODY_STACK.with(|body_stack| {
-    body_stack.borrow_mut().push(body_id);
-    let results = analyze();
-    body_stack.borrow_mut().pop();
-    results
   })
-  // cache.borrow_mut().insert(key.clone(), results);
-  //   }
-
-  //   Ok(cache.borrow().get(&key).unwrap().clone())
-  // })
 }

@@ -187,6 +187,39 @@ impl PlaceRelation {
   }
 }
 
+pub fn place_relation(part_place: Place<'tcx>, whole_place: Place<'tcx>) -> PlaceRelation {
+  let locals_match = part_place.local == whole_place.local;
+
+  let projections_match = part_place
+    .projection
+    .iter()
+    .zip(whole_place.projection.iter())
+    .all(|(elem1, elem2)| {
+      use ProjectionElem::*;
+      match (elem1, elem2) {
+        (Deref, Deref) => true,
+        (Field(f1, _), Field(f2, _)) => f1 == f2,
+        (Index(_), Index(_)) => true,
+        (ConstantIndex { .. }, ConstantIndex { .. }) => true,
+        (Subslice { .. }, Subslice { .. }) => true,
+        (Downcast(_, v1), Downcast(_, v2)) => v1 == v2,
+        _ => false,
+      }
+    });
+
+  let is_sub_part = part_place.projection.len() >= whole_place.projection.len();
+
+  if locals_match && projections_match {
+    if is_sub_part {
+      PlaceRelation::Sub
+    } else {
+      PlaceRelation::Super
+    }
+  } else {
+    PlaceRelation::Disjoint
+  }
+}
+
 impl Aliases<'tcx> {
   pub fn loans(&self, place: Place<'tcx>) -> PlaceSet<'tcx> {
     let compute_loans = || {
@@ -196,7 +229,7 @@ impl Aliases<'tcx> {
         .filter_map(|loans| {
           let matches_loan = loans
             .iter()
-            .any(|loan| self.place_relation(*loan, place).overlaps());
+            .any(|loan| place_relation(*loan, place).overlaps());
           let is_deref = place.is_indirect();
           (matches_loan && is_deref).then(|| loans.clone().into_iter())
         })
@@ -211,39 +244,6 @@ impl Aliases<'tcx> {
       .entry(place)
       .or_insert_with(compute_loans)
       .clone()
-  }
-
-  pub fn place_relation(&self, part_place: Place<'tcx>, whole_place: Place<'tcx>) -> PlaceRelation {
-    let locals_match = part_place.local == whole_place.local;
-
-    let projections_match = part_place
-      .projection
-      .iter()
-      .zip(whole_place.projection.iter())
-      .all(|(elem1, elem2)| {
-        use ProjectionElem::*;
-        match (elem1, elem2) {
-          (Deref, Deref) => true,
-          (Field(f1, _), Field(f2, _)) => f1 == f2,
-          (Index(_), Index(_)) => true,
-          (ConstantIndex { .. }, ConstantIndex { .. }) => true,
-          (Subslice { .. }, Subslice { .. }) => true,
-          (Downcast(_, v1), Downcast(_, v2)) => v1 == v2,
-          _ => false,
-        }
-      });
-
-    let is_sub_part = part_place.projection.len() >= whole_place.projection.len();
-
-    if locals_match && projections_match {
-      if is_sub_part {
-        PlaceRelation::Sub
-      } else {
-        PlaceRelation::Super
-      }
-    } else {
-      PlaceRelation::Disjoint
-    }
   }
 }
 

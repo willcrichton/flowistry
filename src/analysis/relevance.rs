@@ -1,4 +1,4 @@
-use super::aliases::{interior_pointers, Aliases, PlaceSet, PlaceRelation};
+use super::aliases::{interior_pointers, place_relation, Aliases, PlaceRelation, PlaceSet};
 use crate::config::{Config, ContextMode, MutabilityMode};
 use log::debug;
 use rustc_data_structures::graph::dominators::Dominators;
@@ -54,9 +54,22 @@ pub enum RelevanceTrace<'tcx> {
   Relevant { mutated: PlaceSet<'tcx> },
 }
 
-impl RelevanceTrace<'_> {
+impl RelevanceTrace<'tcx> {
   pub fn reset(&mut self) {
     *self = RelevanceTrace::NotRelevant;
+  }
+
+  pub fn merge(&mut self, mutated: PlaceSet<'tcx>) {
+    match self {
+      RelevanceTrace::NotRelevant => {
+        *self = RelevanceTrace::Relevant { mutated };
+      }
+      RelevanceTrace::Relevant {
+        mutated: orig_mutated,
+      } => {
+        orig_mutated.extend(mutated.into_iter());
+      }
+    }
   }
 }
 
@@ -91,14 +104,18 @@ impl<C> DebugWithContext<C> for RelevanceDomain<'tcx> {
           ProjectionElem::Deref => format!("(*{})", s),
           ProjectionElem::Field(field, _) => format!("{}.{:?}", s, field.as_usize()),
           ProjectionElem::Index(_) => format!("{}[]", s),
-          _ => format!("TODO({})", s)
+          _ => format!("TODO({})", s),
         };
       }
       s
     };
 
     let format_places = |places: &PlaceSet| {
-      places.iter().map(|place| format_place(*place)).collect::<Vec<_>>().join(", ")
+      places
+        .iter()
+        .map(|place| format_place(*place))
+        .collect::<Vec<_>>()
+        .join(", ")
     };
 
     write!(
@@ -107,7 +124,7 @@ impl<C> DebugWithContext<C> for RelevanceDomain<'tcx> {
       format_places(&self.places),
       match self.statement_relevant {
         RelevanceTrace::NotRelevant => "NotRelevant".to_string(),
-        RelevanceTrace::Relevant { .. } => "Relevant".to_string()
+        RelevanceTrace::Relevant { .. } => "Relevant".to_string(),
       },
       self.path_relevant
     )
@@ -152,9 +169,10 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
     self.state.places = &self.state.places - &to_delete;
 
     self.state.places.extend(used.iter().cloned());
-    self.state.statement_relevant = RelevanceTrace::Relevant {
-      mutated: mutated.iter().map(|(place, _)| *place).collect(),
-    };
+    self
+      .state
+      .statement_relevant
+      .merge(mutated.iter().map(|(place, _)| *place).collect());
 
     let current_block = self.analysis.current_block.borrow();
     let preds = &self.analysis.body.predecessors()[*current_block];
@@ -185,22 +203,28 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
       .filter_map(|relevant_place| {
         let relations = mutated_places
           .iter()
-          .filter_map(|mutated_place| {
-            match self.analysis.alias_analysis.place_relation(*relevant_place, *mutated_place) {
+          .filter_map(
+            |mutated_place| match place_relation(*relevant_place, *mutated_place) {
               PlaceRelation::Disjoint => None,
-              relation => Some(relation)
-            }
-          })
+              relation => Some(relation),
+            },
+          )
           .collect::<Vec<_>>();
 
-        if relations.iter().any(|relation| *relation == PlaceRelation::Sub) {
+        if relations
+          .iter()
+          .any(|relation| *relation == PlaceRelation::Sub)
+        {
           let mutation_kind = if definitely_mutated {
             MutationKind::Strong
           } else {
             MutationKind::Weak
           };
           Some((*relevant_place, mutation_kind))
-        } else if relations.iter().any(|relation| *relation == PlaceRelation::Super) {
+        } else if relations
+          .iter()
+          .any(|relation| *relation == PlaceRelation::Super)
+        {
           Some((*relevant_place, MutationKind::Weak))
         } else {
           None
