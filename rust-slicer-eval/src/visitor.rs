@@ -9,7 +9,7 @@ use rustc_hir::{
   itemlikevisit::ParItemLikeVisitor,
   BodyId, Expr, ExprKind, ImplItemKind, ItemKind, Local,
 };
-use rustc_middle::{hir::map::Map, ty::TyCtxt};
+use rustc_middle::{hir::map::Map, ty::TyCtxt, mir::Place};
 use rustc_span::Span;
 use serde::Serialize;
 use std::sync::Mutex;
@@ -153,11 +153,14 @@ impl EvalCrateVisitor<'tcx> {
           };
 
           let start = Instant::now();
-          let (output, _) = intraprocedural::analyze_function(
+          let output = intraprocedural::analyze_function(
             &config,
             tcx,
             *body_id,
-            &intraprocedural::SliceLocation::LocalsOnExit(vec![local]),
+            &intraprocedural::SliceLocation::PlacesOnExit(vec![Place {
+              local,
+              projection: tcx.intern_place_elems(&[])
+            }]),
           )
           .unwrap();
 

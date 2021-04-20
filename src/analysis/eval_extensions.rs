@@ -231,8 +231,6 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
     )
     .unwrap();
 
-    let max_arg = input_places.iter().map(|(j, _)| *j).max().unwrap();
-
     if results.mutated_inputs.len() > 0 {
       let mutated_inputs = results
         .mutated_inputs
@@ -258,9 +256,8 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       let relevant_inputs = results
         .relevant_inputs
         .iter()
-        .map(|index| {
-          let (_, caller_place) = input_places.iter().find(|(j, _)| *j == *index).unwrap();
-          *caller_place
+        .filter_map(|index| {
+          input_places.iter().find(|(j, _)| *j == *index).map(|(_, caller_place)| *caller_place)
         })
         .collect::<HashSet<_>>();
 
