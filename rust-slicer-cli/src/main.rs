@@ -18,6 +18,8 @@ fn run() -> Result<()> {
     (@arg recurse: --recurse)
     (@arg conserv: --conserv)
     (@arg local: --local +takes_value)
+    (@arg features: --features +takes_value)
+    (@arg all_features: --("all-features"))
     (@arg path:)
     (@arg start_line:)
     (@arg start_col:)
@@ -32,7 +34,8 @@ fn run() -> Result<()> {
     };
   }
 
-  let features = CliFeatures::from_command_line(&[], false, true)?;
+  let features = if matches.is_present("features") { arg!("features").split(",").map(|s| s.to_owned()).collect::<Vec<_>>() } else { vec![] };
+  let features = CliFeatures::from_command_line(&features, matches.is_present("all_features"), true)?;
   let (flags, env) = generate_rustc_flags(arg!("path"), features, false)?;
   for (k, v) in env {
     env::set_var(k, v);
