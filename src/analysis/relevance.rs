@@ -384,7 +384,13 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
           }
 
           if let Some((dst, _)) = destination {
-            self.check_mutation(*dst, &input_places, true);
+            // Special case: if a function returns unit (common with mutation-only functions),
+            // then we're guaranteed that the function body has no effect on the return value.
+            // This case mainly shows up in the evaluation when we auto-generate slices on all locals
+            // that includes unit return values of functions.
+            if !dst.ty(self.analysis.body.local_decls(), tcx).ty.is_unit() {
+              self.check_mutation(*dst, &input_places, true);
+            }
           }
         }
       }

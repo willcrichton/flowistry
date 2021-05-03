@@ -47,6 +47,7 @@ impl FindConstraints<'_, 'tcx> {
           .iter()
           .filter_map(move |(region2, (sub_place2, _))| {
             if TyS::same_type(deref_ty(*sub_place1), deref_ty(*sub_place2)) {
+              debug!("Adding alias {:?} = {:?} ({:?} = {:?})", sub_place1, sub_place2, region1, region2);
               Some((*region1, *region2))
             } else {
               None
@@ -217,10 +218,10 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       .chain(relevant_return.into_iter())
       .collect::<HashSet<_>>();
 
+    let def_path = tcx.def_path_debug_str(*def_id);
     info!(
       "Recursing into {} on places {:?}",
-      tcx.def_path_debug_str(*def_id),
-      relevant_places
+      def_path, relevant_places
     );
     let recursive_inputs = relevant_places.iter().cloned().collect::<Vec<_>>();
     let results = super::intraprocedural::analyze_function(
@@ -230,6 +231,11 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       &SliceLocation::PlacesOnExit(recursive_inputs.clone()),
     )
     .unwrap();
+
+    debug!(
+      "Done recursing into {}, mutated inputs: {:?}",
+      def_path, results.mutated_inputs
+    );
 
     if results.mutated_inputs.len() > 0 {
       let mutated_inputs = results
@@ -251,13 +257,16 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
         })
         .collect::<HashSet<_>>();
 
-      debug!("Mutated inputs {:?}", mutated_inputs);
+      debug!("Mutated inputs translated to source: {:?}", mutated_inputs);
 
       let relevant_inputs = results
         .relevant_inputs
         .iter()
         .filter_map(|index| {
-          input_places.iter().find(|(j, _)| *j == *index).map(|(_, caller_place)| *caller_place)
+          input_places
+            .iter()
+            .find(|(j, _)| *j == *index)
+            .map(|(_, caller_place)| *caller_place)
         })
         .collect::<HashSet<_>>();
 

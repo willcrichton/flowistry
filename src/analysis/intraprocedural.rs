@@ -91,7 +91,6 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
     }
 
     if let RelevanceTrace::Relevant { mutated, .. } = &state.statement_relevant {
-      println!("mutated {:?}", mutated);
       let mutated_inputs = self
         .input_places
         .iter()
