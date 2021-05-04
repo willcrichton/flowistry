@@ -174,7 +174,7 @@ pub struct Aliases<'tcx> {
   loan_cache: RefCell<HashMap<Place<'tcx>, PlaceSet<'tcx>>>
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum PlaceRelation {
   Super,
   Sub,
