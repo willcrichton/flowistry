@@ -9,6 +9,7 @@ use rustc_hir::{
 use rustc_middle::{hir::map::Map, mir::{Local, Place}, ty::TyCtxt};
 use rustc_span::{FileName, RealFileName, Span};
 use std::time::Instant;
+use std::path::Path;
 
 pub use intraprocedural::{SliceLocation, SliceOutput};
 
@@ -105,11 +106,12 @@ impl rustc_driver::Callbacks for Callbacks {
       let slice_span = {
         let source_map = tcx.sess.source_map();
         let files = source_map.files();
+        let target_file = Path::new(&config.range.filename).canonicalize().unwrap();
         let source_file = files
           .iter()
           .find(|file| {
             if let FileName::Real(RealFileName::Named(other_path)) = &file.name {
-              config.range.filename == other_path.to_string_lossy()
+              target_file == other_path.canonicalize().unwrap()
             } else {
               false
             }

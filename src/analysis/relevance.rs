@@ -211,11 +211,14 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
           )
           .collect::<Vec<_>>();
 
+        // TODO: is there a more precise check for strong updated than |mutated_places| == 1?
+        // eg if *x mutated (*_2) and (_1) then that's a strong update on both, but only b/c
+        // they're at different level of indirection.
         if relations
           .iter()
           .any(|relation| *relation == PlaceRelation::Sub)
         {
-          let mutation_kind = if definitely_mutated {
+          let mutation_kind = if mutated_places.len() == 1 && definitely_mutated {
             MutationKind::Strong
           } else {
             MutationKind::Weak
