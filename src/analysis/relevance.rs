@@ -442,7 +442,7 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   pub(super) config: &'a Config,
   slice_set: SliceSet<'tcx>,
   pub(super) tcx: TyCtxt<'tcx>,
-  body: &'mir Body<'tcx>,
+  pub(super) body: &'mir Body<'tcx>,
   post_dominators: Dominators<BasicBlock>,
   current_block: RefCell<BasicBlock>,
   alias_analysis: &'a Aliases<'tcx>,

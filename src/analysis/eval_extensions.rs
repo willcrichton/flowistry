@@ -202,7 +202,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       .flatten();
 
     let relevant_return = if let Some((dst, _)) = destination {
-      if self.is_relevant(*dst) {
+      if !dst.ty(self.analysis.body.local_decls(), tcx).ty.is_unit() && self.is_relevant(*dst) {
         vec![Place {
           local: RETURN_PLACE,
           projection: tcx.intern_place_elems(&[]),
