@@ -9,7 +9,7 @@ use rustc_middle::{
     visit::Visitor,
     *,
   },
-  ty::{RegionVid, TyCtxt, TyKind, TyS},
+  ty::{subst::GenericArgKind, ClosureKind, RegionVid, TyCtxt, TyKind, TyS},
 };
 use rustc_mir::borrow_check::constraints::OutlivesConstraintSet;
 use std::collections::HashSet;
@@ -47,7 +47,10 @@ impl FindConstraints<'_, 'tcx> {
           .iter()
           .filter_map(move |(region2, (sub_place2, _))| {
             if TyS::same_type(deref_ty(*sub_place1), deref_ty(*sub_place2)) {
-              debug!("Adding alias {:?} = {:?} ({:?} = {:?})", sub_place1, sub_place2, region1, region2);
+              debug!(
+                "Adding alias {:?} = {:?} ({:?} = {:?})",
+                sub_place1, sub_place2, region1, region2
+              );
               Some((*region1, *region2))
             } else {
               None
@@ -176,6 +179,28 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       return false;
     };
 
+    // Issue: if recursing into a function w/ closure that mutates environment,
+    // then pointers in closure become opaque once recursing. No eays way to track
+    // calls to the function as mutations to the environment. 
+    //
+    // For now, ignore the issue by not analyzing functions with mutable closure inputs.
+    let any_closure_inputs = input_places.iter().any(|(_, place)| {
+      let ty = place.ty(self.analysis.body.local_decls(), tcx).ty;
+      ty.walk().any(|arg| match arg.unpack() {
+        GenericArgKind::Type(ty) => match ty.kind() {
+          TyKind::Closure(_, substs) => match substs.as_closure().kind() {
+            ClosureKind::FnOnce | ClosureKind::FnMut => true,
+            _ => false,
+          },
+          _ => false,
+        },
+        _ => false,
+      })
+    });
+    if any_closure_inputs {
+      return false;
+    }
+
     let (recursive, depth) = BODY_STACK.with(|body_stack| {
       let body_stack = body_stack.borrow();
       (
@@ -203,19 +228,19 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
 
     let relevant_return = if let Some((dst, _)) = destination {
       if !dst.ty(self.analysis.body.local_decls(), tcx).ty.is_unit() && self.is_relevant(*dst) {
-        vec![Place {
+        Some(Place {
           local: RETURN_PLACE,
           projection: tcx.intern_place_elems(&[]),
-        }]
+        })
       } else {
-        vec![]
+        None
       }
     } else {
-      vec![]
+      None
     };
 
     let relevant_places = relevant_inputs
-      .chain(relevant_return.into_iter())
+      .chain(relevant_return.clone().into_iter())
       .collect::<HashSet<_>>();
 
     let def_path = tcx.def_path_debug_str(*def_id);
@@ -237,46 +262,50 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       def_path, results.mutated_inputs
     );
 
-    if results.mutated_inputs.len() > 0 {
-      let mutated_inputs = results
-        .mutated_inputs
-        .iter()
-        .filter_map(|index| {
-          let callee_place = recursive_inputs[*index];
-          (callee_place.local != RETURN_PLACE).then(|| callee_place)
-        })
-        .map(|callee_place| {
-          let i = callee_place.local.as_usize();
-          let (_, caller_place) = input_places.iter().find(|(j, _)| *j == i - 1).unwrap();
-          let mut projection = caller_place.projection.to_vec();
-          projection.extend(callee_place.projection.iter());
-          Place {
-            local: caller_place.local,
-            projection: tcx.intern_place_elems(&projection),
-          }
-        })
-        .collect::<HashSet<_>>();
+    let mutated_inputs = results
+      .mutated_inputs
+      .iter()
+      .filter_map(|index| {
+        let callee_place = recursive_inputs[*index];
+        (callee_place.local != RETURN_PLACE).then(|| callee_place)
+      })
+      .map(|callee_place| {
+        let i = callee_place.local.as_usize();
+        let (_, caller_place) = input_places.iter().find(|(j, _)| *j == i - 1).unwrap();
+        let mut projection = caller_place.projection.to_vec();
+        projection.extend(callee_place.projection.iter());
+        Place {
+          local: caller_place.local,
+          projection: tcx.intern_place_elems(&projection),
+        }
+      })
+      .collect::<HashSet<_>>();
 
-      debug!("Mutated inputs translated to source: {:?}", mutated_inputs);
+    debug!("Mutated inputs translated to source: {:?}", mutated_inputs);
 
-      let relevant_inputs = results
-        .relevant_inputs
-        .iter()
-        .filter_map(|index| {
-          input_places
-            .iter()
-            .find(|(j, _)| *j == *index)
-            .map(|(_, caller_place)| *caller_place)
-        })
-        .collect::<HashSet<_>>();
+    let relevant_inputs = results
+      .relevant_inputs
+      .iter()
+      .filter_map(|index| {
+        input_places
+          .iter()
+          .find(|(j, _)| *j == *index)
+          .map(|(_, caller_place)| *caller_place)
+      })
+      .collect::<HashSet<_>>();
 
-      self.add_relevant(
+    if mutated_inputs.len() > 0 {
+        self.add_relevant(
         &mutated_inputs
           .into_iter()
           .map(|place| (place, MutationKind::Weak))
           .collect(),
         &relevant_inputs,
       );
+    }
+
+    if relevant_return.is_some() {
+      self.add_relevant(&vec![(destination.unwrap().0, MutationKind::Strong)], &relevant_inputs);
     }
 
     true
