@@ -922,6 +922,20 @@ fn main() {
   run(src, Range::line(3, 18, 19), vec![2, 3]);
 }
 
+
+#[test]
+fn string_drop_and_replace() {
+  let src = r#"
+fn main() {
+  let mut x = String::new();
+  x = String::new();
+  x;
+}
+"#;
+
+  run(src, Range::line(4, 3, 4), vec![2, 3, 4]);
+}
+
 #[test]
 fn match_test() {
   let src = r#"

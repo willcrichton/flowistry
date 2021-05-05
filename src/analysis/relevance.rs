@@ -1,6 +1,7 @@
 use super::aliases::{interior_pointers, place_relation, Aliases, PlaceRelation, PlaceSet};
 use crate::config::{Config, ContextMode, MutabilityMode};
 use log::debug;
+use maplit::hashset;
 use rustc_data_structures::graph::dominators::Dominators;
 use rustc_middle::{
   mir::{
@@ -246,7 +247,6 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
     input_places: &PlaceSet<'tcx>,
     definitely_mutated: bool,
   ) -> bool {
-    // is `place` in the relevant set?
     debug!(
       "checking {:?} with relevant = {:?}",
       place, self.state.places,
@@ -284,6 +284,13 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
     self.analysis.slice_set.get(&location).map(|places| {
       self.add_relevant(&vec![], places);
     });
+  }
+}
+
+fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
+  match operand {
+    Operand::Copy(place) | Operand::Move(place) => Some(*place),
+    Operand::Constant(_) => None,
   }
 }
 
@@ -340,10 +347,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
         let input_places = args
           .iter()
           .enumerate()
-          .filter_map(|(i, arg)| match arg {
-            Operand::Move(place) | Operand::Copy(place) => Some((i, *place)),
-            Operand::Constant(_) => None,
-          })
+          .filter_map(|(i, arg)| operand_to_place(arg).map(|place| (i, place)))
           .collect::<Vec<_>>();
 
         let input_mut_ptrs = input_places
@@ -400,14 +404,17 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
 
       TerminatorKind::SwitchInt { discr, .. } => {
         if self.state.path_relevant == Relevant::Yes {
-          match discr {
-            Operand::Move(place) | Operand::Copy(place) => {
-              let mut relevant = HashSet::new();
-              relevant.insert(*place);
-              self.add_relevant(&vec![], &relevant);
-            }
-            Operand::Constant(_) => {}
-          }
+          let input = match operand_to_place(discr) {
+            Some(place) => hashset![place],
+            None => hashset![],
+          };
+          self.add_relevant(&vec![], &input);
+        }
+      }
+
+      TerminatorKind::DropAndReplace { place, value, .. } => {
+        if let Some(input) = operand_to_place(value) {
+          self.check_mutation(*place, &hashset![input], true);
         }
       }
 
