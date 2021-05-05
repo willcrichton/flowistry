@@ -1,6 +1,7 @@
 use super::intraprocedural::elapsed;
 use crate::config::{Config, MutabilityMode};
 use log::{debug, warn};
+use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_data_structures::graph::scc::Sccs;
 use rustc_index::{bit_set::BitSet, vec::IndexVec};
 use rustc_middle::{
@@ -13,12 +14,21 @@ use rustc_middle::{
 };
 use rustc_target::abi::VariantIdx;
 use std::cell::RefCell;
-use std::collections::{hash_map::Entry, HashMap, HashSet};
+use std::collections::hash_map::Entry;
 use std::hash::Hash;
 use std::ops::ControlFlow;
 use std::time::Instant;
 
 pub type PlaceSet<'tcx> = HashSet<Place<'tcx>>;
+
+pub fn place_set_join(this: &mut PlaceSet<'tcx>, other: &PlaceSet<'tcx>) -> bool {
+  if other.is_subset(this) {
+    false
+  } else {
+    this.extend(other.iter());
+    true
+  }
+}
 
 struct CollectRegions<'tcx> {
   tcx: TyCtxt<'tcx>,
@@ -163,7 +173,7 @@ pub(super) fn interior_pointers<'tcx>(
     local: place.local,
     place_stack: vec![],
     ty_stack: Vec::new(),
-    regions: HashMap::new(),
+    regions: HashMap::default(),
   };
   region_collector.visit_ty(ty);
   region_collector.regions
@@ -171,14 +181,14 @@ pub(super) fn interior_pointers<'tcx>(
 
 pub struct Aliases<'tcx> {
   loans: IndexVec<RegionVid, PlaceSet<'tcx>>,
-  loan_cache: RefCell<HashMap<Place<'tcx>, PlaceSet<'tcx>>>
+  loan_cache: RefCell<HashMap<Place<'tcx>, PlaceSet<'tcx>>>,
 }
 
 #[derive(PartialEq, Eq, Debug)]
 pub enum PlaceRelation {
   Super,
   Sub,
-  Disjoint
+  Disjoint,
 }
 
 impl PlaceRelation {
@@ -266,7 +276,7 @@ pub fn compute_aliases(
 
       interior_pointers(place, tcx, body)
     })
-    .fold(HashMap::new(), |mut h1, h2| {
+    .fold(HashMap::default(), |mut h1, h2| {
       h1.extend(h2);
       h1
     });
@@ -300,8 +310,8 @@ pub fn compute_aliases(
   debug!("region ancestors: {:#?}", region_ancestors);
 
   let mut aliases = Aliases {
-    loans: IndexVec::from_elem_n(HashSet::new(), max_region),
-    loan_cache: RefCell::new(HashMap::new()),
+    loans: IndexVec::from_elem_n(HashSet::default(), max_region),
+    loan_cache: RefCell::new(HashMap::default()),
   };
 
   for (region, (sub_place, mutability)) in all_regions {
@@ -347,7 +357,7 @@ pub fn compute_aliases(
             .flatten()
             .collect::<HashSet<_>>()
         })
-        .unwrap_or_else(HashSet::new);
+        .unwrap_or_else(HashSet::default);
 
       let n = places.len();
       places.extend(alias_places.into_iter());
@@ -425,7 +435,7 @@ fn compute_region_ancestors(
   let mut initial_set = new_set();
   initial_set.insert(node);
 
-  let mut initial_map = HashMap::new();
+  let mut initial_map = HashMap::default();
   for r in regions_in_scc[node].iter() {
     initial_map.insert(r, initial_set.clone());
   }

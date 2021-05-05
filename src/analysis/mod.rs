@@ -17,7 +17,7 @@ mod aliases;
 mod eval_extensions;
 pub mod intraprocedural;
 mod places_conflict;
-mod post_dominators;
+mod control_dependencies;
 mod relevance;
 struct VisitorContext<'tcx> {
   tcx: TyCtxt<'tcx>,

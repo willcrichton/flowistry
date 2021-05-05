@@ -1,12 +1,12 @@
 use super::aliases::compute_aliases;
+use super::control_dependencies::ControlDependencies;
 use super::eval_extensions;
-use super::post_dominators::compute_post_dominators;
-use super::relevance::{RelevanceAnalysis, RelevanceDomain, RelevanceTrace, SliceSet};
+use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use crate::config::{Config, PointerMode, Range};
 
 use anyhow::{bail, Result};
 use log::{debug, info};
-use maplit::hashset;
+use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
 use rustc_hir::BodyId;
 use rustc_middle::{
@@ -22,15 +22,7 @@ use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisit
 use rustc_mir::util::write_mir_fn;
 use rustc_span::Span;
 use serde::Serialize;
-use std::{
-  cell::RefCell,
-  collections::{HashMap, HashSet},
-  fs::File,
-  io::Write,
-  process::Command,
-  thread_local,
-  time::Instant,
-};
+use std::{cell::RefCell, fs::File, io::Write, process::Command, thread_local, time::Instant};
 
 struct FindInitialSliceSet<'a, 'tcx> {
   slice_span: Span,
@@ -39,18 +31,18 @@ struct FindInitialSliceSet<'a, 'tcx> {
 }
 
 impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
-  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, location: Location) {
+  fn visit_place(&mut self, place: &Place<'tcx>, context: PlaceContext, location: Location) {
     let source_info = self.body.source_info(location);
     let span = source_info.span;
 
-    if !self.slice_span.contains(span) {
+    if !self.slice_span.contains(span) || context.is_place_assignment() {
       return;
     }
 
     self
       .slice_set
       .entry(location)
-      .or_insert_with(HashSet::new)
+      .or_insert_with(HashSet::default)
       .insert(*place);
   }
 }
@@ -69,33 +61,33 @@ struct CollectResults<'a, 'tcx> {
 
 impl<'a, 'tcx> CollectResults<'a, 'tcx> {
   fn check_statement(&mut self, state: &RelevanceDomain, location: Location) {
-    if let RelevanceTrace::Relevant { .. } = state.statement_relevant {
+    if state.relevant_statements.contains_key(&location) {
       let span = self.body.source_info(location).span;
       self.relevant_spans.push(span);
     }
   }
 
-  fn add_locals(&mut self, state: &RelevanceDomain) {
+  fn add_locals(&mut self, state: &RelevanceDomain, location: Location) {
     let locals = state
-      .places
+      .relevant_places
       .iter()
       .map(|place| place.local)
       .collect::<HashSet<_>>();
     self.all_locals = &self.all_locals | &locals; //&(&locals - &self.relevant_locals);
 
-    for place in state.places.iter() {
+    for place in state.relevant_places.iter() {
       let local = place.local.as_usize();
       if 1 <= local && local <= self.body.arg_count {
         self.relevant_inputs.insert(local - 1);
       }
     }
 
-    if let RelevanceTrace::Relevant { mutated, .. } = &state.statement_relevant {
+    if let Some(trace) = state.relevant_statements.get(&location) {
       let mutated_inputs = self
         .input_places
         .iter()
         .enumerate()
-        .filter_map(|(i, place)| mutated.contains(place).then(|| i));
+        .filter_map(|(i, place)| trace.mutated.contains(place).then(|| i));
 
       self.mutated_inputs.extend(mutated_inputs);
     }
@@ -111,7 +103,8 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
     statement: &'mir mir::Statement<'tcx>,
     location: Location,
   ) {
-    self.add_locals(state);
+    self.add_locals(state, location);
+    let is_relevant = state.relevant_statements.contains_key(&location);
 
     if let StatementKind::Assign(box (lhs, Rvalue::Discriminant(_))) = statement.kind {
       /* For whatever reason, in statements like `match x { None => .. }` then the discriminant
@@ -122,14 +115,14 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
     } else {
       self.check_statement(state, location);
 
-      if let RelevanceTrace::Relevant { .. } = state.statement_relevant {
+      if is_relevant {
         if let StatementKind::Assign(box (place, _)) = statement.kind {
           self.all_locals.insert(place.local);
         }
       }
     }
 
-    if let RelevanceTrace::Relevant { .. } = state.statement_relevant {
+    if is_relevant {
       self.num_relevant_instructions += 1;
     }
     self.num_instructions += 1;
@@ -141,7 +134,7 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
     terminator: &'mir mir::Terminator<'tcx>,
     location: Location,
   ) {
-    self.add_locals(state);
+    self.add_locals(state, location);
 
     if let mir::TerminatorKind::SwitchInt { .. } = terminator.kind {
       /* Conditional control flow gets source-mapped to the entire corresponding if/loop/etc.
@@ -153,7 +146,7 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
       self.check_statement(state, location);
     }
 
-    if let RelevanceTrace::Relevant { .. } = state.statement_relevant {
+    if state.relevant_statements.contains_key(&location) {
       self.num_relevant_instructions += 1;
     }
     self.num_instructions += 1;
@@ -194,8 +187,8 @@ impl SliceOutput {
       ranges: Vec::new(),
       num_instructions: 0,
       num_relevant_instructions: 0,
-      mutated_inputs: hashset![],
-      relevant_inputs: hashset![],
+      mutated_inputs: HashSet::default(),
+      relevant_inputs: HashSet::default(),
     }
   }
 
@@ -236,7 +229,7 @@ impl SliceLocation<'tcx> {
       SliceLocation::Span(slice_span) => {
         let mut finder = FindInitialSliceSet {
           slice_span: *slice_span,
-          slice_set: HashMap::new(),
+          slice_set: HashMap::default(),
           body,
         };
         finder.visit_body(body);
@@ -298,17 +291,6 @@ pub fn analyze_function(
     debug!("outlives constraints {:#?}", outlives_constraints);
     debug!("sccs {:#?}", constraint_sccs);
 
-    let post_dominators = compute_post_dominators(body.clone());
-    for bb in body.basic_blocks().indices() {
-      if post_dominators.is_reachable(bb) {
-        debug!(
-          "{:?} dominated by {:?}",
-          bb,
-          post_dominators.immediate_dominator(bb)
-        );
-      }
-    }
-
     let should_be_conservative = config.eval_mode.pointer_mode == PointerMode::Conservative;
     let conservative_sccs = if should_be_conservative {
       Some(eval_extensions::generate_conservative_constraints(
@@ -319,7 +301,6 @@ pub fn analyze_function(
     } else {
       None
     };
-
     let constraint_sccs = if should_be_conservative {
       conservative_sccs.as_ref().unwrap()
     } else {
@@ -336,13 +317,16 @@ pub fn analyze_function(
     );
 
     let (slice_set, input_places) = slice_location.to_slice_set(body);
-
     debug!("Initial slice set: {:?}", slice_set);
+
+    let control_dependencies = ControlDependencies::build(body.clone());
+    debug!("Control dependencies: {:?}", control_dependencies);
+
     elapsed("pre-relevance", start);
 
     let start = Instant::now();
     let relevance_results =
-      RelevanceAnalysis::new(config, slice_set, tcx, body, &aliases, post_dominators)
+      RelevanceAnalysis::new(config, slice_set, tcx, body, &aliases, control_dependencies)
         .into_engine(tcx, body)
         .iterate_to_fixpoint();
 
@@ -354,13 +338,13 @@ pub fn analyze_function(
     let mut visitor = CollectResults {
       body,
       relevant_spans: vec![],
-      all_locals: HashSet::new(),
-      local_blacklist: HashSet::new(),
+      all_locals: HashSet::default(),
+      local_blacklist: HashSet::default(),
       num_relevant_instructions: 0,
       num_instructions: 0,
       input_places,
-      mutated_inputs: hashset![],
-      relevant_inputs: hashset![],
+      mutated_inputs: HashSet::default(),
+      relevant_inputs: HashSet::default(),
     };
     relevance_results.visit_reachable_with(body, &mut visitor);
     elapsed("relevance", start);

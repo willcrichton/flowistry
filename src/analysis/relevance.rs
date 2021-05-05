@@ -1,8 +1,13 @@
-use super::aliases::{interior_pointers, place_relation, Aliases, PlaceRelation, PlaceSet};
+use super::aliases::{
+  interior_pointers, place_relation, place_set_join, Aliases, PlaceRelation, PlaceSet,
+};
+use super::control_dependencies::ControlDependencies;
 use crate::config::{Config, ContextMode, MutabilityMode};
+use indexmap::map::Entry;
 use log::debug;
-use maplit::hashset;
-use rustc_data_structures::graph::dominators::Dominators;
+use rustc_data_structures::fx::{
+  FxHashMap as HashMap, FxHashSet as HashSet, FxIndexMap as IndexMap,
+};
 use rustc_middle::{
   mir::{
     self,
@@ -15,11 +20,7 @@ use rustc_mir::dataflow::{
   fmt::DebugWithContext, Analysis, AnalysisDomain, Backward, JoinSemiLattice,
 };
 use rustc_span::Span;
-use std::{
-  cell::RefCell,
-  collections::{HashMap, HashSet},
-  fmt,
-};
+use std::{cell::RefCell, fmt};
 
 pub type SliceSet<'tcx> = HashMap<Location, PlaceSet<'tcx>>;
 
@@ -50,49 +51,43 @@ impl JoinSemiLattice for Relevant {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum RelevanceTrace<'tcx> {
-  NotRelevant,
-  Relevant { mutated: PlaceSet<'tcx> },
+pub struct RelevanceTrace<'tcx> {
+  pub mutated: PlaceSet<'tcx>,
 }
 
-impl RelevanceTrace<'tcx> {
-  pub fn reset(&mut self) {
-    *self = RelevanceTrace::NotRelevant;
-  }
-
-  pub fn merge(&mut self, mutated: PlaceSet<'tcx>) {
-    match self {
-      RelevanceTrace::NotRelevant => {
-        *self = RelevanceTrace::Relevant { mutated };
-      }
-      RelevanceTrace::Relevant {
-        mutated: orig_mutated,
-      } => {
-        orig_mutated.extend(mutated.into_iter());
-      }
-    }
+impl JoinSemiLattice for RelevanceTrace<'tcx> {
+  fn join(&mut self, other: &Self) -> bool {
+    place_set_join(&mut self.mutated, &other.mutated)
   }
 }
+
+type RelevantStatements<'tcx> = IndexMap<Location, RelevanceTrace<'tcx>>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RelevanceDomain<'tcx> {
-  pub places: PlaceSet<'tcx>,
-  pub path_relevant: Relevant,
-  pub statement_relevant: RelevanceTrace<'tcx>,
+  pub relevant_places: PlaceSet<'tcx>,
+  pub relevant_statements: RelevantStatements<'tcx>,
+}
+
+fn relevant_statements_join(
+  this: &mut RelevantStatements<'tcx>,
+  other: &RelevantStatements<'tcx>,
+) -> bool {
+  other.iter().any(|(loc, trace)| match this.entry(*loc) {
+    Entry::Vacant(entry) => {
+      entry.insert(trace.clone());
+      true
+    }
+    Entry::Occupied(mut entry) => entry.get_mut().join(trace),
+  })
 }
 
 impl JoinSemiLattice for RelevanceDomain<'tcx> {
   fn join(&mut self, other: &Self) -> bool {
-    let places_changed = {
-      if other.places.is_subset(&self.places) {
-        false
-      } else {
-        self.places = &self.places | &other.places;
-        true
-      }
-    };
-    let path_relevant_changed = self.path_relevant.join(&other.path_relevant);
-    places_changed || path_relevant_changed
+    let places_changed = place_set_join(&mut self.relevant_places, &other.relevant_places);
+    let statements_changed =
+      relevant_statements_join(&mut self.relevant_statements, &other.relevant_statements);
+    places_changed || statements_changed
   }
 }
 
@@ -121,13 +116,9 @@ impl<C> DebugWithContext<C> for RelevanceDomain<'tcx> {
 
     write!(
       f,
-      "{}, {}, {:?}",
-      format_places(&self.places),
-      match self.statement_relevant {
-        RelevanceTrace::NotRelevant => "NotRelevant".to_string(),
-        RelevanceTrace::Relevant { .. } => "Relevant".to_string(),
-      },
-      self.path_relevant
+      "{}, {:?}",
+      format_places(&self.relevant_places),
+      self.relevant_statements
     )
   }
 }
@@ -158,6 +149,7 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
     &mut self,
     mutated: &Vec<(Place<'tcx>, MutationKind)>,
     used: &PlaceSet<'tcx>,
+    location: Location,
   ) {
     let to_delete = mutated
       .iter()
@@ -167,26 +159,21 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
       })
       .collect::<HashSet<_>>();
 
-    self.state.places = &self.state.places - &to_delete;
+    self.state.relevant_places = &self.state.relevant_places - &to_delete;
+    self.state.relevant_places.extend(used.iter().cloned());
 
-    self.state.places.extend(used.iter().cloned());
-    self
-      .state
-      .statement_relevant
-      .merge(mutated.iter().map(|(place, _)| *place).collect());
-
-    let current_block = self.analysis.current_block.borrow();
-    let preds = &self.analysis.body.predecessors()[*current_block];
-    let dominates_all_preds = preds.iter().all(|pred_bb| {
-      self.analysis.post_dominators.is_reachable(*pred_bb)
-        && self
-          .analysis
-          .post_dominators
-          .is_dominated_by(*pred_bb, *current_block)
-    });
-    if !dominates_all_preds {
-      self.state.path_relevant = Relevant::Yes;
-    }
+    let mutated_places = mutated
+      .iter()
+      .map(|(place, _)| *place)
+      .collect::<HashSet<_>>();
+    let mut new_statements = IndexMap::default();
+    new_statements.insert(
+      location,
+      RelevanceTrace {
+        mutated: mutated_places,
+      },
+    );
+    relevant_statements_join(&mut self.state.relevant_statements, &new_statements);
   }
 
   pub(super) fn relevant_places(
@@ -199,7 +186,7 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
 
     self
       .state
-      .places
+      .relevant_places
       .iter()
       .filter_map(|relevant_place| {
         let relations = mutated_places
@@ -246,10 +233,11 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
     place: Place<'tcx>,
     input_places: &PlaceSet<'tcx>,
     definitely_mutated: bool,
+    location: Location,
   ) -> bool {
     debug!(
       "checking {:?} with relevant = {:?}",
-      place, self.state.places,
+      place, self.state.relevant_places,
     );
     let relevant_mutated = self.relevant_places(place, definitely_mutated);
     debug!("  relevant mutated = {:?}", relevant_mutated);
@@ -270,9 +258,9 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
         })
         .collect::<HashSet<_>>();
 
-      self.add_relevant(&vec![], &pointers);
-      self.add_relevant(&relevant_mutated, input_places);
-      debug!("  updated relevant: {:?}", self.state.places);
+      self.add_relevant(&vec![], &pointers, location);
+      self.add_relevant(&relevant_mutated, input_places, location);
+      debug!("  updated relevant: {:?}", self.state.relevant_places);
 
       true
     } else {
@@ -282,7 +270,7 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
 
   fn check_slice_set(&mut self, location: Location) {
     self.analysis.slice_set.get(&location).map(|places| {
-      self.add_relevant(&vec![], places);
+      self.add_relevant(&vec![], places, location);
     });
   }
 }
@@ -295,46 +283,23 @@ fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
 }
 
 impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> {
-  fn visit_statement(&mut self, statement: &Statement<'tcx>, location: Location) {
-    self.state.statement_relevant.reset();
-    match &statement.kind {
-      StatementKind::Assign(_) => {
-        self.super_statement(statement, location);
-      }
-      _ => {}
-    }
-  }
-
   fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
     self.super_assign(place, rvalue, location);
 
     let mut collector = CollectPlaces {
-      places: HashSet::new(),
+      places: HashSet::default(),
     };
     collector.visit_rvalue(rvalue, location);
 
-    self.check_mutation(*place, &collector.places, true);
+    self.check_mutation(*place, &collector.places, true, location);
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
     self.super_terminator(terminator, location);
 
-    // Ignore FalseEdge nodes since they can trip up the soundness of path_relevance wrt the post-dominator tree.
-    // eg a FalseEdge node always post-dominates a while-loop condition so it would set path_relevant to false,
-    // but while-body state gets propagated through the FalseEdge node which cause the while-condition to be incorrectly
-    // marked as irrelevant when it is relevant to the while-body
-    match &terminator.kind {
-      TerminatorKind::FalseEdge { .. } => {
-        return;
-      }
-      _ => {}
-    }
-
-    self.state.statement_relevant.reset();
-
     debug!(
       "checking terminator {:?} in context {:?}",
-      terminator.kind, self.state.places
+      terminator.kind, self.state.relevant_places
     );
 
     let tcx = self.analysis.tcx;
@@ -369,64 +334,73 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
           })
           .collect::<Vec<_>>();
 
-        let eval_mode = self.analysis.config.eval_mode;
-        let could_recurse = if eval_mode.context_mode == ContextMode::Recurse {
-          self.slice_into_procedure(&terminator.kind, &input_places, &input_mut_ptrs)
-        } else {
-          false
-        };
+        let dst_relevant = destination.and_then(|(dst, _)| {
+          // Special case: if a function returns unit (common with mutation-only functions),
+          // then we're guaranteed that the function body has no effect on the return value.
+          // This case mainly shows up in the evaluation when we auto-generate slices on all locals
+          // that includes unit return values of functions.
+          let not_unit = !dst.ty(self.analysis.body.local_decls(), tcx).ty.is_unit();
+          (not_unit && self.is_relevant(dst)).then(|| dst)
+        });
 
-        if !could_recurse {
-          let input_places = input_places
-            .into_iter()
-            .map(|(_, place)| place)
-            .collect::<HashSet<_>>();
+        // For performance (especially w/ Recurse), don't check function if both inputs and outputs
+        // aren't relevant
+        if input_mut_ptrs.iter().any(|(_, v)| v.len() > 0) || dst_relevant.is_some() {
+          let eval_mode = self.analysis.config.eval_mode;
+          let could_recurse = if eval_mode.context_mode == ContextMode::Recurse {
+            self.slice_into_procedure(&terminator.kind, &input_places, &input_mut_ptrs, location)
+          } else {
+            false
+          };
 
-          for (_, ptrs) in input_mut_ptrs {
-            for ptr in ptrs {
-              if self.check_mutation(ptr, &input_places, false) {
-                break;
+          if !could_recurse {
+            let input_places = input_places
+              .into_iter()
+              .map(|(_, place)| place)
+              .collect::<HashSet<_>>();
+
+            for (_, ptrs) in input_mut_ptrs {
+              for ptr in ptrs {
+                if self.check_mutation(ptr, &input_places, false, location) {
+                  break;
+                }
               }
             }
-          }
 
-          if let Some((dst, _)) = destination {
-            // Special case: if a function returns unit (common with mutation-only functions),
-            // then we're guaranteed that the function body has no effect on the return value.
-            // This case mainly shows up in the evaluation when we auto-generate slices on all locals
-            // that includes unit return values of functions.
-            if !dst.ty(self.analysis.body.local_decls(), tcx).ty.is_unit() {
-              self.check_mutation(*dst, &input_places, true);
+            if let Some(dst) = dst_relevant {
+              self.check_mutation(dst, &input_places, true, location);
             }
           }
         }
       }
 
       TerminatorKind::SwitchInt { discr, .. } => {
-        if self.state.path_relevant == Relevant::Yes {
-          let input = match operand_to_place(discr) {
-            Some(place) => hashset![place],
-            None => hashset![],
-          };
-          self.add_relevant(&vec![], &input);
+        let is_relevant = self.state.relevant_statements.keys().any(|relevant| {
+          self
+            .analysis
+            .control_dependencies
+            .is_dependent(relevant.block, location.block)
+        });
+
+        if is_relevant {
+          let mut input = HashSet::default();
+          if let Some(place) = operand_to_place(discr) {
+            input.insert(place);
+          }
+          self.add_relevant(&vec![], &input, location);
         }
       }
 
       TerminatorKind::DropAndReplace { place, value, .. } => {
-        if let Some(input) = operand_to_place(value) {
-          self.check_mutation(*place, &hashset![input], true);
+        if let Some(input_place) = operand_to_place(value) {
+          let mut input = HashSet::default();
+          input.insert(input_place);
+          self.check_mutation(*place, &input, true, location);
         }
       }
 
       _ => {}
     }
-
-    self.state.path_relevant =
-      if let RelevanceTrace::Relevant { .. } = self.state.statement_relevant {
-        Relevant::Yes
-      } else {
-        Relevant::No
-      };
   }
 }
 
@@ -453,7 +427,7 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   slice_set: SliceSet<'tcx>,
   pub(super) tcx: TyCtxt<'tcx>,
   pub(super) body: &'mir Body<'tcx>,
-  post_dominators: Dominators<BasicBlock>,
+  control_dependencies: ControlDependencies,
   current_block: RefCell<BasicBlock>,
   alias_analysis: &'a Aliases<'tcx>,
 }
@@ -465,7 +439,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     tcx: TyCtxt<'tcx>,
     body: &'mir Body<'tcx>,
     alias_analysis: &'a Aliases<'tcx>,
-    post_dominators: Dominators<BasicBlock>,
+    control_dependencies: ControlDependencies,
   ) -> Self {
     let current_block = RefCell::new(body.basic_blocks().indices().next().unwrap());
 
@@ -475,7 +449,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       tcx,
       body,
       alias_analysis,
-      post_dominators,
+      control_dependencies,
       current_block,
     }
   }
@@ -488,9 +462,8 @@ impl<'a, 'mir, 'tcx> AnalysisDomain<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> 
 
   fn bottom_value(&self, _body: &mir::Body<'tcx>) -> Self::Domain {
     RelevanceDomain {
-      places: PlaceSet::new(),
-      statement_relevant: RelevanceTrace::NotRelevant,
-      path_relevant: Relevant::Unknown,
+      relevant_places: PlaceSet::default(),
+      relevant_statements: IndexMap::default(),
     }
   }
 

@@ -2,6 +2,7 @@ use super::aliases::{interior_pointers, PlaceSet};
 use super::intraprocedural::{SliceLocation, BODY_STACK};
 use super::relevance::{MutationKind, TransferFunction};
 use log::{debug, info};
+use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_data_structures::graph::scc::Sccs;
 use rustc_middle::{
   mir::{
@@ -12,7 +13,6 @@ use rustc_middle::{
   ty::{subst::GenericArgKind, ClosureKind, RegionVid, TyCtxt, TyKind, TyS},
 };
 use rustc_mir::borrow_check::constraints::OutlivesConstraintSet;
-use std::collections::HashSet;
 
 struct FindConstraints<'a, 'tcx> {
   tcx: TyCtxt<'tcx>,
@@ -144,6 +144,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
     call: &TerminatorKind<'tcx>,
     input_places: &[(usize, Place<'tcx>)],
     input_mut_ptrs: &[(usize, PlaceSet<'tcx>)],
+    location: Location,
   ) -> bool {
     let tcx = self.analysis.tcx;
     let (func, destination) = if let TerminatorKind::Call {
@@ -181,7 +182,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
 
     // Issue: if recursing into a function w/ closure that mutates environment,
     // then pointers in closure become opaque once recursing. No eays way to track
-    // calls to the function as mutations to the environment. 
+    // calls to the function as mutations to the environment.
     //
     // For now, ignore the issue by not analyzing functions with mutable closure inputs.
     let any_closure_inputs = input_places.iter().any(|(_, place)| {
@@ -210,7 +211,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
     });
     if recursive || depth >= MAX_DEPTH {
       return false;
-    }
+    }    
 
     let relevant_inputs = input_mut_ptrs
       .iter()
@@ -295,17 +296,22 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       .collect::<HashSet<_>>();
 
     if mutated_inputs.len() > 0 {
-        self.add_relevant(
+      self.add_relevant(
         &mutated_inputs
           .into_iter()
           .map(|place| (place, MutationKind::Weak))
           .collect(),
         &relevant_inputs,
+        location,
       );
     }
 
     if relevant_return.is_some() {
-      self.add_relevant(&vec![(destination.unwrap().0, MutationKind::Strong)], &relevant_inputs);
+      self.add_relevant(
+        &vec![(destination.unwrap().0, MutationKind::Strong)],
+        &relevant_inputs,
+        location,
+      );
     }
 
     true
