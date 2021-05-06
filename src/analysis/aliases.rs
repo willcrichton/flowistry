@@ -398,7 +398,15 @@ pub fn compute_aliases(
   }
   elapsed("Alias compute", start);
 
-  debug!("Aliases: {:#?}", aliases.loans);
+  debug!(
+    "Aliases: {}",
+    aliases
+      .loans
+      .iter_enumerated()
+      .map(|(region, places)| format!("{:?}: {:?}", region, places))
+      .collect::<Vec<_>>()
+      .join(", ")
+  );
 
   aliases
 }

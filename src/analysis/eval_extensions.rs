@@ -211,7 +211,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
     });
     if recursive || depth >= MAX_DEPTH {
       return false;
-    }    
+    }
 
     let relevant_inputs = input_mut_ptrs
       .iter()
@@ -282,8 +282,6 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       })
       .collect::<HashSet<_>>();
 
-    debug!("Mutated inputs translated to source: {:?}", mutated_inputs);
-
     let relevant_inputs = results
       .relevant_inputs
       .iter()
@@ -296,22 +294,17 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       .collect::<HashSet<_>>();
 
     if mutated_inputs.len() > 0 {
-      self.add_relevant(
-        &mutated_inputs
-          .into_iter()
-          .map(|place| (place, MutationKind::Weak))
-          .collect(),
-        &relevant_inputs,
-        location,
-      );
+      debug!("Adding relevant mutated inputs: {:?}", mutated_inputs);
+
+      for place in mutated_inputs {
+        self.check_mutation(place, &relevant_inputs, false, location);
+      }
     }
 
     if relevant_return.is_some() {
-      self.add_relevant(
-        &vec![(destination.unwrap().0, MutationKind::Strong)],
-        &relevant_inputs,
-        location,
-      );
+      let (dst, _) = destination.unwrap();
+      debug!("Adding relevant return: {:?}", dst);
+      self.check_mutation(dst, &relevant_inputs, true, location);
     }
 
     true
