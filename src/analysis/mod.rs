@@ -6,19 +6,24 @@ use rustc_hir::{
   itemlikevisit::ItemLikeVisitor,
   BodyId, ForeignItem, ImplItem, Item, TraitItem,
 };
-use rustc_middle::{hir::map::Map, mir::{Local, Place}, ty::TyCtxt};
+use rustc_middle::{
+  hir::map::Map,
+  mir::{Local, Place},
+  ty::TyCtxt,
+};
 use rustc_span::{FileName, RealFileName, Span};
-use std::time::Instant;
 use std::path::Path;
+use std::time::Instant;
 
 pub use intraprocedural::{SliceLocation, SliceOutput};
 
 mod aliases;
+mod control_dependencies;
 mod eval_extensions;
 pub mod intraprocedural;
-mod places_conflict;
-mod control_dependencies;
 mod relevance;
+pub mod utils;
+
 struct VisitorContext<'tcx> {
   tcx: TyCtxt<'tcx>,
   slice_span: Span,

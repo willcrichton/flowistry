@@ -1,7 +1,6 @@
-use super::aliases::{
-  interior_pointers, place_relation, place_set_join, Aliases, PlaceRelation, PlaceSet,
-};
+use super::aliases::Aliases;
 use super::control_dependencies::ControlDependencies;
+use super::utils::{self, PlaceRelation, PlaceSet};
 use crate::config::{Config, ContextMode, MutabilityMode};
 use indexmap::map::Entry;
 use log::debug;
@@ -57,7 +56,7 @@ pub struct RelevanceTrace<'tcx> {
 
 impl JoinSemiLattice for RelevanceTrace<'tcx> {
   fn join(&mut self, other: &Self) -> bool {
-    place_set_join(&mut self.mutated, &other.mutated)
+    utils::place_set_join(&mut self.mutated, &other.mutated)
   }
 }
 
@@ -88,7 +87,7 @@ fn relevant_statements_join(
 
 impl JoinSemiLattice for RelevanceDomain<'tcx> {
   fn join(&mut self, other: &Self) -> bool {
-    let places_changed = place_set_join(&mut self.relevant_places, &other.relevant_places);
+    let places_changed = utils::place_set_join(&mut self.relevant_places, &other.relevant_places);
     let statements_changed =
       relevant_statements_join(&mut self.relevant_statements, &other.relevant_statements);
     places_changed || statements_changed
@@ -196,7 +195,7 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
         let relations = mutated_places
           .iter()
           .filter_map(
-            |mutated_place| match place_relation(*relevant_place, *mutated_place) {
+            |mutated_place| match PlaceRelation::of(*relevant_place, *mutated_place) {
               PlaceRelation::Disjoint => None,
               relation => Some(relation),
             },
@@ -279,13 +278,6 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
   }
 }
 
-fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
-  match operand {
-    Operand::Copy(place) | Operand::Move(place) => Some(*place),
-    Operand::Constant(_) => None,
-  }
-}
-
 impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> {
   fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
     self.super_assign(place, rvalue, location);
@@ -316,13 +308,13 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
         let input_places = args
           .iter()
           .enumerate()
-          .filter_map(|(i, arg)| operand_to_place(arg).map(|place| (i, place)))
+          .filter_map(|(i, arg)| utils::operand_to_place(arg).map(|place| (i, place)))
           .collect::<Vec<_>>();
 
         let input_mut_ptrs = input_places
           .iter()
           .map(|(i, place)| {
-            let ptr_places = interior_pointers(*place, tcx, self.analysis.body)
+            let ptr_places = utils::interior_pointers(*place, tcx, self.analysis.body)
               .into_iter()
               .filter_map(|(_, (place, mutability))| match mutability {
                 Mutability::Mut => Some(place),
@@ -388,7 +380,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
 
         if is_relevant {
           let mut input = HashSet::default();
-          if let Some(place) = operand_to_place(discr) {
+          if let Some(place) = utils::operand_to_place(discr) {
             input.insert(place);
           }
           self.add_relevant(&vec![], &input, location);
@@ -396,7 +388,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       }
 
       TerminatorKind::DropAndReplace { place, value, .. } => {
-        if let Some(input_place) = operand_to_place(value) {
+        if let Some(input_place) = utils::operand_to_place(value) {
           let mut input = HashSet::default();
           input.insert(input_place);
           self.check_mutation(*place, &input, true, location);
