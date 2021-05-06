@@ -1,6 +1,6 @@
-use super::aliases::{interior_pointers, PlaceSet};
 use super::intraprocedural::{SliceLocation, BODY_STACK};
-use super::relevance::{MutationKind, TransferFunction};
+use super::relevance::TransferFunction;
+use super::utils::{self, PlaceSet};
 use log::{debug, info};
 use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_data_structures::graph::scc::Sccs;
@@ -22,8 +22,8 @@ struct FindConstraints<'a, 'tcx> {
 
 impl FindConstraints<'_, 'tcx> {
   pub fn add_alias(&mut self, place1: Place<'tcx>, place2: Place<'tcx>, location: Location) {
-    let place1_pointers = interior_pointers(place1, self.tcx, self.body);
-    let place2_pointers = interior_pointers(place2, self.tcx, self.body);
+    let place1_pointers = utils::interior_pointers(place1, self.tcx, self.body);
+    let place2_pointers = utils::interior_pointers(place2, self.tcx, self.body);
 
     let mk_constraint = |r1, r2| OutlivesConstraint {
       sup: r1,

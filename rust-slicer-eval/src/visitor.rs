@@ -1,57 +1,106 @@
 use itertools::iproduct;
 use log::debug;
 use rand::{seq::IteratorRandom, thread_rng};
-use rust_slicer::analysis::intraprocedural;
+use rust_slicer::analysis::{intraprocedural, utils};
 use rust_slicer::config::{Config, ContextMode, EvalMode, MutabilityMode, PointerMode, Range};
-use rustc_data_structures::sync::{par_iter, ParallelIterator};
-use rustc_hir::{
-  intravisit::{self, NestedVisitorMap, Visitor},
-  itemlikevisit::ParItemLikeVisitor,
-  BodyId, Expr, ExprKind, ImplItemKind, ItemKind, Local,
+use rustc_ast::{
+  token::Token,
+  tokenstream::{TokenStream, TokenTree},
 };
-use rustc_middle::{hir::map::Map, ty::TyCtxt, mir::Place};
+use rustc_data_structures::{
+  fx::FxHashMap as HashMap,
+  sync::{par_iter, ParallelIterator},
+};
+use rustc_hir::{itemlikevisit::ParItemLikeVisitor, BodyId, ImplItemKind, ItemKind};
+use rustc_middle::{
+  mir::{
+    visit::Visitor, Body, HasLocalDecls, Location, Mutability, Place, Terminator, TerminatorKind,
+  },
+  ty::{Ty, TyCtxt, TyS},
+};
 use rustc_span::Span;
 use serde::Serialize;
 use std::sync::Mutex;
 use std::time::Instant;
 
-// struct EvalBodyVisitor<'tcx> {
-//   tcx: TyCtxt<'tcx>,
-//   spans: Vec<Span>,
-//   body_span: Span,
-// }
+struct EvalBodyVisitor<'a, 'tcx> {
+  tcx: TyCtxt<'tcx>,
+  body: &'a Body<'tcx>,
+  has_immut_ptr_in_call: bool,
+  has_same_type_ptrs_in_call: bool,
+  has_same_type_ptrs_in_input: bool,
+}
 
-// impl EvalBodyVisitor<'_> {
-//   fn add_span(&mut self, span: Span) {
-//     if self.body_span.contains(span) {
-//       self.spans.push(span);
-//     }
-//   }
-// }
+impl EvalBodyVisitor<'_, 'tcx> {
+  fn place_ty(&self, place: Place<'tcx>) -> Ty<'tcx> {
+    self
+      .tcx
+      .erase_regions(place.ty(self.body.local_decls(), self.tcx).ty)
+  }
 
-// impl Visitor<'tcx> for EvalBodyVisitor<'tcx> {
-//   type Map = Map<'tcx>;
+  fn any_same_type_ptrs(&self, places: Vec<Place<'tcx>>) -> bool {
+    places.iter().enumerate().any(|(i, place)| {
+      places
+        .iter()
+        .enumerate()
+        .filter(|(j, _)| i != *j)
+        .any(|(_, place2)| TyS::same_type(self.place_ty(*place), self.place_ty(*place2)))
+    })
+  }
+}
 
-//   fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
-//     NestedVisitorMap::OnlyBodies(self.tcx.hir())
-//   }
+impl Visitor<'tcx> for EvalBodyVisitor<'_, 'tcx> {
+  fn visit_body(&mut self, body: &Body<'tcx>) {
+    self.super_body(body);
 
-//   fn visit_local(&mut self, local: &'tcx Local<'tcx>) {
-//     intravisit::walk_local(self, local);
-//     self.add_span(local.span);
-//   }
+    let input_ptrs = body
+      .args_iter()
+      .map(|local| {
+        let place = utils::local_to_place(local, self.tcx);
+        utils::interior_pointers(place, self.tcx, self.body).into_iter()
+      })
+      .flatten()
+      .map(|(_, (place, _))| place)
+      .collect::<Vec<_>>();
 
-//   fn visit_expr(&mut self, ex: &'tcx Expr<'tcx>) {
-//     intravisit::walk_expr(self, ex);
+    let has_same_type_ptrs = self.any_same_type_ptrs(input_ptrs);
+    self.has_same_type_ptrs_in_input |= has_same_type_ptrs;
+  }
 
-//     match ex.kind {
-//       ExprKind::Assign(_, _, _) | ExprKind::AssignOp(_, _, _) => {
-//         self.add_span(ex.span);
-//       }
-//       _ => {}
-//     }
-//   }
-// }
+  fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, _location: Location) {
+    if let TerminatorKind::Call {
+      args, destination, ..
+    } = &terminator.kind
+    {
+      let input_ptrs = args
+        .iter()
+        .filter_map(|operand| utils::operand_to_place(operand))
+        .map(|place| utils::interior_pointers(place, self.tcx, self.body).into_iter())
+        .flatten()
+        .collect::<Vec<_>>();
+
+      let output_ptrs = destination
+        .map(|(place, _)| utils::interior_pointers(place, self.tcx, self.body))
+        .unwrap_or_else(HashMap::default);
+
+      let all_ptr_places = input_ptrs
+        .clone()
+        .into_iter()
+        .chain(output_ptrs.into_iter())
+        .map(|(_, (place, _))| place)
+        .collect::<Vec<_>>();
+
+      let has_immut_ptr = input_ptrs
+        .iter()
+        .any(|(_, (_, mutability))| *mutability == Mutability::Not);
+
+      let has_same_type_ptrs = self.any_same_type_ptrs(all_ptr_places);
+
+      self.has_immut_ptr_in_call |= has_immut_ptr;
+      self.has_same_type_ptrs_in_call |= has_same_type_ptrs;
+    }
+  }
+}
 
 pub struct EvalCrateVisitor<'tcx> {
   tcx: TyCtxt<'tcx>,
@@ -66,18 +115,17 @@ pub struct EvalResult {
   sliced_local: usize,
   function_range: Range,
   function_path: String,
-  output: Vec<Range>,
+  // output: Vec<Range>,
   num_instructions: usize,
   num_relevant_instructions: usize,
   num_tokens: usize,
   num_relevant_tokens: usize,
   duration: f64,
+  has_immut_ptr_in_call: bool,
+  has_same_type_ptrs_in_call: bool,
+  has_same_type_ptrs_in_input: bool,
 }
 
-use rustc_ast::{
-  token::Token,
-  tokenstream::{TokenStream, TokenTree},
-};
 fn flatten_stream(stream: TokenStream) -> Vec<Token> {
   stream
     .into_trees()
@@ -132,10 +180,23 @@ impl EvalCrateVisitor<'tcx> {
       .indices()
       .choose_multiple(&mut rng, SAMPLE_SIZE);
 
+    let mut body_visitor = EvalBodyVisitor {
+      tcx: self.tcx,
+      body,
+      has_immut_ptr_in_call: false,
+      has_same_type_ptrs_in_call: false,
+      has_same_type_ptrs_in_input: false,
+    };
+    body_visitor.visit_body(body);
+
+    let tcx = self.tcx;
+    let has_immut_ptr_in_call = body_visitor.has_immut_ptr_in_call;
+    let has_same_type_ptrs_in_input = body_visitor.has_same_type_ptrs_in_input;
+    let has_same_type_ptrs_in_call = body_visitor.has_same_type_ptrs_in_call;
+
     let eval_results = par_iter(locals)
       .map(|local| {
         let source_map = self.tcx.sess.source_map();
-        let tcx = self.tcx;
 
         iproduct!(
           vec![MutabilityMode::DistinguishMut, MutabilityMode::IgnoreMut].into_iter(),
@@ -159,7 +220,7 @@ impl EvalCrateVisitor<'tcx> {
             *body_id,
             &intraprocedural::SliceLocation::PlacesOnExit(vec![Place {
               local,
-              projection: tcx.intern_place_elems(&[])
+              projection: tcx.intern_place_elems(&[]),
             }]),
           )
           .unwrap();
@@ -182,12 +243,15 @@ impl EvalCrateVisitor<'tcx> {
             sliced_local: local.as_usize(),
             function_range: Range::from_span(body_span, source_map).ok()?,
             function_path: function_path.clone(),
-            output: output.ranges().to_vec(),
+            // output: output.ranges().to_vec(),
             num_instructions: output.num_instructions,
             num_relevant_instructions: output.num_relevant_instructions,
             num_tokens,
             num_relevant_tokens,
             duration: (start.elapsed().as_nanos() as f64) / 10e9,
+            has_immut_ptr_in_call,
+            has_same_type_ptrs_in_call,
+            has_same_type_ptrs_in_input,
           })
         })
       })

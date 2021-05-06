@@ -1,4 +1,4 @@
-use super::aliases::compute_aliases;
+use super::aliases::Aliases;
 use super::control_dependencies::ControlDependencies;
 use super::eval_extensions;
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
@@ -307,7 +307,7 @@ pub fn analyze_function(
       constraint_sccs
     };
 
-    let aliases = compute_aliases(
+    let aliases = Aliases::build(
       config,
       tcx,
       body,
