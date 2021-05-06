@@ -104,7 +104,7 @@ impl Visitor<'tcx> for EvalBodyVisitor<'_, 'tcx> {
 
 pub struct EvalCrateVisitor<'tcx> {
   tcx: TyCtxt<'tcx>,
-  pub eval_results: Mutex<Vec<EvalResult>>,
+  pub eval_results: Mutex<Vec<Vec<EvalResult>>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -137,7 +137,7 @@ fn flatten_stream(stream: TokenStream) -> Vec<Token> {
     .collect()
 }
 
-const SAMPLE_SIZE: usize = 100;
+const SAMPLE_SIZE: usize = 1000;
 
 impl EvalCrateVisitor<'tcx> {
   pub fn new(tcx: TyCtxt<'tcx>) -> Self {
@@ -148,6 +148,10 @@ impl EvalCrateVisitor<'tcx> {
   }
 
   fn analyze(&self, body_span: Span, body_id: &BodyId) {
+    if body_span.from_expansion() {
+      return;
+    }
+
     let source_map = self.tcx.sess.source_map();
     let source_file = &source_map.lookup_source_file(body_span.lo());
     if source_file.src.is_none() {
@@ -253,11 +257,8 @@ impl EvalCrateVisitor<'tcx> {
             has_same_type_ptrs_in_call,
             has_same_type_ptrs_in_input,
           })
-        })
+        }).collect::<Vec<_>>()
       })
-      .collect::<Vec<_>>()
-      .into_iter()
-      .flatten()
       .collect::<Vec<_>>();
 
     self
