@@ -73,13 +73,17 @@ fn relevant_statements_join(
   this: &mut RelevantStatements<'tcx>,
   other: &RelevantStatements<'tcx>,
 ) -> bool {
-  other.iter().any(|(loc, trace)| match this.entry(*loc) {
-    Entry::Vacant(entry) => {
-      entry.insert(trace.clone());
-      true
-    }
-    Entry::Occupied(mut entry) => entry.get_mut().join(trace),
-  })
+  let changes = other
+    .iter()
+    .map(|(loc, trace)| match this.entry(*loc) {
+      Entry::Vacant(entry) => {
+        entry.insert(trace.clone());
+        true
+      }
+      Entry::Occupied(mut entry) => entry.get_mut().join(trace),
+    })
+    .collect::<Vec<_>>();
+  changes.into_iter().any(|x| x)
 }
 
 impl JoinSemiLattice for RelevanceDomain<'tcx> {
@@ -116,9 +120,9 @@ impl<C> DebugWithContext<C> for RelevanceDomain<'tcx> {
 
     write!(
       f,
-      "{}, {:?}",
+      "{{{}}}",
       format_places(&self.relevant_places),
-      self.relevant_statements
+      // self.relevant_statements.keys().collect::<HashSet<_>>()
     )
   }
 }
@@ -145,7 +149,7 @@ pub enum MutationKind {
 }
 
 impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
-  pub(super) fn add_relevant(
+  fn add_relevant(
     &mut self,
     mutated: &Vec<(Place<'tcx>, MutationKind)>,
     used: &PlaceSet<'tcx>,
@@ -228,7 +232,7 @@ impl<'a, 'b, 'mir, 'tcx> TransferFunction<'a, 'b, 'mir, 'tcx> {
     self.relevant_places(place, false).len() > 0
   }
 
-  fn check_mutation(
+  pub(super) fn check_mutation(
     &mut self,
     place: Place<'tcx>,
     input_places: &PlaceSet<'tcx>,
