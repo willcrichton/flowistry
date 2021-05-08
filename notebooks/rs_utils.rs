@@ -1,0 +1,83 @@
+// serde_json = "1.0"
+// serde = {version = "1.0", features = ["derive"]}
+// pythonize = "0.13"
+// rayon = "1.5"
+
+use pyo3::prelude::*;
+use pyo3::{wrap_pyfunction, exceptions::PyException};
+use std::fs::File;
+use std::io::BufReader;
+use serde::{Serialize, Deserialize};
+use rayon::prelude::*;
+
+#[derive(Serialize, Deserialize)]
+pub struct Range {
+  pub start_line: usize,
+  pub start_col: usize,
+  pub end_line: usize,
+  pub end_col: usize,
+  pub filename: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub enum MutabilityMode {
+  DistinguishMut,
+  IgnoreMut,
+}
+
+#[derive(Serialize, Deserialize)]
+pub enum ContextMode {
+  SigOnly,
+  Recurse,
+}
+
+#[derive(Serialize, Deserialize)]
+pub enum PointerMode {
+  Precise,
+  Conservative,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct EvalResult {
+  mutability_mode: MutabilityMode,
+  context_mode: ContextMode,
+  pointer_mode: PointerMode,
+  sliced_local: usize,
+  function_range: Range,
+  function_path: String,
+  num_instructions: usize,
+  num_relevant_instructions: usize,
+  num_tokens: usize,
+  num_relevant_tokens: usize,
+  duration: f64,
+  has_immut_ptr_in_call: bool,
+  has_same_type_ptrs_in_call: bool,
+  has_same_type_ptrs_in_input: bool,
+  // added fields
+  instructions_relative: Option<usize>,
+  instructions_relative_frac: Option<f64>,
+}
+
+#[pyfunction]
+fn parse_data(py: Python, path: String) -> PyResult<PyObject> {
+  let file = File::open(path)?;
+  let reader = BufReader::new(file);
+  let mut data: Vec<Vec<EvalResult>> = serde_json::from_reader(reader).map_err(|err| PyException::new_err(format!("{}", err)))?;
+
+  let updated_data = data.par_iter_mut().map(|trial| {
+    let min_inst = trial.iter().map(|sample| sample.num_relevant_instructions).min().unwrap();
+    trial.into_iter().map(|mut sample| {
+      sample.instructions_relative = Some(sample.num_relevant_instructions - min_inst);
+      sample.instructions_relative_frac = Some((sample.num_relevant_instructions - min_inst) as f64 / (min_inst as f64));
+      sample
+    }).collect::<Vec<_>>()
+  }).flatten().collect::<Vec<_>>();
+
+  Ok(pythonize::pythonize(py, &updated_data)?)
+}
+
+#[pymodule]
+fn rs_utils(py: Python, m: &PyModule) -> PyResult<()> {
+  m.add_function(wrap_pyfunction!(parse_data, m)?)?;
+  Ok(())
+}
