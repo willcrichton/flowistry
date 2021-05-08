@@ -60,7 +60,7 @@ impl Visitor<'tcx> for EvalBodyVisitor<'_, 'tcx> {
         utils::interior_pointers(place, self.tcx, self.body).into_iter()
       })
       .flatten()
-      .map(|(_, (place, _))| place)
+      .filter_map(|(_, (place, mutability))| (mutability == Mutability::Mut).then(|| place))
       .collect::<Vec<_>>();
 
     let has_same_type_ptrs = self.any_same_type_ptrs(input_ptrs);
@@ -87,7 +87,7 @@ impl Visitor<'tcx> for EvalBodyVisitor<'_, 'tcx> {
         .clone()
         .into_iter()
         .chain(output_ptrs.into_iter())
-        .map(|(_, (place, _))| place)
+        .filter_map(|(_, (place, mutability))| (mutability == Mutability::Mut).then(|| place))
         .collect::<Vec<_>>();
 
       let has_immut_ptr = input_ptrs
