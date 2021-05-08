@@ -36,10 +36,7 @@ fn run() -> Result<()> {
 
   let features = if matches.is_present("features") { arg!("features").split(",").map(|s| s.to_owned()).collect::<Vec<_>>() } else { vec![] };
   let features = CliFeatures::from_command_line(&features, matches.is_present("all_features"), true)?;
-  let (flags, env) = generate_rustc_flags(arg!("path"), features, false)?;
-  for (k, v) in env {
-    env::set_var(k, v);
-  }
+  let flags = generate_rustc_flags(arg!("path"), features, false)?;
 
   debug!("Generated rustc command:\n{}", flags.join(" "));
 

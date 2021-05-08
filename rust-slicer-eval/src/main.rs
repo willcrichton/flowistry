@@ -6,8 +6,8 @@ use clap::clap_app;
 use generate_rustc_flags::{generate_rustc_flags, CliFeatures};
 use log::debug;
 use serde::Serialize;
-use std::env;
 use std::fs::File;
+use std::env;
 
 use crate::visitor::EvalCrateVisitor;
 
@@ -75,10 +75,7 @@ fn run() -> Result<()> {
   let input_path = matches
     .value_of("input_path")
     .context("Missing input_path")?;
-  let (mut flags, env) = generate_rustc_flags(input_path, features, true)?;
-  for (k, v) in env {
-    env::set_var(k, v);
-  }
+  let mut flags = generate_rustc_flags(input_path, features, true)?;
 
   flags.extend_from_slice(&[
     "-Z".to_string(),
