@@ -1,5 +1,4 @@
 use anyhow::{anyhow, bail, Result};
-use fluid_let::fluid_let;
 use rustc_span::{
   source_map::{SourceFile, SourceMap},
   BytePos, FileName, Span,
@@ -129,5 +128,3 @@ impl Default for Config {
     }
   }
 }
-
-fluid_let!(pub static CONFIG: Config);

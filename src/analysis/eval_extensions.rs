@@ -13,6 +13,11 @@ use rustc_middle::{
   ty::{subst::GenericArgKind, ClosureKind, RegionVid, TyCtxt, TyKind, TyS},
 };
 use rustc_mir::borrow_check::constraints::OutlivesConstraintSet;
+use std::cell::RefCell;
+use fluid_let::fluid_let;
+
+fluid_let!(pub static REACHED_LIBRARY: RefCell<bool>);
+
 
 struct FindConstraints<'a, 'tcx> {
   tcx: TyCtxt<'tcx>,
@@ -136,7 +141,7 @@ pub fn generate_conservative_constraints<'tcx>(
   constraint_set.compute_sccs(&constraint_graph, RegionVid::from_usize(0))
 }
 
-const MAX_DEPTH: usize = 2;
+const MAX_DEPTH: usize = usize::MAX; // 2
 
 impl TransferFunction<'_, '_, '_, 'tcx> {
   pub(super) fn slice_into_procedure(
@@ -171,6 +176,11 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
     let node = if let Some(node) = tcx.hir().get_if_local(*def_id) {
       node
     } else {
+      REACHED_LIBRARY.get(|reached_library| {
+        if let Some(reached_library) = reached_library {
+          *reached_library.borrow_mut() = true;
+        }
+      });
       return false;
     };
 

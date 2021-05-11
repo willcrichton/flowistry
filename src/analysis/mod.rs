@@ -19,7 +19,7 @@ pub use intraprocedural::{SliceLocation, SliceOutput};
 
 mod aliases;
 mod control_dependencies;
-mod eval_extensions;
+pub mod eval_extensions;
 pub mod intraprocedural;
 mod relevance;
 pub mod utils;

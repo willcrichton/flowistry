@@ -1,7 +1,7 @@
 use itertools::iproduct;
 use log::debug;
 use rand::{seq::IteratorRandom, thread_rng};
-use rust_slicer::analysis::{intraprocedural, utils};
+use rust_slicer::analysis::{intraprocedural, utils, eval_extensions::REACHED_LIBRARY};
 use rust_slicer::config::{Config, ContextMode, EvalMode, MutabilityMode, PointerMode, Range};
 use rustc_ast::{
   token::Token,
@@ -22,6 +22,7 @@ use rustc_span::Span;
 use serde::Serialize;
 use std::sync::Mutex;
 use std::time::Instant;
+use std::cell::RefCell;
 
 struct EvalBodyVisitor<'a, 'tcx> {
   tcx: TyCtxt<'tcx>,
@@ -124,6 +125,7 @@ pub struct EvalResult {
   has_immut_ptr_in_call: bool,
   has_same_type_ptrs_in_call: bool,
   has_same_type_ptrs_in_input: bool,
+  reached_library: bool
 }
 
 fn flatten_stream(stream: TokenStream) -> Vec<Token> {
@@ -218,16 +220,20 @@ impl EvalCrateVisitor<'tcx> {
           };
 
           let start = Instant::now();
-          let output = intraprocedural::analyze_function(
-            &config,
-            tcx,
-            *body_id,
-            &intraprocedural::SliceLocation::PlacesOnExit(vec![Place {
-              local,
-              projection: tcx.intern_place_elems(&[]),
-            }]),
-          )
-          .unwrap();
+          let (output, reached_library) = REACHED_LIBRARY.set(RefCell::new(false), || {
+            let output = intraprocedural::analyze_function(
+              &config,
+              tcx,
+              *body_id,
+              &intraprocedural::SliceLocation::PlacesOnExit(vec![Place {
+                local,
+                projection: tcx.intern_place_elems(&[]),
+              }]),
+            )
+            .unwrap();
+            let reached_library = REACHED_LIBRARY.get(|reached_library| *reached_library.unwrap().borrow());
+            (output, reached_library)
+          });        
 
           let num_tokens = tokens.len();
           let slice_spans = output
@@ -256,6 +262,7 @@ impl EvalCrateVisitor<'tcx> {
             has_immut_ptr_in_call,
             has_same_type_ptrs_in_call,
             has_same_type_ptrs_in_input,
+            reached_library
           })
         }).collect::<Vec<_>>()
       })
