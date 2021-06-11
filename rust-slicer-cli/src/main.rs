@@ -6,7 +6,6 @@ use rust_slicer::{
   config::{ContextMode, EvalMode, MutabilityMode, PointerMode},
   Config, Range,
 };
-use std::env;
 
 
 fn run() -> Result<()> {
@@ -36,7 +35,7 @@ fn run() -> Result<()> {
 
   let features = if matches.is_present("features") { arg!("features").split(",").map(|s| s.to_owned()).collect::<Vec<_>>() } else { vec![] };
   let features = CliFeatures::from_command_line(&features, matches.is_present("all_features"), true)?;
-  let flags = generate_rustc_flags(arg!("path"), features, false)?;
+  let flags = generate_rustc_flags(arg!("path"), features, true)?;
 
   debug!("Generated rustc command:\n{}", flags.join(" "));
 

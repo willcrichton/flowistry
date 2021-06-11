@@ -1,6 +1,8 @@
 use super::intraprocedural::{SliceLocation, BODY_STACK};
+use super::place_set::{PlaceSet, PlaceSetIteratorExt};
 use super::relevance::TransferFunction;
-use super::utils::{self, PlaceSet};
+use super::utils;
+use fluid_let::fluid_let;
 use log::{debug, info};
 use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_data_structures::graph::scc::Sccs;
@@ -10,19 +12,17 @@ use rustc_middle::{
     visit::Visitor,
     *,
   },
-  ty::{subst::GenericArgKind, ClosureKind, RegionVid, TyCtxt, TyKind, TyS},
+  ty::{subst::GenericArgKind, ClosureKind, RegionVid, TyCtxt, TyKind, TyS, VarianceDiagInfo},
 };
 use rustc_mir::borrow_check::constraints::OutlivesConstraintSet;
 use std::cell::RefCell;
-use fluid_let::fluid_let;
 
 fluid_let!(pub static REACHED_LIBRARY: RefCell<bool>);
-
 
 struct FindConstraints<'a, 'tcx> {
   tcx: TyCtxt<'tcx>,
   body: &'a Body<'tcx>,
-  constraints: Vec<OutlivesConstraint>,
+  constraints: Vec<OutlivesConstraint<'tcx>>,
 }
 
 impl FindConstraints<'_, 'tcx> {
@@ -35,6 +35,7 @@ impl FindConstraints<'_, 'tcx> {
       sub: r2,
       locations: Locations::Single(location),
       category: ConstraintCategory::Internal,
+      variance_info: VarianceDiagInfo::default(),
     };
 
     let tcx = self.tcx;
@@ -141,17 +142,19 @@ pub fn generate_conservative_constraints<'tcx>(
   constraint_set.compute_sccs(&constraint_graph, RegionVid::from_usize(0))
 }
 
-const MAX_DEPTH: usize = usize::MAX; // 2
+const MAX_DEPTH: usize = 2;
 
 impl TransferFunction<'_, '_, '_, 'tcx> {
   pub(super) fn slice_into_procedure(
     &mut self,
     call: &TerminatorKind<'tcx>,
     input_places: &[(usize, Place<'tcx>)],
-    input_mut_ptrs: &[(usize, PlaceSet<'tcx>)],
+    input_mut_ptrs: &[(usize, PlaceSet)],
     location: Location,
   ) -> bool {
     let tcx = self.analysis.tcx;
+    let place_domain = &self.analysis.alias_analysis.place_domain;
+
     let (func, destination) = if let TerminatorKind::Call {
       func, destination, ..
     } = call
@@ -167,7 +170,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       return false;
     };
 
-    let def_id = if let TyKind::FnDef(def_id, _) = func.literal.ty.kind() {
+    let def_id = if let TyKind::FnDef(def_id, _) = func.literal.ty().kind() {
       def_id
     } else {
       return false;
@@ -219,7 +222,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
         body_stack.len(),
       )
     });
-    if recursive || depth >= MAX_DEPTH {
+    if recursive || depth > MAX_DEPTH {
       return false;
     }
 
@@ -227,7 +230,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       .iter()
       .map(|(i, places)| {
         let (_, orig_input) = input_places.iter().find(|(j, _)| i == j).unwrap();
-        places.iter().map(move |place| {
+        places.iter(place_domain).map(move |place| {
           let projection = &place.projection[orig_input.projection.len()..];
           Place {
             local: Local::from_usize(*i + 1),
@@ -238,7 +241,9 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       .flatten();
 
     let relevant_return = if let Some((dst, _)) = destination {
-      if !dst.ty(self.analysis.body.local_decls(), tcx).ty.is_unit() && self.is_relevant(*dst) {
+      if !dst.ty(self.analysis.body.local_decls(), tcx).ty.is_unit()
+        && self.is_relevant(place_domain.index(*dst))
+      {
         Some(Place {
           local: RETURN_PLACE,
           projection: tcx.intern_place_elems(&[]),
@@ -285,12 +290,12 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
         let (_, caller_place) = input_places.iter().find(|(j, _)| *j == i - 1).unwrap();
         let mut projection = caller_place.projection.to_vec();
         projection.extend(callee_place.projection.iter());
-        Place {
+        place_domain.index(Place {
           local: caller_place.local,
           projection: tcx.intern_place_elems(&projection),
-        }
+        })
       })
-      .collect::<HashSet<_>>();
+      .collect_indices(place_domain);
 
     let relevant_inputs = results
       .relevant_inputs
@@ -299,14 +304,14 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
         input_places
           .iter()
           .find(|(j, _)| *j == *index)
-          .map(|(_, caller_place)| *caller_place)
+          .map(|(_, caller_place)| place_domain.index(*caller_place))
       })
-      .collect::<HashSet<_>>();
+      .collect_indices(place_domain);
 
     if mutated_inputs.len() > 0 {
       debug!("Adding relevant mutated inputs: {:?}", mutated_inputs);
 
-      for place in mutated_inputs {
+      for place in mutated_inputs.indices() {
         self.check_mutation(place, &relevant_inputs, false, location);
       }
     }
@@ -314,7 +319,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
     if relevant_return.is_some() {
       let (dst, _) = destination.unwrap();
       debug!("Adding relevant return: {:?}", dst);
-      self.check_mutation(dst, &relevant_inputs, true, location);
+      self.check_mutation(place_domain.index(dst), &relevant_inputs, true, location);
     }
 
     true

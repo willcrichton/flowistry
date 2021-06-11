@@ -1,7 +1,7 @@
 use anyhow::{anyhow, bail, Result};
 use rustc_span::{
   source_map::{SourceFile, SourceMap},
-  BytePos, FileName, Span,
+  BytePos, FileName, Span, RealFileName
 };
 use serde::Serialize;
 use std::default::Default;
@@ -39,8 +39,8 @@ impl Range {
 impl Range {
   pub fn from_span(span: Span, source_map: &SourceMap) -> Result<Self> {
     let filename = source_map.span_to_filename(span);
-    let filename = if let FileName::Real(filename) = filename {
-      filename.local_path().to_string_lossy().into_owned()
+    let filename = if let FileName::Real(RealFileName::LocalPath(filename)) = filename {
+      filename.to_string_lossy().into_owned()
     } else {
       bail!("Range::from_span doesn't support {:?}", filename)
     };

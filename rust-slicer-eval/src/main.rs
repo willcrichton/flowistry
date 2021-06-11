@@ -7,9 +7,8 @@ use generate_rustc_flags::{generate_rustc_flags, CliFeatures};
 use log::debug;
 use serde::Serialize;
 use std::fs::File;
-use std::env;
 
-use crate::visitor::EvalCrateVisitor;
+use crate::visitor::{ItemCounter, EvalCrateVisitor};
 
 extern crate rustc_ast;
 extern crate rustc_data_structures;
@@ -34,7 +33,10 @@ impl rustc_driver::Callbacks for Callbacks {
     queries: &'tcx rustc_interface::Queries<'tcx>,
   ) -> rustc_driver::Compilation {
     queries.global_ctxt().unwrap().take().enter(|tcx| {
-      let mut eval_visitor = EvalCrateVisitor::new(tcx);
+      let mut counter = ItemCounter { count: 0 };
+      tcx.hir().krate().visit_all_item_likes(&mut counter);
+
+      let mut eval_visitor = EvalCrateVisitor::new(tcx, counter.count);
       tcx
         .hir()
         .krate()

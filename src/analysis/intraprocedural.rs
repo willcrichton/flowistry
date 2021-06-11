@@ -1,6 +1,7 @@
 use super::aliases::Aliases;
 use super::control_dependencies::ControlDependencies;
 use super::eval_extensions;
+use super::place_set::{PlaceDomain, PlaceSet, PlaceSetIteratorExt};
 use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
 use crate::config::{Config, PointerMode, Range};
 
@@ -26,8 +27,9 @@ use std::{cell::RefCell, fs::File, io::Write, process::Command, thread_local, ti
 
 struct FindInitialSliceSet<'a, 'tcx> {
   slice_span: Span,
-  slice_set: SliceSet<'tcx>,
+  slice_set: SliceSet,
   body: &'a Body<'tcx>,
+  place_domain: &'a PlaceDomain<'tcx>,
 }
 
 impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
@@ -39,16 +41,18 @@ impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
       return;
     }
 
+    let place_domain = self.place_domain;
     self
       .slice_set
       .entry(location)
-      .or_insert_with(HashSet::default)
-      .insert(*place);
+      .or_insert_with(|| PlaceSet::new(place_domain))
+      .insert(place_domain.index(*place));
   }
 }
 
 struct CollectResults<'a, 'tcx> {
   body: &'a Body<'tcx>,
+  place_domain: &'a PlaceDomain<'tcx>,
   relevant_spans: Vec<Span>,
   all_locals: HashSet<Local>,
   local_blacklist: HashSet<Local>,
@@ -70,12 +74,12 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
   fn add_locals(&mut self, state: &RelevanceDomain, location: Location) {
     let locals = state
       .relevant_places
-      .iter()
+      .iter(self.place_domain)
       .map(|place| place.local)
       .collect::<HashSet<_>>();
     self.all_locals = &self.all_locals | &locals; //&(&locals - &self.relevant_locals);
 
-    for place in state.relevant_places.iter() {
+    for place in state.relevant_places.iter(self.place_domain) {
       let local = place.local.as_usize();
       if 1 <= local && local <= self.body.arg_count {
         self.relevant_inputs.insert(local - 1);
@@ -83,11 +87,17 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
     }
 
     if let Some(trace) = state.relevant_statements.get(&location) {
+      let place_domain = self.place_domain;
       let mutated_inputs = self
         .input_places
         .iter()
         .enumerate()
-        .filter_map(|(i, place)| trace.mutated.contains(place).then(|| i));
+        .filter_map(|(i, place)| {
+          trace
+            .mutated
+            .contains(place_domain.index(*place))
+            .then(|| i)
+        });
 
       self.mutated_inputs.extend(mutated_inputs);
     }
@@ -95,7 +105,7 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
 }
 
 impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
-  type FlowState = RelevanceDomain<'tcx>;
+  type FlowState = RelevanceDomain;
 
   fn visit_statement_after_primary_effect(
     &mut self,
@@ -224,13 +234,18 @@ pub enum SliceLocation<'tcx> {
 }
 
 impl SliceLocation<'tcx> {
-  fn to_slice_set(&self, body: &Body<'tcx>) -> (SliceSet<'tcx>, Vec<Place<'tcx>>) {
+  fn to_slice_set(
+    &self,
+    body: &Body<'tcx>,
+    place_domain: &PlaceDomain<'tcx>,
+  ) -> (SliceSet, Vec<Place<'tcx>>) {
     match self {
       SliceLocation::Span(slice_span) => {
         let mut finder = FindInitialSliceSet {
           slice_span: *slice_span,
           slice_set: HashMap::default(),
           body,
+          place_domain,
         };
         finder.visit_body(body);
         (finder.slice_set, vec![])
@@ -252,7 +267,10 @@ impl SliceLocation<'tcx> {
               }
             });
 
-        let place_set = places.iter().cloned().collect::<HashSet<_>>();
+        let place_set = places
+          .iter()
+          .map(|place| place_domain.index(*place))
+          .collect_indices(place_domain);
         (
           return_locations
             .map(|location| (location, place_set.clone()))
@@ -280,14 +298,12 @@ pub fn analyze_function(
 
     let start = Instant::now();
     let body = &borrowck_result.intermediates.body;
-    let borrow_set = &borrowck_result.intermediates.borrow_set;
     let outlives_constraints = &borrowck_result.intermediates.outlives_constraints;
     let constraint_sccs = &borrowck_result.intermediates.constraint_sccs;
 
     let mut buffer = Vec::new();
     write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
     debug!("{}", String::from_utf8(buffer)?);
-    debug!("borrow set {:#?}", borrow_set);
     debug!("outlives constraints {:#?}", outlives_constraints);
     debug!("sccs {:#?}", constraint_sccs);
 
@@ -307,16 +323,9 @@ pub fn analyze_function(
       constraint_sccs
     };
 
-    let aliases = Aliases::build(
-      config,
-      tcx,
-      body,
-      borrow_set,
-      outlives_constraints,
-      constraint_sccs,
-    );
+    let aliases = Aliases::build(config, tcx, body, outlives_constraints, constraint_sccs);
 
-    let (slice_set, input_places) = slice_location.to_slice_set(body);
+    let (slice_set, input_places) = slice_location.to_slice_set(body, &aliases.place_domain);
     debug!("Initial slice set: {:?}", slice_set);
 
     let control_dependencies = ControlDependencies::build(body.clone());
@@ -337,6 +346,7 @@ pub fn analyze_function(
     let source_map = tcx.sess.source_map();
     let mut visitor = CollectResults {
       body,
+      place_domain: &aliases.place_domain,
       relevant_spans: vec![],
       all_locals: HashSet::default(),
       local_blacklist: HashSet::default(),

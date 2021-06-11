@@ -195,8 +195,10 @@ impl ControlDependencies {
       .filter_map(|(x, ys)| match body.basic_blocks()[x].terminator().kind {
         TerminatorKind::FalseEdge { .. } => {
           // No predecessors if entry block is falseEdge
-          body.predecessors()[x].get(0).map(|parent| (*parent, ys.clone()))
-        },
+          body.predecessors()[x]
+            .get(0)
+            .map(|parent| (*parent, ys.clone()))
+        }
         _ => None,
       })
       .collect::<Vec<_>>();
