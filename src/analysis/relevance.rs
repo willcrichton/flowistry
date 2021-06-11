@@ -17,6 +17,8 @@ use rustc_mir::dataflow::{
 };
 use rustc_span::Span;
 use std::{cell::RefCell, fmt};
+use rustc_index::{vec::IndexVec, bit_set::{HybridBitSet, SparseBitMatrix}};
+
 
 pub type SliceSet = HashMap<Location, PlaceSet>;
 
@@ -46,63 +48,64 @@ impl JoinSemiLattice for Relevant {
   }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct RelevanceTrace {
-  pub mutated: PlaceSet,
+rustc_index::newtype_index! {
+    pub struct LocationIndex {
+        DEBUG_FORMAT = "l{}"
+    }
 }
 
-impl JoinSemiLattice for RelevanceTrace {
-  fn join(&mut self, other: &Self) -> bool {
-    self.mutated.join(&other.mutated)
+pub struct LocationDomain {
+  index_to_loc: IndexVec<LocationIndex, Location>,
+  loc_to_index: HashMap<Location, LocationIndex>
+}
+
+impl LocationDomain {
+  pub fn new(body: &Body) -> Self {
+    let locations = body.basic_blocks().iter_enumerated().map(|(block, data)| {
+      (0 .. data.statements.len() + 1).map(move |statement_index| Location { block, statement_index })
+    }).flatten().collect::<Vec<_>>();
+    let index_to_loc = IndexVec::from_raw(locations);
+    let loc_to_index = index_to_loc.iter_enumerated().map(|(idx, loc)| (*loc, idx)).collect();
+    LocationDomain { index_to_loc, loc_to_index }
+  }
+
+  pub fn index(&self, location: Location) -> LocationIndex {
+    *self.loc_to_index.get(&location).unwrap()
+  }
+
+  pub fn location(&self, index: LocationIndex) -> Location {
+    *self.index_to_loc.get(index).unwrap()
   }
 }
 
-type RelevantStatements = IndexMap<Location, RelevanceTrace>;
+#[derive(Clone, Debug)]
+pub struct RelevantStatements(pub SparseBitMatrix<LocationIndex, PlaceIndex>);
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct RelevanceDomain {
-  pub relevant_places: PlaceSet,
-  pub relevant_statements: RelevantStatements,
-}
-
-fn relevant_statements_join(this: &mut RelevantStatements, other: &RelevantStatements) -> bool {
-  let changes = other
-    .iter()
-    .map(|(loc, trace)| match this.entry(*loc) {
-      Entry::Vacant(entry) => {
-        entry.insert(trace.clone());
-        true
-      }
-      Entry::Occupied(mut entry) => entry.get_mut().join(trace),
-    })
-    .collect::<Vec<_>>();
-  changes.into_iter().any(|x| x)
-}
-
-impl JoinSemiLattice for RelevanceDomain {
-  fn join(&mut self, other: &Self) -> bool {
-    let places_changed = self.relevant_places.join(&other.relevant_places);
-    let statements_changed =
-      relevant_statements_join(&mut self.relevant_statements, &other.relevant_statements);
-    places_changed || statements_changed
+impl RelevantStatements {
+  pub fn new(domain: &PlaceDomain) -> Self {
+    RelevantStatements(SparseBitMatrix::new(domain.len()))
   }
-}
 
-impl DebugWithContext<RelevanceAnalysis<'_, '_, '_>> for RelevanceDomain {
-  fn fmt_with(
-    &self,
-    ctxt: &RelevanceAnalysis<'_, '_, '_>,
-    f: &mut fmt::Formatter<'_>,
-  ) -> fmt::Result {
-    self
-      .relevant_places
-      .fmt_with(&ctxt.alias_analysis.place_domain, f)
+  pub fn insert(&mut self, location: LocationIndex, places: PlaceSet) {
+    self.0.union_into_row(location, &places.to_hybrid());
+  }
+
+  pub fn iter<'a>(&'a self, domain: &'a LocationDomain) -> impl Iterator<Item = Location> + 'a {
+    self.0.rows().filter(move |location| self.0.row(*location).is_some()).map(move |index| domain.location(index))
+  }
+
+  pub fn contains(&self, location: LocationIndex) -> bool {
+    self.0.rows().any(|location2| location == location2 && self.0.row(location).is_some())
+  }
+
+  pub fn get(&self, location: LocationIndex) -> Option<&HybridBitSet<PlaceIndex>> {
+    self.0.row(location)
   }
 }
 
 pub(super) struct TransferFunction<'a, 'b, 'mir, 'tcx> {
   pub(super) analysis: &'a RelevanceAnalysis<'b, 'mir, 'tcx>,
-  pub(super) state: &'a mut RelevanceDomain,
+  pub(super) state: &'a mut PlaceSet,
 }
 
 #[derive(Debug)]
@@ -127,16 +130,14 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
       })
       .collect_indices(place_domain);
 
-    self.state.relevant_places.subtract(&to_delete);
-    self.state.relevant_places.union(used);
+    self.state.subtract(&to_delete);
+    self.state.union(used);
 
     let mutated = mutated
       .iter()
       .map(|(place, _)| *place)
       .collect_indices(place_domain);
-    let mut new_statements = IndexMap::default();
-    new_statements.insert(location, RelevanceTrace { mutated });
-    relevant_statements_join(&mut self.state.relevant_statements, &new_statements);
+    self.analysis.relevant_statements.borrow_mut().insert(self.analysis.location_domain.index(location), mutated);
   }
 
   pub(super) fn relevant_places(
@@ -151,7 +152,6 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
 
     self
       .state
-      .relevant_places
       .iter_enumerated(place_domain)
       .filter_map(|(relevant_place_index, relevant_place)| {
         let relations = mutated_places
@@ -205,7 +205,7 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
 
     debug!(
       "checking {:?} with relevant = {:?}",
-      place, self.state.relevant_places,
+      place, self.state,
     );
     let relevant_mutated = self.relevant_places(place_index, definitely_mutated);
     debug!("  relevant mutated = {:?}", relevant_mutated);
@@ -228,7 +228,7 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
 
       self.add_relevant(&vec![], &pointers, location);
       self.add_relevant(&relevant_mutated, input_places, location);
-      debug!("  updated relevant: {:?}", self.state.relevant_places);
+      debug!("  updated relevant: {:?}", self.state);
 
       true
     } else {
@@ -268,7 +268,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
 
     debug!(
       "checking terminator {:?} in context {:?}",
-      terminator.kind, self.state.relevant_places
+      terminator.kind, self.state
     );
 
     let place_domain = self.analysis.place_domain();
@@ -346,7 +346,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       }
 
       TerminatorKind::SwitchInt { discr, .. } => {
-        let is_relevant = self.state.relevant_statements.keys().any(|relevant| {
+        let is_relevant = self.analysis.relevant_statements.borrow().iter(&self.analysis.location_domain).any(|relevant| {
           self
             .analysis
             .control_dependencies
@@ -401,6 +401,8 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   control_dependencies: ControlDependencies,
   current_block: RefCell<BasicBlock>,
   pub(super) alias_analysis: &'a Aliases<'tcx>,
+  pub(super) location_domain: LocationDomain,
+  pub(super) relevant_statements: RefCell<RelevantStatements>
 }
 
 impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
@@ -413,6 +415,8 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     control_dependencies: ControlDependencies,
   ) -> Self {
     let current_block = RefCell::new(body.basic_blocks().indices().next().unwrap());
+    let location_domain = LocationDomain::new(body);
+    let relevant_statements = RefCell::new(RelevantStatements::new(&alias_analysis.place_domain));
 
     RelevanceAnalysis {
       config,
@@ -422,6 +426,8 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       alias_analysis,
       control_dependencies,
       current_block,
+      location_domain,
+      relevant_statements
     }
   }
 
@@ -431,15 +437,12 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
 }
 
 impl<'a, 'mir, 'tcx> AnalysisDomain<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
-  type Domain = RelevanceDomain;
+  type Domain = PlaceSet;
   type Direction = Backward;
   const NAME: &'static str = "RelevanceAnalysis";
 
   fn bottom_value(&self, _body: &mir::Body<'tcx>) -> Self::Domain {
-    RelevanceDomain {
-      relevant_places: PlaceSet::new(self.place_domain()),
-      relevant_statements: IndexMap::default(),
-    }
+    PlaceSet::new(self.place_domain())
   }
 
   fn initialize_start_block(&self, _: &mir::Body<'tcx>, _: &mut Self::Domain) {}
@@ -484,5 +487,12 @@ impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
     _args: &[mir::Operand<'tcx>],
     _return_place: mir::Place<'tcx>,
   ) {
+  }
+}
+
+
+impl DebugWithContext<RelevanceAnalysis<'_, '_, '_>> for PlaceSet {
+  fn fmt_with(&self, ctxt: &RelevanceAnalysis, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    self.fmt_with(ctxt.place_domain(), f)
   }
 }

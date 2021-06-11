@@ -2,7 +2,7 @@ use super::aliases::Aliases;
 use super::control_dependencies::ControlDependencies;
 use super::eval_extensions;
 use super::place_set::{PlaceDomain, PlaceSet, PlaceSetIteratorExt};
-use super::relevance::{RelevanceAnalysis, RelevanceDomain, SliceSet};
+use super::relevance::{RelevanceAnalysis, SliceSet, LocationDomain, RelevantStatements};
 use crate::config::{Config, PointerMode, Range};
 
 use anyhow::{bail, Result};
@@ -53,6 +53,8 @@ impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
 struct CollectResults<'a, 'tcx> {
   body: &'a Body<'tcx>,
   place_domain: &'a PlaceDomain<'tcx>,
+  location_domain: &'a LocationDomain,
+  relevant_statements: &'a RelevantStatements,
   relevant_spans: Vec<Span>,
   all_locals: HashSet<Local>,
   local_blacklist: HashSet<Local>,
@@ -64,29 +66,28 @@ struct CollectResults<'a, 'tcx> {
 }
 
 impl<'a, 'tcx> CollectResults<'a, 'tcx> {
-  fn check_statement(&mut self, state: &RelevanceDomain, location: Location) {
-    if state.relevant_statements.contains_key(&location) {
+  fn check_statement(&mut self, location: Location) {
+    if self.relevant_statements.contains(self.location_domain.index(location)) {
       let span = self.body.source_info(location).span;
       self.relevant_spans.push(span);
     }
   }
 
-  fn add_locals(&mut self, state: &RelevanceDomain, location: Location) {
+  fn add_locals(&mut self, state: &PlaceSet, location: Location) {
     let locals = state
-      .relevant_places
       .iter(self.place_domain)
       .map(|place| place.local)
       .collect::<HashSet<_>>();
     self.all_locals = &self.all_locals | &locals; //&(&locals - &self.relevant_locals);
 
-    for place in state.relevant_places.iter(self.place_domain) {
+    for place in state.iter(self.place_domain) {
       let local = place.local.as_usize();
       if 1 <= local && local <= self.body.arg_count {
         self.relevant_inputs.insert(local - 1);
       }
     }
 
-    if let Some(trace) = state.relevant_statements.get(&location) {
+    if let Some(trace) = self.relevant_statements.get(self.location_domain.index(location)) {
       let place_domain = self.place_domain;
       let mutated_inputs = self
         .input_places
@@ -94,7 +95,6 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
         .enumerate()
         .filter_map(|(i, place)| {
           trace
-            .mutated
             .contains(place_domain.index(*place))
             .then(|| i)
         });
@@ -105,7 +105,7 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
 }
 
 impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
-  type FlowState = RelevanceDomain;
+  type FlowState = PlaceSet;
 
   fn visit_statement_after_primary_effect(
     &mut self,
@@ -114,7 +114,7 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
     location: Location,
   ) {
     self.add_locals(state, location);
-    let is_relevant = state.relevant_statements.contains_key(&location);
+    let is_relevant = self.relevant_statements.contains(self.location_domain.index(location));
 
     if let StatementKind::Assign(box (lhs, Rvalue::Discriminant(_))) = statement.kind {
       /* For whatever reason, in statements like `match x { None => .. }` then the discriminant
@@ -123,7 +123,7 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
        */
       self.local_blacklist.insert(lhs.local);
     } else {
-      self.check_statement(state, location);
+      self.check_statement(location);
 
       if is_relevant {
         if let StatementKind::Assign(box (place, _)) = statement.kind {
@@ -153,10 +153,10 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
        * get individually highlighted as relevant or not.
        */
     } else {
-      self.check_statement(state, location);
+      self.check_statement(location);
     }
 
-    if state.relevant_statements.contains_key(&location) {
+    if self.relevant_statements.contains(self.location_domain.index(location)) {
       self.num_relevant_instructions += 1;
     }
     self.num_instructions += 1;
@@ -344,9 +344,12 @@ pub fn analyze_function(
     }
 
     let source_map = tcx.sess.source_map();
+    let relevant_statements = relevance_results.analysis.relevant_statements.clone().into_inner();
     let mut visitor = CollectResults {
       body,
       place_domain: &aliases.place_domain,
+      location_domain: &relevance_results.analysis.location_domain,
+      relevant_statements: &relevant_statements,
       relevant_spans: vec![],
       all_locals: HashSet::default(),
       local_blacklist: HashSet::default(),
