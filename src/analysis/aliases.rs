@@ -195,7 +195,7 @@ impl Aliases<'tcx> {
       all_places.extend(pointers.into_iter());
 
       let all_places = all_places.into_iter().collect::<Vec<_>>();
-      println!("All places: {:?}", all_places.len());
+      // println!("All places: {:?}", all_places.len());
       // println!("All places: {:?}", all_places);
       // println!("All regions: {:?}", all_regions);
       // println!("Place pointers: {:?}", place_pointers);
