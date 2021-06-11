@@ -112,10 +112,7 @@ impl RelevantStatements {
   }
 
   pub fn contains(&self, location: LocationIndex) -> bool {
-    self
-      .0
-      .rows()
-      .any(|location2| location == location2 && self.0.row(location).is_some())
+    self.0.row(location).is_some()
   }
 
   pub fn get(&self, location: LocationIndex) -> Option<&HybridBitSet<PlaceIndex>> {
@@ -171,29 +168,30 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
   ) -> Vec<(PlaceIndex, MutationKind)> {
     let place_domain = self.analysis.place_domain();
     let mutated_place = place_domain.place(mutated_place_index);
-    let mutated_places = self.analysis.alias_analysis.loans(mutated_place_index);
+    let mutated_place_indices = self.analysis.alias_analysis.loans(mutated_place_index);
+    let mutated_places = mutated_place_indices.iter(place_domain).collect::<Vec<_>>();
     debug!("  mutated {:?} / {:?}", mutated_place, mutated_places);
 
     self
       .state
       .iter_enumerated(place_domain)
       .filter_map(|(relevant_place_index, relevant_place)| {
-        let relations = mutated_places
-          .iter(place_domain)
-          .filter_map(
-            |mutated_place| match PlaceRelation::of(relevant_place, mutated_place) {
-              PlaceRelation::Disjoint => None,
-              relation => Some(relation),
-            },
-          )
-          .collect::<Vec<_>>();
+        let relation = mutated_places
+          .iter()
+          .fold(PlaceRelation::Disjoint,
+            |rel, mutated_place| match rel {
+              PlaceRelation::Sub => rel,
+              _ => match PlaceRelation::of(relevant_place, *mutated_place) {
+                PlaceRelation::Disjoint => rel,
+                new_rel => new_rel,
+              }
+            }
+          );
 
         // TODO: is there a more precise check for strong updated than |mutated_places| == 1?
         // eg if *x mutated (*_2) and (_1) then that's a strong update on both, but only b/c
         // they're at different level of indirection.
-        if relations
-          .iter()
-          .any(|relation| *relation == PlaceRelation::Sub)
+        if relation == PlaceRelation::Sub
         {
           let mutation_kind = if mutated_places.len() == 1 && definitely_mutated {
             MutationKind::Strong
@@ -201,9 +199,7 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
             MutationKind::Weak
           };
           Some((relevant_place_index, mutation_kind))
-        } else if relations
-          .iter()
-          .any(|relation| *relation == PlaceRelation::Super)
+        } else if relation == PlaceRelation::Super
         {
           Some((relevant_place_index, MutationKind::Weak))
         } else {

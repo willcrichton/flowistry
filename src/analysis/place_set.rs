@@ -84,6 +84,10 @@ impl PlaceDomain<'tcx> {
   pub fn len(&self) -> usize {
     self.index_to_place.len()
   }
+
+  pub fn iter_enumerated<'a>(&'a self) -> impl Iterator<Item=(PlaceIndex, &'a Place<'tcx>)> + 'a {
+    self.index_to_place.iter_enumerated()
+  }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -126,6 +130,10 @@ impl PlaceSet {
 
   pub fn contains(&self, index: PlaceIndex) -> bool {
     self.0.contains(index)
+  }
+
+  pub fn intersect(&mut self, other: &Self) -> bool {
+    self.0.intersect(&other.0)
   }
 
   pub fn len(&self) -> usize {
