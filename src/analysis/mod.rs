@@ -21,6 +21,7 @@ mod aliases;
 mod control_dependencies;
 pub mod eval_extensions;
 pub mod intraprocedural;
+mod place_set;
 mod relevance;
 pub mod utils;
 
@@ -115,7 +116,7 @@ impl rustc_driver::Callbacks for Callbacks {
         let source_file = files
           .iter()
           .find(|file| {
-            if let FileName::Real(RealFileName::Named(other_path)) = &file.name {
+            if let FileName::Real(RealFileName::LocalPath(other_path)) = &file.name {
               target_file == other_path.canonicalize().unwrap()
             } else {
               false

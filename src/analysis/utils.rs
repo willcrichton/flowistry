@@ -1,7 +1,10 @@
 use log::warn;
-use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_middle::{
-  mir::*,
+  mir::{
+    visit::{PlaceContext, Visitor},
+    *,
+  },
   ty::{self, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS, TypeFoldable, TypeVisitor},
 };
 use rustc_target::abi::VariantIdx;
@@ -9,16 +12,7 @@ use std::collections::hash_map::Entry;
 use std::hash::Hash;
 use std::ops::ControlFlow;
 
-pub type PlaceSet<'tcx> = HashSet<Place<'tcx>>;
-
-pub fn place_set_join(this: &mut PlaceSet<'tcx>, other: &PlaceSet<'tcx>) -> bool {
-  if other.is_subset(this) {
-    false
-  } else {
-    this.extend(other.iter());
-    true
-  }
-}
+pub use super::place_set::{PlaceDomain, PlaceIndex, PlaceSet};
 
 pub fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
   match operand {
@@ -126,6 +120,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
       | TyKind::Opaque(_, _)
       | TyKind::Foreign(_)
       | TyKind::Dynamic(_, _)
+      | TyKind::Param(_)
       | TyKind::Never => {}
 
       _ if ty.is_primitive_ty() => {}
@@ -245,5 +240,16 @@ impl PlaceRelation {
     } else {
       PlaceRelation::Disjoint
     }
+  }
+}
+
+#[derive(Default)]
+pub struct PlaceCollector<'tcx> {
+  pub places: Vec<Place<'tcx>>,
+}
+
+impl Visitor<'tcx> for PlaceCollector<'tcx> {
+  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, _location: Location) {
+    self.places.push(*place);
   }
 }

@@ -10,7 +10,7 @@ use std::io::BufReader;
 use serde::{Serialize, Deserialize};
 use rayon::prelude::*;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Range {
   pub start_line: usize,
   pub start_col: usize,
@@ -19,25 +19,25 @@ pub struct Range {
   pub filename: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub enum MutabilityMode {
   DistinguishMut,
   IgnoreMut,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub enum ContextMode {
   SigOnly,
   Recurse,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub enum PointerMode {
   Precise,
   Conservative,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct EvalResult {
   mutability_mode: MutabilityMode,
   context_mode: ContextMode,
@@ -53,9 +53,11 @@ pub struct EvalResult {
   has_immut_ptr_in_call: bool,
   has_same_type_ptrs_in_call: bool,
   has_same_type_ptrs_in_input: bool,
+  reached_library: bool,
   // added fields
   instructions_relative: Option<usize>,
   instructions_relative_frac: Option<f64>,
+  baseline_reached_library: Option<bool>,
 }
 
 #[pyfunction]
@@ -65,10 +67,12 @@ fn parse_data(py: Python, path: String) -> PyResult<PyObject> {
   let mut data: Vec<Vec<EvalResult>> = serde_json::from_reader(reader).map_err(|err| PyException::new_err(format!("{}", err)))?;
 
   let updated_data = data.par_iter_mut().map(|trial| {
-    let min_inst = trial.iter().map(|sample| sample.num_relevant_instructions).min().unwrap();
+    let min_sample = trial.iter().min_by_key(|sample| sample.num_relevant_instructions).cloned().unwrap();
     trial.into_iter().map(|mut sample| {
+      let min_inst = min_sample.num_relevant_instructions;
       sample.instructions_relative = Some(sample.num_relevant_instructions - min_inst);
       sample.instructions_relative_frac = Some((sample.num_relevant_instructions - min_inst) as f64 / (min_inst as f64));
+      sample.baseline_reached_library = Some(min_sample.reached_library);
       sample
     }).collect::<Vec<_>>()
   }).flatten().collect::<Vec<_>>();
