@@ -3,10 +3,11 @@ use super::control_dependencies::ControlDependencies;
 use super::place_set::{PlaceDomain, PlaceIndex, PlaceSet, PlaceSetIteratorExt};
 use super::utils::{self, PlaceRelation};
 use crate::config::{Config, ContextMode, MutabilityMode};
-use indexmap::map::Entry;
 use log::debug;
-use rustc_data_structures::fx::{
-  FxHashMap as HashMap, FxHashSet as HashSet, FxIndexMap as IndexMap,
+use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_index::{
+  bit_set::{HybridBitSet, SparseBitMatrix},
+  vec::IndexVec,
 };
 use rustc_middle::{
   mir::{self, visit::Visitor, *},
@@ -17,8 +18,6 @@ use rustc_mir::dataflow::{
 };
 use rustc_span::Span;
 use std::{cell::RefCell, fmt};
-use rustc_index::{vec::IndexVec, bit_set::{HybridBitSet, SparseBitMatrix}};
-
 
 pub type SliceSet = HashMap<Location, PlaceSet>;
 
@@ -56,17 +55,31 @@ rustc_index::newtype_index! {
 
 pub struct LocationDomain {
   index_to_loc: IndexVec<LocationIndex, Location>,
-  loc_to_index: HashMap<Location, LocationIndex>
+  loc_to_index: HashMap<Location, LocationIndex>,
 }
 
 impl LocationDomain {
   pub fn new(body: &Body) -> Self {
-    let locations = body.basic_blocks().iter_enumerated().map(|(block, data)| {
-      (0 .. data.statements.len() + 1).map(move |statement_index| Location { block, statement_index })
-    }).flatten().collect::<Vec<_>>();
+    let locations = body
+      .basic_blocks()
+      .iter_enumerated()
+      .map(|(block, data)| {
+        (0..data.statements.len() + 1).map(move |statement_index| Location {
+          block,
+          statement_index,
+        })
+      })
+      .flatten()
+      .collect::<Vec<_>>();
     let index_to_loc = IndexVec::from_raw(locations);
-    let loc_to_index = index_to_loc.iter_enumerated().map(|(idx, loc)| (*loc, idx)).collect();
-    LocationDomain { index_to_loc, loc_to_index }
+    let loc_to_index = index_to_loc
+      .iter_enumerated()
+      .map(|(idx, loc)| (*loc, idx))
+      .collect();
+    LocationDomain {
+      index_to_loc,
+      loc_to_index,
+    }
   }
 
   pub fn index(&self, location: Location) -> LocationIndex {
@@ -91,11 +104,18 @@ impl RelevantStatements {
   }
 
   pub fn iter<'a>(&'a self, domain: &'a LocationDomain) -> impl Iterator<Item = Location> + 'a {
-    self.0.rows().filter(move |location| self.0.row(*location).is_some()).map(move |index| domain.location(index))
+    self
+      .0
+      .rows()
+      .filter(move |location| self.0.row(*location).is_some())
+      .map(move |index| domain.location(index))
   }
 
   pub fn contains(&self, location: LocationIndex) -> bool {
-    self.0.rows().any(|location2| location == location2 && self.0.row(location).is_some())
+    self
+      .0
+      .rows()
+      .any(|location2| location == location2 && self.0.row(location).is_some())
   }
 
   pub fn get(&self, location: LocationIndex) -> Option<&HybridBitSet<PlaceIndex>> {
@@ -137,7 +157,11 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
       .iter()
       .map(|(place, _)| *place)
       .collect_indices(place_domain);
-    self.analysis.relevant_statements.borrow_mut().insert(self.analysis.location_domain.index(location), mutated);
+    self
+      .analysis
+      .relevant_statements
+      .borrow_mut()
+      .insert(self.analysis.location_domain.index(location), mutated);
   }
 
   pub(super) fn relevant_places(
@@ -203,30 +227,17 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
     let place_domain = self.analysis.place_domain();
     let place = place_domain.place(place_index);
 
-    debug!(
-      "checking {:?} with relevant = {:?}",
-      place, self.state,
-    );
+    debug!("checking {:?} with relevant = {:?}", place, self.state,);
     let relevant_mutated = self.relevant_places(place_index, definitely_mutated);
     debug!("  relevant mutated = {:?}", relevant_mutated);
 
     if relevant_mutated.len() > 0 {
-      let pointers = place
-        .iter_projections()
-        .filter_map(|(place_ref, projection_elem)| {
-          if let ProjectionElem::Deref = projection_elem {
-            let place = Place {
-              local: place_ref.local,
-              projection: self.analysis.tcx.intern_place_elems(place_ref.projection),
-            };
-            Some(place_domain.index(place))
-          } else {
-            None
-          }
-        })
-        .collect_indices(place_domain);
+      if let Some(pointer) = utils::pointer_for_place(place, self.analysis.tcx) {
+        let mut set = PlaceSet::new(place_domain);
+        set.insert(place_domain.index(pointer));
+        self.add_relevant(&vec![], &set, location);
+      }
 
-      self.add_relevant(&vec![], &pointers, location);
       self.add_relevant(&relevant_mutated, input_places, location);
       debug!("  updated relevant: {:?}", self.state);
 
@@ -346,12 +357,17 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       }
 
       TerminatorKind::SwitchInt { discr, .. } => {
-        let is_relevant = self.analysis.relevant_statements.borrow().iter(&self.analysis.location_domain).any(|relevant| {
-          self
-            .analysis
-            .control_dependencies
-            .is_dependent(relevant.block, location.block)
-        });
+        let is_relevant = self
+          .analysis
+          .relevant_statements
+          .borrow()
+          .iter(&self.analysis.location_domain)
+          .any(|relevant| {
+            self
+              .analysis
+              .control_dependencies
+              .is_dependent(relevant.block, location.block)
+          });
 
         if is_relevant {
           let mut input = PlaceSet::new(place_domain);
@@ -402,7 +418,7 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   current_block: RefCell<BasicBlock>,
   pub(super) alias_analysis: &'a Aliases<'tcx>,
   pub(super) location_domain: LocationDomain,
-  pub(super) relevant_statements: RefCell<RelevantStatements>
+  pub(super) relevant_statements: RefCell<RelevantStatements>,
 }
 
 impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
@@ -427,7 +443,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
       control_dependencies,
       current_block,
       location_domain,
-      relevant_statements
+      relevant_statements,
     }
   }
 
@@ -489,7 +505,6 @@ impl<'a, 'mir, 'tcx> Analysis<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> {
   ) {
   }
 }
-
 
 impl DebugWithContext<RelevanceAnalysis<'_, '_, '_>> for PlaceSet {
   fn fmt_with(&self, ctxt: &RelevanceAnalysis, f: &mut fmt::Formatter<'_>) -> fmt::Result {

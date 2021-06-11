@@ -141,7 +141,7 @@ fn flatten_stream(stream: TokenStream) -> Vec<Token> {
     .collect()
 }
 
-const SAMPLE_SIZE: usize = 300;
+const SAMPLE_SIZE: usize = 1000;
 
 impl EvalCrateVisitor<'tcx> {
   pub fn new(tcx: TyCtxt<'tcx>, total: usize) -> Self {
