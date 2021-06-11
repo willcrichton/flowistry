@@ -22,6 +22,7 @@ use rustc_mir::dataflow::graphviz;
 use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor};
 use rustc_mir::util::write_mir_fn;
 use rustc_span::Span;
+use rustc_index::bit_set::BitSet;
 use serde::Serialize;
 use std::{cell::RefCell, fs::File, io::Write, process::Command, thread_local, time::Instant};
 
@@ -56,8 +57,8 @@ struct CollectResults<'a, 'tcx> {
   location_domain: &'a LocationDomain,
   relevant_statements: &'a RelevantStatements,
   relevant_spans: Vec<Span>,
-  all_locals: HashSet<Local>,
-  local_blacklist: HashSet<Local>,
+  all_locals: BitSet<Local>,
+  local_blacklist: BitSet<Local>,
   num_relevant_instructions: usize,
   num_instructions: usize,
   input_places: Vec<Place<'tcx>>,
@@ -74,13 +75,9 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
   }
 
   fn add_locals(&mut self, state: &PlaceSet, location: Location) {
-    let locals = state
-      .iter(self.place_domain)
-      .map(|place| place.local)
-      .collect::<HashSet<_>>();
-    self.all_locals = &self.all_locals | &locals; //&(&locals - &self.relevant_locals);
-
     for place in state.iter(self.place_domain) {
+      self.all_locals.insert(place.local);
+
       let local = place.local.as_usize();
       if 1 <= local && local <= self.body.arg_count {
         self.relevant_inputs.insert(local - 1);
@@ -301,11 +298,13 @@ pub fn analyze_function(
     let outlives_constraints = &borrowck_result.intermediates.outlives_constraints;
     let constraint_sccs = &borrowck_result.intermediates.constraint_sccs;
 
-    let mut buffer = Vec::new();
-    write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
-    debug!("{}", String::from_utf8(buffer)?);
-    debug!("outlives constraints {:#?}", outlives_constraints);
-    debug!("sccs {:#?}", constraint_sccs);
+    if config.debug {
+      let mut buffer = Vec::new();
+      write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
+      debug!("{}", String::from_utf8(buffer)?);
+      debug!("outlives constraints {:#?}", outlives_constraints);
+      debug!("sccs {:#?}", constraint_sccs);
+    }
 
     let should_be_conservative = config.eval_mode.pointer_mode == PointerMode::Conservative;
     let conservative_sccs = if should_be_conservative {
@@ -334,7 +333,6 @@ pub fn analyze_function(
 
     let control_dependencies = ControlDependencies::build(body.clone());
     debug!("Control dependencies: {:?}", control_dependencies);
-
     elapsed("pre-relevance", start);
 
     let start = Instant::now();
@@ -342,11 +340,13 @@ pub fn analyze_function(
       RelevanceAnalysis::new(config, slice_set, tcx, body, &aliases, control_dependencies)
         .into_engine(tcx, body)
         .iterate_to_fixpoint();
+    elapsed("fixpoint", start);
 
     if config.debug && body_stack.borrow().len() == 1 {
       dump_results("target/relevance.png", body, &relevance_results)?;
     }
 
+    let start = Instant::now();
     let source_map = tcx.sess.source_map();
     let relevant_statements = relevance_results.analysis.relevant_statements.clone().into_inner();
     let mut visitor = CollectResults {
@@ -355,8 +355,8 @@ pub fn analyze_function(
       location_domain: &relevance_results.analysis.location_domain,
       relevant_statements: &relevant_statements,
       relevant_spans: vec![],
-      all_locals: HashSet::default(),
-      local_blacklist: HashSet::default(),
+      all_locals: BitSet::new_empty(body.local_decls().len()),
+      local_blacklist: BitSet::new_empty(body.local_decls().len()),
       num_relevant_instructions: 0,
       num_instructions: 0,
       input_places,
@@ -364,11 +364,11 @@ pub fn analyze_function(
       relevant_inputs: HashSet::default(),
     };
     relevance_results.visit_reachable_with(body, &mut visitor);
-    elapsed("relevance", start);
+    elapsed("collect", start);
 
-    let all_locals = &visitor.all_locals - &visitor.local_blacklist;
-    let local_spans = all_locals
-      .into_iter()
+    visitor.all_locals.subtract(&visitor.local_blacklist);
+    let local_spans = visitor.all_locals
+      .iter()
       .map(|local| body.local_decls()[local].source_info.span);
 
     let ranges = visitor
