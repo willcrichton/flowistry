@@ -323,7 +323,11 @@ pub fn analyze_function(
       constraint_sccs
     };
 
-    let aliases = Aliases::build(config, tcx, body, outlives_constraints, constraint_sccs);
+    let extra_places = match &slice_location {
+      SliceLocation::PlacesOnExit(places) => places.clone(),
+      _ => vec![]
+    };
+    let aliases = Aliases::build(config, tcx, body, outlives_constraints, constraint_sccs, &extra_places);
 
     let (slice_set, input_places) = slice_location.to_slice_set(body, &aliases.place_domain);
     debug!("Initial slice set: {:?}", slice_set);

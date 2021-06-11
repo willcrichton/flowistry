@@ -115,6 +115,7 @@ impl Aliases<'tcx> {
     body: &'a Body<'tcx>,
     outlives_constraints: &'a Vec<OutlivesConstraint>,
     constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>,
+    extra_places: &Vec<Place<'tcx>>,
   ) -> Self {
     let all_regions = body
       .local_decls()
@@ -166,12 +167,14 @@ impl Aliases<'tcx> {
       let mut all_places = HashSet::default();
       all_places.extend(place_collector.places.clone().into_iter());
 
+      // needed for Aliases::build
       let place_pointers = place_collector
         .places
         .into_iter()
         .map(|place| utils::interior_pointers(place, tcx, body))
         .collect::<Vec<_>>();
 
+      // needed for TransferFunction::visit_terminator
       all_places.extend(
         all_regions
           .values()
@@ -180,7 +183,19 @@ impl Aliases<'tcx> {
           .flatten(),
       );
 
+      // needed for SliceLocation::PlacesOnExit
+      all_places.extend(extra_places.into_iter());
+
+      // needed for TransferFunction::check_mutation
+      let pointers = all_places
+        .iter()
+        .map(|place| utils::pointer_for_place(*place, tcx).into_iter())
+        .flatten()
+        .collect::<Vec<_>>();
+      all_places.extend(pointers.into_iter());
+
       let all_places = all_places.into_iter().collect::<Vec<_>>();
+      println!("All places: {:?}", all_places.len());
       // println!("All places: {:?}", all_places);
       // println!("All regions: {:?}", all_regions);
       // println!("Place pointers: {:?}", place_pointers);
