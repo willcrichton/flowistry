@@ -87,16 +87,13 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
       }
     }
 
-    if let Some(trace) = state.locations.get(self.location_domain.index(location)) {
-      let place_domain = self.place_domain;
-      let mutated_inputs = self
-        .input_places
-        .iter()
-        .enumerate()
-        .filter_map(|(i, place)| trace.contains(place_domain.index(*place)).then(|| i));
-
-      self.mutated_inputs.extend(mutated_inputs);
-    }
+    let place_domain = self.place_domain;
+    let mutated_inputs = self
+      .input_places
+      .iter()
+      .enumerate()
+      .filter_map(|(i, place)| state.mutated.contains(place_domain.index(*place)).then(|| i));
+    self.mutated_inputs.extend(mutated_inputs);
   }
 }
 
