@@ -96,10 +96,8 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
       fmt_places!(mutated, self.analysis),
       location
     );
-    self.state.locations.union(
-      self.analysis.location_domain.index(location),
-      Cow::Owned(mutated),
-    );
+    self.state.mutated.union(&mutated);
+    self.state.locations.insert(self.analysis.location_domain.index(location));
   }
 
   pub(super) fn relevant_places(
@@ -308,8 +306,9 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
         let is_relevant = self
           .state
           .locations
-          .iter(&self.analysis.location_domain)
-          .any(|relevant| {
+          .iter()
+          .any(|index| {
+            let relevant = &self.analysis.location_domain.location(index);
             self
               .analysis
               .control_dependencies
@@ -407,7 +406,7 @@ impl<'a, 'mir, 'tcx> AnalysisDomain<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> 
   const NAME: &'static str = "RelevanceAnalysis";
 
   fn bottom_value(&self, _body: &mir::Body<'tcx>) -> Self::Domain {
-    RelevanceDomain::new(self.place_domain())
+    RelevanceDomain::new(self.place_domain(), &self.location_domain)
   }
 
   fn initialize_start_block(&self, _: &mir::Body<'tcx>, _: &mut Self::Domain) {}
