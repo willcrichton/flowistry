@@ -1,11 +1,14 @@
 use super::place_set::{PlaceDomain, PlaceIndex, PlaceSet};
-use rustc_data_structures::fx::FxHashMap as HashMap;
+use indexmap::map::{Entry, IndexMap};
+use rustc_data_structures::fx::{FxHashMap as HashMap, FxHasher};
 use rustc_index::{
   bit_set::{HybridBitSet, SparseBitMatrix},
   vec::IndexVec,
 };
 use rustc_middle::mir::*;
 use rustc_mir::dataflow::JoinSemiLattice;
+use std::borrow::Cow;
+use std::hash::BuildHasherDefault;
 
 rustc_index::newtype_index! {
     pub struct LocationIndex {
@@ -51,61 +54,56 @@ impl LocationDomain {
   }
 }
 
-#[derive(Clone, Debug)]
-pub struct RelevantLocations(pub SparseBitMatrix<LocationIndex, PlaceIndex>);
+#[derive(Debug, PartialEq, Eq)]
+pub struct RelevantLocations(IndexMap<LocationIndex, PlaceSet, BuildHasherDefault<FxHasher>>);
 
 impl RelevantLocations {
   pub fn new(domain: &PlaceDomain) -> Self {
-    RelevantLocations(SparseBitMatrix::new(domain.len()))
+    RelevantLocations(IndexMap::default())
   }
 
-  pub fn insert(&mut self, location: LocationIndex, places: PlaceSet) {
-    self.0.union_into_row(location, &places.to_hybrid());
+  pub fn union(&mut self, location: LocationIndex, places: Cow<'_, PlaceSet>) -> bool {
+    match self.0.entry(location) {
+      Entry::Occupied(mut entry) => entry.get_mut().union(&*places),
+      Entry::Vacant(mut entry) => {
+        entry.insert(places.into_owned());
+        true
+      }
+    }
   }
 
   pub fn iter<'a>(&'a self, domain: &'a LocationDomain) -> impl Iterator<Item = Location> + 'a {
-    self
-      .0
-      .rows()
-      .filter(move |location| self.0.row(*location).is_some())
-      .map(move |index| domain.location(index))
+    self.0.keys().map(move |index| domain.location(*index))
   }
 
   pub fn contains(&self, location: LocationIndex) -> bool {
-    self.0.row(location).is_some()
+    self.0.contains_key(&location)
   }
 
-  pub fn get(&self, location: LocationIndex) -> Option<&HybridBitSet<PlaceIndex>> {
-    self.0.row(location)
+  pub fn get(&self, location: LocationIndex) -> Option<&PlaceSet> {
+    self.0.get(&location)
   }
 }
 
-impl PartialEq for RelevantLocations {
-  fn eq(&self, other: &Self) -> bool {
-    (self.0.rows().count() == other.0.rows().count())
-      && self
-        .0
-        .rows()
-        .all(|row| match (self.0.row(row), other.0.row(row)) {
-          (Some(s1), Some(s2)) => s1.superset(&s2) && s2.superset(&s1),
-          _ => false,
-        })
+impl Clone for RelevantLocations {
+  fn clone(&self) -> Self {
+    RelevantLocations(self.0.clone())
+  }
+
+  fn clone_from(&mut self, other: &Self) {
+    self.0.clone_from(&other.0);
   }
 }
 
 impl JoinSemiLattice for RelevantLocations {
   fn join(&mut self, other: &Self) -> bool {
     let mut changed = false;
-    for row in other.0.rows() {
-      if let Some(s) = other.0.row(row) {
-        changed |= self.0.union_into_row(row, s);
-      }
+    for (k, v) in other.0.iter() {
+      changed |= self.union(*k, Cow::Borrowed(v));
     }
     changed
   }
 }
-
-impl Eq for RelevantLocations {}
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct RelevanceDomain {

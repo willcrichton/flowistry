@@ -14,6 +14,7 @@ use rustc_mir::dataflow::{
   fmt::DebugWithContext, Analysis, AnalysisDomain, Backward, JoinSemiLattice,
 };
 use rustc_span::Span;
+use std::borrow::Cow;
 use std::{cell::RefCell, fmt};
 
 pub type SliceSet = HashMap<Location, PlaceSet>;
@@ -95,10 +96,10 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
       fmt_places!(mutated, self.analysis),
       location
     );
-    self
-      .state
-      .locations
-      .insert(self.analysis.location_domain.index(location), mutated);
+    self.state.locations.union(
+      self.analysis.location_domain.index(location),
+      Cow::Owned(mutated),
+    );
   }
 
   pub(super) fn relevant_places(
