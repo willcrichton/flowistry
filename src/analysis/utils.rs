@@ -255,15 +255,15 @@ impl Visitor<'tcx> for PlaceCollector<'tcx> {
 }
 
 pub fn pointer_for_place(place: Place<'tcx>, tcx: TyCtxt<'tcx>) -> Option<Place<'tcx>> {
-  place.iter_projections().rev().find(|(_, elem)| {
-    match elem {
+  place
+    .iter_projections()
+    .rev()
+    .find(|(_, elem)| match elem {
       ProjectionElem::Deref => true,
-      _ => false
-    }
-  }).map(|(place_ref, _)| {
-    Place {
+      _ => false,
+    })
+    .map(|(place_ref, _)| Place {
       local: place_ref.local,
-      projection: tcx.intern_place_elems(place_ref.projection)
-    }
-  })
+      projection: tcx.intern_place_elems(place_ref.projection),
+    })
 }

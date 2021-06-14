@@ -2,7 +2,8 @@ use super::aliases::Aliases;
 use super::control_dependencies::ControlDependencies;
 use super::eval_extensions;
 use super::place_set::{PlaceDomain, PlaceSet, PlaceSetIteratorExt};
-use super::relevance::{RelevanceAnalysis, SliceSet, LocationDomain, RelevantStatements};
+use super::relevance::{RelevanceAnalysis, SliceSet};
+use super::relevance_domain::{LocationDomain, RelevanceDomain};
 use crate::config::{Config, PointerMode, Range};
 
 use anyhow::{bail, Result};
@@ -10,6 +11,7 @@ use log::{debug, info};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
 use rustc_hir::BodyId;
+use rustc_index::bit_set::BitSet;
 use rustc_middle::{
   mir::{
     self,
@@ -22,7 +24,6 @@ use rustc_mir::dataflow::graphviz;
 use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor};
 use rustc_mir::util::write_mir_fn;
 use rustc_span::Span;
-use rustc_index::bit_set::BitSet;
 use serde::Serialize;
 use std::{cell::RefCell, fs::File, io::Write, process::Command, thread_local, time::Instant};
 
@@ -55,7 +56,6 @@ struct CollectResults<'a, 'tcx> {
   body: &'a Body<'tcx>,
   place_domain: &'a PlaceDomain<'tcx>,
   location_domain: &'a LocationDomain,
-  relevant_statements: &'a RelevantStatements,
   relevant_spans: Vec<Span>,
   all_locals: BitSet<Local>,
   local_blacklist: BitSet<Local>,
@@ -67,34 +67,33 @@ struct CollectResults<'a, 'tcx> {
 }
 
 impl<'a, 'tcx> CollectResults<'a, 'tcx> {
-  fn check_statement(&mut self, location: Location) {
-    if self.relevant_statements.contains(self.location_domain.index(location)) {
+  fn check_statement(&mut self, state: &RelevanceDomain, location: Location) {
+    if state
+      .locations
+      .contains(self.location_domain.index(location))
+    {
       let span = self.body.source_info(location).span;
       self.relevant_spans.push(span);
     }
   }
 
-  fn add_locals(&mut self, state: &PlaceSet, location: Location) {
-    for place in state.iter(self.place_domain) {
+  fn add_locals(&mut self, state: &RelevanceDomain, location: Location) {
+    for place in state.places.iter(self.place_domain) {
       self.all_locals.insert(place.local);
 
       let local = place.local.as_usize();
       if 1 <= local && local <= self.body.arg_count {
-        self.relevant_inputs.insert(local - 1);
+        self.relevant_inputs.insert(local);
       }
     }
 
-    if let Some(trace) = self.relevant_statements.get(self.location_domain.index(location)) {
+    if let Some(trace) = state.locations.get(self.location_domain.index(location)) {
       let place_domain = self.place_domain;
       let mutated_inputs = self
         .input_places
         .iter()
         .enumerate()
-        .filter_map(|(i, place)| {
-          trace
-            .contains(place_domain.index(*place))
-            .then(|| i)
-        });
+        .filter_map(|(i, place)| trace.contains(place_domain.index(*place)).then(|| i));
 
       self.mutated_inputs.extend(mutated_inputs);
     }
@@ -102,7 +101,7 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
 }
 
 impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
-  type FlowState = PlaceSet;
+  type FlowState = RelevanceDomain;
 
   fn visit_statement_after_primary_effect(
     &mut self,
@@ -111,7 +110,9 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
     location: Location,
   ) {
     self.add_locals(state, location);
-    let is_relevant = self.relevant_statements.contains(self.location_domain.index(location));
+    let is_relevant = state
+      .locations
+      .contains(self.location_domain.index(location));
 
     if let StatementKind::Assign(box (lhs, Rvalue::Discriminant(_))) = statement.kind {
       /* For whatever reason, in statements like `match x { None => .. }` then the discriminant
@@ -120,7 +121,7 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
        */
       self.local_blacklist.insert(lhs.local);
     } else {
-      self.check_statement(location);
+      self.check_statement(state, location);
 
       if is_relevant {
         if let StatementKind::Assign(box (place, _)) = statement.kind {
@@ -150,10 +151,13 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
        * get individually highlighted as relevant or not.
        */
     } else {
-      self.check_statement(location);
+      self.check_statement(state, location);
     }
 
-    if self.relevant_statements.contains(self.location_domain.index(location)) {
+    if state
+      .locations
+      .contains(self.location_domain.index(location))
+    {
       self.num_relevant_instructions += 1;
     }
     self.num_instructions += 1;
@@ -324,9 +328,16 @@ pub fn analyze_function(
 
     let extra_places = match &slice_location {
       SliceLocation::PlacesOnExit(places) => places.clone(),
-      _ => vec![]
+      _ => vec![],
     };
-    let aliases = Aliases::build(config, tcx, body, outlives_constraints, constraint_sccs, &extra_places);
+    let aliases = Aliases::build(
+      config,
+      tcx,
+      body,
+      outlives_constraints,
+      constraint_sccs,
+      &extra_places,
+    );
 
     let (slice_set, input_places) = slice_location.to_slice_set(body, &aliases.place_domain);
     debug!("Initial slice set: {:?}", slice_set);
@@ -348,12 +359,10 @@ pub fn analyze_function(
 
     let start = Instant::now();
     let source_map = tcx.sess.source_map();
-    let relevant_statements = relevance_results.analysis.relevant_statements.clone().into_inner();
     let mut visitor = CollectResults {
       body,
       place_domain: &aliases.place_domain,
       location_domain: &relevance_results.analysis.location_domain,
-      relevant_statements: &relevant_statements,
       relevant_spans: vec![],
       all_locals: BitSet::new_empty(body.local_decls().len()),
       local_blacklist: BitSet::new_empty(body.local_decls().len()),
@@ -367,7 +376,8 @@ pub fn analyze_function(
     elapsed("collect", start);
 
     visitor.all_locals.subtract(&visitor.local_blacklist);
-    let local_spans = visitor.all_locals
+    let local_spans = visitor
+      .all_locals
       .iter()
       .map(|local| body.local_decls()[local].source_info.span);
 

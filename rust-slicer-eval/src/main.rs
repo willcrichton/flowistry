@@ -33,7 +33,7 @@ impl rustc_driver::Callbacks for Callbacks {
     queries: &'tcx rustc_interface::Queries<'tcx>,
   ) -> rustc_driver::Compilation {
     queries.global_ctxt().unwrap().take().enter(|tcx| {
-      let mut counter = ItemCounter { count: 0 };
+      let mut counter = ItemCounter { count: 0, tcx };
       tcx.hir().krate().visit_all_item_likes(&mut counter);
 
       let mut eval_visitor = EvalCrateVisitor::new(tcx, counter.count);
