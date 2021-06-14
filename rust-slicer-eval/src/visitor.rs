@@ -306,15 +306,32 @@ impl ParItemLikeVisitor<'tcx> for EvalCrateVisitor<'tcx> {
   fn visit_foreign_item(&self, _foreign_item: &'tcx rustc_hir::ForeignItem<'tcx>) {}
 }
 
-pub struct ItemCounter {
+pub struct ItemCounter<'tcx> {
+  pub tcx: TyCtxt<'tcx>,
   pub count: usize
 }
 
-impl ItemLikeVisitor<'tcx> for ItemCounter {
+impl ItemCounter<'_> {
+  fn analyze(&mut self, body_span: Span) {
+    if body_span.from_expansion() {
+      return;
+    }
+
+    let source_map = self.tcx.sess.source_map();
+    let source_file = &source_map.lookup_source_file(body_span.lo());
+    if source_file.src.is_none() {
+      return;
+    }
+
+    self.count += 1;
+  }
+}
+
+impl ItemLikeVisitor<'tcx> for ItemCounter<'tcx> {
   fn visit_item(&mut self, item: &'tcx rustc_hir::Item<'tcx>) {
     match &item.kind {
       ItemKind::Fn(_, _, _) => {
-        self.count += 1;
+        self.analyze(item.span);
       }
       _ => {}
     }
@@ -323,7 +340,7 @@ impl ItemLikeVisitor<'tcx> for ItemCounter {
   fn visit_impl_item(&mut self, impl_item: &'tcx rustc_hir::ImplItem<'tcx>) {
     match &impl_item.kind {
       ImplItemKind::Fn(_, _) => {
-        self.count += 1;
+        self.analyze(impl_item.span);
       }
       _ => {}
     }

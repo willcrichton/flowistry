@@ -1,5 +1,8 @@
-use rustc_data_structures::fx::FxHashMap as HashMap;
-use rustc_index::{bit_set::{HybridBitSet, BitSet}, vec::IndexVec};
+use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_index::{
+  bit_set::{BitSet, HybridBitSet},
+  vec::IndexVec,
+};
 use rustc_middle::{
   mir::{Local, Place, ProjectionElem},
   ty::TyCtxt,
@@ -57,6 +60,8 @@ impl PlaceDomain<'tcx> {
       places
         .into_iter()
         .map(|place| normalized_places.borrow_mut().normalize(place))
+        .collect::<HashSet<_>>()
+        .into_iter()
         .collect::<Vec<_>>(),
     );
     let place_to_index = index_to_place
@@ -85,12 +90,12 @@ impl PlaceDomain<'tcx> {
     self.index_to_place.len()
   }
 
-  pub fn iter_enumerated<'a>(&'a self) -> impl Iterator<Item=(PlaceIndex, &'a Place<'tcx>)> + 'a {
+  pub fn iter_enumerated<'a>(&'a self) -> impl Iterator<Item = (PlaceIndex, &'a Place<'tcx>)> + 'a {
     self.index_to_place.iter_enumerated()
   }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct PlaceSet(BitSet<PlaceIndex>);
 
 impl PlaceSet {
@@ -185,12 +190,22 @@ impl DebugWithContext<PlaceDomain<'tcx>> for PlaceSet {
 
     write!(
       f,
-      "{}",
+      "{{{}}}",
       self
         .iter(ctxt)
         .map(|place| format_place(place))
         .collect::<Vec<_>>()
         .join(", ")
     )
+  }
+}
+
+impl Clone for PlaceSet {
+  fn clone(&self) -> Self {
+    PlaceSet(self.0.clone())
+  }
+
+  fn clone_from(&mut self, source: &Self) {
+    self.0.clone_from(&source.0);
   }
 }

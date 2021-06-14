@@ -2,6 +2,7 @@ use super::intraprocedural::{SliceLocation, BODY_STACK};
 use super::place_set::{PlaceSet, PlaceSetIteratorExt};
 use super::relevance::TransferFunction;
 use super::utils;
+use crate::fmt_places;
 use fluid_let::fluid_let;
 use log::{debug, info};
 use rustc_data_structures::fx::FxHashSet as HashSet;
@@ -142,7 +143,7 @@ pub fn generate_conservative_constraints<'tcx>(
   constraint_set.compute_sccs(&constraint_graph, RegionVid::from_usize(0))
 }
 
-const MAX_DEPTH: usize = 2;
+const MAX_DEPTH: usize = 3;
 
 impl TransferFunction<'_, '_, '_, 'tcx> {
   pub(super) fn slice_into_procedure(
@@ -274,8 +275,8 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
     .unwrap();
 
     debug!(
-      "Done recursing into {}, mutated inputs: {:?}",
-      def_path, results.mutated_inputs
+      "Done recursing into {}, mutated inputs: {:?}, relevant inputs: {:?}",
+      def_path, results.mutated_inputs, results.relevant_inputs
     );
 
     let mutated_inputs = results
@@ -300,16 +301,20 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
     let relevant_inputs = results
       .relevant_inputs
       .iter()
-      .filter_map(|index| {
+      .filter_map(|local| {
         input_places
           .iter()
-          .find(|(j, _)| *j == *index)
+          .find(|(j, _)| *j == local - 1)
           .map(|(_, caller_place)| place_domain.index(*caller_place))
       })
       .collect_indices(place_domain);
 
     if mutated_inputs.len() > 0 {
-      debug!("Adding relevant mutated inputs: {:?}", mutated_inputs);
+      debug!(
+        "Adding mutated inputs {:?} from relevant inputs {:?}",
+        fmt_places!(mutated_inputs, self.analysis),
+        fmt_places!(relevant_inputs, self.analysis)
+      );
 
       for place in mutated_inputs.indices() {
         self.check_mutation(place, &relevant_inputs, false, location);

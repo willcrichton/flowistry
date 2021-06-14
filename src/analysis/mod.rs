@@ -23,6 +23,7 @@ pub mod eval_extensions;
 pub mod intraprocedural;
 mod place_set;
 mod relevance;
+mod relevance_domain;
 pub mod utils;
 
 struct VisitorContext<'tcx> {
