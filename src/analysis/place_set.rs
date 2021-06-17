@@ -1,8 +1,5 @@
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
-use rustc_index::{
-  bit_set::{BitSet, HybridBitSet},
-  vec::IndexVec,
-};
+use rustc_index::{bit_set::HybridBitSet, vec::IndexVec};
 use rustc_middle::{
   mir::{Local, Place, ProjectionElem},
   ty::TyCtxt,
@@ -168,14 +165,14 @@ impl PlaceSet {
   pub fn len(&self) -> usize {
     match &self.0 {
       HybridBitSet::Dense(this) => this.count(),
-      HybridBitSet::Sparse(this) => self.0.iter().count(),
+      HybridBitSet::Sparse(_) => self.0.iter().count(),
     }
   }
 
   pub fn to_hybrid(&self) -> HybridBitSet<PlaceIndex> {
     match &self.0 {
       HybridBitSet::Dense(this) => this.to_hybrid(),
-      HybridBitSet::Sparse(this) => self.0.clone(),
+      HybridBitSet::Sparse(_) => self.0.clone(),
     }
   }
 }

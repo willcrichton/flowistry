@@ -25,7 +25,7 @@ use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisit
 use rustc_mir::util::write_mir_fn;
 use rustc_span::Span;
 use serde::Serialize;
-use std::collections::hash_map::{DefaultHasher, Entry};
+use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::{cell::RefCell, fs::File, io::Write, process::Command, thread_local, time::Instant};
 
@@ -79,7 +79,7 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
     }
   }
 
-  fn add_locals(&mut self, state: &RelevanceDomain, location: Location) {
+  fn add_locals(&mut self, state: &RelevanceDomain, _location: Location) {
     for place in state.places.iter(self.place_domain) {
       self.all_locals.insert(place.local);
 
