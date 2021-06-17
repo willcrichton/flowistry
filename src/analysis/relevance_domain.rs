@@ -1,14 +1,8 @@
-use super::place_set::{PlaceDomain, PlaceIndex, PlaceSet};
-use indexmap::map::{Entry, IndexMap};
-use rustc_data_structures::fx::{FxHashMap as HashMap, FxHasher};
-use rustc_index::{
-  bit_set::{HybridBitSet, BitSet, SparseBitMatrix},
-  vec::IndexVec,
-};
+use super::place_set::{PlaceDomain, PlaceSet};
+use rustc_data_structures::fx::FxHashMap as HashMap;
+use rustc_index::{bit_set::BitSet, vec::IndexVec};
 use rustc_middle::mir::*;
 use rustc_mir::dataflow::JoinSemiLattice;
-use std::borrow::Cow;
-use std::hash::BuildHasherDefault;
 
 rustc_index::newtype_index! {
     pub struct LocationIndex {
@@ -123,7 +117,11 @@ impl RelevanceDomain {
     let places = PlaceSet::new(place_domain);
     let mutated = PlaceSet::new(place_domain);
     let locations = BitSet::new_empty(location_domain.len());
-    RelevanceDomain { places, mutated, locations }
+    RelevanceDomain {
+      places,
+      mutated,
+      locations,
+    }
   }
 }
 

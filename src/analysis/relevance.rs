@@ -15,7 +15,6 @@ use rustc_mir::dataflow::{
 };
 use rustc_span::Span;
 use smallvec::SmallVec;
-use std::borrow::Cow;
 use std::{cell::RefCell, fmt};
 
 pub type SliceSet = HashMap<Location, PlaceSet>;
