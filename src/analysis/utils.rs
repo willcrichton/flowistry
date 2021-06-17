@@ -211,6 +211,9 @@ impl PlaceRelation {
 
   pub fn of(part_place: Place<'tcx>, whole_place: Place<'tcx>) -> Self {
     let locals_match = part_place.local == whole_place.local;
+    if !locals_match {
+      return PlaceRelation::Disjoint;
+    }
 
     let projections_match = part_place
       .projection
@@ -231,7 +234,7 @@ impl PlaceRelation {
 
     let is_sub_part = part_place.projection.len() >= whole_place.projection.len();
 
-    if locals_match && projections_match {
+    if projections_match {
       if is_sub_part {
         PlaceRelation::Sub
       } else {

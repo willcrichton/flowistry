@@ -6,7 +6,10 @@ use indexmap::map::IndexMap;
 use log::debug;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_data_structures::graph::scc::Sccs;
-use rustc_index::{bit_set::BitSet, vec::IndexVec};
+use rustc_index::{
+  bit_set::{BitSet, SparseBitMatrix},
+  vec::IndexVec,
+};
 use rustc_middle::{
   mir::{
     regions::{ConstraintSccIndex, OutlivesConstraint},
@@ -36,6 +39,7 @@ impl Visitor<'tcx> for GatherBorrows<'tcx> {
 
 pub struct Aliases<'tcx> {
   loans: IndexVec<RegionVid, PlaceSet>,
+  loan_locals: SparseBitMatrix<Local, RegionVid>,
   loan_cache: RefCell<IndexMap<PlaceIndex, PlaceSet>>,
 
   pub place_domain: PlaceDomain<'tcx>,
@@ -86,14 +90,21 @@ impl Aliases<'tcx> {
     let compute_loans = || {
       let place = self.place_domain.place(place_index);
       let mut set = self
-        .loans
-        .iter()
-        .filter_map(|loans| {
-          let matches_loan = loans
-            .iter(&self.place_domain)
-            .any(|loan| PlaceRelation::of(loan, place).overlaps());
-          let is_deref = place.is_indirect();
-          (matches_loan && is_deref).then(|| loans.indices())
+        .loan_locals
+        .row(place.local)
+        .into_iter()
+        .map(|regions| {
+          regions
+            .iter()
+            .filter_map(|region| {
+              let loans = &self.loans[region];
+              let matches_loan = loans
+                .iter(&self.place_domain)
+                .any(|loan| PlaceRelation::of(loan, place).overlaps());
+              let is_deref = place.is_indirect();
+              (matches_loan && is_deref).then(|| loans.indices())
+            })
+            .flatten()
         })
         .flatten()
         .collect_indices(&self.place_domain);
@@ -206,6 +217,7 @@ impl Aliases<'tcx> {
     let mut aliases = Aliases {
       loans: IndexVec::from_elem_n(PlaceSet::new(&place_domain), max_region),
       loan_cache: RefCell::new(IndexMap::new()),
+      loan_locals: SparseBitMatrix::new(max_region),
       place_domain,
     };
     let place_domain = &aliases.place_domain;
@@ -262,6 +274,13 @@ impl Aliases<'tcx> {
         break;
       }
     }
+
+    for (region, loans) in aliases.loans.iter_enumerated() {
+      for loan in loans.iter(&place_domain) {
+        aliases.loan_locals.insert(loan.local, region);
+      }
+    }
+
     elapsed("Alias compute", start);
 
     debug!(

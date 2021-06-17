@@ -14,6 +14,7 @@ use rustc_mir::dataflow::{
   fmt::DebugWithContext, Analysis, AnalysisDomain, Backward, JoinSemiLattice,
 };
 use rustc_span::Span;
+use smallvec::SmallVec;
 use std::borrow::Cow;
 use std::{cell::RefCell, fmt};
 
@@ -69,7 +70,7 @@ pub enum MutationKind {
 impl TransferFunction<'a, 'b, 'mir, 'tcx> {
   fn add_relevant(
     &mut self,
-    mutated: &Vec<(PlaceIndex, MutationKind)>,
+    mutated: &SmallVec<[(PlaceIndex, MutationKind); 8]>,
     used: &PlaceSet,
     location: Location,
   ) {
@@ -97,19 +98,28 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
       location
     );
     self.state.mutated.union(&mutated);
-    self.state.locations.insert(self.analysis.location_domain.index(location));
+    self
+      .state
+      .locations
+      .insert(self.analysis.location_domain.index(location));
   }
 
   pub(super) fn relevant_places(
     &self,
     mutated_place_index: PlaceIndex,
     definitely_mutated: bool,
-  ) -> Vec<(PlaceIndex, MutationKind)> {
+  ) -> SmallVec<[(PlaceIndex, MutationKind); 8]> {
     let place_domain = self.analysis.place_domain();
     let mutated_place = place_domain.place(mutated_place_index);
     let mutated_place_indices = self.analysis.alias_analysis.loans(mutated_place_index);
     let mutated_places = mutated_place_indices.iter(place_domain).collect::<Vec<_>>();
     debug!("  mutated {:?} / {:?}", mutated_place, mutated_places);
+
+    // for place in relevant set
+    //   for loan in loans(mutated)
+    //     if loan overlaps place then CHECK
+
+    // {place \in any & loan \in loans(mutated) & not(loan # relevant) }
 
     self
       .state
@@ -142,7 +152,7 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
           None
         }
       })
-      .collect::<Vec<_>>()
+      .collect::<SmallVec<_>>()
   }
 
   pub fn is_relevant(&mut self, place: PlaceIndex) -> bool {
@@ -180,7 +190,7 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
       if let Some(pointer) = utils::pointer_for_place(place, self.analysis.tcx) {
         let mut set = PlaceSet::new(place_domain);
         set.insert(place_domain.index(pointer));
-        self.add_relevant(&vec![], &set, location);
+        self.add_relevant(&SmallVec::new(), &set, location);
       }
 
       self.add_relevant(&relevant_mutated, input_places, location);
@@ -198,7 +208,7 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
 
   fn check_slice_set(&mut self, location: Location) {
     if let Some(places) = self.analysis.slice_set.get(&location) {
-      self.add_relevant(&vec![], places, location);
+      self.add_relevant(&SmallVec::new(), places, location);
     }
   }
 }
@@ -303,17 +313,13 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       }
 
       TerminatorKind::SwitchInt { discr, .. } => {
-        let is_relevant = self
-          .state
-          .locations
-          .iter()
-          .any(|index| {
-            let relevant = &self.analysis.location_domain.location(index);
-            self
-              .analysis
-              .control_dependencies
-              .is_dependent(relevant.block, location.block)
-          });
+        let is_relevant = self.state.locations.iter().any(|index| {
+          let relevant = &self.analysis.location_domain.location(index);
+          self
+            .analysis
+            .control_dependencies
+            .is_dependent(relevant.block, location.block)
+        });
 
         if is_relevant {
           let mut input = PlaceSet::new(place_domain);
@@ -325,7 +331,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
               place_domain.index(place)
             );
           }
-          self.add_relevant(&vec![], &input, location);
+          self.add_relevant(&SmallVec::new(), &input, location);
         }
       }
 

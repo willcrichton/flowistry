@@ -1,7 +1,7 @@
 use itertools::iproduct;
 use log::debug;
 use rand::{seq::IteratorRandom, thread_rng};
-use rust_slicer::analysis::{intraprocedural, utils, eval_extensions::REACHED_LIBRARY};
+use rust_slicer::analysis::{eval_extensions::REACHED_LIBRARY, intraprocedural, utils};
 use rust_slicer::config::{Config, ContextMode, EvalMode, MutabilityMode, PointerMode, Range};
 use rustc_ast::{
   token::Token,
@@ -11,7 +11,10 @@ use rustc_data_structures::{
   fx::FxHashMap as HashMap,
   sync::{par_iter, ParallelIterator},
 };
-use rustc_hir::{itemlikevisit::{ItemLikeVisitor, ParItemLikeVisitor}, BodyId, ImplItemKind, ItemKind};
+use rustc_hir::{
+  itemlikevisit::{ItemLikeVisitor, ParItemLikeVisitor},
+  BodyId, ImplItemKind, ItemKind,
+};
 use rustc_middle::{
   mir::{
     visit::Visitor, Body, HasLocalDecls, Location, Mutability, Place, Terminator, TerminatorKind,
@@ -20,9 +23,12 @@ use rustc_middle::{
 };
 use rustc_span::Span;
 use serde::Serialize;
-use std::sync::{atomic::{AtomicUsize, Ordering}, Mutex};
-use std::time::Instant;
 use std::cell::RefCell;
+use std::sync::{
+  atomic::{AtomicUsize, Ordering},
+  Mutex,
+};
+use std::time::Instant;
 
 struct EvalBodyVisitor<'a, 'tcx> {
   tcx: TyCtxt<'tcx>,
@@ -118,7 +124,6 @@ pub struct EvalResult {
   sliced_local: usize,
   function_range: Range,
   function_path: String,
-  // output: Vec<Range>,
   num_instructions: usize,
   num_relevant_instructions: usize,
   num_tokens: usize,
@@ -127,7 +132,7 @@ pub struct EvalResult {
   has_immut_ptr_in_call: bool,
   has_same_type_ptrs_in_call: bool,
   has_same_type_ptrs_in_input: bool,
-  reached_library: bool
+  reached_library: bool,
 }
 
 fn flatten_stream(stream: TokenStream) -> Vec<Token> {
@@ -174,15 +179,6 @@ impl EvalCrateVisitor<'tcx> {
     let function_path = &self.tcx.def_path_debug_str(local_def_id.to_def_id());
     let count = self.count.fetch_add(1, Ordering::SeqCst);
     debug!("Visiting {} ({} / {})", function_path, count, self.total);
-
-    // let body = self.tcx.hir().body(*body_id);
-    // let mut body_visitor = EvalBodyVisitor {
-    //   tcx: self.tcx,
-    //   spans: Vec::new(),
-    //   body_span
-    // };
-    // body_visitor.visit_expr(&body.value);
-    // let body_spans = body_visitor.spans.into_iter();
 
     let borrowck_result = self.tcx.mir_borrowck(local_def_id);
     let body = &borrowck_result.intermediates.body;
@@ -237,7 +233,8 @@ impl EvalCrateVisitor<'tcx> {
               }]),
             )
             .unwrap();
-            let reached_library = REACHED_LIBRARY.get(|reached_library| *reached_library.unwrap().borrow());
+            let reached_library =
+              REACHED_LIBRARY.get(|reached_library| *reached_library.unwrap().borrow());
             (output, reached_library)
           });
 
@@ -259,7 +256,6 @@ impl EvalCrateVisitor<'tcx> {
             sliced_local: local.as_usize(),
             function_range: Range::from_span(body_span, source_map).ok()?,
             function_path: function_path.clone(),
-            // output: output.ranges().to_vec(),
             num_instructions: output.num_instructions,
             num_relevant_instructions: output.num_relevant_instructions,
             num_tokens,
@@ -268,9 +264,10 @@ impl EvalCrateVisitor<'tcx> {
             has_immut_ptr_in_call,
             has_same_type_ptrs_in_call,
             has_same_type_ptrs_in_input,
-            reached_library
+            reached_library,
           })
-        }).collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>()
       })
       .collect::<Vec<_>>();
 
@@ -308,7 +305,7 @@ impl ParItemLikeVisitor<'tcx> for EvalCrateVisitor<'tcx> {
 
 pub struct ItemCounter<'tcx> {
   pub tcx: TyCtxt<'tcx>,
-  pub count: usize
+  pub count: usize,
 }
 
 impl ItemCounter<'_> {
