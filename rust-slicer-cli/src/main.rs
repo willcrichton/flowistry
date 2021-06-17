@@ -6,6 +6,7 @@ use rust_slicer::{
   config::{ContextMode, EvalMode, MutabilityMode, PointerMode},
   Config, Range,
 };
+use std::env;
 
 fn run() -> Result<()> {
   let _ = env_logger::try_init();
@@ -18,6 +19,7 @@ fn run() -> Result<()> {
     (@arg local: --local +takes_value)
     (@arg features: --features +takes_value)
     (@arg all_features: --("all-features"))
+    (@arg workspace: --workspace +takes_value)
     (@arg path:)
     (@arg start_line:)
     (@arg start_col:)
@@ -32,7 +34,10 @@ fn run() -> Result<()> {
     };
   }
 
-  let path = arg!("path");
+  if matches.is_present("workspace") {
+    env::set_current_dir(arg!("workspace"))?;
+  }
+
   let features = if matches.is_present("features") {
     arg!("features")
       .split(",")
@@ -43,7 +48,7 @@ fn run() -> Result<()> {
   };
   let features =
     CliFeatures::from_command_line(&features, matches.is_present("all_features"), true)?;
-  let flags = generate_rustc_flags(path, features, true)?;
+  let flags = generate_rustc_flags(arg!("path"), features, true)?;
 
   debug!("Generated rustc command:\n{}", flags.join(" "));
 

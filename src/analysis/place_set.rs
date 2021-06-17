@@ -83,7 +83,7 @@ impl PlaceDomain<'tcx> {
     *self
       .place_to_index
       .get(&self.normalized_places.borrow_mut().normalize(place))
-      .expect(&format!("{:?}", place))
+      .unwrap()
   }
 
   pub fn len(&self) -> usize {
@@ -95,12 +95,12 @@ impl PlaceDomain<'tcx> {
   }
 }
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct PlaceSet(BitSet<PlaceIndex>);
+#[derive(Debug)]
+pub struct PlaceSet(HybridBitSet<PlaceIndex>);
 
 impl PlaceSet {
   pub fn new(domain: &PlaceDomain) -> Self {
-    PlaceSet(BitSet::new_empty(domain.len()))
+    PlaceSet(HybridBitSet::new_empty(domain.len()))
   }
 
   pub fn indices<'a>(&'a self) -> impl Iterator<Item = PlaceIndex> + 'a {
@@ -130,7 +130,16 @@ impl PlaceSet {
   }
 
   pub fn subtract(&mut self, other: &Self) -> bool {
-    self.0.subtract(&other.0)
+    match (&mut self.0, &other.0) {
+      (HybridBitSet::Dense(this), HybridBitSet::Dense(other)) => this.subtract(other),
+      (this, other) => {
+        let mut changed = false;
+        for elem in other.iter() {
+          changed |= this.remove(elem);
+        }
+        changed
+      }
+    }
   }
 
   pub fn contains(&self, index: PlaceIndex) -> bool {
@@ -138,17 +147,45 @@ impl PlaceSet {
   }
 
   pub fn intersect(&mut self, other: &Self) -> bool {
-    self.0.intersect(&other.0)
+    match (&mut self.0, &other.0) {
+      (HybridBitSet::Dense(this), HybridBitSet::Dense(other)) => this.intersect(other),
+      (this, other) => {
+        let mut changes = Vec::new();
+        for elem in this.iter() {
+          if !other.contains(elem) {
+            changes.push(elem);
+          }
+        }
+        let changed = changes.len() > 0;
+        for elem in changes {
+          this.remove(elem);
+        }
+        changed
+      }
+    }
   }
 
   pub fn len(&self) -> usize {
-    self.0.count()
+    match &self.0 {
+      HybridBitSet::Dense(this) => this.count(),
+      HybridBitSet::Sparse(this) => self.0.iter().count(),
+    }
   }
 
   pub fn to_hybrid(&self) -> HybridBitSet<PlaceIndex> {
-    self.0.to_hybrid()
+    match &self.0 {
+      HybridBitSet::Dense(this) => this.to_hybrid(),
+      HybridBitSet::Sparse(this) => self.0.clone(),
+    }
   }
 }
+
+impl PartialEq for PlaceSet {
+  fn eq(&self, other: &Self) -> bool {
+    self.0.superset(&other.0) && other.0.superset(&self.0)
+  }
+}
+impl Eq for PlaceSet {}
 
 pub trait PlaceSetIteratorExt {
   fn collect_indices(self, domain: &PlaceDomain<'tcx>) -> PlaceSet;
@@ -169,7 +206,7 @@ where
 
 impl JoinSemiLattice for PlaceSet {
   fn join(&mut self, other: &Self) -> bool {
-    self.0.join(&other.0)
+    self.union(&other)
   }
 }
 

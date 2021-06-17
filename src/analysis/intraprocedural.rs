@@ -25,6 +25,8 @@ use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisit
 use rustc_mir::util::write_mir_fn;
 use rustc_span::Span;
 use serde::Serialize;
+use std::collections::hash_map::{DefaultHasher, Entry};
+use std::hash::{Hash, Hasher};
 use std::{cell::RefCell, fs::File, io::Write, process::Command, thread_local, time::Instant};
 
 struct FindInitialSliceSet<'a, 'tcx> {
@@ -92,7 +94,12 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
       .input_places
       .iter()
       .enumerate()
-      .filter_map(|(i, place)| state.mutated.contains(place_domain.index(*place)).then(|| i));
+      .filter_map(|(i, place)| {
+        state
+          .mutated
+          .contains(place_domain.index(*place))
+          .then(|| i)
+      });
     self.mutated_inputs.extend(mutated_inputs);
   }
 }
@@ -217,14 +224,6 @@ pub fn elapsed(name: &str, start: Instant) {
   info!("{} took {}s", name, start.elapsed().as_nanos() as f64 / 1e9)
 }
 
-// #[derive(Hash, PartialEq, Eq, Clone)]
-// struct CacheKey(Config, BodyId, SliceLocation);
-
-thread_local! {
-  // static ANALYSIS_CACHE: RefCell<HashMap<CacheKey, SliceOutput>> = RefCell::new(HashMap::new());
-  pub static BODY_STACK: RefCell<Vec<BodyId>> = RefCell::new(Vec::new());
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum SliceLocation<'tcx> {
   Span(Span),
@@ -280,7 +279,12 @@ impl SliceLocation<'tcx> {
   }
 }
 
-pub fn analyze_function(
+thread_local! {
+  static RESULT_CACHE: RefCell<HashMap<(Config, BodyId, Vec<u64>), SliceOutput>> = RefCell::new(HashMap::default());
+  pub static BODY_STACK: RefCell<Vec<BodyId>> = RefCell::new(Vec::new());
+}
+
+fn analyze_inner(
   config: &Config,
   tcx: TyCtxt<'tcx>,
   body_id: BodyId,
@@ -394,5 +398,37 @@ pub fn analyze_function(
       mutated_inputs: visitor.mutated_inputs,
       relevant_inputs: visitor.relevant_inputs,
     })
+  })
+}
+
+pub fn analyze_function(
+  config: &Config,
+  tcx: TyCtxt<'tcx>,
+  body_id: BodyId,
+  slice_location: &SliceLocation<'tcx>,
+) -> Result<SliceOutput> {
+  RESULT_CACHE.with(|result_cache| match slice_location {
+    SliceLocation::PlacesOnExit(places) => {
+      let hashes = places
+        .iter()
+        .map(|place| {
+          let mut hasher = DefaultHasher::new();
+          place.hash(&mut hasher);
+          hasher.finish()
+        })
+        .collect();
+
+      let key = (config.clone(), body_id, hashes);
+      let result = { result_cache.borrow().get(&key).cloned() };
+      match result {
+        Some(result) => Ok(result),
+        None => {
+          let result = analyze_inner(config, tcx, body_id, slice_location)?;
+          result_cache.borrow_mut().insert(key, result.clone());
+          Ok(result)
+        }
+      }
+    }
+    SliceLocation::Span(_) => analyze_inner(config, tcx, body_id, slice_location),
   })
 }
