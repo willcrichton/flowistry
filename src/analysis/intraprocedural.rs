@@ -280,7 +280,6 @@ impl SliceLocation<'tcx> {
 }
 
 thread_local! {
-  static RESULT_CACHE: RefCell<HashMap<(Config, BodyId, Vec<u64>), SliceOutput>> = RefCell::new(HashMap::default());
   pub static BODY_STACK: RefCell<Vec<BodyId>> = RefCell::new(Vec::new());
 }
 
@@ -401,6 +400,10 @@ fn analyze_inner(
   })
 }
 
+thread_local! {
+  pub static RESULT_CACHE: RefCell<HashMap<u64, SliceOutput>> = RefCell::new(HashMap::default());
+}
+
 pub fn analyze_function(
   config: &Config,
   tcx: TyCtxt<'tcx>,
@@ -409,22 +412,18 @@ pub fn analyze_function(
 ) -> Result<SliceOutput> {
   RESULT_CACHE.with(|result_cache| match slice_location {
     SliceLocation::PlacesOnExit(places) => {
-      let hashes = places
-        .iter()
-        .map(|place| {
-          let mut hasher = DefaultHasher::new();
-          place.hash(&mut hasher);
-          hasher.finish()
-        })
-        .collect();
-
-      let key = (config.clone(), body_id, hashes);
-      let result = { result_cache.borrow().get(&key).cloned() };
+      let key = (config.clone(), body_id, places);
+      let hash = {
+        let mut hasher = DefaultHasher::new();
+        key.hash(&mut hasher);
+        hasher.finish()
+      };
+      let result = { result_cache.borrow().get(&hash).cloned() };
       match result {
         Some(result) => Ok(result),
         None => {
           let result = analyze_inner(config, tcx, body_id, slice_location)?;
-          result_cache.borrow_mut().insert(key, result.clone());
+          result_cache.borrow_mut().insert(hash, result.clone());
           Ok(result)
         }
       }

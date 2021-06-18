@@ -1,6 +1,5 @@
 use itertools::iproduct;
 use log::debug;
-use rand::{seq::IteratorRandom, thread_rng};
 use rust_slicer::analysis::{eval_extensions::REACHED_LIBRARY, intraprocedural, utils};
 use rust_slicer::config::{Config, ContextMode, EvalMode, MutabilityMode, PointerMode, Range};
 use rustc_ast::{
@@ -146,8 +145,6 @@ fn flatten_stream(stream: TokenStream) -> Vec<Token> {
     .collect()
 }
 
-const SAMPLE_SIZE: usize = 1000;
-
 impl EvalCrateVisitor<'tcx> {
   pub fn new(tcx: TyCtxt<'tcx>, total: usize) -> Self {
     EvalCrateVisitor {
@@ -178,15 +175,15 @@ impl EvalCrateVisitor<'tcx> {
 
     let function_path = &self.tcx.def_path_debug_str(local_def_id.to_def_id());
     let count = self.count.fetch_add(1, Ordering::SeqCst);
+
     debug!("Visiting {} ({} / {})", function_path, count, self.total);
 
     let borrowck_result = self.tcx.mir_borrowck(local_def_id);
     let body = &borrowck_result.intermediates.body;
-    let mut rng = thread_rng();
     let locals = body
       .local_decls
       .indices()
-      .choose_multiple(&mut rng, SAMPLE_SIZE);
+      .collect::<Vec<_>>();
 
     let mut body_visitor = EvalBodyVisitor {
       tcx: self.tcx,
@@ -233,6 +230,9 @@ impl EvalCrateVisitor<'tcx> {
               }]),
             )
             .unwrap();
+            rust_slicer::analysis::intraprocedural::RESULT_CACHE.with(|result_cache| {
+              result_cache.borrow_mut().clear();
+            });
             let reached_library =
               REACHED_LIBRARY.get(|reached_library| *reached_library.unwrap().borrow());
             (output, reached_library)
