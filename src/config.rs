@@ -1,7 +1,7 @@
 use anyhow::{anyhow, bail, Result};
 use rustc_span::{
   source_map::{SourceFile, SourceMap},
-  BytePos, FileName, Span, RealFileName
+  BytePos, FileName, RealFileName, Span,
 };
 use serde::Serialize;
 use std::default::Default;
@@ -106,12 +106,22 @@ pub struct EvalMode {
   pub pointer_mode: PointerMode,
 }
 
+impl Default for EvalMode {
+  fn default() -> Self {
+    EvalMode {
+      mutability_mode: MutabilityMode::DistinguishMut,
+      context_mode: ContextMode::SigOnly,
+      pointer_mode: PointerMode::Precise,
+    }
+  }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Config {
   pub range: Range,
   pub debug: bool,
   pub eval_mode: EvalMode,
-  pub local: Option<usize>
+  pub local: Option<usize>,
 }
 
 impl Default for Config {
@@ -119,12 +129,8 @@ impl Default for Config {
     Config {
       range: Range::line(0, 0, 0),
       debug: false,
-      eval_mode: EvalMode {
-        mutability_mode: MutabilityMode::DistinguishMut,
-        context_mode: ContextMode::SigOnly,
-        pointer_mode: PointerMode::Precise,
-      },
-      local: None
+      eval_mode: EvalMode::default(),
+      local: None,
     }
   }
 }

@@ -162,5 +162,7 @@ pub fn slice(config: Config, args: &[String]) -> Result<SliceOutput> {
     .map_err(|_| Error::msg("rustc panicked"))?
     .map_err(|_| Error::msg("driver failed"))?;
 
+  intraprocedural::RESULT_CACHE.with(|result_cache| result_cache.borrow_mut().clear());
+
   callbacks.output.unwrap()
 }
