@@ -48,7 +48,7 @@ fn run() -> Result<()> {
   };
   let features =
     CliFeatures::from_command_line(&features, matches.is_present("all_features"), true)?;
-  let flags = generate_rustc_flags(arg!("path"), features, true)?;
+  let flags = generate_rustc_flags(arg!("path"), features, false)?;
 
   debug!("Generated rustc command:\n{}", flags.join(" "));
 
