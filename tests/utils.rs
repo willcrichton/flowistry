@@ -5,7 +5,7 @@ use std::io::Write;
 use std::process::Command;
 use tempfile::NamedTempFile;
 
-use rust_slicer::{Config, Range, SliceOutput};
+use flowistry::{Config, Range, SliceOutput};
 
 fn check_lines(expected: Vec<usize>, actual: SliceOutput, src: &str, filename: String) {
   let expected = expected.into_iter().collect::<HashSet<_>>();
@@ -78,7 +78,7 @@ pub fn run(src: impl AsRef<str>, mut range: Range, lines: Vec<usize>) {
 
     let args = args.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
 
-    let output = rust_slicer::slice(config, &args)?;
+    let output = flowistry::slice(config, &args)?;
     check_lines(lines, output, &src, path.to_string_lossy().into_owned());
 
     f.close()?;
