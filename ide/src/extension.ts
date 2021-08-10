@@ -9,7 +9,7 @@ const TOOLCHAIN = 'local';
 
 const exec = util.promisify(cp.exec);
 
-let channel = vscode.window.createOutputChannel("Rust Slicer");
+let channel = vscode.window.createOutputChannel("Flowistry");
 let log = (...strs: any[]) => {
 	channel.appendLine(strs.map(obj => String(obj)).join('\t'));
 };
@@ -28,7 +28,7 @@ interface SliceOutput {
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
-	log('rust-slicer is activated');
+	log('flowistry is activated');
 
 	let {stdout} = await exec(`$(rustup which --toolchain ${TOOLCHAIN} rustc) --print target-libdir`);
 	let lib_dir = stdout.trim();
@@ -52,7 +52,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		let selection = active_editor.selection;
 
 		let env = {...process.env, DYLD_LIBRARY_PATH: lib_dir, LD_LIBRARY_PATH: lib_dir};
-		let cmd = `rust-slicer-cli ${flags.map(f => `--${f}`).join(' ')} ${file_path} ${selection.start.line} ${selection.start.character} ${selection.end.line} ${selection.end.character}`;
+		let cmd = `cargo flowistry backward_slice ${file_path} ${selection.start.line} \
+		${selection.start.character} ${selection.end.line} ${selection.end.character} -- \
+		${flags.map(f => `--${f}`).join(' ')}`;
 
 		try {
 			log("Running command:");
@@ -61,6 +63,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			let {stdout} = await exec(cmd, {env, cwd: workspace_root});
 
 			let lines = stdout.trim().split("\n");
+			log(lines);
 			let last_line = lines[lines.length - 1];
 			let slice_output: SliceOutput = JSON.parse(last_line);
 
@@ -87,7 +90,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			})
 		} catch (exc) {
 			log("ERROR", exc);
-			vscode.window.showErrorMessage(`Rust Slicer failed with error: ${exc}`);
+			vscode.window.showErrorMessage(`Flowistry failed with error: ${exc}`);
 		}
 	};
 
@@ -96,7 +99,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// The commandId parameter must match the command field in package.json
 
 	let register_with_opts = (name: string, opts: string[]) => {
-		let disposable = vscode.commands.registerCommand(`rust-slicer.${name}`, () => slice(opts));
+		let disposable = vscode.commands.registerCommand(`flowistry.${name}`, () => slice(opts));
 		context.subscriptions.push(disposable);
 	};
 

@@ -1,4 +1,4 @@
-use rust_slicer::Range;
+use flowistry::Range;
 use utils::run;
 
 mod utils;

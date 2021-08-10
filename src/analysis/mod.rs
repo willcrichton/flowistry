@@ -1,5 +1,5 @@
 use crate::config::Config;
-use anyhow::{Error, Result};
+use anyhow::Result;
 use log::debug;
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
@@ -158,9 +158,9 @@ pub fn slice(config: Config, args: &[String]) -> Result<SliceOutput> {
     output: None,
   };
 
-  rustc_driver::catch_fatal_errors(|| rustc_driver::RunCompiler::new(&args, &mut callbacks).run())
-    .map_err(|_| Error::msg("rustc panicked"))?
-    .map_err(|_| Error::msg("driver failed"))?;
+  rustc_driver::RunCompiler::new(&args, &mut callbacks)
+    .run()
+    .unwrap();
 
   intraprocedural::RESULT_CACHE.with(|result_cache| result_cache.borrow_mut().clear());
 
