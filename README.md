@@ -2,7 +2,7 @@
 
 [![ci](https://github.com/willcrichton/flowistry/actions/workflows/ci.yml/badge.svg)](https://github.com/willcrichton/flowistry/actions/workflows/ci.yml)
 
-Flowistry is a tool to help developers understand Rust programs. Flowistry uses [dataflow analysis](https://en.wikipedia.org/wiki/Data-flow_analysis) to analyze Rust programs at a deeper semantic level than just types can offer. Flowistry's capabilities are:
+Flowistry is an IDE extension that helps developers understand Rust programs. Flowistry uses [dataflow analysis](https://en.wikipedia.org/wiki/Data-flow_analysis) to analyze Rust programs at a deeper semantic level than just types can offer. Flowistry's capabilities are:
 
 ### Backward slicing
 
