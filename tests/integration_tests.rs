@@ -1,5 +1,5 @@
 use flowistry::Range;
-use utils::run;
+use utils::backward_slice;
 
 mod utils;
 
@@ -9,33 +9,29 @@ fn loop_counter() {
 use std::io;
 
 fn main() {
-  let mut buffer = String::new();
-  let stdin = io::stdin();
+  let `[mut buffer]` = `[String::new()]`;
+  let `[stdin]` = `[io::stdin()]`;
 
-  let mut total = 0;
+  let `[mut total]` = `[0]`;
   loop {
-    let input = {
-      buffer.clear();
-      stdin.read_line(&mut buffer).unwrap();
-      buffer.trim()
+    let `[input]` = {
+      `[`[buffer]`.clear()]`;
+      `[`[stdin]`.read_line(`[&mut buffer]`)]`.unwrap();
+      `[`[buffer]`.trim()]`
     };
 
-    if input == "exit" {
+    if `[`[input]` == `["exit"]`]` {
       break;
     }
 
-    let n = input.parse::<i32>().unwrap();
+    let `[n]` = `[`[`[input]`.parse::<i32>()]`.unwrap()]`;
     println!("Read: {}", n);
-    total += n;
+    `[total += `[n]`]`;
   }
 
-  println!("{:?}", total);
+  println!("{:?}", `(total)`);
 }
 "#;
 
-  run(
-    src,
-    Range::line(24, 20, 25),
-    vec![4, 5, 7, 9, 10, 11, 12, 15, 19, 21, 24],
-  );
+  backward_slice(src);
 }
