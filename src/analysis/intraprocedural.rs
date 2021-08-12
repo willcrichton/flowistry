@@ -381,10 +381,14 @@ fn analyze_inner(
       .iter()
       .map(|local| body.local_decls()[local].source_info.span);
 
+    let src_file = source_map.lookup_source_file(config.range.to_span().lo());
     let ranges = visitor
       .relevant_spans
       .into_iter()
       .chain(local_spans)
+      // TODO: is there a better way to handle spans from macros  than
+      //  filtering them out?
+      .filter(|span| source_map.lookup_source_file(span.lo()).name == src_file.name)
       .filter_map(|span| Range::from_span(span, source_map).ok())
       .collect();
 

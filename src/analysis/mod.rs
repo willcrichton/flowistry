@@ -127,7 +127,7 @@ impl rustc_driver::Callbacks for Callbacks {
             "Could not find file {} out of files {:#?}",
             config.range.filename, **files
           ));
-        config.range.to_span(source_file).unwrap()
+        config.range.to_span()
       };
 
       let mut slice_visitor = SliceVisitor(VisitorContext {
