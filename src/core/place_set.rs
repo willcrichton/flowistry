@@ -1,5 +1,8 @@
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
-use rustc_index::{bit_set::HybridBitSet, vec::IndexVec};
+use rustc_index::{
+  bit_set::{HybridBitSet, SparseBitMatrix},
+  vec::IndexVec,
+};
 use rustc_middle::{
   mir::{Local, Place, ProjectionElem},
   ty::TyCtxt,
@@ -241,5 +244,45 @@ impl Clone for PlaceSet {
 
   fn clone_from(&mut self, source: &Self) {
     self.0.clone_from(&source.0);
+  }
+}
+
+#[derive(Clone, Debug)]
+pub struct PlaceMatrix(SparseBitMatrix<PlaceIndex, PlaceIndex>);
+impl PlaceMatrix {
+  pub fn new(domain: &PlaceDomain) -> Self {
+    PlaceMatrix(SparseBitMatrix::new(domain.len()))
+  }
+}
+
+impl PartialEq for PlaceMatrix {
+  fn eq(&self, other: &Self) -> bool {
+    self.0.rows().count() == other.0.rows().count()
+      && self.0.rows().all(|row| {
+        let set = self.0.row(row).unwrap();
+        other
+          .0
+          .row(row)
+          .map(|other_set| set.superset(other_set) && other_set.superset(set))
+          .unwrap_or(false)
+      })
+  }
+}
+
+impl Eq for PlaceMatrix {}
+
+impl JoinSemiLattice for PlaceMatrix {
+  fn join(&mut self, other: &Self) -> bool {
+    let mut changed = false;
+    for row in other.0.rows() {
+      changed |= self.0.union_into_row(row, other.0.row(row).unwrap());
+    }
+    return changed;
+  }
+}
+
+impl DebugWithContext<PlaceDomain<'tcx>> for PlaceMatrix {
+  fn fmt_with(&self, ctxt: &PlaceDomain<'tcx>, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    todo!()
   }
 }

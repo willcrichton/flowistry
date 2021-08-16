@@ -1,13 +1,14 @@
-use super::aliases::Aliases;
-use super::control_dependencies::ControlDependencies;
-use super::eval_extensions;
-use super::place_set::{PlaceDomain, PlaceSet, PlaceSetIteratorExt};
-use super::relevance::{RelevanceAnalysis, SliceSet};
-use super::relevance_domain::{LocationDomain, RelevanceDomain};
-use crate::config::{Config, PointerMode, Range};
+use crate::core::aliases::Aliases;
+use crate::core::analysis::{FlowistryAnalysis, FlowistryOutput};
+use crate::core::control_dependencies::ControlDependencies;
+use crate::core::extensions::PointerMode;
+use crate::core::place_set::{PlaceDomain, PlaceSet, PlaceSetIteratorExt};
+use crate::core::utils::elapsed;
+use relevance::{RelevanceAnalysis, SliceSet};
+use relevance_domain::{LocationDomain, RelevanceDomain};
 
 use anyhow::{bail, Result};
-use log::{debug, info};
+use log::{debug};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
 use rustc_hir::BodyId;
@@ -28,6 +29,13 @@ use serde::Serialize;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::{cell::RefCell, fs::File, io::Write, process::Command, thread_local, time::Instant};
+
+mod config;
+mod eval_extensions;
+mod relevance;
+mod relevance_domain;
+
+pub use config::{Config, Range};
 
 struct FindInitialSliceSet<'a, 'tcx> {
   slice_span: Span,
@@ -187,43 +195,6 @@ where
   Ok(())
 }
 
-#[derive(Debug, Clone, Serialize)]
-pub struct SliceOutput {
-  ranges: Vec<Range>,
-  pub num_instructions: usize,
-  pub num_relevant_instructions: usize,
-  pub mutated_inputs: HashSet<usize>,
-  pub relevant_inputs: HashSet<usize>,
-}
-
-impl SliceOutput {
-  pub fn new() -> Self {
-    SliceOutput {
-      ranges: Vec::new(),
-      num_instructions: 0,
-      num_relevant_instructions: 0,
-      mutated_inputs: HashSet::default(),
-      relevant_inputs: HashSet::default(),
-    }
-  }
-
-  pub fn merge(&mut self, other: SliceOutput) {
-    self.ranges.extend(other.ranges.into_iter());
-    self.num_instructions = other.num_instructions;
-    self.num_relevant_instructions = other.num_relevant_instructions;
-    self.mutated_inputs = other.mutated_inputs;
-    self.relevant_inputs = other.relevant_inputs;
-  }
-
-  pub fn ranges(&self) -> &Vec<Range> {
-    &self.ranges
-  }
-}
-
-pub fn elapsed(name: &str, start: Instant) {
-  info!("{} took {}s", name, start.elapsed().as_nanos() as f64 / 1e9)
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum SliceLocation<'tcx> {
   Span(Span),
@@ -331,7 +302,7 @@ fn analyze_inner(
       _ => vec![],
     };
     let aliases = Aliases::build(
-      config,
+      &config.eval_mode.mutability_mode,
       tcx,
       body,
       outlives_constraints,
@@ -408,30 +379,100 @@ thread_local! {
   pub static RESULT_CACHE: RefCell<HashMap<u64, SliceOutput>> = RefCell::new(HashMap::default());
 }
 
-pub fn analyze_function(
-  config: &Config,
-  tcx: TyCtxt<'tcx>,
-  body_id: BodyId,
-  slice_location: &SliceLocation<'tcx>,
-) -> Result<SliceOutput> {
-  RESULT_CACHE.with(|result_cache| match slice_location {
-    SliceLocation::PlacesOnExit(places) => {
-      let key = (config.clone(), body_id, places);
-      let hash = {
-        let mut hasher = DefaultHasher::new();
-        key.hash(&mut hasher);
-        hasher.finish()
-      };
-      let result = { result_cache.borrow().get(&hash).cloned() };
-      match result {
-        Some(result) => Ok(result),
-        None => {
-          let result = analyze_inner(config, tcx, body_id, slice_location)?;
-          result_cache.borrow_mut().insert(hash, result.clone());
-          Ok(result)
-        }
-      }
+// pub fn analyze_function(
+//   config: &Config,
+//   tcx: TyCtxt<'tcx>,
+//   body_id: BodyId,
+//   slice_location: &SliceLocation<'tcx>,
+// ) -> Result<SliceOutput> {
+
+// }
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SliceOutput {
+  ranges: Vec<Range>,
+  pub num_instructions: usize,
+  pub num_relevant_instructions: usize,
+  pub mutated_inputs: HashSet<usize>,
+  pub relevant_inputs: HashSet<usize>,
+}
+
+impl SliceOutput {
+  pub fn ranges(&self) -> &Vec<Range> {
+    &self.ranges
+  }
+}
+
+impl FlowistryOutput for SliceOutput {
+  fn empty() -> Self {
+    SliceOutput {
+      ranges: Vec::new(),
+      num_instructions: 0,
+      num_relevant_instructions: 0,
+      mutated_inputs: HashSet::default(),
+      relevant_inputs: HashSet::default(),
     }
-    SliceLocation::Span(_) => analyze_inner(config, tcx, body_id, slice_location),
-  })
+  }
+
+  fn merge(&mut self, other: SliceOutput) {
+    self.ranges.extend(other.ranges.into_iter());
+    self.num_instructions = other.num_instructions;
+    self.num_relevant_instructions = other.num_relevant_instructions;
+    self.mutated_inputs = other.mutated_inputs;
+    self.relevant_inputs = other.relevant_inputs;
+  }
+}
+
+pub struct SlicerAnalysis {
+  pub config: Config,
+}
+
+impl SlicerAnalysis {
+  pub fn slice_location<'tcx>(&self, tcx: TyCtxt<'tcx>) -> SliceLocation<'tcx> {
+    match self.config.local {
+      Some(local) => SliceLocation::PlacesOnExit(vec![Place {
+        local: Local::from_usize(local),
+        projection: tcx.intern_place_elems(&[]),
+      }]),
+      None => SliceLocation::Span(self.config.range.to_span()),
+    }
+  }
+}
+
+impl FlowistryAnalysis for SlicerAnalysis {
+  type Output = SliceOutput;
+
+  fn locations(&self, _tcx: TyCtxt) -> Vec<Span> {
+    vec![self.config.range.to_span()]
+  }
+
+  fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
+    RESULT_CACHE.with(|result_cache| {
+      let slice_location = self.slice_location(tcx);
+      match &slice_location {
+        SliceLocation::PlacesOnExit(places) => {
+          let key = (self.config.clone(), body_id, places);
+          let hash = {
+            let mut hasher = DefaultHasher::new();
+            key.hash(&mut hasher);
+            hasher.finish()
+          };
+          let result = { result_cache.borrow().get(&hash).cloned() };
+          match result {
+            Some(result) => Ok(result),
+            None => {
+              let result = analyze_inner(&self.config, tcx, body_id, &slice_location)?;
+              result_cache.borrow_mut().insert(hash, result.clone());
+              Ok(result)
+            }
+          }
+        }
+        SliceLocation::Span(_) => analyze_inner(&self.config, tcx, body_id, &slice_location),
+      }
+    })
+  }
+}
+
+pub fn slice(config: Config, compiler_args: &[String]) -> Result<SliceOutput> {
+  SlicerAnalysis { config }.run(compiler_args)
 }

@@ -1,7 +1,7 @@
-use super::intraprocedural::elapsed;
+use super::extensions::MutabilityMode;
 use super::place_set::{PlaceDomain, PlaceIndex, PlaceSet, PlaceSetIteratorExt};
+use super::utils::elapsed;
 use super::utils::{self, PlaceRelation};
-use crate::config::{Config, MutabilityMode};
 use indexmap::map::IndexMap;
 use log::debug;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
@@ -121,7 +121,7 @@ impl Aliases<'tcx> {
   }
 
   pub fn build(
-    config: &Config,
+    mutability_mode: &MutabilityMode,
     tcx: TyCtxt<'tcx>,
     body: &'a Body<'tcx>,
     outlives_constraints: &'a Vec<OutlivesConstraint>,
@@ -223,9 +223,7 @@ impl Aliases<'tcx> {
     let place_domain = &aliases.place_domain;
 
     for (region, (sub_place, mutability)) in all_regions {
-      if mutability == Mutability::Mut
-        || config.eval_mode.mutability_mode == MutabilityMode::IgnoreMut
-      {
+      if mutability == Mutability::Mut || *mutability_mode == MutabilityMode::IgnoreMut {
         aliases.loans[region].insert(place_domain.index(tcx.mk_place_deref(sub_place)));
       }
     }
@@ -236,9 +234,7 @@ impl Aliases<'tcx> {
     gather_borrows.visit_body(body);
     for (region, kind, place) in gather_borrows.borrows.into_iter() {
       let mutability = kind.to_mutbl_lossy();
-      if mutability == Mutability::Mut
-        || config.eval_mode.mutability_mode == MutabilityMode::IgnoreMut
-      {
+      if mutability == Mutability::Mut || *mutability_mode == MutabilityMode::IgnoreMut {
         aliases.loans[region].insert(place_domain.index(place));
       }
     }

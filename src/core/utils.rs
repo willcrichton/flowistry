@@ -1,4 +1,5 @@
-use log::warn;
+use anyhow::{anyhow, Result};
+use log::{info, warn};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_middle::{
   mir::{
@@ -7,10 +8,14 @@ use rustc_middle::{
   },
   ty::{self, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS, TypeFoldable, TypeVisitor},
 };
+use rustc_span::{FileName, RealFileName, SourceFile};
 use rustc_target::abi::VariantIdx;
 use std::collections::hash_map::Entry;
 use std::hash::Hash;
 use std::ops::ControlFlow;
+use std::path::Path;
+use std::rc::Rc;
+use std::time::Instant;
 
 pub use super::place_set::{PlaceDomain, PlaceIndex, PlaceSet};
 
@@ -269,4 +274,29 @@ pub fn pointer_for_place(place: Place<'tcx>, tcx: TyCtxt<'tcx>) -> Option<Place<
       local: place_ref.local,
       projection: tcx.intern_place_elems(place_ref.projection),
     })
+}
+
+pub fn path_to_source_file<'tcx>(
+  path: impl AsRef<str>,
+  tcx: TyCtxt<'tcx>,
+) -> Result<Rc<SourceFile>> {
+  let source_map = tcx.sess.source_map();
+  let files = source_map.files();
+  let path = path.as_ref();
+  let target_file = Path::new(&path).canonicalize().unwrap();
+  files
+    .iter()
+    .find(|file| {
+      if let FileName::Real(RealFileName::LocalPath(other_path)) = &file.name {
+        target_file == other_path.canonicalize().unwrap()
+      } else {
+        false
+      }
+    })
+    .map(|file| file.clone())
+    .ok_or_else(|| anyhow!("Could not find file {} out of files {:#?}", path, **files))
+}
+
+pub fn elapsed(name: &str, start: Instant) {
+  info!("{} took {}s", name, start.elapsed().as_nanos() as f64 / 1e9)
 }

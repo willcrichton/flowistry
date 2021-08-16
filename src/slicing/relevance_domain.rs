@@ -1,4 +1,4 @@
-use super::place_set::{PlaceDomain, PlaceSet};
+use crate::core::place_set::{PlaceDomain, PlaceSet};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_index::{bit_set::BitSet, vec::IndexVec};
 use rustc_middle::mir::*;
