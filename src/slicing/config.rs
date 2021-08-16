@@ -1,6 +1,7 @@
-use anyhow::{anyhow, bail, Result};
+use crate::core::extensions::{MutabilityMode, ContextMode, PointerMode};
+use anyhow::{bail, Result};
 use rustc_span::{
-  source_map::{SourceFile, SourceMap},
+  source_map::{SourceMap},
   BytePos, FileName, RealFileName, Span,
 };
 use serde::Serialize;
@@ -46,23 +47,7 @@ impl Range {
   }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Hash)]
-pub enum MutabilityMode {
-  DistinguishMut,
-  IgnoreMut,
-}
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Hash)]
-pub enum ContextMode {
-  SigOnly,
-  Recurse,
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Hash)]
-pub enum PointerMode {
-  Precise,
-  Conservative,
-}
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Hash)]
 pub struct EvalMode {

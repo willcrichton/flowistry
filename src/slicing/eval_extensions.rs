@@ -1,7 +1,7 @@
-use super::intraprocedural::{SliceLocation, BODY_STACK};
-use super::place_set::{PlaceSet, PlaceSetIteratorExt};
 use super::relevance::TransferFunction;
-use super::utils;
+use super::{SliceOutput, BODY_STACK};
+use crate::core::place_set::{PlaceSet, PlaceSetIteratorExt};
+use crate::core::utils;
 use crate::fmt_places;
 use fluid_let::fluid_let;
 use log::{debug, info};
@@ -146,6 +146,7 @@ pub fn generate_conservative_constraints<'tcx>(
 const MAX_DEPTH: usize = 3;
 
 impl TransferFunction<'_, '_, '_, 'tcx> {
+  #![allow(warnings)]
   pub(super) fn slice_into_procedure(
     &mut self,
     call: &TerminatorKind<'tcx>,
@@ -266,13 +267,14 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       def_path, relevant_places
     );
     let recursive_inputs = relevant_places.iter().cloned().collect::<Vec<_>>();
-    let results = super::intraprocedural::analyze_function(
-      self.analysis.config,
-      tcx,
-      body_id,
-      &SliceLocation::PlacesOnExit(recursive_inputs.clone()),
-    )
-    .unwrap();
+    let results: SliceOutput = todo!();
+    // let results = super::slicing::analyze_function(
+    //   self.analysis.config,
+    //   tcx,
+    //   body_id,
+    //   &SliceLocation::PlacesOnExit(recursive_inputs.clone()),
+    // )
+    // .unwrap();
 
     debug!(
       "Done recursing into {}, mutated inputs: {:?}, relevant inputs: {:?}",

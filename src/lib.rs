@@ -2,6 +2,7 @@
 #![feature(const_panic, min_specialization)] // needed for rustc_index::newtype_index
 #![feature(control_flow_enum)] // needed for alias analysis
 
+extern crate indexmap;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_graphviz;
@@ -15,10 +16,9 @@ extern crate rustc_serialize;
 extern crate rustc_span;
 extern crate rustc_target;
 extern crate smallvec;
-extern crate indexmap;
 
-pub mod analysis;
-pub mod config;
+mod core;
+// mod flow;
+mod slicing;
 
-pub use analysis::{slice, SliceOutput};
-pub use config::{Config, Range};
+pub use slicing::{slice, Config, Range};

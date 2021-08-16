@@ -1,9 +1,10 @@
-use super::aliases::Aliases;
-use super::control_dependencies::ControlDependencies;
-use super::place_set::{PlaceDomain, PlaceIndex, PlaceSet, PlaceSetIteratorExt};
+use super::config::{Config};
+use crate::core::extensions::{ContextMode, MutabilityMode};
 use super::relevance_domain::{LocationDomain, RelevanceDomain};
-use super::utils::{self, PlaceRelation};
-use crate::config::{Config, ContextMode, MutabilityMode};
+use crate::core::aliases::Aliases;
+use crate::core::control_dependencies::ControlDependencies;
+use crate::core::place_set::{PlaceDomain, PlaceIndex, PlaceSet, PlaceSetIteratorExt};
+use crate::core::utils::{self, PlaceRelation};
 use log::debug;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_middle::{
