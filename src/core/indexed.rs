@@ -215,3 +215,54 @@ impl<Iter: Iterator> IndexSetIteratorExt for Iter {
     set
   }
 }
+
+#[derive(Clone, Debug)]
+pub struct IndexMatrix<R: IndexedValue, C: IndexedValue> {
+  matrix: SparseBitMatrix<R::Index, C::Index>,
+  row_domain: Rc<R::Domain>,
+  col_domain: Rc<C::Domain>,
+}
+
+impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
+  pub fn new(row_domain: Rc<R::Domain>, col_domain: Rc<C::Domain>) -> Self {
+    IndexMatrix {
+      matrix: SparseBitMatrix::new(col_domain.len()),
+      row_domain,
+      col_domain,
+    }
+  }
+}
+
+impl<R: IndexedValue, C: IndexedValue> PartialEq for IndexMatrix<R, C> {
+  fn eq(&self, other: &Self) -> bool {
+    self.matrix.rows().count() == other.matrix.rows().count()
+      && self.matrix.rows().all(|row| {
+        let set = self.matrix.row(row).unwrap();
+        other
+          .matrix
+          .row(row)
+          .map(|other_set| set.superset(other_set) && other_set.superset(set))
+          .unwrap_or(false)
+      })
+  }
+}
+
+impl<R: IndexedValue, C: IndexedValue> Eq for IndexMatrix<R, C> {}
+
+impl<R: IndexedValue, C: IndexedValue> JoinSemiLattice for IndexMatrix<R, C> {
+  fn join(&mut self, other: &Self) -> bool {
+    let mut changed = false;
+    for row in other.matrix.rows() {
+      changed |= self
+        .matrix
+        .union_into_row(row, other.matrix.row(row).unwrap());
+    }
+    return changed;
+  }
+}
+
+impl<R: IndexedValue, C: IndexedValue, Ctx> DebugWithContext<Ctx> for IndexMatrix<R, C> {
+  fn fmt_with(&self, ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    todo!()
+  }
+}

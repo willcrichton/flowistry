@@ -4,10 +4,11 @@ use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, AnalysisDomain, Forwa
 use std::fmt;
 
 use crate::core::{
-  aliases::Aliases, control_dependencies::ControlDependencies, indexed_impls::PlaceMatrix,
+  aliases::Aliases, control_dependencies::ControlDependencies, indexed::{IndexMatrix, IndexedValue}
+  
 };
 
-pub type FlowDomain = PlaceMatrix;
+pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, Location>;
 
 pub struct FlowAnalysis<'a, 'tcx> {
   tcx: TyCtxt<'tcx>,
@@ -33,7 +34,7 @@ impl FlowAnalysis<'a, 'tcx> {
 }
 
 impl AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
-  type Domain = FlowDomain;
+  type Domain = FlowDomain<'tcx>;
   type Direction = Forward;
   const NAME: &'static str = "FlowAnalysis";
 
