@@ -4,10 +4,9 @@ use super::{
   indexed_impls::{PlaceDomain, PlaceIndex, PlaceSet},
   utils::{self, elapsed, PlaceRelation},
 };
-use indexmap::map::IndexMap;
 use log::debug;
 use rustc_data_structures::{
-  fx::{FxHashMap as HashMap, FxHashSet as HashSet},
+  fx::{FxHashMap as HashMap, FxHashSet as HashSet, FxIndexMap as IndexMap},
   graph::scc::Sccs,
 };
 use rustc_index::{

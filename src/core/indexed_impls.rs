@@ -139,14 +139,6 @@ impl IndexedValue for Location {
   type Index = LocationIndex;
 }
 
-#[derive(Clone, Debug)]
-pub struct PlaceMatrix(SparseBitMatrix<PlaceIndex, PlaceIndex>);
-impl PlaceMatrix {
-  pub fn new(domain: &PlaceDomain) -> Self {
-    PlaceMatrix(SparseBitMatrix::new(domain.len()))
-  }
-}
-
 pub type LocationSet = IndexSet<Location>;
 pub type LocationDomain = <Location as IndexedValue>::Domain;
 
@@ -163,36 +155,4 @@ pub fn build_location_domain(body: &Body) -> Rc<LocationDomain> {
     .flatten()
     .collect::<Vec<_>>();
   Rc::new(LocationDomain::new(locations))
-}
-
-impl PartialEq for PlaceMatrix {
-  fn eq(&self, other: &Self) -> bool {
-    self.0.rows().count() == other.0.rows().count()
-      && self.0.rows().all(|row| {
-        let set = self.0.row(row).unwrap();
-        other
-          .0
-          .row(row)
-          .map(|other_set| set.superset(other_set) && other_set.superset(set))
-          .unwrap_or(false)
-      })
-  }
-}
-
-impl Eq for PlaceMatrix {}
-
-impl JoinSemiLattice for PlaceMatrix {
-  fn join(&mut self, other: &Self) -> bool {
-    let mut changed = false;
-    for row in other.0.rows() {
-      changed |= self.0.union_into_row(row, other.0.row(row).unwrap());
-    }
-    return changed;
-  }
-}
-
-impl DebugWithContext<PlaceDomain<'tcx>> for PlaceMatrix {
-  fn fmt_with(&self, ctxt: &PlaceDomain<'tcx>, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    todo!()
-  }
 }

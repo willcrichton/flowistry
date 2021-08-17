@@ -10,7 +10,6 @@
 #![feature(const_panic, min_specialization)] // needed for rustc_index::newtype_index
 #![feature(control_flow_enum)] // needed for alias analysis
 
-extern crate indexmap;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_graphviz;
