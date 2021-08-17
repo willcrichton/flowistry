@@ -4,7 +4,7 @@ use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, AnalysisDomain, Forwa
 use std::fmt;
 
 use crate::core::{
-  aliases::Aliases, control_dependencies::ControlDependencies, place_set::PlaceMatrix,
+  aliases::Aliases, control_dependencies::ControlDependencies, indexed_impls::PlaceMatrix,
 };
 
 pub type FlowDomain = PlaceMatrix;

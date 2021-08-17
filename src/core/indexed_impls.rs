@@ -1,17 +1,15 @@
-pub use super::indexed::{DefaultDomain, IndexSet, IndexSetIteratorExt, IndexedDomain, IndexedValue};
+use super::indexed::{DefaultDomain, IndexSet, IndexSetIteratorExt, IndexedDomain, IndexedValue};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_index::{
   bit_set::{HybridBitSet, SparseBitMatrix},
   vec::{Enumerated, Idx, IndexVec},
 };
 use rustc_middle::{
-  mir::{Local, Place, ProjectionElem},
+  mir::{Body, Local, Location, Place, ProjectionElem},
   ty::TyCtxt,
 };
 use rustc_mir::dataflow::{fmt::DebugWithContext, JoinSemiLattice};
-use std::cell::RefCell;
-use std::fmt;
-use std::slice::Iter;
+use std::{cell::RefCell, fmt, rc::Rc, slice::Iter};
 
 rustc_index::newtype_index! {
   pub struct PlaceIndex {
@@ -131,12 +129,40 @@ pub type PlaceSet<'tcx> = IndexSet<Place<'tcx>>;
 //   }
 // }
 
+rustc_index::newtype_index! {
+  pub struct LocationIndex {
+      DEBUG_FORMAT = "l{}"
+  }
+}
+
+impl IndexedValue for Location {
+  type Index = LocationIndex;
+}
+
 #[derive(Clone, Debug)]
 pub struct PlaceMatrix(SparseBitMatrix<PlaceIndex, PlaceIndex>);
 impl PlaceMatrix {
   pub fn new(domain: &PlaceDomain) -> Self {
     PlaceMatrix(SparseBitMatrix::new(domain.len()))
   }
+}
+
+pub type LocationSet = IndexSet<Location>;
+pub type LocationDomain = <Location as IndexedValue>::Domain;
+
+pub fn build_location_domain(body: &Body) -> Rc<LocationDomain> {
+  let locations = body
+    .basic_blocks()
+    .iter_enumerated()
+    .map(|(block, data)| {
+      (0..data.statements.len() + 1).map(move |statement_index| Location {
+        block,
+        statement_index,
+      })
+    })
+    .flatten()
+    .collect::<Vec<_>>();
+  Rc::new(LocationDomain::new(locations))
 }
 
 impl PartialEq for PlaceMatrix {

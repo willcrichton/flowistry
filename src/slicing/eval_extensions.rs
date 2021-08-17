@@ -1,12 +1,15 @@
-use super::relevance::TransferFunction;
-use super::{SliceOutput, BODY_STACK};
-use crate::core::place_set::{IndexSetIteratorExt, IndexedDomain, PlaceSet};
-use crate::core::utils;
-use crate::fmt_places;
+use super::{relevance::TransferFunction, SliceOutput, BODY_STACK};
+use crate::{
+  core::{
+    indexed::{IndexSetIteratorExt, IndexedDomain},
+    indexed_impls::PlaceSet,
+    utils,
+  },
+  fmt_places,
+};
 use fluid_let::fluid_let;
 use log::{debug, info};
-use rustc_data_structures::fx::FxHashSet as HashSet;
-use rustc_data_structures::graph::scc::Sccs;
+use rustc_data_structures::{fx::FxHashSet as HashSet, graph::scc::Sccs};
 use rustc_middle::{
   mir::{
     regions::{ConstraintSccIndex, Locations, OutlivesConstraint},

@@ -1,11 +1,14 @@
-use crate::core::aliases::Aliases;
-use crate::core::analysis::{FlowistryAnalysis, FlowistryOutput};
-use crate::core::control_dependencies::ControlDependencies;
-use crate::core::extensions::PointerMode;
-use crate::core::place_set::{IndexSetIteratorExt, IndexedDomain, PlaceDomain, PlaceSet};
-use crate::core::utils::elapsed;
+use crate::core::{
+  aliases::Aliases,
+  analysis::{FlowistryAnalysis, FlowistryOutput},
+  control_dependencies::ControlDependencies,
+  extensions::PointerMode,
+  indexed::{IndexSetIteratorExt, IndexedDomain},
+  indexed_impls::{LocationDomain, PlaceDomain, PlaceSet},
+  utils::elapsed,
+};
 use relevance::{RelevanceAnalysis, SliceSet};
-use relevance_domain::{LocationDomain, RelevanceDomain};
+use relevance_domain::RelevanceDomain;
 
 use anyhow::{bail, Result};
 use log::debug;
@@ -21,15 +24,23 @@ use rustc_middle::{
   },
   ty::TyCtxt,
 };
-use rustc_mir::dataflow::graphviz;
-use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor};
-use rustc_mir::util::write_mir_fn;
+use rustc_mir::{
+  dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results, ResultsVisitor},
+  util::write_mir_fn,
+};
 use rustc_span::Span;
 use serde::Serialize;
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
-use std::rc::Rc;
-use std::{cell::RefCell, fs::File, io::Write, process::Command, thread_local, time::Instant};
+use std::{
+  cell::RefCell,
+  collections::hash_map::DefaultHasher,
+  fs::File,
+  hash::{Hash, Hasher},
+  io::Write,
+  process::Command,
+  rc::Rc,
+  thread_local,
+  time::Instant,
+};
 
 mod config;
 mod eval_extensions;
@@ -81,7 +92,7 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
   fn check_statement(&mut self, state: &RelevanceDomain, location: Location) {
     if state
       .locations
-      .contains(self.location_domain.index(location))
+      .contains(self.location_domain.index(&location))
     {
       let span = self.body.source_info(location).span;
       self.relevant_spans.push(span);
@@ -120,7 +131,7 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
     self.add_locals(state, location);
     let is_relevant = state
       .locations
-      .contains(self.location_domain.index(location));
+      .contains(self.location_domain.index(&location));
 
     if let StatementKind::Assign(box (lhs, Rvalue::Discriminant(_))) = statement.kind {
       /* For whatever reason, in statements like `match x { None => .. }` then the discriminant
@@ -164,7 +175,7 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
 
     if state
       .locations
-      .contains(self.location_domain.index(location))
+      .contains(self.location_domain.index(&location))
     {
       self.num_relevant_instructions += 1;
     }

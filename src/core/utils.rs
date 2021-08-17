@@ -10,14 +10,11 @@ use rustc_middle::{
 };
 use rustc_span::{FileName, RealFileName, SourceFile, Span};
 use rustc_target::abi::VariantIdx;
-use std::collections::hash_map::Entry;
-use std::hash::Hash;
-use std::ops::ControlFlow;
-use std::path::Path;
-use std::rc::Rc;
-use std::time::Instant;
+use std::{
+  collections::hash_map::Entry, hash::Hash, ops::ControlFlow, path::Path, rc::Rc, time::Instant,
+};
 
-pub use super::place_set::{PlaceDomain, PlaceIndex, PlaceSet};
+pub use super::indexed_impls::{PlaceDomain, PlaceIndex, PlaceSet};
 
 pub fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
   match operand {

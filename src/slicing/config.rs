@@ -1,9 +1,6 @@
-use crate::core::extensions::{MutabilityMode, ContextMode, PointerMode};
+use crate::core::extensions::{ContextMode, MutabilityMode, PointerMode};
 use anyhow::{bail, Result};
-use rustc_span::{
-  source_map::{SourceMap},
-  BytePos, FileName, RealFileName, Span,
-};
+use rustc_span::{source_map::SourceMap, BytePos, FileName, RealFileName, Span};
 use serde::Serialize;
 use std::default::Default;
 
@@ -47,8 +44,6 @@ impl Range {
   }
 }
 
-
-
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Hash)]
 pub struct EvalMode {
   pub mutability_mode: MutabilityMode,
@@ -73,4 +68,3 @@ pub struct Config {
   pub eval_mode: EvalMode,
   pub local: Option<usize>,
 }
-
