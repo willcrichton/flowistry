@@ -113,6 +113,28 @@ fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &str) 
   check(extra, "Extra");
 }
 
+pub fn flow(prog: &str, qpath: &str) {
+  let inner = move || -> Result<()> {
+    let mut f = NamedTempFile::new()?;
+    let filename = f.path().to_string_lossy().to_string();
+    f.as_file_mut().write(prog.as_bytes())?;
+
+    let args = format!(
+      "--edition=2018 --crate-name tmp {} -A warnings --sysroot {}",
+      f.path().display(),
+      *SYSROOT
+    );
+    let args = args.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
+
+    let output = flowistry::flow(qpath.to_owned(), &args);
+    println!("{:?}", output.unwrap());
+
+    Ok(())
+  };
+
+  inner().unwrap();
+}
+
 pub fn backward_slice(prog: &str) {
   let inner = move || -> Result<()> {
     let mut f = NamedTempFile::new()?;
@@ -149,35 +171,6 @@ pub fn backward_slice(prog: &str) {
   inner().unwrap();
 }
 
-// fn check_lines(expected: Vec<usize>, actual: SliceOutput, src: &str, filename: String) {
-//   let expected = expected.into_iter().collect::<HashSet<_>>();
-//   let mut in_slice = HashSet::new();
-
-//   for range in actual.ranges() {
-//     if range.filename != filename {
-//       continue;
-//     }
-
-//     let lines = range.start_line..=range.end_line;
-//     if !lines.clone().all(|line| expected.contains(&line)) {
-//       panic!("Unexpected slice:\n {} ({:?})", range.substr(src), range);
-//     }
-
-//     in_slice = &in_slice | &lines.collect::<HashSet<_>>();
-//   }
-
-//   let expected_not_in_slice = &expected - &in_slice;
-//   if expected_not_in_slice.len() > 0 {
-//     panic!(
-//       "Slice did not include expected lines:\n {:?}",
-//       expected_not_in_slice
-//         .into_iter()
-//         .map(|expected| src.split("\n").nth(expected).unwrap())
-//         .collect::<Vec<_>>()
-//     );
-//   }
-// }
-
 lazy_static! {
   static ref SYSROOT: String = String::from_utf8(
     Command::new("rustc")
@@ -190,42 +183,3 @@ lazy_static! {
   .trim()
   .to_owned();
 }
-
-// pub fn run(src: impl AsRef<str>, mut range: Range, lines: Vec<usize>) {
-//   let lines = lines.into_iter().map(|i| i - 1).collect::<Vec<_>>();
-//   let inner = move || -> Result<()> {
-//     let mut f = NamedTempFile::new()?;
-//     let src = src.as_ref().trim();
-//     f.as_file_mut().write(src.as_bytes())?;
-
-//     let path = f.path();
-//     range.filename = path.to_string_lossy().to_string();
-
-//     range.start_line -= 1;
-//     range.end_line -= 1;
-//     range.start_col -= 1;
-//     range.end_col -= 1;
-
-//     let config = Config {
-//       range,
-//       debug: false,
-//       ..Default::default()
-//     };
-
-//     let args = format!(
-//       "--edition=2018 --crate-name tmp {} -A warnings --sysroot {}",
-//       path.display(),
-//       *SYSROOT
-//     );
-
-//     let args = args.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
-
-//     let output = flowistry::slice(config, &args)?;
-//     check_lines(lines, output, &src, path.to_string_lossy().into_owned());
-
-//     f.close()?;
-//     Ok(())
-//   };
-
-//   inner().unwrap();
-// }
