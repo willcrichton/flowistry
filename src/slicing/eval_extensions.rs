@@ -1,6 +1,6 @@
 use super::relevance::TransferFunction;
 use super::{SliceOutput, BODY_STACK};
-use crate::core::place_set::{PlaceSet, PlaceSetIteratorExt};
+use crate::core::place_set::{IndexSetIteratorExt, IndexedDomain, PlaceSet};
 use crate::core::utils;
 use crate::fmt_places;
 use fluid_let::fluid_let;
@@ -151,7 +151,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
     &mut self,
     call: &TerminatorKind<'tcx>,
     input_places: &[(usize, Place<'tcx>)],
-    input_mut_ptrs: &[(usize, PlaceSet)],
+    input_mut_ptrs: &[(usize, PlaceSet<'tcx>)],
     location: Location,
   ) -> bool {
     let tcx = self.analysis.tcx;
@@ -232,7 +232,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
       .iter()
       .map(|(i, places)| {
         let (_, orig_input) = input_places.iter().find(|(j, _)| i == j).unwrap();
-        places.iter(place_domain).map(move |place| {
+        places.iter().map(move |place| {
           let projection = &place.projection[orig_input.projection.len()..];
           Place {
             local: Local::from_usize(*i + 1),
@@ -244,7 +244,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
 
     let relevant_return = if let Some((dst, _)) = destination {
       if !dst.ty(self.analysis.body.local_decls(), tcx).ty.is_unit()
-        && self.is_relevant(place_domain.index(*dst))
+        && self.is_relevant(place_domain.index(dst))
       {
         Some(Place {
           local: RETURN_PLACE,
@@ -293,12 +293,12 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
         let (_, caller_place) = input_places.iter().find(|(j, _)| *j == i - 1).unwrap();
         let mut projection = caller_place.projection.to_vec();
         projection.extend(callee_place.projection.iter());
-        place_domain.index(Place {
+        place_domain.index(&Place {
           local: caller_place.local,
           projection: tcx.intern_place_elems(&projection),
         })
       })
-      .collect_indices(place_domain);
+      .collect_indices::<Place<'tcx>>(place_domain.clone());
 
     let relevant_inputs = results
       .relevant_inputs
@@ -307,9 +307,9 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
         input_places
           .iter()
           .find(|(j, _)| *j == local - 1)
-          .map(|(_, caller_place)| place_domain.index(*caller_place))
+          .map(|(_, caller_place)| place_domain.index(caller_place))
       })
-      .collect_indices(place_domain);
+      .collect_indices(place_domain.clone());
 
     if mutated_inputs.len() > 0 {
       debug!(
@@ -326,7 +326,7 @@ impl TransferFunction<'_, '_, '_, 'tcx> {
     if relevant_return.is_some() {
       let (dst, _) = destination.unwrap();
       debug!("Adding relevant return: {:?}", dst);
-      self.check_mutation(place_domain.index(dst), &relevant_inputs, true, location);
+      self.check_mutation(place_domain.index(&dst), &relevant_inputs, true, location);
     }
 
     true

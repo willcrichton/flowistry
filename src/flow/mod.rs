@@ -22,9 +22,7 @@ impl FlowistryOutput for FlowOutput {
     FlowOutput
   }
 
-  fn merge(&mut self, other: Self) {
-    
-  }
+  fn merge(&mut self, other: Self) {}
 }
 
 struct FlowAnalysis {
