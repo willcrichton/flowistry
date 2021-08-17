@@ -8,11 +8,7 @@ use rustc_middle::{
   ty::TyCtxt,
 };
 use rustc_mir::dataflow::{fmt::DebugWithContext, JoinSemiLattice};
-use std::fmt;
-use std::hash::Hash;
-use std::ops::Deref;
-use std::rc::Rc;
-use std::slice::Iter;
+use std::{fmt, hash::Hash, ops::Deref, rc::Rc, slice::Iter};
 
 pub trait IndexedValue: Eq + Hash + Clone {
   type Index: Idx;

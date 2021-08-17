@@ -1,5 +1,12 @@
 #![allow(warnings)]
-#![feature(rustc_private, box_patterns, in_band_lifetimes, associated_type_defaults, type_alias_impl_trait, generic_associated_types)]
+#![feature(
+  rustc_private,
+  box_patterns,
+  in_band_lifetimes,
+  associated_type_defaults,
+  type_alias_impl_trait,
+  generic_associated_types
+)]
 #![feature(const_panic, min_specialization)] // needed for rustc_index::newtype_index
 #![feature(control_flow_enum)] // needed for alias analysis
 

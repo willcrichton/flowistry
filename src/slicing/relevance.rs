@@ -1,12 +1,13 @@
-use super::config::Config;
-use super::relevance_domain::{LocationDomain, RelevanceDomain};
-use crate::core::aliases::Aliases;
-use crate::core::control_dependencies::ControlDependencies;
-use crate::core::extensions::{ContextMode, MutabilityMode};
-use crate::core::place_set::{
-  IndexSetIteratorExt, IndexedDomain, PlaceDomain, PlaceIndex, PlaceSet,
+use super::{config::Config, relevance_domain::RelevanceDomain};
+use crate::core::{
+  aliases::Aliases,
+  control_dependencies::ControlDependencies,
+  extensions::{ContextMode, MutabilityMode},
+  indexed::{IndexSetIteratorExt, IndexedDomain},
+  indexed_impls::{build_location_domain, LocationDomain, PlaceDomain, PlaceIndex, PlaceSet},
+  utils::{self, PlaceRelation},
 };
-use crate::core::utils::{self, PlaceRelation};
+
 use log::debug;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_middle::{
@@ -100,7 +101,7 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
     self
       .state
       .locations
-      .insert(self.analysis.location_domain.index(location));
+      .insert(self.analysis.location_domain.index(&location));
   }
 
   pub(super) fn relevant_places(
@@ -312,8 +313,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       }
 
       TerminatorKind::SwitchInt { discr, .. } => {
-        let is_relevant = self.state.locations.iter().any(|index| {
-          let relevant = &self.analysis.location_domain.location(index);
+        let is_relevant = self.state.locations.iter().any(|relevant| {
           self
             .analysis
             .control_dependencies
@@ -373,7 +373,7 @@ pub struct RelevanceAnalysis<'a, 'mir, 'tcx> {
   control_dependencies: ControlDependencies,
   current_block: RefCell<BasicBlock>,
   pub(super) alias_analysis: &'a Aliases<'tcx>,
-  pub(super) location_domain: LocationDomain,
+  pub(super) location_domain: Rc<LocationDomain>,
 }
 
 impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
@@ -386,7 +386,7 @@ impl<'a, 'mir, 'tcx> RelevanceAnalysis<'a, 'mir, 'tcx> {
     control_dependencies: ControlDependencies,
   ) -> Self {
     let current_block = RefCell::new(body.basic_blocks().indices().next().unwrap());
-    let location_domain = LocationDomain::new(body);
+    let location_domain = build_location_domain(body);
 
     RelevanceAnalysis {
       config,
@@ -411,7 +411,7 @@ impl<'a, 'mir, 'tcx> AnalysisDomain<'tcx> for RelevanceAnalysis<'a, 'mir, 'tcx> 
   const NAME: &'static str = "RelevanceAnalysis";
 
   fn bottom_value(&self, _body: &mir::Body<'tcx>) -> Self::Domain {
-    RelevanceDomain::new(self.place_domain().clone(), &self.location_domain)
+    RelevanceDomain::new(self.place_domain().clone(), self.location_domain.clone())
   }
 
   fn initialize_start_block(&self, _: &mir::Body<'tcx>, _: &mut Self::Domain) {}

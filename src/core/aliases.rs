@@ -1,11 +1,15 @@
-use super::extensions::MutabilityMode;
-use super::place_set::{IndexSetIteratorExt, IndexedDomain, PlaceDomain, PlaceIndex, PlaceSet};
-use super::utils::elapsed;
-use super::utils::{self, PlaceRelation};
+use super::{
+  extensions::MutabilityMode,
+  indexed::{IndexSetIteratorExt, IndexedDomain},
+  indexed_impls::{PlaceDomain, PlaceIndex, PlaceSet},
+  utils::{self, elapsed, PlaceRelation},
+};
 use indexmap::map::IndexMap;
 use log::debug;
-use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
-use rustc_data_structures::graph::scc::Sccs;
+use rustc_data_structures::{
+  fx::{FxHashMap as HashMap, FxHashSet as HashSet},
+  graph::scc::Sccs,
+};
 use rustc_index::{
   bit_set::{BitSet, SparseBitMatrix},
   vec::IndexVec,
@@ -18,9 +22,7 @@ use rustc_middle::{
   },
   ty::{RegionKind, RegionVid, TyCtxt},
 };
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::time::Instant;
+use std::{cell::RefCell, rc::Rc, time::Instant};
 
 struct GatherBorrows<'tcx> {
   borrows: Vec<(RegionVid, BorrowKind, Place<'tcx>)>,
