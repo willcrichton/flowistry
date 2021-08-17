@@ -2,13 +2,13 @@ use crate::core::aliases::Aliases;
 use crate::core::analysis::{FlowistryAnalysis, FlowistryOutput};
 use crate::core::control_dependencies::ControlDependencies;
 use crate::core::extensions::PointerMode;
-use crate::core::place_set::{PlaceDomain, PlaceSet, PlaceSetIteratorExt};
+use crate::core::place_set::{IndexSetIteratorExt, IndexedDomain, PlaceDomain, PlaceSet};
 use crate::core::utils::elapsed;
 use relevance::{RelevanceAnalysis, SliceSet};
 use relevance_domain::{LocationDomain, RelevanceDomain};
 
 use anyhow::{bail, Result};
-use log::{debug};
+use log::debug;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
 use rustc_hir::BodyId;
@@ -28,6 +28,7 @@ use rustc_span::Span;
 use serde::Serialize;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
+use std::rc::Rc;
 use std::{cell::RefCell, fs::File, io::Write, process::Command, thread_local, time::Instant};
 
 mod config;
@@ -39,9 +40,9 @@ pub use config::{Config, Range};
 
 struct FindInitialSliceSet<'a, 'tcx> {
   slice_span: Span,
-  slice_set: SliceSet,
+  slice_set: SliceSet<'tcx>,
   body: &'a Body<'tcx>,
-  place_domain: &'a PlaceDomain<'tcx>,
+  place_domain: Rc<PlaceDomain<'tcx>>,
 }
 
 impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
@@ -53,18 +54,18 @@ impl<'a, 'tcx> Visitor<'tcx> for FindInitialSliceSet<'a, 'tcx> {
       return;
     }
 
-    let place_domain = self.place_domain;
+    let place_domain = &self.place_domain;
     self
       .slice_set
       .entry(location)
-      .or_insert_with(|| PlaceSet::new(place_domain))
-      .insert(place_domain.index(*place));
+      .or_insert_with(|| PlaceSet::new(place_domain.clone()))
+      .insert(place_domain.index(place));
   }
 }
 
 struct CollectResults<'a, 'tcx> {
   body: &'a Body<'tcx>,
-  place_domain: &'a PlaceDomain<'tcx>,
+  place_domain: Rc<PlaceDomain<'tcx>>,
   location_domain: &'a LocationDomain,
   relevant_spans: Vec<Span>,
   all_locals: BitSet<Local>,
@@ -88,7 +89,7 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
   }
 
   fn add_locals(&mut self, state: &RelevanceDomain, _location: Location) {
-    for place in state.places.iter(self.place_domain) {
+    for place in state.places.iter() {
       self.all_locals.insert(place.local);
 
       let local = place.local.as_usize();
@@ -97,23 +98,18 @@ impl<'a, 'tcx> CollectResults<'a, 'tcx> {
       }
     }
 
-    let place_domain = self.place_domain;
+    let place_domain = &self.place_domain;
     let mutated_inputs = self
       .input_places
       .iter()
       .enumerate()
-      .filter_map(|(i, place)| {
-        state
-          .mutated
-          .contains(place_domain.index(*place))
-          .then(|| i)
-      });
+      .filter_map(|(i, place)| state.mutated.contains(place_domain.index(place)).then(|| i));
     self.mutated_inputs.extend(mutated_inputs);
   }
 }
 
 impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
-  type FlowState = RelevanceDomain;
+  type FlowState = RelevanceDomain<'tcx>;
 
   fn visit_statement_after_primary_effect(
     &mut self,
@@ -205,8 +201,8 @@ impl SliceLocation<'tcx> {
   fn to_slice_set(
     &self,
     body: &Body<'tcx>,
-    place_domain: &PlaceDomain<'tcx>,
-  ) -> (SliceSet, Vec<Place<'tcx>>) {
+    place_domain: Rc<PlaceDomain<'tcx>>,
+  ) -> (SliceSet<'tcx>, Vec<Place<'tcx>>) {
     match self {
       SliceLocation::Span(slice_span) => {
         let mut finder = FindInitialSliceSet {
@@ -237,8 +233,8 @@ impl SliceLocation<'tcx> {
 
         let place_set = places
           .iter()
-          .map(|place| place_domain.index(*place))
-          .collect_indices(place_domain);
+          .map(|place| place_domain.index(place))
+          .collect_indices(place_domain.clone());
         (
           return_locations
             .map(|location| (location, place_set.clone()))
@@ -310,7 +306,7 @@ fn analyze_inner(
       &extra_places,
     );
 
-    let (slice_set, input_places) = slice_location.to_slice_set(body, &aliases.place_domain);
+    let (slice_set, input_places) = slice_location.to_slice_set(body, aliases.place_domain.clone());
     debug!("Initial slice set: {:?}", slice_set);
 
     let control_dependencies = ControlDependencies::build(body.clone());
@@ -332,7 +328,7 @@ fn analyze_inner(
     let source_map = tcx.sess.source_map();
     let mut visitor = CollectResults {
       body,
-      place_domain: &aliases.place_domain,
+      place_domain: aliases.place_domain.clone(),
       location_domain: &relevance_results.analysis.location_domain,
       relevant_spans: vec![],
       all_locals: BitSet::new_empty(body.local_decls().len()),

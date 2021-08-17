@@ -3,6 +3,7 @@ use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_index::{bit_set::BitSet, vec::IndexVec};
 use rustc_middle::mir::*;
 use rustc_mir::dataflow::JoinSemiLattice;
+use std::rc::Rc;
 
 rustc_index::newtype_index! {
     pub struct LocationIndex {
@@ -106,15 +107,15 @@ impl LocationDomain {
 pub type LocationSet = BitSet<LocationIndex>;
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct RelevanceDomain {
-  pub places: PlaceSet,
-  pub mutated: PlaceSet,
+pub struct RelevanceDomain<'tcx> {
+  pub places: PlaceSet<'tcx>,
+  pub mutated: PlaceSet<'tcx>,
   pub locations: LocationSet,
 }
 
-impl RelevanceDomain {
-  pub fn new(place_domain: &PlaceDomain, location_domain: &LocationDomain) -> Self {
-    let places = PlaceSet::new(place_domain);
+impl RelevanceDomain<'tcx> {
+  pub fn new(place_domain: Rc<PlaceDomain<'tcx>>, location_domain: &LocationDomain) -> Self {
+    let places = PlaceSet::new(place_domain.clone());
     let mutated = PlaceSet::new(place_domain);
     let locations = BitSet::new_empty(location_domain.len());
     RelevanceDomain {
@@ -125,7 +126,7 @@ impl RelevanceDomain {
   }
 }
 
-impl Clone for RelevanceDomain {
+impl Clone for RelevanceDomain<'_> {
   fn clone(&self) -> Self {
     RelevanceDomain {
       places: self.places.clone(),
@@ -141,7 +142,7 @@ impl Clone for RelevanceDomain {
   }
 }
 
-impl JoinSemiLattice for RelevanceDomain {
+impl JoinSemiLattice for RelevanceDomain<'_> {
   fn join(&mut self, other: &Self) -> bool {
     let b1 = self.places.join(&other.places);
     let b2 = self.mutated.join(&other.mutated);
