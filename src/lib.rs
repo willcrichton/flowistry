@@ -22,6 +22,7 @@ extern crate rustc_serialize;
 extern crate rustc_span;
 extern crate rustc_target;
 extern crate smallvec;
+extern crate polonius_engine;
 
 mod core;
 mod flow;

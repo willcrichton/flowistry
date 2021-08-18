@@ -43,7 +43,12 @@ pub struct Aliases<'tcx> {
   pub place_domain: Rc<PlaceDomain<'tcx>>,
 }
 
-pub type OutlivesConstraint = (RegionVid, RegionVid);
+
+use polonius_engine::FactTypes;
+use rustc_mir::consumers::RustcFacts;
+pub type Point = <RustcFacts as FactTypes>::Point;
+
+pub type OutlivesConstraint = (RegionVid, RegionVid, Point);
 
 rustc_index::newtype_index! {
   pub struct ConstraintSccIndex {
@@ -151,7 +156,7 @@ impl Aliases<'tcx> {
       .chain(
         outlives_constraints
           .iter()
-          .map(|(r1, r2)| vec![r1, r2].into_iter())
+          .map(|(r1, r2, _)| vec![r1, r2].into_iter())
           .flatten(),
       )
       .map(|region| region.as_usize())
@@ -162,7 +167,7 @@ impl Aliases<'tcx> {
     let root_region = RegionVid::from_usize(0);
     let processed_constraints = outlives_constraints
       .iter()
-      .map(|(r1, r2)| (*r2, *r1))
+      .map(|(r1, r2, _)| (*r2, *r1))
       // static region outlives everything
       .chain((1..max_region).map(|i| (root_region, RegionVid::from_usize(i))))
       .collect();
