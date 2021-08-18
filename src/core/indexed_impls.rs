@@ -1,6 +1,6 @@
 use super::indexed::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
-use rustc_index::vec::{Enumerated};
+use rustc_index::vec::Enumerated;
 use rustc_middle::{
   mir::{Body, Local, Location, Place, ProjectionElem},
   ty::TyCtxt,
