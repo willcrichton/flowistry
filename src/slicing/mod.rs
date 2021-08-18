@@ -25,8 +25,8 @@ use rustc_middle::{
 };
 use rustc_mir::{
   consumers::get_body_with_borrowck_facts,
-  dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results, ResultsVisitor},
-  util::write_mir_fn,
+  dataflow::{fmt::DebugWithContext, /*graphviz,*/ Analysis, Results, ResultsVisitor},
+  /*util::write_mir_fn,*/
 };
 use rustc_span::Span;
 use serde::Serialize;
@@ -188,17 +188,17 @@ where
   A: Analysis<'tcx>,
   A::Domain: DebugWithContext<A>,
 {
-  let graphviz = graphviz::Formatter::new(body, &results, graphviz::OutputStyle::AfterOnly);
-  let mut buf = Vec::new();
-  dot::render(&graphviz, &mut buf)?;
-  let mut file = File::create("/tmp/graph.dot")?;
-  file.write_all(&buf)?;
-  let status = Command::new("dot")
-    .args(&["-Tpng", "/tmp/graph.dot", "-o", path])
-    .status()?;
-  if !status.success() {
-    bail!("dot for {} failed", path)
-  };
+  // let graphviz = graphviz::Formatter::new(body, &results, graphviz::OutputStyle::AfterOnly);
+  // let mut buf = Vec::new();
+  // dot::render(&graphviz, &mut buf)?;
+  // let mut file = File::create("/tmp/graph.dot")?;
+  // file.write_all(&buf)?;
+  // let status = Command::new("dot")
+  //   .args(&["-Tpng", "/tmp/graph.dot", "-o", path])
+  //   .status()?;
+  // if !status.success() {
+  //   bail!("dot for {} failed", path)
+  // };
   Ok(())
 }
 
@@ -285,9 +285,9 @@ fn analyze_inner(
 
     let start = Instant::now();
     if config.debug {
-      let mut buffer = Vec::new();
-      write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
-      debug!("{}", String::from_utf8(buffer)?);
+      // let mut buffer = Vec::new();
+      // write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
+      // debug!("{}", String::from_utf8(buffer)?);
       debug!("outlives constraints {:#?}", outlives_constraints);
     }
 
