@@ -265,7 +265,7 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
               })
               .map(|ptr_place| place_domain.index(&tcx.mk_place_deref(ptr_place)))
               .filter(|deref_place| self.is_relevant(*deref_place))
-              .collect_indices(place_domain.clone());
+              .collect_indices::<Place>(place_domain.clone());
 
             (*i, ptr_places)
           })
@@ -286,7 +286,8 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
         if input_mut_ptrs.iter().any(|(_, v)| v.len() > 0) || dst_relevant.is_some() {
           let eval_mode = self.analysis.config.eval_mode;
           let could_recurse = if eval_mode.context_mode == ContextMode::Recurse {
-            self.slice_into_procedure(&terminator.kind, &input_places, &input_mut_ptrs, location)
+            todo!()
+            // self.slice_into_procedure(&terminator.kind, &input_places, &input_mut_ptrs, location)
           } else {
             false
           };

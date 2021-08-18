@@ -7,18 +7,14 @@ use super::{
 use log::debug;
 use rustc_data_structures::{
   fx::{FxHashMap as HashMap, FxHashSet as HashSet, FxIndexMap as IndexMap},
-  graph::scc::Sccs,
+  graph::{scc::Sccs, vec_graph::VecGraph},
 };
 use rustc_index::{
   bit_set::{BitSet, SparseBitMatrix},
   vec::IndexVec,
 };
 use rustc_middle::{
-  mir::{
-    regions::{ConstraintSccIndex, OutlivesConstraint},
-    visit::Visitor,
-    *,
-  },
+  mir::{visit::Visitor, *},
   ty::{RegionKind, RegionVid, TyCtxt},
 };
 use std::{cell::RefCell, rc::Rc, time::Instant};
@@ -45,6 +41,14 @@ pub struct Aliases<'tcx> {
   loan_cache: RefCell<IndexMap<PlaceIndex, PlaceSet<'tcx>>>,
 
   pub place_domain: Rc<PlaceDomain<'tcx>>,
+}
+
+pub type OutlivesConstraint = (RegionVid, RegionVid);
+
+rustc_index::newtype_index! {
+  pub struct ConstraintSccIndex {
+      DEBUG_FORMAT = "cs{}"
+  }
 }
 
 impl Aliases<'tcx> {
@@ -126,11 +130,10 @@ impl Aliases<'tcx> {
     mutability_mode: &MutabilityMode,
     tcx: TyCtxt<'tcx>,
     body: &'a Body<'tcx>,
-    outlives_constraints: &'a Vec<OutlivesConstraint>,
-    constraint_sccs: &'a Sccs<RegionVid, ConstraintSccIndex>,
+    outlives_constraints: Vec<OutlivesConstraint>,
     extra_places: &Vec<Place<'tcx>>,
   ) -> Self {
-    let all_regions = body
+    let local_projected_regions = body
       .local_decls()
       .indices()
       .map(|local| {
@@ -143,19 +146,35 @@ impl Aliases<'tcx> {
       });
 
     let start = Instant::now();
-    let max_region = all_regions
+    let max_region = local_projected_regions
       .keys()
+      .chain(
+        outlives_constraints
+          .iter()
+          .map(|(r1, r2)| vec![r1, r2].into_iter())
+          .flatten(),
+      )
       .map(|region| region.as_usize())
       .max()
       .unwrap_or(0)
       + 1;
+
+    let root_region = RegionVid::from_usize(0);
+    let processed_constraints = outlives_constraints
+      .iter()
+      .map(|(r1, r2)| (*r2, *r1))
+      // static region outlives everything
+      .chain((1..max_region).map(|i| (root_region, RegionVid::from_usize(i))))
+      .collect();
+    let region_graph = VecGraph::new(max_region, processed_constraints);
+    let constraint_sccs: Sccs<_, ConstraintSccIndex> = Sccs::new(&region_graph);
 
     let mut regions_in_scc =
       IndexVec::from_elem_n(BitSet::new_empty(max_region), constraint_sccs.num_sccs());
     {
       let regions_in_constraint = outlives_constraints
         .iter()
-        .map(|constraint| vec![constraint.sup, constraint.sub].into_iter())
+        .map(|constraint| vec![constraint.0, constraint.1].into_iter())
         .flatten()
         .collect::<HashSet<_>>();
       for region in 0..max_region {
@@ -166,11 +185,11 @@ impl Aliases<'tcx> {
         }
       }
     }
+    debug!("regions_in_scc: {:?}", regions_in_scc);
 
-    let root_region = RegionVid::from_usize(0);
     let root_scc = constraint_sccs.scc(root_region);
     let region_ancestors =
-      Self::compute_region_ancestors(constraint_sccs, &regions_in_scc, root_scc);
+      Self::compute_region_ancestors(&constraint_sccs, &regions_in_scc, root_scc);
     debug!("region ancestors: {:#?}", region_ancestors);
 
     let mut place_collector = utils::PlaceCollector::default();
@@ -189,7 +208,7 @@ impl Aliases<'tcx> {
 
       // needed for TransferFunction::visit_terminator
       all_places.extend(
-        all_regions
+        local_projected_regions
           .values()
           .chain(place_pointers.iter().map(|ptrs| ptrs.values()).flatten())
           .map(|(place, _)| vec![*place, tcx.mk_place_deref(*place)].into_iter())
@@ -218,12 +237,12 @@ impl Aliases<'tcx> {
 
     let mut aliases = Aliases {
       loans: IndexVec::from_elem_n(PlaceSet::new(place_domain.clone()), max_region),
-      loan_cache: RefCell::new(IndexMap::new()),
+      loan_cache: RefCell::new(IndexMap::default()),
       loan_locals: SparseBitMatrix::new(max_region),
       place_domain: place_domain.clone(),
     };
 
-    for (region, (sub_place, mutability)) in all_regions {
+    for (region, (sub_place, mutability)) in local_projected_regions {
       if mutability == Mutability::Mut || *mutability_mode == MutabilityMode::IgnoreMut {
         aliases.loans[region].insert(place_domain.index(&tcx.mk_place_deref(sub_place)));
       }
