@@ -29,13 +29,10 @@ jobs:
         include:
           - os: ubuntu-latest
             key: x86_64-unknown-linux-gnu
-            sep: /
-          - os: windows-latest
-            key: x86_64-pc-windows-msvc
-            sep: \
+          # - os: windows-latest
+          #   key: x86_64-pc-windows-msvc
           - os: macos-latest
             key: x86_64-apple-darwin
-            sep: /
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v1
@@ -48,11 +45,11 @@ jobs:
           command: build
           args: --release
       - run: tar -czf ${{ matrix.key }}.tar.gz cargo-flowistry flowistry-driver flowistry-rustc
-        working-directory: target${{ matrix.sep }}release
+        working-directory: target/release
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.key }}
-          path: target${{ matrix.sep }}release${{ matrix.sep }}${{ matrix.key }}.tar.gz
+          path: target/release/${{ matrix.key }}.tar.gz
 
   publish-release:
     needs: publish-artifacts
@@ -64,5 +61,4 @@ jobs:
         with:
           files: |
             x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu.tar.gz
-            x86_64-pc-windows-msvc/x86_64-pc-windows-msvc.tar.gz
             x86_64-apple-darwin/x86_64-apple-darwin.tar.gz
