@@ -1,14 +1,11 @@
-use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_index::{
   bit_set::{HybridBitSet, SparseBitMatrix},
   vec::{Enumerated, Idx, IndexVec},
 };
-use rustc_middle::{
-  mir::{Local, Place, ProjectionElem},
-  ty::TyCtxt,
-};
+
 use rustc_mir::dataflow::{fmt::DebugWithContext, JoinSemiLattice};
-use std::{fmt, hash::Hash, ops::Deref, rc::Rc, slice::Iter};
+use std::{fmt, hash::Hash, rc::Rc, slice::Iter};
 
 pub trait IndexedValue: Eq + Hash + Clone {
   type Index: Idx;
@@ -263,13 +260,15 @@ impl<R: IndexedValue, C: IndexedValue> JoinSemiLattice for IndexMatrix<R, C> {
 }
 
 impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug for IndexMatrix<R, C> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        todo!()
-    }
+  fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    todo!()
+  }
 }
 
-impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx> DebugWithContext<Ctx> for IndexMatrix<R, C> {
-  fn fmt_with(&self, ctxt: &Ctx, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx> DebugWithContext<Ctx>
+  for IndexMatrix<R, C>
+{
+  fn fmt_with(&self, _ctxt: &Ctx, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
     todo!()
   }
 }

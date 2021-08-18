@@ -116,7 +116,7 @@ fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &str) 
 pub fn flow(prog: &str, qpath: &str) {
   let inner = move || -> Result<()> {
     let mut f = NamedTempFile::new()?;
-    let filename = f.path().to_string_lossy().to_string();
+    let _filename = f.path().to_string_lossy().to_string();
     f.as_file_mut().write(prog.as_bytes())?;
 
     let args = format!(

@@ -2,7 +2,6 @@ use crate::core::{
   aliases::Aliases,
   analysis::{FlowistryAnalysis, FlowistryOutput},
   control_dependencies::ControlDependencies,
-  extensions::PointerMode,
   indexed::{IndexSetIteratorExt, IndexedDomain},
   indexed_impls::{LocationDomain, PlaceDomain, PlaceSet},
   utils::elapsed,

@@ -1,7 +1,9 @@
+pub use super::indexed_impls::{PlaceDomain, PlaceIndex, PlaceSet};
 use anyhow::{anyhow, Result};
 use log::{info, warn};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_middle::{
+  hir::map::Map,
   mir::{
     visit::{PlaceContext, Visitor},
     *,
@@ -13,8 +15,6 @@ use rustc_target::abi::VariantIdx;
 use std::{
   collections::hash_map::Entry, hash::Hash, ops::ControlFlow, path::Path, rc::Rc, time::Instant,
 };
-
-pub use super::indexed_impls::{PlaceDomain, PlaceIndex, PlaceSet};
 
 pub fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
   match operand {
@@ -302,10 +302,9 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Option<Span> {
   use rustc_hir::{
     intravisit::{self, NestedVisitorMap, Visitor},
     itemlikevisit::ItemLikeVisitor,
-    BodyId, ForeignItem, ImplItem, Item, TraitItem,
+    BodyId,
   };
-  use rustc_middle::{hir::map::Map, ty::TyCtxt};
-
+  
   struct Finder<'tcx> {
     tcx: TyCtxt<'tcx>,
     qpath: String,
@@ -345,8 +344,8 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Option<Span> {
       <Self as Visitor<'tcx>>::visit_impl_item(self, impl_item);
     }
 
-    fn visit_trait_item(&mut self, trait_item: &'hir rustc_hir::TraitItem<'hir>) {}
-    fn visit_foreign_item(&mut self, foreign_item: &'hir rustc_hir::ForeignItem<'hir>) {}
+    fn visit_trait_item(&mut self, _trait_item: &'hir rustc_hir::TraitItem<'hir>) {}
+    fn visit_foreign_item(&mut self, _foreign_item: &'hir rustc_hir::ForeignItem<'hir>) {}
   }
 
   let mut finder = Finder {

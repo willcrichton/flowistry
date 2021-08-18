@@ -24,8 +24,8 @@ extern crate rustc_target;
 extern crate smallvec;
 
 mod core;
-// mod flow;
+mod flow;
 mod slicing;
 
-// pub use flow::flow;
+pub use flow::flow;
 pub use slicing::{slice, Config, Range};

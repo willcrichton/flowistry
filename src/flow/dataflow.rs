@@ -1,10 +1,10 @@
-use anyhow::Result;
+
 use rustc_middle::{mir::*, ty::TyCtxt};
-use rustc_mir::dataflow::{fmt::DebugWithContext, Analysis, AnalysisDomain, Forward};
-use std::fmt;
+use rustc_mir::dataflow::{Analysis, AnalysisDomain, Forward};
+
 
 use crate::core::{
-  aliases::Aliases, control_dependencies::ControlDependencies, indexed::{IndexMatrix, IndexedValue}
+  aliases::Aliases, control_dependencies::ControlDependencies, indexed::{IndexMatrix}
   
 };
 
@@ -49,29 +49,29 @@ impl AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
 impl Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
   fn apply_statement_effect(
     &self,
-    state: &mut Self::Domain,
-    statement: &Statement<'tcx>,
-    location: Location,
+    _state: &mut Self::Domain,
+    _statement: &Statement<'tcx>,
+    _location: Location,
   ) {
     // todo!()
   }
 
   fn apply_terminator_effect(
     &self,
-    state: &mut Self::Domain,
-    terminator: &Terminator<'tcx>,
-    location: Location,
+    _state: &mut Self::Domain,
+    _terminator: &Terminator<'tcx>,
+    _location: Location,
   ) {
     // todo!()
   }
 
   fn apply_call_return_effect(
     &self,
-    state: &mut Self::Domain,
-    block: BasicBlock,
-    func: &Operand<'tcx>,
-    args: &[Operand<'tcx>],
-    return_place: Place<'tcx>,
+    _state: &mut Self::Domain,
+    _block: BasicBlock,
+    _func: &Operand<'tcx>,
+    _args: &[Operand<'tcx>],
+    _return_place: Place<'tcx>,
   ) {
   }
 }
