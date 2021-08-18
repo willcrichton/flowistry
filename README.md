@@ -18,14 +18,28 @@ TODO
 
 ## Installation
 
-Currently, Rust Slicer only supports installation from source.
+### Flowistry server
 
-### From source
+#### From Cargo
+
+```
+rustup toolchain install nightly -c rust-src,rustc-dev,llvm-tools-preview
+cargo +nightly install flowistry
+```
+
+#### From source
 
 ```
 git clone https://github.com/willcrichton/flowistry
 cd flowistry
 cargo install --path .
+```
+
+### VSCode extension
+
+#### From source
+
+```
 cd ide
 npm run vscode:prepublish
 ln -s $(pwd) ~/.vscode/extensions/flowistry
