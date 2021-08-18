@@ -279,7 +279,9 @@ fn analyze_inner(
       .input_facts
       .outlives
       .into_iter()
-      .map(|(r1, r2, _)| (r1, r2))
+      .map(|(r1, r2, location)| {
+        (r1, r2, location)
+      })
       .collect::<Vec<_>>();
     elapsed("borrowck", start);
 
