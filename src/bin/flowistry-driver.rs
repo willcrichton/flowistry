@@ -2,10 +2,7 @@
 
 extern crate rustc_driver;
 
-use std::env;
-use std::fmt::Debug;
-use std::process::exit;
-use std::str::FromStr;
+use std::{env, fmt::Debug, process::exit, str::FromStr};
 
 fn arg<T>(s: &str) -> T
 where

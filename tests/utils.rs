@@ -1,8 +1,10 @@
 use anyhow::{anyhow, bail, Result};
 use lazy_static::lazy_static;
-use std::collections::{HashMap, HashSet};
-use std::io::Write;
-use std::process::Command;
+use std::{
+  collections::{HashMap, HashSet},
+  io::Write,
+  process::Command,
+};
 use tempfile::NamedTempFile;
 
 use flowistry::{Config, Range};

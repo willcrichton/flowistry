@@ -1,11 +1,8 @@
-
 use rustc_middle::{mir::*, ty::TyCtxt};
 use rustc_mir::dataflow::{Analysis, AnalysisDomain, Forward};
 
-
 use crate::core::{
-  aliases::Aliases, control_dependencies::ControlDependencies, indexed::{IndexMatrix}
-  
+  aliases::Aliases, control_dependencies::ControlDependencies, indexed::IndexMatrix,
 };
 
 pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, Location>;

@@ -304,7 +304,7 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Option<Span> {
     itemlikevisit::ItemLikeVisitor,
     BodyId,
   };
-  
+
   struct Finder<'tcx> {
     tcx: TyCtxt<'tcx>,
     qpath: String,

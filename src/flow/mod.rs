@@ -1,5 +1,5 @@
 use anyhow::Result;
-use rustc_hir::{BodyId};
+use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
 
 use rustc_span::Span;

@@ -25,8 +25,7 @@ use rustc_middle::{
 };
 use rustc_mir::{
   consumers::get_body_with_borrowck_facts,
-  dataflow::{fmt::DebugWithContext, /*graphviz,*/ Analysis, Results, ResultsVisitor},
-  /*util::write_mir_fn,*/
+  dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor},
 };
 use rustc_span::Span;
 use serde::Serialize;
@@ -275,14 +274,6 @@ fn analyze_inner(
     let body_with_facts =
       get_body_with_borrowck_facts(tcx, ty::WithOptConstParam::unknown(local_def_id));
     let body = &body_with_facts.body;
-    let outlives_constraints = body_with_facts
-      .input_facts
-      .outlives
-      .into_iter()
-      .map(|(r1, r2, location)| {
-        (r1, r2, location)
-      })
-      .collect::<Vec<_>>();
     elapsed("borrowck", start);
 
     let start = Instant::now();
@@ -290,7 +281,7 @@ fn analyze_inner(
       // let mut buffer = Vec::new();
       // write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
       // debug!("{}", String::from_utf8(buffer)?);
-      debug!("outlives constraints {:#?}", outlives_constraints);
+      // debug!("outlives constraints {:#?}", outlives_constraints);
     }
 
     // let should_be_conservative = config.eval_mode.pointer_mode == PointerMode::Conservative;
@@ -317,7 +308,7 @@ fn analyze_inner(
       &config.eval_mode.mutability_mode,
       tcx,
       body,
-      outlives_constraints,
+      body_with_facts.input_facts.outlives,
       &extra_places,
     );
 
