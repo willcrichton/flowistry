@@ -44,22 +44,24 @@ jobs:
         with:
           command: build
           args: --release
+      - run: tar -czf ${{ matrix.key }}.tar.gz cargo-flowistry flowistry-driver flowistry-rustc
+        working-directory: target/release
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.key }}
-          path: |
-            target/release/cargo-flowistry
-            target/release/flowistry-driver
-            target/release/flowistry-rustc
+          path: target/release/${{ matrix.key }}.tar.gz
 
   publish-release:
     needs: publish-artifacts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v2
+        with:
+          path: artifacts
       - uses: softprops/action-gh-release@v1
+        working-directory: artifacts
         with:
           files: |
-            x86_64-unknown-linux-gnu
-            x86_64-pc-windows-msvc
-            x86_64-apple-darwin
+            x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu.tar.gz
+            x86_64-pc-windows-msvc/x86_64-pc-windows-msvc.tar.gz
+            x86_64-apple-darwin/x86_64-apple-darwin.tar.gz
