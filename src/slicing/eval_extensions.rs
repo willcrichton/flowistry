@@ -12,13 +12,13 @@ use log::{debug, info};
 use rustc_data_structures::{fx::FxHashSet as HashSet, graph::scc::Sccs};
 use rustc_middle::{
   mir::{
-    regions::{ConstraintSccIndex, Locations, OutlivesConstraint},
+    // regions::{ConstraintSccIndex, Locations, OutlivesConstraint},
     visit::Visitor,
     *,
   },
   ty::{subst::GenericArgKind, ClosureKind, RegionVid, TyCtxt, TyKind, TyS, VarianceDiagInfo},
 };
-use rustc_mir::borrow_check::constraints::OutlivesConstraintSet;
+// use rustc_mir::borrow_check::constraints::OutlivesConstraintSet;
 use std::cell::RefCell;
 
 fluid_let!(pub static REACHED_LIBRARY: RefCell<bool>);

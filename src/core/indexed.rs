@@ -24,6 +24,7 @@ pub trait IndexedDomain {
   fn iter_enumerated<'a>(&'a self) -> Enumerated<Self::Index, Iter<'a, Self::Value>>;
 }
 
+#[derive(Clone)]
 pub struct DefaultDomain<I: Idx, T> {
   index_to_value: IndexVec<I, T>,
   value_to_index: HashMap<T, I>,
@@ -216,7 +217,7 @@ impl<Iter: Iterator> IndexSetIteratorExt for Iter {
   }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct IndexMatrix<R: IndexedValue, C: IndexedValue> {
   matrix: SparseBitMatrix<R::Index, C::Index>,
   row_domain: Rc<R::Domain>,
@@ -261,8 +262,14 @@ impl<R: IndexedValue, C: IndexedValue> JoinSemiLattice for IndexMatrix<R, C> {
   }
 }
 
-impl<R: IndexedValue, C: IndexedValue, Ctx> DebugWithContext<Ctx> for IndexMatrix<R, C> {
-  fn fmt_with(&self, ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug for IndexMatrix<R, C> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        todo!()
+    }
+}
+
+impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx> DebugWithContext<Ctx> for IndexMatrix<R, C> {
+  fn fmt_with(&self, ctxt: &Ctx, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     todo!()
   }
 }

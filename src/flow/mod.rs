@@ -37,27 +37,27 @@ impl FlowistryAnalysis for FlowAnalysis {
   }
 
   fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
-    let local_def_id = tcx.hir().body_owner_def_id(body_id);
-    let borrowck_result = tcx.mir_borrowck(local_def_id);
+    // let local_def_id = tcx.hir().body_owner_def_id(body_id);
+    // let borrowck_result = tcx.mir_borrowck(local_def_id);
 
-    let body = &borrowck_result.intermediates.body;
-    let outlives_constraints = &borrowck_result.intermediates.outlives_constraints;
-    let constraint_sccs = &borrowck_result.intermediates.constraint_sccs;
+    // let body = &borrowck_result.intermediates.body;
+    // let outlives_constraints = &borrowck_result.intermediates.outlives_constraints;
+    // let constraint_sccs = &borrowck_result.intermediates.constraint_sccs;
 
-    let aliases = Aliases::build(
-      &MutabilityMode::DistinguishMut,
-      tcx,
-      body,
-      outlives_constraints,
-      constraint_sccs,
-      &vec![],
-    );
+    // let aliases = Aliases::build(
+    //   &MutabilityMode::DistinguishMut,
+    //   tcx,
+    //   body,
+    //   outlives_constraints,
+    //   constraint_sccs,
+    //   &vec![],
+    // );
 
-    let control_dependencies = ControlDependencies::build(body.clone());
+    // let control_dependencies = ControlDependencies::build(body.clone());
 
-    let output = dataflow::FlowAnalysis::new(tcx, body, &aliases, &control_dependencies)
-      .into_engine(tcx, body)
-      .iterate_to_fixpoint();
+    // let output = dataflow::FlowAnalysis::new(tcx, body, &aliases, &control_dependencies)
+    //   .into_engine(tcx, body)
+    //   .iterate_to_fixpoint();
 
     Ok(FlowOutput)
   }

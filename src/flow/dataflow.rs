@@ -39,7 +39,8 @@ impl AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
   const NAME: &'static str = "FlowAnalysis";
 
   fn bottom_value(&self, _body: &Body<'tcx>) -> Self::Domain {
-    FlowDomain::new(&self.aliases.place_domain)
+    // FlowDomain::new(self.aliases.place_domain.clone())
+    todo!()
   }
 
   fn initialize_start_block(&self, _: &Body<'tcx>, _: &mut Self::Domain) {}
@@ -72,11 +73,5 @@ impl Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
     args: &[Operand<'tcx>],
     return_place: Place<'tcx>,
   ) {
-  }
-}
-
-impl DebugWithContext<FlowAnalysis<'_, '_>> for FlowDomain {
-  fn fmt_with(&self, ctxt: &FlowAnalysis, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    todo!()
   }
 }

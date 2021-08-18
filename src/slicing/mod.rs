@@ -22,9 +22,10 @@ use rustc_middle::{
     visit::{PlaceContext, Visitor},
     *,
   },
-  ty::TyCtxt,
+  ty::{self, TyCtxt},
 };
 use rustc_mir::{
+  consumers::get_body_with_borrowck_facts,
   dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results, ResultsVisitor},
   util::write_mir_fn,
 };
@@ -43,7 +44,7 @@ use std::{
 };
 
 mod config;
-mod eval_extensions;
+// mod eval_extensions;
 mod relevance;
 mod relevance_domain;
 
@@ -272,37 +273,40 @@ fn analyze_inner(
 
     let start = Instant::now();
     let local_def_id = tcx.hir().body_owner_def_id(body_id);
-    let borrowck_result = tcx.mir_borrowck(local_def_id);
+    let body_with_facts =
+      get_body_with_borrowck_facts(tcx, ty::WithOptConstParam::unknown(local_def_id));
+    let body = &body_with_facts.body;
+    let outlives_constraints = body_with_facts
+      .input_facts
+      .outlives
+      .into_iter()
+      .map(|(r1, r2, _)| (r1, r2))
+      .collect::<Vec<_>>();
     elapsed("borrowck", start);
 
     let start = Instant::now();
-    let body = &borrowck_result.intermediates.body;
-    let outlives_constraints = &borrowck_result.intermediates.outlives_constraints;
-    let constraint_sccs = &borrowck_result.intermediates.constraint_sccs;
-
     if config.debug {
       let mut buffer = Vec::new();
       write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
       debug!("{}", String::from_utf8(buffer)?);
       debug!("outlives constraints {:#?}", outlives_constraints);
-      debug!("sccs {:#?}", constraint_sccs);
     }
 
-    let should_be_conservative = config.eval_mode.pointer_mode == PointerMode::Conservative;
-    let conservative_sccs = if should_be_conservative {
-      Some(eval_extensions::generate_conservative_constraints(
-        tcx,
-        body,
-        outlives_constraints,
-      ))
-    } else {
-      None
-    };
-    let constraint_sccs = if should_be_conservative {
-      conservative_sccs.as_ref().unwrap()
-    } else {
-      constraint_sccs
-    };
+    // let should_be_conservative = config.eval_mode.pointer_mode == PointerMode::Conservative;
+    // let conservative_sccs = if should_be_conservative {
+    //   Some(eval_extensions::generate_conservative_constraints(
+    //     tcx,
+    //     body,
+    //     outlives_constraints,
+    //   ))
+    // } else {
+    //   None
+    // };
+    // let constraint_sccs = if should_be_conservative {
+    //   conservative_sccs.as_ref().unwrap()
+    // } else {
+    //   constraint_sccs
+    // };
 
     let extra_places = match &slice_location {
       SliceLocation::PlacesOnExit(places) => places.clone(),
@@ -313,7 +317,6 @@ fn analyze_inner(
       tcx,
       body,
       outlives_constraints,
-      constraint_sccs,
       &extra_places,
     );
 
@@ -385,15 +388,6 @@ fn analyze_inner(
 thread_local! {
   pub static RESULT_CACHE: RefCell<HashMap<u64, SliceOutput>> = RefCell::new(HashMap::default());
 }
-
-// pub fn analyze_function(
-//   config: &Config,
-//   tcx: TyCtxt<'tcx>,
-//   body_id: BodyId,
-//   slice_location: &SliceLocation<'tcx>,
-// ) -> Result<SliceOutput> {
-
-// }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SliceOutput {

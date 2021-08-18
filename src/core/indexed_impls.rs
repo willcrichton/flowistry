@@ -44,17 +44,18 @@ impl NormalizedPlaces<'tcx> {
   }
 }
 
+#[derive(Clone)]
 pub struct PlaceDomain<'tcx> {
   domain: DefaultDomain<PlaceIndex, Place<'tcx>>,
-  normalized_places: RefCell<NormalizedPlaces<'tcx>>,
+  normalized_places: Rc<RefCell<NormalizedPlaces<'tcx>>>,
 }
 
 impl PlaceDomain<'tcx> {
   pub fn new(tcx: TyCtxt<'tcx>, places: Vec<Place<'tcx>>) -> Self {
-    let normalized_places = RefCell::new(NormalizedPlaces {
+    let normalized_places = Rc::new(RefCell::new(NormalizedPlaces {
       tcx,
       cache: HashMap::default(),
-    });
+    }));
 
     let domain = DefaultDomain::new(
       places
