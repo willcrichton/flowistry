@@ -1,14 +1,11 @@
 use anyhow::Result;
-use rustc_hir::{itemlikevisit::ItemLikeVisitor, BodyId};
+use rustc_hir::{BodyId};
 use rustc_middle::ty::TyCtxt;
-use rustc_mir::dataflow::Analysis;
+
 use rustc_span::Span;
 
 use crate::core::{
-  aliases::Aliases,
   analysis::{FlowistryAnalysis, FlowistryOutput},
-  control_dependencies::ControlDependencies,
-  extensions::MutabilityMode,
   utils::qpath_to_span,
 };
 
@@ -22,7 +19,7 @@ impl FlowistryOutput for FlowOutput {
     FlowOutput
   }
 
-  fn merge(&mut self, other: Self) {}
+  fn merge(&mut self, _other: Self) {}
 }
 
 struct FlowAnalysis {
@@ -36,7 +33,7 @@ impl FlowistryAnalysis for FlowAnalysis {
     vec![qpath_to_span(tcx, self.qpath.clone()).unwrap()]
   }
 
-  fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
+  fn analyze_function(&mut self, _tcx: TyCtxt, _body_id: BodyId) -> Result<Self::Output> {
     // let local_def_id = tcx.hir().body_owner_def_id(body_id);
     // let borrowck_result = tcx.mir_borrowck(local_def_id);
 

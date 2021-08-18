@@ -1,15 +1,12 @@
-use super::indexed::{DefaultDomain, IndexSet, IndexSetIteratorExt, IndexedDomain, IndexedValue};
+use super::indexed::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
-use rustc_index::{
-  bit_set::{HybridBitSet, SparseBitMatrix},
-  vec::{Enumerated, Idx, IndexVec},
-};
+use rustc_index::vec::{Enumerated};
 use rustc_middle::{
   mir::{Body, Local, Location, Place, ProjectionElem},
   ty::TyCtxt,
 };
-use rustc_mir::dataflow::{fmt::DebugWithContext, JoinSemiLattice};
-use std::{cell::RefCell, fmt, rc::Rc, slice::Iter};
+
+use std::{cell::RefCell, rc::Rc, slice::Iter};
 
 rustc_index::newtype_index! {
   pub struct PlaceIndex {
