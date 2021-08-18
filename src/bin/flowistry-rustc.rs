@@ -1,6 +1,8 @@
-use std::env;
-use std::path::Path;
-use std::process::{exit, Command};
+use std::{
+  env,
+  path::Path,
+  process::{exit, Command},
+};
 
 fn main() {
   let mut sysroot = String::from_utf8(

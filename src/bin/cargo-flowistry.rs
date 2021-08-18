@@ -1,6 +1,8 @@
 use clap::clap_app;
-use std::env;
-use std::process::{exit, Command};
+use std::{
+  env,
+  process::{exit, Command},
+};
 
 fn main() {
   let flowistry_rustc_path = std::env::current_exe()

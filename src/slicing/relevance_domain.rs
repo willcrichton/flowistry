@@ -1,7 +1,5 @@
 use crate::core::indexed_impls::{LocationDomain, LocationSet, PlaceDomain, PlaceSet};
 
-
-
 use rustc_mir::dataflow::JoinSemiLattice;
 use std::rc::Rc;
 

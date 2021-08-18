@@ -5,6 +5,7 @@ use super::{
   utils::{self, elapsed, PlaceRelation},
 };
 use log::debug;
+use polonius_engine::FactTypes;
 use rustc_data_structures::{
   fx::{FxHashMap as HashMap, FxHashSet as HashSet, FxIndexMap as IndexMap},
   graph::{scc::Sccs, vec_graph::VecGraph},
@@ -17,6 +18,7 @@ use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::{RegionKind, RegionVid, TyCtxt},
 };
+use rustc_mir::consumers::RustcFacts;
 use std::{cell::RefCell, rc::Rc, time::Instant};
 
 struct GatherBorrows<'tcx> {
@@ -43,11 +45,7 @@ pub struct Aliases<'tcx> {
   pub place_domain: Rc<PlaceDomain<'tcx>>,
 }
 
-
-use polonius_engine::FactTypes;
-use rustc_mir::consumers::RustcFacts;
 pub type Point = <RustcFacts as FactTypes>::Point;
-
 pub type OutlivesConstraint = (RegionVid, RegionVid, Point);
 
 rustc_index::newtype_index! {
