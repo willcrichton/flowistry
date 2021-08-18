@@ -1,0 +1,43 @@
+on: [tags]
+
+jobs:
+  publish-crate:
+    runs-on: ubuntu-latest
+     - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+      - run: cargo login ${{ secrets.CRATES_IO_TOKEN }}      
+      - uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          
+  publish-artifacts:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            key: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            key: x86_64-pc-windows-msvc
+          - os: macos-latest
+            key: x86_64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.key }}
+          path: |
+            target/release/cargo-flowistry
+            target/release/flowistry-driver
+            target/release/flowistry-rustc   
