@@ -1,24 +1,13 @@
-name: ci
-
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        profile: minimal
-    - uses: actions/checkout@v1
-    - run: git clone -b expose-graphviz-modules https://github.com/willcrichton/rust ../rust
-    # --stage 1 has to be explicitly specified, otherwise the toolchain fails
-    - run: cp rustc.config.toml ../rust/config.toml && cd ../rust && ./x.py build --stage 1 && rustup toolchain link local build/x86_64-unknown-linux-gnu/stage1 && rustup default local
-    - uses: actions-rs/cargo@v1
-      with:
-        command: test
-
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
