@@ -45,7 +45,7 @@ impl FlowistryAnalysis for FlowAnalysis {
       &MutabilityMode::DistinguishMut,
       tcx,
       body,
-      body_with_facts.input_facts.outlives,
+      body_with_facts.input_facts.subset_base,
       &vec![],
     );
 

@@ -308,7 +308,7 @@ fn analyze_inner(
       &config.eval_mode.mutability_mode,
       tcx,
       body,
-      body_with_facts.input_facts.outlives,
+      body_with_facts.input_facts.subset_base,
       &extra_places,
     );
 
