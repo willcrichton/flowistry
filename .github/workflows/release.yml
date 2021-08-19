@@ -58,9 +58,18 @@ jobs:
           files: |
             x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu.tar.gz
             x86_64-apple-darwin/x86_64-apple-darwin.tar.gz
+
+  publish-extension:
+    needs: publish-release
+    runs-on: ubuntu-latest
+    steps:
+       - uses: actions/checkout@v1
+       - run: cd ide && npm install && npm run vscode:prepublish && npm install -g vsce 
+       - run: echo ${{ secrets.VSCODE_TOKEN }} | vsce login wcrichton
+       - run: vsce publish
           
   publish-crate:
-    needs: publish-release
+    needs: publish-extension
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
