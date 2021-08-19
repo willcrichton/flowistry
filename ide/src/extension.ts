@@ -40,7 +40,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 
 	let folders = vscode.workspace.workspaceFolders;
-	if (!folders || folders.length == 0) { return; }
+	if (!folders || folders.length === 0) { return; }
 	let workspace_root = folders[0].uri.fsPath;
   log("Workspace root", workspace_root);
 
@@ -74,20 +74,20 @@ export async function activate(context: vscode.ExtensionContext) {
 				return {range};
 			});
 
-			if (decorations.length == 0) {
+			if (decorations.length === 0) {
 				let selected_text = active_editor.document.getText(selection);
 				vscode.window.showInformationMessage(`Slice on "${selected_text}" did not generate any results`);
 				return;
 			}
 
-			active_editor.setDecorations(decoration_type, decorations)
+			active_editor.setDecorations(decoration_type, decorations);
 
 			let callback = vscode.workspace.onDidChangeTextDocument(event => {
 				if (!active_editor) { return; }
-				if (event.document != active_editor.document) { return; }
+				if (event.document !== active_editor.document) { return; }
 				active_editor.setDecorations(decoration_type, []);
 				callback.dispose();
-			})
+			});
 		} catch (exc) {
 			log("ERROR", exc);
 			vscode.window.showErrorMessage(`Flowistry failed with error: ${exc}`);

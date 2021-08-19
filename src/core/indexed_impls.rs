@@ -1,4 +1,5 @@
-use super::indexed::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue};
+use super::indexed::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, ToIndex};
+use crate::to_index_impl;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_index::vec::Enumerated;
 use rustc_middle::{
@@ -13,6 +14,8 @@ rustc_index::newtype_index! {
       DEBUG_FORMAT = "p{}"
   }
 }
+
+to_index_impl!(Place<'tcx>);
 
 struct NormalizedPlaces<'tcx> {
   tcx: TyCtxt<'tcx>,
@@ -132,6 +135,8 @@ rustc_index::newtype_index! {
       DEBUG_FORMAT = "l{}"
   }
 }
+
+to_index_impl!(Location);
 
 impl IndexedValue for Location {
   type Index = LocationIndex;
