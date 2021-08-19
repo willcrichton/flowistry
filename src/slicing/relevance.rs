@@ -3,7 +3,7 @@ use crate::core::{
   aliases::Aliases,
   control_dependencies::ControlDependencies,
   extensions::{ContextMode, MutabilityMode},
-  indexed::{IndexSetIteratorExt, IndexedDomain},
+  indexed::{IndexSet, IndexSetIteratorExt, IndexedDomain},
   indexed_impls::{build_location_domain, LocationDomain, PlaceDomain, PlaceIndex, PlaceSet},
   utils::{self, PlaceRelation},
 };
@@ -181,7 +181,7 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
         relevant_mutated
           .iter()
           .map(|(p, _)| *p)
-          .collect_indices::<Place>(place_domain.clone()),
+          .collect_indices(place_domain.clone()),
         self.analysis
       ),
     );
@@ -255,17 +255,18 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
         let input_mut_ptrs = input_places
           .iter()
           .map(|(i, place)| {
-            let ptr_places = utils::interior_pointers(*place, tcx, self.analysis.body)
-              .into_iter()
-              .filter_map(|(_, (place, mutability))| match mutability {
-                Mutability::Mut => Some(place),
-                Mutability::Not => {
-                  (eval_mode.mutability_mode == MutabilityMode::IgnoreMut).then(|| place)
-                }
-              })
-              .map(|ptr_place| place_domain.index(&tcx.mk_place_deref(ptr_place)))
-              .filter(|deref_place| self.is_relevant(*deref_place))
-              .collect_indices::<Place>(place_domain.clone());
+            let ptr_places: IndexSet<Place> =
+              utils::interior_pointers(*place, tcx, self.analysis.body)
+                .into_iter()
+                .filter_map(|(_, (place, mutability))| match mutability {
+                  Mutability::Mut => Some(place),
+                  Mutability::Not => {
+                    (eval_mode.mutability_mode == MutabilityMode::IgnoreMut).then(|| place)
+                  }
+                })
+                .map(|ptr_place| place_domain.index(&tcx.mk_place_deref(ptr_place)))
+                .filter(|deref_place| self.is_relevant(*deref_place))
+                .collect_indices(place_domain.clone());
 
             (*i, ptr_places)
           })

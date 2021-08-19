@@ -12,6 +12,28 @@ pub trait IndexedValue: Eq + Hash + Clone {
   type Domain: IndexedDomain<Index = Self::Index, Value = Self> = DefaultDomain<Self::Index, Self>;
 }
 
+pub trait ToIndex<T: IndexedValue> {
+  fn to_index(&self, domain: &T::Domain) -> T::Index;
+}
+
+impl<T: IndexedValue> ToIndex<T> for T {
+  fn to_index(&self, domain: &T::Domain) -> T::Index {
+    domain.index(self)
+  }
+}
+
+// Can't make this a blanket impl b/c it conflicts with the blanket impl above :(
+#[macro_export]
+macro_rules! to_index_impl {
+  ($t:ty) => {
+    impl ToIndex<$t> for <$t as IndexedValue>::Index {
+      fn to_index(&self, _domain: &<$t as IndexedValue>::Domain) -> <$t as IndexedValue>::Index {
+        *self
+      }
+    }
+  };
+}
+
 pub trait IndexedDomain {
   type Value: IndexedValue;
   type Index: Idx = <Self::Value as IndexedValue>::Index;
@@ -194,25 +216,44 @@ impl<T: IndexedValue + fmt::Debug> fmt::Debug for IndexSet<T> {
 
 impl<T: IndexedValue + fmt::Debug, C> DebugWithContext<C> for IndexSet<T> {}
 
-pub trait IndexSetIteratorExt: Iterator {
-  fn collect_indices<T: IndexedValue<Index = Self::Item>>(
-    self,
-    domain: Rc<T::Domain>,
-  ) -> IndexSet<T>;
+pub trait IndexSetIteratorExt<T: IndexedValue> {
+  fn collect_indices(self, domain: Rc<T::Domain>) -> IndexSet<T>;
 }
 
-impl<Iter: Iterator> IndexSetIteratorExt for Iter {
-  fn collect_indices<T: IndexedValue<Index = Self::Item>>(
-    self,
-    domain: Rc<T::Domain>,
-  ) -> IndexSet<T> {
-    let mut set = IndexSet::new(domain);
-    for idx in self {
-      set.insert(idx);
+impl<T, S, Iter> IndexSetIteratorExt<T> for Iter
+where
+  T: IndexedValue,
+  Iter: Iterator<Item = S>,
+  S: ToIndex<T>,
+{
+  fn collect_indices(self, domain: Rc<T::Domain>) -> IndexSet<T> {
+    let mut set = IndexSet::new(domain.clone());
+    for s in self {
+      set.insert(s.to_index(&domain));
     }
     set
   }
 }
+
+// pub trait IndexSetIteratorExt: Iterator {
+//   fn collect_indices<T: IndexedValue<Index = Self::Item>>(
+//     self,
+//     domain: Rc<T::Domain>,
+//   ) -> IndexSet<T>;
+// }
+
+// impl<Iter: Iterator> IndexSetIteratorExt for Iter {
+//   fn collect_indices<T: IndexedValue<Index = Self::Item>>(
+//     self,
+//     domain: Rc<T::Domain>,
+//   ) -> IndexSet<T> {
+//     let mut set = IndexSet::new(domain);
+//     for idx in self {
+//       set.insert(idx);
+//     }
+//     set
+//   }
+// }
 
 #[derive(Clone)]
 pub struct IndexMatrix<R: IndexedValue, C: IndexedValue> {
@@ -228,6 +269,22 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
       row_domain,
       col_domain,
     }
+  }
+
+  pub fn insert(&mut self, row: impl ToIndex<R>, col: impl ToIndex<C>) -> bool {
+    let row = row.to_index(&self.row_domain);
+    let col = col.to_index(&self.col_domain);
+    self.matrix.insert(row, col)
+  }
+
+  pub fn union_into_row(&mut self, into: impl ToIndex<R>, from: &IndexSet<C>) -> bool {
+    let into = into.to_index(&self.row_domain);
+    self.matrix.union_into_row(into, &from.set)
+  }
+
+  pub fn row(&self, row: impl ToIndex<R>) -> Option<&HybridBitSet<C::Index>> {
+    let row = row.to_index(&self.row_domain);
+    self.matrix.row(row)
   }
 }
 
@@ -251,17 +308,30 @@ impl<R: IndexedValue, C: IndexedValue> JoinSemiLattice for IndexMatrix<R, C> {
   fn join(&mut self, other: &Self) -> bool {
     let mut changed = false;
     for row in other.matrix.rows() {
-      changed |= self
-        .matrix
-        .union_into_row(row, other.matrix.row(row).unwrap());
+      if let Some(set) = other.matrix.row(row) {
+        changed |= self.matrix.union_into_row(row, set);
+      }
     }
     return changed;
   }
 }
 
 impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug for IndexMatrix<R, C> {
-  fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    todo!()
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{{\n")?;
+    for row in self.matrix.rows() {
+      write!(f, "  {:?}: [", self.row_domain.value(row))?;
+      let n = self.matrix.iter(row).count();
+      for (i, col) in self.matrix.iter(row).enumerate() {
+        write!(f, "{:?}", self.col_domain.value(col))?;
+        if i < n - 1 {
+          write!(f, ", ")?;
+        }
+      }
+      write!(f, "]\n")?;
+    }
+
+    write!(f, "}}")
   }
 }
 
