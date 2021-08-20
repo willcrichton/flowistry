@@ -13,49 +13,9 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-  
-  build-artifacts:
-    needs: test
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            key: x86_64-unknown-linux-gnu
-          # TODO: figure out Windows support
-          # - os: windows-latest
-          #   key: x86_64-pc-windows-msvc
-          - os: macos-latest
-            key: x86_64-apple-darwin
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release
-      - run: tar -czf ${{ matrix.key }}.tar.gz cargo-flowistry flowistry-driver flowistry-rustc
-        working-directory: target/release
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ matrix.key }}
-          path: target/release/${{ matrix.key }}.tar.gz
-
-  publish-release:
-    needs: build-artifacts
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/download-artifact@v2
-      - run: cd ide && npm install && npm run vscode:prepublish && npm pack && mv flowistry-*.tgz vscode-extension.tgz
-      - uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            ide/vscode-extension.tgz
-            x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu.tar.gz
-            x86_64-apple-darwin/x86_64-apple-darwin.tar.gz
 
   publish-extension:
-    needs: publish-release
+    needs: test
     runs-on: ubuntu-latest
     steps:
        - uses: actions/checkout@v1
