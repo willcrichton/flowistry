@@ -1,4 +1,4 @@
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use lazy_static::lazy_static;
 use std::{
   collections::{HashMap, HashSet},
@@ -7,7 +7,7 @@ use std::{
 };
 use tempfile::NamedTempFile;
 
-use flowistry::{Config, Range};
+use flowistry::{Config, Range, SliceOutput};
 
 fn parse_ranges(
   prog: &str,
@@ -44,7 +44,7 @@ fn parse_ranges(
     if let Some(close) = check_token!(&closes) {
       let (start, delim) = stack
         .pop()
-        .ok_or_else(|| anyhow!("Missing open delimiter for \"{}\"", close))?;
+        .with_context(|| anyhow!("Missing open delimiter for \"{}\"", close))?;
       ranges.entry(delim).or_insert_with(Vec::new).push(Range {
         start,
         end: out_idx,
@@ -137,7 +137,7 @@ pub fn flow(prog: &str, qpath: &str) {
   inner().unwrap();
 }
 
-pub fn backward_slice(prog: &str) {
+pub fn slice(prog: &str, cb: impl FnOnce(Config, &[String]) -> Result<SliceOutput>) {
   let inner = move || -> Result<()> {
     let mut f = NamedTempFile::new()?;
     let filename = f.path().to_string_lossy().to_string();
@@ -162,7 +162,7 @@ pub fn backward_slice(prog: &str) {
 
     let args = args.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
 
-    let output = flowistry::slice(config, &args)?;
+    let output = cb(config, &args)?;
     let actual = output.ranges().into_iter().cloned().collect::<HashSet<_>>();
 
     compare_ranges(expected, actual, &prog_clean);
@@ -171,6 +171,14 @@ pub fn backward_slice(prog: &str) {
   };
 
   inner().unwrap();
+}
+
+pub fn backward_slice(prog: &str) {
+  slice(prog, flowistry::backward_slice);
+}
+
+pub fn forward_slice(prog: &str) {
+  slice(prog, flowistry::forward_slice);
 }
 
 lazy_static! {

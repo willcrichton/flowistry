@@ -6,12 +6,38 @@ use crate::core::{
   utils::qpath_to_span,
 };
 use anyhow::Result;
+use dataflow::FlowAnalysis;
 use rustc_hir::BodyId;
-use rustc_middle::ty::{TyCtxt, WithOptConstParam};
-use rustc_mir::{consumers::get_body_with_borrowck_facts, dataflow::Analysis};
+use rustc_middle::ty::{TyCtxt};
+use rustc_mir::{
+  consumers::{BodyWithBorrowckFacts},
+  dataflow::{Analysis, Results},
+};
 use rustc_span::Span;
 
+pub use dataflow::FlowDomain;
+
 mod dataflow;
+
+pub fn compute_flow<'a, 'tcx>(
+  tcx: TyCtxt<'tcx>,
+  body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
+) -> Results<'tcx, FlowAnalysis<'a, 'tcx>> {
+  let body = &body_with_facts.body;
+  let aliases = Aliases::build(
+    &MutabilityMode::DistinguishMut,
+    tcx,
+    body,
+    body_with_facts.input_facts.subset_base.clone(),
+    &vec![],
+  );
+
+  let control_dependencies = ControlDependencies::build(body.clone());
+
+  FlowAnalysis::new(tcx, body, aliases, control_dependencies)
+    .into_engine(tcx, body)
+    .iterate_to_fixpoint()
+}
 
 #[derive(Debug)]
 pub struct FlowOutput;
@@ -24,41 +50,22 @@ impl FlowistryOutput for FlowOutput {
   fn merge(&mut self, _other: Self) {}
 }
 
-struct FlowAnalysis {
+struct FlowHarness {
   qpath: String,
 }
 
-impl FlowistryAnalysis for FlowAnalysis {
+impl FlowistryAnalysis for FlowHarness {
   type Output = FlowOutput;
 
   fn locations(&self, tcx: TyCtxt) -> Vec<Span> {
     vec![qpath_to_span(tcx, self.qpath.clone()).unwrap()]
   }
 
-  fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
-    let local_def_id = tcx.hir().body_owner_def_id(body_id);
-    let body_with_facts =
-      get_body_with_borrowck_facts(tcx, WithOptConstParam::unknown(local_def_id));
-    let body = &body_with_facts.body;
-
-    let aliases = Aliases::build(
-      &MutabilityMode::DistinguishMut,
-      tcx,
-      body,
-      body_with_facts.input_facts.subset_base,
-      &vec![],
-    );
-
-    let control_dependencies = ControlDependencies::build(body.clone());
-
-    let output = dataflow::FlowAnalysis::new(tcx, body, &aliases, &control_dependencies)
-      .into_engine(tcx, body)
-      .iterate_to_fixpoint();
-
+  fn analyze_function(&mut self, _tcx: TyCtxt, _body_id: BodyId) -> Result<Self::Output> {
     Ok(FlowOutput)
   }
 }
 
 pub fn flow(qpath: String, compiler_args: &[String]) -> Result<FlowOutput> {
-  FlowAnalysis { qpath }.run(compiler_args)
+  FlowHarness { qpath }.run(compiler_args)
 }

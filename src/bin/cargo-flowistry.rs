@@ -10,34 +10,32 @@ fn main() {
     .with_file_name("flowistry-rustc");
   let cargo_path = env::var("CARGO_PATH").unwrap_or("cargo".to_string());
 
-  // let matches = App::new("flowistry")
-  //   .setting(AppSettings::TrailingVarArgs)
-  //   .arg(Arg::from_usage("<flags>..."))
-
   let matches = clap_app!(app =>
     (version: "0.1")
     (author: "Will Crichton <wcrichto@cs.stanford.edu>")
     (@setting TrailingVarArg)
     (@subcommand backward_slice =>
       (@arg file:)
-      (@arg start_line:)
-      (@arg start_col:)
-      (@arg end_line:)
-      (@arg end_col:)
+      (@arg start:)
+      (@arg end:)
+      (@arg flags: ...)
+    )
+    (@subcommand forward_slice =>
+      (@arg file:)
+      (@arg start:)
+      (@arg end:)
       (@arg flags: ...)
     )
   )
   .get_matches_from(env::args().skip(1));
 
   let (args, flags) = match matches.subcommand() {
-    ("backward_slice", Some(sub_m)) => (
+    (cmd @ ("backward_slice" | "forward_slice"), Some(sub_m)) => (
       vec![
-        ("COMMAND", "backward_slice"),
+        ("COMMAND", cmd),
         ("FILE", sub_m.value_of("file").unwrap()),
-        ("START_LINE", sub_m.value_of("start_line").unwrap()),
-        ("START_COL", sub_m.value_of("start_col").unwrap()),
-        ("END_LINE", sub_m.value_of("end_line").unwrap()),
-        ("END_COL", sub_m.value_of("end_col").unwrap()),
+        ("START", sub_m.value_of("start").unwrap()),
+        ("END", sub_m.value_of("end").unwrap()),
       ],
       sub_m.value_of("flags"),
     ),

@@ -112,8 +112,8 @@ impl<T: IndexedValue> IndexSet<T> {
       .map(move |index| (index, self.domain.value(index)))
   }
 
-  pub fn insert(&mut self, index: T::Index) {
-    self.set.insert(index);
+  pub fn insert(&mut self, elt: impl ToIndex<T>) {
+    self.set.insert(elt.to_index(&self.domain));
   }
 
   pub fn union(&mut self, other: &Self) -> bool {
@@ -133,8 +133,8 @@ impl<T: IndexedValue> IndexSet<T> {
     }
   }
 
-  pub fn contains(&self, index: T::Index) -> bool {
-    self.set.contains(index)
+  pub fn contains(&self, index: impl ToIndex<T>) -> bool {
+    self.set.contains(index.to_index(&self.domain))
   }
 
   pub fn intersect(&mut self, other: &Self) -> bool {
@@ -163,6 +163,10 @@ impl<T: IndexedValue> IndexSet<T> {
     }
   }
 
+  pub fn is_superset(&self, other: &Self) -> bool {
+    self.set.superset(&other.set)
+  }
+
   pub fn to_hybrid(&self) -> HybridBitSet<T::Index> {
     match &self.set {
       HybridBitSet::Dense(this) => this.to_hybrid(),
@@ -173,7 +177,7 @@ impl<T: IndexedValue> IndexSet<T> {
 
 impl<T: IndexedValue> PartialEq for IndexSet<T> {
   fn eq(&self, other: &Self) -> bool {
-    self.set.superset(&other.set) && other.set.superset(&self.set)
+    self.is_superset(&other) && other.is_superset(&self)
   }
 }
 
@@ -229,31 +233,11 @@ where
   fn collect_indices(self, domain: Rc<T::Domain>) -> IndexSet<T> {
     let mut set = IndexSet::new(domain.clone());
     for s in self {
-      set.insert(s.to_index(&domain));
+      set.insert(s);
     }
     set
   }
 }
-
-// pub trait IndexSetIteratorExt: Iterator {
-//   fn collect_indices<T: IndexedValue<Index = Self::Item>>(
-//     self,
-//     domain: Rc<T::Domain>,
-//   ) -> IndexSet<T>;
-// }
-
-// impl<Iter: Iterator> IndexSetIteratorExt for Iter {
-//   fn collect_indices<T: IndexedValue<Index = Self::Item>>(
-//     self,
-//     domain: Rc<T::Domain>,
-//   ) -> IndexSet<T> {
-//     let mut set = IndexSet::new(domain);
-//     for idx in self {
-//       set.insert(idx);
-//     }
-//     set
-//   }
-// }
 
 #[derive(Clone)]
 pub struct IndexMatrix<R: IndexedValue, C: IndexedValue> {
@@ -282,9 +266,35 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
     self.matrix.union_into_row(into, &from.set)
   }
 
-  pub fn row(&self, row: impl ToIndex<R>) -> Option<&HybridBitSet<C::Index>> {
+  pub fn row_indices<'a>(&'a self, row: impl ToIndex<R>) -> impl Iterator<Item = C::Index> + 'a {
     let row = row.to_index(&self.row_domain);
-    self.matrix.row(row)
+    self
+      .matrix
+      .row(row)
+      .into_iter()
+      .map(|set| set.iter())
+      .flatten()
+  }
+
+  pub fn row<'a>(&'a self, row: impl ToIndex<R> + 'a) -> impl Iterator<Item = &'a C> + 'a {
+    self
+      .row_indices(row)
+      .map(move |idx| self.col_domain.value(idx))
+  }
+
+  pub fn row_set(&self, row: impl ToIndex<R>) -> IndexSet<C> {
+    let row = row.to_index(&self.row_domain);
+    let set = self
+      .matrix
+      .row(row)
+      .cloned()
+      .unwrap_or_else(|| HybridBitSet::new_empty(self.col_domain.len()));
+    let domain = self.col_domain.clone();
+    IndexSet { set, domain }
+  }
+
+  pub fn rows(&self) -> impl Iterator<Item = R::Index> {
+    self.matrix.rows()
   }
 }
 

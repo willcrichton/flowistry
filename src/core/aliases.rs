@@ -1,6 +1,6 @@
 use super::{
   extensions::MutabilityMode,
-  indexed::{IndexSetIteratorExt, IndexedDomain},
+  indexed::{IndexSetIteratorExt, IndexedDomain, ToIndex},
   indexed_impls::{PlaceDomain, PlaceIndex, PlaceSet},
   utils::{self, elapsed, PlaceRelation},
 };
@@ -95,7 +95,8 @@ impl Aliases<'tcx> {
       })
   }
 
-  pub fn loans(&self, place_index: PlaceIndex) -> PlaceSet<'tcx> {
+  pub fn loans(&self, place: impl ToIndex<Place<'tcx>>) -> PlaceSet<'tcx> {
+    let place_index = place.to_index(&self.place_domain);
     let compute_loans = || {
       let place = *self.place_domain.value(place_index);
       let mut set: PlaceSet<'tcx> = self

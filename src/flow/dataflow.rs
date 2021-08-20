@@ -1,9 +1,9 @@
 use crate::core::{
   aliases::Aliases,
   control_dependencies::ControlDependencies,
-  indexed::{IndexMatrix, IndexSet, IndexSetIteratorExt},
+  indexed::{IndexMatrix, IndexSet, IndexSetIteratorExt, IndexedDomain},
   indexed_impls::{build_location_domain, LocationDomain},
-  utils::PlaceCollector,
+  utils::{self, PlaceCollector, PlaceRelation},
 };
 use rustc_middle::{
   mir::{visit::Visitor, *},
@@ -19,38 +19,114 @@ struct TransferFunction<'a, 'b, 'tcx> {
   state: &'a mut FlowDomain<'tcx>,
 }
 
+impl TransferFunction<'_, '_, 'tcx> {
+  fn apply_mutation(&mut self, mutated: Place<'tcx>, inputs: &[Place<'tcx>], location: Location) {
+    let place_domain = &self.analysis.aliases.place_domain;
+    let location_domain = &self.analysis.location_domain;
+
+    let mut locations: IndexSet<Location> = inputs
+      .iter()
+      .map(|place| self.state.row_indices(*place))
+      .flatten()
+      .collect_indices(location_domain.clone());
+    locations.insert(location);
+
+    let aliases = self.analysis.aliases.loans(mutated);
+    for alias in aliases.iter() {
+      let conflicting_places = place_domain
+        .iter_enumerated()
+        .filter(|(_, place)| PlaceRelation::of(**place, *alias).overlaps());
+      for (_, conflict) in conflicting_places {
+        self.state.union_into_row(*conflict, &locations);
+      }
+    }
+  }
+}
+
 impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
   fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
-    self.state.insert(*place, location);
-
     let mut collector = PlaceCollector::default();
     collector.visit_rvalue(rvalue, location);
-    let locations: IndexSet<Location> = collector
-      .places
-      .into_iter()
-      .filter_map(|place| self.state.row(place).map(|set| set.iter()))
-      .flatten()
-      .collect_indices(self.analysis.location_domain.clone());
-    self.state.union_into_row(*place, &locations);
+    self.apply_mutation(*place, &collector.places, location);
+  }
 
-    println!("{:?}", self.state);
+  fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
+    let tcx = self.analysis.tcx;
+
+    match &terminator.kind {
+      TerminatorKind::SwitchInt { discr, .. } => {
+        for place_idx in self.state.rows() {
+          let effect_dependent = self.state.row(place_idx).any(|effect_loc| {
+            self
+              .analysis
+              .control_dependencies
+              .is_dependent(effect_loc.block, location.block)
+          });
+
+          if effect_dependent {
+            if let Some(place) = utils::operand_to_place(discr) {
+              self
+                .state
+                .union_into_row(place_idx, &self.state.row_set(place));
+            }
+            self.state.insert(place_idx, location);
+          }
+        }
+      }
+
+      TerminatorKind::Call {
+        /*func,*/ // TODO: deal with func
+        args,
+        destination,
+        ..
+      } => {
+        let arg_places = args
+          .iter()
+          .filter_map(|arg| utils::operand_to_place(arg))
+          .collect::<Vec<_>>();
+
+        if let Some((dst_place, _)) = destination {
+          self.apply_mutation(*dst_place, &arg_places, location);
+        }
+
+        let arg_mut_ptrs = arg_places
+          .iter()
+          .map(|place| {
+            utils::interior_pointers(*place, tcx, self.analysis.body)
+              .into_iter()
+              .filter_map(|(_, (place, mutability))| match mutability {
+                Mutability::Mut => Some(place),
+                Mutability::Not => None,
+              })
+              .map(|place| tcx.mk_place_deref(place))
+          })
+          .flatten()
+          .collect::<Vec<_>>();
+
+        for mut_ptr in arg_mut_ptrs {
+          self.apply_mutation(mut_ptr, &arg_places, location);
+        }
+      }
+
+      _ => {}
+    }
   }
 }
 
 pub struct FlowAnalysis<'a, 'tcx> {
   tcx: TyCtxt<'tcx>,
   body: &'a Body<'tcx>,
-  control_dependencies: &'a ControlDependencies,
-  aliases: &'a Aliases<'tcx>,
-  location_domain: Rc<LocationDomain>,
+  control_dependencies: ControlDependencies,
+  aliases: Aliases<'tcx>,
+  pub location_domain: Rc<LocationDomain>,
 }
 
 impl FlowAnalysis<'a, 'tcx> {
   pub fn new(
     tcx: TyCtxt<'tcx>,
     body: &'a Body<'tcx>,
-    aliases: &'a Aliases<'tcx>,
-    control_dependencies: &'a ControlDependencies,
+    aliases: Aliases<'tcx>,
+    control_dependencies: ControlDependencies,
   ) -> Self {
     let location_domain = build_location_domain(body);
 
@@ -95,11 +171,15 @@ impl Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
 
   fn apply_terminator_effect(
     &self,
-    _state: &mut Self::Domain,
-    _terminator: &Terminator<'tcx>,
-    _location: Location,
+    state: &mut Self::Domain,
+    terminator: &Terminator<'tcx>,
+    location: Location,
   ) {
-    // todo!()
+    let mut tf = TransferFunction {
+      state,
+      analysis: self,
+    };
+    tf.visit_terminator(terminator, location);
   }
 
   fn apply_call_return_effect(
