@@ -6,9 +6,9 @@ mod utils;
 fn basic_slice_constant() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `(1)`;
-  let `[y]` = `[`[x]` + 2]`;
-  let `[z]` = `[y]`;
+  `[let mut x = `(1)`;]`
+  `[let y = `[`[x]` + 2]`;]`
+  `[let z = `[y]`;]`
 }
 "#;
 
@@ -19,9 +19,9 @@ fn main() {
 fn basic_slice_variable() {
   let src = r#"
 fn main() {
-  let `(mut x)` = `[1]`;
-  let `[y]` = `[`[x]` + 2]`;
-  let `[z]` = `[y]`;
+  `(let mut x = `[1]`;)`
+  `[let y = `[`[x]` + 2]`;]`
+  `[let z = `[y]`;]`
 }
 "#;
 
@@ -32,9 +32,9 @@ fn main() {
 fn basic_unused() {
   let src = r#"
 fn main() {
-  let `(x)` = `[1]`;
+  `(let x = `[1]`;)`
   let y = 1 + 2;
-  let `[z]` = `[`[x]` + y]`;
+  `[let z = `[`[x]` + y]`;]`
 }
 "#;
 
@@ -42,11 +42,28 @@ fn main() {
 }
 
 #[test]
+fn condition() {
+  let src = r#"
+fn main() {
+  `(let x = `[1]`;)`
+  let y = 2;
+  `[let z = if true {
+    `[x]`
+  } else {
+    y
+  };]`
+  `[let w = `[z]`;]`
+}"#;
+  
+  utils::forward_slice(src);  
+}
+
+#[test]
 fn pointer_write() {
   let src = r#"
 fn main() {
-  let `(mut x)` = `[1]`;
-  let `[y]` = `[&mut x]`;
+  `(let mut x = `[1]`;)`
+  `[let y = `[&mut x]`;]`
   `[*y += 2]`;
 }
 "#;

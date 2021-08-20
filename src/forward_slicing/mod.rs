@@ -2,7 +2,7 @@ use crate::{
   backward_slicing::{Config, Range, SliceOutput},
   core::{
     analysis::{FlowistryAnalysis, FlowistryOutput},
-    indexed::{IndexSet},
+    indexed::IndexSet,
     utils,
   },
   flow::{compute_flow, FlowDomain},
@@ -18,7 +18,7 @@ use rustc_middle::{
   ty::{TyCtxt, WithOptConstParam},
 };
 use rustc_mir::{
-  consumers::{get_body_with_borrowck_facts},
+  consumers::get_body_with_borrowck_facts,
   dataflow::{ResultsCursor, ResultsVisitor},
 };
 use rustc_span::Span;
@@ -73,8 +73,6 @@ struct ForwardSliceAnalysis {
   config: Config,
 }
 
-
-
 impl FlowistryAnalysis for ForwardSliceAnalysis {
   type Output = SliceOutput;
 
@@ -111,13 +109,18 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     };
     results.visit_reachable_with(body, &mut visitor);
 
+    let hir_body = tcx.hir().body(body_id);
+    let spanner = utils::HirSpanner::new(hir_body);
+
     let source_map = tcx.sess.source_map();
     let ranges = visitor
       .relevant
       .iter()
       .filter_map(|location| {
-        let span = body.source_info(*location).span;
-        Range::from_span(span, source_map).ok()
+        let mir_span = body.source_info(*location).span;
+        spanner
+          .find_enclosing_hir_span(mir_span)
+          .and_then(|hir_span| Range::from_span(hir_span, source_map).ok())
       })
       .collect::<Vec<_>>();
 

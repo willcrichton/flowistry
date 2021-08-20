@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_index::{
   bit_set::{HybridBitSet, SparseBitMatrix},

@@ -1,10 +1,9 @@
-pub use super::indexed_impls::{PlaceDomain, PlaceIndex, PlaceSet};
-use anyhow::{anyhow, bail, Result};
-use log::{info, warn};
+pub use crate::core::indexed_impls::{PlaceDomain, PlaceIndex, PlaceSet};
+use anyhow::{bail, Result};
+use log::{warn};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_graphviz as dot;
 use rustc_middle::{
-  hir::map::Map,
   mir::{
     visit::{PlaceContext, Visitor},
     *,
@@ -15,11 +14,11 @@ use rustc_mir::{
   dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results},
   util::write_mir_fn,
 };
-use rustc_span::{FileName, RealFileName, SourceFile, Span};
+use rustc_span::{Span};
 use rustc_target::abi::VariantIdx;
 use std::{
-  collections::hash_map::Entry, fs::File, hash::Hash, io::Write, ops::ControlFlow, path::Path,
-  process::Command, rc::Rc, time::Instant,
+  collections::hash_map::Entry, fs::File, hash::Hash, io::Write, ops::ControlFlow,
+  process::Command,
 };
 
 pub fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
@@ -277,90 +276,6 @@ pub fn pointer_for_place(place: Place<'tcx>, tcx: TyCtxt<'tcx>) -> Option<Place<
       local: place_ref.local,
       projection: tcx.intern_place_elems(place_ref.projection),
     })
-}
-
-pub fn path_to_source_file<'tcx>(
-  path: impl AsRef<str>,
-  tcx: TyCtxt<'tcx>,
-) -> Result<Rc<SourceFile>> {
-  let source_map = tcx.sess.source_map();
-  let files = source_map.files();
-  let path = path.as_ref();
-  let target_file = Path::new(&path).canonicalize().unwrap();
-  files
-    .iter()
-    .find(|file| {
-      if let FileName::Real(RealFileName::LocalPath(other_path)) = &file.name {
-        target_file == other_path.canonicalize().unwrap()
-      } else {
-        false
-      }
-    })
-    .map(|file| file.clone())
-    .ok_or_else(|| anyhow!("Could not find file {} out of files {:#?}", path, **files))
-}
-
-pub fn elapsed(name: &str, start: Instant) {
-  info!("{} took {}s", name, start.elapsed().as_nanos() as f64 / 1e9)
-}
-
-pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Option<Span> {
-  use rustc_hir::{
-    intravisit::{self, NestedVisitorMap, Visitor},
-    itemlikevisit::ItemLikeVisitor,
-    BodyId,
-  };
-
-  struct Finder<'tcx> {
-    tcx: TyCtxt<'tcx>,
-    qpath: String,
-    span: Option<Span>,
-  }
-
-  impl Visitor<'tcx> for Finder<'tcx> {
-    type Map = Map<'tcx>;
-
-    fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
-      NestedVisitorMap::OnlyBodies(self.tcx.hir())
-    }
-
-    fn visit_nested_body(&mut self, id: BodyId) {
-      intravisit::walk_body(self, self.tcx.hir().body(id));
-
-      let local_def_id = self.tcx.hir().body_owner_def_id(id);
-      let function_path = self
-        .tcx
-        .def_path(local_def_id.to_def_id())
-        .to_string_no_crate_verbose();
-      if &function_path[2..] == self.qpath {
-        self.span = Some(self.tcx.hir().span(id.hir_id));
-      }
-    }
-  }
-
-  impl ItemLikeVisitor<'hir> for Finder<'tcx>
-  where
-    'hir: 'tcx,
-  {
-    fn visit_item(&mut self, item: &'hir rustc_hir::Item<'hir>) {
-      <Self as Visitor<'tcx>>::visit_item(self, item);
-    }
-
-    fn visit_impl_item(&mut self, impl_item: &'hir rustc_hir::ImplItem<'hir>) {
-      <Self as Visitor<'tcx>>::visit_impl_item(self, impl_item);
-    }
-
-    fn visit_trait_item(&mut self, _trait_item: &'hir rustc_hir::TraitItem<'hir>) {}
-    fn visit_foreign_item(&mut self, _foreign_item: &'hir rustc_hir::ForeignItem<'hir>) {}
-  }
-
-  let mut finder = Finder {
-    tcx,
-    qpath,
-    span: None,
-  };
-  tcx.hir().krate().visit_all_item_likes(&mut finder);
-  return finder.span;
 }
 
 struct FindSpannedPlaces<'a, 'tcx> {

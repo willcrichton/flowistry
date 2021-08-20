@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use anyhow::{anyhow, bail, Context, Result};
 use lazy_static::lazy_static;
 use std::{
