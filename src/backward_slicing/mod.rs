@@ -4,15 +4,14 @@ use crate::core::{
   control_dependencies::ControlDependencies,
   indexed::{IndexSetIteratorExt, IndexedDomain},
   indexed_impls::{LocationDomain, PlaceDomain, PlaceSet},
-  utils::elapsed,
+  utils::{elapsed, self}
 };
 use relevance::{RelevanceAnalysis, SliceSet};
 use relevance_domain::RelevanceDomain;
 
-use anyhow::{bail, Result};
+use anyhow::{Result};
 use log::debug;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
-use rustc_graphviz as dot;
 use rustc_hir::BodyId;
 use rustc_index::bit_set::BitSet;
 use rustc_middle::{
@@ -25,17 +24,14 @@ use rustc_middle::{
 };
 use rustc_mir::{
   consumers::get_body_with_borrowck_facts,
-  dataflow::{fmt::DebugWithContext, Analysis, Results, ResultsVisitor},
+  dataflow::{Analysis, ResultsVisitor},
 };
 use rustc_span::Span;
 use serde::Serialize;
 use std::{
   cell::RefCell,
   collections::hash_map::DefaultHasher,
-  fs::File,
   hash::{Hash, Hasher},
-  io::Write,
-  process::Command,
   rc::Rc,
   thread_local,
   time::Instant,
@@ -182,24 +178,7 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
   }
 }
 
-fn dump_results<'tcx, A>(path: &str, body: &Body<'tcx>, results: &Results<'tcx, A>) -> Result<()>
-where
-  A: Analysis<'tcx>,
-  A::Domain: DebugWithContext<A>,
-{
-  // let graphviz = graphviz::Formatter::new(body, &results, graphviz::OutputStyle::AfterOnly);
-  // let mut buf = Vec::new();
-  // dot::render(&graphviz, &mut buf)?;
-  // let mut file = File::create("/tmp/graph.dot")?;
-  // file.write_all(&buf)?;
-  // let status = Command::new("dot")
-  //   .args(&["-Tpng", "/tmp/graph.dot", "-o", path])
-  //   .status()?;
-  // if !status.success() {
-  //   bail!("dot for {} failed", path)
-  // };
-  Ok(())
-}
+
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum SliceLocation<'tcx> {
@@ -278,10 +257,7 @@ fn analyze_inner(
 
     let start = Instant::now();
     if config.debug {
-      // let mut buffer = Vec::new();
-      // write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
-      // debug!("{}", String::from_utf8(buffer)?);
-      // debug!("outlives constraints {:#?}", outlives_constraints);
+      debug!("{}", utils::mir_to_string(tcx, body)?);
     }
 
     // let should_be_conservative = config.eval_mode.pointer_mode == PointerMode::Conservative;
@@ -327,7 +303,7 @@ fn analyze_inner(
     elapsed("fixpoint", start);
 
     if config.debug && body_stack.borrow().len() == 1 {
-      dump_results("target/relevance.png", body, &relevance_results)?;
+      utils::dump_results("target/relevance.png", body, &relevance_results)?;
     }
 
     let start = Instant::now();
@@ -383,7 +359,7 @@ thread_local! {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SliceOutput {
-  ranges: Vec<Range>,
+  pub ranges: Vec<Range>,
   pub num_instructions: usize,
   pub num_relevant_instructions: usize,
   pub mutated_inputs: HashSet<usize>,
@@ -466,6 +442,6 @@ impl FlowistryAnalysis for SlicerAnalysis {
   }
 }
 
-pub fn slice(config: Config, compiler_args: &[String]) -> Result<SliceOutput> {
+pub fn backward_slice(config: Config, compiler_args: &[String]) -> Result<SliceOutput> {
   SlicerAnalysis { config }.run(compiler_args)
 }

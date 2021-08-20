@@ -1,7 +1,8 @@
 pub use super::indexed_impls::{PlaceDomain, PlaceIndex, PlaceSet};
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use log::{info, warn};
 use rustc_data_structures::fx::FxHashMap as HashMap;
+use rustc_graphviz as dot;
 use rustc_middle::{
   hir::map::Map,
   mir::{
@@ -10,10 +11,15 @@ use rustc_middle::{
   },
   ty::{self, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS, TypeFoldable, TypeVisitor},
 };
+use rustc_mir::{
+  dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results},
+  util::write_mir_fn,
+};
 use rustc_span::{FileName, RealFileName, SourceFile, Span};
 use rustc_target::abi::VariantIdx;
 use std::{
-  collections::hash_map::Entry, hash::Hash, ops::ControlFlow, path::Path, rc::Rc, time::Instant,
+  collections::hash_map::Entry, fs::File, hash::Hash, io::Write, ops::ControlFlow, path::Path,
+  process::Command, rc::Rc, time::Instant,
 };
 
 pub fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
@@ -355,4 +361,72 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Option<Span> {
   };
   tcx.hir().krate().visit_all_item_likes(&mut finder);
   return finder.span;
+}
+
+struct FindSpannedPlaces<'a, 'tcx> {
+  body: &'a Body<'tcx>,
+  span: Span,
+  places: Vec<(Place<'tcx>, Location)>,
+}
+
+impl Visitor<'tcx> for FindSpannedPlaces<'_, 'tcx> {
+  fn visit_place(&mut self, place: &Place<'tcx>, context: PlaceContext, location: Location) {
+    // assignments to return value have a span of the entire function, which we want to avoid
+    if let Some(local) = place.as_local() {
+      if local.as_usize() == 0 {
+        return;
+      }
+    }
+
+    // Ignore debug-info places whose locations are all assigned to the start of the entry block
+    if !context.is_use() {
+      return;
+    }
+
+    let source_info = self.body.source_info(location);
+    let span = source_info.span;
+
+    if self.span.contains(span) || span.contains(self.span) {
+      self.places.push((*place, location))
+    }
+  }
+}
+
+pub fn span_to_places(body: &Body<'tcx>, span: Span) -> Vec<(Place<'tcx>, Location)> {
+  let mut visitor = FindSpannedPlaces {
+    body,
+    span,
+    places: Vec::new(),
+  };
+  visitor.visit_body(body);
+  visitor.places
+}
+
+pub fn dump_results<'tcx, A>(
+  path: &str,
+  body: &Body<'tcx>,
+  results: &Results<'tcx, A>,
+) -> Result<()>
+where
+  A: Analysis<'tcx>,
+  A::Domain: DebugWithContext<A>,
+{
+  let graphviz = graphviz::Formatter::new(body, &results, graphviz::OutputStyle::AfterOnly);
+  let mut buf = Vec::new();
+  dot::render(&graphviz, &mut buf)?;
+  let mut file = File::create("/tmp/graph.dot")?;
+  file.write_all(&buf)?;
+  let status = Command::new("dot")
+    .args(&["-Tpng", "/tmp/graph.dot", "-o", path])
+    .status()?;
+  if !status.success() {
+    bail!("dot for {} failed", path)
+  };
+  Ok(())
+}
+
+pub fn mir_to_string(tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> Result<String> {
+  let mut buffer = Vec::new();
+  write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
+  Ok(String::from_utf8(buffer)?)
 }

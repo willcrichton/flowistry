@@ -10,7 +10,7 @@ where
   T::Err: Debug,
 {
   env::var(format!("FLOWISTRY_{}", s))
-    .unwrap()
+    .expect(&format!("Missing argument: {}", s))
     .parse()
     .unwrap()
 }
@@ -28,7 +28,7 @@ fn main() {
   env_logger::init();
 
   let exit_code = rustc_driver::catch_with_exit_code(|| match arg::<String>("COMMAND").as_str() {
-    "backward_slice" => {
+    cmd @ ("backward_slice" | "forward_slice") => {
       let range = flowistry::Range {
         start: arg::<usize>("START"),
         end: arg::<usize>("END"),
@@ -38,7 +38,11 @@ fn main() {
         range,
         ..Default::default()
       };
-      let slice = flowistry::slice(config, &args).unwrap();
+      let slice = if cmd == "backward_slice" {
+        flowistry::backward_slice(config, &args).unwrap()
+      } else {
+        flowistry::forward_slice(config, &args).unwrap()
+      };
       println!("{}", serde_json::to_string(&slice).unwrap());
       Ok(())
     }
