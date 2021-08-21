@@ -1,4 +1,5 @@
 use clap::clap_app;
+use rustc_version_runtime::version_meta;
 use std::{
   env,
   process::{exit, Command},
@@ -14,6 +15,7 @@ fn main() {
     (version: "0.1")
     (author: "Will Crichton <wcrichto@cs.stanford.edu>")
     (@setting TrailingVarArg)
+    (@subcommand rustc_version =>)
     (@subcommand backward_slice =>
       (@arg file:)
       (@arg start:)
@@ -30,6 +32,10 @@ fn main() {
   .get_matches_from(env::args().skip(1));
 
   let (args, flags) = match matches.subcommand() {
+    ("rustc_version", _) => {
+      println!("{}", version_meta().commit_hash.unwrap());
+      exit(0);
+    }
     (cmd @ ("backward_slice" | "forward_slice"), Some(sub_m)) => (
       vec![
         ("COMMAND", cmd),

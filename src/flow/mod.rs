@@ -8,9 +8,9 @@ use crate::core::{
 use anyhow::Result;
 use dataflow::FlowAnalysis;
 use rustc_hir::BodyId;
-use rustc_middle::ty::{TyCtxt};
+use rustc_middle::ty::TyCtxt;
 use rustc_mir::{
-  consumers::{BodyWithBorrowckFacts},
+  consumers::BodyWithBorrowckFacts,
   dataflow::{Analysis, Results},
 };
 use rustc_span::Span;
