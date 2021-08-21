@@ -4,12 +4,12 @@ use crate::core::{
   control_dependencies::ControlDependencies,
   indexed::{IndexSetIteratorExt, IndexedDomain},
   indexed_impls::{LocationDomain, PlaceDomain, PlaceSet},
-  utils::{elapsed, self}
+  utils::{self, elapsed},
 };
 use relevance::{RelevanceAnalysis, SliceSet};
 use relevance_domain::RelevanceDomain;
 
-use anyhow::{Result};
+use anyhow::Result;
 use log::debug;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir::BodyId;
@@ -177,8 +177,6 @@ impl<'a, 'mir, 'tcx> ResultsVisitor<'mir, 'tcx> for CollectResults<'a, 'tcx> {
     self.num_instructions += 1;
   }
 }
-
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum SliceLocation<'tcx> {

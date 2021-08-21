@@ -54,8 +54,8 @@ fn main() {
   };]`
   `[let w = `[z]`;]`
 }"#;
-  
-  utils::forward_slice(src);  
+
+  utils::forward_slice(src);
 }
 
 #[test]

@@ -1,6 +1,6 @@
 pub use crate::core::indexed_impls::{PlaceDomain, PlaceIndex, PlaceSet};
 use anyhow::{bail, Result};
-use log::{warn};
+use log::warn;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_graphviz as dot;
 use rustc_middle::{
@@ -14,11 +14,10 @@ use rustc_mir::{
   dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results},
   util::write_mir_fn,
 };
-use rustc_span::{Span};
+use rustc_span::Span;
 use rustc_target::abi::VariantIdx;
 use std::{
-  collections::hash_map::Entry, fs::File, hash::Hash, io::Write, ops::ControlFlow,
-  process::Command,
+  collections::hash_map::Entry, fs::File, hash::Hash, io::Write, ops::ControlFlow, process::Command,
 };
 
 pub fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {

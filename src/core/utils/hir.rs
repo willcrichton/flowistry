@@ -128,7 +128,7 @@ impl HirSpanner {
     self
       .spans
       .iter()
-      .filter(|hir_span| hir_span.contains(span))      
+      .filter(|hir_span| hir_span.contains(span))
       .min_by_key(|hir_span| hir_span.hi() - hir_span.lo())
       .cloned()
   }
