@@ -1,5 +1,3 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import * as cp from "child_process";
 import * as util from "util";
@@ -27,8 +25,6 @@ let show_error = (err: string) => {
   vscode.window.showErrorMessage(`Flowistry error: ${err}`);
 };
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
   log("Activating...");
 
@@ -40,6 +36,17 @@ export async function activate(context: vscode.ExtensionContext) {
     let workspace_root = folders[0].uri.fsPath;
     log("Workspace root", workspace_root);
 
+    try {
+      await exec('cargo flowistry -V');
+    } catch (e) {
+      let outcome = await vscode.window.showInformationMessage("The Flowistry crate needs to be installed. Would you like to automatically install it now?", ...["Install", "Cancel"]);
+      if (outcome === "Cancel") {
+        return;
+      }
+
+      await exec('cargo +nightly install flowistry');
+    }
+    
     let get_libdir = async (): Promise<string> => {
       let { stdout } = await exec("rustc --print target-libdir", {cwd: workspace_root});
       return stdout.trim();
@@ -168,10 +175,6 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.window.showErrorMessage(`Flowistry failed with error: ${exc}`);
       }
     };
-
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with registerCommand
-    // The commandId parameter must match the command field in package.json
 
     let register_with_opts = (name: string, f: () => void) => {
       let disposable = vscode.commands.registerCommand(`flowistry.${name}`, f);
