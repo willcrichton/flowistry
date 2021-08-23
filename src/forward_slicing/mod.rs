@@ -39,15 +39,16 @@ impl Visitor<'tcx> for FlowPlaceVisitor<'_, 'tcx> {
       return;
     }
 
-    let place_deps = self.state.row_set(*place);
-    if self
-      .visitor
-      .targets
-      .iter()
-      .any(|target| place_deps.is_superset(target))
-    {
-      debug!("ADDING LOCATION {:?}", location);
-      self.visitor.relevant.insert(location);
+    if let Some(place_deps) = self.state.row_set(*place) {
+      if self
+        .visitor
+        .targets
+        .iter()
+        .any(|target| place_deps.is_superset(target))
+      {
+        debug!("ADDING LOCATION {:?}", location);
+        self.visitor.relevant.insert(location);
+      }
     }
   }
 }
@@ -88,7 +89,7 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     debug!("{}", utils::mir_to_string(tcx, body)?);
 
     let results = compute_flow(tcx, &body_with_facts);
-    let location_domain = results.analysis.location_domain.clone();
+    // utils::dump_results("target/flow.png", body, &results)?;
 
     let sliced_places = utils::span_to_places(body, self.config.range.to_span());
     debug!("sliced_places {:?}", sliced_places);
@@ -96,16 +97,16 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     let mut cursor = ResultsCursor::new(body, &results);
     let targets = sliced_places
       .into_iter()
-      .map(|(place, location)| {
+      .filter_map(|(place, location)| {
         cursor.seek_after_primary_effect(location);
-        cursor.get().row_set(place)
+        cursor.get().row_set(place).map(|set| set.to_owned())
       })
       .collect::<Vec<_>>();
     debug!("targets: {:?}", targets);
 
     let mut visitor = FlowResultsVisitor {
       targets,
-      relevant: IndexSet::new(location_domain.clone()),
+      relevant: IndexSet::new(results.analysis.location_domain.clone()),
     };
     results.visit_reachable_with(body, &mut visitor);
 
