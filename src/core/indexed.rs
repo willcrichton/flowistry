@@ -7,7 +7,13 @@ use rustc_index::{
 };
 
 use rustc_mir::dataflow::{fmt::DebugWithContext, JoinSemiLattice};
-use std::{fmt, hash::Hash, rc::Rc, slice::Iter};
+use std::{
+  fmt,
+  hash::Hash,
+  ops::{Deref, DerefMut},
+  rc::Rc,
+  slice::Iter,
+};
 
 pub trait IndexedValue: Eq + Hash + Clone {
   type Index: Idx;
@@ -86,16 +92,70 @@ impl<I: Idx, T: IndexedValue> IndexedDomain for DefaultDomain<I, T> {
   }
 }
 
-pub struct IndexSet<T: IndexedValue> {
-  set: HybridBitSet<T::Index>,
+#[derive(Clone)]
+pub struct OwnedSet<T: IndexedValue>(HybridBitSet<T::Index>);
+#[derive(Clone, Copy)]
+pub struct RefSet<'a, T: IndexedValue>(&'a HybridBitSet<T::Index>);
+pub struct MutSet<'a, T: IndexedValue>(&'a mut HybridBitSet<T::Index>);
+
+impl<T: IndexedValue> Deref for OwnedSet<T> {
+  type Target = HybridBitSet<T::Index>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
+impl<T: IndexedValue> DerefMut for OwnedSet<T> {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.0
+  }
+}
+
+impl<T: IndexedValue> Deref for RefSet<'_, T> {
+  type Target = HybridBitSet<T::Index>;
+
+  fn deref(&self) -> &Self::Target {
+    self.0
+  }
+}
+
+pub trait ToSet<T: IndexedValue>: Deref<Target = HybridBitSet<T::Index>> {}
+pub trait ToSetMut<T: IndexedValue>: DerefMut<Target = HybridBitSet<T::Index>> {}
+
+impl<S: Deref<Target = HybridBitSet<T::Index>>, T: IndexedValue> ToSet<T> for S {}
+impl<S: DerefMut<Target = HybridBitSet<T::Index>>, T: IndexedValue> ToSetMut<T> for S {}
+
+pub struct IndexSet<T: IndexedValue, S = OwnedSet<T>> {
+  set: S,
   domain: Rc<T::Domain>,
 }
 
-impl<T: IndexedValue> IndexSet<T> {
+impl<T: IndexedValue> IndexSet<T, OwnedSet<T>> {
   pub fn new(domain: Rc<T::Domain>) -> Self {
     IndexSet {
-      set: HybridBitSet::new_empty(domain.len()),
+      set: OwnedSet(HybridBitSet::new_empty(domain.len())),
       domain,
+    }
+  }
+}
+
+impl<T, S> IndexSet<T, S>
+where
+  T: IndexedValue,
+  S: ToSet<T>,
+{
+  pub fn to_owned(&self) -> IndexSet<T, OwnedSet<T>> {
+    IndexSet {
+      set: OwnedSet(self.set.clone()),
+      domain: self.domain.clone(),
+    }
+  }
+
+  pub fn as_ref(&self) -> IndexSet<T, RefSet<T>> {
+    IndexSet {
+      set: RefSet(&*self.set),
+      domain: self.domain.clone(),
     }
   }
 
@@ -114,8 +174,27 @@ impl<T: IndexedValue> IndexSet<T> {
       .map(move |index| (index, self.domain.value(index)))
   }
 
+  pub fn contains(&self, index: impl ToIndex<T>) -> bool {
+    let elem = index.to_index(&self.domain);
+    self.set.contains(elem)
+  }
+
+  pub fn len(&self) -> usize {
+    match &*self.set {
+      HybridBitSet::Dense(this) => this.count(),
+      HybridBitSet::Sparse(_) => self.set.iter().count(),
+    }
+  }
+
+  pub fn is_superset<S2: ToSet<T>>(&self, other: &IndexSet<T, S2>) -> bool {
+    self.set.superset(&*other.set)
+  }
+}
+
+impl<T: IndexedValue, S: ToSetMut<T>> IndexSet<T, S> {
   pub fn insert(&mut self, elt: impl ToIndex<T>) {
-    self.set.insert(elt.to_index(&self.domain));
+    let elt = elt.to_index(&self.domain);
+    self.set.insert(elt);
   }
 
   pub fn union(&mut self, other: &Self) -> bool {
@@ -123,7 +202,7 @@ impl<T: IndexedValue> IndexSet<T> {
   }
 
   pub fn subtract(&mut self, other: &Self) -> bool {
-    match (&mut self.set, &other.set) {
+    match (&mut *self.set, &*other.set) {
       (HybridBitSet::Dense(this), HybridBitSet::Dense(other)) => this.subtract(other),
       (this, other) => {
         let mut changed = false;
@@ -135,12 +214,8 @@ impl<T: IndexedValue> IndexSet<T> {
     }
   }
 
-  pub fn contains(&self, index: impl ToIndex<T>) -> bool {
-    self.set.contains(index.to_index(&self.domain))
-  }
-
   pub fn intersect(&mut self, other: &Self) -> bool {
-    match (&mut self.set, &other.set) {
+    match (&mut *self.set, &*other.set) {
       (HybridBitSet::Dense(this), HybridBitSet::Dense(other)) => this.intersect(other),
       (this, other) => {
         let mut changes = Vec::new();
@@ -157,35 +232,17 @@ impl<T: IndexedValue> IndexSet<T> {
       }
     }
   }
-
-  pub fn len(&self) -> usize {
-    match &self.set {
-      HybridBitSet::Dense(this) => this.count(),
-      HybridBitSet::Sparse(_) => self.set.iter().count(),
-    }
-  }
-
-  pub fn is_superset(&self, other: &Self) -> bool {
-    self.set.superset(&other.set)
-  }
-
-  pub fn to_hybrid(&self) -> HybridBitSet<T::Index> {
-    match &self.set {
-      HybridBitSet::Dense(this) => this.to_hybrid(),
-      HybridBitSet::Sparse(_) => self.set.clone(),
-    }
-  }
 }
 
-impl<T: IndexedValue> PartialEq for IndexSet<T> {
+impl<T: IndexedValue, S: ToSet<T>> PartialEq for IndexSet<T, S> {
   fn eq(&self, other: &Self) -> bool {
     self.is_superset(&other) && other.is_superset(&self)
   }
 }
 
-impl<T: IndexedValue> Eq for IndexSet<T> {}
+impl<T: IndexedValue, S: ToSet<T>> Eq for IndexSet<T, S> {}
 
-impl<T: IndexedValue> JoinSemiLattice for IndexSet<T> {
+impl<T: IndexedValue, S: ToSetMut<T>> JoinSemiLattice for IndexSet<T, S> {
   fn join(&mut self, other: &Self) -> bool {
     self.union(&other)
   }
@@ -205,7 +262,7 @@ impl<T: IndexedValue> Clone for IndexSet<T> {
   }
 }
 
-impl<T: IndexedValue + fmt::Debug> fmt::Debug for IndexSet<T> {
+impl<T: IndexedValue + fmt::Debug, S: ToSet<T>> fmt::Debug for IndexSet<T, S> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{{")?;
     let n = self.len();
@@ -220,8 +277,35 @@ impl<T: IndexedValue + fmt::Debug> fmt::Debug for IndexSet<T> {
   }
 }
 
-impl<T: IndexedValue + fmt::Debug, C> DebugWithContext<C> for IndexSet<T> {}
+impl<T: IndexedValue + fmt::Debug, S: ToSet<T>, C> DebugWithContext<C> for IndexSet<T, S>
+where
+  T::Index: ToIndex<T>,
+{
+  fn fmt_diff_with(&self, old: &Self, _ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    if self == old {
+      return Ok(());
+    }
 
+    let added = self
+      .indices()
+      .filter(|idx| !old.contains(*idx))
+      .collect_indices(self.domain.clone());
+    let removed = old
+      .indices()
+      .filter(|idx| !self.contains(*idx))
+      .collect_indices(self.domain.clone());
+
+    if added.len() > 0 {
+      write!(f, "\u{001f}+{:?}", added)?;
+    }
+
+    if removed.len() > 0 {
+      write!(f, "\u{001f}-{:?}", removed)?;
+    }
+
+    Ok(())
+  }
+}
 pub trait IndexSetIteratorExt<T: IndexedValue> {
   fn collect_indices(self, domain: Rc<T::Domain>) -> IndexSet<T>;
 }
@@ -263,7 +347,10 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
     self.matrix.insert(row, col)
   }
 
-  pub fn union_into_row(&mut self, into: impl ToIndex<R>, from: &IndexSet<C>) -> bool {
+  pub fn union_into_row<S2>(&mut self, into: impl ToIndex<R>, from: &IndexSet<C, S2>) -> bool
+  where
+    S2: Deref<Target = HybridBitSet<C::Index>>,
+  {
     let into = into.to_index(&self.row_domain);
     self.matrix.union_into_row(into, &from.set)
   }
@@ -284,15 +371,12 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
       .map(move |idx| self.col_domain.value(idx))
   }
 
-  pub fn row_set(&self, row: impl ToIndex<R>) -> IndexSet<C> {
+  pub fn row_set<'a>(&'a self, row: impl ToIndex<R>) -> Option<IndexSet<C, RefSet<'a, C>>> {
     let row = row.to_index(&self.row_domain);
-    let set = self
-      .matrix
-      .row(row)
-      .cloned()
-      .unwrap_or_else(|| HybridBitSet::new_empty(self.col_domain.len()));
-    let domain = self.col_domain.clone();
-    IndexSet { set, domain }
+    self.matrix.row(row).map(|set| IndexSet {
+      set: RefSet(set),
+      domain: self.col_domain.clone(),
+    })
   }
 
   pub fn rows(&self) -> impl Iterator<Item = R::Index> {
@@ -303,13 +387,12 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
 impl<R: IndexedValue, C: IndexedValue> PartialEq for IndexMatrix<R, C> {
   fn eq(&self, other: &Self) -> bool {
     self.matrix.rows().count() == other.matrix.rows().count()
-      && self.matrix.rows().all(|row| {
-        let set = self.matrix.row(row).unwrap();
-        other
-          .matrix
-          .row(row)
-          .map(|other_set| set.superset(other_set) && other_set.superset(set))
-          .unwrap_or(false)
+      && self.matrix.rows().all(|row| match self.matrix.row(row) {
+        Some(set) => match other.matrix.row(row) {
+          Some(other_set) => set.superset(other_set) && other_set.superset(set),
+          None => false,
+        },
+        None => true,
       })
   }
 }
@@ -330,27 +413,58 @@ impl<R: IndexedValue, C: IndexedValue> JoinSemiLattice for IndexMatrix<R, C> {
 
 impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug for IndexMatrix<R, C> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{{\n")?;
+    write!(f, "{{")?;
+
     for row in self.matrix.rows() {
-      write!(f, "  {:?}: [", self.row_domain.value(row))?;
       let n = self.matrix.iter(row).count();
+      if n == 0 {
+        continue;
+      }
+
+      write!(f, "  {:?}: [", self.row_domain.value(row))?;
       for (i, col) in self.matrix.iter(row).enumerate() {
         write!(f, "{:?}", self.col_domain.value(col))?;
         if i < n - 1 {
           write!(f, ", ")?;
         }
       }
-      write!(f, "]\n")?;
+      write!(f, "]<br align=\"left\" />")?;
     }
 
-    write!(f, "}}")
+    write!(f, "}}<br align=\"left\" />")
   }
 }
 
 impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx> DebugWithContext<Ctx>
   for IndexMatrix<R, C>
+where
+  R::Index: ToIndex<R>,
+  C::Index: ToIndex<C>,
 {
-  fn fmt_with(&self, _ctxt: &Ctx, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    todo!()
+  fn fmt_diff_with(&self, old: &Self, ctxt: &Ctx, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    if self == old {
+      return Ok(());
+    }
+
+    let empty = IndexSet::new(self.col_domain.clone());
+    let empty = empty.as_ref();
+    for (row, set) in self
+      .rows()
+      .filter_map(|row| self.row_set(row).map(|set| (row, set)))
+    {
+      let row_value = self.row_domain.value(row);
+      let old_set = old.row_set(row);
+      let old_set = old_set.as_ref().unwrap_or(&empty);
+
+      if old_set == &set {
+        continue;
+      }
+
+      write!(f, "{:?}: ", row_value)?;
+      set.fmt_diff_with(&old_set, ctxt, f)?;
+      write!(f, "\n")?;
+    }
+
+    Ok(())
   }
 }

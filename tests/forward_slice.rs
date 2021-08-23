@@ -42,6 +42,19 @@ fn main() {
 }
 
 #[test]
+fn basic_update() {
+  let src = r#"
+fn main() {
+  `(let mut x = `[1]`;)`
+  `[x += 1]`;
+  `[let y = `[x]`;]`
+}
+"#;
+
+  utils::forward_slice(src);
+}
+
+#[test]
 fn condition() {
   let src = r#"
 fn main() {

@@ -20,7 +20,13 @@ struct TransferFunction<'a, 'b, 'tcx> {
 }
 
 impl TransferFunction<'_, '_, 'tcx> {
-  fn apply_mutation(&mut self, mutated: Place<'tcx>, inputs: &[Place<'tcx>], location: Location) {
+  fn apply_mutation(
+    &mut self,
+    mutated: Place<'tcx>,
+    inputs: &[Place<'tcx>],
+    location: Location,
+    definitely_mutated: bool,
+  ) {
     let place_domain = &self.analysis.aliases.place_domain;
     let location_domain = &self.analysis.location_domain;
 
@@ -33,6 +39,10 @@ impl TransferFunction<'_, '_, 'tcx> {
 
     let aliases = self.analysis.aliases.loans(mutated);
     for alias in aliases.iter() {
+      if definitely_mutated && aliases.len() == 1 {
+        // TODO: need to clear bits, but this requires
+      }
+
       let conflicting_places = place_domain
         .iter_enumerated()
         .filter(|(_, place)| PlaceRelation::of(**place, *alias).overlaps());
@@ -47,7 +57,7 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
   fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
     let mut collector = PlaceCollector::default();
     collector.visit_rvalue(rvalue, location);
-    self.apply_mutation(*place, &collector.places, location);
+    self.apply_mutation(*place, &collector.places, location, true);
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
@@ -65,9 +75,9 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
 
           if effect_dependent {
             if let Some(place) = utils::operand_to_place(discr) {
-              self
-                .state
-                .union_into_row(place_idx, &self.state.row_set(place));
+              if let Some(place_deps) = self.state.row_set(place).map(|s| s.to_owned()) {
+                self.state.union_into_row(place_idx, &place_deps);
+              }
             }
             self.state.insert(place_idx, location);
           }
@@ -86,7 +96,7 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
           .collect::<Vec<_>>();
 
         if let Some((dst_place, _)) = destination {
-          self.apply_mutation(*dst_place, &arg_places, location);
+          self.apply_mutation(*dst_place, &arg_places, location, true);
         }
 
         let arg_mut_ptrs = arg_places
@@ -104,7 +114,7 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
           .collect::<Vec<_>>();
 
         for mut_ptr in arg_mut_ptrs {
-          self.apply_mutation(mut_ptr, &arg_places, location);
+          self.apply_mutation(mut_ptr, &arg_places, location, false);
         }
       }
 
