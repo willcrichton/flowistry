@@ -162,7 +162,12 @@ impl AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
     )
   }
 
-  fn initialize_start_block(&self, _: &Body<'tcx>, _: &mut Self::Domain) {}
+  fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
+    for arg in body.args_iter() {
+      let arg_place = utils::local_to_place(arg, self.tcx);
+      state.insert(arg_place, Location::START);
+    }
+  }
 }
 
 impl Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {

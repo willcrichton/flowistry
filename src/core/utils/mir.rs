@@ -278,6 +278,7 @@ pub fn pointer_for_place(place: Place<'tcx>, tcx: TyCtxt<'tcx>) -> Option<Place<
 }
 
 struct FindSpannedPlaces<'a, 'tcx> {
+  tcx: TyCtxt<'tcx>,
   body: &'a Body<'tcx>,
   span: Span,
   places: Vec<(Place<'tcx>, Location)>,
@@ -304,10 +305,28 @@ impl Visitor<'tcx> for FindSpannedPlaces<'_, 'tcx> {
       self.places.push((*place, location))
     }
   }
+
+  fn visit_local_decl(&mut self, local: Local, local_decl: &LocalDecl<'tcx>) {
+    let span = local_decl.source_info.span;
+    if self.span.contains(span) || span.contains(self.span) {
+      self.places.push((
+        Place {
+          local,
+          projection: self.tcx.intern_place_elems(&[]),
+        },
+        Location::START,
+      ));
+    }
+  }
 }
 
-pub fn span_to_places(body: &Body<'tcx>, span: Span) -> Vec<(Place<'tcx>, Location)> {
+pub fn span_to_places(
+  tcx: TyCtxt<'tcx>,
+  body: &Body<'tcx>,
+  span: Span,
+) -> Vec<(Place<'tcx>, Location)> {
   let mut visitor = FindSpannedPlaces {
+    tcx,
     body,
     span,
     places: Vec::new(),
