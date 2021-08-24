@@ -83,3 +83,16 @@ fn main() {
 
   utils::forward_slice(src);
 }
+
+#[test]
+fn function_params() {
+  let src = r#"
+fn foo(`(x)`: i32) {
+  `[let y = `[`[x]` + 1]`;]`
+  `[let z = `[y]`;]`
+}
+fn main() {}
+"#;
+
+  utils::forward_slice(src);
+}

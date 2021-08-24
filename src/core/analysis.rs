@@ -53,8 +53,8 @@ impl<A> VisitorContext<'_, A>
 where
   A: FlowistryAnalysis,
 {
-  fn analyze(&mut self, body_span: Span, body_id: BodyId) {
-    if !self.locations.iter().any(|span| body_span.contains(*span)) {
+  fn analyze(&mut self, item_span: Span, body_id: BodyId) {
+    if !self.locations.iter().any(|span| item_span.contains(*span)) {
       return;
     }
 
@@ -85,8 +85,13 @@ impl<A: FlowistryAnalysis> Visitor<'tcx> for AnalysisItemVisitor<'_, 'tcx, A> {
   }
 
   fn visit_nested_body(&mut self, id: BodyId) {
-    intravisit::walk_body(self, self.0.tcx.hir().body(id));
-    self.0.analyze(self.0.tcx.hir().span(id.hir_id), id);
+    let tcx = self.0.tcx;
+    intravisit::walk_body(self, tcx.hir().body(id));
+    let header_span = tcx.def_span(tcx.hir().body_owner_def_id(id));
+    let body_span = tcx.hir().span(id.hir_id);
+    let full_span = header_span.to(body_span);
+
+    self.0.analyze(full_span, id);
   }
 }
 

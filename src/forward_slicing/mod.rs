@@ -23,38 +23,59 @@ use rustc_mir::{
 };
 use rustc_span::Span;
 
-struct FlowPlaceVisitor<'a, 'tcx> {
+struct FlowPlaceVisitor<'a, 'mir, 'tcx> {
   state: &'a FlowDomain<'tcx>,
-  visitor: &'a mut FlowResultsVisitor,
+  visitor: &'a mut FlowResultsVisitor<'mir, 'tcx>,
 }
 
-struct FlowResultsVisitor {
+struct FlowResultsVisitor<'mir, 'tcx> {
+  tcx: TyCtxt<'tcx>,
+  body: &'mir Body<'tcx>,
   targets: Vec<IndexSet<Location>>,
   relevant: IndexSet<Location>,
+  relevant_args: Vec<Span>,
 }
 
-impl Visitor<'tcx> for FlowPlaceVisitor<'_, 'tcx> {
-  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, location: Location) {
-    if self.visitor.relevant.contains(location) {
-      return;
-    }
-
-    if let Some(place_deps) = self.state.row_set(*place) {
-      if self
-        .visitor
+impl FlowResultsVisitor<'_, 'tcx> {
+  fn check(&mut self, place: Place<'tcx>, state: &FlowDomain<'tcx>) -> bool {
+    match state.row_set(place) {
+      Some(place_deps) => self
         .targets
         .iter()
-        .any(|target| place_deps.is_superset(target))
-      {
-        debug!("ADDING LOCATION {:?}", location);
-        self.visitor.relevant.insert(location);
-      }
+        .any(|target| place_deps.is_superset(target)),
+      None => false,
     }
   }
 }
 
-impl ResultsVisitor<'mir, 'tcx> for FlowResultsVisitor {
+impl Visitor<'tcx> for FlowPlaceVisitor<'_, '_, 'tcx> {
+  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, location: Location) {
+    if self.visitor.check(*place, self.state) {
+      self.visitor.relevant.insert(location);
+    }
+  }
+}
+
+impl ResultsVisitor<'mir, 'tcx> for FlowResultsVisitor<'mir, 'tcx> {
   type FlowState = FlowDomain<'tcx>;
+
+  fn visit_block_start(
+    &mut self,
+    state: &Self::FlowState,
+    _block_data: &'mir BasicBlockData<'tcx>,
+    block: BasicBlock,
+  ) {
+    if block == Location::START.block {
+      for arg in self.body.args_iter() {
+        let arg_place = utils::local_to_place(arg, self.tcx);
+        if self.check(arg_place, state) {
+          self
+            .relevant_args
+            .push(self.body.local_decls()[arg].source_info.span);
+        }
+      }
+    }
+  }
 
   fn visit_statement_after_primary_effect(
     &mut self,
@@ -91,7 +112,7 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     let results = compute_flow(tcx, &body_with_facts);
     // utils::dump_results("target/flow.png", body, &results)?;
 
-    let sliced_places = utils::span_to_places(body, self.config.range.to_span());
+    let sliced_places = utils::span_to_places(tcx, body, self.config.range.to_span());
     debug!("sliced_places {:?}", sliced_places);
 
     let mut cursor = ResultsCursor::new(body, &results);
@@ -105,8 +126,11 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     debug!("targets: {:?}", targets);
 
     let mut visitor = FlowResultsVisitor {
+      tcx,
+      body,
       targets,
       relevant: IndexSet::new(results.analysis.location_domain.clone()),
+      relevant_args: Vec::new(),
     };
     results.visit_reachable_with(body, &mut visitor);
 
@@ -119,10 +143,10 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
       .iter()
       .filter_map(|location| {
         let mir_span = body.source_info(*location).span;
-        spanner
-          .find_enclosing_hir_span(mir_span)
-          .and_then(|hir_span| Range::from_span(hir_span, source_map).ok())
+        spanner.find_enclosing_hir_span(mir_span)
       })
+      .chain(visitor.relevant_args.into_iter())
+      .filter_map(|span| Range::from_span(span, source_map).ok())
       .collect::<Vec<_>>();
 
     let mut output = SliceOutput::empty();
