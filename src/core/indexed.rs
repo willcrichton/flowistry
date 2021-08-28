@@ -197,11 +197,11 @@ impl<T: IndexedValue, S: ToSetMut<T>> IndexSet<T, S> {
     self.set.insert(elt);
   }
 
-  pub fn union(&mut self, other: &Self) -> bool {
+  pub fn union<S2: ToSet<T>>(&mut self, other: &IndexSet<T, S2>) -> bool {
     self.set.union(&other.set)
   }
 
-  pub fn subtract(&mut self, other: &Self) -> bool {
+  pub fn subtract<S2: ToSet<T>>(&mut self, other: &IndexSet<T, S2>) -> bool {
     match (&mut *self.set, &*other.set) {
       (HybridBitSet::Dense(this), HybridBitSet::Dense(other)) => this.subtract(other),
       (this, other) => {
@@ -214,7 +214,7 @@ impl<T: IndexedValue, S: ToSetMut<T>> IndexSet<T, S> {
     }
   }
 
-  pub fn intersect(&mut self, other: &Self) -> bool {
+  pub fn intersect<S2: ToSet<T>>(&mut self, other: &IndexSet<T, S2>) -> bool {
     match (&mut *self.set, &*other.set) {
       (HybridBitSet::Dense(this), HybridBitSet::Dense(other)) => this.intersect(other),
       (this, other) => {

@@ -28,27 +28,34 @@ fn main() {
       (@arg end:)
       (@arg flags: ...)
     )
+    (@subcommand effects =>
+      (@arg qpath:)
+      (@arg flags: ...)
+    )
   )
   .get_matches_from(env::args().skip(1));
 
-  let (args, flags) = match matches.subcommand() {
+  let mut args = match matches.subcommand() {
     ("rustc_version", _) => {
       println!("{}", version_meta().commit_hash.unwrap());
       exit(0);
     }
-    (cmd @ ("backward_slice" | "forward_slice"), Some(sub_m)) => (
-      vec![
-        ("COMMAND", cmd),
-        ("FILE", sub_m.value_of("file").unwrap()),
-        ("START", sub_m.value_of("start").unwrap()),
-        ("END", sub_m.value_of("end").unwrap()),
-      ],
-      sub_m.value_of("flags"),
-    ),
+    ("backward_slice" | "forward_slice", Some(sub_m)) => vec![
+      ("FILE", sub_m.value_of("file").unwrap()),
+      ("START", sub_m.value_of("start").unwrap()),
+      ("END", sub_m.value_of("end").unwrap()),
+    ],
+    ("effects", Some(sub_m)) => vec![("QPATH", sub_m.value_of("qpath").unwrap())],
     _ => {
       unimplemented!()
     }
   };
+
+  let (cmd, flags) = match matches.subcommand() {
+    (cmd, Some(sub_m)) => (cmd, sub_m.value_of("flags")),
+    _ => unimplemented!(),
+  };
+  args.push(("COMMAND", cmd));
 
   let mut cmd = Command::new(cargo_path);
   cmd

@@ -6,7 +6,6 @@ use crate::core::{
   utils::qpath_to_span,
 };
 use anyhow::Result;
-use dataflow::FlowAnalysis;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
 use rustc_mir::{
@@ -15,9 +14,10 @@ use rustc_mir::{
 };
 use rustc_span::Span;
 
-pub use dataflow::FlowDomain;
+pub use dataflow::{FlowAnalysis, FlowDomain};
 
 mod dataflow;
+pub mod dependencies;
 
 pub fn compute_flow<'a, 'tcx>(
   tcx: TyCtxt<'tcx>,

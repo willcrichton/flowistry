@@ -27,9 +27,11 @@ extern crate smallvec;
 
 mod backward_slicing;
 mod core;
+mod effects;
 mod flow;
 mod forward_slicing;
 
 pub use backward_slicing::{backward_slice, Config, Range, SliceOutput};
+pub use effects::effects;
 pub use flow::flow;
 pub use forward_slicing::forward_slice;

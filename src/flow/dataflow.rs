@@ -2,7 +2,7 @@ use crate::core::{
   aliases::Aliases,
   control_dependencies::ControlDependencies,
   indexed::{IndexMatrix, IndexSet, IndexSetIteratorExt, IndexedDomain},
-  indexed_impls::{build_location_domain, LocationDomain},
+  indexed_impls::{build_location_domain, LocationDomain, PlaceDomain},
   utils::{self, PlaceCollector, PlaceRelation},
 };
 use rustc_middle::{
@@ -124,10 +124,10 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
 }
 
 pub struct FlowAnalysis<'a, 'tcx> {
-  tcx: TyCtxt<'tcx>,
-  body: &'a Body<'tcx>,
-  control_dependencies: ControlDependencies,
-  aliases: Aliases<'tcx>,
+  pub tcx: TyCtxt<'tcx>,
+  pub body: &'a Body<'tcx>,
+  pub control_dependencies: ControlDependencies,
+  pub aliases: Aliases<'tcx>,
   pub location_domain: Rc<LocationDomain>,
 }
 
@@ -147,6 +147,14 @@ impl FlowAnalysis<'a, 'tcx> {
       location_domain,
       control_dependencies,
     }
+  }
+
+  pub fn place_domain(&self) -> &Rc<PlaceDomain<'tcx>> {
+    &self.aliases.place_domain
+  }
+
+  pub fn location_domain(&self) -> &Rc<LocationDomain> {
+    &self.location_domain
   }
 }
 

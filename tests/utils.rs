@@ -4,6 +4,7 @@ use anyhow::{anyhow, bail, Context, Result};
 use lazy_static::lazy_static;
 use std::{
   collections::{HashMap, HashSet},
+  fmt::Debug,
   io::Write,
   process::Command,
 };
@@ -117,7 +118,7 @@ fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &str) 
   check(extra, "Extra");
 }
 
-pub fn flow(prog: &str, qpath: &str) {
+pub fn flow<O: Debug>(prog: &str, qpath: &str, cb: impl FnOnce(String, &[String]) -> Result<O>) {
   let inner = move || -> Result<()> {
     let mut f = NamedTempFile::new()?;
     let _filename = f.path().to_string_lossy().to_string();
@@ -130,7 +131,7 @@ pub fn flow(prog: &str, qpath: &str) {
     );
     let args = args.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
 
-    let output = flowistry::flow(qpath.to_owned(), &args);
+    let output = cb(qpath.to_owned(), &args);
     println!("{:?}", output.unwrap());
 
     Ok(())
@@ -181,6 +182,10 @@ pub fn backward_slice(prog: &str) {
 
 pub fn forward_slice(prog: &str) {
   slice(prog, flowistry::forward_slice);
+}
+
+pub fn effects(prog: &str, qpath: &str) {
+  flow(prog, qpath, flowistry::effects);
 }
 
 lazy_static! {
