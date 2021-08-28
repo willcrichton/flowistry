@@ -57,27 +57,37 @@ impl ResultsVisitor<'mir, 'tcx> for FindEffects<'_, 'mir, 'tcx> {
   ) {
     match &statement.kind {
       StatementKind::Assign(box (mutated, _input)) => {
-        let aliases = self.analysis.aliases.loans(*mutated);
-        let mutated = self
-          .mut_args
-          .iter()
-          .filter(|arg| {
-            aliases
-              .iter()
-              .any(|alias| PlaceRelation::of(**arg, *alias).overlaps())
-          })
-          .collect::<Vec<_>>();
+        if mutated.local == RETURN_PLACE {
+          let deps = state.row_set(*mutated).unwrap().to_owned();
 
-        if mutated.len() > 0 {
-          for arg in mutated {
-            let arg_index = arg.local.as_usize() - 1;
-            let kind = EffectKind::MutArg(arg_index);
-            let deps = state.row_set(*arg).unwrap().to_owned();
-            self
-              .effects
-              .entry(kind)
-              .or_insert_with(Vec::new)
-              .push((location, deps));
+          self
+            .effects
+            .entry(EffectKind::Return)
+            .or_insert_with(Vec::new)
+            .push((location, deps));
+        } else {
+          let aliases = self.analysis.aliases.loans(*mutated);
+          let mutated = self
+            .mut_args
+            .iter()
+            .filter(|arg| {
+              aliases
+                .iter()
+                .any(|alias| PlaceRelation::of(**arg, *alias).overlaps())
+            })
+            .collect::<Vec<_>>();
+
+          if mutated.len() > 0 {
+            for arg in mutated {
+              let arg_index = arg.local.as_usize() - 1;
+              let kind = EffectKind::MutArg(arg_index);
+              let deps = state.row_set(*arg).unwrap().to_owned();
+              self
+                .effects
+                .entry(kind)
+                .or_insert_with(Vec::new)
+                .push((location, deps));
+            }
           }
         }
       }
@@ -91,26 +101,5 @@ impl ResultsVisitor<'mir, 'tcx> for FindEffects<'_, 'mir, 'tcx> {
     terminator: &'mir Terminator<'tcx>,
     location: Location,
   ) {
-    match &terminator.kind {
-      TerminatorKind::Return => {
-        let return_place = utils::local_to_place(RETURN_PLACE, self.analysis.tcx);
-        let deps = state.row_set(return_place).unwrap().to_owned();
-
-        // Span of MIR return statements is assigned to the end "}" of a function, so
-        // instead we search for the closest assignment to _0
-        let closest_assign = deps
-          .iter()
-          .cloned()
-          .filter(|loc| loc.block == location.block)
-          .max_by_key(|loc| loc.statement_index);
-
-        self
-          .effects
-          .entry(EffectKind::Return)
-          .or_insert_with(Vec::new)
-          .push((closest_assign.unwrap(), deps));
-      }
-      _ => {}
-    }
   }
 }

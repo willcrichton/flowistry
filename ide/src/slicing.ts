@@ -1,6 +1,30 @@
 import * as vscode from "vscode";
-import { SliceOutput } from "./types";
-import { log, show_error, decoration_type, CallFlowistry } from "./vsc_utils";
+import { SliceOutput, Range } from "./types";
+import {
+  log,
+  show_error,
+  decoration_type,
+  CallFlowistry,
+  to_vsc_range,
+} from "./vsc_utils";
+
+export function highlight_ranges(ranges: Range[], editor: vscode.TextEditor) {
+  editor.setDecorations(
+    decoration_type,
+    ranges.map((range) => to_vsc_range(range, editor.document))
+  );
+
+  let callback = vscode.workspace.onDidChangeTextDocument((event) => {
+    if (!editor) {
+      return;
+    }
+    if (event.document !== editor.document) {
+      return;
+    }
+    editor.setDecorations(decoration_type, []);
+    callback.dispose();
+  });
+}
 
 export async function slice(
   call_flowistry: CallFlowistry,
@@ -27,15 +51,7 @@ export async function slice(
     let last_line = lines[lines.length - 1];
     let slice_output: SliceOutput = JSON.parse(last_line);
 
-    let ranges = slice_output.ranges.map(
-      (slice_range: any) =>
-        new vscode.Range(
-          doc.positionAt(slice_range.start),
-          doc.positionAt(slice_range.end)
-        )
-    );
-
-    if (ranges.length === 0) {
+    if (slice_output.ranges.length === 0) {
       let selected_text = active_editor.document.getText(selection);
       vscode.window.showInformationMessage(
         `Slice on "${selected_text}" did not generate any results`
@@ -44,22 +60,12 @@ export async function slice(
     }
 
     if (type === "select") {
-      active_editor.selections = ranges.map(
-        (range) => new vscode.Selection(range.start, range.end)
-      );
-    } else {
-      active_editor.setDecorations(decoration_type, ranges);
-
-      let callback = vscode.workspace.onDidChangeTextDocument((event) => {
-        if (!active_editor) {
-          return;
-        }
-        if (event.document !== active_editor.document) {
-          return;
-        }
-        active_editor.setDecorations(decoration_type, []);
-        callback.dispose();
+      active_editor.selections = slice_output.ranges.map((range) => {
+        let vsc_range = to_vsc_range(range, doc);
+        return new vscode.Selection(vsc_range.start, vsc_range.end);
       });
+    } else {
+      highlight_ranges(slice_output.ranges, active_editor);
     }
   } catch (exc) {
     log("ERROR", exc);

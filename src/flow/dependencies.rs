@@ -10,10 +10,10 @@ use rustc_middle::mir::{
 use rustc_mir::dataflow::{Results, ResultsVisitor};
 use rustc_span::Span;
 
-struct FindDependenciesInPlace<'a, 'b, 'mir, 'tcx> {
-  state: &'a FlowDomain<'tcx>,
-  visitor: &'a mut FindDependencies<'b, 'mir, 'tcx>,
-}
+// struct FindDependenciesInPlace<'a, 'b, 'mir, 'tcx> {
+//   state: &'a FlowDomain<'tcx>,
+//   visitor: &'a mut FindDependencies<'b, 'mir, 'tcx>,
+// }
 
 pub enum Direction {
   Forward,
@@ -46,14 +46,6 @@ impl FindDependencies<'_, '_, 'tcx> {
   }
 }
 
-impl Visitor<'tcx> for FindDependenciesInPlace<'_, '_, '_, 'tcx> {
-  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, location: Location) {
-    for i in self.visitor.check(*place, self.state) {
-      self.visitor.relevant_locs[i].insert(location);
-    }
-  }
-}
-
 impl ResultsVisitor<'mir, 'tcx> for FindDependencies<'_, 'mir, 'tcx> {
   type FlowState = FlowDomain<'tcx>;
 
@@ -80,11 +72,15 @@ impl ResultsVisitor<'mir, 'tcx> for FindDependencies<'_, 'mir, 'tcx> {
     statement: &'mir Statement<'tcx>,
     location: Location,
   ) {
-    FindDependenciesInPlace {
-      state,
-      visitor: self,
+    match &statement.kind {
+      StatementKind::Assign(box (mutated, _)) => {
+        for i in self.check(*mutated, state) {
+          self.relevant_locs[i].insert(location);
+        }
+      }
+      _ => {}
     }
-    .visit_statement(statement, location);
+    
   }
 }
 
