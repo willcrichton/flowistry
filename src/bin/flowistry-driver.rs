@@ -46,6 +46,11 @@ fn main() {
       println!("{}", serde_json::to_string(&slice).unwrap());
       Ok(())
     }
+    "effects" => {
+      let effects = flowistry::effects(arg::<String>("QPATH"), &args).unwrap();
+      println!("{}", serde_json::to_string(&effects).unwrap());
+      Ok(())
+    }
     _ => unimplemented!(),
   });
 

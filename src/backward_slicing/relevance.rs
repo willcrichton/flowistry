@@ -84,7 +84,7 @@ impl TransferFunction<'a, 'b, 'mir, 'tcx> {
       .collect_indices(place_domain.clone());
 
     self.state.places.subtract(&to_delete);
-    self.state.places.union(used);
+    self.state.places.union(&used);
 
     let mutated = mutated
       .iter()
