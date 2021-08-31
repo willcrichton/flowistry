@@ -46,7 +46,7 @@ fn basic_update() {
   let src = r#"
 fn main() {
   `(let mut x = `[1]`;)`
-  `[x += 1]`;
+  `[`[x += 1]`;]`
   `[let y = `[x]`;]`
 }
 "#;
@@ -77,7 +77,7 @@ fn pointer_write() {
 fn main() {
   `(let mut x = `[1]`;)`
   `[let y = `[&mut x]`;]`
-  `[*y += 2]`;
+  `[`[*y += 2]`;]`
 }
 "#;
 

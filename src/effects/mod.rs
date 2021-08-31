@@ -57,8 +57,7 @@ pub enum FunctionIdentifier {
 impl FunctionIdentifier {
   pub fn to_span(&self, tcx: TyCtxt) -> Result<Span> {
     match self {
-      FunctionIdentifier::Qpath(qpath) => utils::qpath_to_span(tcx, qpath.clone())
-        .with_context(|| format!("No function with qpath {}", qpath)),
+      FunctionIdentifier::Qpath(qpath) => utils::qpath_to_span(tcx, qpath.clone()),
       FunctionIdentifier::Range(range) => range.to_span(tcx.sess.source_map()),
     }
   }
@@ -67,8 +66,8 @@ impl FunctionIdentifier {
 impl FlowistryAnalysis for EffectsHarness {
   type Output = EffectsOutput;
 
-  fn locations(&self, tcx: TyCtxt) -> Vec<Span> {
-    vec![self.id.to_span(tcx).unwrap()]
+  fn locations(&self, tcx: TyCtxt) -> Result<Vec<Span>> {
+    Ok(vec![self.id.to_span(tcx)?])
   }
 
   fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
@@ -109,8 +108,12 @@ impl FlowistryAnalysis for EffectsHarness {
     let loc_to_range = |loc: Location| -> Option<Range> {
       let mir_span = body.source_info(loc).span;
       let hir_span = spanner.find_enclosing_hir_span(mir_span);
-      println!("{:?}, {:?} {:?}", loc, mir_span, hir_span);
-      hir_span.and_then(|hir_span| Range::from_span(hir_span, source_map).ok())
+      hir_span
+        .into_iter()
+        .map(|hir_span| Range::from_span(hir_span, source_map).ok())
+        .collect::<Option<Vec<_>>>()?
+        .into_iter()
+        .min_by_key(|range| range.end - range.end)
     };
 
     let ranged_effects =

@@ -27,8 +27,8 @@ impl TransferFunction<'_, '_, 'tcx> {
     location: Location,
     definitely_mutated: bool,
   ) {
-    let place_domain = &self.analysis.aliases.place_domain;
-    let location_domain = &self.analysis.location_domain;
+    let place_domain = self.analysis.place_domain();
+    let location_domain = self.analysis.location_domain();
 
     let mut locations: IndexSet<Location> = inputs
       .iter()
@@ -164,10 +164,7 @@ impl AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
   const NAME: &'static str = "FlowAnalysis";
 
   fn bottom_value(&self, _body: &Body<'tcx>) -> Self::Domain {
-    FlowDomain::new(
-      self.aliases.place_domain.clone(),
-      self.location_domain.clone(),
-    )
+    FlowDomain::new(self.place_domain().clone(), self.location_domain().clone())
   }
 
   fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
