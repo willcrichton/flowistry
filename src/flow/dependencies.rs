@@ -80,7 +80,6 @@ impl ResultsVisitor<'mir, 'tcx> for FindDependencies<'_, 'mir, 'tcx> {
       }
       _ => {}
     }
-    
   }
 }
 

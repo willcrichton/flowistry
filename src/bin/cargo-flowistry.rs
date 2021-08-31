@@ -8,7 +8,7 @@ use std::{
 fn main() {
   let flowistry_rustc_path = std::env::current_exe()
     .expect("current executable path invalid")
-    .with_file_name("flowistry-rustc");
+    .with_file_name("flowistry-driver");
   let cargo_path = env::var("CARGO_PATH").unwrap_or("cargo".to_string());
 
   let matches = clap_app!(app =>
@@ -29,7 +29,8 @@ fn main() {
       (@arg flags: ...)
     )
     (@subcommand effects =>
-      (@arg qpath:)
+      (@arg file:)
+      (@arg pos:)
       (@arg flags: ...)
     )
   )
@@ -45,7 +46,10 @@ fn main() {
       ("START", sub_m.value_of("start").unwrap()),
       ("END", sub_m.value_of("end").unwrap()),
     ],
-    ("effects", Some(sub_m)) => vec![("QPATH", sub_m.value_of("qpath").unwrap())],
+    ("effects", Some(sub_m)) => vec![
+      ("FILE", sub_m.value_of("file").unwrap()),
+      ("POS", sub_m.value_of("pos").unwrap()),
+    ],
     _ => {
       unimplemented!()
     }
@@ -62,7 +66,7 @@ fn main() {
     .arg("check")
     .arg("-q")
     .args(flags)
-    .env("RUSTC_WRAPPER", flowistry_rustc_path);
+    .env("RUSTC_WORKSPACE_WRAPPER", flowistry_rustc_path);
 
   for (k, v) in args {
     cmd.env(format!("FLOWISTRY_{}", k), v);

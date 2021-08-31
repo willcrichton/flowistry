@@ -32,6 +32,6 @@ mod flow;
 mod forward_slicing;
 
 pub use backward_slicing::{backward_slice, Config, Range, SliceOutput};
-pub use effects::effects;
+pub use effects::{effects, FunctionIdentifier};
 pub use flow::flow;
 pub use forward_slicing::forward_slice;

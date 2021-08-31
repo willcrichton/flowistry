@@ -328,7 +328,8 @@ fn analyze_inner(
       .iter()
       .map(|local| body.local_decls()[local].source_info.span);
 
-    let src_file = source_map.lookup_source_file(config.range.to_span().lo());
+    let files = source_map.files();
+    let src_file = config.range.source_file(&files)?;
     let ranges = visitor
       .relevant_spans
       .into_iter()
@@ -401,7 +402,7 @@ impl SlicerAnalysis {
         local: Local::from_usize(local),
         projection: tcx.intern_place_elems(&[]),
       }]),
-      None => SliceLocation::Span(self.config.range.to_span()),
+      None => SliceLocation::Span(self.config.range.to_span(tcx.sess.source_map()).unwrap()),
     }
   }
 }
@@ -409,8 +410,8 @@ impl SlicerAnalysis {
 impl FlowistryAnalysis for SlicerAnalysis {
   type Output = SliceOutput;
 
-  fn locations(&self, _tcx: TyCtxt) -> Vec<Span> {
-    vec![self.config.range.to_span()]
+  fn locations(&self, tcx: TyCtxt) -> Vec<Span> {
+    vec![self.config.range.to_span(tcx.sess.source_map()).unwrap()]
   }
 
   fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {

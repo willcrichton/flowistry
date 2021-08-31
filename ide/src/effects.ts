@@ -13,13 +13,13 @@ export let effects = async (
   }
 
   let doc = active_editor.document;
-  let selection = active_editor.selection;
+  let selection = active_editor.selection; 
 
   let range_to_text = (range: Range): string =>
     doc.getText(to_vsc_range(range, doc));
 
   try {
-    let cmd = `effects yeehaw`;
+    let cmd = `effects ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
     let stdout = await call_flowistry(cmd);
     log(stdout);
     let lines = stdout.split("\n");

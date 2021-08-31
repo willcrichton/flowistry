@@ -43,6 +43,10 @@ struct CollectRegions<'tcx> {
 }
 
 impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
+  fn tcx_for_anon_const_substs(&self) -> Option<TyCtxt<'tcx>> {
+    Some(self.tcx)
+  }
+
   fn visit_ty(&mut self, ty: Ty<'tcx>) -> ControlFlow<Self::BreakTy> {
     if self
       .ty_stack

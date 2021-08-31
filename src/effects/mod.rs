@@ -6,7 +6,7 @@ use crate::{
   },
   flow::{self, dependencies},
 };
-use anyhow::Result;
+use anyhow::{Context, Result};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::BodyId;
 use rustc_middle::{
@@ -46,14 +46,29 @@ impl FlowistryOutput for EffectsOutput {
 }
 
 struct EffectsHarness {
-  qpath: String,
+  id: FunctionIdentifier,
+}
+
+pub enum FunctionIdentifier {
+  Qpath(String),
+  Range(Range),
+}
+
+impl FunctionIdentifier {
+  pub fn to_span(&self, tcx: TyCtxt) -> Result<Span> {
+    match self {
+      FunctionIdentifier::Qpath(qpath) => utils::qpath_to_span(tcx, qpath.clone())
+        .with_context(|| format!("No function with qpath {}", qpath)),
+      FunctionIdentifier::Range(range) => range.to_span(tcx.sess.source_map()),
+    }
+  }
 }
 
 impl FlowistryAnalysis for EffectsHarness {
   type Output = EffectsOutput;
 
   fn locations(&self, tcx: TyCtxt) -> Vec<Span> {
-    vec![utils::qpath_to_span(tcx, self.qpath.clone()).unwrap()]
+    vec![self.id.to_span(tcx).unwrap()]
   }
 
   fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
@@ -62,7 +77,9 @@ impl FlowistryAnalysis for EffectsHarness {
       get_body_with_borrowck_facts(tcx, WithOptConstParam::unknown(local_def_id));
     let body = &body_with_facts.body;
     let flow_results = flow::compute_flow(tcx, &body_with_facts);
-    utils::dump_results("target/effects.png", body, &flow_results)?;
+    if std::env::var("DUMP_MIR").is_ok() {
+      utils::dump_results("target/effects.png", body, &flow_results)?;
+    }
 
     let mut find_effects = visitor::FindEffects::new(&flow_results.analysis);
     flow_results.visit_reachable_with(body, &mut find_effects);
@@ -134,6 +151,6 @@ impl FlowistryAnalysis for EffectsHarness {
   }
 }
 
-pub fn effects(qpath: String, compiler_args: &[String]) -> Result<EffectsOutput> {
-  EffectsHarness { qpath }.run(compiler_args)
+pub fn effects(id: FunctionIdentifier, compiler_args: &[String]) -> Result<EffectsOutput> {
+  EffectsHarness { id }.run(compiler_args)
 }
