@@ -17,7 +17,7 @@ pub trait FlowistryOutput: Send + Sync {
 pub trait FlowistryAnalysis: Send + Sync + Sized {
   type Output: FlowistryOutput;
 
-  fn locations(&self, tcx: TyCtxt) -> Vec<Span>;
+  fn locations(&self, tcx: TyCtxt) -> Result<Vec<Span>>;
   fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output>;
 
   fn run(self, compiler_args: &[String]) -> Result<Self::Output> {
@@ -128,7 +128,7 @@ impl<A: FlowistryAnalysis> rustc_driver::Callbacks for Callbacks<A> {
 
     queries.global_ctxt().unwrap().take().enter(|tcx| {
       let analysis = self.analysis.take().unwrap();
-      let locations = analysis.locations(tcx);
+      let locations = analysis.locations(tcx).unwrap();
       let output = Ok(A::Output::empty());
       let mut visitor = AnalysisVisitor(VisitorContext {
         tcx,

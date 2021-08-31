@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
   itemlikevisit::ItemLikeVisitor,
@@ -8,9 +8,10 @@ use rustc_hir::{
 };
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::{FileName, RealFileName, SourceFile, Span};
+use smallvec::SmallVec;
 use std::{path::Path, rc::Rc};
 
-pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Option<Span> {
+pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
   struct Finder<'tcx> {
     tcx: TyCtxt<'tcx>,
     qpath: String,
@@ -60,7 +61,9 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Option<Span> {
     span: None,
   };
   tcx.hir().krate().visit_all_item_likes(&mut finder);
-  return finder.span;
+  return finder
+    .span
+    .with_context(|| format!("No function with qpath {}", finder.qpath));
 }
 
 pub fn path_to_source_file<'tcx>(
@@ -85,22 +88,20 @@ pub fn path_to_source_file<'tcx>(
 }
 
 pub struct HirSpanner {
-  spans: Vec<Span>,
+  expr_spans: Vec<Span>,
+  stmt_spans: Vec<Span>,
 }
 
 impl HirSpanner {
   pub fn new(body: &Body) -> Self {
-    HirSpanner {
-      spans: Self::collect_spans(body),
-    }
-  }
+    let mut spanner = HirSpanner {
+      expr_spans: Vec::new(),
+      stmt_spans: Vec::new(),
+    };
 
-  fn collect_spans(body: &Body) -> Vec<Span> {
-    struct Collector {
-      spans: Vec<Span>,
-    }
+    struct Collector<'a>(&'a mut HirSpanner);
 
-    impl Visitor<'hir> for Collector {
+    impl Visitor<'hir> for Collector<'_> {
       type Map = Map<'hir>;
 
       fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
@@ -108,29 +109,35 @@ impl HirSpanner {
       }
 
       fn visit_expr(&mut self, expr: &Expr) {
-        self.spans.push(expr.span);
+        self.0.expr_spans.push(expr.span);
         intravisit::walk_expr(self, expr);
       }
 
       fn visit_stmt(&mut self, stmt: &Stmt) {
-        self.spans.push(stmt.span);
+        self.0.stmt_spans.push(stmt.span);
         intravisit::walk_stmt(self, stmt);
       }
     }
 
-    let mut collector = Collector { spans: Vec::new() };
+    let mut collector = Collector(&mut spanner);
     intravisit::walk_body(&mut collector, body);
 
-    collector.spans
+    spanner
   }
 
-  pub fn find_enclosing_hir_span(&self, span: Span) -> Option<Span> {
-    self
-      .spans
-      .iter()
-      .filter(|hir_span| hir_span.contains(span))
-      .min_by_key(|hir_span| hir_span.hi() - hir_span.lo())
-      .cloned()
+  pub fn find_enclosing_hir_span(&self, span: Span) -> SmallVec<[Span; 2]> {
+    let find = |spans: &[Span]| {
+      spans
+        .iter()
+        .filter(|hir_span| hir_span.contains(span))
+        .min_by_key(|hir_span| hir_span.hi() - hir_span.lo())
+        .cloned()
+    };
+
+    find(&self.expr_spans)
+      .into_iter()
+      .chain(find(&self.stmt_spans).into_iter())
+      .collect()
   }
 }
 

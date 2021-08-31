@@ -5,7 +5,7 @@ use crate::{
     indexed::IndexSet,
     utils,
   },
-  flow::{compute_flow, FlowDomain},
+  flow::{compute_flow, dependencies, FlowDomain},
 };
 use anyhow::Result;
 use log::debug;
@@ -98,8 +98,8 @@ struct ForwardSliceAnalysis {
 impl FlowistryAnalysis for ForwardSliceAnalysis {
   type Output = SliceOutput;
 
-  fn locations(&self, tcx: TyCtxt) -> Vec<Span> {
-    vec![self.config.range.to_span(tcx.sess.source_map()).unwrap()]
+  fn locations(&self, tcx: TyCtxt) -> Result<Vec<Span>> {
+    Ok(vec![self.config.range.to_span(tcx.sess.source_map())?])
   }
 
   fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
@@ -126,31 +126,18 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
       .collect::<Vec<_>>();
     debug!("targets: {:?}", targets);
 
-    let mut visitor = FlowResultsVisitor {
-      tcx,
-      body,
-      targets,
-      relevant: IndexSet::new(results.analysis.location_domain.clone()),
-      relevant_args: Vec::new(),
-    };
-    results.visit_reachable_with(body, &mut visitor);
-
     let hir_body = tcx.hir().body(body_id);
     let spanner = utils::HirSpanner::new(hir_body);
 
-    let ranges = visitor
-      .relevant
-      .iter()
-      .filter_map(|location| {
-        let mir_span = body.source_info(*location).span;
-        spanner.find_enclosing_hir_span(mir_span)
-      })
-      .chain(visitor.relevant_args.into_iter())
-      .filter_map(|span| Range::from_span(span, source_map).ok())
-      .collect::<Vec<_>>();
+    let deps = dependencies::compute_dependency_ranges(
+      &results,
+      targets,
+      dependencies::Direction::Forward,
+      &spanner,
+    );
 
     let mut output = SliceOutput::empty();
-    output.ranges = ranges;
+    output.ranges = deps.into_iter().map(|v| v.into_iter()).flatten().collect();
     Ok(output)
   }
 }

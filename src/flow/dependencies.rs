@@ -3,17 +3,13 @@ use crate::{
   backward_slicing::Range,
   core::{indexed::IndexSet, utils},
 };
+use log::debug;
 use rustc_middle::mir::{
   visit::{PlaceContext, Visitor},
   *,
 };
 use rustc_mir::dataflow::{Results, ResultsVisitor};
 use rustc_span::Span;
-
-// struct FindDependenciesInPlace<'a, 'b, 'mir, 'tcx> {
-//   state: &'a FlowDomain<'tcx>,
-//   visitor: &'a mut FindDependencies<'b, 'mir, 'tcx>,
-// }
 
 pub enum Direction {
   Forward,
@@ -121,10 +117,16 @@ pub fn compute_dependency_ranges(
     .map(|(locs, args)| {
       locs
         .iter()
-        .filter_map(|location| {
+        .map(|location| {
           let mir_span = body.source_info(*location).span;
-          spanner.find_enclosing_hir_span(mir_span)
+          let hir_spans = spanner.find_enclosing_hir_span(mir_span);
+          debug!(
+            "Location {:?} has MIR span {:?} and HIR spans {:?}",
+            location, mir_span, hir_spans
+          );
+          hir_spans.into_iter()
         })
+        .flatten()
         .chain(args.into_iter())
         .filter_map(|span| Range::from_span(span, source_map).ok())
         .collect::<Vec<_>>()

@@ -410,8 +410,8 @@ impl SlicerAnalysis {
 impl FlowistryAnalysis for SlicerAnalysis {
   type Output = SliceOutput;
 
-  fn locations(&self, tcx: TyCtxt) -> Vec<Span> {
-    vec![self.config.range.to_span(tcx.sess.source_map()).unwrap()]
+  fn locations(&self, tcx: TyCtxt) -> Result<Vec<Span>> {
+    Ok(vec![self.config.range.to_span(tcx.sess.source_map())?])
   }
 
   fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {

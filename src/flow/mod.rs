@@ -3,7 +3,7 @@ use crate::core::{
   analysis::{FlowistryAnalysis, FlowistryOutput},
   control_dependencies::ControlDependencies,
   extensions::MutabilityMode,
-  utils::qpath_to_span,
+  utils,
 };
 use anyhow::Result;
 use rustc_hir::BodyId;
@@ -57,8 +57,8 @@ struct FlowHarness {
 impl FlowistryAnalysis for FlowHarness {
   type Output = FlowOutput;
 
-  fn locations(&self, tcx: TyCtxt) -> Vec<Span> {
-    vec![qpath_to_span(tcx, self.qpath.clone()).unwrap()]
+  fn locations(&self, tcx: TyCtxt) -> Result<Vec<Span>> {
+    Ok(vec![utils::qpath_to_span(tcx, self.qpath.clone())?])
   }
 
   fn analyze_function(&mut self, _tcx: TyCtxt, _body_id: BodyId) -> Result<Self::Output> {
