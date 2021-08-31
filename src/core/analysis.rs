@@ -1,5 +1,5 @@
 use anyhow::Result;
-use log::debug;
+use log::{debug, info};
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
   itemlikevisit::ItemLikeVisitor,
@@ -34,6 +34,7 @@ pub trait FlowistryAnalysis: Send + Sync + Sized {
       output: None,
     };
 
+    info!("Starting rustc analysis...");
     rustc_driver::RunCompiler::new(&compiler_args, &mut callbacks)
       .run()
       .unwrap();
@@ -123,6 +124,8 @@ impl<A: FlowistryAnalysis> rustc_driver::Callbacks for Callbacks<A> {
     _compiler: &rustc_interface::interface::Compiler,
     queries: &'tcx rustc_interface::Queries<'tcx>,
   ) -> rustc_driver::Compilation {
+    info!("Rustc analysis finished, running Flowistry visitor");
+
     queries.global_ctxt().unwrap().take().enter(|tcx| {
       let analysis = self.analysis.take().unwrap();
       let locations = analysis.locations(tcx);

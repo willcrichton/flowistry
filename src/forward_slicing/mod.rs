@@ -98,8 +98,8 @@ struct ForwardSliceAnalysis {
 impl FlowistryAnalysis for ForwardSliceAnalysis {
   type Output = SliceOutput;
 
-  fn locations(&self, _tcx: TyCtxt) -> Vec<Span> {
-    vec![self.config.range.to_span()]
+  fn locations(&self, tcx: TyCtxt) -> Vec<Span> {
+    vec![self.config.range.to_span(tcx.sess.source_map()).unwrap()]
   }
 
   fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
@@ -112,7 +112,8 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     let results = compute_flow(tcx, &body_with_facts);
     // utils::dump_results("target/flow.png", body, &results)?;
 
-    let sliced_places = utils::span_to_places(tcx, body, self.config.range.to_span());
+    let source_map = tcx.sess.source_map();
+    let sliced_places = utils::span_to_places(tcx, body, self.config.range.to_span(source_map)?);
     debug!("sliced_places {:?}", sliced_places);
 
     let mut cursor = ResultsCursor::new(body, &results);
@@ -137,7 +138,6 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     let hir_body = tcx.hir().body(body_id);
     let spanner = utils::HirSpanner::new(hir_body);
 
-    let source_map = tcx.sess.source_map();
     let ranges = visitor
       .relevant
       .iter()

@@ -10,7 +10,7 @@ use std::{
 };
 use tempfile::NamedTempFile;
 
-use flowistry::{Config, Range, SliceOutput};
+use flowistry::{Config, FunctionIdentifier, Range, SliceOutput};
 
 fn parse_ranges(
   prog: &str,
@@ -118,7 +118,11 @@ fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &str) 
   check(extra, "Extra");
 }
 
-pub fn flow<O: Debug>(prog: &str, qpath: &str, cb: impl FnOnce(String, &[String]) -> Result<O>) {
+pub fn flow<O: Debug>(
+  prog: &str,
+  id: FunctionIdentifier,
+  cb: impl FnOnce(FunctionIdentifier, &[String]) -> Result<O>,
+) {
   let inner = move || -> Result<()> {
     let mut f = NamedTempFile::new()?;
     let _filename = f.path().to_string_lossy().to_string();
@@ -131,7 +135,7 @@ pub fn flow<O: Debug>(prog: &str, qpath: &str, cb: impl FnOnce(String, &[String]
     );
     let args = args.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
 
-    let output = cb(qpath.to_owned(), &args);
+    let output = cb(id, &args);
     println!("{:?}", output.unwrap());
 
     Ok(())
@@ -185,7 +189,11 @@ pub fn forward_slice(prog: &str) {
 }
 
 pub fn effects(prog: &str, qpath: &str) {
-  flow(prog, qpath, flowistry::effects);
+  flow(
+    prog,
+    FunctionIdentifier::Qpath(qpath.to_owned()),
+    flowistry::effects,
+  );
 }
 
 lazy_static! {
