@@ -5,6 +5,7 @@
 extern crate rustc_driver;
 
 use anyhow::Result;
+use flowistry::Direction;
 use log::debug;
 use std::{
   env,
@@ -68,15 +69,14 @@ fn run_flowistry(args: &[String]) -> Result<()> {
         end: arg::<usize>("END"),
         filename: arg::<String>("FILE"),
       };
-      let config = flowistry::Config {
-        range,
-        ..Default::default()
-      };
-      let slice = if cmd == "backward_slice" {
-        flowistry::backward_slice(config, &args).unwrap()
+
+      let direction = if cmd == "backward_slice" {
+        Direction::Backward
       } else {
-        flowistry::forward_slice(config, &args).unwrap()
+        Direction::Forward
       };
+
+      let slice = flowistry::slice(direction, range, &args).unwrap();
       println!("{}", serde_json::to_string(&slice).unwrap());
       Ok(())
     }

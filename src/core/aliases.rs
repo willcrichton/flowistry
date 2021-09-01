@@ -230,6 +230,9 @@ impl Aliases<'tcx> {
         .collect::<Vec<_>>();
       all_places.extend(pointers.into_iter());
 
+      // needed for FlowAnalysis::initialize_start_block
+      all_places.extend(body.args_iter().map(|arg| utils::local_to_place(arg, tcx)));
+
       let all_places = all_places.into_iter().collect::<Vec<_>>();
       // println!("All places: {:?}", all_places.len());
       // println!("All places: {:?}", all_places);

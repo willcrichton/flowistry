@@ -6,10 +6,12 @@ use crate::core::{
   utils,
 };
 use anyhow::Result;
+use log::debug;
+use polonius_engine::AllFacts;
 use rustc_hir::BodyId;
-use rustc_middle::ty::TyCtxt;
+use rustc_middle::{mir::Body, ty::TyCtxt};
 use rustc_mir::{
-  consumers::BodyWithBorrowckFacts,
+  consumers::RustcFacts,
   dataflow::{Analysis, Results},
 };
 use rustc_span::Span;
@@ -21,18 +23,19 @@ pub mod dependencies;
 
 pub fn compute_flow<'a, 'tcx>(
   tcx: TyCtxt<'tcx>,
-  body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
+  body: &'a Body<'tcx>,
+  facts: &'a AllFacts<RustcFacts>,
 ) -> Results<'tcx, FlowAnalysis<'a, 'tcx>> {
-  let body = &body_with_facts.body;
   let aliases = Aliases::build(
     &MutabilityMode::DistinguishMut,
     tcx,
     body,
-    body_with_facts.input_facts.subset_base.clone(),
+    facts.subset_base.clone(),
     &vec![],
   );
 
   let control_dependencies = ControlDependencies::build(body.clone());
+  debug!("Control dependencies: {:?}", control_dependencies);
 
   FlowAnalysis::new(tcx, body, aliases, control_dependencies)
     .into_engine(tcx, body)

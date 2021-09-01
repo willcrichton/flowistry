@@ -7,8 +7,8 @@ mod utils;
 fn variable_read() {
   let src = r#"
 fn main() {
-  let `[x]` = `[1]`;
-  `(x)`;
+  `[let `[x]` = `[1]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -21,8 +21,8 @@ fn variable_assign() {
   let src = r#"
 fn main() {  
   let `[mut x]` = 1;
-  `[x = 2]`;
-  `(x)`;
+  `[`[x = 2]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -34,9 +34,9 @@ fn variable_reassign() {
   // should include line 1 b/c of reassign
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
-  `[x += 2]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[`[x += 2]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -47,9 +47,9 @@ fn main() {
 fn variable_read_multiple() {
   let src = r#"
 fn main() {
-  let `[x]` = `[1]`;
-  let `[y]` = `[2]`;
-  `(`[x]` + `[y]`)`;
+  `[let `[x]` = `[1]`;]`
+  `[let `[y]` = `[2]`;]`
+  `[`(`[x]` + `[y]`)`;]`
 }
 "#;
 
@@ -61,9 +61,9 @@ fn variable_slice_from_middle() {
   // should not include x += 3
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
-  `[x += 2]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[`[x += 2]`;]`
+  `[`(x)`;]`
   x += 3;
 }
 "#;
@@ -71,31 +71,28 @@ fn main() {
   backward_slice(src);
 }
 
-// #[test]
-// fn variable_select_lhs() {
-//   let _src = r#"
-// fn main() {
-//   let x = 1;
-//   let y = x;
-// }
-// "#;
+#[test]
+fn variable_select_lhs() {
+  let src = r#"
+fn main() {
+  `[let `[x]` = `[1]`;]`
+  `[let `(y)` = `[x]`;]`
+}
+"#;
 
-//   // TODO: need to figure out how to turn selections from LHS of assign
-//   // into corresponding SliceSet span
-
-//   //run(src, Range::line(3, 7, 8), vec![2, 3]);
-// }
+  backward_slice(src);
+}
 
 #[test]
 fn if_both_paths_relevant() {
   let src = r#"
 fn main() {
-  let `[x]` = if `[true]` {
+  `[let `[x]` = `[if `[true]` {
     `[1]`
   } else {
     `[2]`
-  };
-  `(x)`;
+  }]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -106,9 +103,9 @@ fn main() {
 fn if_all_paths_irrelevant() {
   let src = r#"
 fn main() {
-  let `[x]` = `[1]`;
+  `[let `[x]` = `[1]`;]`
   let y = if true { 1 } else { 2 };
-  `(x)`;
+  `[`(x)`;]`
 }
 "#;
 
@@ -119,14 +116,14 @@ fn main() {
 fn if_one_path_relevant() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
+  `[let `[mut x]` = `[1]`;]`
   let mut y = 2;
-  if `[true]` {
-    `[x = 3]`;
+  `[if `[true]` {
+    `[`[x = 3]`;]`
   } else {
     y = x;
-  }
-  `(x)`;
+  }]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -137,12 +134,12 @@ fn main() {
 fn while_cond_relevant() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[y]` = `[2]`;
-  while `[`[x]` < `[y]`]` {
-    `[x += 1]`;
-  }
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[y]` = `[2]`;]`
+  `[while `[`[x]` < `[y]`]` {
+    `[`[x += 1]`;]`
+  }]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -153,47 +150,45 @@ fn main() {
 fn while_cond_irrelevant() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
+  `[let `[x]` = `[1]`;]`
   let mut y = 2;
   while x < y {
     y -= 1;
   }
-  `(x)`;
+  `[`(x)`;]`
 }
 "#;
 
   backward_slice(src);
 }
 
-// #[test]
-// fn loop_break() {
-//   let _src = r#"
-// fn main() {
-//   let mut x = 0;
-//   loop {
-//     if x == 10 {
-//       break;
-//     }
-//     x += 1;
-//   }
-//   x;
-// }
-// "#;
+#[test]
+fn loop_break() {
+  let src = r#"
+fn main() {
+  `[let `[mut x]` = `[0]`;]`
+  `[loop {
+    `[if `[`[x]` == 10]` {
+      break;
+    }]`
+    `[`[x += 1]`;]`
+  }]`
+  `[`(x)`;]`
+}
+"#;
 
-//   // TODO
-//   // need to include control flow keywords like loop/break
-
-//   //run(src, Range::line(9, 3, 4), vec![2, 3, 4, 5, 7, 9]);
-// }
+  // TODO: possible to include the `break`?
+  backward_slice(src);
+}
 
 #[test]
 fn tuple_write_field_read_whole() {
   // should include line 1 because x.1 is relevant
   let src = r#"
 fn main() {
-  let `[mut x]` = `[(0, 1)]`;
-  `[x.0 = 1]`;
-  `(x)`;
+  `[let `[mut x]` = `[(0, 1)]`;]`
+  `[`[x.0 = 1]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -206,8 +201,8 @@ fn tuple_write_field_read_field() {
   let src = r#"
 fn main() {
   let `[mut x]` = (0, 1);
-  `[x.0 = 1]`;
-  `(x.0)`;
+  `[`[x.0 = 1]`;]`
+  `[`(x.0)`;]`
 }
 "#;
 
@@ -219,8 +214,8 @@ fn tuple_write_whole_read_whole() {
   let src = r#"
 fn main() {
   let `[mut x]` = (0, 1);
-  `[x = (2, 3)]`;
-  `(x)`;
+  `[`[x = (2, 3)]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -232,8 +227,8 @@ fn tuple_write_whole_read_field() {
   let src = r#"
 fn main() {
   let `[mut x]` = (0, 1);
-  `[x = (2, 3)]`;
-  `(x.0)`;
+  `[`[x = (2, 3)]`;]`
+  `[`(x.0)`;]`
 }
 "#;
 
@@ -245,9 +240,9 @@ fn struct_write() {
   let src = r#"
 fn main() {
   struct Foo { x: i32, y: i32 }
-  let `[mut x]` = `[Foo { x: 1, y: 2 }]`;
-  `[x.y = 3]`;
-  `(x)`;
+  `[let `[mut x]` = `[Foo { x: 1, y: 2 }]`;]`
+  `[`[x.y = 3]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -259,10 +254,10 @@ fn struct_mut_ptr() {
   let src = r#"
 fn main() {
   struct Foo<'a>(&'a mut i32);
-  let `[mut x]` = `[1]`;
-  let `[f]` = `[Foo(`[&mut x]`)]`;
-  `[*f.0 += 1]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[f]` = `[Foo(`[&mut x]`)]`;]`
+  `[`[*f.0 += 1]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -276,10 +271,10 @@ struct Foo<'a>(&'a mut i32);
 fn foo(f: Foo) {}
 
 fn main() {
-  let `[mut x]` = `[0]`;
-  let `[f]` = `[Foo(`[&mut x]`)]`;  
-  `[foo(`[f]`)]`;
-  `(x)`;
+  `[let `[mut x]` = `[0]`;]`
+  `[let `[f]` = `[Foo(`[&mut x]`)]`;]`
+  `[`[foo(`[f]`)]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -292,14 +287,14 @@ fn enum_write_branch_read_whole() {
   let src = r#"
 fn main() {
   enum Foo { X(i32), Y(i32) }
-  let `[mut x]` = `[Foo::X(1)]`;
-  if let Foo::X(`[z]`) = `[&mut x]` {
-    `[*z += 1]`;
-  }
-  if let Foo::Y(`[z]`) = `[&mut x]` {
-    `[*z += 1]`;
-  }  
-  `(x)`;
+  `[let `[mut x]` = `[Foo::X(1)]`;]`
+  `[if `[let `[Foo::X(`[z]`)]` = `[&mut x]`]` {
+    `[`[*z += 1]`;]`
+  }]`
+  `[if `[let `[Foo::Y(`[z]`)]` = `[&mut x]`]` {
+    `[`[*z += 1]`;]`
+  }]` 
+  `[`(x)`;]`
 }
 "#;
 
@@ -339,9 +334,9 @@ fn main() {
 fn array_write() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[[0; 1]]`;
-  `[x[0] = 2]`;
-  `(x)`;
+  `[let `[mut x]` = `[[0; 1]]`;]`
+  `[`[x[0] = 2]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -352,9 +347,9 @@ fn main() {
 fn array_read() {
   let src = r#"
 fn main() {
-  let `[x]` = `[[0; 1]]`;
-  let `[y]` = `[x[0]]`;
-  `(y)`;
+  `[let `[x]` = `[[0; 1]]`;]`
+  `[let `[y]` = `[x[0]]`;]`
+  `[`(y)`;]`
 }
 "#;
 
@@ -365,10 +360,10 @@ fn main() {
 fn slice_write() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[[0u8; 2]]`;
-  let `[y]` = `[&mut `[`[x]`[`[..1]`]]`]`;
-  `[y[0] = 0]`;
-  `(x)`;
+  `[let `[mut x]` = `[[0u8; 2]]`;]`
+  `[let `[y]` = `[&mut `[`[x]`[`[..1]`]]`]`;]`
+  `[`[y[0] = 0]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -379,10 +374,10 @@ fn main() {
 fn slice_ptr_elem_write() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[y]` = `[[`[&mut x]`]]`;
-  `[*y[0] = 0]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[y]` = `[[`[&mut x]`]]`;]`
+  `[`[*y[0] = 0]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -393,10 +388,10 @@ fn main() {
 fn pointer_write() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[y]` = `[&mut x]`;
-  `[*y = 1]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[y]` = `[&mut x]`;]`
+  `[`[*y = 1]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -407,10 +402,10 @@ fn main() {
 fn pointer_read() {
   let src = r#"
 fn main() {
-  let `[x]` = `[1]`;
-  let `[y]` = `[&x]`;
-  let `[z]` = `[`[*y]` + 1]`;
-  `(z)`;
+  `[let `[x]` = `[1]`;]`
+  `[let `[y]` = `[&x]`;]`
+  `[let `[z]` = `[`[*y]` + 1]`;]`
+  `[`(z)`;]`
 }
 "#;
 
@@ -421,10 +416,10 @@ fn main() {
 fn pointer_increment() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[y]` = `[&mut x]`;
-  `[*y += 1]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[y]` = `[&mut x]`;]`
+  `[`[*y += 1]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -434,13 +429,12 @@ fn main() {
 #[test]
 fn pointer_ignore_reads() {
   // n should be ignored
-  // TODO: line 3 should also be ignored
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
+  `[let `[mut x]` = `[1]`;]`
   let y = &mut x;
   let n = *y;
-  `(x)`;
+  `[`(x)`;]`
 }
 "#;
 
@@ -451,11 +445,11 @@ fn main() {
 fn pointer_aliasing() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[y]` = `[&mut x]`;
-  let `[z]` = `[y]`;
-  `[*z = 2]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[y]` = `[&mut x]`;]`
+  `[let `[z]` = `[y]`;]`
+  `[`[*z = 2]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -466,15 +460,15 @@ fn main() {
 fn pointer_multiple_locations() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[mut y]` = `[2]`;
-  let `[z]` = if `[true]` {
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[mut y]` = `[2]`;]`
+  `[let `[z]` = `[if `[true]` {
     `[&mut x]`
   } else {
     `[&mut y]`
-  };
-  `[*z += 1]`;
-  `(x)`;
+  }]`;]`
+  `[`[*z += 1]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -485,11 +479,11 @@ fn main() {
 fn pointer_nested() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[mut y]` = `[&mut x]`;
-  let `[z]` = `[&mut y]`;
-  `[**z = 2]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[mut y]` = `[&mut x]`;]`
+  `[let `[z]` = `[&mut y]`;]`
+  `[`[**z = 2]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -500,11 +494,11 @@ fn main() {
 fn pointer_reborrow() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[mut y]` = `[&mut x]`;
-  let `[z]` = `[&mut *y]`;
-  `[*z = 2]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[mut y]` = `[&mut x]`;]`
+  `[let `[z]` = `[&mut *y]`;]`
+  `[`[*z = 2]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -515,12 +509,12 @@ fn main() {
 fn pointer_reborrow_nested() {
   let src = r#"
 fn main() {
-  let `[mut x]`: i32 = `[1]`;
-  let `[mut y]` = `[&mut x]`;
-  let `[z]` = `[&mut y]`;
-  let `[w]` = `[&mut **z]`;
-  `[*w = 2]`;
-  `(*y)`;
+  `[let `[mut x]`: i32 = `[1]`;]`
+  `[let `[mut y]` = `[&mut x]`;]`
+  `[let `[z]` = `[&mut y]`;]`
+  `[let `[w]` = `[&mut **z]`;]`
+  `[`[*w = 2]`;]`
+  `[`(*y)`;]`
 }
 "#;
 
@@ -531,10 +525,10 @@ fn main() {
 fn pointer_mutate_field() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[(1,)]`;
-  let `[mut y]` = `[&mut x]`;
-  `[(*y).0 = 2]`;
-  `(x)`;
+  `[let `[mut x]` = `[(1,)]`;]`
+  `[let `[mut y]` = `[&mut x]`;]`
+  `[`[(*y).0 = 2]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -547,9 +541,9 @@ fn interprocedural_output() {
 fn foo() -> i32 { 1 }
 
 fn main() {
-  let `[mut x]` = `[1]`;
-  `[x += `[foo()]`]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[`[x += `[foo()]`]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -562,10 +556,10 @@ fn interprocedural_input() {
 fn foo(x: i32) -> i32 { x }
 
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[y]` = `[2]`;
-  `[x += `[foo(`[y]`)]`]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[y]` = `[2]`;]`
+  `[`[x += `[foo(`[y]`)]`]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -579,10 +573,10 @@ fn interprocedural_mut_input() {
 fn foo(x: &mut i32, y: i32) {}
 
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[y]` = `[2]`;
-  `[foo(`[&mut x]`, `[y]`)]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[y]` = `[2]`;]`
+  `[`[foo(`[&mut x]`, `[y]`)]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -596,9 +590,9 @@ fn interprocedural_ref_input() {
 fn foo(x: &i32) {}
 
 fn main() {
-  let `[mut x]` = `[1]`;
+  `[let `[mut x]` = `[1]`;]`
   foo(&x);
-  `(x)`;
+  `[`(x)`;]`
 }
 "#;
 
@@ -611,10 +605,10 @@ fn interprocedural_mut_input_irrelevant() {
 fn foo(x: &mut i32) {}
 
 fn main() {
-  let `[mut x]` = `[1]`;
+  `[let `[mut x]` = `[1]`;]`
   let mut y = 2;
   foo(&mut y);
-  `(x)`;
+  `[`(x)`;]`
 }
 "#;
 
@@ -627,9 +621,9 @@ fn interprocedural_mut_input_field() {
 fn foo(x: (&mut i32,)) {}
 
 fn main() {
-  let `[mut x]` = `[1]`;
-  `[foo(`[(`[&mut x]`,)]`)]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[`[foo(`[(`[&mut x]`,)]`)]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -642,9 +636,9 @@ fn interprocedural_mut_input_whole() {
 fn write(t: &mut (i32, i32)) {}
 
 fn main() {
-  let `[mut x]` = `[(1, 2)]`;
-  `[write(`[&mut x]`)]`;
-  `(x.0)`;
+  `[let `[mut x]` = `[(1, 2)]`;]`
+  `[`[write(`[&mut x]`)]`;]`
+  `[`(x.0)`;]`
 }
 "#;
 
@@ -657,10 +651,10 @@ fn interprocedural_mut_output() {
 fn foo(x: &mut i32) -> &mut i32 { x }
 
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[y]` = `[foo(`[&mut x]`)]`;
-  `[*y += 2]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[y]` = `[foo(`[&mut x]`)]`;]`
+  `[`[*y += 2]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -673,11 +667,11 @@ fn interprocedural_mut_output_lifetimes() {
 fn foo<'a, 'b>(x: &'a mut i32, y: &'b mut i32) -> &'b mut i32 { y }
 
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[mut y]` = `[2]`;
-  let z = `[foo(`[&mut x]`, `[&mut y]`)]`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[mut y]` = `[2]`;]`
+  `[let `[z]` = `[foo(`[&mut x]`, `[&mut y]`)]`;]`
   *z += 1;
-  `(x)`;
+  `[`(x)`;]`
 }
 "#;
 
@@ -690,11 +684,11 @@ fn interprocedural_mut_output_lifetimes_outlives() {
 fn foo<'a, 'b: 'a>(x: &'a mut i32, y: &'b mut i32) -> &'a mut i32 { x }
 
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[mut y]` = `[2]`;
-  let `[z]` = `[foo(`[&mut x]`, `[&mut y]`)]`;
-  `[*z += 1]`;
-  `(y)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[mut y]` = `[2]`;]`
+  `[let `[z]` = `[foo(`[&mut x]`, `[&mut y]`)]`;]`
+  `[`[*z += 1]`;]`
+  `[`(y)`;]`
 }
 "#;
 
@@ -707,10 +701,10 @@ fn interprocedural_mut_output_field_read_whole() {
 fn foo(x: &mut (i32, i32)) -> &mut i32 { &mut x.0 }
 
 fn main() {
-  let `[mut x]` = `[(0, 1)]`;
-  let `[y]` = `[foo(`[&mut x]`)]`;
-  `[*y += 1]`;
-  `(x)`;
+  `[let `[mut x]` = `[(0, 1)]`;]`
+  `[let `[y]` = `[foo(`[&mut x]`)]`;]`
+  `[`[*y += 1]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -724,10 +718,10 @@ fn interprocedural_mut_output_field_read_field() {
 fn foo(x: &mut (i32, i32)) -> &mut i32 { &mut x.0 }
 
 fn main() {
-  let `[mut x]` = `[(0, 1)]`;
-  let `[y]` = `[foo(`[&mut x]`)]`;
-  `[*y += 1]`;
-  `(x.1)`;
+  `[let `[mut x]` = `[(0, 1)]`;]`
+  `[let `[y]` = `[foo(`[&mut x]`)]`;]`
+  `[`[*y += 1]`;]`
+  `[`(x.1)`;]`
 }
 "#;
 
@@ -740,10 +734,10 @@ fn interprocedural_ref_output() {
 fn foo(x: &i32) -> &i32 { x }
 
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[y]` = `[foo(`[&x]`)]`;
-  let `[z]` = `[*y]`;
-  `(z)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[y]` = `[foo(`[&x]`)]`;]`
+  `[let `[z]` = `[*y]`;]`
+  `[`(z)`;]`
 }
 "#;
 
@@ -754,8 +748,8 @@ fn main() {
 fn function_param() {
   let src = r#"
 fn foo(`[x]`: i32) {
-  let `[y]` = `[`[x]` + 1]`;
-  `(y)`;
+  `[let `[y]` = `[`[x]` + 1]`;]`
+  `[`(y)`;]`
 }
 
 fn main() {}
@@ -768,9 +762,9 @@ fn main() {}
 fn function_mut_ptr_param() {
   let src = r#"
 fn foo(`[x]`: &mut i32) {
-  `[*x = 2]`;
-  let `[y]` = `[*x]`;
-  `(y)`;
+  `[`[*x = 2]`;]`
+  `[let `[y]` = `[*x]`;]`
+  `[`(y)`;]`
 }
 
 fn main() {}
@@ -783,9 +777,9 @@ fn main() {}
 fn function_mut_ptr_param_field() {
   let src = r#"
 fn foo(`[x]`: (&mut i32,)) {
-  `[*x.0 = 2]`;
-  let `[y]` = `[*x.0]`;
-  `(y)`;
+  `[`[*x.0 = 2]`;]`
+  `[let `[y]` = `[*x.0]`;]`
+  `[`(y)`;]`
 }
 
 fn main() {}
@@ -799,11 +793,11 @@ fn function_lifetime_outlives_spurious_alias() {
   // given our algorithm of estimating aliases from lifetimes, `w` and `x` are considered
   // to aliases `y` and `z` given the constraint `'b: 'a`
   let src = r#"
-fn foo<'a, 'b: 'a>(`[x]`: &'a mut i32, `[y]`: &'b mut i32) -> `[&'a mut i32]` {
-  let `[z]` = `[y]`;
-  let `[w]` = `[x]`;
-  `[*w = 1]`;
-  `(z)`
+fn foo<'a, 'b: 'a>(`[x]`: &'a mut i32, `[y]`: &'b mut i32) -> &'a mut i32 {
+  `[let `[z]` = `[y]`;]`
+  `[let `[w]` = `[x]`;]`
+  `[`[*w = 1]`;]`
+  `[`(z)`]`
 }
 
 fn main() {}
@@ -816,10 +810,10 @@ fn main() {}
 fn closure_write_upvar() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
-  let `[mut f]` = `[|| { x += 1; }]`;
-  `[`[f]`()]`;
-  `(x)`;
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[mut f]` = `[|| { x += 1; }]`;]`
+  `[`[`[f]`()]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -834,10 +828,28 @@ fn main() {
 fn closure_read_upvar() {
   let src = r#"
 fn main() {
-  let `[mut x]` = `[1]`;
+  `[let `[mut x]` = `[1]`;]`
   let f = || { x + 1; };
   f();
-  `(x)`;
+  `[`(x)`;]`
+}
+"#;
+
+  backward_slice(src);
+}
+
+// TODO: should this include the closure call? that's kind of an artifact
+//   of the fact that the span is contained inside `main`, so the analysis for main
+//   associates the span with e.g. the closure's return value and environment
+#[test]
+fn closure_slice_inner_write_inner() {
+  let src = r#"
+fn main() {
+  let x = 1;
+  `[`[`[(|| {    
+    `[let `[y]` = `[1]`;]`
+    `[`(y)`;]`
+  })]`()]`;]`
 }
 "#;
 
@@ -845,34 +857,45 @@ fn main() {
 }
 
 #[test]
-fn closure_slice_inside() {
+fn closure_slice_inner_write_outer() {
   let src = r#"
 fn main() {
-  let x = Some(1);
-  x.and_then(
-    |`[y]`| {
-      let `[z]` = `[`[y]` + 1]`;
-      Some(`(z)`)
-  });
+  `[let `[mut x]` = `[1]`;]`
+  `[`[`[(|| {    
+    `[`[x += 1]`;]`
+    `[`(x)`;]`
+  })]`()]`;]`
 }
 "#;
 
   backward_slice(src);
 }
 
-// #[test]
-// fn macro_read() {
-//   let _src = r#"
-// fn main() {
-//   let x = vec![1, 2, 3];
-//   x;
-// }
-// "#;
+#[test]
+fn macro_read() {
+  let src = r#"
+fn main() {
+  `[let `[x]` = `[vec![1, 2, 3]]`;]`
+  `[`(x)`;]`
+}
+"#;
 
-//   // TODO: need to figure out macro source-map
+  backward_slice(src);
+}
 
-//   // run(src, Range::line(3, 2, 3), vec![2, 3]);
-// }
+#[test]
+fn macro_slice() {
+  // TODO: y shouldn't be included, seems to be an artifact of macro spans
+  let src = r#"
+fn main() {
+  `[let `[x]` = `[1]`;]`
+  `[let `[y]` = `[2]`;]`
+  `[println!("{} {}", `[`(x)`]`, `[y]`);]`
+}
+"#;
+
+  backward_slice(src);
+}
 
 #[test]
 fn generic_param() {
@@ -880,46 +903,21 @@ fn generic_param() {
 fn main() {}
 
 fn foo<T>(`[t]`: T) {
-  let `[x]` = `[t]`;
-  `(x)`;
+  `[let `[x]` = `[t]`;]`
+  `[`(x)`;]`
 }
 "#;
 
   backward_slice(src);
 }
-
-#[test]
-fn string_print() {
-  let src = r#"
-fn main() {
-  let `[x]` = `["a"]`;
-  println!("{}", `(x)`);
-}
-"#;
-
-  backward_slice(src);
-}
-
-// #[test]
-// fn string_print_multiple() {
-//   let src = r#"
-// fn main() {
-//   let `[x]` = `["a"]`;
-//   let y = "b";
-//   println!("{} {}", `(x)`, y);
-// }
-// "#;
-
-//   backward_slice(src);
-// }
 
 #[test]
 fn string_drop_and_replace() {
   let src = r#"
 fn main() {
   let `[mut x]` = String::new();
-  `[x]` = `[String::new()]`;
-  `(x)`;
+  `[`[x]` = `[String::new()]`;]`
+  `[`(x)`;]`
 }
 "#;
 
@@ -930,12 +928,12 @@ fn main() {
 fn match_test() {
   let src = r#"
   fn main() {
-    let `[x]` = `[1]`;
-    let `[y]` = match `[Some(`[x]`)]` {
-      None => `[1]`,
+    `[let `[x]` = `[1]`;]`
+    `[let `[y]` = `[match `[Some(`[x]`)]` {
+      `[None]` => `[1]`,
       Some(`[x]`) => `[x]`,
-    };
-    `(y)`;
+    }]`;]`
+    `[`(y)`;]`
   }
   "#;
 
@@ -947,11 +945,11 @@ fn strong_update_conditional() {
   let src = r#"
 fn main() {
   let `[mut x]` = 1;
-  `[x = 1]`;
-  let `[mut y]` = `[2]`;
-  let `[z]` = if `[true]` { `[&mut x]` } else { `[&mut y]` };
-  `[*z += 1]`;
-  `(x)`;
+  `[`[x = 1]`;]`
+  `[let `[mut y]` = `[2]`;]`
+  `[let `[z]` = `[if `[true]` { `[&mut x]` } else { `[&mut y]` }]`;]`
+  `[`[*z += 1]`;]`
+  `[`(x)`;]`
 }
 "#;
 

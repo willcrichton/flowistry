@@ -382,6 +382,16 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
   pub fn rows(&self) -> impl Iterator<Item = R::Index> {
     self.matrix.rows()
   }
+
+  pub fn clear_row(&mut self, row: impl ToIndex<R>) {
+    let row = row.to_index(&self.row_domain);
+    if let Some(set) = self.matrix.row(row) {
+      // FIXME: unsafe hack, update this once my SparseBitMatrix PR is merged
+      let set =
+        unsafe { &mut *(set as *const HybridBitSet<C::Index> as *mut HybridBitSet<C::Index>) };
+      set.clear();
+    }
+  }
 }
 
 impl<R: IndexedValue, C: IndexedValue> PartialEq for IndexMatrix<R, C> {

@@ -6,7 +6,7 @@ use crate::{
   },
   flow::{self, dependencies},
 };
-use anyhow::{Context, Result};
+use anyhow::Result;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::BodyId;
 use rustc_middle::{
@@ -75,7 +75,7 @@ impl FlowistryAnalysis for EffectsHarness {
     let body_with_facts =
       get_body_with_borrowck_facts(tcx, WithOptConstParam::unknown(local_def_id));
     let body = &body_with_facts.body;
-    let flow_results = flow::compute_flow(tcx, &body_with_facts);
+    let flow_results = flow::compute_flow(tcx, body, &body_with_facts.input_facts);
     if std::env::var("DUMP_MIR").is_ok() {
       utils::dump_results("target/effects.png", body, &flow_results)?;
     }
@@ -92,7 +92,7 @@ impl FlowistryAnalysis for EffectsHarness {
       .map(|(kind, effects)| {
         effects
           .into_iter()
-          .map(move |(loc, deps)| ((kind, loc), deps))
+          .map(move |(place, loc)| ((kind, loc), (place, loc)))
       })
       .flatten()
       .unzip();

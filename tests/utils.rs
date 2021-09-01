@@ -10,7 +10,7 @@ use std::{
 };
 use tempfile::NamedTempFile;
 
-use flowistry::{Config, FunctionIdentifier, Range, SliceOutput};
+use flowistry::{Direction, FunctionIdentifier, Range};
 
 fn parse_ranges(
   prog: &str,
@@ -144,7 +144,7 @@ pub fn flow<O: Debug>(
   inner().unwrap();
 }
 
-pub fn slice(prog: &str, cb: impl FnOnce(Config, &[String]) -> Result<SliceOutput>) {
+pub fn slice(prog: &str, direction: Direction) {
   let inner = move || -> Result<()> {
     let mut f = NamedTempFile::new()?;
     let filename = f.path().to_string_lossy().to_string();
@@ -156,11 +156,6 @@ pub fn slice(prog: &str, cb: impl FnOnce(Config, &[String]) -> Result<SliceOutpu
 
     f.as_file_mut().write(prog_clean.as_bytes())?;
 
-    let config = Config {
-      range: range.clone(),
-      ..Default::default()
-    };
-
     let args = format!(
       "--edition=2018 --crate-name tmp {} -A warnings --sysroot {}",
       f.path().display(),
@@ -169,7 +164,7 @@ pub fn slice(prog: &str, cb: impl FnOnce(Config, &[String]) -> Result<SliceOutpu
 
     let args = args.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
 
-    let output = cb(config, &args)?;
+    let output = flowistry::slice(direction, range, &args)?;
     let actual = output.ranges().into_iter().cloned().collect::<HashSet<_>>();
 
     compare_ranges(expected, actual, &prog_clean);
@@ -181,11 +176,11 @@ pub fn slice(prog: &str, cb: impl FnOnce(Config, &[String]) -> Result<SliceOutpu
 }
 
 pub fn backward_slice(prog: &str) {
-  slice(prog, flowistry::backward_slice);
+  slice(prog, Direction::Backward);
 }
 
 pub fn forward_slice(prog: &str) {
-  slice(prog, flowistry::forward_slice);
+  slice(prog, Direction::Forward);
 }
 
 pub fn effects(prog: &str, qpath: &str) {
