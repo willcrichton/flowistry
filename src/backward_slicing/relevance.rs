@@ -315,11 +315,12 @@ impl<'a, 'b, 'mir, 'tcx> Visitor<'tcx> for TransferFunction<'a, 'b, 'mir, 'tcx> 
       }
 
       TerminatorKind::SwitchInt { discr, .. } => {
-        let is_relevant = self.state.locations.iter().any(|relevant| {
-          self
-            .analysis
-            .control_dependencies
-            .is_dependent(relevant.block, location.block)
+        let is_relevant = self.state.locations.iter().any(|_relevant| {
+          false
+          // self
+          //   .analysis
+          //   .control_dependencies
+          //   .is_dependent(relevant.block, location.block)
         });
 
         if is_relevant {

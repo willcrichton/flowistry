@@ -6,9 +6,9 @@ mod utils;
 fn basic_slice_constant() {
   let src = r#"
 fn main() {
-  `[let mut x = `(1)`;]`
-  `[let y = `[`[x]` + 2]`;]`
-  `[let z = `[y]`;]`
+  `[let `[mut x]` = `(1)`;]`
+  `[let `[y]` = `[`[x]` + 2]`;]`
+  `[let `[z]` = `[y]`;]`
 }
 "#;
 
@@ -19,9 +19,9 @@ fn main() {
 fn basic_slice_variable() {
   let src = r#"
 fn main() {
-  `(let mut x = `[1]`;)`
-  `[let y = `[`[x]` + 2]`;]`
-  `[let z = `[y]`;]`
+  `(let `[mut x]` = `[1]`;)`
+  `[let `[y]` = `[`[x]` + 2]`;]`
+  `[let `[z]` = `[y]`;]`
 }
 "#;
 
@@ -32,9 +32,9 @@ fn main() {
 fn basic_unused() {
   let src = r#"
 fn main() {
-  `(let x = `[1]`;)`
+  `(let `[x]` = `[1]`;)`
   let y = 1 + 2;
-  `[let z = `[`[x]` + y]`;]`
+  `[let `[z]` = `[`[x]` + y]`;]`
 }
 "#;
 
@@ -45,9 +45,9 @@ fn main() {
 fn basic_update() {
   let src = r#"
 fn main() {
-  `(let mut x = `[1]`;)`
+  `(let `[mut x]` = `[1]`;)`
   `[`[x += 1]`;]`
-  `[let y = `[x]`;]`
+  `[let `[y]` = `[x]`;]`
 }
 "#;
 
@@ -58,14 +58,14 @@ fn main() {
 fn condition() {
   let src = r#"
 fn main() {
-  `(let x = `[1]`;)`
+  `(let `[x]` = `[1]`;)`
   let y = 2;
-  `[let z = if true {
+  `[let `[z]` = if true {
     `[x]`
   } else {
     y
   };]`
-  `[let w = `[z]`;]`
+  `[let `[w]` = `[z]`;]`
 }"#;
 
   utils::forward_slice(src);
@@ -75,8 +75,8 @@ fn main() {
 fn pointer_write() {
   let src = r#"
 fn main() {
-  `(let mut x = `[1]`;)`
-  `[let y = `[&mut x]`;]`
+  `(let `[mut x]` = `[1]`;)`
+  `[let `[y]` = `[&mut x]`;]`
   `[`[*y += 2]`;]`
 }
 "#;
@@ -88,8 +88,8 @@ fn main() {
 fn function_params() {
   let src = r#"
 fn foo(`(x)`: i32) {
-  `[let y = `[`[x]` + 1]`;]`
-  `[let z = `[y]`;]`
+  `[let `[y]` = `[`[x]` + 1]`;]`
+  `[let `[z]` = `[y]`;]`
 }
 fn main() {}
 "#;

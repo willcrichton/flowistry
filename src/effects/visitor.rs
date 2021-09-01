@@ -1,7 +1,7 @@
 use crate::{
   core::{
     indexed::IndexSetIteratorExt,
-    indexed_impls::{LocationSet, PlaceSet},
+    indexed_impls::PlaceSet,
     utils::{self, PlaceRelation},
   },
   flow,
@@ -19,7 +19,7 @@ pub enum EffectKind {
 pub struct FindEffects<'a, 'mir, 'tcx> {
   analysis: &'a flow::FlowAnalysis<'mir, 'tcx>,
   mut_args: PlaceSet<'tcx>,
-  pub effects: HashMap<EffectKind, Vec<(Location, LocationSet)>>,
+  pub effects: HashMap<EffectKind, Vec<(Place<'tcx>, Location)>>,
 }
 
 impl FindEffects<'a, 'mir, 'tcx> {
@@ -51,20 +51,18 @@ impl ResultsVisitor<'mir, 'tcx> for FindEffects<'_, 'mir, 'tcx> {
 
   fn visit_statement_after_primary_effect(
     &mut self,
-    state: &Self::FlowState,
+    _state: &Self::FlowState,
     statement: &'mir Statement<'tcx>,
     location: Location,
   ) {
     match &statement.kind {
       StatementKind::Assign(box (mutated, _input)) => {
         if mutated.local == RETURN_PLACE {
-          let deps = state.row_set(*mutated).unwrap().to_owned();
-
           self
             .effects
             .entry(EffectKind::Return)
             .or_insert_with(Vec::new)
-            .push((location, deps));
+            .push((*mutated, location));
         } else {
           let aliases = self.analysis.aliases.loans(*mutated);
           let mutated = self
@@ -81,12 +79,11 @@ impl ResultsVisitor<'mir, 'tcx> for FindEffects<'_, 'mir, 'tcx> {
             for arg in mutated {
               let arg_index = arg.local.as_usize() - 1;
               let kind = EffectKind::MutArg(arg_index);
-              let deps = state.row_set(*arg).unwrap().to_owned();
               self
                 .effects
                 .entry(kind)
                 .or_insert_with(Vec::new)
-                .push((location, deps));
+                .push((*arg, location));
             }
           }
         }
@@ -97,9 +94,9 @@ impl ResultsVisitor<'mir, 'tcx> for FindEffects<'_, 'mir, 'tcx> {
 
   fn visit_terminator_after_primary_effect(
     &mut self,
-    state: &Self::FlowState,
-    terminator: &'mir Terminator<'tcx>,
-    location: Location,
+    _state: &Self::FlowState,
+    _terminator: &'mir Terminator<'tcx>,
+    _location: Location,
   ) {
   }
 }

@@ -108,13 +108,15 @@ impl HirSpanner {
         NestedVisitorMap::None
       }
 
+      // source_callsite gets the top-level source location if span is
+      // from a macro expansion
       fn visit_expr(&mut self, expr: &Expr) {
-        self.0.expr_spans.push(expr.span);
+        self.0.expr_spans.push(expr.span.source_callsite());
         intravisit::walk_expr(self, expr);
       }
 
       fn visit_stmt(&mut self, stmt: &Stmt) {
-        self.0.stmt_spans.push(stmt.span);
+        self.0.stmt_spans.push(stmt.span.source_callsite());
         intravisit::walk_stmt(self, stmt);
       }
     }

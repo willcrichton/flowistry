@@ -1,11 +1,11 @@
 pub use crate::core::indexed_impls::{PlaceDomain, PlaceIndex, PlaceSet};
 use anyhow::{bail, Result};
 use log::warn;
-use rustc_data_structures::fx::FxHashMap as HashMap;
+use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
 use rustc_middle::{
   mir::{
-    visit::{PlaceContext, Visitor},
+    visit::{NonUseContext, PlaceContext, Visitor},
     *,
   },
   ty::{self, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS, TypeFoldable, TypeVisitor},
@@ -188,6 +188,33 @@ pub fn interior_pointers<'tcx>(
   region_collector.regions
 }
 
+pub fn arg_mut_ptrs<'tcx>(
+  args: &[Place<'tcx>],
+  tcx: TyCtxt<'tcx>,
+  body: &Body<'tcx>,
+) -> Vec<Place<'tcx>> {
+  args
+    .iter()
+    .map(|place| {
+      interior_pointers(*place, tcx, body)
+        .into_iter()
+        .filter_map(|(_, (place, mutability))| match mutability {
+          Mutability::Mut => Some(place),
+          Mutability::Not => None,
+        })
+        .map(|place| tcx.mk_place_deref(place))
+    })
+    .flatten()
+    .collect::<Vec<_>>()
+}
+
+pub fn arg_places<'tcx>(args: &[Operand<'tcx>]) -> Vec<Place<'tcx>> {
+  args
+    .iter()
+    .filter_map(|arg| operand_to_place(arg))
+    .collect::<Vec<_>>()
+}
+
 pub fn hashmap_merge<K: Eq + Hash, V>(
   mut h1: HashMap<K, V>,
   h2: HashMap<K, V>,
@@ -285,7 +312,7 @@ struct FindSpannedPlaces<'a, 'tcx> {
   tcx: TyCtxt<'tcx>,
   body: &'a Body<'tcx>,
   span: Span,
-  places: Vec<(Place<'tcx>, Location)>,
+  places: HashSet<(Place<'tcx>, Location)>,
 }
 
 impl Visitor<'tcx> for FindSpannedPlaces<'_, 'tcx> {
@@ -297,29 +324,28 @@ impl Visitor<'tcx> for FindSpannedPlaces<'_, 'tcx> {
       }
     }
 
-    // Ignore debug-info places whose locations are all assigned to the start of the entry block
-    if !context.is_use() {
-      return;
-    }
+    let span = match context {
+      PlaceContext::MutatingUse(..) | PlaceContext::NonMutatingUse(..) => {
+        let source_info = self.body.source_info(location);
+        Some(source_info.span)
+      }
+      PlaceContext::NonUse(non_use) => match non_use {
+        NonUseContext::VarDebugInfo => {
+          if self.body.args_iter().any(|local| local == place.local) {
+            let source_info = self.body.local_decls()[place.local].source_info;
+            Some(source_info.span)
+          } else {
+            None
+          }
+        }
+        _ => None,
+      },
+    };
 
-    let source_info = self.body.source_info(location);
-    let span = source_info.span;
-
-    if self.span.contains(span) || span.contains(self.span) {
-      self.places.push((*place, location))
-    }
-  }
-
-  fn visit_local_decl(&mut self, local: Local, local_decl: &LocalDecl<'tcx>) {
-    let span = local_decl.source_info.span;
-    if self.span.contains(span) || span.contains(self.span) {
-      self.places.push((
-        Place {
-          local,
-          projection: self.tcx.intern_place_elems(&[]),
-        },
-        Location::START,
-      ));
+    if let Some(span) = span {
+      if self.span.contains(span) || span.contains(self.span) {
+        self.places.insert((*place, location));
+      }
     }
   }
 }
@@ -333,10 +359,10 @@ pub fn span_to_places(
     tcx,
     body,
     span,
-    places: Vec::new(),
+    places: HashSet::default(),
   };
   visitor.visit_body(body);
-  visitor.places
+  visitor.places.into_iter().collect::<Vec<_>>()
 }
 
 pub fn dump_results<'tcx, A>(
@@ -366,4 +392,13 @@ pub fn mir_to_string(tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> Result<String> {
   let mut buffer = Vec::new();
   write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
   Ok(String::from_utf8(buffer)?)
+}
+
+pub fn location_to_string(location: Location, body: &Body<'_>) -> String {
+  let block = &body.basic_blocks()[location.block];
+  if location.statement_index == block.statements.len() {
+    format!("{:?}", block.terminator())
+  } else {
+    format!("{:?}", block.statements[location.statement_index])
+  }
 }

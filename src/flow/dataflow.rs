@@ -1,10 +1,11 @@
 use crate::core::{
   aliases::Aliases,
   control_dependencies::ControlDependencies,
-  indexed::{IndexMatrix, IndexSet, IndexSetIteratorExt, IndexedDomain},
-  indexed_impls::{build_location_domain, LocationDomain, PlaceDomain},
+  indexed::{IndexMatrix, IndexSetIteratorExt, IndexedDomain},
+  indexed_impls::{arg_location, build_location_domain, LocationDomain, LocationSet, PlaceDomain},
   utils::{self, PlaceCollector, PlaceRelation},
 };
+
 use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::TyCtxt,
@@ -30,24 +31,55 @@ impl TransferFunction<'_, '_, 'tcx> {
     let place_domain = self.analysis.place_domain();
     let location_domain = self.analysis.location_domain();
 
-    let mut locations: IndexSet<Location> = inputs
+    let mut input_deps: LocationSet = inputs
       .iter()
       .map(|place| self.state.row_indices(*place))
       .flatten()
       .collect_indices(location_domain.clone());
-    locations.insert(location);
 
+    let controlled_by = self
+      .analysis
+      .control_dependencies
+      .dependent_on(location.block);
+    let body = self.analysis.body;
+    for block in controlled_by.into_iter().map(|set| set.iter()).flatten() {
+      input_deps.insert(body.terminator_loc(block));
+
+      let terminator = body.basic_blocks()[block].terminator();
+      if let TerminatorKind::SwitchInt { discr, .. } = &terminator.kind {
+        if let Some(discr_place) = utils::operand_to_place(discr) {
+          if let Some(discr_deps) = self.state.row_set(discr_place) {
+            input_deps.union(&discr_deps);
+          }
+        }
+      }
+    }
+
+    input_deps.insert(location);
+
+    let mutated_deps = self.state.row_set(mutated).map(|s| s.to_owned());
     let aliases = self.analysis.aliases.loans(mutated);
     for alias in aliases.iter() {
-      if definitely_mutated && aliases.len() == 1 {
-        // TODO: need to clear bits, but this requires
-      }
+      for (place_idx, place) in place_domain.iter_enumerated() {
+        let relation = PlaceRelation::of(*place, *alias);
 
-      let conflicting_places = place_domain
-        .iter_enumerated()
-        .filter(|(_, place)| PlaceRelation::of(**place, *alias).overlaps());
-      for (_, conflict) in conflicting_places {
-        self.state.union_into_row(*conflict, &locations);
+        // TODO:
+        //   - aliases.len() == 1 is too conservative, should be "if only one pointer at every level of indirection" maybe?
+        if definitely_mutated && aliases.len() == 1 && relation == PlaceRelation::Sub {
+          self.state.clear_row(place_idx);
+        }
+
+        if relation.overlaps() {
+          self.state.union_into_row(place_idx, &input_deps);
+
+          // if a value is indirectly mutated, then its dependencies needs to
+          // include the provenance of the reference
+          if *alias != mutated {
+            if let Some(mutated_deps) = mutated_deps.as_ref() {
+              self.state.union_into_row(place_idx, mutated_deps);
+            }
+          }
+        }
       }
     }
   }
@@ -64,57 +96,26 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
     let tcx = self.analysis.tcx;
 
     match &terminator.kind {
-      TerminatorKind::SwitchInt { discr, .. } => {
-        for place_idx in self.state.rows() {
-          let effect_dependent = self.state.row(place_idx).any(|effect_loc| {
-            self
-              .analysis
-              .control_dependencies
-              .is_dependent(effect_loc.block, location.block)
-          });
-
-          if effect_dependent {
-            if let Some(place) = utils::operand_to_place(discr) {
-              if let Some(place_deps) = self.state.row_set(place).map(|s| s.to_owned()) {
-                self.state.union_into_row(place_idx, &place_deps);
-              }
-            }
-            self.state.insert(place_idx, location);
-          }
-        }
-      }
-
       TerminatorKind::Call {
         /*func,*/ // TODO: deal with func
         args,
         destination,
         ..
       } => {
-        let arg_places = args
-          .iter()
-          .filter_map(|arg| utils::operand_to_place(arg))
-          .collect::<Vec<_>>();
+        let arg_places = utils::arg_places(&args);
 
         if let Some((dst_place, _)) = destination {
           self.apply_mutation(*dst_place, &arg_places, location, true);
         }
 
-        let arg_mut_ptrs = arg_places
-          .iter()
-          .map(|place| {
-            utils::interior_pointers(*place, tcx, self.analysis.body)
-              .into_iter()
-              .filter_map(|(_, (place, mutability))| match mutability {
-                Mutability::Mut => Some(place),
-                Mutability::Not => None,
-              })
-              .map(|place| tcx.mk_place_deref(place))
-          })
-          .flatten()
-          .collect::<Vec<_>>();
-
-        for mut_ptr in arg_mut_ptrs {
+        for mut_ptr in utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body) {
           self.apply_mutation(mut_ptr, &arg_places, location, false);
+        }
+      }
+
+      TerminatorKind::DropAndReplace { place, value, .. } => {
+        if let Some(src) = utils::operand_to_place(value) {
+          self.apply_mutation(*place, &[src], location, true);
         }
       }
 
@@ -169,8 +170,10 @@ impl AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
 
   fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
     for arg in body.args_iter() {
-      let arg_place = utils::local_to_place(arg, self.tcx);
-      state.insert(arg_place, Location::START);
+      state.insert(
+        utils::local_to_place(arg, self.tcx),
+        arg_location(arg, body),
+      );
     }
   }
 }

@@ -2,7 +2,7 @@ use rustc_data_structures::graph::{
   self, dominators, iterate, vec_graph::VecGraph, WithSuccessors,
 };
 use rustc_index::{
-  bit_set::{BitIter, BitSet, HybridBitSet},
+  bit_set::{BitIter, BitSet, HybridBitSet, SparseBitMatrix},
   vec::IndexVec,
 };
 use rustc_middle::mir::*;
@@ -108,11 +108,16 @@ impl<'tcx> graph::WithPredecessors for BodyReversed<'tcx> {
   }
 }
 
-pub struct ControlDependencies(IndexVec<BasicBlock, HybridBitSet<BasicBlock>>);
+pub struct ControlDependencies(SparseBitMatrix<BasicBlock, BasicBlock>);
 
 impl fmt::Debug for ControlDependencies {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    for (i, (bb, bbs)) in self.0.iter_enumerated().enumerate() {
+    for (i, (bb, bbs)) in self
+      .0
+      .rows()
+      .enumerate()
+      .filter_map(|(i, bb)| self.0.row(bb).map(move |bbs| (i, (bb, bbs))))
+    {
       if i > 0 {
         write!(f, ", ")?;
       }
@@ -170,46 +175,34 @@ impl ControlDependencies {
       }
     }
 
-    let mut cd = IndexVec::from_elem_n(HybridBitSet::new_empty(n), n);
+    let mut cd = SparseBitMatrix::new(n);
     for (y, xs) in df.into_iter_enumerated() {
       for x in xs.iter() {
-        cd[x].insert(y);
+        cd.insert(x, y);
       }
     }
 
-    // While loops introduce "false edge" blocks of the form
-    //     switch
-    //     /    \
-    //    /   false
-    //   /   /     \
-    //  post      body
-    //
-    // This means the body is control-dependent on the false block, not the switch block.
-    // Hence, relevance assumes that if body is relevant, only false is relevant, not switch.
-    // However, that produces an unsound slice since the execution of the body should be dependent
-    // on the switch.
-    //
-    // To fix this, we find all false edge blocks, and propagate their control dependencies to their parent.
-    let false_edge_parents = cd
-      .iter_enumerated()
-      .filter_map(|(x, ys)| match body.basic_blocks()[x].terminator().kind {
-        TerminatorKind::FalseEdge { .. } => {
-          // No predecessors if entry block is falseEdge
-          body.predecessors()[x]
-            .get(0)
-            .map(|parent| (*parent, ys.clone()))
+    let mut cd_transpose = SparseBitMatrix::new(n);
+    for row in cd.rows() {
+      if let Some(cols) = cd.row(row) {
+        for col in cols.iter() {
+          cd_transpose.insert(col, row);
         }
-        _ => None,
-      })
-      .collect::<Vec<_>>();
-    for (parent, dependencies) in false_edge_parents {
-      cd[parent].union(&dependencies);
+      }
     }
 
-    ControlDependencies(cd)
+    ControlDependencies(cd_transpose)
   }
 
-  pub fn is_dependent(&self, child: BasicBlock, parent: BasicBlock) -> bool {
-    self.0[parent].contains(child)
+  pub fn dependent_on(&self, block: BasicBlock) -> Option<&HybridBitSet<BasicBlock>> {
+    self.0.row(block)
   }
+
+  // pub fn is_dependent(&self, child: BasicBlock, parent: BasicBlock) -> bool {
+  //   self
+  //     .0
+  //     .row(parent)
+  //     .map(|row| row.contains(child))
+  //     .unwrap_or(false)
+  // }
 }
