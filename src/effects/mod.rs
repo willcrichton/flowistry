@@ -1,10 +1,10 @@
 use crate::{
-  backward_slicing::Range,
   core::{
     analysis::{FlowistryAnalysis, FlowistryOutput},
+    config::Range,
     utils,
   },
-  flow::{self, dependencies},
+  flow::{self, Direction},
 };
 use anyhow::Result;
 use rustc_data_structures::fx::FxHashMap as HashMap;
@@ -97,12 +97,8 @@ impl FlowistryAnalysis for EffectsHarness {
       .flatten()
       .unzip();
 
-    let deps = dependencies::compute_dependency_ranges(
-      &flow_results,
-      targets,
-      dependencies::Direction::Backward,
-      &spanner,
-    );
+    let deps =
+      flow::compute_dependency_ranges(&flow_results, targets, Direction::Backward, &spanner);
 
     let source_map = tcx.sess.source_map();
     let loc_to_range = |loc: Location| -> Option<Range> {

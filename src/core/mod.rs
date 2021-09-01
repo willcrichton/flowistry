@@ -1,5 +1,6 @@
 pub mod aliases;
 pub mod analysis;
+pub mod config;
 pub mod control_dependencies;
 pub mod extensions;
 pub mod indexed;
