@@ -7,13 +7,11 @@ use crate::{
   flow::{self, Direction},
 };
 use anyhow::Result;
+use log::debug;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::BodyId;
-use rustc_middle::{
-  mir::Local,
-  ty::{TyCtxt, WithOptConstParam},
-};
-use rustc_mir::consumers::get_body_with_borrowck_facts;
+use rustc_middle::{mir::Local, ty::TyCtxt};
+
 use rustc_span::Span;
 use serde::Serialize;
 use visitor::EffectKind;
@@ -71,17 +69,18 @@ impl FlowistryAnalysis for EffectsHarness {
   }
 
   fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
-    let local_def_id = tcx.hir().body_owner_def_id(body_id);
-    let body_with_facts =
-      get_body_with_borrowck_facts(tcx, WithOptConstParam::unknown(local_def_id));
+    let body_with_facts = utils::get_body_with_borrowck_facts(tcx, body_id);
     let body = &body_with_facts.body;
     let flow_results = flow::compute_flow(tcx, body, &body_with_facts.input_facts);
+    debug!("{}", utils::mir_to_string(tcx, body)?);
+
     if std::env::var("DUMP_MIR").is_ok() {
       utils::dump_results("target/effects.png", body, &flow_results)?;
     }
 
     let mut find_effects = visitor::FindEffects::new(&flow_results.analysis);
     flow_results.visit_reachable_with(body, &mut find_effects);
+    debug!("effects: {:#?}", find_effects.effects);
 
     let spanner = utils::HirSpanner::new(tcx, body_id);
 
@@ -124,17 +123,15 @@ impl FlowistryAnalysis for EffectsHarness {
           output.returns.push(effect);
         }
         EffectKind::MutArg(arg) => {
-          let arg_span = body.local_decls[Local::from_usize(arg + 1)]
-            .source_info
-            .span;
-          output
-            .arg_spans
-            .insert(arg, Range::from_span(arg_span, source_map).unwrap());
-          output
-            .args_effects
-            .entry(arg)
-            .or_insert_with(Vec::new)
-            .push(effect);
+          output.arg_spans.entry(arg).or_insert_with(|| {
+            let arg_span = body.local_decls[Local::from_usize(arg + 1)]
+              .source_info
+              .span;
+
+            Range::from_span(arg_span, source_map).unwrap()
+          });
+
+          output.args_effects.entry(arg).or_default().push(effect);
         }
       }
     }

@@ -14,6 +14,24 @@ pub fn elapsed(name: &str, start: Instant) {
   info!("{} took {}s", name, start.elapsed().as_nanos() as f64 / 1e9)
 }
 
+pub struct BlockTimer<'a> {
+  name: &'a str,
+  start: Instant,
+}
+
+impl Drop for BlockTimer<'_> {
+  fn drop(&mut self) {
+    elapsed(self.name, self.start);
+  }
+}
+
+pub fn block_timer(name: &str) -> BlockTimer<'_> {
+  BlockTimer {
+    name,
+    start: Instant::now(),
+  }
+}
+
 pub fn span_to_string(span: Span, source_map: &SourceMap) -> String {
   let lo = source_map.lookup_char_pos(span.lo());
   let hi = source_map.lookup_char_pos(span.hi());

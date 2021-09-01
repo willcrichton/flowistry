@@ -96,3 +96,16 @@ fn main() {}
 
   utils::forward_slice(src);
 }
+
+#[test]
+fn struct_param() {
+  let src = r#"
+struct Point(i32, i32);
+fn foo(`(p)`: &mut Point) {
+  `[`[p.0 += 1]`;]`
+}
+fn main() {}
+"#;
+
+  utils::forward_slice(src);
+}
