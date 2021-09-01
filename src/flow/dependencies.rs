@@ -1,11 +1,9 @@
 use super::dataflow::{FlowAnalysis, FlowDomain};
-use crate::{
-  backward_slicing::Range,
-  core::{
-    indexed::{IndexSet, IndexSetIteratorExt},
-    indexed_impls::{arg_location, location_arg, LocationSet},
-    utils::{self},
-  },
+use crate::core::{
+  config::Range,
+  indexed::{IndexSet, IndexSetIteratorExt},
+  indexed_impls::{arg_location, location_arg, LocationSet},
+  utils::{self},
 };
 use log::debug;
 use rustc_data_structures::graph::{iterate::reverse_post_order, WithPredecessors};

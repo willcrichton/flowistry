@@ -1,13 +1,14 @@
 use crate::{
-  backward_slicing::{Range, SliceOutput},
   core::{
     analysis::{FlowistryAnalysis, FlowistryOutput},
+    config::Range,
     utils,
   },
-  flow::{compute_flow, dependencies},
+  flow::{self, Direction},
 };
 use anyhow::Result;
 use log::debug;
+use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_hir::BodyId;
 use rustc_middle::{
   mir::*,
@@ -18,13 +19,46 @@ use rustc_mir::{
   transform::{simplify, MirPass},
 };
 use rustc_span::Span;
-
-pub use dependencies::Direction;
+use serde::Serialize;
 
 struct ForwardSliceAnalysis {
   direction: Direction,
   range: Range,
-  // extensions: Slic
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SliceOutput {
+  pub ranges: Vec<Range>,
+  pub num_instructions: usize,
+  pub num_relevant_instructions: usize,
+  pub mutated_inputs: HashSet<usize>,
+  pub relevant_inputs: HashSet<usize>,
+}
+
+impl SliceOutput {
+  pub fn ranges(&self) -> &Vec<Range> {
+    &self.ranges
+  }
+}
+
+impl FlowistryOutput for SliceOutput {
+  fn empty() -> Self {
+    SliceOutput {
+      ranges: Vec::new(),
+      num_instructions: 0,
+      num_relevant_instructions: 0,
+      mutated_inputs: HashSet::default(),
+      relevant_inputs: HashSet::default(),
+    }
+  }
+
+  fn merge(&mut self, other: SliceOutput) {
+    self.ranges.extend(other.ranges.into_iter());
+    self.num_instructions = other.num_instructions;
+    self.num_relevant_instructions = other.num_relevant_instructions;
+    self.mutated_inputs = other.mutated_inputs;
+    self.relevant_inputs = other.relevant_inputs;
+  }
 }
 
 struct SimplifyMir;
@@ -71,20 +105,19 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     let body = &body;
     debug!("{}", utils::mir_to_string(tcx, body)?);
 
-    let results = compute_flow(tcx, body, &body_with_facts.input_facts);
+    let results = flow::compute_flow(tcx, body, &body_with_facts.input_facts);
     if std::env::var("DUMP_MIR").is_ok() {
       utils::dump_results("target/flow.png", body, &results)?;
     }
 
     let source_map = tcx.sess.source_map();
-    let sliced_places = utils::span_to_places(tcx, body, self.range.to_span(source_map)?);
+    let sliced_places = utils::span_to_places(body, self.range.to_span(source_map)?);
     debug!("sliced_places {:?}", sliced_places);
 
     let hir_body = tcx.hir().body(body_id);
     let spanner = utils::HirSpanner::new(hir_body);
 
-    let deps =
-      dependencies::compute_dependency_ranges(&results, sliced_places, self.direction, &spanner);
+    let deps = flow::compute_dependency_ranges(&results, sliced_places, self.direction, &spanner);
 
     let mut output = SliceOutput::empty();
     output.ranges = deps.into_iter().map(|v| v.into_iter()).flatten().collect();

@@ -25,13 +25,12 @@ extern crate rustc_span;
 extern crate rustc_target;
 extern crate smallvec;
 
-mod backward_slicing;
 mod core;
 mod effects;
 mod flow;
-mod forward_slicing;
+mod slicing;
 
-pub use backward_slicing::{backward_slice, Config, Range, SliceOutput};
+pub use crate::core::config::{Config, Range};
 pub use effects::{effects, FunctionIdentifier};
-pub use flow::flow;
-pub use forward_slicing::{slice, Direction};
+pub use flow::Direction;
+pub use slicing::{slice, SliceOutput};

@@ -309,7 +309,6 @@ pub fn pointer_for_place(place: Place<'tcx>, tcx: TyCtxt<'tcx>) -> Option<Place<
 }
 
 struct FindSpannedPlaces<'a, 'tcx> {
-  tcx: TyCtxt<'tcx>,
   body: &'a Body<'tcx>,
   span: Span,
   places: HashSet<(Place<'tcx>, Location)>,
@@ -350,13 +349,8 @@ impl Visitor<'tcx> for FindSpannedPlaces<'_, 'tcx> {
   }
 }
 
-pub fn span_to_places(
-  tcx: TyCtxt<'tcx>,
-  body: &Body<'tcx>,
-  span: Span,
-) -> Vec<(Place<'tcx>, Location)> {
+pub fn span_to_places(body: &Body<'tcx>, span: Span) -> Vec<(Place<'tcx>, Location)> {
   let mut visitor = FindSpannedPlaces {
-    tcx,
     body,
     span,
     places: HashSet::default(),
