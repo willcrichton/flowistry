@@ -75,7 +75,7 @@ impl ResultsVisitor<'mir, 'tcx> for FindEffects<'_, 'mir, 'tcx> {
             })
             .collect::<Vec<_>>();
 
-          if mutated.len() > 0 {
+          if !mutated.is_empty() {
             for arg in mutated {
               let arg_index = arg.local.as_usize() - 1;
               let kind = EffectKind::MutArg(arg_index);

@@ -3,15 +3,21 @@ use anyhow::{bail, Result};
 use log::warn;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
+use rustc_hir::BodyId;
 use rustc_middle::{
   mir::{
     visit::{NonUseContext, PlaceContext, Visitor},
     *,
   },
-  ty::{self, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS, TypeFoldable, TypeVisitor},
+  ty::{
+    self, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS, TypeFoldable, TypeVisitor,
+    WithOptConstParam,
+  },
 };
 use rustc_mir::{
+  consumers::BodyWithBorrowckFacts,
   dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results},
+  transform::{simplify, MirPass},
   util::write_mir_fn,
 };
 use rustc_span::Span;
@@ -298,10 +304,7 @@ pub fn pointer_for_place(place: Place<'tcx>, tcx: TyCtxt<'tcx>) -> Option<Place<
   place
     .iter_projections()
     .rev()
-    .find(|(_, elem)| match elem {
-      ProjectionElem::Deref => true,
-      _ => false,
-    })
+    .find(|(_, elem)| matches!(elem, ProjectionElem::Deref))
     .map(|(place_ref, _)| Place {
       local: place_ref.local,
       projection: tcx.intern_place_elems(place_ref.projection),
@@ -368,7 +371,7 @@ where
   A: Analysis<'tcx>,
   A::Domain: DebugWithContext<A>,
 {
-  let graphviz = graphviz::Formatter::new(body, &results, graphviz::OutputStyle::AfterOnly);
+  let graphviz = graphviz::Formatter::new(body, results, graphviz::OutputStyle::AfterOnly);
   let mut buf = Vec::new();
   dot::render(&graphviz, &mut buf)?;
   let mut file = File::create("/tmp/graph.dot")?;
@@ -395,4 +398,48 @@ pub fn location_to_string(location: Location, body: &Body<'_>) -> String {
   } else {
     format!("{:?}", block.statements[location.statement_index])
   }
+}
+
+struct SimplifyMir;
+impl MirPass<'tcx> for SimplifyMir {
+  fn run_pass(&self, _tcx: TyCtxt<'tcx>, body: &mut Body<'tcx>) {
+    for block in body.basic_blocks_mut() {
+      block.retain_statements(|stmt| {
+        !matches!(
+          stmt.kind,
+          // TODO: variable_select_lhs test fails if we remove FakeRead
+          // StatementKind::FakeRead(..)
+          StatementKind::StorageLive(..) | StatementKind::StorageDead(..)
+        )
+      });
+
+      let terminator = block.terminator_mut();
+      terminator.kind = match terminator.kind {
+        TerminatorKind::FalseEdge { real_target, .. } => TerminatorKind::Goto {
+          target: real_target,
+        },
+        TerminatorKind::FalseUnwind { real_target, .. } => TerminatorKind::Goto {
+          target: real_target,
+        },
+        _ => continue,
+      }
+    }
+  }
+}
+
+pub fn get_body_with_borrowck_facts(
+  tcx: TyCtxt<'tcx>,
+  body_id: BodyId,
+) -> BodyWithBorrowckFacts<'tcx> {
+  let local_def_id = tcx.hir().body_owner_def_id(body_id);
+  let mut body_with_facts = rustc_mir::consumers::get_body_with_borrowck_facts(
+    tcx,
+    WithOptConstParam::unknown(local_def_id),
+  );
+
+  let body = &mut body_with_facts.body;
+  SimplifyMir.run_pass(tcx, body);
+  simplify::SimplifyCfg::new("flowistry").run_pass(tcx, body);
+
+  body_with_facts
 }

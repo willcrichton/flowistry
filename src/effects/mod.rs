@@ -10,7 +10,7 @@ use anyhow::Result;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::BodyId;
 use rustc_middle::{
-  mir::{Local, Location},
+  mir::Local,
   ty::{TyCtxt, WithOptConstParam},
 };
 use rustc_mir::consumers::get_body_with_borrowck_facts;
@@ -83,8 +83,7 @@ impl FlowistryAnalysis for EffectsHarness {
     let mut find_effects = visitor::FindEffects::new(&flow_results.analysis);
     flow_results.visit_reachable_with(body, &mut find_effects);
 
-    let hir_body = tcx.hir().body(body_id);
-    let spanner = utils::HirSpanner::new(hir_body);
+    let spanner = utils::HirSpanner::new(tcx, body_id);
 
     let (effects, targets): (Vec<_>, Vec<_>) = find_effects
       .effects
@@ -101,24 +100,18 @@ impl FlowistryAnalysis for EffectsHarness {
       flow::compute_dependency_ranges(&flow_results, targets, Direction::Backward, &spanner);
 
     let source_map = tcx.sess.source_map();
-    let loc_to_range = |loc: Location| -> Option<Range> {
-      let mir_span = body.source_info(loc).span;
-      let hir_span = spanner.find_enclosing_hir_span(mir_span);
-      hir_span
-        .into_iter()
-        .map(|hir_span| Range::from_span(hir_span, source_map).ok())
-        .collect::<Option<Vec<_>>>()?
-        .into_iter()
-        .min_by_key(|range| range.end - range.end)
-    };
-
     let ranged_effects =
       effects
         .into_iter()
         .zip(deps.into_iter())
         .filter_map(|((kind, loc), slice)| {
+          let spans = utils::location_to_spans(loc, body, &spanner);
+          let range = spans
+            .into_iter()
+            .min_by_key(|span| span.hi() - span.lo())
+            .and_then(|span| Range::from_span(span, source_map).ok())?;
           let effect = Effect {
-            effect: loc_to_range(loc)?,
+            effect: range,
             slice,
           };
           Some((kind, effect))

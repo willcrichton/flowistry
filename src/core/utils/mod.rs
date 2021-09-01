@@ -4,9 +4,11 @@ use std::time::Instant;
 
 pub use hir::*;
 pub use mir::*;
+pub use source_map::*;
 
 mod hir;
 mod mir;
+mod source_map;
 
 pub fn elapsed(name: &str, start: Instant) {
   info!("{} took {}s", name, start.elapsed().as_nanos() as f64 / 1e9)

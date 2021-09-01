@@ -135,7 +135,7 @@ impl Aliases<'tcx> {
     tcx: TyCtxt<'tcx>,
     body: &'a Body<'tcx>,
     outlives_constraints: Vec<OutlivesConstraint>,
-    extra_places: &Vec<Place<'tcx>>,
+    extra_places: &[Place<'tcx>],
   ) -> Self {
     let local_projected_regions = body
       .local_decls()
@@ -220,7 +220,7 @@ impl Aliases<'tcx> {
       );
 
       // needed for SliceLocation::PlacesOnExit
-      all_places.extend(extra_places.into_iter());
+      all_places.extend(extra_places.iter());
 
       // needed for TransferFunction::check_mutation
       let pointers = all_places
@@ -228,7 +228,7 @@ impl Aliases<'tcx> {
         .map(|place| utils::pointer_for_place(*place, tcx).into_iter())
         .flatten()
         .collect::<Vec<_>>();
-      all_places.extend(pointers.into_iter());
+      all_places.extend(pointers.iter());
 
       // needed for FlowAnalysis::initialize_start_block
       all_places.extend(body.args_iter().map(|arg| utils::local_to_place(arg, tcx)));
