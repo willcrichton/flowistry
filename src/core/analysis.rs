@@ -1,5 +1,5 @@
 use anyhow::Result;
-use log::{debug, info};
+use log::info;
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
   itemlikevisit::ItemLikeVisitor,
@@ -8,6 +8,10 @@ use rustc_hir::{
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::Span;
 use std::time::Instant;
+
+use crate::core::utils::elapsed;
+
+use super::utils::block_timer;
 
 pub trait FlowistryOutput: Send + Sync {
   fn empty() -> Self;
@@ -32,6 +36,7 @@ pub trait FlowistryAnalysis: Send + Sync + Sized {
     let mut callbacks = Callbacks {
       analysis: Some(self),
       output: None,
+      rustc_start: Instant::now(),
     };
 
     info!("Starting rustc analysis...");
@@ -63,12 +68,11 @@ where
     let analysis = &mut self.analysis;
     take_mut::take(&mut self.output, move |output| {
       output.and_then(move |mut output| {
-        let start = Instant::now();
+        let fn_name = tcx.def_path_debug_str(tcx.hir().body_owner_def_id(body_id).to_def_id());
+        let timer_name = format!("Flowistry ({})", fn_name);
+        let _timer = block_timer(&timer_name);
+
         let new_output = analysis.analyze_function(tcx, body_id)?;
-        debug!(
-          "Finished in {} seconds",
-          start.elapsed().as_nanos() as f64 / 1e9
-        );
         output.merge(new_output);
         Ok(output)
       })
@@ -116,6 +120,7 @@ impl<A: FlowistryAnalysis> ItemLikeVisitor<'tcx> for AnalysisVisitor<'tcx, A> {
 struct Callbacks<A: FlowistryAnalysis> {
   analysis: Option<A>,
   output: Option<Result<A::Output>>,
+  rustc_start: Instant,
 }
 
 impl<A: FlowistryAnalysis> rustc_driver::Callbacks for Callbacks<A> {
@@ -124,7 +129,7 @@ impl<A: FlowistryAnalysis> rustc_driver::Callbacks for Callbacks<A> {
     _compiler: &rustc_interface::interface::Compiler,
     queries: &'tcx rustc_interface::Queries<'tcx>,
   ) -> rustc_driver::Compilation {
-    info!("Rustc analysis finished, running Flowistry visitor");
+    elapsed("rustc", self.rustc_start);
 
     queries.global_ctxt().unwrap().take().enter(|tcx| {
       let analysis = self.analysis.take().unwrap();

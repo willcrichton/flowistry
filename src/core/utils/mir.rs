@@ -1,4 +1,5 @@
-pub use crate::core::indexed_impls::{PlaceDomain, PlaceIndex, PlaceSet};
+#![allow(dead_code)]
+
 use anyhow::{bail, Result};
 use log::warn;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};

@@ -2,15 +2,16 @@ use crate::{
   core::{
     indexed::IndexSetIteratorExt,
     indexed_impls::PlaceSet,
-    utils::{self, PlaceRelation},
+    utils::{self},
   },
   flow,
 };
-use rustc_data_structures::fx::FxHashMap as HashMap;
+use log::debug;
+use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_middle::mir::*;
 use rustc_mir::dataflow::ResultsVisitor;
 
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum EffectKind {
   MutArg(usize),
   Return,
@@ -19,7 +20,7 @@ pub enum EffectKind {
 pub struct FindEffects<'a, 'mir, 'tcx> {
   analysis: &'a flow::FlowAnalysis<'mir, 'tcx>,
   mut_args: PlaceSet<'tcx>,
-  pub effects: HashMap<EffectKind, Vec<(Place<'tcx>, Location)>>,
+  pub effects: HashMap<EffectKind, HashSet<(Place<'tcx>, Location)>>,
 }
 
 impl FindEffects<'a, 'mir, 'tcx> {
@@ -61,30 +62,23 @@ impl ResultsVisitor<'mir, 'tcx> for FindEffects<'_, 'mir, 'tcx> {
           self
             .effects
             .entry(EffectKind::Return)
-            .or_insert_with(Vec::new)
-            .push((*mutated, location));
+            .or_default()
+            .insert((*mutated, location));
         } else {
-          let aliases = self.analysis.aliases.loans(*mutated);
-          let mutated = self
-            .mut_args
-            .iter()
-            .filter(|arg| {
-              aliases
-                .iter()
-                .any(|alias| PlaceRelation::of(**arg, *alias).overlaps())
-            })
-            .collect::<Vec<_>>();
+          let conflicts = self.analysis.aliases.conflicts(*mutated);
+          let mut conflicts_set = conflicts.subs;
+          conflicts_set.union(&conflicts.supers);
+          conflicts_set.intersect(&self.mut_args);
 
-          if !mutated.is_empty() {
-            for arg in mutated {
-              let arg_index = arg.local.as_usize() - 1;
-              let kind = EffectKind::MutArg(arg_index);
-              self
-                .effects
-                .entry(kind)
-                .or_insert_with(Vec::new)
-                .push((*arg, location));
-            }
+          debug!("stmt {:?}, conflicts_set: {:?}", statement, conflicts_set);
+          for arg in conflicts_set.iter() {
+            let arg_index = arg.local.as_usize() - 1;
+            let kind = EffectKind::MutArg(arg_index);
+            self
+              .effects
+              .entry(kind)
+              .or_default()
+              .insert((*arg, location));
           }
         }
       }

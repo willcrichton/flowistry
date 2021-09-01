@@ -1,9 +1,9 @@
 use crate::core::{
   aliases::Aliases,
   control_dependencies::ControlDependencies,
-  indexed::{IndexMatrix, IndexSetIteratorExt, IndexedDomain},
+  indexed::{IndexMatrix, IndexSetIteratorExt},
   indexed_impls::{arg_location, build_location_domain, LocationDomain, LocationSet, PlaceDomain},
-  utils::{self, PlaceCollector, PlaceRelation},
+  utils::{self, PlaceCollector},
 };
 
 use rustc_middle::{
@@ -28,7 +28,6 @@ impl TransferFunction<'_, '_, 'tcx> {
     location: Location,
     definitely_mutated: bool,
   ) {
-    let place_domain = self.analysis.place_domain();
     let location_domain = self.analysis.location_domain();
 
     let mut input_deps: LocationSet = inputs
@@ -57,30 +56,30 @@ impl TransferFunction<'_, '_, 'tcx> {
 
     input_deps.insert(location);
 
-    let mutated_deps = self.state.row_set(mutated).map(|s| s.to_owned());
-    let aliases = self.analysis.aliases.loans(mutated);
-    for alias in aliases.iter() {
-      for (place_idx, place) in place_domain.iter_enumerated() {
-        let relation = PlaceRelation::of(*place, *alias);
+    let refs = mutated
+      .iter_projections()
+      .filter_map(|(place, elem)| match elem {
+        ProjectionElem::Deref => Some(Place {
+          local: place.local,
+          projection: self.analysis.tcx.intern_place_elems(place.projection),
+        }),
+        _ => None,
+      })
+      .filter_map(|place| self.state.row_set(place));
+    for ref_deps in refs {
+      input_deps.union(&ref_deps);
+    }
 
-        // TODO:
-        //   - aliases.len() == 1 is too conservative, should be "if only one pointer at every level of indirection" maybe?
-        if definitely_mutated && aliases.len() == 1 && relation == PlaceRelation::Sub {
-          self.state.clear_row(place_idx);
-        }
+    let conflicts = self.analysis.aliases.conflicts(mutated);
 
-        if relation.overlaps() {
-          self.state.union_into_row(place_idx, &input_deps);
-
-          // if a value is indirectly mutated, then its dependencies needs to
-          // include the provenance of the reference
-          if *alias != mutated {
-            if let Some(mutated_deps) = mutated_deps.as_ref() {
-              self.state.union_into_row(place_idx, mutated_deps);
-            }
-          }
-        }
+    if definitely_mutated && conflicts.single_pointee {
+      for sub in conflicts.subs.indices() {
+        self.state.clear_row(sub);
       }
+    }
+
+    for place in conflicts.iter() {
+      self.state.union_into_row(place, &input_deps);
     }
   }
 }

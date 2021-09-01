@@ -28,10 +28,12 @@ struct FindDependencies<'a, 'mir, 'tcx> {
 
 impl FindDependencies<'_, '_, 'tcx> {
   fn check(&mut self, place: Place<'tcx>, state: &FlowDomain<'tcx>, location: Location) {
-    let aliases = self.analysis.aliases.loans(place);
-    let alias_deps = aliases.iter().filter_map(|alias| state.row_set(*alias));
+    let conflicts = self.analysis.aliases.conflicts(place);
+    let conflict_deps = conflicts
+      .iter()
+      .filter_map(|conflict| state.row_set(conflict));
 
-    for deps in alias_deps {
+    for deps in conflict_deps {
       let direction = self.direction;
       let target_idxs = self
         .targets

@@ -37,10 +37,23 @@ impl Visitor<'tcx> for GatherBorrows<'tcx> {
   }
 }
 
+#[derive(Debug, Clone)]
+pub struct Conflicts<'tcx> {
+  pub subs: PlaceSet<'tcx>,
+  pub supers: PlaceSet<'tcx>,
+  pub single_pointee: bool,
+}
+
+impl Conflicts<'tcx> {
+  pub fn iter<'a>(&'a self) -> impl Iterator<Item = PlaceIndex> + 'a {
+    self.subs.indices().chain(self.supers.indices())
+  }
+}
+
 pub struct Aliases<'tcx> {
   loans: IndexVec<RegionVid, PlaceSet<'tcx>>,
   loan_locals: SparseBitMatrix<Local, RegionVid>,
-  loan_cache: RefCell<IndexMap<PlaceIndex, PlaceSet<'tcx>>>,
+  loan_cache: RefCell<IndexMap<PlaceIndex, Conflicts<'tcx>>>,
 
   pub place_domain: Rc<PlaceDomain<'tcx>>,
 }
@@ -81,6 +94,7 @@ impl Aliases<'tcx> {
           .iter()
           .map(|r| (r, initial_set.clone()))
           .collect::<HashMap<_, _>>();
+
         let grandchildren = Self::compute_region_ancestors(sccs, regions_in_scc, *child)
           .into_iter()
           .map(|(region, mut parents)| {
@@ -88,6 +102,7 @@ impl Aliases<'tcx> {
             (region, parents)
           })
           .collect::<HashMap<_, _>>();
+
         utils::hashmap_merge(in_child, grandchildren, set_merge)
       })
       .fold(initial_map, |h1, h2| {
@@ -95,38 +110,90 @@ impl Aliases<'tcx> {
       })
   }
 
-  pub fn loans(&self, place: impl ToIndex<Place<'tcx>>) -> PlaceSet<'tcx> {
+  fn aliases(&self, place: impl ToIndex<Place<'tcx>>) -> PlaceSet<'tcx> {
     let place_index = place.to_index(&self.place_domain);
-    let compute_loans = || {
-      let place = *self.place_domain.value(place_index);
-      let mut set: PlaceSet<'tcx> = self
-        .loan_locals
-        .row(place.local)
-        .into_iter()
-        .map(|regions| {
-          regions
-            .iter()
-            .filter_map(|region| {
-              let loans = &self.loans[region];
-              let matches_loan = loans
-                .iter()
-                .any(|loan| PlaceRelation::of(*loan, place).overlaps());
-              let is_deref = place.is_indirect();
-              (matches_loan && is_deref).then(|| loans.indices())
+    let place = *self.place_domain.value(place_index);
+    let mut set: PlaceSet<'tcx> = self
+      .loan_locals
+      .row(place.local)
+      .into_iter()
+      .map(|regions| {
+        regions
+          .iter()
+          .filter_map(|region| {
+            let loans = &self.loans[region];
+            let matches_loan = loans
+              .iter()
+              .any(|loan| PlaceRelation::of(*loan, place).overlaps());
+            let is_deref = place.is_indirect();
+            (matches_loan && is_deref).then(|| loans.indices())
+          })
+          .flatten()
+      })
+      .flatten()
+      .collect_indices(self.place_domain.clone());
+    set.insert(place_index);
+    set
+  }
+
+  pub fn conflicts(&self, place: impl ToIndex<Place<'tcx>>) -> Conflicts<'tcx> {
+    let place_index = place.to_index(&self.place_domain);
+    let compute_conflicts = move || {
+      let aliases = self.aliases(place_index);
+
+      // TODO: is this correct?
+      let single_pointee = {
+        // If there is only one pointer at every level of indirection, then
+        // there is only one possible place pointed-to
+        let deref_counts = aliases
+          .iter()
+          .map(|place| {
+            place
+              .projection
+              .iter()
+              .filter(|elem| *elem == ProjectionElem::Deref)
+              .count()
+          })
+          .collect::<HashSet<_>>();
+        deref_counts.len() == aliases.len()
+      };
+
+      let (subs, supers): (Vec<_>, Vec<_>) = aliases
+        .iter()
+        .map(|alias| {
+          self
+            .place_domain
+            .iter_enumerated()
+            .filter_map(move |(idx, place)| {
+              let relation = PlaceRelation::of(*place, *alias);
+              relation.overlaps().then(move || (relation, idx))
             })
-            .flatten()
         })
         .flatten()
-        .collect_indices(self.place_domain.clone());
-      set.insert(place_index);
-      set
+        .partition(|(relation, _)| match relation {
+          PlaceRelation::Sub => true,
+          PlaceRelation::Super => false,
+          PlaceRelation::Disjoint => unreachable!(),
+        });
+
+      let to_set = |v: Vec<(PlaceRelation, PlaceIndex)>| {
+        v.into_iter()
+          .map(|(_, idx)| idx)
+          .collect_indices(self.place_domain.clone())
+      };
+
+      Conflicts {
+        subs: to_set(subs),
+        supers: to_set(supers),
+        single_pointee,
+      }
     };
 
     self
       .loan_cache
       .borrow_mut()
       .entry(place_index)
-      .or_insert_with(compute_loans)
+      .or_insert_with(compute_conflicts)
       .clone()
   }
 

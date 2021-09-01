@@ -2,7 +2,7 @@
 
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_index::{
-  bit_set::{HybridBitSet, SparseBitMatrix},
+  bit_set::{HybridBitSet, HybridIter, SparseBitMatrix},
   vec::{Enumerated, Idx, IndexVec},
 };
 
@@ -159,15 +159,15 @@ where
     }
   }
 
-  pub fn indices<'a>(&'a self) -> impl Iterator<Item = T::Index> + 'a {
+  pub fn indices(&self) -> HybridIter<'_, T::Index> {
     self.set.iter()
   }
 
-  pub fn iter<'a>(&'a self) -> impl Iterator<Item = &'a T> + 'a {
+  pub fn iter(&self) -> impl Iterator<Item = &T> + '_ {
     self.set.iter().map(move |index| self.domain.value(index))
   }
 
-  pub fn iter_enumerated<'a>(&'a self) -> impl Iterator<Item = (T::Index, &'a T)> + 'a {
+  pub fn iter_enumerated(&self) -> impl Iterator<Item = (T::Index, &T)> + '_ {
     self
       .set
       .iter()
@@ -356,7 +356,7 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
     self.matrix.union_into_row(into, &from.set)
   }
 
-  pub fn row_indices<'a>(&'a self, row: impl ToIndex<R>) -> impl Iterator<Item = C::Index> + 'a {
+  pub fn row_indices(&self, row: impl ToIndex<R>) -> impl Iterator<Item = C::Index> + '_ {
     let row = row.to_index(&self.row_domain);
     self
       .matrix
