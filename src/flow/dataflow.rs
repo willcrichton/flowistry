@@ -102,7 +102,7 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
         destination,
         ..
       } => {
-        let arg_places = utils::arg_places(&args);
+        let arg_places = utils::arg_places(args);
 
         if let Some((dst_place, _)) = destination {
           self.apply_mutation(*dst_place, &arg_places, location, true);

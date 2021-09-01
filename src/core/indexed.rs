@@ -167,7 +167,7 @@ where
     self.set.iter().map(move |index| self.domain.value(index))
   }
 
-  pub fn iter_enumerated<'a, 'tcx>(&'a self) -> impl Iterator<Item = (T::Index, &'a T)> + 'a {
+  pub fn iter_enumerated<'a>(&'a self) -> impl Iterator<Item = (T::Index, &'a T)> + 'a {
     self
       .set
       .iter()
@@ -224,7 +224,8 @@ impl<T: IndexedValue, S: ToSetMut<T>> IndexSet<T, S> {
             changes.push(elem);
           }
         }
-        let changed = changes.len() > 0;
+
+        let changed = !changes.is_empty();
         for elem in changes {
           this.remove(elem);
         }
@@ -236,7 +237,7 @@ impl<T: IndexedValue, S: ToSetMut<T>> IndexSet<T, S> {
 
 impl<T: IndexedValue, S: ToSet<T>> PartialEq for IndexSet<T, S> {
   fn eq(&self, other: &Self) -> bool {
-    self.is_superset(&other) && other.is_superset(&self)
+    self.is_superset(other) && other.is_superset(self)
   }
 }
 
@@ -244,7 +245,7 @@ impl<T: IndexedValue, S: ToSet<T>> Eq for IndexSet<T, S> {}
 
 impl<T: IndexedValue, S: ToSetMut<T>> JoinSemiLattice for IndexSet<T, S> {
   fn join(&mut self, other: &Self) -> bool {
-    self.union(&other)
+    self.union(other)
   }
 }
 
@@ -317,7 +318,7 @@ where
   S: ToIndex<T>,
 {
   fn collect_indices(self, domain: Rc<T::Domain>) -> IndexSet<T> {
-    let mut set = IndexSet::new(domain.clone());
+    let mut set = IndexSet::new(domain);
     for s in self {
       set.insert(s);
     }
@@ -471,8 +472,8 @@ where
       }
 
       write!(f, "{:?}: ", row_value)?;
-      set.fmt_diff_with(&old_set, ctxt, f)?;
-      write!(f, "\n")?;
+      set.fmt_diff_with(old_set, ctxt, f)?;
+      writeln!(f)?;
     }
 
     Ok(())

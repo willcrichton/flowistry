@@ -4,11 +4,11 @@ use anyhow::{anyhow, Context, Result};
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
   itemlikevisit::ItemLikeVisitor,
-  Body, BodyId, Expr, Stmt,
+  BodyId, Expr,
 };
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::{FileName, RealFileName, SourceFile, Span};
-use smallvec::SmallVec;
+
 use std::{path::Path, rc::Rc};
 
 pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
@@ -33,7 +33,7 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
         .tcx
         .def_path(local_def_id.to_def_id())
         .to_string_no_crate_verbose();
-      if &function_path[2..] == self.qpath {
+      if function_path[2..] == self.qpath {
         self.span = Some(self.tcx.hir().span(id.hir_id));
       }
     }
@@ -61,9 +61,9 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
     span: None,
   };
   tcx.hir().krate().visit_all_item_likes(&mut finder);
-  return finder
+  finder
     .span
-    .with_context(|| format!("No function with qpath {}", finder.qpath));
+    .with_context(|| format!("No function with qpath {}", finder.qpath))
 }
 
 pub fn path_to_source_file<'tcx>(
@@ -83,64 +83,8 @@ pub fn path_to_source_file<'tcx>(
         false
       }
     })
-    .map(|file| file.clone())
+    .cloned()
     .ok_or_else(|| anyhow!("Could not find file {} out of files {:#?}", path, **files))
-}
-
-pub struct HirSpanner {
-  expr_spans: Vec<Span>,
-  stmt_spans: Vec<Span>,
-}
-
-impl HirSpanner {
-  pub fn new(body: &Body) -> Self {
-    let mut spanner = HirSpanner {
-      expr_spans: Vec::new(),
-      stmt_spans: Vec::new(),
-    };
-
-    struct Collector<'a>(&'a mut HirSpanner);
-
-    impl Visitor<'hir> for Collector<'_> {
-      type Map = Map<'hir>;
-
-      fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
-        NestedVisitorMap::None
-      }
-
-      // source_callsite gets the top-level source location if span is
-      // from a macro expansion
-      fn visit_expr(&mut self, expr: &Expr) {
-        self.0.expr_spans.push(expr.span.source_callsite());
-        intravisit::walk_expr(self, expr);
-      }
-
-      fn visit_stmt(&mut self, stmt: &Stmt) {
-        self.0.stmt_spans.push(stmt.span.source_callsite());
-        intravisit::walk_stmt(self, stmt);
-      }
-    }
-
-    let mut collector = Collector(&mut spanner);
-    intravisit::walk_body(&mut collector, body);
-
-    spanner
-  }
-
-  pub fn find_enclosing_hir_span(&self, span: Span) -> SmallVec<[Span; 2]> {
-    let find = |spans: &[Span]| {
-      spans
-        .iter()
-        .filter(|hir_span| hir_span.contains(span))
-        .min_by_key(|hir_span| hir_span.hi() - hir_span.lo())
-        .cloned()
-    };
-
-    find(&self.expr_spans)
-      .into_iter()
-      .chain(find(&self.stmt_spans).into_iter())
-      .collect()
-  }
 }
 
 pub fn expr_to_string(expr: &Expr) -> String {

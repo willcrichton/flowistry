@@ -1,13 +1,15 @@
 #![feature(
-  rustc_private,
-  box_patterns,
-  in_band_lifetimes,
-  associated_type_defaults,
-  type_alias_impl_trait,
-  generic_associated_types
+  rustc_private,             // for rustc internals
+  box_patterns,              // nice-to-have
+  in_band_lifetimes,         // nice-to-have
+  associated_type_defaults,  // for crate::core::indexed::Indexed
+  min_specialization         // for rustc_index::newtype_index
 )]
-#![feature(const_panic, min_specialization)] // needed for rustc_index::newtype_index
-#![feature(control_flow_enum)] // needed for alias analysis
+#![allow(
+  clippy::single_match,
+  clippy::needless_lifetimes,
+  clippy::needless_return
+)]
 
 extern crate polonius_engine;
 extern crate rustc_data_structures;
@@ -17,7 +19,6 @@ extern crate rustc_hir;
 extern crate rustc_hir_pretty;
 extern crate rustc_index;
 extern crate rustc_interface;
-extern crate rustc_macros;
 extern crate rustc_middle;
 extern crate rustc_mir;
 extern crate rustc_serialize;

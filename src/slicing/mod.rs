@@ -10,14 +10,8 @@ use anyhow::Result;
 use log::debug;
 use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_hir::BodyId;
-use rustc_middle::{
-  mir::*,
-  ty::{TyCtxt, WithOptConstParam},
-};
-use rustc_mir::{
-  consumers::get_body_with_borrowck_facts,
-  transform::{simplify, MirPass},
-};
+use rustc_middle::ty::TyCtxt;
+
 use rustc_span::Span;
 use serde::Serialize;
 
@@ -61,31 +55,6 @@ impl FlowistryOutput for SliceOutput {
   }
 }
 
-struct SimplifyMir;
-impl MirPass<'tcx> for SimplifyMir {
-  fn run_pass(&self, _tcx: TyCtxt<'tcx>, body: &mut Body<'tcx>) {
-    for block in body.basic_blocks_mut() {
-      block.retain_statements(|stmt| match stmt.kind {
-        // TODO: variable_select_lhs test fails if we remove FakeRead
-        // StatementKind::FakeRead(..)
-        StatementKind::StorageLive(..) | StatementKind::StorageDead(..) => false,
-        _ => true,
-      });
-
-      let terminator = block.terminator_mut();
-      terminator.kind = match terminator.kind {
-        TerminatorKind::FalseEdge { real_target, .. } => TerminatorKind::Goto {
-          target: real_target,
-        },
-        TerminatorKind::FalseUnwind { real_target, .. } => TerminatorKind::Goto {
-          target: real_target,
-        },
-        _ => continue,
-      }
-    }
-  }
-}
-
 impl FlowistryAnalysis for ForwardSliceAnalysis {
   type Output = SliceOutput;
 
@@ -94,15 +63,8 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
   }
 
   fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
-    let local_def_id = tcx.hir().body_owner_def_id(body_id);
-    let body_with_facts =
-      get_body_with_borrowck_facts(tcx, WithOptConstParam::unknown(local_def_id));
-    let mut body = body_with_facts.body.clone();
-
-    SimplifyMir.run_pass(tcx, &mut body);
-    simplify::SimplifyCfg::new("flowistry").run_pass(tcx, &mut body);
-
-    let body = &body;
+    let body_with_facts = utils::get_body_with_borrowck_facts(tcx, body_id);
+    let body = &body_with_facts.body;
     debug!("{}", utils::mir_to_string(tcx, body)?);
 
     let results = flow::compute_flow(tcx, body, &body_with_facts.input_facts);
@@ -114,8 +76,7 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     let sliced_places = utils::span_to_places(body, self.range.to_span(source_map)?);
     debug!("sliced_places {:?}", sliced_places);
 
-    let hir_body = tcx.hir().body(body_id);
-    let spanner = utils::HirSpanner::new(hir_body);
+    let spanner = utils::HirSpanner::new(tcx, body_id);
 
     let deps = flow::compute_dependency_ranges(&results, sliced_places, self.direction, &spanner);
 
