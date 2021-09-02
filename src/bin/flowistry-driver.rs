@@ -22,7 +22,7 @@ where
   T::Err: Debug,
 {
   env::var(format!("FLOWISTRY_{}", s))
-    .expect(&format!("Missing argument: {}", s))
+    .unwrap_or_else(|_| panic!("Missing argument: {}", s))
     .parse()
     .unwrap()
 }
@@ -76,7 +76,7 @@ fn run_flowistry(args: &[String]) -> Result<()> {
         Direction::Forward
       };
 
-      let slice = flowistry::slice(direction, range, &args).unwrap();
+      let slice = flowistry::slice(direction, range, args).unwrap();
       println!("{}", serde_json::to_string(&slice).unwrap());
       Ok(())
     }
@@ -87,7 +87,7 @@ fn run_flowistry(args: &[String]) -> Result<()> {
         end: pos,
         filename: arg::<String>("FILE"),
       });
-      let effects = flowistry::effects(id, &args).unwrap();
+      let effects = flowistry::effects(id, args).unwrap();
       println!("{}", serde_json::to_string(&effects).unwrap());
       Ok(())
     }
