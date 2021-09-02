@@ -201,40 +201,15 @@ impl<T: IndexedValue, S: ToSetMut<T>> IndexSet<T, S> {
   }
 
   pub fn union<S2: ToSet<T>>(&mut self, other: &IndexSet<T, S2>) -> bool {
-    self.set.union(&other.set)
+    self.set.union(&*other.set)
   }
 
   pub fn subtract<S2: ToSet<T>>(&mut self, other: &IndexSet<T, S2>) -> bool {
-    match (&mut *self.set, &*other.set) {
-      (HybridBitSet::Dense(this), HybridBitSet::Dense(other)) => this.subtract(other),
-      (this, other) => {
-        let mut changed = false;
-        for elem in other.iter() {
-          changed |= this.remove(elem);
-        }
-        changed
-      }
-    }
+    self.set.subtract(&*other.set)
   }
 
   pub fn intersect<S2: ToSet<T>>(&mut self, other: &IndexSet<T, S2>) -> bool {
-    match (&mut *self.set, &*other.set) {
-      (HybridBitSet::Dense(this), HybridBitSet::Dense(other)) => this.intersect(other),
-      (this, other) => {
-        let mut changes = Vec::new();
-        for elem in this.iter() {
-          if !other.contains(elem) {
-            changes.push(elem);
-          }
-        }
-
-        let changed = !changes.is_empty();
-        for elem in changes {
-          this.remove(elem);
-        }
-        changed
-      }
-    }
+    self.set.intersect(&*other.set)
   }
 }
 
@@ -356,7 +331,7 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
     S2: Deref<Target = HybridBitSet<C::Index>>,
   {
     let into = into.to_index(&self.row_domain);
-    self.matrix.union_into_row(into, &from.set)
+    self.matrix.union_row(into, &*from.set)
   }
 
   pub fn row_indices(&self, row: impl ToIndex<R>) -> impl Iterator<Item = C::Index> + '_ {
@@ -389,12 +364,7 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
 
   pub fn clear_row(&mut self, row: impl ToIndex<R>) {
     let row = row.to_index(&self.row_domain);
-    if let Some(set) = self.matrix.row(row) {
-      // FIXME: unsafe hack, update this once my SparseBitMatrix PR is merged
-      let set =
-        unsafe { &mut *(set as *const HybridBitSet<C::Index> as *mut HybridBitSet<C::Index>) };
-      set.clear();
-    }
+    self.matrix.clear(row);
   }
 }
 
@@ -418,7 +388,7 @@ impl<R: IndexedValue, C: IndexedValue> JoinSemiLattice for IndexMatrix<R, C> {
     let mut changed = false;
     for row in other.matrix.rows() {
       if let Some(set) = other.matrix.row(row) {
-        changed |= self.matrix.union_into_row(row, set);
+        changed |= self.matrix.union_row(row, set);
       }
     }
     return changed;

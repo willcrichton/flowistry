@@ -9,7 +9,7 @@ fn main() {
   let flowistry_rustc_path = std::env::current_exe()
     .expect("current executable path invalid")
     .with_file_name("flowistry-driver");
-  let cargo_path = env::var("CARGO_PATH").unwrap_or("cargo".to_string());
+  let cargo_path = env::var("CARGO_PATH").unwrap_or_else(|_| "cargo".to_string());
 
   let matches = clap_app!(app =>
     (version: "0.1")
