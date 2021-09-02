@@ -850,6 +850,21 @@ fn main() {}
 }
 
 #[test]
+fn function_param_field_independence() {
+  let src = r#"
+fn foo(`[x]`: &mut (i32, i32)) {
+  `[`[x.0 += 1]`;]`
+  x.1 += 1;
+  `[`(x.0)`;]`
+}
+
+fn main() {}
+"#;
+
+  backward_slice(src);
+}
+
+#[test]
 fn closure_write_upvar() {
   let src = r#"
 fn main() {

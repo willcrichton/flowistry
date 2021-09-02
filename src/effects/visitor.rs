@@ -1,19 +1,19 @@
 use crate::{
   core::{
-    indexed::IndexSetIteratorExt,
-    indexed_impls::PlaceSet,
-    utils::{self},
+    indexed::{IndexSetIteratorExt, IndexedDomain},
+    indexed_impls::{PlaceIndex, PlaceSet},
+    utils,
   },
   flow,
 };
-use log::debug;
+
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_middle::mir::*;
 use rustc_mir::dataflow::ResultsVisitor;
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum EffectKind {
-  MutArg(usize),
+  MutArg(PlaceIndex),
   Return,
 }
 
@@ -31,10 +31,14 @@ impl FindEffects<'a, 'mir, 'tcx> {
       .args_iter()
       .map(|local| {
         let place = utils::local_to_place(local, tcx);
-        utils::interior_pointers(place, tcx, body)
+        utils::interior_pointers(place, tcx, body, analysis.def_id)
           .into_values()
           .filter(|(_, mutability)| *mutability == Mutability::Mut)
-          .map(|(place, _)| tcx.mk_place_deref(place))
+          .map(|(place, _)| {
+            let deref_place = tcx.mk_place_deref(place);
+            utils::interior_places(deref_place, tcx, body, analysis.def_id).into_iter()
+          })
+          .flatten()
       })
       .flatten()
       .collect_indices(analysis.place_domain().clone());
@@ -65,15 +69,12 @@ impl ResultsVisitor<'mir, 'tcx> for FindEffects<'_, 'mir, 'tcx> {
             .or_default()
             .insert((*mutated, location));
         } else {
-          let conflicts = self.analysis.aliases.conflicts(*mutated);
-          let mut conflicts_set = conflicts.subs;
-          conflicts_set.union(&conflicts.supers);
-          conflicts_set.intersect(&self.mut_args);
+          let mut aliases = self.analysis.aliases.aliases(*mutated);
+          aliases.intersect(&self.mut_args);
 
-          debug!("stmt {:?}, conflicts_set: {:?}", statement, conflicts_set);
-          for arg in conflicts_set.iter() {
-            let arg_index = arg.local.as_usize() - 1;
-            let kind = EffectKind::MutArg(arg_index);
+          let mut it = aliases.iter();
+          if let Some(arg) = it.next() {
+            let kind = EffectKind::MutArg(self.analysis.place_domain().index(arg));
             self
               .effects
               .entry(kind)

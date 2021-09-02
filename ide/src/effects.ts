@@ -30,12 +30,11 @@ export let effects = async (
     args.sort();
 
     let arg_strs = args.map((arg) => {
-      let arg_range = effects.arg_spans[arg];
       let arg_effects = effects.args_effects[arg].map((effect) =>
         range_to_text(effect.effect)
       );
       return {
-        arg: range_to_text(arg_range),
+        arg,
         effects: arg_effects,
       };
     });

@@ -8,6 +8,7 @@ use crate::core::{
   utils::{self, PlaceCollector},
 };
 
+use rustc_hir::def_id::DefId;
 use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::TyCtxt,
@@ -133,7 +134,9 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
           self.apply_mutation(*dst_place, &arg_places, location, true, false);
         }
 
-        for mut_ptr in utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body) {
+        for mut_ptr in
+          utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body, self.analysis.def_id)
+        {
           self.apply_mutation(mut_ptr, &arg_places, location, false, false);
         }
       }
@@ -151,23 +154,26 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
 
 pub struct FlowAnalysis<'a, 'tcx> {
   pub tcx: TyCtxt<'tcx>,
+  pub def_id: DefId,
   pub body: &'a Body<'tcx>,
   pub control_dependencies: ControlDependencies,
-  pub aliases: Aliases<'tcx>,
+  pub aliases: Aliases<'a, 'tcx>,
   pub location_domain: Rc<LocationDomain>,
 }
 
 impl FlowAnalysis<'a, 'tcx> {
   pub fn new(
     tcx: TyCtxt<'tcx>,
+    def_id: DefId,
     body: &'a Body<'tcx>,
-    aliases: Aliases<'tcx>,
+    aliases: Aliases<'a, 'tcx>,
     control_dependencies: ControlDependencies,
   ) -> Self {
     let location_domain = build_location_domain(body);
 
     FlowAnalysis {
       tcx,
+      def_id,
       body,
       aliases,
       location_domain,

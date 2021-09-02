@@ -67,7 +67,7 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     let body = &body_with_facts.body;
     debug!("{}", utils::mir_to_string(tcx, body)?);
 
-    let results = flow::compute_flow(tcx, body, &body_with_facts.input_facts);
+    let results = flow::compute_flow(tcx, body_id, body, &body_with_facts.input_facts);
     if std::env::var("DUMP_MIR").is_ok() {
       utils::dump_results("target/flow.png", body, &results)?;
     }
