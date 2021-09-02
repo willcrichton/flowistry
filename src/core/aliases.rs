@@ -1,5 +1,4 @@
 use super::{
-  extensions::MutabilityMode,
   indexed::{IndexSetIteratorExt, IndexedDomain, ToIndex},
   indexed_impls::{PlaceDomain, PlaceIndex, PlaceSet},
   utils::{self, elapsed, PlaceRelation},
@@ -112,17 +111,9 @@ impl Aliases<'tcx> {
       })
   }
 
-  fn aliases(&self, place: impl ToIndex<Place<'tcx>>) -> PlaceSet<'tcx> {
+  pub fn aliases(&self, place: impl ToIndex<Place<'tcx>>) -> PlaceSet<'tcx> {
     let place_index = place.to_index(&self.place_domain);
     let place = *self.place_domain.value(place_index);
-
-    let deref_index = place
-      .projection
-      .iter()
-      .enumerate()
-      .rev()
-      .find(|(_, elem)| matches!(elem, ProjectionElem::Deref))
-      .map(|(i, _)| i);
 
     macro_rules! early_return {
       () => {
@@ -132,24 +123,15 @@ impl Aliases<'tcx> {
       };
     }
 
-    let (region, projection_past_deref) = match deref_index {
-      Some(deref_index) => {
-        let ptr = Place {
-          local: place.local,
-          projection: self
-            .tcx
-            .intern_place_elems(&place.projection[..deref_index]),
-        };
-
-        let region = match self.regions.get(&self.place_domain.index(&ptr)) {
-          Some(region) => *region,
-          None => {
-            early_return!();
-          }
-        };
-
-        (region, &place.projection[deref_index + 1..])
+    let (ptr, projection_past_deref) = match utils::split_deref(place, self.tcx) {
+      Some(t) => t,
+      _ => {
+        early_return!();
       }
+    };
+
+    let region = match self.regions.get(&self.place_domain.index(&ptr)) {
+      Some(region) => *region,
       None => {
         early_return!();
       }
@@ -236,7 +218,6 @@ impl Aliases<'tcx> {
   }
 
   pub fn build(
-    mutability_mode: &MutabilityMode,
     tcx: TyCtxt<'tcx>,
     body: &'a Body<'tcx>,
     outlives_constraints: Vec<OutlivesConstraint>,
@@ -331,21 +312,16 @@ impl Aliases<'tcx> {
       tcx,
     };
 
-    for (region, (sub_place, mutability)) in local_projected_regions {
-      if mutability == Mutability::Mut || *mutability_mode == MutabilityMode::IgnoreMut {
-        aliases.loans[region].insert(place_domain.index(&tcx.mk_place_deref(sub_place)));
-      }
+    for (region, (sub_place, _)) in local_projected_regions {
+      aliases.loans[region].insert(place_domain.index(&tcx.mk_place_deref(sub_place)));
     }
 
     let mut gather_borrows = GatherBorrows {
       borrows: Vec::new(),
     };
     gather_borrows.visit_body(body);
-    for (region, kind, place) in gather_borrows.borrows.into_iter() {
-      let mutability = kind.to_mutbl_lossy();
-      if mutability == Mutability::Mut || *mutability_mode == MutabilityMode::IgnoreMut {
-        aliases.loans[region].insert(place_domain.index(&place));
-      }
+    for (region, _, place) in gather_borrows.borrows.into_iter() {
+      aliases.loans[region].insert(place_domain.index(&place));
     }
 
     elapsed("Alias setup", start);

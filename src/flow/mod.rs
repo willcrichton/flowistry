@@ -1,6 +1,4 @@
-use crate::core::{
-  aliases::Aliases, control_dependencies::ControlDependencies, extensions::MutabilityMode,
-};
+use crate::core::{aliases::Aliases, control_dependencies::ControlDependencies};
 
 use log::debug;
 use polonius_engine::AllFacts;
@@ -22,12 +20,7 @@ pub fn compute_flow<'a, 'tcx>(
   body: &'a Body<'tcx>,
   facts: &'a AllFacts<RustcFacts>,
 ) -> Results<'tcx, FlowAnalysis<'a, 'tcx>> {
-  let aliases = Aliases::build(
-    &MutabilityMode::DistinguishMut,
-    tcx,
-    body,
-    facts.subset_base.clone(),
-  );
+  let aliases = Aliases::build(tcx, body, facts.subset_base.clone());
 
   let control_dependencies = ControlDependencies::build(body.clone());
   debug!("Control dependencies: {:?}", control_dependencies);

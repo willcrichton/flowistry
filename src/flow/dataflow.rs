@@ -1,8 +1,10 @@
 use crate::core::{
   aliases::Aliases,
   control_dependencies::ControlDependencies,
-  indexed::{IndexMatrix, IndexSetIteratorExt},
-  indexed_impls::{arg_location, build_location_domain, LocationDomain, LocationSet, PlaceDomain},
+  indexed::{IndexMatrix, IndexedDomain},
+  indexed_impls::{
+    arg_location, build_location_domain, LocationDomain, LocationSet, PlaceDomain, PlaceIndex,
+  },
   utils::{self, PlaceCollector},
 };
 
@@ -27,14 +29,38 @@ impl TransferFunction<'_, '_, 'tcx> {
     inputs: &[Place<'tcx>],
     location: Location,
     definitely_mutated: bool,
+    is_borrow: bool,
   ) {
+    let tcx = self.analysis.tcx;
+    let place_domain = self.analysis.place_domain();
     let location_domain = self.analysis.location_domain();
 
-    let mut input_deps: LocationSet = inputs
+    let opt_ref = move |place: Place<'tcx>| -> Option<PlaceIndex> {
+      let (ptr, _) = utils::split_deref(place, tcx)?;
+      Some(place_domain.index(&ptr))
+    };
+
+    let all_input_places = inputs
       .iter()
-      .map(|place| self.state.row_indices(*place))
-      .flatten()
-      .collect_indices(location_domain.clone());
+      .map(|place| {
+        let aliases = self.analysis.aliases.aliases(*place);
+        aliases
+          .iter()
+          .map(|alias| {
+            vec![place_domain.index(alias)]
+              .into_iter()
+              .chain(opt_ref(*alias).into_iter())
+          })
+          .flatten()
+          .collect::<Vec<_>>()
+          .into_iter()
+      })
+      .flatten();
+
+    let mut input_deps = LocationSet::new(location_domain.clone());
+    for deps in all_input_places.filter_map(|place| self.state.row_set(place)) {
+      input_deps.union(&deps);
+    }
 
     let controlled_by = self
       .analysis
@@ -56,18 +82,10 @@ impl TransferFunction<'_, '_, 'tcx> {
 
     input_deps.insert(location);
 
-    let refs = mutated
-      .iter_projections()
-      .filter_map(|(place, elem)| match elem {
-        ProjectionElem::Deref => Some(Place {
-          local: place.local,
-          projection: self.analysis.tcx.intern_place_elems(place.projection),
-        }),
-        _ => None,
-      })
-      .filter_map(|place| self.state.row_set(place));
-    for ref_deps in refs {
-      input_deps.union(&ref_deps);
+    if let Some(ptr) = opt_ref(mutated) {
+      if let Some(deps) = self.state.row_set(ptr) {
+        input_deps.union(&deps);
+      }
     }
 
     let conflicts = self.analysis.aliases.conflicts(mutated);
@@ -81,6 +99,12 @@ impl TransferFunction<'_, '_, 'tcx> {
     for place in conflicts.iter() {
       self.state.union_into_row(place, &input_deps);
     }
+
+    // see pointer_reborrow_nested for why this matters
+    if is_borrow {
+      let deref_place = tcx.mk_place_deref(mutated);
+      self.state.union_into_row(deref_place, &input_deps);
+    }
   }
 }
 
@@ -88,7 +112,9 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
   fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
     let mut collector = PlaceCollector::default();
     collector.visit_rvalue(rvalue, location);
-    self.apply_mutation(*place, &collector.places, location, true);
+
+    let is_borrow = matches!(rvalue, Rvalue::Ref(..));
+    self.apply_mutation(*place, &collector.places, location, true, is_borrow);
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
@@ -104,17 +130,17 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
         let arg_places = utils::arg_places(args);
 
         if let Some((dst_place, _)) = destination {
-          self.apply_mutation(*dst_place, &arg_places, location, true);
+          self.apply_mutation(*dst_place, &arg_places, location, true, false);
         }
 
         for mut_ptr in utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body) {
-          self.apply_mutation(mut_ptr, &arg_places, location, false);
+          self.apply_mutation(mut_ptr, &arg_places, location, false, false);
         }
       }
 
       TerminatorKind::DropAndReplace { place, value, .. } => {
         if let Some(src) = utils::operand_to_place(value) {
-          self.apply_mutation(*place, &[src], location, true);
+          self.apply_mutation(*place, &[src], location, true, false);
         }
       }
 
