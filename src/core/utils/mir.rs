@@ -310,6 +310,18 @@ impl PlaceRelation {
       });
 
     let is_sub_part = part_place.projection.len() >= whole_place.projection.len();
+    let remaining_projection = if is_sub_part {
+      &part_place.projection[whole_place.projection.len()..]
+    } else {
+      &whole_place.projection[part_place.projection.len()..]
+    };
+
+    if remaining_projection
+      .iter()
+      .any(|elem| matches!(elem, ProjectionElem::Deref))
+    {
+      return PlaceRelation::Disjoint;
+    }
 
     if projections_match {
       if is_sub_part {
@@ -476,4 +488,25 @@ pub fn get_body_with_borrowck_facts(
   simplify::SimplifyCfg::new("flowistry").run_pass(tcx, body);
 
   body_with_facts
+}
+
+pub fn split_deref(
+  place: Place<'tcx>,
+  tcx: TyCtxt<'tcx>,
+) -> Option<(Place<'tcx>, &'tcx [PlaceElem<'tcx>])> {
+  let deref_index = place
+    .projection
+    .iter()
+    .enumerate()
+    .rev()
+    .find(|(_, elem)| matches!(elem, ProjectionElem::Deref))
+    .map(|(i, _)| i)?;
+
+  Some((
+    Place {
+      local: place.local,
+      projection: tcx.intern_place_elems(&place.projection[..deref_index]),
+    },
+    &place.projection[deref_index + 1..],
+  ))
 }

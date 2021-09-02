@@ -239,6 +239,20 @@ fn main() {
 }
 
 #[test]
+fn tuple_field_independence_ref2() {
+  let src = r#"
+fn main() {
+  `[let `[mut x]` = `[&mut `[(0, 1)]`]`;]`
+  x.0 += 1;
+  `[`[x.1 += 1]`;]`
+  `[`(x.1)`;]`
+}
+"#;
+
+  backward_slice(src);
+}
+
+#[test]
 fn tuple_write_whole_read_whole() {
   let src = r#"
 fn main() {

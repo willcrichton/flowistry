@@ -114,8 +114,8 @@ fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &str) 
     }
   };
 
-  check(missing, "Missing");
-  check(extra, "Extra");
+  check(missing, "Actual was missing");
+  check(extra, "Actual contained unexpected");
 }
 
 pub fn flow<O: Debug>(
