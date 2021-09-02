@@ -46,6 +46,7 @@ struct CollectRegions<'tcx> {
   local: Local,
   place_stack: Vec<PlaceElem<'tcx>>,
   ty_stack: Vec<Ty<'tcx>>,
+  places: Option<HashSet<Place<'tcx>>>,
   regions: HashMap<RegionVid, (Place<'tcx>, Mutability)>,
 }
 
@@ -66,6 +67,12 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
     self.ty_stack.push(ty);
 
     match ty.kind() {
+      _ if ty.is_box() => {
+        self.place_stack.push(ProjectionElem::Deref);
+        self.visit_ty(ty.boxed_ty());
+        self.place_stack.pop();
+      }
+
       TyKind::Tuple(fields) => {
         for (i, field) in fields.iter().enumerate() {
           self.place_stack.push(ProjectionElem::Field(
@@ -147,6 +154,13 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
       }
     };
 
+    if let Some(places) = self.places.as_mut() {
+      places.insert(Place {
+        local: self.local,
+        projection: self.tcx.intern_place_elems(&self.place_stack),
+      });
+    }
+
     self.ty_stack.pop();
     ControlFlow::Continue(())
   }
@@ -190,9 +204,28 @@ pub fn interior_pointers<'tcx>(
     place_stack: vec![],
     ty_stack: Vec::new(),
     regions: HashMap::default(),
+    places: None,
   };
   region_collector.visit_ty(ty);
   region_collector.regions
+}
+
+pub fn interior_places<'tcx>(
+  place: Place<'tcx>,
+  tcx: TyCtxt<'tcx>,
+  body: &Body<'tcx>,
+) -> Vec<Place<'tcx>> {
+  let ty = place.ty(body.local_decls(), tcx).ty;
+  let mut region_collector = CollectRegions {
+    tcx,
+    local: place.local,
+    place_stack: vec![],
+    ty_stack: Vec::new(),
+    regions: HashMap::default(),
+    places: Some(HashSet::default()),
+  };
+  region_collector.visit_ty(ty);
+  region_collector.places.unwrap().into_iter().collect()
 }
 
 pub fn arg_mut_ptrs<'tcx>(

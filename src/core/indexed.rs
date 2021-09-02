@@ -15,7 +15,7 @@ use std::{
   slice::Iter,
 };
 
-pub trait IndexedValue: Eq + Hash + Clone {
+pub trait IndexedValue: Eq + Hash + Clone + fmt::Debug {
   type Index: Idx;
   type Domain: IndexedDomain<Index = Self::Index, Value = Self> = DefaultDomain<Self::Index, Self>;
 }
@@ -80,7 +80,10 @@ impl<I: Idx, T: IndexedValue> IndexedDomain for DefaultDomain<I, T> {
   }
 
   fn index(&self, value: &T) -> I {
-    *self.value_to_index.get(value).unwrap()
+    *self
+      .value_to_index
+      .get(value)
+      .unwrap_or_else(|| panic!("No index for value: {:?}", value))
   }
 
   fn len(&self) -> usize {
