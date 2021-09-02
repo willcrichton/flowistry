@@ -2,6 +2,7 @@ use crate::{
   core::{
     analysis::{FlowistryAnalysis, FlowistryOutput},
     config::Range,
+    indexed::IndexedDomain,
     utils,
   },
   flow::{self, Direction},
@@ -10,7 +11,7 @@ use anyhow::Result;
 use log::debug;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::BodyId;
-use rustc_middle::{mir::Local, ty::TyCtxt};
+use rustc_middle::{mir::ProjectionElem, ty::TyCtxt};
 
 use rustc_span::Span;
 use serde::Serialize;
@@ -26,7 +27,7 @@ pub struct Effect {
 
 #[derive(Debug, Default, Serialize)]
 pub struct EffectsOutput {
-  args_effects: HashMap<usize, Vec<Effect>>,
+  args_effects: HashMap<String, Vec<Effect>>,
   arg_spans: HashMap<usize, Range>,
   returns: Vec<Effect>,
 }
@@ -71,9 +72,9 @@ impl FlowistryAnalysis for EffectsHarness {
   fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
     let body_with_facts = utils::get_body_with_borrowck_facts(tcx, body_id);
     let body = &body_with_facts.body;
-    let flow_results = flow::compute_flow(tcx, body, &body_with_facts.input_facts);
     debug!("{}", utils::mir_to_string(tcx, body)?);
 
+    let flow_results = flow::compute_flow(tcx, body_id, body, &body_with_facts.input_facts);
     if std::env::var("DUMP_MIR").is_ok() {
       utils::dump_results("target/effects.png", body, &flow_results)?;
     }
@@ -120,18 +121,49 @@ impl FlowistryAnalysis for EffectsHarness {
     for (kind, effect) in ranged_effects {
       match kind {
         EffectKind::Return => {
-          output.returns.push(effect);
+          if !body.return_ty().is_unit() {
+            output.returns.push(effect);
+          }
         }
         EffectKind::MutArg(arg) => {
-          output.arg_spans.entry(arg).or_insert_with(|| {
-            let arg_span = body.local_decls[Local::from_usize(arg + 1)]
-              .source_info
-              .span;
+          let arg_place = flow_results.analysis.place_domain().value(arg);
 
-            Range::from_span(arg_span, source_map).unwrap()
-          });
+          let effect_str = {
+            let local_span = body.local_decls[arg_place.local].source_info.span;
+            let local_str = source_map.span_to_snippet(local_span).unwrap();
 
-          output.args_effects.entry(arg).or_default().push(effect);
+            arg_place
+              .iter_projections()
+              .fold(local_str, |acc, (place, elem)| {
+                let ty = place.ty(&body.local_decls, tcx).ty;
+                match elem {
+                  ProjectionElem::Field(field, _) => {
+                    let adt_def = ty.ty_adt_def().unwrap();
+                    let field_def = adt_def.all_fields().nth(field.as_usize()).unwrap();
+                    format!("{}.{}", acc, field_def.ident)
+                  }
+                  ProjectionElem::Downcast(_, variant) => {
+                    let adt_def = ty.ty_adt_def().unwrap();
+                    let variant_def = &adt_def.variants[variant];
+                    format!("{} as {}", acc, variant_def.ident)
+                  }
+                  ProjectionElem::Deref => format!("(*{})", acc),
+                  ProjectionElem::Index(_) => format!("{}[]", acc),
+                  ProjectionElem::ConstantIndex { .. } => {
+                    format!("{}[TODO]", acc)
+                  }
+                  ProjectionElem::Subslice { from, to, .. } => {
+                    format!("{}[{}..{}]", acc, from, to)
+                  }
+                }
+              })
+          };
+
+          output
+            .args_effects
+            .entry(effect_str)
+            .or_default()
+            .push(effect);
         }
       }
     }

@@ -4,7 +4,7 @@ use anyhow::{bail, Result};
 use log::warn;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
-use rustc_hir::BodyId;
+use rustc_hir::{def_id::DefId, BodyId};
 use rustc_middle::{
   mir::{
     visit::{NonUseContext, PlaceContext, Visitor},
@@ -43,6 +43,7 @@ pub fn local_to_place(local: Local, tcx: TyCtxt<'tcx>) -> Place<'tcx> {
 
 struct CollectRegions<'tcx> {
   tcx: TyCtxt<'tcx>,
+  def_id: DefId,
   local: Local,
   place_stack: Vec<PlaceElem<'tcx>>,
   ty_stack: Vec<Ty<'tcx>>,
@@ -87,6 +88,10 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
       TyKind::Adt(adt_def, subst) => match adt_def.adt_kind() {
         ty::AdtKind::Struct => {
           for (i, field) in adt_def.all_fields().enumerate() {
+            if !field.vis.is_accessible_from(self.def_id, self.tcx) {
+              continue;
+            }
+
             let ty = field.ty(self.tcx, subst);
             self
               .place_stack
@@ -196,10 +201,12 @@ pub fn interior_pointers<'tcx>(
   place: Place<'tcx>,
   tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,
+  def_id: DefId,
 ) -> HashMap<RegionVid, (Place<'tcx>, Mutability)> {
   let ty = place.ty(body.local_decls(), tcx).ty;
   let mut region_collector = CollectRegions {
     tcx,
+    def_id,
     local: place.local,
     place_stack: vec![],
     ty_stack: Vec::new(),
@@ -214,12 +221,14 @@ pub fn interior_places<'tcx>(
   place: Place<'tcx>,
   tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,
+  def_id: DefId,
 ) -> Vec<Place<'tcx>> {
   let ty = place.ty(body.local_decls(), tcx).ty;
   let mut region_collector = CollectRegions {
     tcx,
+    def_id,
     local: place.local,
-    place_stack: vec![],
+    place_stack: place.projection.to_vec(),
     ty_stack: Vec::new(),
     regions: HashMap::default(),
     places: Some(HashSet::default()),
@@ -232,11 +241,12 @@ pub fn arg_mut_ptrs<'tcx>(
   args: &[Place<'tcx>],
   tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,
+  def_id: DefId,
 ) -> Vec<Place<'tcx>> {
   args
     .iter()
     .map(|place| {
-      interior_pointers(*place, tcx, body)
+      interior_pointers(*place, tcx, body, def_id)
         .into_iter()
         .filter_map(|(_, (place, mutability))| match mutability {
           Mutability::Mut => Some(place),

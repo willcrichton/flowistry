@@ -77,23 +77,25 @@ let App: React.FC = () => {
                   </ul>
                 </li>
               ))}
-              <li>
-                Returns
-                <ul>
-                  {data.ret_strs.map((s, i) => (
-                    <li
-                      onClick={() => {
-                        vscode.postMessage({
-                          type: "click",
-                          data: { type: "ret", index: i },
-                        });
-                      }}
-                    >
-                      <Code>{s}</Code>
-                    </li>
-                  ))}
-                </ul>
-              </li>
+              {data.ret_strs.length > 0 ? (
+                <li>
+                  Returns
+                  <ul>
+                    {data.ret_strs.map((s, i) => (
+                      <li
+                        onClick={() => {
+                          vscode.postMessage({
+                            type: "click",
+                            data: { type: "ret", index: i },
+                          });
+                        }}
+                      >
+                        <Code>{s}</Code>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ) : null}
             </ul>
           </div>
         ) : null}

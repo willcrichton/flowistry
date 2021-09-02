@@ -9,13 +9,14 @@ use rustc_data_structures::{
   fx::{FxHashMap as HashMap, FxHashSet as HashSet, FxIndexMap as IndexMap},
   graph::{scc::Sccs, vec_graph::VecGraph},
 };
+use rustc_hir::def_id::DefId;
 use rustc_index::{
   bit_set::{BitSet, SparseBitMatrix},
   vec::IndexVec,
 };
 use rustc_middle::{
   mir::{visit::Visitor, *},
-  ty::{RegionKind, RegionVid, TyCtxt},
+  ty::{RegionKind, RegionVid, TyCtxt, TyS},
 };
 use rustc_mir::consumers::RustcFacts;
 use std::{cell::RefCell, rc::Rc, time::Instant};
@@ -49,12 +50,13 @@ impl Conflicts<'tcx> {
   }
 }
 
-pub struct Aliases<'tcx> {
+pub struct Aliases<'a, 'tcx> {
   loans: IndexVec<RegionVid, PlaceSet<'tcx>>,
   loan_locals: SparseBitMatrix<Local, RegionVid>,
   regions: IndexMap<PlaceIndex, RegionVid>,
   loan_cache: RefCell<IndexMap<PlaceIndex, Conflicts<'tcx>>>,
   tcx: TyCtxt<'tcx>,
+  body: &'a Body<'tcx>,
 
   pub place_domain: Rc<PlaceDomain<'tcx>>,
 }
@@ -68,7 +70,10 @@ rustc_index::newtype_index! {
   }
 }
 
-impl Aliases<'tcx> {
+impl Aliases<'a, 'tcx>
+where
+  'tcx: 'a,
+{
   fn compute_region_ancestors(
     sccs: &Sccs<RegionVid, ConstraintSccIndex>,
     regions_in_scc: &IndexVec<ConstraintSccIndex, BitSet<RegionVid>>,
@@ -138,14 +143,49 @@ impl Aliases<'tcx> {
     };
 
     let loans = &self.loans[region];
+    let deref_ptr = self.tcx.mk_place_deref(ptr);
+    let orig_ty = deref_ptr.ty(self.body.local_decls(), self.tcx).ty;
     loans
       .iter()
-      .map(|place| {
-        let mut projection = place.projection.to_vec();
-        projection.extend(projection_past_deref);
-        Place {
-          local: place.local,
-          projection: self.tcx.intern_place_elems(&projection),
+      .map(|alias| {
+        let alias_ty = alias.ty(self.body.local_decls(), self.tcx).ty;
+
+        // Consider the program:
+        //   fn ok(x: &mut (i32, i32)) {
+        //     (*x).0 += 1;
+        //     (*x).1 += 1;
+        //     /* slice on (*x).0 */
+        //   }
+        // We don't want (*x).1 += 1 to be part of the slice. Naively, the deref (*x)
+        //   has an alias to the entire tuple under x. So if we don't consider the
+        //   projection .1, this mutates the entire tuple and hence possible (*x).0.
+        //   So we add the projection .1 to the alias.
+        //
+        // But this strategy isn't always sound. Consider this program:
+        //   fn foo(x: &mut ((i32, i32),)) -> &mut (i32, i32) { &mut x.0 }
+        //   fn bar() {
+        //     let mut x = ((0, 0),);
+        //     let y = foo(&mut x);
+        //     y.1 += 1;
+        //     y.1;
+        //   }
+        // Say y: &'1 mut (i32, i32) and &mut x: &'0 mut ((i32, i32),). Because '1 : '0,
+        //   then x is in the loan set of y. However, the projection .1 isn't valid for x.
+        //   So adding this projection creates an invalid place. But we can't remove x entirely,
+        //   because we need to know that mutating y is a mutation to *something* in x.
+        //
+        // Hence, the inbetween strategy is to do the more precise thing (add the projection)
+        //   only if the alias has the same type as the original, otherwise to do the
+        //   more conservative thing (return the alias untouched).
+        if TyS::same_type(orig_ty, alias_ty) {
+          let mut projection = alias.projection.to_vec();
+          projection.extend(projection_past_deref);
+          Place {
+            local: alias.local,
+            projection: self.tcx.intern_place_elems(&projection),
+          }
+        } else {
+          *alias
         }
       })
       .collect_indices(self.place_domain.clone())
@@ -219,6 +259,7 @@ impl Aliases<'tcx> {
 
   pub fn build(
     tcx: TyCtxt<'tcx>,
+    def_id: DefId,
     body: &'a Body<'tcx>,
     outlives_constraints: Vec<OutlivesConstraint>,
   ) -> Self {
@@ -227,7 +268,7 @@ impl Aliases<'tcx> {
       .indices()
       .map(|local| {
         let place = utils::local_to_place(local, tcx);
-        utils::interior_pointers(place, tcx, body)
+        utils::interior_pointers(place, tcx, body, def_id)
       })
       .fold(HashMap::default(), |mut h1, h2| {
         h1.extend(h2);
@@ -290,7 +331,7 @@ impl Aliases<'tcx> {
         .local_decls()
         .indices()
         .map(|local| {
-          utils::interior_places(utils::local_to_place(local, tcx), tcx, body).into_iter()
+          utils::interior_places(utils::local_to_place(local, tcx), tcx, body, def_id).into_iter()
         })
         .flatten()
         .collect::<Vec<_>>();
@@ -310,6 +351,7 @@ impl Aliases<'tcx> {
         .map(|(region, (place, _))| (place_domain.index(place), *region))
         .collect(),
       tcx,
+      body,
     };
 
     for (region, (sub_place, _)) in local_projected_regions {

@@ -81,7 +81,6 @@ impl ResultsVisitor<'mir, 'tcx> for FindDependencies<'_, 'mir, 'tcx> {
           self.check(place, state, location);
         }
       }
-
       TerminatorKind::Call {
         args, destination, ..
       } => {
@@ -93,6 +92,7 @@ impl ResultsVisitor<'mir, 'tcx> for FindDependencies<'_, 'mir, 'tcx> {
           &utils::arg_places(args),
           self.analysis.tcx,
           self.analysis.body,
+          self.analysis.def_id,
         );
         for mut_ptr in arg_mut_ptrs {
           self.check(mut_ptr, state, location);
