@@ -53,7 +53,9 @@ impl Conflicts<'tcx> {
 pub struct Aliases<'tcx> {
   loans: IndexVec<RegionVid, PlaceSet<'tcx>>,
   loan_locals: SparseBitMatrix<Local, RegionVid>,
+  regions: IndexMap<PlaceIndex, RegionVid>,
   loan_cache: RefCell<IndexMap<PlaceIndex, Conflicts<'tcx>>>,
+  tcx: TyCtxt<'tcx>,
 
   pub place_domain: Rc<PlaceDomain<'tcx>>,
 }
@@ -113,33 +115,69 @@ impl Aliases<'tcx> {
   fn aliases(&self, place: impl ToIndex<Place<'tcx>>) -> PlaceSet<'tcx> {
     let place_index = place.to_index(&self.place_domain);
     let place = *self.place_domain.value(place_index);
-    let mut set: PlaceSet<'tcx> = self
-      .loan_locals
-      .row(place.local)
-      .into_iter()
-      .map(|regions| {
-        regions
-          .iter()
-          .filter_map(|region| {
-            let loans = &self.loans[region];
-            let matches_loan = loans
-              .iter()
-              .any(|loan| PlaceRelation::of(*loan, place).overlaps());
-            let is_deref = place.is_indirect();
-            (matches_loan && is_deref).then(|| loans.indices())
-          })
-          .flatten()
+
+    let deref_index = place
+      .projection
+      .iter()
+      .enumerate()
+      .rev()
+      .find(|(_, elem)| matches!(elem, ProjectionElem::Deref))
+      .map(|(i, _)| i);
+
+    macro_rules! early_return {
+      () => {
+        let mut set = PlaceSet::new(self.place_domain.clone());
+        set.insert(place_index);
+        return set;
+      };
+    }
+
+    let (region, projection_past_deref) = match deref_index {
+      Some(deref_index) => {
+        let ptr = Place {
+          local: place.local,
+          projection: self
+            .tcx
+            .intern_place_elems(&place.projection[..deref_index]),
+        };
+
+        let region = match self.regions.get(&self.place_domain.index(&ptr)) {
+          Some(region) => *region,
+          None => {
+            early_return!();
+          }
+        };
+
+        (region, &place.projection[deref_index + 1..])
+      }
+      None => {
+        early_return!();
+      }
+    };
+
+    let loans = &self.loans[region];
+    loans
+      .iter()
+      .map(|place| {
+        let mut projection = place.projection.to_vec();
+        projection.extend(projection_past_deref);
+        Place {
+          local: place.local,
+          projection: self.tcx.intern_place_elems(&projection),
+        }
       })
-      .flatten()
-      .collect_indices(self.place_domain.clone());
-    set.insert(place_index);
-    set
+      .collect_indices(self.place_domain.clone())
   }
 
   pub fn conflicts(&self, place: impl ToIndex<Place<'tcx>>) -> Conflicts<'tcx> {
     let place_index = place.to_index(&self.place_domain);
     let compute_conflicts = move || {
       let aliases = self.aliases(place_index);
+      debug!(
+        "aliases for {:?} are: {:?}",
+        self.place_domain.value(place_index),
+        aliases
+      );
 
       // TODO: is this correct?
       let single_pointee = {
@@ -202,7 +240,6 @@ impl Aliases<'tcx> {
     tcx: TyCtxt<'tcx>,
     body: &'a Body<'tcx>,
     outlives_constraints: Vec<OutlivesConstraint>,
-    extra_places: &[Place<'tcx>],
   ) -> Self {
     let local_projected_regions = body
       .local_decls()
@@ -233,7 +270,8 @@ impl Aliases<'tcx> {
     let root_region = RegionVid::from_usize(0);
     let processed_constraints = outlives_constraints
       .iter()
-      .map(|(r1, r2, _)| (*r2, *r1))
+      // TODO: EXPLAIN THE ORDERING?
+      .map(|(r1, r2, _)| (*r1, *r2))
       // static region outlives everything
       .chain((1..max_region).map(|i| (root_region, RegionVid::from_usize(i))))
       .collect();
@@ -261,50 +299,22 @@ impl Aliases<'tcx> {
     let root_scc = constraint_sccs.scc(root_region);
     let region_ancestors =
       Self::compute_region_ancestors(&constraint_sccs, &regions_in_scc, root_scc);
-    debug!("region ancestors: {:#?}", region_ancestors);
+    debug!("region ancestors: {:?}", region_ancestors);
 
     let mut place_collector = utils::PlaceCollector::default();
     place_collector.visit_body(body);
 
     let place_domain = {
-      let mut all_places = HashSet::default();
-      all_places.extend(place_collector.places.clone().into_iter());
-
-      // needed for Aliases::build
-      let place_pointers = place_collector
-        .places
-        .into_iter()
-        .map(|place| utils::interior_pointers(place, tcx, body))
-        .collect::<Vec<_>>();
-
-      // needed for TransferFunction::visit_terminator
-      all_places.extend(
-        local_projected_regions
-          .values()
-          .chain(place_pointers.iter().map(|ptrs| ptrs.values()).flatten())
-          .map(|(place, _)| vec![*place, tcx.mk_place_deref(*place)].into_iter())
-          .flatten(),
-      );
-
-      // needed for SliceLocation::PlacesOnExit
-      all_places.extend(extra_places.iter());
-
-      // needed for TransferFunction::check_mutation
-      let pointers = all_places
-        .iter()
-        .map(|place| utils::pointer_for_place(*place, tcx).into_iter())
+      let all_places = body
+        .local_decls()
+        .indices()
+        .map(|local| {
+          utils::interior_places(utils::local_to_place(local, tcx), tcx, body).into_iter()
+        })
         .flatten()
         .collect::<Vec<_>>();
-      all_places.extend(pointers.iter());
 
-      // needed for FlowAnalysis::initialize_start_block
-      all_places.extend(body.args_iter().map(|arg| utils::local_to_place(arg, tcx)));
-
-      let all_places = all_places.into_iter().collect::<Vec<_>>();
-      // println!("All places: {:?}", all_places.len());
-      // println!("All places: {:?}", all_places);
-      // println!("All regions: {:?}", all_regions);
-      // println!("Place pointers: {:?}", place_pointers);
+      debug!("Place domain size: {}", all_places.len());
 
       Rc::new(PlaceDomain::new(tcx, all_places))
     };
@@ -314,6 +324,11 @@ impl Aliases<'tcx> {
       loan_cache: RefCell::new(IndexMap::default()),
       loan_locals: SparseBitMatrix::new(max_region),
       place_domain: place_domain.clone(),
+      regions: local_projected_regions
+        .iter()
+        .map(|(region, (place, _))| (place_domain.index(place), *region))
+        .collect(),
+      tcx,
     };
 
     for (region, (sub_place, mutability)) in local_projected_regions {
@@ -335,7 +350,7 @@ impl Aliases<'tcx> {
 
     elapsed("Alias setup", start);
 
-    debug!("initial aliases {:#?}", aliases.loans);
+    debug!("initial aliases {:?}", aliases.loans);
 
     let start = Instant::now();
     loop {

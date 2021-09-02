@@ -27,7 +27,6 @@ pub fn compute_flow<'a, 'tcx>(
     tcx,
     body,
     facts.subset_base.clone(),
-    &[],
   );
 
   let control_dependencies = ControlDependencies::build(body.clone());

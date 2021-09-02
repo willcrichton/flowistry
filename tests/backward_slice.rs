@@ -210,6 +210,35 @@ fn main() {
 }
 
 #[test]
+fn tuple_field_independence_owned() {
+  // shouldn't include line 1 b/c x.1 isn't relevant
+  let src = r#"
+fn main() {
+  `[let `[mut x]` = `[(0, 1)]`;]`
+  `[`[x.0 += 1]`;]`
+  x.1 += 1;
+  `[`(x.0)`;]`
+}
+"#;
+
+  backward_slice(src);
+}
+
+#[test]
+fn tuple_field_independence_ref() {
+  let src = r#"
+fn main() {
+  `[let `[mut x]` = `[&mut `[(0, 1)]`]`;]`
+  `[`[x.0 += 1]`;]`
+  x.1 += 1;
+  `[`(x.0)`;]`
+}
+"#;
+
+  backward_slice(src);
+}
+
+#[test]
 fn tuple_write_whole_read_whole() {
   let src = r#"
 fn main() {
