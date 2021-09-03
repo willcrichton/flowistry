@@ -1,7 +1,44 @@
 import * as vscode from "vscode";
 import { log, show_error, CallFlowistry, to_vsc_range } from "./vsc_utils";
 import { Effects, Message, Range } from "./types";
-import { highlight_ranges, select_type } from "./slicing";
+import {
+  highlight_ranges,
+  select_type,
+  highlight_type,
+  hide_type,
+} from "./slicing";
+import _ from "lodash";
+
+export let invert_ranges = (container: Range, pieces: Range[]): Range[] => {
+  let filename = container.filename;
+  let pieces_sorted = _.sortBy(pieces, (r) => r.start);
+
+  let new_ranges: Range[] = [];
+  let start = container.start;
+  pieces_sorted.forEach((r) => {
+    if (r.start < start) {
+      start = Math.max(r.end, start);
+      return;
+    }
+
+    let end = r.start;
+    new_ranges.push({
+      start,
+      end,
+      filename,
+    });
+
+    start = Math.max(start, r.end);
+  });
+
+  new_ranges.push({
+    start,
+    end: container.end,
+    filename
+  });
+
+  return new_ranges;
+};
 
 export let effects = async (
   context: vscode.ExtensionContext,
@@ -13,7 +50,7 @@ export let effects = async (
   }
 
   let doc = active_editor.document;
-  let selection = active_editor.selection; 
+  let selection = active_editor.selection;
 
   let range_to_text = (range: Range): string =>
     doc.getText(to_vsc_range(range, doc));
@@ -25,6 +62,7 @@ export let effects = async (
     let lines = stdout.split("\n");
     let last_line = lines[lines.length - 1];
     let effects: Effects = JSON.parse(last_line);
+    let body_range = effects.body_span;
 
     let args = Object.keys(effects.args_effects);
     args.sort();
@@ -73,21 +111,26 @@ export let effects = async (
         if (message.type == "click") {
           let type = message.data.type;
           if (type === "ret") {
-            let {index} = message.data;
+            let { index } = message.data;
             let effect = effects.returns[index];
-            highlight_ranges(effect.slice, active_editor!);
+            highlight_ranges(effect.slice, active_editor!, highlight_type);
           } else if (type === "arg") {
-            let {arg_index, effect_index} = message.data;
+            let { arg_index, effect_index } = message.data;
             let arg = args[arg_index];
             let effect = effects.args_effects[arg][effect_index];
 
             let range = to_vsc_range(effect.effect, doc);
-            active_editor!.revealRange(range, vscode.TextEditorRevealType.InCenter);
+            active_editor!.revealRange(
+              range,
+              vscode.TextEditorRevealType.InCenter
+            );
             highlight_ranges([effect.effect], active_editor!, select_type);
 
-            highlight_ranges(effect.slice, active_editor!);
-            
-            
+            highlight_ranges(
+              invert_ranges(body_range, effect.slice),
+              active_editor!,
+              hide_type
+            );
           }
         }
       },

@@ -273,6 +273,8 @@ where
     def_id: DefId,
     body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
   ) -> Self {
+    // TODO: there's a lot of repeated and undocumented code in this function
+
     let body = &body_with_facts.body;
 
     let local_projected_regions = body
