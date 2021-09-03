@@ -1,21 +1,38 @@
 import * as vscode from "vscode";
 import { SliceOutput, Range } from "./types";
-import {
-  log,
-  show_error,
-  CallFlowistry,
-  to_vsc_range,
-} from "./vsc_utils";
+import { log, show_error, CallFlowistry, to_vsc_range } from "./vsc_utils";
 
 export let highlight_type = vscode.window.createTextEditorDecorationType({
-  backgroundColor: 'rgb(250, 223, 203)'
+  backgroundColor: "rgb(250, 223, 203)",
 });
 
+export let hide_type = vscode.window.createTextEditorDecorationType({
+  color: new vscode.ThemeColor("editorUnnecessaryCode.opacity"),
+});
+
+let style = {
+  color: "white",
+  backgroundColor: "rgb(153, 222, 179)",
+  fontWeight: "bold",
+};
 export let select_type = vscode.window.createTextEditorDecorationType({
-  backgroundColor: 'rgb(186, 220, 199)'
+  before: {
+    contentText: "❰",
+    margin: "0 5px 0 0",
+    ...style,
+  },
+  after: {
+    contentText: "❱",
+    margin: "0 0 0 5px",
+    ...style,
+  },
 });
 
-export function highlight_ranges(ranges: Range[], editor: vscode.TextEditor, type = highlight_type) {
+export function highlight_ranges(
+  ranges: Range[],
+  editor: vscode.TextEditor,
+  type: vscode.TextEditorDecorationType = highlight_type
+) {
   editor.setDecorations(
     type,
     ranges.map((range) => to_vsc_range(range, editor.document))
