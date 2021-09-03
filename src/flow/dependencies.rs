@@ -180,7 +180,7 @@ pub fn compute_dependency_ranges(
     .map(|(locs, args)| {
       locs
         .iter()
-        .map(|loc| utils::location_to_spans(*loc, body, spanner).into_iter())
+        .map(|loc| utils::location_to_spans(*loc, body, spanner, source_map).into_iter())
         .flatten()
         .chain(args.into_iter())
         .filter_map(|span| Range::from_span(span, source_map).ok())

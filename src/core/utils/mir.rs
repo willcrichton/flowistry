@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use anyhow::{bail, Result};
-use log::warn;
+use log::{trace, warn};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
 use rustc_hir::{def_id::DefId, BodyId};
@@ -48,7 +48,8 @@ struct CollectRegions<'tcx> {
   place_stack: Vec<PlaceElem<'tcx>>,
   ty_stack: Vec<Ty<'tcx>>,
   places: Option<HashSet<Place<'tcx>>>,
-  regions: HashMap<RegionVid, (Place<'tcx>, Mutability)>,
+  types: Option<HashSet<Ty<'tcx>>>,
+  regions: HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>,
 }
 
 impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
@@ -64,6 +65,8 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
     {
       return ControlFlow::Continue(());
     }
+
+    trace!("exploring local {:?} with {:?}", self.local, ty);
 
     self.ty_stack.push(ty);
 
@@ -166,11 +169,16 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
       });
     }
 
+    if let Some(types) = self.types.as_mut() {
+      types.insert(ty);
+    }
+
     self.ty_stack.pop();
     ControlFlow::Continue(())
   }
 
   fn visit_region(&mut self, region: ty::Region<'tcx>) -> ControlFlow<Self::BreakTy> {
+    trace!("visiting region {:?}", region);
     match region {
       RegionKind::ReVar(region) => {
         let mutability = if self
@@ -187,7 +195,11 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
           local: self.local,
           projection: self.tcx.intern_place_elems(&self.place_stack),
         };
-        self.regions.insert(*region, (place, mutability));
+        self
+          .regions
+          .entry(*region)
+          .or_default()
+          .push((place, mutability));
       }
       RegionKind::ReStatic => {}
       _ => unreachable!("{:?}: {:?}", self.ty_stack.first().unwrap(), region),
@@ -202,16 +214,17 @@ pub fn interior_pointers<'tcx>(
   tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,
   def_id: DefId,
-) -> HashMap<RegionVid, (Place<'tcx>, Mutability)> {
+) -> HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>> {
   let ty = place.ty(body.local_decls(), tcx).ty;
   let mut region_collector = CollectRegions {
     tcx,
     def_id,
     local: place.local,
-    place_stack: vec![],
+    place_stack: place.projection.to_vec(),
     ty_stack: Vec::new(),
     regions: HashMap::default(),
     places: None,
+    types: None,
   };
   region_collector.visit_ty(ty);
   region_collector.regions
@@ -232,9 +245,31 @@ pub fn interior_places<'tcx>(
     ty_stack: Vec::new(),
     regions: HashMap::default(),
     places: Some(HashSet::default()),
+    types: None,
   };
   region_collector.visit_ty(ty);
   region_collector.places.unwrap().into_iter().collect()
+}
+
+pub fn interior_types<'tcx>(
+  place: Place<'tcx>,
+  tcx: TyCtxt<'tcx>,
+  body: &Body<'tcx>,
+  def_id: DefId,
+) -> Vec<Ty<'tcx>> {
+  let ty = place.ty(body.local_decls(), tcx).ty;
+  let mut region_collector = CollectRegions {
+    tcx,
+    def_id,
+    local: place.local,
+    place_stack: place.projection.to_vec(),
+    ty_stack: Vec::new(),
+    regions: HashMap::default(),
+    places: None,
+    types: Some(HashSet::default()),
+  };
+  region_collector.visit_ty(ty);
+  region_collector.types.unwrap().into_iter().collect()
 }
 
 pub fn arg_mut_ptrs<'tcx>(
@@ -248,10 +283,15 @@ pub fn arg_mut_ptrs<'tcx>(
     .map(|place| {
       interior_pointers(*place, tcx, body, def_id)
         .into_iter()
-        .filter_map(|(_, (place, mutability))| match mutability {
-          Mutability::Mut => Some(place),
-          Mutability::Not => None,
+        .map(|(_, places)| {
+          places
+            .into_iter()
+            .filter_map(|(place, mutability)| match mutability {
+              Mutability::Mut => Some(place),
+              Mutability::Not => None,
+            })
         })
+        .flatten()
         .map(|place| tcx.mk_place_deref(place))
     })
     .flatten()
@@ -450,9 +490,9 @@ pub fn mir_to_string(tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> Result<String> {
 pub fn location_to_string(location: Location, body: &Body<'_>) -> String {
   let block = &body.basic_blocks()[location.block];
   if location.statement_index == block.statements.len() {
-    format!("{:?}", block.terminator())
+    format!("{:?}", block.terminator().kind)
   } else {
-    format!("{:?}", block.statements[location.statement_index])
+    format!("{:?}", block.statements[location.statement_index].kind)
   }
 }
 

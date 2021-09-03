@@ -58,8 +58,10 @@ let App: React.FC = () => {
                 <li>
                   Arg <Code>{arg_str.arg}</Code>
                   <ul>
-                    {arg_str.effects.map((s, j) => (
-                      <li
+                    {arg_str.effects.map((s, j) => {
+                      s = s.replace(/[\n]/g, '');
+                      s = s.replace(/^([\w\d_\s.]+)\(.*\)$/, '$1(..)');
+                      return <li
                         onClick={() => {
                           vscode.postMessage({
                             type: "click",
@@ -73,7 +75,7 @@ let App: React.FC = () => {
                       >
                         <Code>{s}</Code>
                       </li>
-                    ))}
+})}
                   </ul>
                 </li>
               ))}

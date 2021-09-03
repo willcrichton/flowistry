@@ -248,7 +248,10 @@ impl<T: IndexedValue + fmt::Debug, S: ToSet<T>> fmt::Debug for IndexSet<T, S> {
     for (i, elt) in self.iter().enumerate() {
       write!(f, "{:?}", elt)?;
       if i < n - 1 {
-        write!(f, ", ")?
+        write!(f, ", ")?;
+        if f.alternate() {
+          write!(f, "\n  ")?;
+        }
       }
     }
 
