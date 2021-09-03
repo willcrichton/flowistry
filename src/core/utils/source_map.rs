@@ -1,3 +1,5 @@
+use crate::core::utils;
+use log::trace;
 use rustc_data_structures::graph::{iterate::reverse_post_order, WithPredecessors};
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
@@ -6,12 +8,13 @@ use rustc_hir::{
 use rustc_index::bit_set::HybridBitSet;
 use rustc_middle::{hir::map::Map, mir::*, ty::TyCtxt};
 
-use rustc_span::Span;
+use rustc_span::{source_map::SourceMap, Span};
 use smallvec::{smallvec, SmallVec};
 
 pub struct HirSpanner {
   expr_spans: Vec<Span>,
   stmt_spans: Vec<Span>,
+  body_span: Span,
 }
 
 impl HirSpanner {
@@ -21,6 +24,7 @@ impl HirSpanner {
     let mut spanner = HirSpanner {
       expr_spans: Vec::new(),
       stmt_spans: Vec::new(),
+      body_span: body.value.span,
     };
 
     struct Collector<'a>(&'a mut HirSpanner);
@@ -58,6 +62,7 @@ impl HirSpanner {
         .filter(|hir_span| hir_span.contains(span))
         .min_by_key(|hir_span| hir_span.hi() - hir_span.lo())
         .cloned()
+        .and_then(|span| (span != self.body_span).then(move || span))
     };
 
     find(&self.expr_spans)
@@ -71,6 +76,7 @@ pub fn location_to_spans(
   location: Location,
   body: &Body,
   spanner: &HirSpanner,
+  source_map: &SourceMap,
 ) -> SmallVec<[Span; 4]> {
   let mut mir_spans: SmallVec<[Span; 2]> = smallvec![body.source_info(location).span];
   let block = &body.basic_blocks()[location.block];
@@ -99,13 +105,13 @@ pub fn location_to_spans(
     *span = span.source_callsite();
   }
 
-  // let format_spans = |spans: &[Span]| -> String {
-  //   spans
-  //     .iter()
-  //     .map(|span| utils::span_to_string(*span, source_map))
-  //     .collect::<Vec<_>>()
-  //     .join(" -- ")
-  // };
+  let format_spans = |spans: &[Span]| -> String {
+    spans
+      .iter()
+      .map(|span| utils::span_to_string(*span, source_map))
+      .collect::<Vec<_>>()
+      .join(" -- ")
+  };
 
   let hir_spans = mir_spans
     .clone()
@@ -114,13 +120,13 @@ pub fn location_to_spans(
     .flatten()
     .collect::<SmallVec<[Span; 4]>>();
 
-  // debug!(
-  //   "Location {:?} ({})\n  has MIR spans:\n  {}\n  and HIR spans:\n  {}",
-  //   location,
-  //   utils::location_to_string(location, body),
-  //   format_spans(&mir_spans),
-  //   format_spans(&hir_spans)
-  // );
+  trace!(
+    "Location {:?} ({})\n  has MIR spans:\n  {}\n  and HIR spans:\n  {}",
+    location,
+    utils::location_to_string(location, body),
+    format_spans(&mir_spans),
+    format_spans(&hir_spans)
+  );
 
   hir_spans
 }

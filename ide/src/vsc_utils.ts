@@ -16,8 +16,4 @@ export let show_error = (err: string) => {
   vscode.window.showErrorMessage(`Flowistry error: ${err}`);
 };
 
-export let decoration_type = vscode.window.createTextEditorDecorationType({
-  backgroundColor: new vscode.ThemeColor("editor.findMatchHighlightBackground"),
-});
-
 export type CallFlowistry = (args: string) => Promise<string>;

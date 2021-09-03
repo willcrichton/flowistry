@@ -3,7 +3,10 @@ import * as cp from "child_process";
 import * as util from "util";
 import { log, show_error, CallFlowistry } from "./vsc_utils";
 
-export const exec = util.promisify(cp.exec);
+export const exec = async (command, args) => {
+  let output = await util.promisify(cp.exec)(command, {maxBuffer: 1024 * 1024 * 1024, ...args});
+  return output;
+}
 
 export async function setup(): Promise<CallFlowistry | null> {
   let folders = vscode.workspace.workspaceFolders;

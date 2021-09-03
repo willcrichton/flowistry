@@ -3,14 +3,21 @@ import { SliceOutput, Range } from "./types";
 import {
   log,
   show_error,
-  decoration_type,
   CallFlowistry,
   to_vsc_range,
 } from "./vsc_utils";
 
-export function highlight_ranges(ranges: Range[], editor: vscode.TextEditor) {
+export let highlight_type = vscode.window.createTextEditorDecorationType({
+  backgroundColor: 'rgb(250, 223, 203)'
+});
+
+export let select_type = vscode.window.createTextEditorDecorationType({
+  backgroundColor: 'rgb(186, 220, 199)'
+});
+
+export function highlight_ranges(ranges: Range[], editor: vscode.TextEditor, type = highlight_type) {
   editor.setDecorations(
-    decoration_type,
+    type,
     ranges.map((range) => to_vsc_range(range, editor.document))
   );
 
@@ -21,7 +28,7 @@ export function highlight_ranges(ranges: Range[], editor: vscode.TextEditor) {
     if (event.document !== editor.document) {
       return;
     }
-    editor.setDecorations(decoration_type, []);
+    editor.setDecorations(type, []);
     callback.dispose();
   });
 }

@@ -11,7 +11,10 @@ use anyhow::Result;
 use log::debug;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::BodyId;
-use rustc_middle::{mir::ProjectionElem, ty::TyCtxt};
+use rustc_middle::{
+  mir::ProjectionElem,
+  ty::{TyCtxt, TyKind},
+};
 
 use rustc_span::Span;
 use serde::Serialize;
@@ -74,14 +77,14 @@ impl FlowistryAnalysis for EffectsHarness {
     let body = &body_with_facts.body;
     debug!("{}", utils::mir_to_string(tcx, body)?);
 
-    let flow_results = flow::compute_flow(tcx, body_id, body, &body_with_facts.input_facts);
+    let flow_results = flow::compute_flow(tcx, body_id, &body_with_facts);
     if std::env::var("DUMP_MIR").is_ok() {
       utils::dump_results("target/effects.png", body, &flow_results)?;
     }
 
     let mut find_effects = visitor::FindEffects::new(&flow_results.analysis);
     flow_results.visit_reachable_with(body, &mut find_effects);
-    debug!("effects: {:#?}", find_effects.effects);
+    debug!("effects: {:?}", find_effects.effects);
 
     let spanner = utils::HirSpanner::new(tcx, body_id);
 
@@ -105,7 +108,7 @@ impl FlowistryAnalysis for EffectsHarness {
         .into_iter()
         .zip(deps.into_iter())
         .filter_map(|((kind, loc), slice)| {
-          let spans = utils::location_to_spans(loc, body, &spanner);
+          let spans = utils::location_to_spans(loc, body, &spanner, source_map);
           let range = spans
             .into_iter()
             .min_by_key(|span| span.hi() - span.lo())
@@ -118,6 +121,11 @@ impl FlowistryAnalysis for EffectsHarness {
         });
 
     let mut output = EffectsOutput::default();
+    let fn_decl = tcx
+      .hir()
+      .fn_decl_by_hir_id(tcx.hir().body_owner(body_id))
+      .unwrap();
+
     for (kind, effect) in ranged_effects {
       match kind {
         EffectKind::Return => {
@@ -127,10 +135,14 @@ impl FlowistryAnalysis for EffectsHarness {
         }
         EffectKind::MutArg(arg) => {
           let arg_place = flow_results.analysis.place_domain().value(arg);
-
           let effect_str = {
-            let local_span = body.local_decls[arg_place.local].source_info.span;
-            let local_str = source_map.span_to_snippet(local_span).unwrap();
+            let local_str =
+              if arg_place.local.as_usize() == 1 && fn_decl.implicit_self.has_implicit_self() {
+                "self".to_string()
+              } else {
+                let local_span = body.local_decls[arg_place.local].source_info.span;
+                source_map.span_to_snippet(local_span).unwrap()
+              };
 
             arg_place
               .iter_projections()
@@ -138,16 +150,23 @@ impl FlowistryAnalysis for EffectsHarness {
                 let ty = place.ty(&body.local_decls, tcx).ty;
                 match elem {
                   ProjectionElem::Field(field, _) => {
-                    let adt_def = ty.ty_adt_def().unwrap();
-                    let field_def = adt_def.all_fields().nth(field.as_usize()).unwrap();
-                    format!("{}.{}", acc, field_def.ident)
+                    let field_str = match ty.kind() {
+                      TyKind::Tuple(..) => format!("{}", field.as_usize()),
+                      TyKind::Adt(..) => {
+                        let adt_def = ty.ty_adt_def().unwrap();
+                        let field_def = adt_def.all_fields().nth(field.as_usize()).unwrap();
+                        format!("{}", field_def.ident)
+                      }
+                      _ => unimplemented!("{:?}", ty),
+                    };
+                    format!("{}.{}", acc, field_str)
                   }
                   ProjectionElem::Downcast(_, variant) => {
                     let adt_def = ty.ty_adt_def().unwrap();
                     let variant_def = &adt_def.variants[variant];
                     format!("{} as {}", acc, variant_def.ident)
                   }
-                  ProjectionElem::Deref => format!("(*{})", acc),
+                  ProjectionElem::Deref => acc,
                   ProjectionElem::Index(_) => format!("{}[]", acc),
                   ProjectionElem::ConstantIndex { .. } => {
                     format!("{}[TODO]", acc)

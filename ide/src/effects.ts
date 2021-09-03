@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { log, show_error, CallFlowistry, to_vsc_range } from "./vsc_utils";
 import { Effects, Message, Range } from "./types";
-import { highlight_ranges } from "./slicing";
+import { highlight_ranges, select_type } from "./slicing";
 
 export let effects = async (
   context: vscode.ExtensionContext,
@@ -80,7 +80,14 @@ export let effects = async (
             let {arg_index, effect_index} = message.data;
             let arg = args[arg_index];
             let effect = effects.args_effects[arg][effect_index];
+
+            let range = to_vsc_range(effect.effect, doc);
+            active_editor!.revealRange(range, vscode.TextEditorRevealType.InCenter);
+            highlight_ranges([effect.effect], active_editor!, select_type);
+
             highlight_ranges(effect.slice, active_editor!);
+            
+            
           }
         }
       },
