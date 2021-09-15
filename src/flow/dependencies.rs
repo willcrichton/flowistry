@@ -151,7 +151,7 @@ fn compute_dependencies(
   let local_spans = finder.relevant_locals.into_iter().map(|locals| {
     locals
       .iter()
-      .map(|local| body.local_decls()[local].source_info.span)
+      .map(|local| body.local_decls()[local].source_info.span.source_callsite())
       .collect::<Vec<_>>()
   });
 
