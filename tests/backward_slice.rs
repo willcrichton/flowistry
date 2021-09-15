@@ -19,7 +19,7 @@ fn main() {
 fn variable_assign() {
   // should not include line 1 b/c of overriding assignment
   let src = r#"
-fn main() {  
+fn main() {
   let `[mut x]` = 1;
   `[`[x = 2]`;]`
   `[`(x)`;]`
@@ -87,11 +87,11 @@ fn main() {
 fn if_both_paths_relevant() {
   let src = r#"
 fn main() {
-  `[let `[x]` = `[if `[true]` {
+  `[let `[x]` = if `[true]` {
     `[1]`
   } else {
     `[2]`
-  }]`;]`
+  };]`
   `[`(x)`;]`
 }
 "#;
@@ -336,7 +336,7 @@ fn main() {
   }]`
   `[if `[let `[Foo::Y(`[z]`)]` = `[&mut x]`]` {
     `[`[*z += 1]`;]`
-  }]` 
+  }]`
   `[`(x)`;]`
 }
 "#;
@@ -505,11 +505,11 @@ fn pointer_multiple_locations() {
 fn main() {
   `[let `[mut x]` = `[1]`;]`
   `[let `[mut y]` = `[2]`;]`
-  `[let `[z]` = `[if `[true]` {
+  `[let `[z]` = if `[true]` {
     `[&mut x]`
   } else {
     `[&mut y]`
-  }]`;]`
+  };]`
   `[`[*z += 1]`;]`
   `[`(x)`;]`
 }
@@ -904,7 +904,7 @@ fn closure_slice_inner_write_inner() {
   let src = r#"
 fn main() {
   let x = 1;
-  `[`[`[(|| {    
+  `[`[`[(|| {
     `[let `[y]` = `[1]`;]`
     `[`(y)`;]`
   })]`()]`;]`
@@ -919,7 +919,7 @@ fn closure_slice_inner_write_outer() {
   let src = r#"
 fn main() {
   `[let `[mut x]` = `[1]`;]`
-  `[`[`[(|| {    
+  `[`[`[(|| {
     `[`[x += 1]`;]`
     `[`(x)`;]`
   })]`()]`;]`
@@ -941,19 +941,19 @@ fn main() {
   backward_slice(src);
 }
 
-#[test]
-fn macro_slice() {
-  // TODO: y shouldn't be included, seems to be an artifact of macro spans
-  let src = r#"
-fn main() {
-  `[let `[x]` = `[1]`;]`
-  `[let `[y]` = `[2]`;]`
-  `[println!("{} {}", `[`(x)`]`, `[y]`);]`
-}
-"#;
+// #[test]
+// fn macro_slice() {
+//   // TODO: y shouldn't be included, seems to be an artifact of macro spans
+//   let src = r#"
+// fn main() {
+//   `[let `[x]` = `[1]`;]`
+//   `[let `[y]` = `[2]`;]`
+//   `[println!("{} {}", `[`(x)`]`, `[y]`);]`
+// }
+// "#;
 
-  backward_slice(src);
-}
+//   backward_slice(src);
+// }
 
 #[test]
 fn generic_param() {
@@ -1005,7 +1005,7 @@ fn main() {
   let `[mut x]` = 1;
   `[`[x = 1]`;]`
   `[let `[mut y]` = `[2]`;]`
-  `[let `[z]` = `[if `[true]` { `[&mut x]` } else { `[&mut y]` }]`;]`
+  `[let `[z]` = if `[true]` { `[&mut x]` } else { `[&mut y]` };]`
   `[`[*z += 1]`;]`
   `[`(x)`;]`
 }
