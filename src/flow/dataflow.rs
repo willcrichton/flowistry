@@ -13,7 +13,7 @@ use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::TyCtxt,
 };
-use rustc_mir::dataflow::{Analysis, AnalysisDomain, Forward};
+use rustc_mir_dataflow::{Analysis, AnalysisDomain, Forward};
 use std::rc::Rc;
 
 pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, Location>;

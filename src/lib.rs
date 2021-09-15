@@ -12,6 +12,7 @@
 )]
 
 extern crate polonius_engine;
+extern crate rustc_borrowck;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_graphviz;
@@ -20,7 +21,8 @@ extern crate rustc_hir_pretty;
 extern crate rustc_index;
 extern crate rustc_interface;
 extern crate rustc_middle;
-extern crate rustc_mir;
+extern crate rustc_mir_dataflow;
+extern crate rustc_mir_transform;
 extern crate rustc_serialize;
 extern crate rustc_span;
 extern crate rustc_target;

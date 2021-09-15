@@ -6,7 +6,7 @@ use rustc_index::{
   vec::{Enumerated, Idx, IndexVec},
 };
 
-use rustc_mir::dataflow::{fmt::DebugWithContext, JoinSemiLattice};
+use rustc_mir_dataflow::{fmt::DebugWithContext, JoinSemiLattice};
 use std::{
   fmt,
   hash::Hash,

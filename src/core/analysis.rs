@@ -28,7 +28,7 @@ pub trait FlowistryAnalysis: Send + Sync + Sized {
     let mut compiler_args = compiler_args.to_vec();
 
     compiler_args.extend(
-      "-Z identify-regions -Z polonius -Z mir-opt-level=0 -A warnings"
+      "-Z identify-regions -Z mir-opt-level=0 -A warnings"
         .split(' ')
         .map(|s| s.to_owned()),
     );

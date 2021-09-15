@@ -1,12 +1,10 @@
 use crate::core::{aliases::Aliases, control_dependencies::ControlDependencies};
 use log::debug;
 
+use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
-use rustc_mir::{
-  consumers::BodyWithBorrowckFacts,
-  dataflow::{Analysis, Results},
-};
+use rustc_mir_dataflow::{Analysis, Results};
 
 pub use dataflow::{FlowAnalysis, FlowDomain};
 pub use dependencies::{compute_dependency_ranges, Direction};
