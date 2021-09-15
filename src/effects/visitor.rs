@@ -9,7 +9,7 @@ use crate::{
 use log::debug;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_middle::mir::*;
-use rustc_mir::dataflow::ResultsVisitor;
+use rustc_mir_dataflow::ResultsVisitor;
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum EffectKind {

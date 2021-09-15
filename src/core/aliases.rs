@@ -5,6 +5,7 @@ use super::{
 };
 use log::{debug, trace};
 
+use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::{
   fx::{FxHashMap as HashMap, FxHashSet as HashSet, FxIndexMap as IndexMap},
   graph::{scc::Sccs, vec_graph::VecGraph},
@@ -18,7 +19,6 @@ use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::{RegionKind, RegionVid, TyCtxt, TyS},
 };
-use rustc_mir::consumers::BodyWithBorrowckFacts;
 use std::{cell::RefCell, iter, rc::Rc, time::Instant};
 
 struct GatherBorrows<'tcx> {

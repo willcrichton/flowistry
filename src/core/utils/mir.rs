@@ -2,11 +2,13 @@
 
 use anyhow::{bail, Result};
 use log::{trace, warn};
+use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
 use rustc_hir::{def_id::DefId, BodyId};
 use rustc_middle::{
   mir::{
+    pretty::write_mir_fn,
     visit::{NonUseContext, PlaceContext, Visitor},
     *,
   },
@@ -15,12 +17,8 @@ use rustc_middle::{
     WithOptConstParam,
   },
 };
-use rustc_mir::{
-  consumers::BodyWithBorrowckFacts,
-  dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results},
-  transform::{simplify, MirPass},
-  util::write_mir_fn,
-};
+use rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
+use rustc_mir_transform::MirPass;
 use rustc_span::Span;
 use rustc_target::abi::VariantIdx;
 use std::{
@@ -528,14 +526,14 @@ pub fn get_body_with_borrowck_facts(
   body_id: BodyId,
 ) -> BodyWithBorrowckFacts<'tcx> {
   let local_def_id = tcx.hir().body_owner_def_id(body_id);
-  let mut body_with_facts = rustc_mir::consumers::get_body_with_borrowck_facts(
+  let mut body_with_facts = rustc_borrowck::consumers::get_body_with_borrowck_facts(
     tcx,
     WithOptConstParam::unknown(local_def_id),
   );
 
   let body = &mut body_with_facts.body;
   SimplifyMir.run_pass(tcx, body);
-  simplify::SimplifyCfg::new("flowistry").run_pass(tcx, body);
+  // simplify::SimplifyCfg::new("flowistry").run_pass(tcx, body);
 
   body_with_facts
 }

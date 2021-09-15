@@ -9,7 +9,7 @@ use log::debug;
 
 use rustc_index::bit_set::BitSet;
 use rustc_middle::mir::*;
-use rustc_mir::dataflow::{Results, ResultsCursor, ResultsVisitor};
+use rustc_mir_dataflow::{Results, ResultsCursor, ResultsVisitor};
 use rustc_span::Span;
 
 #[derive(Clone, Copy, Debug)]
