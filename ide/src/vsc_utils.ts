@@ -12,6 +12,12 @@ export let to_vsc_range = (
 ): vscode.Range =>
   new vscode.Range(doc.positionAt(range.start), doc.positionAt(range.end));
 
+export let from_vsc_range = (range: vscode.Range, doc: vscode.TextDocument): Range => ({
+  start: doc.offsetAt(range.start),
+  end: doc.offsetAt(range.end),
+  filename: "",
+});
+
 export let show_error = (err: string) => {
   vscode.window.showErrorMessage(`Flowistry error: ${err}`);
 };

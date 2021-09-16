@@ -6,11 +6,13 @@ export interface Range {
 
 export interface SliceOutput {
   ranges: Range[];
+  body_span: Range;
 }
 
 export interface Effect {
   effect: Range;
   slice: Range[];
+  unique: Range[];
 }
 
 export interface Effects {
@@ -24,3 +26,16 @@ export interface Message {
   type: string;
   data: any;
 }
+
+export interface ArgSlice {
+  type: "arg";
+  arg_index: number;
+  effect_index: number;
+}
+
+export interface RetSlice {
+  type: "ret";
+  index: number;
+}
+
+export type SelectedSlice = ArgSlice | RetSlice;

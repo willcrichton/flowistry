@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import { Message } from "./types";
+import { Message, ArgSlice, RetSlice, SelectedSlice } from "./types";
 import Editor from "@monaco-editor/react";
+import _ from "lodash";
+import classNames from "classnames";
 
 interface VSCode {
   postMessage(message: any): void;
@@ -35,6 +37,7 @@ let Code: React.FC<{ children: string }> = ({ children }) => (
 
 let App: React.FC = () => {
   let [data, set_data] = useState<null | any>(null);
+  let [selected, set_selected] = useState<null | SelectedSlice>(null);
   useEffect(() => {
     window.addEventListener("message", (event) => {
       let message: Message = event.data;
@@ -46,55 +49,67 @@ let App: React.FC = () => {
   }, []);
   return (
     <>
-      <style>{`
-      code { color: black; font-family: Menlo, monospace; }
-    `}</style>
+
       <div>
-        <h1>Flowistry</h1>
         {data !== null ? (
           <div>
             <ul>
               {data.arg_strs.map((arg_str, i) => (
-                <li>
-                  Arg <Code>{arg_str.arg}</Code>
+                <li className="slice-category">
+                  Arg: <Code>{arg_str.arg}</Code>
                   <ul>
                     {arg_str.effects.map((s, j) => {
-                      s = s.replace(/[\n]/g, '');
-                      s = s.replace(/^([\w\d_\s.]+)\(.*\)$/, '$1(..)');
-                      return <li
-                        onClick={() => {
-                          vscode.postMessage({
-                            type: "click",
-                            data: {
-                              type: "arg",
-                              arg_index: i,
-                              effect_index: j,
-                            },
-                          });
-                        }}
-                      >
-                        <Code>{s}</Code>
-                      </li>
-})}
+                      s = s.replace(/[\n]/g, "");
+                      s = s.replace(/^([\w\d_\s.]+)\(.*\)$/, "$1(..)");
+                      let msg: ArgSlice = {
+                        type: "arg",
+                        arg_index: i,
+                        effect_index: j,
+                      };
+                      return (
+                        <li
+                          className={classNames("slice-link", {                            
+                            selected: _.isEqual(selected, msg),
+                          })}
+                          onClick={() => {
+                            set_selected(msg);
+                            vscode.postMessage({
+                              type: "click",
+                              data: msg,
+                            });
+                          }}
+                        >
+                          <Code>{s}</Code>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </li>
               ))}
               {data.ret_strs.length > 0 ? (
-                <li>
+                <li className="slice-category">
                   Returns
                   <ul>
-                    {data.ret_strs.map((s, i) => (
-                      <li
-                        onClick={() => {
-                          vscode.postMessage({
-                            type: "click",
-                            data: { type: "ret", index: i },
-                          });
-                        }}
-                      >
-                        <Code>{s}</Code>
-                      </li>
-                    ))}
+                    {data.ret_strs.map((s, i) => {
+                      let msg: RetSlice = { type: "ret", index: i };
+                      return (
+                        <li
+                          className={classNames("slice-link", {
+                            selected: _.isEqual(selected, msg),
+                          })}
+                          key={i}
+                          onClick={() => {
+                            set_selected(msg);
+                            vscode.postMessage({
+                              type: "click",
+                              data: msg,
+                            });
+                          }}
+                        >
+                          <Code>{s}</Code>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </li>
               ) : null}

@@ -20,13 +20,14 @@ struct ForwardSliceAnalysis {
   range: Range,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct SliceOutput {
   pub ranges: Vec<Range>,
   pub num_instructions: usize,
   pub num_relevant_instructions: usize,
   pub mutated_inputs: HashSet<usize>,
   pub relevant_inputs: HashSet<usize>,
+  pub body_span: Range,
 }
 
 impl SliceOutput {
@@ -36,22 +37,13 @@ impl SliceOutput {
 }
 
 impl FlowistryOutput for SliceOutput {
-  fn empty() -> Self {
-    SliceOutput {
-      ranges: Vec::new(),
-      num_instructions: 0,
-      num_relevant_instructions: 0,
-      mutated_inputs: HashSet::default(),
-      relevant_inputs: HashSet::default(),
-    }
-  }
-
   fn merge(&mut self, other: SliceOutput) {
     self.ranges.extend(other.ranges.into_iter());
     self.num_instructions = other.num_instructions;
     self.num_relevant_instructions = other.num_relevant_instructions;
     self.mutated_inputs = other.mutated_inputs;
     self.relevant_inputs = other.relevant_inputs;
+    self.body_span = other.body_span;
   }
 }
 
@@ -80,7 +72,8 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
 
     let deps = flow::compute_dependency_ranges(&results, sliced_places, self.direction, &spanner);
 
-    let mut output = SliceOutput::empty();
+    let mut output = SliceOutput::default();
+    output.body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
     output.ranges = deps.into_iter().map(|v| v.into_iter()).flatten().collect();
     Ok(output)
   }

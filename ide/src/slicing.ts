@@ -1,9 +1,15 @@
 import * as vscode from "vscode";
 import { SliceOutput, Range } from "./types";
-import { log, show_error, CallFlowistry, to_vsc_range } from "./vsc_utils";
+import {
+  log,
+  show_error,
+  CallFlowistry,
+  to_vsc_range,
+  from_vsc_range,
+} from "./vsc_utils";
 
 export let highlight_type = vscode.window.createTextEditorDecorationType({
-  backgroundColor: "rgb(250, 223, 203)",
+  backgroundColor: "rgb(255, 243, 235)",
 });
 
 export let hide_type = vscode.window.createTextEditorDecorationType({
@@ -27,6 +33,47 @@ export let select_type = vscode.window.createTextEditorDecorationType({
     ...style,
   },
 });
+
+export let invert_ranges = (container: Range, pieces: Range[]): Range[] => {
+  let filename = container.filename;
+  let pieces_sorted = _.sortBy(pieces, (r) => r.start);
+
+  let new_ranges: Range[] = [];
+  let start = container.start;
+  pieces_sorted.forEach((r) => {
+    if (r.start < start) {
+      start = Math.max(r.end, start);
+      return;
+    }
+
+    let end = r.start;
+    new_ranges.push({
+      start,
+      end,
+      filename,
+    });
+
+    start = Math.max(start, r.end);
+  });
+
+  new_ranges.push({
+    start,
+    end: container.end,
+    filename,
+  });
+
+  return new_ranges;
+};
+
+export let highlight_slice = (
+  editor: vscode.TextEditor,
+  container: Range,
+  seed: Range,
+  slice: Range[]
+) => {
+  highlight_ranges([seed], editor, select_type);
+  highlight_ranges(invert_ranges(container, slice), editor, hide_type);
+};
 
 export function highlight_ranges(
   ranges: Range[],
@@ -89,7 +136,12 @@ export async function slice(
         return new vscode.Selection(vsc_range.start, vsc_range.end);
       });
     } else {
-      highlight_ranges(slice_output.ranges, active_editor);
+      highlight_slice(
+        active_editor,
+        slice_output.body_span,
+        from_vsc_range(selection, doc),
+        slice_output.ranges
+      );
     }
   } catch (exc) {
     log("ERROR", exc);

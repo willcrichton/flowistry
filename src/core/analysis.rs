@@ -13,8 +13,7 @@ use crate::core::utils::elapsed;
 
 use super::utils::block_timer;
 
-pub trait FlowistryOutput: Send + Sync {
-  fn empty() -> Self;
+pub trait FlowistryOutput: Send + Sync + Default {
   fn merge(&mut self, other: Self);
 }
 
@@ -134,7 +133,7 @@ impl<A: FlowistryAnalysis> rustc_driver::Callbacks for Callbacks<A> {
     queries.global_ctxt().unwrap().take().enter(|tcx| {
       let analysis = self.analysis.take().unwrap();
       let locations = analysis.locations(tcx).unwrap();
-      let output = Ok(A::Output::empty());
+      let output = Ok(A::Output::default());
       let mut visitor = AnalysisVisitor(VisitorContext {
         tcx,
         locations,
