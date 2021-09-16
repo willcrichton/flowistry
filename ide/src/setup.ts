@@ -2,11 +2,11 @@ import * as vscode from "vscode";
 import * as cp from "child_process";
 import * as util from "util";
 import { log, show_error, CallFlowistry } from "./vsc_utils";
+import { Readable } from "stream";
 
-export const exec = async (command, args) => {
-  let output = await util.promisify(cp.exec)(command, {maxBuffer: 1024 * 1024 * 1024, ...args});
-  return output;
-}
+let exec = util.promisify(cp.exec);
+
+const SHOW_LOADER_THRESHOLD = 1000;
 
 export async function setup(): Promise<CallFlowistry | null> {
   let folders = vscode.workspace.workspaceFolders;
@@ -95,8 +95,52 @@ export async function setup(): Promise<CallFlowistry | null> {
     log("Running command:");
     log(cmd);
 
-    let { stdout } = await exec(cmd, { env, cwd: workspace_root });
-    return stdout.trim();
+    let parts = cmd.split(' ');
+    let proc = cp.spawn(parts[0], parts.slice(1), {
+      env,
+      cwd: workspace_root,
+    });
+
+    let read_stream = (stream: Readable) => {
+      let buffer: string[] = [];
+      stream.setEncoding("utf8");
+      stream.on("data", (data) => { buffer.push(data.toString()); });
+      return () => buffer.join('');
+    };
+
+    let stdout = read_stream(proc.stdout);
+    let stderr = read_stream(proc.stderr);
+
+    let promise = new Promise((resolve, reject) => {
+      proc.addListener("close", (_) => {
+        resolve(stdout());
+      });
+      proc.addListener("error", (e) => {
+        log(stderr());
+        reject(e.toString());
+      });
+    });
+
+    let outcome = await Promise.race([
+      promise,
+      new Promise((resolve, _) => setTimeout(resolve, SHOW_LOADER_THRESHOLD)),
+    ]);
+
+    if (outcome === undefined) {
+      outcome = await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: "Waiting for Flowistry...",
+          cancellable: true
+        },
+        (_, token) => {
+          token.onCancellationRequested((_) => proc.kill("SIGINT"));
+          return promise;
+        }
+      );
+    }
+
+    return outcome.trim();
   };
 
   return call_flowistry;
