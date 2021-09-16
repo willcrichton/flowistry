@@ -35,16 +35,10 @@ export let effects = async (
     let effects: Effects = JSON.parse(last_line);
     let body_range = effects.body_span;
 
-    let args = Object.keys(effects.args_effects);
-    args.sort();
-
-    let arg_strs = args.map((arg) => {
-      let arg_effects = effects.args_effects[arg].map((effect) =>
-        range_to_text(effect.effect)
-      );
+    let arg_strs = effects.args_effects.map(([arg, effects]) => {
       return {
         arg,
-        effects: arg_effects,
+        effects: effects.map((effect) => range_to_text(effect.effect)),
       };
     });
     let ret_strs = effects.returns.map((effect) =>
@@ -92,10 +86,10 @@ export let effects = async (
           if (data.type === "ret") {
             effect = effects.returns[data.index];
           } else if (data.type === "arg") {
-            let arg = args[data.arg_index];
-            effect = effects.args_effects[arg][data.effect_index];
+            let [_1, arg_effects] = effects.args_effects[data.arg_index];
+            effect = arg_effects[data.effect_index];
           } else {
-            throw `Unimplemented`;
+            throw new Error("Unimplemented");
           }
 
           let range = to_vsc_range(effect.effect, doc);

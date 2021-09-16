@@ -16,7 +16,7 @@ export interface Effect {
 }
 
 export interface Effects {
-  args_effects: { [arg: string]: Effect[] };
+  args_effects: [string, Effect[]][];
   arg_spans: { [arg: string]: Range };
   returns: Effect[];
   body_span: Range;

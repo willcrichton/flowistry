@@ -32,7 +32,7 @@ pub struct Effect {
 
 #[derive(Debug, Default, Serialize)]
 pub struct EffectsOutput {
-  args_effects: HashMap<String, Vec<Effect>>,
+  args_effects: Vec<(String, Vec<Effect>)>,
   arg_spans: HashMap<usize, Range>,
   returns: Vec<Effect>,
   body_span: Option<Range>,
@@ -156,6 +156,9 @@ impl FlowistryAnalysis for EffectsHarness {
       .fn_decl_by_hir_id(tcx.hir().body_owner(body_id))
       .unwrap();
 
+    let mut args_effects: HashMap<_, Vec<_>> = HashMap::default();
+    let mut effect_str_order = HashMap::default();
+
     for (kind, effect) in ranged_effects {
       match kind {
         EffectKind::Return => {
@@ -208,16 +211,24 @@ impl FlowistryAnalysis for EffectsHarness {
               })
           };
 
-          output
-            .args_effects
-            .entry(effect_str)
-            .or_default()
-            .push(effect);
+          let mut order = vec![arg_place.local.as_usize()];
+          order.extend(arg_place.projection.iter().map(|elem| match elem {
+            ProjectionElem::Field(f, _) => f.as_usize(),
+            _ => 0,
+          }));
+          effect_str_order.insert(effect_str.clone(), order);
+
+          args_effects.entry(effect_str).or_default().push(effect);
         }
       }
     }
 
-    for effects in output.args_effects.values_mut() {
+    output.args_effects = args_effects.into_iter().collect::<Vec<_>>();
+    output
+      .args_effects
+      .sort_by_key(|(k, _)| &effect_str_order[k]);
+
+    for (_, effects) in output.args_effects.iter_mut() {
       effects.sort_by_key(|e| e.effect.start);
     }
 
