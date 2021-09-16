@@ -1,44 +1,15 @@
 import * as vscode from "vscode";
 import { log, show_error, CallFlowistry, to_vsc_range } from "./vsc_utils";
-import { Effects, Message, Range } from "./types";
+import { Effects, Message, Range, SelectedSlice } from "./types";
 import {
   highlight_ranges,
   select_type,
   highlight_type,
   hide_type,
+  invert_ranges,
+  highlight_slice,
 } from "./slicing";
 import _ from "lodash";
-
-export let invert_ranges = (container: Range, pieces: Range[]): Range[] => {
-  let filename = container.filename;
-  let pieces_sorted = _.sortBy(pieces, (r) => r.start);
-
-  let new_ranges: Range[] = [];
-  let start = container.start;
-  pieces_sorted.forEach((r) => {
-    if (r.start < start) {
-      start = Math.max(r.end, start);
-      return;
-    }
-
-    let end = r.start;
-    new_ranges.push({
-      start,
-      end,
-      filename,
-    });
-
-    start = Math.max(start, r.end);
-  });
-
-  new_ranges.push({
-    start,
-    end: container.end,
-    filename
-  });
-
-  return new_ranges;
-};
 
 export let effects = async (
   context: vscode.ExtensionContext,
@@ -94,44 +65,51 @@ export let effects = async (
 
     let js_path = vscode.Uri.joinPath(ext_dir, "effects_page.js");
     let js_uri = js_path.with({ scheme: "vscode-resource" });
+
+    let css_path = vscode.Uri.joinPath(ext_dir, "extension.css");
+    let css_uri = webview.asWebviewUri(css_path);
+
     let csp_source = webview.cspSource;
     let nonce = "foobar";
+
     webview.html = `
 <!DOCTYPE html>
 <html>
-<head></head>          
+<head>
+  <link rel="stylesheet" href="${css_uri}" />
+</head>          
 <body>
-<div id="app"></div>
-<script nonce="${nonce}" src="${js_uri}"></script>
+  <div id="app"></div>
+  <script nonce="${nonce}" src="${js_uri}"></script>
 </body>        
 </html>        
 `;
     webview.onDidReceiveMessage(
       (message: Message) => {
-        if (message.type == "click") {
-          let type = message.data.type;
-          if (type === "ret") {
-            let { index } = message.data;
-            let effect = effects.returns[index];
-            highlight_ranges(effect.slice, active_editor!, highlight_type);
-          } else if (type === "arg") {
-            let { arg_index, effect_index } = message.data;
-            let arg = args[arg_index];
-            let effect = effects.args_effects[arg][effect_index];
-
-            let range = to_vsc_range(effect.effect, doc);
-            active_editor!.revealRange(
-              range,
-              vscode.TextEditorRevealType.InCenter
-            );
-            highlight_ranges([effect.effect], active_editor!, select_type);
-
-            highlight_ranges(
-              invert_ranges(body_range, effect.slice),
-              active_editor!,
-              hide_type
-            );
+        if (message.type === "click") {
+          let data: SelectedSlice = message.data;
+          let effect;
+          if (data.type === "ret") {
+            effect = effects.returns[data.index];
+          } else if (data.type === "arg") {
+            let arg = args[data.arg_index];
+            effect = effects.args_effects[arg][data.effect_index];
+          } else {
+            throw `Unimplemented`;
           }
+
+          let range = to_vsc_range(effect.effect, doc);
+          active_editor!.revealRange(
+            range,
+            vscode.TextEditorRevealType.InCenterIfOutsideViewport
+          );
+          highlight_slice(
+            active_editor!,
+            body_range,
+            effect.effect,
+            effect.slice
+          );
+          highlight_ranges(effect.unique, active_editor!, highlight_type);
         }
       },
       null,

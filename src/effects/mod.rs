@@ -8,6 +8,7 @@ use crate::{
   flow::{self, Direction},
 };
 use anyhow::Result;
+use intervaltree::IntervalTree;
 use log::debug;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::BodyId;
@@ -26,6 +27,7 @@ mod visitor;
 pub struct Effect {
   effect: Range,
   slice: Vec<Range>,
+  unique: Vec<Range>,
 }
 
 #[derive(Debug, Default, Serialize)]
@@ -37,10 +39,6 @@ pub struct EffectsOutput {
 }
 
 impl FlowistryOutput for EffectsOutput {
-  fn empty() -> Self {
-    EffectsOutput::default()
-  }
-
   fn merge(&mut self, other: Self) {
     self.args_effects.extend(other.args_effects.into_iter());
     self.arg_spans.extend(other.arg_spans.into_iter());
@@ -107,22 +105,45 @@ impl FlowistryAnalysis for EffectsHarness {
       flow::compute_dependency_ranges(&flow_results, targets, Direction::Backward, &spanner);
 
     let source_map = tcx.sess.source_map();
-    let ranged_effects =
-      effects
-        .into_iter()
-        .zip(deps.into_iter())
-        .filter_map(|((kind, loc), slice)| {
-          let spans = utils::location_to_spans(loc, body, &spanner, source_map);
-          let range = spans
-            .into_iter()
-            .min_by_key(|span| span.hi() - span.lo())
-            .and_then(|span| Range::from_span(span, source_map).ok())?;
-          let effect = Effect {
-            effect: range,
-            slice,
-          };
-          Some((kind, effect))
-        });
+    let mut ranged_effects = effects
+      .into_iter()
+      .zip(deps.into_iter())
+      .filter_map(|((kind, loc), slice)| {
+        let spans = utils::location_to_spans(loc, body, &spanner, source_map);
+        let range = spans
+          .into_iter()
+          .min_by_key(|span| span.hi() - span.lo())
+          .and_then(|span| Range::from_span(span, source_map).ok())?;
+        let effect = Effect {
+          effect: range,
+          slice,
+          unique: Vec::new(),
+        };
+        Some((kind, effect))
+      })
+      .collect::<Vec<_>>();
+
+    for i in 0..ranged_effects.len() {
+      let other_ranges = ranged_effects
+        .iter()
+        .enumerate()
+        .filter(|(j, _)| *j != i)
+        .map(|(_, (_, effect))| effect.slice.clone().into_iter())
+        .flatten()
+        .map(|range| (range.start..range.end, ()))
+        .collect::<IntervalTree<_, _>>();
+
+      let unique = ranged_effects[i]
+        .1
+        .slice
+        .iter()
+        .filter(|range| other_ranges.query(range.start..range.end).next().is_none())
+        .cloned()
+        .collect::<Vec<_>>();
+
+      debug!("{}: {:?}", i, unique);
+      ranged_effects[i].1.unique = unique;
+    }
 
     let mut output = EffectsOutput::default();
     output.body_span = Some(Range::from_span(
@@ -194,6 +215,10 @@ impl FlowistryAnalysis for EffectsHarness {
             .push(effect);
         }
       }
+    }
+
+    for effects in output.args_effects.values_mut() {
+      effects.sort_by_key(|e| e.effect.start);
     }
 
     Ok(output)

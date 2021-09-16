@@ -6,6 +6,8 @@ import { slice } from "./slicing";
 import { effects } from "./effects";
 import { setup } from "./setup";
 
+import "./app.scss";
+
 export async function activate(context: vscode.ExtensionContext) {
   log("Activating...");
 
