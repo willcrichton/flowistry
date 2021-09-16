@@ -64,8 +64,9 @@ export async function setup(): Promise<CallFlowistry | null> {
     get_flowistry_rustc_hash(),
   ]);
 
-  log("Rust version: ", rustc_version["release"]);
-  if (!rustc_version["release"].includes("nightly")) {
+  let release = rustc_version.release;
+  log("Rust version: ", release);
+  if (!(release.includes("nightly") || release.includes("-dev"))) {
     show_error(
       "Flowistry can only work on projects building with the nightly compiler. To fix this, consider running: rustup override set nightly"
     );

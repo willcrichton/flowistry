@@ -362,6 +362,7 @@ where
         .flatten()
         .collect::<Vec<_>>();
 
+      debug!("Places: {:#?}", all_places);
       debug!("Place domain size: {}", all_places.len());
 
       Rc::new(PlaceDomain::new(tcx, all_places))

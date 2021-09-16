@@ -123,7 +123,9 @@ struct Callbacks<A: FlowistryAnalysis> {
 }
 
 impl<A: FlowistryAnalysis> rustc_driver::Callbacks for Callbacks<A> {
-  fn after_analysis<'tcx>(
+  // TODO: does this need to be after_analysis? or can we do after_parsing
+  //   after limited testing this seems to work fine... and is WAY faster
+  fn after_parsing<'tcx>(
     &mut self,
     _compiler: &rustc_interface::interface::Compiler,
     queries: &'tcx rustc_interface::Queries<'tcx>,

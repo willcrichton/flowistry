@@ -1,5 +1,8 @@
+#![feature(rustc_private)]
+
+extern crate rustc_interface;
+
 use clap::clap_app;
-use rustc_version_runtime::version_meta;
 use std::{
   env,
   process::{exit, Command},
@@ -38,7 +41,8 @@ fn main() {
 
   let mut args = match matches.subcommand() {
     ("rustc_version", _) => {
-      println!("{}", version_meta().commit_hash.unwrap());
+      let commit_hash = rustc_interface::util::commit_hash_str().unwrap_or("unknown");
+      println!("{}", commit_hash);
       exit(0);
     }
     ("backward_slice" | "forward_slice", Some(sub_m)) => vec![
