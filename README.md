@@ -2,7 +2,11 @@
 
 [![ci](https://github.com/willcrichton/flowistry/actions/workflows/ci.yml/badge.svg)](https://github.com/willcrichton/flowistry/actions/workflows/ci.yml)
 
-Flowistry is a VSCode extension that helps developers understand Rust programs. Flowistry uses [dataflow analysis](https://en.wikipedia.org/wiki/Data-flow_analysis) and [pointer analysis](https://en.wikipedia.org/wiki/Pointer_analysis) to analyze Rust programs at a deeper semantic level than just types can offer. Flowistry's capabilities are:
+Flowistry is a VSCode extension that helps developers understand Rust programs. Flowistry uses [dataflow analysis](https://en.wikipedia.org/wiki/Data-flow_analysis) and [pointer analysis](https://en.wikipedia.org/wiki/Pointer_analysis) to analyze Rust programs at a deeper semantic level than just types can offer. 
+
+**Flowistry is alpha software (see Limitations).** I'm seeking early adopters to try it out and provide feedback!
+
+Flowistry's capabilities are:
 
 ### Backward slicing
 
@@ -17,7 +21,7 @@ A forward slice identifiers every piece of code that is affected by a value of i
 
 ![Screen Shot 2021-09-15 at 3 24 45 PM](https://user-images.githubusercontent.com/663326/133518019-4b2b03f2-5cb3-4e93-875d-bc2bba463d71.png)
 
-## Function effects
+### Function effects
 
 A function's effects are either inputs that it mutates, or values that it returns. The function effects panel helps identify lines of code that either mutate arguments or return values. Selecting an effect then shows the backward slice of that effect.
 
@@ -47,4 +51,12 @@ ln -s $(pwd) ~/.vscode/extensions/flowistry
 
 ## Usage
 
-TODO: explain flowistry keybindings
+In VSCode, Flowistry is invoked from the Command Palette. On Mac, this is opened with ⇧⌘P. Then you can invoke one of these commands:
+* **Flowistry: Backward Highlight**: given a selected variable, this command highlights the backward slice of the variable.
+* **Flowistry: Backward Select**: same as above, but this puts the slice in your selection rather than highlighting it. 
+* **Flowistry: Forward Highlight** and **Flowistry: Forward Select**: same as above, but for forward slices than backward slices.
+* **Flowistry: Effects**: given your cursor is within a particular function, this command opens the effects panel for that function.
+
+## Limitations
+
+Flowistry is early-stage software. It inevitably has bugs in both the UI and the analysis. The UI may be unintuitive. The analysis, even if correct, may also be unintuitive. Additionally, Flowistry only works on code compiled with the nightly Rust compiler.
