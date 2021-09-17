@@ -1,4 +1,4 @@
-# Flowistry
+# Flowistry: Static Analysis for Understanding Rust Programs
 
 [![ci](https://github.com/willcrichton/flowistry/actions/workflows/ci.yml/badge.svg)](https://github.com/willcrichton/flowistry/actions/workflows/ci.yml)
 
