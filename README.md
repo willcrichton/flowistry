@@ -4,7 +4,7 @@
 
 Flowistry is a VSCode extension that helps developers understand Rust programs. Flowistry uses [dataflow analysis](https://en.wikipedia.org/wiki/Data-flow_analysis) and [pointer analysis](https://en.wikipedia.org/wiki/Pointer_analysis) to analyze Rust programs at a deeper semantic level than just types can offer. 
 
-**Flowistry is alpha software (see Limitations).** I'm seeking early adopters to try it out and provide feedback!
+**Flowistry is alpha software (see [Limitations](#limitations)).** I'm seeking early adopters to try it out and provide feedback!
 
 Flowistry's capabilities are:
 
