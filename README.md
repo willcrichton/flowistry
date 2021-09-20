@@ -4,7 +4,7 @@
 
 Flowistry is a VSCode extension that helps you understand Rust programs. Flowistry uses [dataflow analysis](https://en.wikipedia.org/wiki/Data-flow_analysis) and [pointer analysis](https://en.wikipedia.org/wiki/Pointer_analysis) to analyze Rust programs at a deeper level than just types can offer (e.g. as you can find in [rust-analyzer](https://rust-analyzer.github.io/)).
 
-**Flowistry is alpha software (see [Limitations](#limitations)).** I'm seeking early adopters to try it out and provide feedback!
+**Flowistry is alpha software (see [Limitations](#limitations)) and only works on code compiled with nightly.** I'm seeking early adopters to try it out and provide feedback!
 
 Flowistry's capabilities are:
 
@@ -54,11 +54,13 @@ ln -s $(pwd) ~/.vscode/extensions/flowistry
 
 ## Usage
 
-In VSCode, Flowistry is invoked from the Command Palette. On Mac, this is opened with ⇧⌘P. Then you can invoke one of these commands:
+Flowistry has four commands:
 * **Flowistry: Backward Highlight**: given a selected variable, this command highlights the backward slice of the variable.
 * **Flowistry: Backward Select**: same as above, but this puts the slice in your selection rather than highlighting it. 
 * **Flowistry: Forward Highlight** and **Flowistry: Forward Select**: same as above, but for forward slices than backward slices.
 * **Flowistry: Effects**: given your cursor is within a particular function, this command opens the effects panel for that function.
+
+You can invoke these commands either through the context menu, by right-clicking and opening the "Flowistry" sub-menu. Or you can open the Command Palette (⇧⌘P on Mac) and type the name of the command.
 
 ## Limitations
 
