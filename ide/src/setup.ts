@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as cp from "child_process";
 import * as util from "util";
+import _ from "lodash";
 import { log, show_error, CallFlowistry } from "./vsc_utils";
 import { Readable } from "stream";
 
@@ -13,9 +14,11 @@ export async function setup(): Promise<CallFlowistry | null> {
   if (!folders || folders.length === 0) {
     return null;
   }
+
   let workspace_root = folders[0].uri.fsPath;
   log("Workspace root", workspace_root);
 
+  let fresh_install = false;
   try {
     await exec("cargo flowistry -V");
   } catch (e) {
@@ -27,7 +30,15 @@ export async function setup(): Promise<CallFlowistry | null> {
       return null;
     }
 
-    await exec("cargo +nightly install flowistry");
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: "Installing Flowistry crate... (this may take a few minutes)",
+      },
+      (_) => exec("rustup toolchain install nightly -c rust-src,rustc-dev,llvm-tools-preview && cargo +nightly install flowistry")
+    );
+
+    fresh_install = true;
   }
 
   let get_libdir = async (): Promise<string> => {
@@ -68,7 +79,7 @@ export async function setup(): Promise<CallFlowistry | null> {
   log("Rust version: ", release);
   if (!(release.includes("nightly") || release.includes("-dev"))) {
     show_error(
-      "Flowistry can only work on projects building with the nightly compiler. To fix this, consider running: rustup override set nightly"
+      "Flowistry only works on projects built with the nightly compiler. To fix this, consider running: rustup override set nightly"
     );
     return null;
   }
@@ -84,6 +95,12 @@ export async function setup(): Promise<CallFlowistry | null> {
 
   log("Rustc target-libdir", lib_dir);
 
+  if (fresh_install) {
+    vscode.window.showInformationMessage(
+      "Flowistry has successfully installed!"
+    );
+  }
+
   let call_flowistry: CallFlowistry = async (args) => {
     let env = {
       ...process.env,
@@ -95,23 +112,25 @@ export async function setup(): Promise<CallFlowistry | null> {
     log("Running command:");
     log(cmd);
 
-    let parts = cmd.split(' ');
+    let parts = cmd.split(" ");
     let proc = cp.spawn(parts[0], parts.slice(1), {
       env,
       cwd: workspace_root,
     });
 
-    let read_stream = (stream: Readable) => {
+    let read_stream = (stream: Readable): (() => string) => {
       let buffer: string[] = [];
       stream.setEncoding("utf8");
-      stream.on("data", (data) => { buffer.push(data.toString()); });
-      return () => buffer.join('');
+      stream.on("data", (data) => {
+        buffer.push(data.toString());
+      });
+      return () => buffer.join("");
     };
 
     let stdout = read_stream(proc.stdout);
     let stderr = read_stream(proc.stderr);
 
-    let promise = new Promise((resolve, reject) => {
+    let promise = new Promise<string>((resolve, reject) => {
       proc.addListener("close", (_) => {
         resolve(stdout());
       });
@@ -123,7 +142,9 @@ export async function setup(): Promise<CallFlowistry | null> {
 
     let outcome = await Promise.race([
       promise,
-      new Promise((resolve, _) => setTimeout(resolve, SHOW_LOADER_THRESHOLD)),
+      new Promise<undefined>((resolve, _) =>
+        setTimeout(resolve, SHOW_LOADER_THRESHOLD)
+      ),
     ]);
 
     if (outcome === undefined) {
@@ -131,7 +152,7 @@ export async function setup(): Promise<CallFlowistry | null> {
         {
           location: vscode.ProgressLocation.Notification,
           title: "Waiting for Flowistry...",
-          cancellable: true
+          cancellable: true,
         },
         (_, token) => {
           token.onCancellationRequested((_) => proc.kill("SIGINT"));
