@@ -1,4 +1,4 @@
-# Flowistry: Powerful IDE Tools for Rust
+# <img src="https://user-images.githubusercontent.com/663326/134070630-47b95f41-a4a7-4ded-a5cb-9884d1af2468.png" height="30" /> Flowistry: Powerful IDE Tools for Rust
 
 [![ci](https://github.com/willcrichton/flowistry/actions/workflows/ci.yml/badge.svg)](https://github.com/willcrichton/flowistry/actions/workflows/ci.yml)
 
