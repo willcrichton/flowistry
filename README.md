@@ -1,14 +1,15 @@
 # <img src="https://user-images.githubusercontent.com/663326/134070630-47b95f41-a4a7-4ded-a5cb-9884d1af2468.png" height="30" /> Flowistry: Powerful IDE Tools for Rust
 
 [![ci](https://github.com/willcrichton/flowistry/actions/workflows/ci.yml/badge.svg)](https://github.com/willcrichton/flowistry/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/flowistry.svg)](https://crates.io/crates/flowistry)
 
-Flowistry is a VSCode extension that helps you understand Rust programs. Flowistry uses [dataflow analysis](https://en.wikipedia.org/wiki/Data-flow_analysis) and [pointer analysis](https://en.wikipedia.org/wiki/Pointer_analysis) to analyze Rust programs at a deeper level than just types can offer (e.g. as you can find in [rust-analyzer](https://rust-analyzer.github.io/)).
+Flowistry is a VSCode extension that helps you understand Rust programs. Flowistry uses [dataflow analysis](https://en.wikipedia.org/wiki/Data-flow_analysis) and [pointer analysis](https://en.wikipedia.org/wiki/Pointer_analysis) to analyze Rust programs at a deeper level than just types can offer (e.g. as you can already find in [rust-analyzer](https://rust-analyzer.github.io/)).
 
 **Flowistry is alpha software (see [Limitations](#limitations)) and only works on code compiled with nightly.** I'm seeking early adopters to try it out and provide feedback! If you have questions or issues, please [file a Github issue](https://github.com/willcrichton/flowistry/issues), [join our Discord](https://discord.gg/XkcpkQn2Ah), or [DM @wcrichton on Twitter](https://twitter.com/wcrichton).
 
-Flowistry's capabilities are:
+Currently, Flowistry's capabilities are:
 
-### Backward slicing
+### 1. Backward slicing
 
 A [backward slice](https://en.wikipedia.org/wiki/Program_slicing) identifies every piece of code that affects a value of interest. For example, let's say you're debugging an assertion failure on `x`. Then you could compute the backward slice of `x` to rule out lines of code that don't influence its value, as shown here:
 
@@ -17,7 +18,7 @@ A [backward slice](https://en.wikipedia.org/wiki/Program_slicing) identifies eve
 <br>
 <br>
 
-### Forward slicing
+### 2. Forward slicing
 
 A forward slice identifiers every piece of code that is affected by a value of interest. For example, let's say you have a program that times a calculation, and you want to comment out all the code related to timing. You could compute a forward slice of the timer:
 
@@ -26,9 +27,9 @@ A forward slice identifiers every piece of code that is affected by a value of i
 <br>
 <br>
 
-### Function effects
+### 3. Function effects
 
-A function's effects are either inputs that it mutates, or values that it returns. The function effects panel helps identify lines of code that either mutate arguments or return values. Selecting an effect then shows the backward slice of that effect.
+A function's effects are either inputs that it mutates, or values that it returns. The function effects panel helps identify lines of code that either mutate arguments or that could return values. Selecting an effect then shows the backward slice of that effect. Lines that are outside of the slice are grayed out. Lines that are _unique_ to the slice are highlighted.
 
 ![demo mp4](https://user-images.githubusercontent.com/663326/133518170-cfc0e12b-6be3-4180-a661-418d3ccb5d2b.gif)
 
@@ -61,7 +62,7 @@ ln -s $(pwd) ~/.vscode/extensions/flowistry
 
 ## Usage
 
-Flowistry has four commands:
+Flowistry has five commands:
 * **Flowistry: Backward Highlight**: given a selected variable, this command highlights the backward slice of the variable.
 * **Flowistry: Backward Select**: same as above, but this puts the slice in your selection rather than highlighting it. 
 * **Flowistry: Forward Highlight** and **Flowistry: Forward Select**: same as above, but for forward slices than backward slices.
@@ -72,3 +73,13 @@ You can invoke these commands either through the context menu, by right-clicking
 ## Limitations
 
 Flowistry is early-stage software. It inevitably has bugs in both the UI and the analysis. The UI may be unintuitive. The analysis, even if correct, may also be unintuitive. Additionally, Flowistry only works on code compiled with the nightly Rust compiler.
+
+Flowistry does not support all of Rust's features. Specifically:
+* **Raw pointers:** Flowistry uses lifetimes to determine what a reference can point-to. However, raw pointers can point to anything and aren't tracked by the compiler. So Flowistry cannot detect the flow of information through a raw pointer. It can, however, detect information flow through a typed wrapper _around_ a raw pointer!
+* **Some forms of interior mutability:** as a corollary to above, Flowistry does not track the aliases of data wrapped in types like `Rc<T>`. For example, in the program:
+  ```rust
+  let x = Rc::new(RefCell::new(1));
+  let y = x.clone();
+  *x.borrow_mut() = 2;
+  ```
+  Flowistry can detect that `x` is modified (because `borrow_mut` uses lifetimes to relate the `RefMut` to `RefCell`), but not that `y` is modified (because nothing statically says that `y` aliases `x`).
