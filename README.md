@@ -12,14 +12,15 @@ Flowistry's capabilities are:
 
 A [backward slice](https://en.wikipedia.org/wiki/Program_slicing) identifies every piece of code that affects a value of interest. For example, let's say you're debugging an assertion failure on `x`. Then you could compute the backward slice of `x` to rule out lines of code that don't influence its value, as shown here:
 
-![Screen Shot 2021-09-15 at 3 21 22 PM](https://user-images.githubusercontent.com/663326/133517705-8763f437-33d9-4451-8fad-ec224ddb2ad7.png)
+![demo1](https://user-images.githubusercontent.com/663326/134042737-0957a533-8c53-49b6-ba5b-d19de9a96d88.gif)
 
 
 ### Forward slicing
 
 A forward slice identifiers every piece of code that is affected by a value of interest. For example, let's say you have a program that times a calculation, and you want to find all the code related to timing. You could compute a forward slice of the timer to rule out the actual calculation:
 
-![Screen Shot 2021-09-15 at 3 24 45 PM](https://user-images.githubusercontent.com/663326/133518019-4b2b03f2-5cb3-4e93-875d-bc2bba463d71.png)
+![demo2](https://user-images.githubusercontent.com/663326/134043212-f4263dc5-5f9b-432b-9e72-f57c1188b0c4.gif)
+
 
 ### Function effects
 
