@@ -39,3 +39,11 @@ export interface RetSlice {
 }
 
 export type SelectedSlice = ArgSlice | RetSlice;
+
+export interface EffectStrings {
+  arg_strs: {
+    arg: string;
+    effects: string[]
+  }[];
+  ret_strs: string[]
+}

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import { Message, ArgSlice, RetSlice, SelectedSlice } from "./types";
-import Editor from "@monaco-editor/react";
+import { Message, ArgSlice, RetSlice, SelectedSlice, EffectStrings } from "./types";
 import _ from "lodash";
 import classNames from "classnames";
 
@@ -36,7 +35,7 @@ let Code: React.FC<{ children: string }> = ({ children }) => (
 );
 
 let App: React.FC = () => {
-  let [data, set_data] = useState<null | any>(null);
+  let [data, set_data] = useState<null | EffectStrings>(null);
   let [selected, set_selected] = useState<null | SelectedSlice>(null);
   useEffect(() => {
     window.addEventListener("message", (event) => {
@@ -49,7 +48,6 @@ let App: React.FC = () => {
   }, []);
   return (
     <>
-
       <div>
         {data !== null ? (
           <div>
@@ -68,7 +66,7 @@ let App: React.FC = () => {
                       };
                       return (
                         <li
-                          className={classNames("slice-link", {                            
+                          className={classNames("slice-link", {
                             selected: _.isEqual(selected, msg),
                           })}
                           onClick={() => {

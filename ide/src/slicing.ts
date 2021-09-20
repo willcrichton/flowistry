@@ -7,6 +7,7 @@ import {
   to_vsc_range,
   from_vsc_range,
 } from "./vsc_utils";
+import _ from "lodash";
 
 export let highlight_type = vscode.window.createTextEditorDecorationType({
   backgroundColor: "rgb(255, 243, 235)",
