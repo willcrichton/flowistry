@@ -14,19 +14,26 @@ A [backward slice](https://en.wikipedia.org/wiki/Program_slicing) identifies eve
 
 ![demo1](https://user-images.githubusercontent.com/663326/134042737-0957a533-8c53-49b6-ba5b-d19de9a96d88.gif)
 
+<br>
+<br>
 
 ### Forward slicing
 
-A forward slice identifiers every piece of code that is affected by a value of interest. For example, let's say you have a program that times a calculation, and you want to find all the code related to timing. You could compute a forward slice of the timer to rule out the actual calculation:
+A forward slice identifiers every piece of code that is affected by a value of interest. For example, let's say you have a program that times a calculation, and you want to comment out all the code related to timing. You could compute a forward slice of the timer:
 
 ![demo2](https://user-images.githubusercontent.com/663326/134043212-f4263dc5-5f9b-432b-9e72-f57c1188b0c4.gif)
 
+<br>
+<br>
 
 ### Function effects
 
 A function's effects are either inputs that it mutates, or values that it returns. The function effects panel helps identify lines of code that either mutate arguments or return values. Selecting an effect then shows the backward slice of that effect.
 
 ![demo mp4](https://user-images.githubusercontent.com/663326/133518170-cfc0e12b-6be3-4180-a661-418d3ccb5d2b.gif)
+
+<br>
+<br>
 
 ## Installation
 
