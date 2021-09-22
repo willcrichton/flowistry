@@ -100,7 +100,7 @@ export let effects = async (
           highlight_slice(
             active_editor!,
             body_range,
-            effect.effect,
+            [effect.effect],
             effect.slice
           );
           highlight_ranges(effect.unique, active_editor!, highlight_type);

@@ -14,8 +14,8 @@ fn main() {
     .with_file_name("flowistry-driver");
   let cargo_path = env::var("CARGO_PATH").unwrap_or_else(|_| "cargo".to_string());
 
-  let matches = clap_app!(app =>
-    (version: "0.1")
+  let matches = clap_app!(flowistry =>
+    (version: "0.3.5")
     (author: "Will Crichton <wcrichto@cs.stanford.edu>")
     (@setting TrailingVarArg)
     (@subcommand rustc_version =>)

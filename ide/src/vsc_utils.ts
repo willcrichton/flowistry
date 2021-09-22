@@ -1,9 +1,15 @@
 import * as vscode from "vscode";
 import { Range } from "./types";
+import open from "open";
+import newGithubIssueUrl from "new-github-issue-url";
+import * as cp from "child_process";
 
 let channel = vscode.window.createOutputChannel("Flowistry");
+let logs: string[] = [];
 export let log = (...strs: any[]) => {
-  channel.appendLine(strs.map((obj) => String(obj)).join("\t"));
+  let s = strs.map((obj) => String(obj)).join("\t");
+  logs.push(s);
+  channel.appendLine(s);
 };
 
 export let to_vsc_range = (
@@ -12,14 +18,51 @@ export let to_vsc_range = (
 ): vscode.Range =>
   new vscode.Range(doc.positionAt(range.start), doc.positionAt(range.end));
 
-export let from_vsc_range = (range: vscode.Range, doc: vscode.TextDocument): Range => ({
+export let from_vsc_range = (
+  range: vscode.Range,
+  doc: vscode.TextDocument
+): Range => ({
   start: doc.offsetAt(range.start),
   end: doc.offsetAt(range.end),
   filename: "",
 });
 
-export let show_error = (err: string) => {
-  vscode.window.showErrorMessage(`Flowistry error: ${err}`);
+export let show_error = async (err: string) => {
+  let outcome = await vscode.window.showErrorMessage(
+    `Flowistry error: ${err}`,
+    "Report bug",
+    "Dismiss"
+  );
+  if (outcome == "Report bug") {
+    let log_url = null;
+    try {
+      log_url = cp.execSync("curl --data-binary @- https://paste.rs/", {
+        input: logs.join("\n"),
+      });
+    } catch (e) {
+      log("Failed to call to paste.rs: ", e.toString());
+    }
+
+    let bts = "```";
+    let log_text = log_url !== null ? `\nFull log: ${log_url}` : ``;
+    let url = newGithubIssueUrl({
+      user: "willcrichton",
+      repo: "flowistry",
+      body: `# Problem
+<!-- Please describe the problem and how you encountered it. -->
+
+# Logs
+<!-- You don't need to add or change anything below this point. -->
+
+Error message:
+${bts}
+${err}
+${bts}
+${log_text}`,
+    });
+
+    await open(url);
+  }
 };
 
 export type CallFlowistry = (args: string) => Promise<string>;

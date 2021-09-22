@@ -145,11 +145,14 @@ impl FlowistryAnalysis for EffectsHarness {
       ranged_effects[i].1.unique = unique;
     }
 
-    let mut output = EffectsOutput::default();
-    output.body_span = Some(Range::from_span(
+    let body_span = Some(Range::from_span(
       tcx.hir().body(body_id).value.span,
       source_map,
     )?);
+    let mut output = EffectsOutput {
+      body_span,
+      ..Default::default()
+    };
 
     let fn_decl = tcx
       .hir()

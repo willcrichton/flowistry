@@ -7,6 +7,7 @@ export interface Range {
 export interface SliceOutput {
   ranges: Range[];
   body_span: Range;
+  sliced_spans: Range[];
 }
 
 export interface Effect {

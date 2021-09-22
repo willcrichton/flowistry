@@ -394,7 +394,7 @@ where
         .map(|(region, places)| {
           let place_domain = &place_domain;
           places
-            .into_iter()
+            .iter()
             .map(move |(place, _)| (place_domain.index(place), *region))
         })
         .flatten()

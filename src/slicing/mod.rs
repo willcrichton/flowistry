@@ -27,6 +27,7 @@ pub struct SliceOutput {
   pub num_relevant_instructions: usize,
   pub mutated_inputs: HashSet<usize>,
   pub relevant_inputs: HashSet<usize>,
+  pub sliced_spans: Vec<Range>,
   pub body_span: Range,
 }
 
@@ -44,6 +45,7 @@ impl FlowistryOutput for SliceOutput {
     self.mutated_inputs = other.mutated_inputs;
     self.relevant_inputs = other.relevant_inputs;
     self.body_span = other.body_span;
+    self.sliced_spans.extend(other.sliced_spans.into_iter());
   }
 }
 
@@ -65,17 +67,26 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     }
 
     let source_map = tcx.sess.source_map();
-    let sliced_places = utils::span_to_places(body, self.range.to_span(source_map)?);
+    let (sliced_places, sliced_spans) =
+      utils::span_to_places(body, self.range.to_span(source_map)?);
     debug!("sliced_places {:?}", sliced_places);
 
     let spanner = utils::HirSpanner::new(tcx, body_id);
-
     let deps = flow::compute_dependency_ranges(&results, sliced_places, self.direction, &spanner);
 
-    let mut output = SliceOutput::default();
-    output.body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
-    output.ranges = deps.into_iter().map(|v| v.into_iter()).flatten().collect();
-    Ok(output)
+    let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
+    let sliced_spans = sliced_spans
+      .into_iter()
+      .map(|span| Range::from_span(span, source_map))
+      .collect::<Result<Vec<_>>>()?;
+    let ranges = deps.into_iter().map(|v| v.into_iter()).flatten().collect();
+
+    Ok(SliceOutput {
+      body_span,
+      sliced_spans,
+      ranges,
+      ..Default::default()
+    })
   }
 }
 
