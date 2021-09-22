@@ -1,4 +1,4 @@
-const esbuild = require("esbuild");
+const estrella = require("estrella");
 const { sassPlugin } = require("esbuild-sass-plugin");
 const { cli } = require("@wcrichto/esbuild-utils");
 const toml = require("toml");
@@ -9,7 +9,7 @@ const options = cli();
 
 const rust_toolchain = toml.parse(fs.readFileSync("../rust-toolchain.toml"));
 const define = {
-  CHANNEL: JSON.stringify(rust_toolchain.toolchain.channel),
+  TOOLCHAIN: JSON.stringify(rust_toolchain.toolchain),
   VERSION: JSON.stringify(pkg.version)
 };
 
@@ -19,17 +19,18 @@ let common = {
   plugins: [sassPlugin()],
   bundle: true,
   sourcemap: true,
+  tslint: true,
   define,
   ...options
 };
 
-let extension = esbuild.build({
+let extension = estrella.build({
   entryPoints: ["src/extension.ts"],
   platform: "node",
   ...common
 });
 
-let page = esbuild.build({
+let page = estrella.build({
   entryPoints: ["src/effects_page.tsx"],
   ...common
 });

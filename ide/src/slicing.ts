@@ -69,10 +69,10 @@ export let invert_ranges = (container: Range, pieces: Range[]): Range[] => {
 export let highlight_slice = (
   editor: vscode.TextEditor,
   container: Range,
-  seed: Range,
+  seeds: Range[],
   slice: Range[]
 ) => {
-  highlight_ranges([seed], editor, select_type);
+  highlight_ranges(seeds, editor, select_type);
   highlight_ranges(invert_ranges(container, slice), editor, hide_type);
 };
 
@@ -113,9 +113,9 @@ export async function slice(
 
   try {
     let subcmd = `${direction}_slice`;
-    let cmd = `${subcmd} ${doc.fileName} ${doc.offsetAt(
-      selection.start
-    )} ${doc.offsetAt(selection.end)}`;
+    let start = doc.offsetAt(selection.start);
+    let end = doc.offsetAt(selection.end);
+    let cmd = `${subcmd} ${doc.fileName} ${start} ${end}`;
     let stdout = await call_flowistry(cmd);
 
     let lines = stdout.split("\n");
@@ -140,7 +140,7 @@ export async function slice(
       highlight_slice(
         active_editor,
         slice_output.body_span,
-        from_vsc_range(selection, doc),
+        slice_output.sliced_spans,
         slice_output.ranges
       );
     }

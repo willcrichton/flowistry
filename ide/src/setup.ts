@@ -1,14 +1,19 @@
 import * as vscode from "vscode";
 import * as cp from "child_process";
-import * as util from "util";
 import _ from "lodash";
 import { log, show_error, CallFlowistry } from "./vsc_utils";
 import { Readable } from "stream";
 
 declare const VERSION: string;
-declare const CHANNEL: string;
+declare const TOOLCHAIN: {
+  channel: string;
+  components: string[];
+};
 
-let exec = (cmd: string, opts?: any): [Promise<string>, cp.ChildProcessWithoutNullStreams] => {
+let exec = (
+  cmd: string,
+  opts?: any
+): [Promise<string>, cp.ChildProcessWithoutNullStreams] => {
   log("Running command: ", cmd);
   let proc = cp.spawn(cmd, {
     shell: true,
@@ -28,18 +33,21 @@ let exec = (cmd: string, opts?: any): [Promise<string>, cp.ChildProcessWithoutNu
   let stdout = read_stream(proc.stdout);
   let stderr = read_stream(proc.stderr);
 
-  return [new Promise<string>((resolve, reject) => {
-    proc.addListener("close", (_) => {
-      if (proc.exitCode !== 0) {
-        reject(stderr().split("\n").slice(-1)[0]);
-      } else {
-        resolve(stdout());
-      }
-    });
-    proc.addListener("error", (e) => {
-      reject(e.toString());
-    });
-  }), proc];
+  return [
+    new Promise<string>((resolve, reject) => {
+      proc.addListener("close", (_) => {
+        if (proc.exitCode !== 0) {
+          reject(stderr().split("\n").slice(-1)[0]);
+        } else {
+          resolve(stdout());
+        }
+      });
+      proc.addListener("error", (e) => {
+        reject(e.toString());
+      });
+    }),
+    proc,
+  ];
 };
 
 const SHOW_LOADER_THRESHOLD = 1000;
@@ -53,15 +61,21 @@ export async function setup(): Promise<CallFlowistry | null> {
   let workspace_root = folders[0].uri.fsPath;
   log("Workspace root", workspace_root);
 
-  let cargo = `cargo +${CHANNEL}`;
+  let cargo = `cargo +${TOOLCHAIN.channel}`;
 
-  let fresh_install = false;
+  let version;
   try {
-    await exec(`${cargo} flowistry -V`)[0];
+    let output = await exec(`${cargo} flowistry -V`)[0];
+    version = output.split(" ")[1];
   } catch (e) {
+    version = "";
+  }
+
+  if (version != VERSION) {
     let outcome = await vscode.window.showInformationMessage(
       "The Flowistry crate needs to be installed. Would you like to automatically install it now?",
-      ...["Install", "Cancel"]
+      "Install",
+      "Cancel"
     );
     if (outcome === "Cancel") {
       return null;
@@ -72,16 +86,14 @@ export async function setup(): Promise<CallFlowistry | null> {
         location: vscode.ProgressLocation.Notification,
         title: "Installing Flowistry crate... (this may take a few minutes)",
       },
-      (_) =>
-        exec(
-          `rustup toolchain install ${CHANNEL} -c rust-src,rustc-dev,llvm-tools-preview && ${cargo} install flowistry --version ${VERSION}`
-        )[0]
+      (_) => {
+        let components = TOOLCHAIN.components.join(",");
+        let rustup_cmd = `rustup toolchain install ${TOOLCHAIN.channel} -c ${components}`;
+        let cargo_cmd = `${cargo} install flowistry --version ${VERSION} --force`;
+        return exec(`${rustup_cmd} && ${cargo_cmd}`)[0];
+      }
     );
 
-    fresh_install = true;
-  }
-
-  if (fresh_install) {
     vscode.window.showInformationMessage(
       "Flowistry has successfully installed! Try selecting a variable in a function, then do: right click -> Flowistry -> Backward Highlight."
     );
