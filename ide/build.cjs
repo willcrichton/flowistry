@@ -1,8 +1,17 @@
 const esbuild = require("esbuild");
 const { sassPlugin } = require("esbuild-sass-plugin");
 const { cli } = require("@wcrichto/esbuild-utils");
+const toml = require("toml");
+const fs = require("fs");
+const pkg = require("./package.json");
 
 const options = cli();
+
+const rust_toolchain = toml.parse(fs.readFileSync("../rust-toolchain.toml"));
+const define = {
+  CHANNEL: JSON.stringify(rust_toolchain.toolchain.channel),
+  VERSION: JSON.stringify(pkg.version)
+};
 
 let common = {
   outdir: "out",
@@ -10,6 +19,7 @@ let common = {
   plugins: [sassPlugin()],
   bundle: true,
   sourcemap: true,
+  define,
   ...options
 };
 
