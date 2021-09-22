@@ -13,19 +13,21 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
+      - run: npm install && npm run tc && npm run build
+        working-directory: ide
 
   publish-extension:
-    needs: test
     runs-on: ubuntu-latest
+    needs: test
     steps:
        - uses: actions/checkout@v1
-       - run: cd ide && npm install && npm run tc
+       - run: cd ide && npm install
        - run: cd ide && npm install -g vsce && vsce publish -p ${{ secrets.VSCODE_TOKEN }}
        - run: cd ide && npm install -g ovsx && npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
           
   publish-crate:
-    needs: publish-extension
     runs-on: ubuntu-latest
+    needs: publish-extension
     steps:
       - uses: actions/checkout@v1
       - run: cargo login ${{ secrets.CRATES_IO_TOKEN }}

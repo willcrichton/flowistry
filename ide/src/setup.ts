@@ -8,7 +8,7 @@ import { Readable } from "stream";
 declare const VERSION: string;
 declare const CHANNEL: string;
 
-let exec = (cmd: string, opts?: any): Promise<string> => {
+let exec = (cmd: string, opts?: any): [Promise<string>, cp.ChildProcessWithoutNullStreams] => {
   log("Running command: ", cmd);
   let proc = cp.spawn(cmd, {
     shell: true,
@@ -28,7 +28,7 @@ let exec = (cmd: string, opts?: any): Promise<string> => {
   let stdout = read_stream(proc.stdout);
   let stderr = read_stream(proc.stderr);
 
-  return new Promise<string>((resolve, reject) => {
+  return [new Promise<string>((resolve, reject) => {
     proc.addListener("close", (_) => {
       if (proc.exitCode !== 0) {
         reject(stderr().split("\n").slice(-1)[0]);
@@ -39,7 +39,7 @@ let exec = (cmd: string, opts?: any): Promise<string> => {
     proc.addListener("error", (e) => {
       reject(e.toString());
     });
-  });
+  }), proc];
 };
 
 const SHOW_LOADER_THRESHOLD = 1000;
@@ -57,7 +57,7 @@ export async function setup(): Promise<CallFlowistry | null> {
 
   let fresh_install = false;
   try {
-    await exec(`${cargo} flowistry -V`);
+    await exec(`${cargo} flowistry -V`)[0];
   } catch (e) {
     let outcome = await vscode.window.showInformationMessage(
       "The Flowistry crate needs to be installed. Would you like to automatically install it now?",
@@ -75,7 +75,7 @@ export async function setup(): Promise<CallFlowistry | null> {
       (_) =>
         exec(
           `rustup toolchain install ${CHANNEL} -c rust-src,rustc-dev,llvm-tools-preview && ${cargo} install flowistry --version ${VERSION}`
-        )
+        )[0]
     );
 
     fresh_install = true;
@@ -89,7 +89,7 @@ export async function setup(): Promise<CallFlowistry | null> {
 
   let call_flowistry: CallFlowistry = async (args) => {
     let cmd = `${cargo} flowistry ${args}`;
-    let promise = exec(cmd, { cwd: workspace_root });
+    let [promise, proc] = exec(cmd, { cwd: workspace_root });
 
     let outcome = await Promise.race([
       promise,
