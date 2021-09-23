@@ -3,6 +3,7 @@ import { Range } from "./types";
 import open from "open";
 import newGithubIssueUrl from "new-github-issue-url";
 import * as cp from "child_process";
+import os from 'os';
 
 let channel = vscode.window.createOutputChannel("Flowistry");
 let logs: string[] = [];
@@ -44,7 +45,7 @@ export let show_error = async (err: string) => {
     }
 
     let bts = "```";
-    let log_text = log_url !== null ? `\nFull log: ${log_url}` : ``;
+    let log_text = log_url !== null ? `\n**Full log:** ${log_url}` : ``;
     let url = newGithubIssueUrl({
       user: "willcrichton",
       repo: "flowistry",
@@ -54,7 +55,9 @@ export let show_error = async (err: string) => {
 # Logs
 <!-- You don't need to add or change anything below this point. -->
 
-Error message:
+**OS:** ${os.platform()} (${os.release()})
+**VSCode:** ${vscode.version}
+**Error message**
 ${bts}
 ${err}
 ${bts}

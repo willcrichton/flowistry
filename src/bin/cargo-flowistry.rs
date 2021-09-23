@@ -9,15 +9,16 @@ use std::{
   process::{exit, Command},
 };
 
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+
 fn main() {
   let flowistry_rustc_path = std::env::current_exe()
     .expect("current executable path invalid")
     .with_file_name("flowistry-driver");
   let cargo_path = env::var("CARGO_PATH").unwrap_or_else(|_| "cargo".to_string());
 
-  // FIXME(wcrichto): can we read the version directly from Cargo.toml?
   let matches = clap_app!(flowistry =>
-    (version: "0.3.9")
+    (version: VERSION)
     (author: "Will Crichton <wcrichto@cs.stanford.edu>")
     (@setting TrailingVarArg)
     (@subcommand rustc_version =>)

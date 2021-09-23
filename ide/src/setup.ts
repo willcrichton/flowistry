@@ -103,8 +103,10 @@ export async function setup(): Promise<CallFlowistry | null> {
     await exec(rustup_cmd, "Installing nightly Rust...");
 
     try {
-      await exec(INSTALL_SCRIPT, "Downloading Flowistry binaries...");
-    } catch (e) {
+      await exec(INSTALL_SCRIPT, "Downloading Flowistry binaries...", {
+        RELEASE: `v${VERSION}`,
+      });
+    } catch (e: any) {
       log("Install script failed with error:", e.toString());
 
       let cargo_cmd = `${cargo} install flowistry --version ${VERSION} --force`;
@@ -121,9 +123,31 @@ export async function setup(): Promise<CallFlowistry | null> {
     }
   }
 
+  let target_libdir = await exec(
+    `$(rustup which --toolchain ${TOOLCHAIN.channel} rustc) --print target-libdir`,
+    "Waiting for rustc..."
+  );
+  log("Target libdir:", target_libdir);
+
   let call_flowistry: CallFlowistry = async (args) => {
     let cmd = `${cargo} flowistry ${args}`;
-    return exec(cmd, "Waiting for Flowistry...", { cwd: workspace_root });
+    let library_path;
+    if (process.platform == "darwin") {
+      library_path = "DYLD_LIBRARY_PATH";
+    } else if (process.platform == "win32") {
+      library_path = "LIB";
+    } else {
+      library_path = "LD_LIBRARY_PATH";
+    }
+
+    try {
+      return exec(cmd, "Waiting for Flowistry...", {
+        cwd: workspace_root,
+        [library_path]: target_libdir,
+      });
+    } catch (e: any) {
+      throw `Flowistry failed to execute: ${e.toString()}`;
+    }
   };
 
   return call_flowistry;
