@@ -7,7 +7,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v1
       - uses: actions-rs/cargo@v1
@@ -26,9 +26,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             key: x86_64-unknown-linux-gnu
-          - os: macos-latest
+          - os: macos-10.15
             key: x86_64-apple-darwin
     runs-on: ${{ matrix.os }}
     steps:
@@ -46,7 +46,7 @@ jobs:
 
   publish-release:
     needs: build-artifacts
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/download-artifact@v2
       - uses: softprops/action-gh-release@v1
@@ -57,7 +57,7 @@ jobs:
 
   publish-extension:
     needs: publish-release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
        - uses: actions/checkout@v1
        - run: cd ide && npm install
@@ -66,7 +66,7 @@ jobs:
           
   publish-crate:
     needs: publish-extension
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v1
       - run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
