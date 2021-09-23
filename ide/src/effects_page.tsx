@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import { Message, ArgSlice, RetSlice, SelectedSlice, EffectStrings } from "./types";
+import {
+  Message,
+  ArgSlice,
+  RetSlice,
+  SelectedSlice,
+  EffectStrings,
+} from "./types";
 import _ from "lodash";
 import classNames from "classnames";
 
@@ -51,6 +57,9 @@ let App: React.FC = () => {
       <div>
         {data !== null ? (
           <div>
+            {data.arg_strs.length == 0 && data.ret_strs.length == 0
+              ? "This function has no effects!"
+              : null}
             <ul>
               {data.arg_strs.map((arg_str, i) => (
                 <li className="slice-category">

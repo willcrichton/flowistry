@@ -11,7 +11,7 @@ declare const TOOLCHAIN: {
 };
 declare const INSTALL_SCRIPT: string;
 
-const SHOW_LOADER_THRESHOLD = 1000;
+const SHOW_LOADER_THRESHOLD = 2000;
 
 let exec = async (cmd: string, title: string, opts?: any): Promise<string> => {
   log("Running command: ", cmd);

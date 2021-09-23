@@ -8,6 +8,7 @@ use std::{
   path::PathBuf,
   process::{exit, Command},
 };
+use rand::prelude::*;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
@@ -74,32 +75,47 @@ fn main() {
   };
   args.push(("COMMAND", cmd));
 
-  let mut file_path = PathBuf::from(file_name);
-  let mut package = None;
-  while let Some(parent) = file_path.parent() {
-    file_path = parent.to_path_buf();
+  let file_path = PathBuf::from(file_name);
+  let metadata = cargo_metadata::MetadataCommand::new().exec().unwrap();
+  let (pkg, target) = metadata
+    .workspace_members
+    .iter()
+    .filter_map(|pkg_id| {
+      let pkg = metadata
+        .packages
+        .iter()
+        .find(|pkg| &pkg.id == pkg_id)
+        .unwrap();
 
-    let manifest_path = file_path.join("Cargo.toml");
-    if manifest_path.exists() {
-      let manifest = cargo_toml::Manifest::from_path(manifest_path).unwrap();
-      package = Some(manifest.package.unwrap().name);
-      break;
-    }
-  }
+      let target = pkg
+        .targets
+        .iter()
+        .filter(|target| file_path.starts_with(target.src_path.parent().unwrap()))
+        .max_by_key(|target| target.src_path.components().count());
+
+      target.map(move |target| (pkg, target))
+    })
+    .next()
+    .unwrap_or_else(|| panic!("Could not find target for path: {}", file_name));
 
   let mut cmd = Command::new(cargo_path);
+  #[rustfmt::skip]
   cmd
-    .arg("check")
-    .arg("-q")
-    .args(flags)
-    .env("RUSTC_WORKSPACE_WRAPPER", flowistry_rustc_path);
+    .env("RUSTC_WORKSPACE_WRAPPER", flowistry_rustc_path)
+    .args(&["rustc", "--profile", "check", "-vv"]);
 
-  match package {
-    Some(package) => {
-      cmd.arg("-p").arg(package);
+  cmd.arg("-p").arg(&pkg.name);
+  let kind = &target.kind[0];
+  cmd.arg(format!("--{}", kind));
+  match kind.as_str() {
+    "lib" => {}
+    _ => {
+      cmd.arg(&target.name);
     }
-    None => panic!("Could not find package for file: {}", file_path.display()),
   };
+
+  let n = thread_rng().gen::<u64>();
+  cmd.args(&["--", &format!("--flowistry={}", n)]).args(flags);
 
   for (k, v) in args {
     cmd.env(format!("FLOWISTRY_{}", k), v);
