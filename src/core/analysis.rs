@@ -134,17 +134,19 @@ impl<A: FlowistryAnalysis> rustc_driver::Callbacks for Callbacks<A> {
 
     queries.global_ctxt().unwrap().take().enter(|tcx| {
       let analysis = self.analysis.take().unwrap();
-      let locations = analysis.locations(tcx).unwrap();
-      let output = Ok(A::Output::default());
-      let mut visitor = AnalysisVisitor(VisitorContext {
-        tcx,
-        locations,
-        analysis,
-        output,
-      });
+      self.output = Some((|| {
+        let locations = analysis.locations(tcx)?;
+        let output = Ok(A::Output::default());
+        let mut visitor = AnalysisVisitor(VisitorContext {
+          tcx,
+          locations,
+          analysis,
+          output,
+        });
 
-      tcx.hir().krate().visit_all_item_likes(&mut visitor);
-      self.output = Some(visitor.0.output);
+        tcx.hir().krate().visit_all_item_likes(&mut visitor);
+        visitor.0.output
+      })());
     });
 
     rustc_driver::Compilation::Stop

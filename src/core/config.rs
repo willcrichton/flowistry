@@ -56,7 +56,21 @@ impl Range {
         _ => false,
       })
       .map(|f| &**f)
-      .with_context(|| format!("Could not find SourceFile for path: {}", self.filename))
+      .with_context(|| {
+        format!(
+          "Could not find SourceFile for path: {}. Available SourceFiles were: [{}]",
+          self.filename,
+          files
+            .iter()
+            .filter_map(|file| match &file.name {
+              FileName::Real(RealFileName::LocalPath(other)) =>
+                Some(format!("{}", other.display())),
+              _ => None,
+            })
+            .collect::<Vec<_>>()
+            .join(", ")
+        )
+      })
   }
 
   pub fn to_span(&self, source_map: &SourceMap) -> Result<Span> {

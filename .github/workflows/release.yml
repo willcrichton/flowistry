@@ -21,9 +21,43 @@ jobs:
         working-directory: ide
       - run: pip3 install -r scripts/requirements.txt && python3 scripts/check_versions.py
 
-  publish-extension:
-    runs-on: ubuntu-latest
+  build-artifacts:
     needs: test
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            key: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            key: x86_64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - run: tar -czf ${{ matrix.key }}.tar.gz cargo-flowistry flowistry-driver
+        working-directory: target/release
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.key }}
+          path: target/release/${{ matrix.key }}.tar.gz
+
+  publish-release:
+    needs: build-artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu.tar.gz
+            x86_64-apple-darwin/x86_64-apple-darwin.tar.gz          
+
+  publish-extension:
+    needs: publish-release
+    runs-on: ubuntu-latest
     steps:
        - uses: actions/checkout@v1
        - run: cd ide && npm install
@@ -31,8 +65,8 @@ jobs:
        - run: cd ide && npm install -g ovsx && npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
           
   publish-crate:
-    runs-on: ubuntu-latest
     needs: publish-extension
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - run: cargo login ${{ secrets.CRATES_IO_TOKEN }}

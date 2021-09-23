@@ -10,20 +10,13 @@ declare const TOOLCHAIN: {
   components: string[];
 };
 
-let exec = (
-  cmd: string,
-  opts?: any
-): [Promise<string>, cp.ChildProcessWithoutNullStreams] => {
+const SHOW_LOADER_THRESHOLD = 1000;
+
+let exec = async (cmd: string, title: string, opts?: any): Promise<string> => {
   log("Running command: ", cmd);
 
   // See issue #4
-  let shell: boolean | string;
-  if (process.platform === "darwin") {
-    shell = "/bin/bash";
-  } else {
-    shell = true;
-  }
-
+  let shell: boolean | string = process.env.SHELL || true;
   let proc = cp.spawn(cmd, {
     shell,
     ...opts,
@@ -42,24 +35,44 @@ let exec = (
   let stdout = read_stream(proc.stdout);
   let stderr = read_stream(proc.stderr);
 
-  return [
-    new Promise<string>((resolve, reject) => {
-      proc.addListener("close", (_) => {
-        if (proc.exitCode !== 0) {
-          reject(stderr().split("\n").slice(-1)[0]);
-        } else {
-          resolve(stdout());
-        }
-      });
-      proc.addListener("error", (e) => {
-        reject(e.toString());
-      });
-    }),
-    proc,
-  ];
-};
+  let promise = new Promise<string>((resolve, reject) => {
+    proc.addListener("close", (_) => {
+      if (proc.exitCode !== 0) {
+        reject(stderr().split("\n").slice(-1)[0]);
+      } else {
+        resolve(stdout());
+      }
+    });
+    proc.addListener("error", (e) => {
+      reject(e.toString());
+    });
+  });
 
-const SHOW_LOADER_THRESHOLD = 1000;
+  let outcome = await Promise.race([
+    promise,
+    new Promise<undefined>((resolve, _) =>
+      setTimeout(resolve, SHOW_LOADER_THRESHOLD)
+    ),
+  ]);
+
+  if (outcome === undefined) {
+    outcome = await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title,
+        cancellable: true,
+      },
+      (_, token) => {
+        token.onCancellationRequested((_) => {
+          proc.kill("SIGINT");
+        });
+        return promise;
+      }
+    );
+  }
+
+  return outcome;
+};
 
 export async function setup(): Promise<CallFlowistry | null> {
   let folders = vscode.workspace.workspaceFolders;
@@ -74,66 +87,34 @@ export async function setup(): Promise<CallFlowistry | null> {
 
   let version;
   try {
-    let output = await exec(`${cargo} flowistry -V`)[0];
+    let output = await exec(
+      `${cargo} flowistry -V`,
+      "Waiting for Flowistry..."
+    );
     version = output.split(" ")[1];
   } catch (e) {
     version = "";
   }
 
   if (version != VERSION) {
-    let outcome = await vscode.window.showInformationMessage(
-      "The Flowistry crate needs to be installed. Would you like to automatically install it now?",
-      "Install",
-      "Cancel"
+    let components = TOOLCHAIN.components.join(",");
+    let rustup_cmd = `rustup toolchain install ${TOOLCHAIN.channel} -c ${components}`;
+    let cargo_cmd = `${cargo} install flowistry --version ${VERSION} --force`;
+    await exec(
+      `${rustup_cmd} && ${cargo_cmd}`,
+      "Installing Flowistry crate... (this may take a minute)"
     );
-    if (outcome === "Cancel") {
-      return null;
+
+    if (version == "") {
+      vscode.window.showInformationMessage(
+        "Flowistry has successfully installed! Try selecting a variable in a function, then do: right click -> Flowistry -> Backward Highlight."
+      );
     }
-
-    await vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.Notification,
-        title: "Installing Flowistry crate... (this may take a few minutes)",
-      },
-      (_) => {
-        let components = TOOLCHAIN.components.join(",");
-        let rustup_cmd = `rustup toolchain install ${TOOLCHAIN.channel} -c ${components}`;
-        let cargo_cmd = `${cargo} install flowistry --version ${VERSION} --force`;
-        return exec(`${rustup_cmd} && ${cargo_cmd}`)[0];
-      }
-    );
-
-    vscode.window.showInformationMessage(
-      "Flowistry has successfully installed! Try selecting a variable in a function, then do: right click -> Flowistry -> Backward Highlight."
-    );
   }
 
   let call_flowistry: CallFlowistry = async (args) => {
     let cmd = `${cargo} flowistry ${args}`;
-    let [promise, proc] = exec(cmd, { cwd: workspace_root });
-
-    let outcome = await Promise.race([
-      promise,
-      new Promise<undefined>((resolve, _) =>
-        setTimeout(resolve, SHOW_LOADER_THRESHOLD)
-      ),
-    ]);
-
-    if (outcome === undefined) {
-      outcome = await vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: "Waiting for Flowistry...",
-          cancellable: true,
-        },
-        (_, token) => {
-          token.onCancellationRequested((_) => proc.kill("SIGINT"));
-          return promise;
-        }
-      );
-    }
-
-    return outcome;
+    return exec(cmd, "Waiting for Flowistry...", { cwd: workspace_root });
   };
 
   return call_flowistry;
