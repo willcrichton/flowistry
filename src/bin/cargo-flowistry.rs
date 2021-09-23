@@ -14,8 +14,9 @@ fn main() {
     .with_file_name("flowistry-driver");
   let cargo_path = env::var("CARGO_PATH").unwrap_or_else(|_| "cargo".to_string());
 
+  // FIXME(wcrichto): can we read the version directly from Cargo.toml?
   let matches = clap_app!(flowistry =>
-    (version: "0.3.6")
+    (version: "0.3.7")
     (author: "Will Crichton <wcrichto@cs.stanford.edu>")
     (@setting TrailingVarArg)
     (@subcommand rustc_version =>)

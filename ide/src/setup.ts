@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as cp from "child_process";
 import _ from "lodash";
-import { log, show_error, CallFlowistry } from "./vsc_utils";
+import { log, CallFlowistry } from "./vsc_utils";
 import { Readable } from "stream";
 
 declare const VERSION: string;
@@ -15,8 +15,17 @@ let exec = (
   opts?: any
 ): [Promise<string>, cp.ChildProcessWithoutNullStreams] => {
   log("Running command: ", cmd);
+
+  // See issue #4
+  let shell: boolean | string;
+  if (process.platform === "darwin") {
+    shell = "/bin/bash";
+  } else {
+    shell = true;
+  }
+
   let proc = cp.spawn(cmd, {
-    shell: true,
+    shell,
     ...opts,
   });
 
