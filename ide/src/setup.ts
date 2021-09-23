@@ -132,7 +132,7 @@ export async function setup(): Promise<CallFlowistry | null> {
   log("Sysroot: ", sysroot);
 
   let call_flowistry: CallFlowistry = async (args) => {
-    let cmd = `${cargo} flowistry ${args} --sysroot ${sysroot}`;
+    let cmd = `${cargo} flowistry ${args}`;
     let library_path;
     if (process.platform == "darwin") {
       library_path = "DYLD_LIBRARY_PATH";
@@ -146,6 +146,7 @@ export async function setup(): Promise<CallFlowistry | null> {
       return exec(cmd, "Waiting for Flowistry...", {
         cwd: workspace_root,
         [library_path]: target_libdir,
+        SYSROOT: sysroot,
       });
     } catch (e: any) {
       throw `Flowistry failed to execute: ${e.toString()}`;
