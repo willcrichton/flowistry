@@ -1,5 +1,3 @@
-#!/bin/bash
-
 set -e
 cd $(mktemp -d)
 
@@ -12,8 +10,9 @@ BINARY_PATH="${TARGET}.tar.gz"
 BINARY_URL="${RELEASE_URL}/${BINARY_PATH}"
 LOCAL_BIN_DIR="${CARGO_HOME:-$HOME/.cargo}/bin"
 
-if wget -q --spider ${BINARY_URL}; then
-  wget -q ${BINARY_URL}
+echo "Downloading release files from: ${BINARY_URL}"
+if curl --location --output /dev/null --silent --head --fail ${BINARY_URL}; then
+  curl --location --silent ${BINARY_URL} --output ${BINARY_PATH}
   tar -xf ${BINARY_PATH}
   rm ${BINARY_PATH}
   mkdir -p ${LOCAL_BIN_DIR}
