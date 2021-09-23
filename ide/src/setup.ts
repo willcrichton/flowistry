@@ -123,14 +123,16 @@ export async function setup(): Promise<CallFlowistry | null> {
     }
   }
 
-  let target_libdir = await exec(
-    `$(rustup which --toolchain ${TOOLCHAIN.channel} rustc) --print target-libdir`,
+  let target_info = await exec(
+    `$(rustup which --toolchain ${TOOLCHAIN.channel} rustc) --print target-libdir --print sysroot`,
     "Waiting for rustc..."
   );
+  let [target_libdir, sysroot] = target_info.split("\n");
   log("Target libdir:", target_libdir);
+  log("Sysroot: ", sysroot);
 
   let call_flowistry: CallFlowistry = async (args) => {
-    let cmd = `${cargo} flowistry ${args}`;
+    let cmd = `${cargo} flowistry ${args} --sysroot ${sysroot}`;
     let library_path;
     if (process.platform == "darwin") {
       library_path = "DYLD_LIBRARY_PATH";
