@@ -10,7 +10,7 @@ use std::{
   process::{exit, Command},
 };
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn main() {
   let flowistry_rustc_path = std::env::current_exe()
