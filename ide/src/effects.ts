@@ -29,7 +29,6 @@ export let effects = async (
   try {
     let cmd = `effects ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
     let stdout = await call_flowistry(cmd);
-    log(stdout);
     let lines = stdout.split("\n");
     let last_line = lines[lines.length - 1];
     let effects: Effects = JSON.parse(last_line);
