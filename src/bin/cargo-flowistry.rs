@@ -17,7 +17,7 @@ fn main() {
 
   // FIXME(wcrichto): can we read the version directly from Cargo.toml?
   let matches = clap_app!(flowistry =>
-    (version: "0.3.8")
+    (version: "0.3.9")
     (author: "Will Crichton <wcrichto@cs.stanford.edu>")
     (@setting TrailingVarArg)
     (@subcommand rustc_version =>)
