@@ -9,29 +9,43 @@ Flowistry is a VSCode extension that helps you understand Rust programs. Flowist
 
 Currently, Flowistry's capabilities are:
 
-### 1. Backward slicing
+### 1. Backward slice: find code that influences a value
 
-A [backward slice](https://en.wikipedia.org/wiki/Program_slicing) identifies every piece of code that affects a value of interest. For example, let's say you're debugging an assertion failure on `x`. Then you could compute the backward slice of `x` to rule out lines of code that don't influence its value, as shown here:
+Flowistry can compute a [backward static slice](https://en.wikipedia.org/wiki/Program_slicing) that identifies every piece of code that affects a value of interest. For example, let's say you're debugging an assertion failure on `x`. Then you could compute the backward slice of `x` to quickly rule out lines of code that don't influence its value, as shown here:
 
 ![demo1](https://user-images.githubusercontent.com/663326/134042737-0957a533-8c53-49b6-ba5b-d19de9a96d88.gif)
 
+The green marker indicates the selected value, and the grey text indicates code with no influence on that value. Note that "influence" is a bit subtle --- for example, in the program:
+
+```rust
+if x > 0 {
+  *y += 1;
+}
+```
+
+Even though `x` isn't directly used to change `y`, we would say `x` influences `y` because a mutation to `y` happens conditionally based on the value of `x`.
+
 <br>
 <br>
 
-### 2. Forward slicing
+### 2. Forward slice: find code that is influenced by a value
 
-A forward slice identifiers every piece of code that is affected by a value of interest. For example, let's say you have a program that times a calculation, and you want to comment out all the code related to timing. You could compute a forward slice of the timer:
+A forward static slice identifies every piece of code that is affected by a value of interest. For example, let's say you have a program that times a calculation, and you want to comment out all the code related to timing. You could compute a forward slice of the timer:
 
 ![demo2](https://user-images.githubusercontent.com/663326/134043212-f4263dc5-5f9b-432b-9e72-f57c1188b0c4.gif)
+
+The timer doesn't affect the value of the computation, so `run_expensive_calculation` isn't part of the forward slice of `start`. In this example, Flowistry sets the user's selected text to the slice. Then the user can use other IDE features like bulk-commenting (⌘-/ in VSCode on macOS) on that selection.
 
 <br>
 <br>
 
 ### 3. Function effects
 
-A function's effects are either inputs that it mutates, or values that it returns. The function effects panel helps identify lines of code that either mutate arguments or that could return values. Selecting an effect then shows the backward slice of that effect. Lines that are outside of the slice are grayed out. Lines that are _unique_ to the slice are highlighted.
+A function's effects are either inputs that it mutates, or values that it returns. The function effects panel helps identify lines of code that either mutate arguments or that could return values. Selecting an effect then shows the backward slice of that effect. 
 
 ![demo mp4](https://user-images.githubusercontent.com/663326/133518170-cfc0e12b-6be3-4180-a661-418d3ccb5d2b.gif)
+
+Like before, lines that are outside of a given slice are grayed out. But for this feature, lines that are _unique_ to a given slice are highlighted in orange. This way you can quickly focus on code that is only relevant to an effect of interest.
 
 <br>
 <br>
