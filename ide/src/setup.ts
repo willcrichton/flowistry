@@ -9,6 +9,7 @@ declare const TOOLCHAIN: {
   channel: string;
   components: string[];
 };
+declare const INSTALL_SCRIPT: string;
 
 const SHOW_LOADER_THRESHOLD = 1000;
 
@@ -99,11 +100,19 @@ export async function setup(): Promise<CallFlowistry | null> {
   if (version != VERSION) {
     let components = TOOLCHAIN.components.join(",");
     let rustup_cmd = `rustup toolchain install ${TOOLCHAIN.channel} -c ${components}`;
-    let cargo_cmd = `${cargo} install flowistry --version ${VERSION} --force`;
-    await exec(
-      `${rustup_cmd} && ${cargo_cmd}`,
-      "Installing Flowistry crate... (this may take a minute)"
-    );
+    await exec(rustup_cmd, "Installing nightly Rust...");
+
+    try {
+      await exec(INSTALL_SCRIPT, "Downloading Flowistry binaries...");
+    } catch (e) {
+      log("Install script failed with error:", e.toString());
+
+      let cargo_cmd = `${cargo} install flowistry --version ${VERSION} --force`;
+      await exec(
+        cargo_cmd,
+        "Flowistry binaries not available, instead installing Flowistry crate from source... (this may take a minute)"
+      );
+    }
 
     if (version == "") {
       vscode.window.showInformationMessage(

@@ -119,7 +119,6 @@ export async function slice(
     let stdout = await call_flowistry(cmd);
 
     let lines = stdout.split("\n");
-    log(lines);
     let last_line = lines[lines.length - 1];
     let slice_output: SliceOutput = JSON.parse(last_line);
 
