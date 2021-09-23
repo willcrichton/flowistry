@@ -70,6 +70,7 @@ fn main() {
   cmd
     .arg("check")
     .arg("-q")
+    .arg("--all")
     .args(flags)
     .env("RUSTC_WORKSPACE_WRAPPER", flowistry_rustc_path);
 
