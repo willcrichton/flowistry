@@ -3,12 +3,12 @@
 extern crate rustc_interface;
 
 use clap::clap_app;
+use rand::prelude::*;
 use std::{
   env,
   path::PathBuf,
   process::{exit, Command},
 };
-use rand::prelude::*;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
@@ -76,7 +76,11 @@ fn main() {
   args.push(("COMMAND", cmd));
 
   let file_path = PathBuf::from(file_name);
-  let metadata = cargo_metadata::MetadataCommand::new().exec().unwrap();
+  let metadata = cargo_metadata::MetadataCommand::new()
+    .no_deps()
+    .other_options(["--offline".to_string()])
+    .exec()
+    .unwrap();
   let (pkg, target) = metadata
     .workspace_members
     .iter()
@@ -99,11 +103,11 @@ fn main() {
     .unwrap_or_else(|| panic!("Could not find target for path: {}", file_name));
 
   let mut cmd = Command::new(cargo_path);
-  #[rustfmt::skip]
   cmd
     .env("RUSTC_WORKSPACE_WRAPPER", flowistry_rustc_path)
     .args(&["rustc", "--profile", "check", "-vv"]);
 
+  // Add compile filter to specify the target corresponding to the given file
   cmd.arg("-p").arg(&pkg.name);
   let kind = &target.kind[0];
   cmd.arg(format!("--{}", kind));
@@ -114,9 +118,12 @@ fn main() {
     }
   };
 
+  // RNG is necessary to avoid caching
   let n = thread_rng().gen::<u64>();
   cmd.args(&["--", &format!("--flowistry={}", n)]).args(flags);
 
+  // FIXME(wcrichto): we should make these CLI args as well, then do
+  //   caching on VSCode's side
   for (k, v) in args {
     cmd.env(format!("FLOWISTRY_{}", k), v);
   }
