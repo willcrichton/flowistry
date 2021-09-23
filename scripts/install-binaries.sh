@@ -5,8 +5,8 @@ cd $(mktemp -d)
 
 REPO="willcrichton/flowistry"
 TARGET=$(rustc -Vv | grep host | cut -d' ' -f2)
-LATEST=$(curl -s https://api.github.com/repos/${REPO}/releases/latest  | jq -r '.name')
-RELEASE_URL="https://github.com/${REPO}/releases/download/${LATEST}"
+RELEASE="${RELEASE:-$(curl -s https://api.github.com/repos/${REPO}/releases/latest  | jq -r '.name')}"
+RELEASE_URL="https://github.com/${REPO}/releases/download/${RELEASE}"
 
 BINARY_PATH="${TARGET}.tar.gz"
 BINARY_URL="${RELEASE_URL}/${BINARY_PATH}"
@@ -18,6 +18,7 @@ if wget -q --spider ${BINARY_URL}; then
   rm ${BINARY_PATH}
   mkdir -p ${LOCAL_BIN_DIR}
   mv ./* ${LOCAL_BIN_DIR}  
+  echo "Flowistry installed!"
 else
   exit 1
 fi
