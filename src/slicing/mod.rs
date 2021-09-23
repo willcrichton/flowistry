@@ -12,15 +12,15 @@ use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
 
+use rustc_macros::Encodable;
 use rustc_span::Span;
-use serde::Serialize;
 
 struct ForwardSliceAnalysis {
   direction: Direction,
   range: Range,
 }
 
-#[derive(Debug, Clone, Serialize, Default)]
+#[derive(Debug, Clone, Encodable, Default)]
 pub struct SliceOutput {
   pub ranges: Vec<Range>,
   pub num_instructions: usize,

@@ -59,23 +59,23 @@ where
   A: FlowistryAnalysis,
 {
   fn analyze(&mut self, item_span: Span, body_id: BodyId) {
-    if !self.locations.iter().any(|span| item_span.contains(*span)) {
+    if !self.locations.iter().any(|span| item_span.contains(*span)) || self.output.is_err() {
       return;
     }
 
     let tcx = self.tcx;
     let analysis = &mut self.analysis;
-    take_mut::take(&mut self.output, move |output| {
-      output.and_then(move |mut output| {
-        let fn_name = tcx.def_path_debug_str(tcx.hir().body_owner_def_id(body_id).to_def_id());
-        let timer_name = format!("Flowistry ({})", fn_name);
-        let _timer = block_timer(&timer_name);
 
-        let new_output = analysis.analyze_function(tcx, body_id)?;
-        output.merge(new_output);
-        Ok(output)
-      })
-    });
+    let fn_name = tcx.def_path_debug_str(tcx.hir().body_owner_def_id(body_id).to_def_id());
+    let timer_name = format!("Flowistry ({})", fn_name);
+    let _timer = block_timer(&timer_name);
+
+    match analysis.analyze_function(tcx, body_id) {
+      Ok(output) => self.output.as_mut().unwrap().merge(output),
+      err => {
+        self.output = err;
+      }
+    }
   }
 }
 

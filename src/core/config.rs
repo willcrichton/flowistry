@@ -1,13 +1,13 @@
 use crate::core::extensions::{ContextMode, MutabilityMode, PointerMode};
 use anyhow::{bail, Context, Result};
+use rustc_macros::Encodable;
 use rustc_span::{
   source_map::{monotonic::MonotonicVec, SourceMap},
   BytePos, FileName, RealFileName, SourceFile, Span,
 };
-use serde::Serialize;
 use std::{cell::Ref, default::Default, path::Path, rc::Rc};
 
-#[derive(Serialize, Debug, Clone, Hash, PartialEq, Eq, Default)]
+#[derive(Encodable, Debug, Clone, Hash, PartialEq, Eq, Default)]
 pub struct Range {
   pub start: usize,
   pub end: usize,
@@ -71,7 +71,7 @@ impl Range {
   }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Encodable, Hash)]
 pub struct EvalMode {
   pub mutability_mode: MutabilityMode,
   pub context_mode: ContextMode,

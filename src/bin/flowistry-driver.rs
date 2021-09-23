@@ -3,10 +3,12 @@
 #![feature(rustc_private)]
 
 extern crate rustc_driver;
+extern crate rustc_serialize;
 
 use anyhow::Result;
 use flowistry::Direction;
 use log::debug;
+use rustc_serialize::json;
 use std::{
   env,
   fmt::Debug,
@@ -77,7 +79,8 @@ fn run_flowistry(args: &[String]) -> Result<()> {
       };
 
       let slice = flowistry::slice(direction, range, args).unwrap();
-      println!("{}", serde_json::to_string(&slice).unwrap());
+
+      println!("{}", json::encode(&slice).unwrap());
       Ok(())
     }
     "effects" => {
@@ -88,7 +91,7 @@ fn run_flowistry(args: &[String]) -> Result<()> {
         filename: arg::<String>("FILE"),
       });
       let effects = flowistry::effects(id, args).unwrap();
-      println!("{}", serde_json::to_string(&effects).unwrap());
+      println!("{}", json::encode(&effects).unwrap());
       Ok(())
     }
     _ => unimplemented!(),
@@ -100,7 +103,7 @@ impl rustc_driver::Callbacks for DefaultCallbacks {}
 
 fn main() {
   rustc_driver::init_rustc_env_logger();
-  pretty_env_logger::init();
+  env_logger::init();
 
   exit(rustc_driver::catch_with_exit_code(move || {
     let mut orig_args: Vec<String> = env::args().collect();

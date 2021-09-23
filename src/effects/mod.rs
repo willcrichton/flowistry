@@ -17,20 +17,20 @@ use rustc_middle::{
   ty::{TyCtxt, TyKind},
 };
 
+use rustc_macros::Encodable;
 use rustc_span::Span;
-use serde::Serialize;
 use visitor::EffectKind;
 
 mod visitor;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Encodable)]
 pub struct Effect {
   effect: Range,
   slice: Vec<Range>,
   unique: Vec<Range>,
 }
 
-#[derive(Debug, Default, Serialize)]
+#[derive(Debug, Default, Encodable)]
 pub struct EffectsOutput {
   args_effects: Vec<(String, Vec<Effect>)>,
   arg_spans: HashMap<usize, Range>,
