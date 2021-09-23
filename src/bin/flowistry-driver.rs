@@ -13,7 +13,7 @@ use std::{
   env,
   fmt::Debug,
   ops::Deref,
-  path::{Path, PathBuf},
+  path::PathBuf,
   process::{exit, Command},
   str::FromStr,
 };
@@ -106,7 +106,7 @@ fn main() {
   env_logger::init();
 
   exit(rustc_driver::catch_with_exit_code(move || {
-    let mut orig_args: Vec<String> = env::args().collect();
+    let orig_args: Vec<String> = env::args().collect();
 
     let sys_root_arg = arg_value(&orig_args, "--sysroot", |_| true);
     let have_sys_root_arg = sys_root_arg.is_some();
@@ -146,31 +146,13 @@ fn main() {
         "need to specify SYSROOT env var during flowistry compilation, or use rustup or multirust",
       );
 
-    // // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
-    // // We're invoking the compiler programmatically, so we ignore this/
-
-    // this conditional check for the --sysroot flag is there so users can call
-    // `flowistry-driver` directly
-    // without having to pass --sysroot or anything
     let mut args: Vec<String> = orig_args.clone();
 
-    // if let Some(arg) = args.get(2) {
-    //   if arg != "-" {
-    //     args.remove(1);
-    //   }
-    // }
-
+    // remove flowistry-driver from invocation
     args.remove(0);
 
-    // let wrapper_mode =
-    //   args.get(1).map(Path::new).and_then(Path::file_stem) == Some("rustc".as_ref());
-
-    // if wrapper_mode {
-    //   // we still want to be able to invoke it normally though
-    //   args.remove(1);
-    // }
-
-
+    // this conditional check for the --sysroot flag is there so users can call
+    // `flowistry-driver` directly without having to pass --sysroot or anything
     if !have_sys_root_arg {
       args.extend(vec!["--sysroot".into(), sys_root]);
     }
@@ -185,20 +167,11 @@ fn main() {
       }
     });
 
-    log::info!("{:#?}", orig_args);
-    log::info!("{:#?}", args);
-
     if is_flowistry {
       run_flowistry(&args).unwrap();
       Ok(())
     } else {
       rustc_driver::RunCompiler::new(&args, &mut DefaultCallbacks).run()
     }
-    // let in_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
-
-    // if in_primary_package {
-
-    // } else {
-    // }
   }))
 }
