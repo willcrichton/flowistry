@@ -15,7 +15,7 @@ fn main() {
   let cargo_path = env::var("CARGO_PATH").unwrap_or_else(|_| "cargo".to_string());
 
   let matches = clap_app!(flowistry =>
-    (version: "0.3.5")
+    (version: "0.3.6")
     (author: "Will Crichton <wcrichto@cs.stanford.edu>")
     (@setting TrailingVarArg)
     (@subcommand rustc_version =>)
