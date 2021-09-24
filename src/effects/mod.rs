@@ -35,7 +35,8 @@ pub struct EffectsOutput {
   args_effects: Vec<(String, Vec<Effect>)>,
   arg_spans: HashMap<usize, Range>,
   returns: Vec<Effect>,
-  body_span: Option<Range>,
+  body_span: Range,
+  fn_name: String
 }
 
 impl FlowistryOutput for EffectsOutput {
@@ -43,9 +44,8 @@ impl FlowistryOutput for EffectsOutput {
     self.args_effects.extend(other.args_effects.into_iter());
     self.arg_spans.extend(other.arg_spans.into_iter());
     self.returns.extend(other.returns.into_iter());
-    if self.body_span.is_none() {
-      self.body_span = other.body_span;
-    }
+    self.body_span = other.body_span;
+    self.fn_name = other.fn_name;
   }
 }
 
@@ -145,12 +145,14 @@ impl FlowistryAnalysis for EffectsHarness {
       ranged_effects[i].1.unique = unique;
     }
 
-    let body_span = Some(Range::from_span(
+    let body_span = Range::from_span(
       tcx.hir().body(body_id).value.span,
       source_map,
-    )?);
+    )?;
+    let fn_name = tcx.def_path_str(tcx.hir().body_owner_def_id(body_id).to_def_id());
     let mut output = EffectsOutput {
       body_span,
+      fn_name,
       ..Default::default()
     };
 
@@ -225,6 +227,7 @@ impl FlowistryAnalysis for EffectsHarness {
         }
       }
     }
+
 
     output.args_effects = args_effects.into_iter().collect::<Vec<_>>();
     output

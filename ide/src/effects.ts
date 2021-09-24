@@ -46,8 +46,8 @@ export let effects = async (
 
     let ext_dir = vscode.Uri.joinPath(context.extensionUri, "out");
     const panel = vscode.window.createWebviewPanel(
-      "flowistry",
-      "Flowistry",
+      "flowistry.effects",
+      `Flowistry: effects of ${effects.fn_name}`,
       vscode.ViewColumn.Beside,
       {
         enableScripts: true,
@@ -64,14 +64,14 @@ export let effects = async (
 
     let csp_source = webview.cspSource;
     let nonce = "foobar";
-
+    
     webview.html = `
 <!DOCTYPE html>
 <html>
 <head>
   <link rel="stylesheet" href="${css_uri}" />
 </head>          
-<body>
+<body class="">
   <div id="app"></div>
   <script nonce="${nonce}" src="${js_uri}"></script>
 </body>        
@@ -111,10 +111,10 @@ export let effects = async (
 
     let message: Message = {
       type: "input",
-      data: { arg_strs, ret_strs },
+      data: { arg_strs, ret_strs, fn_name: effects.fn_name },
     };
     webview.postMessage(message);
-  } catch (exc) {
+  } catch (exc: any) {
     log("ERROR", exc);
     show_error(exc);
   }

@@ -10,11 +10,11 @@ import {
 import _ from "lodash";
 
 export let highlight_type = vscode.window.createTextEditorDecorationType({
-  backgroundColor: "rgb(255, 243, 235)",
+  backgroundColor: new vscode.ThemeColor("editor.symbolHighlightBackground")
 });
 
 export let hide_type = vscode.window.createTextEditorDecorationType({
-  color: new vscode.ThemeColor("editorUnnecessaryCode.opacity"),
+  opacity: "0.4"
 });
 
 let style = {

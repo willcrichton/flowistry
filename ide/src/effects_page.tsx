@@ -26,18 +26,6 @@ const vscode = window.acquireVsCodeApi();
 
 let Code: React.FC<{ children: string }> = ({ children }) => (
   <code>{children}</code>
-  /* <Editor
-    defaultLanguage="rust"
-    defaultValue={children}
-    height="1em"
-    options={{
-      renderLineHighlight: "none",
-      minimap: { enabled: false },
-      scrollbar: { vertical: "hidden" },
-      lineNumbers: "off",
-      readOnly: true
-    }}
-  /> */
 );
 
 let App: React.FC = () => {
@@ -57,6 +45,9 @@ let App: React.FC = () => {
       <div>
         {data !== null ? (
           <div>
+            <h1>
+              Effects of <code>{data.fn_name}</code>
+            </h1>
             {data.arg_strs.length == 0 && data.ret_strs.length == 0
               ? "This function has no effects!"
               : null}
