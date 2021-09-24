@@ -27,22 +27,34 @@ jobs:
       matrix:
         include:
           - os: ubuntu-20.04
-            key: x86_64-unknown-linux-gnu
+            target: x86_64-unknown-linux-gnu
+          - os: ubuntu-20.04
+            target: aarch64-unknown-linux-gnu
           - os: macos-10.15
-            key: x86_64-apple-darwin
+            target: x86_64-apple-darwin
+          - os: macos-10.15
+            target: aarch64-apple-darwin
+          - os: windows-2019
+            target: x86_64-pc-windows-msvc
+          - os: windows-2019
+            target: aarch-pc-windows-msvc
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          target: ${{ matrix.target }}
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release
-      - run: tar -czf ${{ matrix.key }}.tar.gz cargo-flowistry flowistry-driver
-        working-directory: target/release
+          args: --release --target ${{ matrix.target }}
+      - run: tar -czf ${{ matrix.target }}.tar.gz cargo-flowistry flowistry-driver
+        working-directory: target/${{ matrix.target }}/release
       - uses: actions/upload-artifact@v2
+        working-directory: target/${{ matrix.target }}/release
         with:
-          name: ${{ matrix.key }}
-          path: target/release/${{ matrix.key }}.tar.gz
+          name: ${{ matrix.target }}
+          path: ${{ matrix.target }}.tar.gz
 
   publish-release:
     needs: build-artifacts

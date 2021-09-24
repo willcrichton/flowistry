@@ -123,8 +123,12 @@ export async function setup(): Promise<CallFlowistry | null> {
     }
   }
 
+  let rustc_path = await exec(
+    `rustup which --toolchain ${TOOLCHAIN.channel} rustc`,
+    "Waiting for rustc..."
+  );
   let target_info = await exec(
-    `$(rustup which --toolchain ${TOOLCHAIN.channel} rustc) --print target-libdir --print sysroot`,
+    `${rustc_path} --print target-libdir --print sysroot`,
     "Waiting for rustc..."
   );
   let [target_libdir, sysroot] = target_info.split("\n");
