@@ -199,7 +199,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
           .or_default()
           .push((place, mutability));
       }
-      RegionKind::ReStatic => {}
+      RegionKind::ReStatic | RegionKind::ReErased => {}
       _ => unreachable!("{:?}: {:?}", self.ty_stack.first().unwrap(), region),
     };
 

@@ -105,7 +105,7 @@ fn main() {
   let mut cmd = Command::new(cargo_path);
   cmd
     .env("RUSTC_WORKSPACE_WRAPPER", flowistry_rustc_path)
-    .args(&["rustc", "--profile", "check", "-vv"]);
+    .args(&["rustc", "--profile", "check", "-q"]);
 
   // Add compile filter to specify the target corresponding to the given file
   cmd.arg("-p").arg(&pkg.name);
