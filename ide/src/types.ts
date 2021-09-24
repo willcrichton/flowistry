@@ -21,6 +21,7 @@ export interface Effects {
   arg_spans: { [arg: string]: Range };
   returns: Effect[];
   body_span: Range;
+  fn_name: string;
 }
 
 export interface Message {
@@ -44,7 +45,8 @@ export type SelectedSlice = ArgSlice | RetSlice;
 export interface EffectStrings {
   arg_strs: {
     arg: string;
-    effects: string[]
+    effects: string[];
   }[];
-  ret_strs: string[]
+  ret_strs: string[];
+  fn_name: string;
 }
