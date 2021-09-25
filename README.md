@@ -36,6 +36,8 @@ A forward static slice identifies every piece of code that is affected by a valu
 
 The timer doesn't affect the value of the computation, so `run_expensive_calculation` isn't part of the forward slice of `start`. In this example, Flowistry sets the user's selected text to the slice. Then the user can use other IDE features like bulk-commenting (⌘-/ in VSCode on macOS) on that selection.
 
+Note that this example shows how slices are *transitive*: `start` influences `elapsed`, and `elapsed` influences `println`, so `start` influences `println`.
+
 <br>
 <br>
 
