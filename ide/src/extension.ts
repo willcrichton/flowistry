@@ -31,7 +31,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
 
     register_with_opts("effects", () => effects(context, call_flowistry!));
-  } catch (e) {
+  } catch (e: any) {
     show_error(e.toString());
   }
 
