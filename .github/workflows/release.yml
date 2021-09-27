@@ -28,30 +28,36 @@ jobs:
         include:
           - os: ubuntu-20.04
             target: x86_64-unknown-linux-gnu
-          # - os: ubuntu-20.04
-          #   target: aarch64-unknown-linux-gnu
+          - os: ubuntu-20.04
+            target: aarch64-unknown-linux-gnu
           - os: macos-10.15
             target: x86_64-apple-darwin
-          # - os: macos-10.15
-          #   target: aarch64-apple-darwin
-          # - os: windows-2019
-          #   target: x86_64-pc-windows-msvc
-          # - os: windows-2019
-          #   target: aarch64-pc-windows-msvc
+          - os: macos-10.15
+            target: aarch64-apple-darwin
+          - os: windows-2019
+            target: x86_64-pc-windows-msvc
+          - os: windows-2019
+            target: aarch64-pc-windows-msvc
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v1
-      - run: rustup target add ${{ matrix.target }}
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly-2021-09-23
+          components: rust-src, rustc-dev, llvm-tools-preview
+          target: ${{ matrix.target }}
+          profile: minimal
+          override: true
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release --target ${{ matrix.target }}
+          args: --release
       - run: tar -czf ${{ matrix.target }}.tar.gz cargo-flowistry flowistry-driver
-        working-directory: target/${{ matrix.target }}/release
+        working-directory: target/release
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/${{ matrix.target }}.tar.gz
+          path: target/release/${{ matrix.target }}.tar.gz
 
   publish-release:
     needs: build-artifacts
