@@ -1,19 +1,24 @@
 import * as vscode from "vscode";
 import * as cp from "child_process";
 import _ from "lodash";
-import { log, CallFlowistry } from "./vsc_utils";
 import { Readable } from "stream";
+
+import { log, CallFlowistry } from "./vsc_utils";
+import { download } from "./download";
 
 declare const VERSION: string;
 declare const TOOLCHAIN: {
   channel: string;
   components: string[];
 };
-declare const INSTALL_SCRIPT: string;
 
 const SHOW_LOADER_THRESHOLD = 2000;
 
-let exec = async (cmd: string, title: string, opts?: any): Promise<string> => {
+let exec_notify = async (
+  cmd: string,
+  title: string,
+  opts?: any
+): Promise<string> => {
   log("Running command: ", cmd);
 
   // See issue #4
@@ -75,6 +80,8 @@ let exec = async (cmd: string, title: string, opts?: any): Promise<string> => {
   return outcome;
 };
 
+
+
 export async function setup(): Promise<CallFlowistry | null> {
   let folders = vscode.workspace.workspaceFolders;
   if (!folders || folders.length === 0) {
@@ -88,7 +95,7 @@ export async function setup(): Promise<CallFlowistry | null> {
 
   let version;
   try {
-    let output = await exec(
+    let output = await exec_notify(
       `${cargo} flowistry -V`,
       "Waiting for Flowistry..."
     );
@@ -100,17 +107,16 @@ export async function setup(): Promise<CallFlowistry | null> {
   if (version != VERSION) {
     let components = TOOLCHAIN.components.join(",");
     let rustup_cmd = `rustup toolchain install ${TOOLCHAIN.channel} -c ${components}`;
-    await exec(rustup_cmd, "Installing nightly Rust...");
+    await exec_notify(rustup_cmd, "Installing nightly Rust...");
 
-    try {
-      await exec(INSTALL_SCRIPT, "Downloading Flowistry binaries...", {
-        RELEASE: `v${VERSION}`,
-      });
+    try { 
+      // FIXME: disabling downloads temporarily while fixing tar issue
+      // await download();      
     } catch (e: any) {
       log("Install script failed with error:", e.toString());
 
       let cargo_cmd = `${cargo} install flowistry --version ${VERSION} --force`;
-      await exec(
+      await exec_notify(
         cargo_cmd,
         "Flowistry binaries not available, instead installing Flowistry crate from source... (this may take a minute)"
       );
@@ -123,11 +129,11 @@ export async function setup(): Promise<CallFlowistry | null> {
     }
   }
 
-  let rustc_path = await exec(
+  let rustc_path = await exec_notify(
     `rustup which --toolchain ${TOOLCHAIN.channel} rustc`,
     "Waiting for rustc..."
   );
-  let target_info = await exec(
+  let target_info = await exec_notify(
     `${rustc_path} --print target-libdir --print sysroot`,
     "Waiting for rustc..."
   );
@@ -147,7 +153,7 @@ export async function setup(): Promise<CallFlowistry | null> {
     }
 
     try {
-      return exec(cmd, "Waiting for Flowistry...", {
+      return exec_notify(cmd, "Waiting for Flowistry...", {
         cwd: workspace_root,
         [library_path]: target_libdir,
         SYSROOT: sysroot,
