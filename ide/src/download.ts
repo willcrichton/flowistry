@@ -4,9 +4,7 @@ import * as util from "util";
 import got from "got";
 import os from "os";
 import path from "path";
-import stream from "stream";
-import tar from "tar-fs";
-import gunzip from "gunzip-maybe";
+import AdmZip from "adm-zip";
 
 import {log} from "./vsc_utils";
 
@@ -28,13 +26,14 @@ export let download = async () => {
 
   let repo = "willcrichton/flowistry";
   let release_base_url = `https://github.com/${repo}/releases/download/v${VERSION}`;
-  let release_name = `${target}.tar.gz`;
+  let release_name = `${target}.zip`;
   let release_url = `${release_base_url}/${release_name}`;
 
   let cargo_home = process.env.CARGO_HOME || path.join(os.homedir(), ".cargo");
   let cargo_bin = path.join(cargo_home, "bin");
 
-  log("Downloading: ", release_url);
-  let pipeline = util.promisify(stream.pipeline);
-  await pipeline(got.stream(release_url), gunzip(10), tar.extract(cargo_bin));
+  log(`Downloading ${release_url} to ${cargo_bin}`);
+  let buffer = await got.get(release_url).buffer();
+  let zip = new AdmZip(buffer);
+  zip.extractAllTo(cargo_bin);
 };

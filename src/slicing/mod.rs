@@ -1,6 +1,6 @@
 use crate::{
   core::{
-    analysis::{FlowistryAnalysis, FlowistryOutput},
+    analysis::{FlowistryAnalysis, FlowistryOutput, FlowistryResult},
     config::Range,
     utils,
   },
@@ -90,6 +90,10 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
   }
 }
 
-pub fn slice(direction: Direction, range: Range, compiler_args: &[String]) -> Result<SliceOutput> {
+pub fn slice(
+  direction: Direction,
+  range: Range,
+  compiler_args: &[String],
+) -> FlowistryResult<SliceOutput> {
   ForwardSliceAnalysis { direction, range }.run(compiler_args)
 }

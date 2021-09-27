@@ -1,6 +1,6 @@
 use crate::{
   core::{
-    analysis::{FlowistryAnalysis, FlowistryOutput},
+    analysis::{FlowistryAnalysis, FlowistryOutput, FlowistryResult},
     config::Range,
     indexed::IndexedDomain,
     utils,
@@ -36,7 +36,7 @@ pub struct EffectsOutput {
   arg_spans: HashMap<usize, Range>,
   returns: Vec<Effect>,
   body_span: Range,
-  fn_name: String
+  fn_name: String,
 }
 
 impl FlowistryOutput for EffectsOutput {
@@ -145,10 +145,7 @@ impl FlowistryAnalysis for EffectsHarness {
       ranged_effects[i].1.unique = unique;
     }
 
-    let body_span = Range::from_span(
-      tcx.hir().body(body_id).value.span,
-      source_map,
-    )?;
+    let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
     let fn_name = tcx.def_path_str(tcx.hir().body_owner_def_id(body_id).to_def_id());
     let mut output = EffectsOutput {
       body_span,
@@ -228,7 +225,6 @@ impl FlowistryAnalysis for EffectsHarness {
       }
     }
 
-
     output.args_effects = args_effects.into_iter().collect::<Vec<_>>();
     output
       .args_effects
@@ -242,6 +238,6 @@ impl FlowistryAnalysis for EffectsHarness {
   }
 }
 
-pub fn effects(id: FunctionIdentifier, compiler_args: &[String]) -> Result<EffectsOutput> {
+pub fn effects(id: FunctionIdentifier, compiler_args: &[String]) -> FlowistryResult<EffectsOutput> {
   EffectsHarness { id }.run(compiler_args)
 }

@@ -116,11 +116,11 @@ export async function slice(
     let start = doc.offsetAt(selection.start);
     let end = doc.offsetAt(selection.end);
     let cmd = `${subcmd} ${doc.fileName} ${start} ${end}`;
-    let stdout = await call_flowistry(cmd);
-
-    let lines = stdout.split("\n");
-    let last_line = lines[lines.length - 1];
-    let slice_output: SliceOutput = JSON.parse(last_line);
+    let slice_output_maybe = await call_flowistry<SliceOutput>(cmd);
+    if (slice_output_maybe === null) {
+      return;
+    }
+    let slice_output: SliceOutput = slice_output_maybe;
 
     if (slice_output.ranges.length === 0) {
       let selected_text = active_editor.document.getText(selection);

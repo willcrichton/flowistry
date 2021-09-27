@@ -34,7 +34,10 @@ mod effects;
 mod flow;
 mod slicing;
 
-pub use crate::core::config::{Config, Range};
+pub use crate::core::{
+  analysis::{FlowistryError, FlowistryResult},
+  config::{Config, Range},
+};
 pub use effects::{effects, FunctionIdentifier};
 pub use flow::Direction;
 pub use slicing::{slice, SliceOutput};

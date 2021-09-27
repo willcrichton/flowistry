@@ -12,7 +12,7 @@ export async function activate(context: vscode.ExtensionContext) {
   log("Activating...");
 
   try {
-    let call_flowistry = await setup();
+    let call_flowistry = await setup(context);
     if (call_flowistry === null) {
       return;
     }

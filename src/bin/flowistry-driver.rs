@@ -3,12 +3,14 @@
 #![feature(rustc_private)]
 
 extern crate rustc_driver;
+extern crate rustc_errors;
+extern crate rustc_interface;
 extern crate rustc_serialize;
 
-use anyhow::Result;
-use flowistry::Direction;
+use flowistry::{Direction, FlowistryError, FlowistryResult};
 use log::debug;
-use rustc_serialize::json;
+use rustc_interface::interface::Result as RustcResult;
+use rustc_serialize::{json, Encodable};
 use std::{
   env,
   fmt::Debug,
@@ -62,7 +64,25 @@ fn toolchain_path(home: Option<String>, toolchain: Option<String>) -> Option<Pat
   })
 }
 
-fn run_flowistry(args: &[String]) -> Result<()> {
+fn try_analysis<T: for<'a> Encodable<json::Encoder<'a>>>(
+  f: impl FnOnce() -> FlowistryResult<T>,
+) -> RustcResult<()> {
+  let result = match f() {
+    Ok(output) => Ok(output),
+    Err(e) => match e {
+      FlowistryError::BuildError => {
+        return Err(rustc_errors::ErrorReported);
+      }
+      FlowistryError::AnalysisError(msg) => Err(msg),
+    },
+  };
+
+  println!("{}", json::encode(&result).unwrap());
+
+  Ok(())
+}
+
+fn run_flowistry(args: &[String]) -> RustcResult<()> {
   debug!("Running flowistry with args: {}", args.join(" "));
   match arg::<String>("COMMAND").as_str() {
     cmd @ ("backward_slice" | "forward_slice") => {
@@ -78,10 +98,7 @@ fn run_flowistry(args: &[String]) -> Result<()> {
         Direction::Forward
       };
 
-      let slice = flowistry::slice(direction, range, args).unwrap();
-
-      println!("{}", json::encode(&slice).unwrap());
-      Ok(())
+      try_analysis(move || flowistry::slice(direction, range, args))
     }
     "effects" => {
       let pos = arg::<usize>("POS");
@@ -90,9 +107,7 @@ fn run_flowistry(args: &[String]) -> Result<()> {
         end: pos,
         filename: arg::<String>("FILE"),
       });
-      let effects = flowistry::effects(id, args).unwrap();
-      println!("{}", json::encode(&effects).unwrap());
-      Ok(())
+      try_analysis(move || flowistry::effects(id, args))
     }
     _ => unimplemented!(),
   }
@@ -168,8 +183,7 @@ fn main() {
     });
 
     if is_flowistry {
-      run_flowistry(&args).unwrap();
-      Ok(())
+      run_flowistry(&args)
     } else {
       rustc_driver::RunCompiler::new(&args, &mut DefaultCallbacks).run()
     }

@@ -28,10 +28,12 @@ export let effects = async (
 
   try {
     let cmd = `effects ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
-    let stdout = await call_flowistry(cmd);
-    let lines = stdout.split("\n");
-    let last_line = lines[lines.length - 1];
-    let effects: Effects = JSON.parse(last_line);
+    let effects_maybe = await call_flowistry<Effects>(cmd);
+    if (effects_maybe === null) {
+      return;
+    }
+    let effects: Effects = effects_maybe;
+   
     let body_range = effects.body_span;
 
     let arg_strs = effects.args_effects.map(([arg, effects]) => {
