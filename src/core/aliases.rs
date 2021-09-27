@@ -365,7 +365,7 @@ where
       debug!("Places: {:#?}", all_places);
       debug!("Place domain size: {}", all_places.len());
 
-      Rc::new(PlaceDomain::new(tcx, all_places))
+      Rc::new(PlaceDomain::new(tcx, def_id, all_places))
     };
 
     let arg_places: PlaceSet = body

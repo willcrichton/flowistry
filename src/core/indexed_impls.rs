@@ -4,8 +4,9 @@ use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_index::vec::Enumerated;
 use rustc_middle::{
   mir::{BasicBlock, Body, Local, Location, Place, ProjectionElem},
-  ty::{ParamEnv, TyCtxt},
+  ty::TyCtxt,
 };
+use rustc_span::def_id::DefId;
 
 use std::{cell::RefCell, rc::Rc, slice::Iter};
 
@@ -19,12 +20,14 @@ to_index_impl!(Place<'tcx>);
 
 struct NormalizedPlaces<'tcx> {
   tcx: TyCtxt<'tcx>,
+  def_id: DefId,
   cache: HashMap<Place<'tcx>, Place<'tcx>>,
 }
 
 impl NormalizedPlaces<'tcx> {
   fn normalize(&mut self, place: Place<'tcx>) -> Place<'tcx> {
     let tcx = self.tcx;
+    let def_id = self.def_id;
     *self.cache.entry(place).or_insert_with(|| {
       // consider a place _1: &'1 <T as SomeTrait>::Foo[2]
       //   we might encounter this type with a different region, e.g. &'2
@@ -32,7 +35,8 @@ impl NormalizedPlaces<'tcx> {
       // to account for this variation, we use normalize_erasing_regions
       //
       // we also want any index to be treated the same, so we replace [i] => [0]
-      let place = tcx.normalize_erasing_regions(ParamEnv::reveal_all(), place);
+      let param_env = tcx.param_env(def_id);
+      let place = tcx.normalize_erasing_regions(param_env, place);
       let projection = place
         .projection
         .into_iter()
@@ -57,9 +61,10 @@ pub struct PlaceDomain<'tcx> {
 }
 
 impl PlaceDomain<'tcx> {
-  pub fn new(tcx: TyCtxt<'tcx>, places: Vec<Place<'tcx>>) -> Self {
+  pub fn new(tcx: TyCtxt<'tcx>, def_id: DefId, places: Vec<Place<'tcx>>) -> Self {
     let normalized_places = Rc::new(RefCell::new(NormalizedPlaces {
       tcx,
+      def_id,
       cache: HashMap::default(),
     }));
 
