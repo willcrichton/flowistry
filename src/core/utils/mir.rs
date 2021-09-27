@@ -193,11 +193,17 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
           local: self.local,
           projection: self.tcx.intern_place_elems(&self.place_stack),
         };
+
         self
           .regions
           .entry(*region)
           .or_default()
           .push((place, mutability));
+
+        // for initialization setup of Aliases::build
+        if let Some(places) = self.places.as_mut() {
+          places.insert(self.tcx.mk_place_deref(place));
+        }
       }
       RegionKind::ReStatic | RegionKind::ReErased => {}
       _ => unreachable!("{:?}: {:?}", self.ty_stack.first().unwrap(), region),
