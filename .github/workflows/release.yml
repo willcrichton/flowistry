@@ -34,10 +34,10 @@ jobs:
             target: x86_64-apple-darwin
           - os: macos-10.15
             target: aarch64-apple-darwin
-          # - os: windows-2019
-          #   target: x86_64-pc-windows-msvc
-          # - os: windows-2019
-          #   target: aarch64-pc-windows-msvc
+          - os: windows-2019
+            target: x86_64-pc-windows-msvc
+          - os: windows-2019
+            target: aarch64-pc-windows-msvc
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v1
@@ -52,12 +52,12 @@ jobs:
         with:
           command: build
           args: --release
-      - run: tar --format=pax -czf ${{ matrix.target }}.tar.gz cargo-flowistry flowistry-driver
+      - run: zip ${{ matrix.target }}.zip cargo-flowistry* flowistry-driver*
         working-directory: target/release
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.target }}
-          path: target/release/${{ matrix.target }}.tar.gz
+          path: target/release/${{ matrix.target }}.zip
 
   publish-release:
     needs: build-artifacts
@@ -67,18 +67,22 @@ jobs:
       - uses: softprops/action-gh-release@v1
         with:
           files: |
-            x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu.tar.gz
-            x86_64-apple-darwin/x86_64-apple-darwin.tar.gz          
+            x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu.zip
+            aarch64-unknown-linux-gnu/aarch64-unknown-linux-gnu.zip
+            x86_64-apple-darwin/x86_64-apple-darwin.zip   
+            aarch64-apple-darwin/aarch64-apple-darwin.zip
+            x86_64-pc-windows-msvc/x86_64-pc-windows-msvc.zip
+            aarch64-pc-windows-msvc/aarch64-pc-windows-msvc.zip
 
   publish-extension:
     needs: publish-release
     runs-on: ubuntu-20.04
     steps:
-       - uses: actions/checkout@v1
-       - run: cd ide && npm install
-       - run: cd ide && npm install -g vsce && vsce publish -p ${{ secrets.VSCODE_TOKEN }}
-       - run: cd ide && npm install -g ovsx && npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
-          
+      - uses: actions/checkout@v1
+      - run: cd ide && npm install
+      - run: cd ide && npm install -g vsce && vsce publish -p ${{ secrets.VSCODE_TOKEN }}
+      - run: cd ide && npm install -g ovsx && npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
+
   publish-crate:
     needs: publish-extension
     runs-on: ubuntu-20.04
@@ -88,4 +92,3 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: publish
-

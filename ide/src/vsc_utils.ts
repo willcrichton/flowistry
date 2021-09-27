@@ -68,4 +68,4 @@ ${log_text}`,
   }
 };
 
-export type CallFlowistry = (args: string) => Promise<string>;
+export type CallFlowistry = <T>(args: string) => Promise<T | null>;

@@ -1,4 +1,3 @@
-use anyhow::Result;
 use log::info;
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
@@ -17,13 +16,21 @@ pub trait FlowistryOutput: Send + Sync + Default {
   fn merge(&mut self, other: Self);
 }
 
+#[derive(Debug)]
+pub enum FlowistryError {
+  BuildError,
+  AnalysisError(String),
+}
+
+pub type FlowistryResult<T> = Result<T, FlowistryError>;
+
 pub trait FlowistryAnalysis: Send + Sync + Sized {
   type Output: FlowistryOutput;
 
-  fn locations(&self, tcx: TyCtxt) -> Result<Vec<Span>>;
-  fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output>;
+  fn locations(&self, tcx: TyCtxt) -> anyhow::Result<Vec<Span>>;
+  fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> anyhow::Result<Self::Output>;
 
-  fn run(self, compiler_args: &[String]) -> Result<Self::Output> {
+  fn run(self, compiler_args: &[String]) -> FlowistryResult<Self::Output> {
     let mut compiler_args = compiler_args.to_vec();
 
     compiler_args.extend(
@@ -39,11 +46,15 @@ pub trait FlowistryAnalysis: Send + Sync + Sized {
     };
 
     info!("Starting rustc analysis...");
-    rustc_driver::RunCompiler::new(&compiler_args, &mut callbacks)
-      .run()
-      .unwrap();
+    let compiler = rustc_driver::RunCompiler::new(&compiler_args, &mut callbacks);
+    if let Err(_) = compiler.run() {
+      return Err(FlowistryError::BuildError);
+    }
 
-    callbacks.output.unwrap()
+    callbacks
+      .output
+      .unwrap()
+      .map_err(|e| FlowistryError::AnalysisError(e.to_string()))
   }
 }
 
@@ -51,7 +62,7 @@ struct VisitorContext<'tcx, A: FlowistryAnalysis> {
   tcx: TyCtxt<'tcx>,
   analysis: A,
   locations: Vec<Span>,
-  output: Result<A::Output>,
+  output: anyhow::Result<A::Output>,
 }
 
 impl<A> VisitorContext<'_, A>
@@ -118,7 +129,7 @@ impl<A: FlowistryAnalysis> ItemLikeVisitor<'tcx> for AnalysisVisitor<'tcx, A> {
 
 struct Callbacks<A: FlowistryAnalysis> {
   analysis: Option<A>,
-  output: Option<Result<A::Output>>,
+  output: Option<anyhow::Result<A::Output>>,
   rustc_start: Instant,
 }
 

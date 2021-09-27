@@ -10,7 +10,7 @@ use std::{
 };
 use tempfile::NamedTempFile;
 
-use flowistry::{Direction, FunctionIdentifier, Range};
+use flowistry::{Direction, FunctionIdentifier, Range, FlowistryResult};
 
 fn parse_ranges(
   prog: &str,
@@ -121,7 +121,7 @@ fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &str) 
 pub fn flow<O: Debug>(
   prog: &str,
   id: FunctionIdentifier,
-  cb: impl FnOnce(FunctionIdentifier, &[String]) -> Result<O>,
+  cb: impl FnOnce(FunctionIdentifier, &[String]) -> FlowistryResult<O>,
 ) {
   let inner = move || -> Result<()> {
     let mut f = NamedTempFile::new()?;
@@ -164,7 +164,7 @@ pub fn slice(prog: &str, direction: Direction) {
 
     let args = args.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
 
-    let output = flowistry::slice(direction, range, &args)?;
+    let output = flowistry::slice(direction, range, &args).unwrap();
     let actual = output.ranges().into_iter().cloned().collect::<HashSet<_>>();
 
     compare_ranges(expected, actual, &prog_clean);

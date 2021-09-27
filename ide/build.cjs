@@ -8,11 +8,9 @@ const pkg = require("./package.json");
 const options = cli();
 
 const rust_toolchain = toml.parse(fs.readFileSync("../rust-toolchain.toml"));
-const install_script = fs.readFileSync('../scripts/install-binaries.sh').toString();
 const define = {
   TOOLCHAIN: JSON.stringify(rust_toolchain.toolchain),
   VERSION: JSON.stringify(pkg.version),
-  INSTALL_SCRIPT: JSON.stringify(install_script)
 };
 
 let common = {

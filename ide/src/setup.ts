@@ -3,6 +3,7 @@ import * as cp from "child_process";
 import _ from "lodash";
 import { Readable } from "stream";
 
+import { Result } from "./types";
 import { log, CallFlowistry } from "./vsc_utils";
 import { download } from "./download";
 
@@ -44,7 +45,7 @@ let exec_notify = async (
   let promise = new Promise<string>((resolve, reject) => {
     proc.addListener("close", (_) => {
       if (proc.exitCode !== 0) {
-        reject(stderr().split("\n").slice(-1)[0]);
+        reject(stderr());
       } else {
         resolve(stdout());
       }
@@ -80,9 +81,9 @@ let exec_notify = async (
   return outcome;
 };
 
-
-
-export async function setup(): Promise<CallFlowistry | null> {
+export async function setup(
+  context: vscode.ExtensionContext
+): Promise<CallFlowistry | null> {
   let folders = vscode.workspace.workspaceFolders;
   if (!folders || folders.length === 0) {
     return null;
@@ -109,9 +110,8 @@ export async function setup(): Promise<CallFlowistry | null> {
     let rustup_cmd = `rustup toolchain install ${TOOLCHAIN.channel} -c ${components}`;
     await exec_notify(rustup_cmd, "Installing nightly Rust...");
 
-    try { 
-      // FIXME: disabling downloads temporarily while fixing tar issue
-      // await download();      
+    try {
+      await download();
     } catch (e: any) {
       log("Install script failed with error:", e.toString());
 
@@ -141,7 +141,27 @@ export async function setup(): Promise<CallFlowistry | null> {
   log("Target libdir:", target_libdir);
   log("Sysroot: ", sysroot);
 
-  let call_flowistry: CallFlowistry = async (args) => {
+  const tdcp = new (class implements vscode.TextDocumentContentProvider {
+    readonly uri = vscode.Uri.parse("flowistry://build-error");
+    readonly eventEmitter = new vscode.EventEmitter<vscode.Uri>();
+    contents: string = "";
+
+    provideTextDocumentContent(
+      _uri: vscode.Uri
+    ): vscode.ProviderResult<string> {
+      return `Flowistry could not run because your project failed to build with error:\n${this.contents}`;
+    }
+
+    get onDidChange(): vscode.Event<vscode.Uri> {
+      return this.eventEmitter.event;
+    }
+  })();
+
+  context.subscriptions.push(
+    vscode.workspace.registerTextDocumentContentProvider("flowistry", tdcp)
+  );
+
+  return async <T>(args: string) => {
     let cmd = `${cargo} flowistry ${args}`;
     let library_path;
     if (process.platform == "darwin") {
@@ -152,16 +172,31 @@ export async function setup(): Promise<CallFlowistry | null> {
       library_path = "LD_LIBRARY_PATH";
     }
 
+    let output;
     try {
-      return exec_notify(cmd, "Waiting for Flowistry...", {
+      let editor = vscode.window.activeTextEditor;
+      if (editor) {
+        await editor.document.save();
+      }
+
+      output = await exec_notify(cmd, "Waiting for Flowistry...", {
         cwd: workspace_root,
         [library_path]: target_libdir,
         SYSROOT: sysroot,
       });
     } catch (e: any) {
-      throw `Flowistry failed to execute: ${e.toString()}`;
+      tdcp.contents = e.toString();
+      tdcp.eventEmitter.fire(tdcp.uri);
+      let doc = await vscode.workspace.openTextDocument(tdcp.uri);
+      await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
+      return null;
     }
-  };
 
-  return call_flowistry;
+    let output_typed: Result<T> = JSON.parse(output);
+    if (output_typed.variant === "Err") {
+      throw output_typed.fields[0];
+    }
+
+    return output_typed.fields[0];
+  };
 }
