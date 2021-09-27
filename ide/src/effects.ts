@@ -33,7 +33,7 @@ export let effects = async (
       return;
     }
     let effects: Effects = effects_maybe;
-   
+
     let body_range = effects.body_span;
 
     let arg_strs = effects.args_effects.map(([arg, effects]) => {
@@ -66,7 +66,7 @@ export let effects = async (
 
     let csp_source = webview.cspSource;
     let nonce = "foobar";
-    
+
     webview.html = `
 <!DOCTYPE html>
 <html>

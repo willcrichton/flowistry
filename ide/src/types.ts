@@ -1,12 +1,12 @@
 export interface Ok<T> {
-  variant: "Ok",
-  fields: [T]
-};
+  variant: "Ok";
+  fields: [T];
+}
 
 export interface Err {
-  variant: "Err",
-  fields: [string]
-};
+  variant: "Err";
+  fields: [string];
+}
 
 export type Result<T> = Ok<T> | Err;
 
