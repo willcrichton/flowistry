@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use log::info;
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
@@ -6,7 +7,7 @@ use rustc_hir::{
 };
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::Span;
-use std::time::Instant;
+use std::{panic, time::Instant};
 
 use crate::core::utils::elapsed;
 
@@ -81,7 +82,17 @@ where
     let timer_name = format!("Flowistry ({})", fn_name);
     let _timer = block_timer(&timer_name);
 
-    match analysis.analyze_function(tcx, body_id) {
+    let output = panic::catch_unwind(panic::AssertUnwindSafe(move || {
+      analysis.analyze_function(tcx, body_id)
+    }))
+    .unwrap_or_else(|panic_msg| {
+      Err(match panic_msg.downcast_ref::<String>() {
+        Some(msg) => anyhow!("{}", msg),
+        None => anyhow!("Unknown panic"),
+      })
+    });
+
+    match output {
       Ok(output) => self.output.as_mut().unwrap().merge(output),
       err => {
         self.output = err;
@@ -102,6 +113,7 @@ impl<A: FlowistryAnalysis> Visitor<'tcx> for AnalysisItemVisitor<'_, 'tcx, A> {
   fn visit_nested_body(&mut self, id: BodyId) {
     let tcx = self.0.tcx;
     intravisit::walk_body(self, tcx.hir().body(id));
+
     let header_span = tcx.def_span(tcx.hir().body_owner_def_id(id));
     let body_span = tcx.hir().span(id.hir_id);
     let full_span = header_span.to(body_span);

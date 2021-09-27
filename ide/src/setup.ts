@@ -183,6 +183,7 @@ export async function setup(
         cwd: workspace_root,
         [library_path]: target_libdir,
         SYSROOT: sysroot,
+        RUST_BACKTRACE: "1",
       });
     } catch (e: any) {
       tdcp.contents = e.toString();

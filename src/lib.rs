@@ -3,7 +3,7 @@
   box_patterns,              // nice-to-have
   in_band_lifetimes,         // nice-to-have
   associated_type_defaults,  // for crate::core::indexed::Indexed
-  min_specialization         // for rustc_index::newtype_index
+  min_specialization,        // for rustc_index::newtype_index
 )]
 #![allow(
   clippy::single_match,

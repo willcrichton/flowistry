@@ -10,7 +10,7 @@ use std::{
 };
 use tempfile::NamedTempFile;
 
-use flowistry::{Direction, FunctionIdentifier, Range, FlowistryResult};
+use flowistry::{Direction, FlowistryResult, FunctionIdentifier, Range};
 
 fn parse_ranges(
   prog: &str,
