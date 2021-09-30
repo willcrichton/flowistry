@@ -98,3 +98,17 @@ Flowistry does not support all of Rust's features. Specifically:
   *x.borrow_mut() = 2;
   ```
   Flowistry can detect that `x` is modified (because `borrow_mut` uses lifetimes to relate the `RefMut` to `RefCell`), but not that `y` is modified (because nothing statically says that `y` aliases `x`).
+
+## FAQ
+
+### rustup fails on installation
+
+If rustup fails, especially with an error like "could not rename downloaded file", this is probably because Flowistry is running rustup concurrently with another tool (like rust-analyzer). Until [rustup#988](https://github.com/rust-lang/rustup/issues/988) is resolved, there is unfortunately no automated way around this. 
+
+To solve the issue, go to the command line and run:
+
+```
+rustup toolchain install nightly-2021-09-23 -c rust-src -c rustc-dev -c llvm-tools-preview
+```
+
+Then reload VSCode and let Flowistry continue installing.
