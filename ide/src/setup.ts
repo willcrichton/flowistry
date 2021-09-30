@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as cp from "child_process";
 import _ from "lodash";
 import { Readable } from "stream";
+import open from "open";
 
 import { Result } from "./types";
 import { log, CallFlowistry } from "./vsc_utils";
@@ -106,9 +107,25 @@ export async function setup(
   }
 
   if (version != VERSION) {
-    let components = TOOLCHAIN.components.join(",");
-    let rustup_cmd = `rustup toolchain install ${TOOLCHAIN.channel} -c ${components}`;
-    await exec_notify(rustup_cmd, "Installing nightly Rust...");
+    let components = TOOLCHAIN.components.map(c => `-c ${c}`).join(" ");
+    let rustup_cmd = `rustup toolchain install ${TOOLCHAIN.channel} ${components}`;
+    try {
+      await exec_notify(rustup_cmd, "Installing nightly Rust...");
+    } catch (e: any) {
+      let choice = await vscode.window.showErrorMessage(
+        "Flowistry failed to install because rustup failed. Click \"Show fix\" to resolve, or click \"Dismiss\ to attempt installation later.",
+        "Show fix",
+        "Dismiss"
+      );
+
+      if (choice == "Show fix") {
+        open("https://github.com/willcrichton/flowistry/blob/master/README.md#rustup-fails-on-installation");
+        await vscode.window.showInformationMessage("Click \"Continue\" once you have completed the fix.", "Continue");
+      } else {
+        return null;
+      }
+    }
+
 
     try {
       await download();

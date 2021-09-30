@@ -459,7 +459,7 @@ where
 
     elapsed("Alias compute", start);
 
-    debug!(
+    trace!(
       "Aliases: {}",
       aliases
         .loans
