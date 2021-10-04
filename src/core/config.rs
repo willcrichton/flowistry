@@ -1,11 +1,13 @@
-use crate::core::extensions::{ContextMode, MutabilityMode, PointerMode};
 use anyhow::{bail, Context, Result};
+use fluid_let::fluid_let;
 use rustc_macros::Encodable;
 use rustc_span::{
   source_map::{monotonic::MonotonicVec, SourceMap},
   BytePos, FileName, RealFileName, SourceFile, Span,
 };
 use std::{cell::Ref, default::Default, path::Path, rc::Rc};
+
+pub use crate::core::extensions::{ContextMode, MutabilityMode, PointerMode};
 
 #[derive(Encodable, Debug, Clone, Hash, PartialEq, Eq, Default)]
 pub struct Range {
@@ -91,6 +93,8 @@ pub struct EvalMode {
   pub context_mode: ContextMode,
   pub pointer_mode: PointerMode,
 }
+
+fluid_let!(pub static EVAL_MODE: EvalMode);
 
 impl Default for EvalMode {
   fn default() -> Self {
