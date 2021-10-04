@@ -25,6 +25,8 @@ use std::{
   collections::hash_map::Entry, fs::File, hash::Hash, io::Write, ops::ControlFlow, process::Command,
 };
 
+use crate::core::config::{MutabilityMode, EVAL_MODE};
+
 pub fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
   match operand {
     Operand::Copy(place) | Operand::Move(place) => Some(*place),
@@ -282,6 +284,10 @@ pub fn arg_mut_ptrs<'tcx>(
   body: &Body<'tcx>,
   def_id: DefId,
 ) -> Vec<Place<'tcx>> {
+  let ignore_mut = EVAL_MODE
+    .copied()
+    .map(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut)
+    .unwrap_or(false);
   args
     .iter()
     .map(|place| {
@@ -292,7 +298,7 @@ pub fn arg_mut_ptrs<'tcx>(
             .into_iter()
             .filter_map(|(place, mutability)| match mutability {
               Mutability::Mut => Some(place),
-              Mutability::Not => None,
+              Mutability::Not => ignore_mut.then(|| place),
             })
         })
         .flatten()
