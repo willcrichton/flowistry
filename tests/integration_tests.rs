@@ -26,11 +26,11 @@ fn main() {
     }]`
 
     `[let `[n]` = `[`[`[input]`.parse::<i32>()]`.unwrap()]`;]`
-    println!("Read: {}", n);
+    println!(`["Read: {}"]`, n);
     `[`[total += `[n]`]`;]`
   }
 
-  `[println!("{:?}", `(total)`);]`
+  `[println!(`["{:?}"]`, `(total)`);]`
 }
 "#;
 

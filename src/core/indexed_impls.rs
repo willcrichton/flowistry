@@ -3,7 +3,7 @@ use crate::to_index_impl;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_index::vec::Enumerated;
 use rustc_middle::{
-  mir::{BasicBlock, Body, Local, Location, Place, ProjectionElem},
+  mir::{Body, Local, Location, Place, ProjectionElem},
   ty::TyCtxt,
 };
 use rustc_span::def_id::DefId;
@@ -156,17 +156,6 @@ impl IndexedValue for Location {
 pub type LocationSet = IndexSet<Location>;
 pub type LocationDomain = <Location as IndexedValue>::Domain;
 
-pub fn arg_location(local: Local, body: &Body) -> Location {
-  Location {
-    block: BasicBlock::from_usize(body.basic_blocks().len()),
-    statement_index: local.as_usize(),
-  }
-}
-
-pub fn location_arg(location: Location, body: &Body) -> Local {
-  body.args_iter().nth(location.statement_index - 1).unwrap()
-}
-
 pub fn build_location_domain(body: &Body) -> Rc<LocationDomain> {
   let locations = body
     .basic_blocks()
@@ -178,7 +167,6 @@ pub fn build_location_domain(body: &Body) -> Rc<LocationDomain> {
       })
     })
     .flatten()
-    .chain(body.args_iter().map(|local| arg_location(local, body)))
     .collect::<Vec<_>>();
   Rc::new(LocationDomain::new(locations))
 }

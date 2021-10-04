@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use fluid_let::fluid_set;
 use log::info;
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
@@ -9,7 +10,10 @@ use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::Span;
 use std::{panic, time::Instant};
 
-use crate::core::utils::elapsed;
+use crate::core::{
+  config::{EvalMode, EVAL_MODE},
+  utils::elapsed,
+};
 
 use super::utils::block_timer;
 
@@ -44,11 +48,12 @@ pub trait FlowistryAnalysis: Send + Sync + Sized {
       analysis: Some(self),
       output: None,
       rustc_start: Instant::now(),
+      eval_mode: EVAL_MODE.copied(),
     };
 
     info!("Starting rustc analysis...");
     let compiler = rustc_driver::RunCompiler::new(&compiler_args, &mut callbacks);
-    if let Err(_) = compiler.run() {
+    if compiler.run().is_err() {
       return Err(FlowistryError::BuildError);
     }
 
@@ -143,6 +148,7 @@ struct Callbacks<A: FlowistryAnalysis> {
   analysis: Option<A>,
   output: Option<anyhow::Result<A::Output>>,
   rustc_start: Instant,
+  eval_mode: Option<EvalMode>,
 }
 
 impl<A: FlowistryAnalysis> rustc_driver::Callbacks for Callbacks<A> {
@@ -154,6 +160,7 @@ impl<A: FlowistryAnalysis> rustc_driver::Callbacks for Callbacks<A> {
     queries: &'tcx rustc_interface::Queries<'tcx>,
   ) -> rustc_driver::Compilation {
     elapsed("rustc", self.rustc_start);
+    fluid_set!(EVAL_MODE, self.eval_mode.unwrap_or_default());
 
     queries.global_ctxt().unwrap().take().enter(|tcx| {
       let analysis = self.analysis.take().unwrap();

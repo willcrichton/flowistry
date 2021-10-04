@@ -81,7 +81,7 @@ impl FlowistryAnalysis for EffectsHarness {
 
     let flow_results = flow::compute_flow(tcx, body_id, &body_with_facts);
     if std::env::var("DUMP_MIR").is_ok() {
-      utils::dump_results("target/effects.png", body, &flow_results)?;
+      utils::dump_results("target/effects.png", body, flow_results)?;
     }
 
     let mut find_effects = visitor::FindEffects::new(&flow_results.analysis);
@@ -102,7 +102,7 @@ impl FlowistryAnalysis for EffectsHarness {
       .unzip();
 
     let deps =
-      flow::compute_dependency_ranges(&flow_results, targets, Direction::Backward, &spanner);
+      flow::compute_dependency_ranges(flow_results, targets, Direction::Backward, &spanner);
 
     let source_map = tcx.sess.source_map();
     let mut ranged_effects = effects

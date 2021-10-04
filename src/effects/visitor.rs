@@ -114,7 +114,7 @@ impl ResultsVisitor<'mir, 'tcx> for FindEffects<'_, 'mir, 'tcx> {
           self.add_effect(*destination, location);
         }
 
-        for mut_ptr in utils::arg_mut_ptrs(
+        for (_, mut_ptr) in utils::arg_mut_ptrs(
           &utils::arg_places(args),
           self.analysis.tcx,
           self.analysis.body,

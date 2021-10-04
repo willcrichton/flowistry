@@ -311,7 +311,7 @@ where
 pub struct IndexMatrix<R: IndexedValue, C: IndexedValue> {
   matrix: SparseBitMatrix<R::Index, C::Index>,
   row_domain: Rc<R::Domain>,
-  col_domain: Rc<C::Domain>,
+  pub col_domain: Rc<C::Domain>,
 }
 
 impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {

@@ -1,16 +1,12 @@
+use rustc_middle::mir::*;
+use rustc_mir_dataflow::{Results, ResultsRefCursor, ResultsVisitor};
+
 use super::dataflow::{FlowAnalysis, FlowDomain};
 use crate::core::{
   config::Range,
-  indexed::IndexSet,
-  indexed_impls::{location_arg, LocationSet},
-  utils::{self},
+  indexed_impls::{LocationSet, PlaceSet},
+  utils,
 };
-use log::debug;
-
-use rustc_index::bit_set::BitSet;
-use rustc_middle::mir::*;
-use rustc_mir_dataflow::{Results, ResultsCursor, ResultsVisitor};
-use rustc_span::Span;
 
 #[derive(Clone, Copy, Debug)]
 pub enum Direction {
@@ -18,148 +14,48 @@ pub enum Direction {
   Backward,
 }
 
-struct FindDependencies<'a, 'mir, 'tcx> {
-  analysis: &'a FlowAnalysis<'mir, 'tcx>,
-  targets: Vec<LocationSet>,
-  relevant_locations: Vec<LocationSet>,
-  relevant_locals: Vec<BitSet<Local>>,
-  direction: Direction,
+struct ForwardVisitor<'tcx> {
+  targets: Vec<(Place<'tcx>, Location)>,
+  target_deps: Vec<(LocationSet, PlaceSet<'tcx>)>,
+  outputs: Vec<(LocationSet, PlaceSet<'tcx>)>,
 }
 
-impl FindDependencies<'_, '_, 'tcx> {
-  fn check(&mut self, place: Place<'tcx>, state: &FlowDomain<'tcx>, location: Location) {
-    let conflicts = self.analysis.aliases.conflicts(place);
-    let conflict_deps = conflicts
-      .iter()
-      .filter_map(|conflict| state.row_set(conflict));
-
-    for deps in conflict_deps {
-      let direction = self.direction;
-      let target_idxs = self
-        .targets
-        .iter()
-        .enumerate()
-        .filter(|(_, target)| match direction {
-          Direction::Forward => deps.is_superset(target),
-          Direction::Backward => target.is_superset(&deps),
-        });
-
-      for (i, _) in target_idxs {
-        self.relevant_locations[i].insert(location);
-        self.relevant_locals[i].insert(place.local);
-      }
-    }
-  }
-}
-
-impl ResultsVisitor<'mir, 'tcx> for FindDependencies<'_, 'mir, 'tcx> {
+impl ResultsVisitor<'mir, 'tcx> for ForwardVisitor<'tcx> {
   type FlowState = FlowDomain<'tcx>;
 
   fn visit_statement_after_primary_effect(
     &mut self,
     state: &Self::FlowState,
-    statement: &'mir Statement<'tcx>,
+    _statement: &'mir Statement<'tcx>,
     location: Location,
   ) {
-    match &statement.kind {
-      StatementKind::Assign(box (mutated, _)) => {
-        self.check(*mutated, state, location);
-      }
-      _ => {}
-    }
-  }
-
-  fn visit_terminator_after_primary_effect(
-    &mut self,
-    state: &Self::FlowState,
-    terminator: &'mir Terminator<'tcx>,
-    location: Location,
-  ) {
-    match &terminator.kind {
-      TerminatorKind::SwitchInt { discr, .. } => {
-        if let Some(place) = utils::operand_to_place(discr) {
-          self.check(place, state, location);
-        }
-      }
-      TerminatorKind::Call {
-        args, destination, ..
-      } => {
-        if let Some((dst_place, _)) = destination {
-          self.check(*dst_place, state, location);
-        }
-
-        let arg_mut_ptrs = utils::arg_mut_ptrs(
-          &utils::arg_places(args),
-          self.analysis.tcx,
-          self.analysis.body,
-          self.analysis.def_id,
-        );
-        for mut_ptr in arg_mut_ptrs {
-          self.check(mut_ptr, state, location);
-        }
-      }
-
-      TerminatorKind::DropAndReplace { place, .. } => {
-        self.check(*place, state, location);
-      }
-
-      _ => {}
-    }
-  }
-}
-
-fn compute_dependencies(
-  results: &Results<'tcx, FlowAnalysis<'mir, 'tcx>>,
-  targets: Vec<(Place<'tcx>, Location)>,
-  direction: Direction,
-) -> Vec<(IndexSet<Location>, Vec<Span>)> {
-  let analysis = &results.analysis;
-  let body = analysis.body;
-
-  // Extract dependencies for each place at the given location
-  let mut cursor = ResultsCursor::new(body, results);
-  let targets = targets
-    .into_iter()
-    .filter_map(|(place, location)| {
-      cursor.seek_after_primary_effect(location);
-      cursor.get().row_set(place).map(|set| set.to_owned())
-    })
-    .collect::<Vec<_>>();
-  debug!("Targets: {:?}", targets);
-
-  // Find locations that relate to the target dependencies
-  let n = targets.len();
-  let mut finder = FindDependencies {
-    analysis: &results.analysis,
-    targets,
-    relevant_locations: vec![LocationSet::new(analysis.location_domain().clone()); n],
-    relevant_locals: vec![BitSet::new_empty(body.local_decls().len()); n],
-    direction,
-  };
-  results.visit_reachable_with(body, &mut finder);
-
-  // Special case to check for fake argument locations
-  for (i, target) in finder.targets.iter().enumerate() {
-    for loc in target.iter() {
-      if loc.block.as_usize() == body.basic_blocks().len() {
-        let arg = location_arg(*loc, body);
-        finder.relevant_locals[i].insert(arg);
-      }
-    }
-  }
-
-  let local_spans = finder.relevant_locals.into_iter().map(|locals| {
-    locals
+    for ((target_place, _), ((locs, places), (out_locs, out_places))) in self
+      .targets
       .iter()
-      .map(|local| body.local_decls()[local].source_info.span.source_callsite())
-      .collect::<Vec<_>>()
-  });
+      .zip(self.target_deps.iter().zip(self.outputs.iter_mut()))
+    {
+      let mut relevant_loc = false;
+      for place in state.locations.rows() {
+        if let Some(loc_deps) = state.locations.row_set(place) {
+          if loc_deps.contains(location) {
+            if !relevant_loc && loc_deps.is_superset(locs) {
+              relevant_loc = true;
+            }
 
-  finder
-    .relevant_locations
-    .into_iter()
-    .zip(local_spans)
-    .collect()
+            if let Some(place_deps) = state.places.row_set(place) {
+              if place_deps.contains(*target_place) && place_deps.is_superset(places) {
+                out_places.insert(place);
+              }
+            }
+          }
+        }
+      }
+
+      if relevant_loc {
+        out_locs.insert(location);
+      }
+    }
+  }
 }
 
 pub fn compute_dependency_ranges(
@@ -172,19 +68,69 @@ pub fn compute_dependency_ranges(
   let body = results.analysis.body;
   let source_map = tcx.sess.source_map();
 
-  let deps = compute_dependencies(results, targets, direction);
-  debug!("deps: {:#?}", deps);
+  let new_location_set = || LocationSet::new(results.analysis.location_domain().clone());
+  let new_place_set = || PlaceSet::new(results.analysis.place_domain().clone());
+
+  let target_deps = {
+    let mut cursor = ResultsRefCursor::new(body, results);
+    let get_deps = |(place, location): &(Place<'tcx>, Location)| {
+      cursor.seek_after_primary_effect(*location);
+      let state = cursor.get();
+      (
+        state
+          .locations
+          .row_set(*place)
+          .map(|s| s.to_owned())
+          .unwrap_or_else(new_location_set),
+        state
+          .places
+          .row_set(*place)
+          .map(|s| s.to_owned())
+          .unwrap_or_else(new_place_set),
+      )
+    };
+    targets.iter().map(get_deps).collect::<Vec<_>>()
+  };
+
+  let deps = match direction {
+    Direction::Backward => target_deps,
+    Direction::Forward => {
+      let mut outputs = target_deps
+        .iter()
+        .map(|_| (new_location_set(), new_place_set()))
+        .collect::<Vec<_>>();
+      for ((target_place, _), (_, places)) in targets.iter().zip(outputs.iter_mut()) {
+        places.insert(*target_place);
+      }
+
+      let mut visitor = ForwardVisitor {
+        targets,
+        target_deps,
+        outputs,
+      };
+      results.visit_reachable_with(body, &mut visitor);
+
+      visitor.outputs
+    }
+  };
 
   deps
     .into_iter()
-    .map(|(locs, args)| {
-      locs
+    .map(|(locations, places)| {
+      let location_spans = locations
         .iter()
-        .map(|loc| utils::location_to_spans(*loc, body, spanner, source_map).into_iter())
-        .flatten()
-        .chain(args.into_iter())
+        .map(|location| utils::location_to_spans(*location, body, spanner, source_map).into_iter())
+        .flatten();
+
+      let place_spans = places
+        .iter()
+        .filter(|place| **place != Place::return_place())
+        .map(|place| body.local_decls()[place.local].source_info.span);
+      location_spans
+        .chain(place_spans)
         .filter_map(|span| Range::from_span(span, source_map).ok())
         .collect::<Vec<_>>()
     })
     .collect::<Vec<_>>()
+  // Extract dependencies for each place at the given location
 }
