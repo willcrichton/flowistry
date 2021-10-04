@@ -25,7 +25,7 @@ use std::{
   collections::hash_map::Entry, fs::File, hash::Hash, io::Write, ops::ControlFlow, process::Command,
 };
 
-use crate::core::config::{MutabilityMode, EVAL_MODE};
+use crate::core::{config::MutabilityMode, extensions::is_extension_active};
 
 pub fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
   match operand {
@@ -283,14 +283,12 @@ pub fn arg_mut_ptrs<'tcx>(
   tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,
   def_id: DefId,
-) -> Vec<Place<'tcx>> {
-  let ignore_mut = EVAL_MODE
-    .copied()
-    .map(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut)
-    .unwrap_or(false);
+) -> Vec<(usize, Place<'tcx>)> {
+  let ignore_mut = is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
   args
     .iter()
-    .map(|place| {
+    .enumerate()
+    .map(|(i, place)| {
       interior_pointers(*place, tcx, body, def_id)
         .into_iter()
         .map(|(_, places)| {
@@ -302,7 +300,7 @@ pub fn arg_mut_ptrs<'tcx>(
             })
         })
         .flatten()
-        .map(|place| tcx.mk_place_deref(place))
+        .map(move |place| (i, tcx.mk_place_deref(place)))
     })
     .flatten()
     .collect::<Vec<_>>()

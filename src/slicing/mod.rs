@@ -63,7 +63,7 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
 
     let results = flow::compute_flow(tcx, body_id, &body_with_facts);
     if std::env::var("DUMP_MIR").is_ok() {
-      utils::dump_results("target/flow.png", body, &results)?;
+      utils::dump_results("target/flow.png", body, results)?;
     }
 
     let source_map = tcx.sess.source_map();
@@ -72,7 +72,7 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     debug!("sliced_places {:?}", sliced_places);
 
     let spanner = utils::HirSpanner::new(tcx, body_id);
-    let deps = flow::compute_dependency_ranges(&results, sliced_places, self.direction, &spanner);
+    let deps = flow::compute_dependency_ranges(results, sliced_places, self.direction, &spanner);
 
     let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
     let sliced_spans = sliced_spans

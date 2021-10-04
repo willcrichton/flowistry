@@ -1,5 +1,5 @@
 use super::{
-  config::{PointerMode, EVAL_MODE},
+  extensions::{is_extension_active, PointerMode},
   indexed::{IndexSetIteratorExt, IndexedDomain, ToIndex},
   indexed_impls::{PlaceDomain, PlaceIndex, PlaceSet},
   utils::{self, elapsed, PlaceRelation},
@@ -295,9 +295,6 @@ where
         },
       );
 
-    let get_ty = |p| tcx.mk_place_deref(p).ty(body.local_decls(), tcx).ty;
-    let same_ty = |p1, p2| TyS::same_type(get_ty(p1), get_ty(p2));
-
     let start = Instant::now();
     let outlives_constraints = body_with_facts
       .input_facts
@@ -328,36 +325,9 @@ where
       .chain((1..max_region).map(|i| (static_region, RegionVid::from_usize(i))))
       .collect::<Vec<_>>();
 
-    let conservative_mode = EVAL_MODE
-      .copied()
-      .map(|mode| mode.pointer_mode == PointerMode::Conservative)
-      .unwrap_or(false);
-    if conservative_mode {
-      let conservative_constraints = local_projected_regions
-        .iter()
-        .map(|(region, places)| {
-          local_projected_regions
-            .iter()
-            .filter(|(other_region, other_places)| {
-              *region != **other_region
-                && places.iter().any(|(place, _)| {
-                  other_places
-                    .iter()
-                    .any(|(other_place, _)| same_ty(*place, *other_place))
-                })
-            })
-            .map(|(other_region, _)| {
-              vec![(*region, *other_region), (*other_region, *region)].into_iter()
-            })
-            .flatten()
-            .collect::<Vec<_>>()
-            .into_iter()
-        })
-        .flatten()
-        .collect::<Vec<_>>();
-      println!("O K: {:?}", conservative_constraints);
-      processed_constraints.extend(conservative_constraints.into_iter());
-    }
+    processed_constraints.extend(
+      maybe_generate_conservative_constraints(tcx, body, &local_projected_regions).into_iter(),
+    );
 
     let region_graph = VecGraph::new(max_region, processed_constraints);
     let constraint_sccs: Sccs<_, ConstraintSccIndex> = Sccs::new(&region_graph);
@@ -507,4 +477,40 @@ where
 
     aliases
   }
+}
+
+pub fn maybe_generate_conservative_constraints<'tcx>(
+  tcx: TyCtxt<'tcx>,
+  body: &Body<'tcx>,
+  local_projected_regions: &HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>,
+) -> Vec<(RegionVid, RegionVid)> {
+  if !is_extension_active(|mode| mode.pointer_mode == PointerMode::Conservative) {
+    return vec![];
+  }
+
+  let get_ty = |p| tcx.mk_place_deref(p).ty(body.local_decls(), tcx).ty;
+  let same_ty = |p1, p2| TyS::same_type(get_ty(p1), get_ty(p2));
+
+  local_projected_regions
+    .iter()
+    .map(|(region, places)| {
+      local_projected_regions
+        .iter()
+        .filter(|(other_region, other_places)| {
+          *region != **other_region
+            && places.iter().any(|(place, _)| {
+              other_places
+                .iter()
+                .any(|(other_place, _)| same_ty(*place, *other_place))
+            })
+        })
+        .map(|(other_region, _)| {
+          vec![(*region, *other_region), (*other_region, *region)].into_iter()
+        })
+        .flatten()
+        .collect::<Vec<_>>()
+        .into_iter()
+    })
+    .flatten()
+    .collect::<Vec<_>>()
 }
