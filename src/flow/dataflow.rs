@@ -2,7 +2,7 @@ use log::{debug, trace};
 use rustc_hir::def_id::DefId;
 use rustc_middle::{
   mir::{visit::Visitor, *},
-  ty::{subst::GenericArgKind, ClosureKind, TyCtxt, TyKind},
+  ty::{subst::GenericArgKind, AdtKind, ClosureKind, TyCtxt, TyKind},
 };
 use rustc_mir_dataflow::{
   fmt::DebugWithContext, Analysis, AnalysisDomain, Forward, JoinSemiLattice, ResultsRefCursor,
@@ -230,7 +230,7 @@ impl TransferFunction<'_, '_, 'tcx> {
       }
     };
 
-    let any_closure_inputs = arg_places.iter().any(|place| {
+    let any_closure_inputs = arg_places.iter().any(|(_, place)| {
       let ty = place.ty(self.analysis.body.local_decls(), tcx).ty;
       ty.walk(tcx).any(|arg| match arg.unpack() {
         GenericArgKind::Type(ty) => match ty.kind() {
@@ -256,7 +256,7 @@ impl TransferFunction<'_, '_, 'tcx> {
     }
 
     let body_with_facts = utils::get_body_with_borrowck_facts(tcx, body_id);
-    let flow = super::compute_flow(tcx, body_id, &body_with_facts);
+    let flow = &super::compute_flow(tcx, body_id, &body_with_facts);
     let body = &body_with_facts.body;
     let mut cursor = ResultsRefCursor::new(body, flow);
 
@@ -278,29 +278,57 @@ impl TransferFunction<'_, '_, 'tcx> {
       })
       .unwrap();
 
-    for (arg_index, mut_ptr) in
-      utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body, self.analysis.def_id)
-    {
-      let projection = &mut_ptr.projection[arg_places[arg_index].projection.len()..];
+    let def_id = tcx.hir().body_owner_def_id(body_id).to_def_id();
+
+    let find_accessible_place = |place: Place<'tcx>, domain: &Rc<PlaceDomain<'tcx>>| {
+      for i in (0..=place.projection.len()).rev() {
+        let sub_place = Place {
+          local: place.local,
+          projection: tcx.intern_place_elems(&place.projection[..i]),
+        };
+        if domain.contains(&sub_place) {
+          return sub_place;
+        }
+      }
+
+      unreachable!("{:?}", place)
+    };
+
+    let get_arg = |i| {
+      arg_places
+        .iter()
+        .find(|(j, _)| i == *j)
+        .map(|(_, place)| place)
+    };
+
+    for (arg_index, mut_ptr) in utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body, def_id) {
+      let projection = &mut_ptr.projection[get_arg(arg_index).unwrap().projection.len()..];
       let arg_place = Place {
         local: Local::from_usize(arg_index + 1),
         projection: tcx.intern_place_elems(projection),
       };
+      let arg_place = find_accessible_place(arg_place, flow.analysis.place_domain());
 
       let relevant_args = combined_deps
         .places
         .row(arg_place)
         .filter_map(|place| {
           let idx = place.local.as_usize();
-          (idx > 0 && idx - 1 < args.len()).then(|| {
-            let arg = arg_places[idx - 1];
-            let mut projection = arg.projection.to_vec();
-            projection.extend(place.projection.iter());
-            Place {
-              local: arg.local,
-              projection: tcx.intern_place_elems(&projection),
-            }
-          })
+          if idx == 0 && idx - 1 >= body.arg_count {
+            return None;
+          }
+
+          let arg = get_arg(idx - 1)?;
+          let mut projection = arg.projection.to_vec();
+          projection.extend_from_slice(&place.projection);
+          let arg_place = Place {
+            local: arg.local,
+            projection: tcx.intern_place_elems(&projection),
+          };
+          Some(find_accessible_place(
+            arg_place,
+            self.analysis.place_domain(),
+          ))
         })
         .collect::<Vec<_>>();
 
@@ -339,15 +367,19 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
         }
 
         let arg_places = utils::arg_places(args);
+        let arg_just_places = arg_places
+          .iter()
+          .map(|(_, place)| *place)
+          .collect::<Vec<_>>();
 
         if let Some((dst_place, _)) = destination {
-          self.apply_mutation(*dst_place, &arg_places, location, true, false);
+          self.apply_mutation(*dst_place, &arg_just_places, location, true, false);
         }
 
         for (_, mut_ptr) in
           utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body, self.analysis.def_id)
         {
-          self.apply_mutation(mut_ptr, &arg_places, location, false, false);
+          self.apply_mutation(mut_ptr, &arg_just_places, location, false, false);
         }
       }
 

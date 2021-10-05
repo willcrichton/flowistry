@@ -40,9 +40,12 @@ impl NormalizedPlaces<'tcx> {
       let projection = place
         .projection
         .into_iter()
-        .map(|elem| match elem {
-          ProjectionElem::Index(_) => ProjectionElem::Index(Local::from_usize(0)),
-          _ => elem,
+        .filter_map(|elem| match elem {
+          ProjectionElem::Index(_) | ProjectionElem::ConstantIndex { .. } => {
+            Some(ProjectionElem::Index(Local::from_usize(0)))
+          }
+          ProjectionElem::Subslice { .. } => None,
+          _ => Some(elem),
         })
         .collect::<Vec<_>>();
 
@@ -96,6 +99,12 @@ impl IndexedDomain for PlaceDomain<'tcx> {
     self
       .domain
       .index(&self.normalized_places.borrow_mut().normalize(*value))
+  }
+
+  fn contains(&self, value: &Self::Value) -> bool {
+    self
+      .domain
+      .contains(&self.normalized_places.borrow_mut().normalize(*value))
   }
 
   fn len(&self) -> usize {
