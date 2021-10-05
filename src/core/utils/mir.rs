@@ -541,7 +541,7 @@ struct SimplifyMir;
 impl MirPass<'tcx> for SimplifyMir {
   fn run_pass(&self, _tcx: TyCtxt<'tcx>, body: &mut Body<'tcx>) {
     for block in body.basic_blocks_mut() {
-      block.retain_statements(|stmt| {
+      block.statements.retain(|stmt| {
         !matches!(
           stmt.kind,
           // TODO: variable_select_lhs test fails if we remove FakeRead
