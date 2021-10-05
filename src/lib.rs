@@ -40,5 +40,5 @@ pub use crate::core::{
   utils,
 };
 pub use effects::{effects, FunctionIdentifier};
-pub use flow::{compute_flow, Direction};
+pub use flow::{compute_dependencies, compute_flow, Direction};
 pub use slicing::{slice, SliceOutput};

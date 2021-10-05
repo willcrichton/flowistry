@@ -47,6 +47,7 @@ pub trait IndexedDomain {
   type Index: Idx = <Self::Value as IndexedValue>::Index;
   fn value(&self, index: Self::Index) -> &Self::Value;
   fn index(&self, value: &Self::Value) -> Self::Index;
+  fn contains(&self, value: &Self::Value) -> bool;
   fn len(&self) -> usize;
   fn iter_enumerated<'a>(&'a self) -> Enumerated<Self::Index, Iter<'a, Self::Value>>;
 }
@@ -84,6 +85,9 @@ impl<I: Idx, T: IndexedValue> IndexedDomain for DefaultDomain<I, T> {
       .value_to_index
       .get(value)
       .unwrap_or_else(|| panic!("No index for value: {:?}", value))
+  }
+  fn contains(&self, value: &T) -> bool {
+    self.value_to_index.contains_key(value)
   }
 
   fn len(&self) -> usize {

@@ -58,15 +58,12 @@ impl ResultsVisitor<'mir, 'tcx> for ForwardVisitor<'tcx> {
   }
 }
 
-pub fn compute_dependency_ranges(
+pub fn compute_dependencies(
   results: &Results<'tcx, FlowAnalysis<'mir, 'tcx>>,
   targets: Vec<(Place<'tcx>, Location)>,
   direction: Direction,
-  spanner: &utils::HirSpanner,
-) -> Vec<Vec<Range>> {
-  let tcx = results.analysis.tcx;
+) -> Vec<(LocationSet, PlaceSet<'tcx>)> {
   let body = results.analysis.body;
-  let source_map = tcx.sess.source_map();
 
   let new_location_set = || LocationSet::new(results.analysis.location_domain().clone());
   let new_place_set = || PlaceSet::new(results.analysis.place_domain().clone());
@@ -92,7 +89,7 @@ pub fn compute_dependency_ranges(
     targets.iter().map(get_deps).collect::<Vec<_>>()
   };
 
-  let deps = match direction {
+  match direction {
     Direction::Backward => target_deps,
     Direction::Forward => {
       let mut outputs = target_deps
@@ -112,7 +109,20 @@ pub fn compute_dependency_ranges(
 
       visitor.outputs
     }
-  };
+  }
+}
+
+pub fn compute_dependency_ranges(
+  results: &Results<'tcx, FlowAnalysis<'mir, 'tcx>>,
+  targets: Vec<(Place<'tcx>, Location)>,
+  direction: Direction,
+  spanner: &utils::HirSpanner,
+) -> Vec<Vec<Range>> {
+  let tcx = results.analysis.tcx;
+  let body = results.analysis.body;
+
+  let source_map = tcx.sess.source_map();
+  let deps = compute_dependencies(results, targets, direction);
 
   deps
     .into_iter()
@@ -132,5 +142,4 @@ pub fn compute_dependency_ranges(
         .collect::<Vec<_>>()
     })
     .collect::<Vec<_>>()
-  // Extract dependencies for each place at the given location
 }

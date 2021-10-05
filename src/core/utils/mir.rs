@@ -66,7 +66,14 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
       return ControlFlow::Continue(());
     }
 
-    trace!("exploring local {:?} with {:?}", self.local, ty);
+    trace!(
+      "exploring {:?} with {:?}",
+      Place {
+        local: self.local,
+        projection: self.tcx.intern_place_elems(&self.place_stack)
+      },
+      ty
+    );
 
     self.ty_stack.push(ty);
 
@@ -279,7 +286,7 @@ pub fn interior_types<'tcx>(
 }
 
 pub fn arg_mut_ptrs<'tcx>(
-  args: &[Place<'tcx>],
+  args: &[(usize, Place<'tcx>)],
   tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,
   def_id: DefId,
@@ -287,7 +294,6 @@ pub fn arg_mut_ptrs<'tcx>(
   let ignore_mut = is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
   args
     .iter()
-    .enumerate()
     .map(|(i, place)| {
       interior_pointers(*place, tcx, body, def_id)
         .into_iter()
@@ -300,16 +306,17 @@ pub fn arg_mut_ptrs<'tcx>(
             })
         })
         .flatten()
-        .map(move |place| (i, tcx.mk_place_deref(place)))
+        .map(move |place| (*i, tcx.mk_place_deref(place)))
     })
     .flatten()
     .collect::<Vec<_>>()
 }
 
-pub fn arg_places<'tcx>(args: &[Operand<'tcx>]) -> Vec<Place<'tcx>> {
+pub fn arg_places<'tcx>(args: &[Operand<'tcx>]) -> Vec<(usize, Place<'tcx>)> {
   args
     .iter()
-    .filter_map(|arg| operand_to_place(arg))
+    .enumerate()
+    .filter_map(|(i, arg)| operand_to_place(arg).map(move |place| (i, place)))
     .collect::<Vec<_>>()
 }
 

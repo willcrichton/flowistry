@@ -58,7 +58,7 @@ pub struct Aliases<'a, 'tcx> {
   arg_places: PlaceSet<'tcx>,
   loan_cache: RefCell<IndexMap<PlaceIndex, Conflicts<'tcx>>>,
   tcx: TyCtxt<'tcx>,
-  body: &'a Body<'tcx>,
+  pub body: &'a Body<'tcx>,
   def_id: DefId,
 
   pub place_domain: Rc<PlaceDomain<'tcx>>,
@@ -144,11 +144,12 @@ where
 
     let loans = &self.loans[region];
     let deref_ptr = self.tcx.mk_place_deref(ptr);
-    let orig_ty = deref_ptr.ty(self.body.local_decls(), self.tcx).ty;
     debug!(
-      "for {:?}, loans {:?}, with arg_places {:?}",
-      place, loans, self.arg_places
+      "for {:?} (ptr = {:?}), loans {:?}, with arg_places {:?}",
+      place, ptr, loans, self.arg_places
     );
+    let orig_ty = deref_ptr.ty(self.body.local_decls(), self.tcx).ty;
+
     loans
       .iter()
       .filter_map(|alias| {
