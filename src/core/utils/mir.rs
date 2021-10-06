@@ -35,10 +35,7 @@ pub fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
 }
 
 pub fn local_to_place(local: Local, tcx: TyCtxt<'tcx>) -> Place<'tcx> {
-  Place {
-    local,
-    projection: tcx.intern_place_elems(&[]),
-  }
+  mk_place(local, &[], tcx)
 }
 
 struct CollectRegions<'tcx> {
@@ -68,10 +65,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
 
     trace!(
       "exploring {:?} with {:?}",
-      Place {
-        local: self.local,
-        projection: self.tcx.intern_place_elems(&self.place_stack)
-      },
+      mk_place(self.local, &self.place_stack, self.tcx),
       ty
     );
 
@@ -170,10 +164,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
     };
 
     if let Some(places) = self.places.as_mut() {
-      places.insert(Place {
-        local: self.local,
-        projection: self.tcx.intern_place_elems(&self.place_stack),
-      });
+      places.insert(mk_place(self.local, &self.place_stack, self.tcx));
     }
 
     if let Some(types) = self.types.as_mut() {
@@ -198,10 +189,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
           Mutability::Mut
         };
 
-        let place = Place {
-          local: self.local,
-          projection: self.tcx.intern_place_elems(&self.place_stack),
-        };
+        let place = mk_place(self.local, &self.place_stack, self.tcx);
 
         self
           .regions
@@ -416,10 +404,7 @@ pub fn pointer_for_place(place: Place<'tcx>, tcx: TyCtxt<'tcx>) -> Option<Place<
     .iter_projections()
     .rev()
     .find(|(_, elem)| matches!(elem, ProjectionElem::Deref))
-    .map(|(place_ref, _)| Place {
-      local: place_ref.local,
-      projection: tcx.intern_place_elems(place_ref.projection),
-    })
+    .map(|(place_ref, _)| mk_place(place_ref.local, place_ref.projection, tcx))
 }
 
 pub fn span_to_places(body: &Body<'tcx>, span: Span) -> (Vec<(Place<'tcx>, Location)>, Vec<Span>) {
@@ -594,10 +579,14 @@ pub fn split_deref(
     .map(|(i, _)| i)?;
 
   Some((
-    Place {
-      local: place.local,
-      projection: tcx.intern_place_elems(&place.projection[..deref_index]),
-    },
+    mk_place(place.local, &place.projection[..deref_index], tcx),
     &place.projection[deref_index + 1..],
   ))
+}
+
+pub fn mk_place(local: Local, projection: &[PlaceElem<'tcx>], tcx: TyCtxt<'tcx>) -> Place<'tcx> {
+  Place {
+    local,
+    projection: tcx.intern_place_elems(projection),
+  }
 }

@@ -24,7 +24,7 @@ fn main() {
   `[let `[mut x]` = `[1]`;]`
   `[let `[mut y]` = `[2]`;]`
   `[let `[a]` = `[&mut x]`;]`
-  `[let `[b]` = `[&mut y]`;]`
+  let b = &mut y;
   `[`[*a += 1]`;]`
   `[`(y)`;]`
 }
