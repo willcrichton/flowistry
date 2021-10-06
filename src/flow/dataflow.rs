@@ -295,13 +295,13 @@ impl TransferFunction<'_, '_, 'tcx> {
         .row(arg_place)
         .filter_map(|place| {
           let idx = place.local.as_usize();
-          if idx == 0 && idx - 1 >= body.arg_count {
+          if idx == 0 && idx > body.arg_count {
             return None;
           }
 
           let arg = get_arg(idx - 1)?;
           let mut projection = arg.projection.to_vec();
-          projection.extend_from_slice(&place.projection);
+          projection.extend_from_slice(place.projection);
           let arg_place = utils::mk_place(arg.local, &projection, tcx);
           Some(find_accessible_place(
             arg_place,

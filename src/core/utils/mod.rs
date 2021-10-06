@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use log::info;
 use rustc_span::{source_map::SourceMap, Pos, Span};
 use std::time::Instant;
