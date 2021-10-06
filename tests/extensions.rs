@@ -1,4 +1,4 @@
-use flowistry::config::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE};
+use flowistry::extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE};
 use fluid_let::fluid_set;
 use test_env_log::test;
 use utils::backward_slice;
@@ -37,7 +37,7 @@ fn main() {
 #[test]
 fn ignoremut_simple() {
   let src = r#"
-fn other(x: &i32) {}  
+fn other(x: &i32) {}
 fn main() {
   `[let `[x]` = `[1]`;]`
   `[`[other(`[&x]`)]`;]`
@@ -52,7 +52,7 @@ fn main() {
 #[test]
 fn recurse_simple() {
   let src = r#"
-fn other(x: &mut i32) -> i32 { *x }  
+fn other(x: &mut i32) -> i32 { *x }
 fn main() {
   `[let `[mut x]` = `[1]`;]`
   let y = other(&mut x);
@@ -67,7 +67,7 @@ fn main() {
 #[test]
 fn recurse_not_all_args() {
   let src = r#"
-fn other(x: &mut i32, y: i32, z: i32) { *x += y; }  
+fn other(x: &mut i32, y: i32, z: i32) { *x += y; }
 fn main() {
   `[let `[mut x]` = `[1]`;]`
   `[let `[y]` = `[1]`;]`
@@ -86,12 +86,12 @@ fn recurse_project_src() {
   // TODO: y.1 += 1 shouldn't be part of the slice
   //  see tuple_copy test
   let src = r#"
-fn other(x: &mut i32, y: (i32, i32)) { *x += y.0; }  
+fn other(x: &mut i32, y: (i32, i32)) { *x += y.0; }
 fn main() {
   `[let `[mut x]` = `[1]`;]`
   `[let `[mut y]` = `[(0, 0)]`;]`
   `[`[y.0 += 1]`;]`
-  `[`[y.1 += 1]`;]`  
+  `[`[y.1 += 1]`;]`
   `[`[other(`[&mut x]`, `[y]`)]`;]`
   `[`(x)`;]`
 }
@@ -104,7 +104,7 @@ fn main() {
 #[test]
 fn recurse_project_dst() {
   let src = r#"
-fn other(x: &mut (i32, i32)) { (*x).0 = 1; }  
+fn other(x: &mut (i32, i32)) { (*x).0 = 1; }
 fn main() {
   `[let `[mut x]` = `[(0, 0)]`;]`
   other(&mut x);
@@ -135,7 +135,7 @@ fn recurse_recursive() {
   let src = r#"
 fn foobar(x: &mut i32) -> i32 {
   foobar(x) - 1
-}  
+}
 
 fn main() {
   `[let `[mut x]` = `[1]`;]`
@@ -157,7 +157,7 @@ fn ok(x: &i32) {}
 fn main() {
   `[let `[x]` = `[1]`;]`
   ok(&x);
-  ok(&x);  
+  ok(&x);
   `[`(x)`;]`
 }
 "#;
