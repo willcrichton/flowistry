@@ -40,6 +40,7 @@ pub use crate::core::{
   analysis::{FlowistryError, FlowistryResult},
   config::{self, Range},
   utils,
+  extensions,
 };
 pub use effects::{effects, FunctionIdentifier};
 pub use flow::{compute_dependencies, compute_flow, Direction};

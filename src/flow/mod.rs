@@ -1,18 +1,19 @@
-use std::cell::RefCell;
-
-use crate::{
-  config::{EvalMode, EVAL_MODE},
-  core::{aliases::Aliases, control_dependencies::ControlDependencies},
-  utils,
-};
-
 use log::debug;
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
 use rustc_mir_dataflow::{Analysis, Results};
-use std::{mem::transmute, pin::Pin};
+use std::{cell::RefCell, mem::transmute, pin::Pin};
+
+use crate::{
+  core::{
+    aliases::Aliases,
+    control_dependencies::ControlDependencies,
+    extensions::{EvalMode, EVAL_MODE},
+  },
+  utils,
+};
 
 pub use dataflow::{FlowAnalysis, FlowDomain};
 pub use dependencies::{compute_dependencies, compute_dependency_ranges, Direction};

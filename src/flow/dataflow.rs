@@ -1,4 +1,4 @@
-use log::{debug, trace};
+use log::{debug, info, trace};
 use rustc_hir::def_id::DefId;
 use rustc_middle::{
   mir::{visit::Visitor, *},
@@ -13,7 +13,7 @@ use super::BODY_STACK;
 use crate::core::{
   aliases::Aliases,
   control_dependencies::ControlDependencies,
-  extensions::{is_extension_active, ContextMode},
+  extensions::{is_extension_active, ContextMode, REACHED_LIBRARY},
   indexed::{IndexMatrix, IndexedDomain},
   indexed_impls::{
     build_location_domain, LocationDomain, LocationSet, PlaceDomain, PlaceIndex, PlaceSet,
@@ -95,7 +95,7 @@ impl TransferFunction<'_, '_, 'tcx> {
         }
       };
 
-    let opt_ref = move |place: Place<'tcx>| -> Option<PlaceIndex> {
+    let opt_ref = move |place: Place<'tcx>| -> Option<PlaceIndex> {      
       utils::split_deref(place, tcx).map(|(ptr, _)| place_domain.index(&ptr))
     };
 
@@ -198,14 +198,21 @@ impl TransferFunction<'_, '_, 'tcx> {
       }
     };
 
+    // If a function returns never (fn () -> !) then there are no exit points,
+    // so we can't analyze effects on exit
+    let fn_sig = tcx.fn_sig(*def_id);
+    if fn_sig.skip_binder().output().is_never() {
+      return false;
+    }
+
     let node = match tcx.hir().get_if_local(*def_id) {
       Some(node) => node,
       None => {
-        // REACHED_LIBRARY.get(|reached_library| {
-        //   if let Some(reached_library) = reached_library {
-        //     *reached_library.borrow_mut() = true;
-        //   }
-        // });
+        REACHED_LIBRARY.get(|reached_library| {
+          if let Some(reached_library) = reached_library {
+            *reached_library.borrow_mut() = true;
+          }
+        });
         return false;
       }
     };
@@ -242,6 +249,7 @@ impl TransferFunction<'_, '_, 'tcx> {
       return false;
     }
 
+    info!("Recursing into {}", tcx.def_path_debug_str(*def_id));
     let body_with_facts = utils::get_body_with_borrowck_facts(tcx, body_id);
     let flow = &super::compute_flow(tcx, body_id, &body_with_facts);
     let body = &body_with_facts.body;
@@ -265,8 +273,6 @@ impl TransferFunction<'_, '_, 'tcx> {
       })
       .unwrap();
 
-    let def_id = tcx.hir().body_owner_def_id(body_id).to_def_id();
-
     let find_accessible_place = |place: Place<'tcx>, domain: &Rc<PlaceDomain<'tcx>>| {
       for i in (0..=place.projection.len()).rev() {
         let sub_place = utils::mk_place(place.local, &place.projection[..i], tcx);
@@ -285,7 +291,7 @@ impl TransferFunction<'_, '_, 'tcx> {
         .map(|(_, place)| place)
     };
 
-    for (arg_index, mut_ptr) in utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body, def_id) {
+    for (arg_index, mut_ptr) in utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body, self.analysis.def_id) {
       let projection = &mut_ptr.projection[get_arg(arg_index).unwrap().projection.len()..];
       let arg_place = utils::mk_place(Local::from_usize(arg_index + 1), projection, tcx);
       let arg_place = find_accessible_place(arg_place, flow.analysis.place_domain());

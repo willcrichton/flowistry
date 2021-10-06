@@ -11,7 +11,7 @@ use rustc_span::Span;
 use std::{panic, time::Instant};
 
 use crate::core::{
-  config::{EvalMode, EVAL_MODE},
+  extensions::{EvalMode, EVAL_MODE},
   utils::elapsed,
 };
 

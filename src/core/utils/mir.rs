@@ -23,7 +23,7 @@ use std::{
   collections::hash_map::Entry, fs::File, hash::Hash, io::Write, ops::ControlFlow, process::Command,
 };
 
-use crate::core::{config::MutabilityMode, extensions::is_extension_active};
+use crate::core::extensions::{is_extension_active, MutabilityMode};
 
 pub fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
   match operand {
@@ -568,13 +568,12 @@ pub fn split_deref(
   place: Place<'tcx>,
   tcx: TyCtxt<'tcx>,
 ) -> Option<(Place<'tcx>, &'tcx [PlaceElem<'tcx>])> {
-  let deref_index = place
+  let (deref_index, _) = place
     .projection
     .iter()
     .enumerate()
     .rev()
-    .find(|(_, elem)| matches!(elem, ProjectionElem::Deref))
-    .map(|(i, _)| i)?;
+    .find(|(_, elem)| matches!(elem, ProjectionElem::Deref))?;
 
   Some((
     mk_place(place.local, &place.projection[..deref_index], tcx),
