@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use anyhow::{bail, Result};
 use log::{trace, warn};
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;

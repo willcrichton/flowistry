@@ -149,7 +149,7 @@ impl Aliases<'tcx> {
         utils::hashmap_merge(h1, h2, set_merge)
       })
   }
-
+  
   fn compute_region_info(
     body_with_facts: &BodyWithBorrowckFacts<'_>,
     region_to_pointers: &HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>,
@@ -230,7 +230,7 @@ impl Aliases<'tcx> {
     IndexVec::from_fn_n(
       |place| {
         let aliases = all_aliases
-          .remove(&place_domain.value(place))
+          .remove(place_domain.value(place))
           .unwrap_or_default();
         let single_pointee = {
           // If there is only one pointer at every level of indirection, then
