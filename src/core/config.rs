@@ -1,13 +1,10 @@
 use anyhow::{bail, Context, Result};
-use fluid_let::fluid_let;
 use rustc_macros::Encodable;
 use rustc_span::{
   source_map::{monotonic::MonotonicVec, SourceMap},
   BytePos, FileName, RealFileName, SourceFile, Span,
 };
 use std::{cell::Ref, default::Default, path::Path, rc::Rc};
-
-pub use crate::core::extensions::{ContextMode, MutabilityMode, PointerMode};
 
 #[derive(Encodable, Debug, Clone, Hash, PartialEq, Eq, Default)]
 pub struct Range {
@@ -87,29 +84,3 @@ impl Range {
   }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Encodable, Hash)]
-pub struct EvalMode {
-  pub mutability_mode: MutabilityMode,
-  pub context_mode: ContextMode,
-  pub pointer_mode: PointerMode,
-}
-
-fluid_let!(pub static EVAL_MODE: EvalMode);
-
-impl Default for EvalMode {
-  fn default() -> Self {
-    EvalMode {
-      mutability_mode: MutabilityMode::DistinguishMut,
-      context_mode: ContextMode::SigOnly,
-      pointer_mode: PointerMode::Precise,
-    }
-  }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
-pub struct Config {
-  pub range: Range,
-  pub debug: bool,
-  pub eval_mode: EvalMode,
-  pub local: Option<usize>,
-}
