@@ -60,6 +60,12 @@ struct FindPlaces<'a, 'tcx> {
 }
 
 impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
+  // this is needed for eval? not sure why locals wouldn't show up in the body as places,
+  // maybe optimized out or something
+  fn visit_local_decl(&mut self, local: Local, _local_decl: &LocalDecl<'tcx>) {
+    self.places.push(utils::local_to_place(local, self.tcx));
+  }
+
   fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, _location: Location) {
     self.places.push(*place);
   }
