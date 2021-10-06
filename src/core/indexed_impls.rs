@@ -1,11 +1,15 @@
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_index::vec::Enumerated;
+use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::{
   mir::{Body, Local, Location, Place, ProjectionElem},
+  traits::ObligationCause,
   ty::TyCtxt,
 };
 use rustc_span::def_id::DefId;
+use rustc_trait_selection::traits::query::normalize::AtExt;
 use std::{cell::RefCell, rc::Rc, slice::Iter};
+use log::warn;
 
 use super::{
   indexed::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, ToIndex},
@@ -47,7 +51,20 @@ impl NormalizedPlaces<'tcx> {
       //
       // we also want any index to be treated the same, so we replace [i] => [0]
       let param_env = tcx.param_env(def_id);
-      let place = tcx.normalize_erasing_regions(param_env, place);
+      let place = tcx.erase_regions(place);
+      let normalized = tcx.infer_ctxt().enter(|infcx| {
+        infcx
+          .at(&ObligationCause::dummy(), param_env)
+          .normalize(place)
+      });
+      let place = match normalized {
+        Ok(normalized) => normalized.value,
+        Err(_) => {
+          warn!("Normalization failed for place {:?}", place);
+          return place;
+        }
+      };
+
       let projection = place
         .projection
         .into_iter()
