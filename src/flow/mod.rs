@@ -48,9 +48,13 @@ pub fn compute_flow<'a, 'tcx>(
     let control_dependencies = ControlDependencies::build(body.clone());
     debug!("Control dependencies: {:?}", control_dependencies);
 
-    FlowAnalysis::new(tcx, def_id, body, aliases, control_dependencies)
-      .into_engine(tcx, body)
-      .iterate_to_fixpoint()
+    {
+      let _timer = utils::block_timer("Flow");
+
+      FlowAnalysis::new(tcx, def_id, body, aliases, control_dependencies)
+        .into_engine(tcx, body)
+        .iterate_to_fixpoint()
+    }
   };
 
   CACHE.with(|cache| {
@@ -62,7 +66,6 @@ pub fn compute_flow<'a, 'tcx>(
         body_stack.borrow_mut().pop();
         results
       });
-      // results
 
       let results =
         unsafe { transmute::<FlowResults<'a, 'tcx>, FlowResults<'static, 'static>>(results) };
@@ -77,7 +80,6 @@ pub fn compute_flow<'a, 'tcx>(
       transmute::<&mut FlowResults<'static, 'static>, &'a mut FlowResults<'a, 'tcx>>(results)
     };
     results.analysis.body = &body_with_facts.body;
-    results.analysis.aliases.body = &body_with_facts.body;
 
     results
   })

@@ -64,15 +64,17 @@ impl FindEffects<'a, 'mir, 'tcx> {
         .or_default()
         .insert((mutated, location));
     } else {
-      let mut aliases = self.analysis.aliases.aliases(mutated);
+      let conflicts = self.analysis.aliases.conflicts(mutated);
       debug!(
-        "Checking for effect on {:?} (aliases {:?})",
-        mutated, aliases
+        "Checking for effect on {:?} (conflicts {:?})",
+        mutated, conflicts
       );
 
-      aliases.intersect(&self.mut_args);
+      let mut set = conflicts.supers.clone();
+      set.union(&conflicts.subs);
+      set.intersect(&self.mut_args);
 
-      for arg in aliases.iter() {
+      for arg in set.iter() {
         let kind = EffectKind::MutArg(self.analysis.place_domain().index(arg));
         debug!("Mutation on {:?} adding arg effect on {:?}", mutated, arg);
         self

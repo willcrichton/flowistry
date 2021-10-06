@@ -1,5 +1,3 @@
-use super::indexed::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, ToIndex};
-use crate::to_index_impl;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_index::vec::Enumerated;
 use rustc_middle::{
@@ -7,8 +5,13 @@ use rustc_middle::{
   ty::TyCtxt,
 };
 use rustc_span::def_id::DefId;
-
 use std::{cell::RefCell, rc::Rc, slice::Iter};
+
+use super::{
+  indexed::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, ToIndex},
+  utils,
+};
+use crate::to_index_impl;
 
 rustc_index::newtype_index! {
   pub struct PlaceIndex {
@@ -18,14 +21,22 @@ rustc_index::newtype_index! {
 
 to_index_impl!(Place<'tcx>);
 
-struct NormalizedPlaces<'tcx> {
+pub struct NormalizedPlaces<'tcx> {
   tcx: TyCtxt<'tcx>,
   def_id: DefId,
   cache: HashMap<Place<'tcx>, Place<'tcx>>,
 }
 
 impl NormalizedPlaces<'tcx> {
-  fn normalize(&mut self, place: Place<'tcx>) -> Place<'tcx> {
+  pub fn new(tcx: TyCtxt<'tcx>, def_id: DefId) -> Self {
+    NormalizedPlaces {
+      tcx,
+      def_id,
+      cache: HashMap::default(),
+    }
+  }
+
+  pub fn normalize(&mut self, place: Place<'tcx>) -> Place<'tcx> {
     let tcx = self.tcx;
     let def_id = self.def_id;
     *self.cache.entry(place).or_insert_with(|| {
@@ -49,10 +60,7 @@ impl NormalizedPlaces<'tcx> {
         })
         .collect::<Vec<_>>();
 
-      Place {
-        local: place.local,
-        projection: tcx.intern_place_elems(&projection),
-      }
+      utils::mk_place(place.local, &projection, tcx)
     })
   }
 }
@@ -64,13 +72,10 @@ pub struct PlaceDomain<'tcx> {
 }
 
 impl PlaceDomain<'tcx> {
-  pub fn new(tcx: TyCtxt<'tcx>, def_id: DefId, places: Vec<Place<'tcx>>) -> Self {
-    let normalized_places = Rc::new(RefCell::new(NormalizedPlaces {
-      tcx,
-      def_id,
-      cache: HashMap::default(),
-    }));
-
+  pub fn new(
+    places: HashSet<Place<'tcx>>,
+    normalized_places: Rc<RefCell<NormalizedPlaces<'tcx>>>,
+  ) -> Self {
     let domain = DefaultDomain::new(
       places
         .into_iter()
@@ -84,6 +89,10 @@ impl PlaceDomain<'tcx> {
       domain,
       normalized_places,
     }
+  }
+
+  pub fn normalize(&self, place: Place<'tcx>) -> Place<'tcx> {
+    self.normalized_places.borrow_mut().normalize(place)
   }
 }
 

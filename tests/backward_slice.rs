@@ -957,14 +957,14 @@ fn main() {
 
 #[test]
 fn str_static_lifetime() {
-  // TODO: if we're not careful "c" will be considered relevant:
+  // if we're not careful "c" will be considered relevant:
   //   "b" and "c" both are &'static str, and lifetime-based alias analysis
   //   says when x = (some &'static str), then it could be either "b" or "c"
   let src = r#"
 fn main() {
   let `[mut x]` = "a";
   `[`[x = `["b"]`]`;]`
-  print!(`["c"]`);
+  print!("c");
   `[`(x)`;]`
 }
 "#;
@@ -979,7 +979,7 @@ fn macro_slice() {
 fn main() {
   `[let `[x]` = `[1]`;]`
   `[let `[y]` = `[2]`;]`
-  `[println!(`["{} {}"]`, `[`(x)`]`, `[y]`);]`
+  `[println!("{} {}", `[`(x)`]`, `[y]`);]`
 }
 "#;
 

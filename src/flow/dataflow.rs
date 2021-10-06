@@ -2,12 +2,12 @@ use log::{debug, trace};
 use rustc_hir::def_id::DefId;
 use rustc_middle::{
   mir::{visit::Visitor, *},
-  ty::{subst::GenericArgKind, AdtKind, ClosureKind, TyCtxt, TyKind},
+  ty::{subst::GenericArgKind, ClosureKind, TyCtxt, TyKind},
 };
 use rustc_mir_dataflow::{
   fmt::DebugWithContext, Analysis, AnalysisDomain, Forward, JoinSemiLattice, ResultsRefCursor,
 };
-use std::{fmt, rc::Rc};
+use std::{fmt, iter, rc::Rc};
 
 use super::BODY_STACK;
 use crate::core::{
@@ -99,24 +99,11 @@ impl TransferFunction<'_, '_, 'tcx> {
       utils::split_deref(place, tcx).map(|(ptr, _)| place_domain.index(&ptr))
     };
 
-    let all_input_places = inputs
+    let input_and_ref_prov = inputs
       .iter()
-      .map(|place| {
-        let aliases = self.analysis.aliases.aliases(*place);
-        aliases
-          .iter()
-          .map(|alias| {
-            vec![place_domain.index(alias)]
-              .into_iter()
-              .chain(opt_ref(*alias).into_iter())
-          })
-          .flatten()
-          .collect::<Vec<_>>()
-          .into_iter()
-      })
+      .map(|place| iter::once(place_domain.index(place)).chain(opt_ref(*place).into_iter()))
       .flatten();
-
-    for place in all_input_places {
+    for place in input_and_ref_prov {
       add_deps(place, &mut input_location_deps, &mut input_place_deps);
     }
 
@@ -282,10 +269,7 @@ impl TransferFunction<'_, '_, 'tcx> {
 
     let find_accessible_place = |place: Place<'tcx>, domain: &Rc<PlaceDomain<'tcx>>| {
       for i in (0..=place.projection.len()).rev() {
-        let sub_place = Place {
-          local: place.local,
-          projection: tcx.intern_place_elems(&place.projection[..i]),
-        };
+        let sub_place = utils::mk_place(place.local, &place.projection[..i], tcx);
         if domain.contains(&sub_place) {
           return sub_place;
         }
@@ -303,10 +287,7 @@ impl TransferFunction<'_, '_, 'tcx> {
 
     for (arg_index, mut_ptr) in utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body, def_id) {
       let projection = &mut_ptr.projection[get_arg(arg_index).unwrap().projection.len()..];
-      let arg_place = Place {
-        local: Local::from_usize(arg_index + 1),
-        projection: tcx.intern_place_elems(projection),
-      };
+      let arg_place = utils::mk_place(Local::from_usize(arg_index + 1), projection, tcx);
       let arg_place = find_accessible_place(arg_place, flow.analysis.place_domain());
 
       let relevant_args = combined_deps
@@ -321,10 +302,7 @@ impl TransferFunction<'_, '_, 'tcx> {
           let arg = get_arg(idx - 1)?;
           let mut projection = arg.projection.to_vec();
           projection.extend_from_slice(&place.projection);
-          let arg_place = Place {
-            local: arg.local,
-            projection: tcx.intern_place_elems(&projection),
-          };
+          let arg_place = utils::mk_place(arg.local, &projection, tcx);
           Some(find_accessible_place(
             arg_place,
             self.analysis.place_domain(),
@@ -399,7 +377,7 @@ pub struct FlowAnalysis<'a, 'tcx> {
   pub def_id: DefId,
   pub body: &'a Body<'tcx>,
   pub control_dependencies: ControlDependencies,
-  pub aliases: Aliases<'a, 'tcx>,
+  pub aliases: Aliases<'tcx>,
   pub location_domain: Rc<LocationDomain>,
 }
 
@@ -408,7 +386,7 @@ impl FlowAnalysis<'a, 'tcx> {
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
     body: &'a Body<'tcx>,
-    aliases: Aliases<'a, 'tcx>,
+    aliases: Aliases<'tcx>,
     control_dependencies: ControlDependencies,
   ) -> Self {
     let location_domain = build_location_domain(body);
