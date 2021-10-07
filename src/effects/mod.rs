@@ -1,6 +1,6 @@
 use crate::{
   core::{
-    analysis::{FlowistryAnalysis, FlowistryOutput, FlowistryResult},
+    analysis::{self, FlowistryAnalysis, FlowistryOutput, FlowistryResult},
     config::Range,
     indexed::IndexedDomain,
     utils,
@@ -75,11 +75,12 @@ impl FlowistryAnalysis for EffectsHarness {
   }
 
   fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
-    let body_with_facts = utils::get_body_with_borrowck_facts(tcx, body_id);
+    let def_id = tcx.hir().body_owner_def_id(body_id);
+    let body_with_facts = analysis::get_body_with_borrowck_facts(tcx, def_id);
     let body = &body_with_facts.body;
     debug!("{}", utils::mir_to_string(tcx, body)?);
 
-    let flow_results = &flow::compute_flow(tcx, body_id, &body_with_facts);
+    let flow_results = &flow::compute_flow(tcx, body_id, body_with_facts);
     if std::env::var("DUMP_MIR").is_ok() {
       utils::dump_results("target/effects.png", body, flow_results)?;
     }
@@ -146,7 +147,7 @@ impl FlowistryAnalysis for EffectsHarness {
     }
 
     let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
-    let fn_name = tcx.def_path_str(tcx.hir().body_owner_def_id(body_id).to_def_id());
+    let fn_name = tcx.def_path_str(def_id.to_def_id());
     let mut output = EffectsOutput {
       body_span,
       fn_name,

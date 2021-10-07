@@ -12,6 +12,7 @@ use std::{fmt, iter, rc::Rc};
 use super::BODY_STACK;
 use crate::core::{
   aliases::Aliases,
+  analysis,
   control_dependencies::ControlDependencies,
   extensions::{is_extension_active, ContextMode, REACHED_LIBRARY},
   indexed::{IndexMatrix, IndexedDomain},
@@ -258,8 +259,8 @@ impl TransferFunction<'_, '_, 'tcx> {
     }
 
     info!("Recursing into {}", tcx.def_path_debug_str(*def_id));
-    let body_with_facts = utils::get_body_with_borrowck_facts(tcx, body_id);
-    let flow = &super::compute_flow(tcx, body_id, &body_with_facts);
+    let body_with_facts = analysis::get_body_with_borrowck_facts(tcx, def_id.expect_local());
+    let flow = &super::compute_flow(tcx, body_id, body_with_facts);
     let body = &body_with_facts.body;
     let mut cursor = ResultsRefCursor::new(body, flow);
 
