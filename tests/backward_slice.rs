@@ -1065,17 +1065,17 @@ fn main() {
   backward_slice(src);
 }
 
-#[test]
-fn async_simple() {
-  let src = r#"
-async fn foobar(x: &mut i32) -> i32 { 0 }
-async fn test() {
-  `[let `[mut x]` = `[1]`;]`
-  `[`[foobar(`[&mut x]`)]`.await]`;
-  `[`(x)`;]`
-}
-fn main() {}
-"#;
+// #[test]
+// fn async_simple() {
+//   let src = r#"
+// async fn foobar(x: &mut i32) -> i32 { 0 }
+// async fn test() {
+//   `[let `[mut x]` = `[1]`;]`
+//   `[`[foobar(`[&mut x]`)]`.await]`;
+//   `[`(x)`;]`
+// }
+// fn main() {}
+// "#;
 
-  backward_slice(src);
-}
+//   backward_slice(src);
+// }
