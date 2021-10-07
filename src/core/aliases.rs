@@ -149,7 +149,7 @@ impl Aliases<'tcx> {
         utils::hashmap_merge(h1, h2, set_merge)
       })
   }
-  
+
   fn compute_region_info(
     body_with_facts: &BodyWithBorrowckFacts<'_>,
     region_to_pointers: &HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>,
@@ -343,23 +343,33 @@ impl Aliases<'tcx> {
       })
       .collect::<HashMap<_, _>>();
 
+    finder.places.extend(
+      all_aliases
+        .values()
+        .map(|aliases| aliases.iter().copied())
+        .flatten(),
+    );
+
     let all_ptrs = finder
       .places
       .iter()
-      .filter_map(|place| utils::split_deref(*place, tcx))
-      .map(|(ptr, _)| ptr)
+      .map(|place| {
+        place
+          .iter_projections()
+          .filter_map(|(place_ref, elem)| match elem {
+            ProjectionElem::Deref => {
+              Some(utils::mk_place(place_ref.local, place_ref.projection, tcx))
+            }
+            _ => None,
+          })
+      })
+      .flatten()
       .collect::<HashSet<_>>();
 
     let all_places = finder
       .places
       .into_iter()
       .chain(all_ptrs.into_iter())
-      .chain(
-        all_aliases
-          .values()
-          .map(|aliases| aliases.iter().copied())
-          .flatten(),
-      )
       .collect::<HashSet<_>>();
 
     trace!("Places: {:#?}", all_places);

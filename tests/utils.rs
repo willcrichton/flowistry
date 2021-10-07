@@ -157,7 +157,7 @@ pub fn slice(prog: &str, direction: Direction) {
     f.as_file_mut().write(prog_clean.as_bytes())?;
 
     let args = format!(
-      "--edition=2018 --crate-name tmp {} -A warnings --sysroot {}",
+      "rustc --crate-name tmp --edition=2018 {} -A warnings --sysroot {}",
       f.path().display(),
       *SYSROOT
     );

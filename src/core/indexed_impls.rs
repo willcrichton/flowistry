@@ -7,9 +7,8 @@ use rustc_middle::{
   ty::TyCtxt,
 };
 use rustc_span::def_id::DefId;
-use rustc_trait_selection::traits::query::normalize::AtExt;
+use rustc_trait_selection::infer::InferCtxtExt;
 use std::{cell::RefCell, rc::Rc, slice::Iter};
-use log::warn;
 
 use super::{
   indexed::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, ToIndex},
@@ -52,18 +51,11 @@ impl NormalizedPlaces<'tcx> {
       // we also want any index to be treated the same, so we replace [i] => [0]
       let param_env = tcx.param_env(def_id);
       let place = tcx.erase_regions(place);
-      let normalized = tcx.infer_ctxt().enter(|infcx| {
+      let place = tcx.infer_ctxt().enter(|infcx| {
         infcx
-          .at(&ObligationCause::dummy(), param_env)
-          .normalize(place)
+          .partially_normalize_associated_types_in(ObligationCause::dummy(), param_env, place)
+          .value
       });
-      let place = match normalized {
-        Ok(normalized) => normalized.value,
-        Err(_) => {
-          warn!("Normalization failed for place {:?}", place);
-          return place;
-        }
-      };
 
       let projection = place
         .projection

@@ -95,7 +95,7 @@ impl TransferFunction<'_, '_, 'tcx> {
         }
       };
 
-    let opt_ref = move |place: Place<'tcx>| -> Option<PlaceIndex> {      
+    let opt_ref = move |place: Place<'tcx>| -> Option<PlaceIndex> {
       utils::split_deref(place, tcx).map(|(ptr, _)| place_domain.index(&ptr))
     };
 
@@ -291,7 +291,9 @@ impl TransferFunction<'_, '_, 'tcx> {
         .map(|(_, place)| place)
     };
 
-    for (arg_index, mut_ptr) in utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body, self.analysis.def_id) {
+    for (arg_index, mut_ptr) in
+      utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body, self.analysis.def_id)
+    {
       let projection = &mut_ptr.projection[get_arg(arg_index).unwrap().projection.len()..];
       let arg_place = utils::mk_place(Local::from_usize(arg_index + 1), projection, tcx);
       let arg_place = find_accessible_place(arg_place, flow.analysis.place_domain());

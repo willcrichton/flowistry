@@ -1,10 +1,11 @@
 use anyhow::{bail, Context, Result};
+use rustc_data_structures::sync::{Lrc, MappedReadGuard};
 use rustc_macros::Encodable;
 use rustc_span::{
   source_map::{monotonic::MonotonicVec, SourceMap},
   BytePos, FileName, RealFileName, SourceFile, Span,
 };
-use std::{cell::Ref, default::Default, path::Path, rc::Rc};
+use std::{default::Default, path::Path};
 
 #[derive(Encodable, Debug, Clone, Hash, PartialEq, Eq, Default)]
 pub struct Range {
@@ -43,7 +44,7 @@ impl Range {
 
   pub fn source_file<'a>(
     &self,
-    files: &'a Ref<'_, MonotonicVec<Rc<SourceFile>>>,
+    files: &'a MappedReadGuard<'_, MonotonicVec<Lrc<SourceFile>>>,
   ) -> Result<&'a SourceFile> {
     let filename = Path::new(&self.filename);
     files
@@ -83,4 +84,3 @@ impl Range {
     ))
   }
 }
-
