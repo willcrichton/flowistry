@@ -172,7 +172,7 @@ impl TransferFunction<'_, '_, 'tcx> {
 
   fn recurse_into_call(&mut self, call: &TerminatorKind<'tcx>, location: Location) -> bool {
     let tcx = self.analysis.tcx;
-    let (func, args, _destination) = match call {
+    let (func, parent_args, destination) = match call {
       TerminatorKind::Call {
         func,
         args,
@@ -181,12 +181,14 @@ impl TransferFunction<'_, '_, 'tcx> {
       } => (func, args, destination),
       _ => unreachable!(),
     };
+    debug!("Checking whether can recurse into {:?}", func);
 
-    let arg_places = utils::arg_places(args);
+    let parent_arg_places = utils::arg_places(parent_args);
 
     let func = match func.constant() {
       Some(func) => func,
       None => {
+        debug!("  Func is not constant");
         return false;
       }
     };
@@ -194,6 +196,7 @@ impl TransferFunction<'_, '_, 'tcx> {
     let def_id = match func.literal.ty().kind() {
       TyKind::FnDef(def_id, _) => def_id,
       _ => {
+        debug!("  Func is not a FnDef");
         return false;
       }
     };
@@ -202,12 +205,14 @@ impl TransferFunction<'_, '_, 'tcx> {
     // so we can't analyze effects on exit
     let fn_sig = tcx.fn_sig(*def_id);
     if fn_sig.skip_binder().output().is_never() {
+      debug!("  Func returns never");
       return false;
     }
 
     let node = match tcx.hir().get_if_local(*def_id) {
       Some(node) => node,
       None => {
+        debug!("  Func is not in local crate");
         REACHED_LIBRARY.get(|reached_library| {
           if let Some(reached_library) = reached_library {
             *reached_library.borrow_mut() = true;
@@ -220,11 +225,12 @@ impl TransferFunction<'_, '_, 'tcx> {
     let body_id = match node.body_id() {
       Some(body_id) => body_id,
       None => {
+        debug!("  Func does not have a BodyId");
         return false;
       }
     };
 
-    let any_closure_inputs = arg_places.iter().any(|(_, place)| {
+    let any_closure_inputs = parent_arg_places.iter().any(|(_, place)| {
       let ty = place.ty(self.analysis.body.local_decls(), tcx).ty;
       ty.walk(tcx).any(|arg| match arg.unpack() {
         GenericArgKind::Type(ty) => match ty.kind() {
@@ -238,6 +244,7 @@ impl TransferFunction<'_, '_, 'tcx> {
       })
     });
     if any_closure_inputs {
+      debug!("  Func has closure inputs");
       return false;
     }
 
@@ -246,6 +253,7 @@ impl TransferFunction<'_, '_, 'tcx> {
       body_stack.iter().any(|visited_id| *visited_id == body_id)
     });
     if recursive {
+      debug!("  Func is a recursive call");
       return false;
     }
 
@@ -284,42 +292,56 @@ impl TransferFunction<'_, '_, 'tcx> {
       unreachable!("{:?}", place)
     };
 
-    let get_arg = |i| {
-      arg_places
+    let get_parent_arg = |i| {
+      parent_arg_places
         .iter()
         .find(|(j, _)| i == *j)
         .map(|(_, place)| place)
     };
 
-    for (arg_index, mut_ptr) in
-      utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body, self.analysis.def_id)
-    {
-      let projection = &mut_ptr.projection[get_arg(arg_index).unwrap().projection.len()..];
-      let arg_place = utils::mk_place(Local::from_usize(arg_index + 1), projection, tcx);
-      let arg_place = find_accessible_place(arg_place, flow.analysis.place_domain());
+    let parent_domain = self.analysis.place_domain();
+    let child_domain = flow.analysis.place_domain();
 
-      let relevant_args = combined_deps
+    let relevant_to_place = |child_place| {
+      let child_place_accessible_to_parent = find_accessible_place(child_place, child_domain);
+
+      combined_deps
         .places
-        .row(arg_place)
-        .filter_map(|place| {
-          let idx = place.local.as_usize();
+        .row(child_place_accessible_to_parent)
+        .filter_map(|child_place_dep| {
+          let idx = child_place_dep.local.as_usize();
           if idx == 0 && idx > body.arg_count {
             return None;
           }
 
-          let arg = get_arg(idx - 1)?;
-          let mut projection = arg.projection.to_vec();
-          projection.extend_from_slice(place.projection);
-          let arg_place = utils::mk_place(arg.local, &projection, tcx);
-          Some(find_accessible_place(
-            arg_place,
-            self.analysis.place_domain(),
-          ))
+          let parent_arg = get_parent_arg(idx - 1)?;
+          let mut projection = parent_arg.projection.to_vec();
+          projection.extend_from_slice(child_place_dep.projection);
+          let parent_arg_projected = utils::mk_place(parent_arg.local, &projection, tcx);
+          Some(find_accessible_place(parent_arg_projected, parent_domain))
         })
-        .collect::<Vec<_>>();
+        .collect::<Vec<_>>()
+    };
 
-      if !relevant_args.is_empty() {
-        self.apply_mutation(mut_ptr, &relevant_args, location, true, false);
+    for (arg_index, mut_ptr) in utils::arg_mut_ptrs(
+      &parent_arg_places,
+      tcx,
+      self.analysis.body,
+      self.analysis.def_id,
+    ) {
+      let projection = &mut_ptr.projection[get_parent_arg(arg_index).unwrap().projection.len()..];
+      let arg_place = utils::mk_place(Local::from_usize(arg_index + 1), projection, tcx);
+      let inputs = relevant_to_place(arg_place);
+
+      if !inputs.is_empty() {
+        self.apply_mutation(mut_ptr, &inputs, location, false, false);
+      }
+    }
+
+    if let Some((dst, _)) = destination {
+      let inputs = relevant_to_place(utils::local_to_place(RETURN_PLACE, tcx));
+      if !inputs.is_empty() {
+        self.apply_mutation(*dst, &inputs, location, true, false);
       }
     }
 

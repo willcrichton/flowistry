@@ -417,13 +417,6 @@ pub fn span_to_places(body: &Body<'tcx>, span: Span) -> (Vec<(Place<'tcx>, Locat
 
   impl Visitor<'tcx> for FindSpannedPlaces<'_, 'tcx> {
     fn visit_place(&mut self, place: &Place<'tcx>, context: PlaceContext, location: Location) {
-      // Assignments to return value have a span of the entire function, which we want to avoid
-      if let Some(local) = place.as_local() {
-        if local.as_usize() == 0 {
-          return;
-        }
-      }
-
       // Three cases, shown by example:
       //   fn foo(x: i32) {
       //     let y = x + 1;
@@ -438,22 +431,22 @@ pub fn span_to_places(body: &Body<'tcx>, span: Span) -> (Vec<(Place<'tcx>, Locat
         PlaceContext::MutatingUse(MutatingUseContext::Store)
         | PlaceContext::NonMutatingUse(NonMutatingUseContext::Inspect) => {
           let source_info = self.body.source_info(location);
-          Some(source_info.span)
+          source_info.span
         }
         PlaceContext::NonUse(NonUseContext::VarDebugInfo)
           if self.body.args_iter().any(|local| local == place.local) =>
         {
           let source_info = self.body.local_decls()[place.local].source_info;
-          Some(source_info.span)
+          source_info.span
         }
-        _ => None,
+        _ => {
+          return;
+        }
       };
 
-      if let Some(span) = span {
-        if self.span.contains(span) || span.contains(self.span) {
-          self.places.insert((*place, location));
-          self.place_spans.push(span);
-        }
+      if self.span.contains(span) || span.contains(self.span) {
+        self.places.insert((*place, location));
+        self.place_spans.push(span);
       }
     }
   }

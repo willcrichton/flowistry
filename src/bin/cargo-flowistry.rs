@@ -27,6 +27,7 @@ fn main() {
       (@arg file:)
       (@arg start:)
       (@arg end:)
+      (@arg context_mode: --contextmode +takes_value)
       (@arg flags: ...)
     )
     (@subcommand forward_slice =>
@@ -54,6 +55,10 @@ fn main() {
         ("FILE", sub_m.value_of("file").unwrap()),
         ("START", sub_m.value_of("start").unwrap()),
         ("END", sub_m.value_of("end").unwrap()),
+        (
+          "CONTEXT_MODE",
+          sub_m.value_of("context_mode").unwrap_or("SigOnly"),
+        ),
       ],
       sub_m.value_of("file").unwrap(),
     ),

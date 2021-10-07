@@ -358,9 +358,9 @@ fn main() {
   `[if `[let `[Foo::Y(`[z]`)]` = `[&mut x]`]` {
     `[`[*z += 1]`;]`
   }]`
-  if `[let `[Foo::X(`[z]`)]` = x]` {
+  if `[let `[Foo::X(`[z]`)]` = x]` `[{
     `[`(z)`;]`
-  }
+  }]`
 }
 "#;
 
@@ -833,6 +833,34 @@ fn main() {}
 }
 
 #[test]
+fn function_ret() {
+  let src = r#"
+fn foo(`[x]`: i32) -> i32 {
+  `(x)`
+}
+
+fn main() {}
+"#;
+
+  backward_slice(src);
+}
+
+#[test]
+fn function_ret_not_sliced() {
+  let src = r#"
+fn foo(`[x]`: i32) -> i32 {
+  `[print!("{}", `(x)`);]`
+  let y = 1;
+  y
+}
+
+fn main() {}
+"#;
+
+  backward_slice(src);
+}
+
+#[test]
 fn function_lifetime_outlives_spurious_alias() {
   // given our algorithm of estimating aliases from lifetimes, `w` and `x` are considered
   // to aliases `y` and `z` given the constraint `'b: 'a`
@@ -1059,6 +1087,24 @@ fn main() {
   `[let `[z]` = `[y]`;]`
   `[`[x += `[z.0]`]`;]`
   `[`(x)`;]`
+}
+"#;
+
+  backward_slice(src);
+}
+
+#[test]
+fn method_simple() {
+  let src = r#"
+struct Foo(i32, i32);
+impl Foo { fn bar(&self) -> i32 { self.0 } }
+
+fn main() {
+  `[let `[x]` = `[1]`;]`
+  `[let `[y]` = `[2]`;]`
+  `[let `[z]` = `[Foo(`[x]`, `[y]`)]`;]`
+  `[let `[w]` = `[`[z]`.bar()]`;]`
+  `[`(w)`;]`
 }
 "#;
 

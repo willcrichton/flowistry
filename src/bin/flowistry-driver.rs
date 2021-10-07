@@ -7,7 +7,11 @@ extern crate rustc_errors;
 extern crate rustc_interface;
 extern crate rustc_serialize;
 
-use flowistry::{Direction, FlowistryError, FlowistryResult};
+use flowistry::{
+  extensions::{ContextMode, EvalMode, EVAL_MODE},
+  Direction, FlowistryError, FlowistryResult,
+};
+use fluid_let::fluid_set;
 use log::debug;
 use rustc_interface::interface::Result as RustcResult;
 use rustc_serialize::{json, Encodable};
@@ -84,6 +88,7 @@ fn try_analysis<T: for<'a> Encodable<json::Encoder<'a>>>(
 
 fn run_flowistry(args: &[String]) -> RustcResult<()> {
   debug!("Running flowistry with args: {}", args.join(" "));
+
   match arg::<String>("COMMAND").as_str() {
     cmd @ ("backward_slice" | "forward_slice") => {
       let range = flowistry::Range {
@@ -97,6 +102,18 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
       } else {
         Direction::Forward
       };
+
+      let context_mode = match arg::<String>("CONTEXT_MODE").as_str() {
+        "Recurse" => ContextMode::Recurse,
+        "SigOnly" => ContextMode::SigOnly,
+        flag => panic!("Bad value of context mode: {}", flag),
+      };
+
+      let eval_mode = EvalMode {
+        context_mode,
+        ..Default::default()
+      };
+      fluid_set!(EVAL_MODE, eval_mode);
 
       try_analysis(move || flowistry::slice(direction, range, args))
     }

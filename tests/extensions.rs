@@ -165,3 +165,21 @@ fn main() {
   mode! { context_mode: ContextMode::Recurse };
   backward_slice(src);
 }
+
+#[test]
+fn recurse_return() {
+  // TODO: ideally we could actually verify that the flow for ok is only computed once?
+  let src = r#"
+fn ok(x: i32, y: i32) -> i32 { x }
+
+fn main() {
+  `[let `[x]` = `[1]`;]`
+  let y = 1;
+  `[let `[z]` = `[ok(`[x]`, y)]`;]`
+  `[`(z)`;]`  
+}
+"#;
+
+  mode! { context_mode: ContextMode::Recurse };
+  backward_slice(src);
+}
