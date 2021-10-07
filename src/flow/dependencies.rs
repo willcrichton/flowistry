@@ -135,7 +135,13 @@ pub fn compute_dependency_ranges(
       let place_spans = places
         .iter()
         .filter(|place| **place != Place::return_place())
-        .map(|place| body.local_decls()[place.local].source_info.span);
+        .map(|place| {
+          body.local_decls()[place.local]
+            .source_info
+            .span
+            .source_callsite()
+        });
+
       location_spans
         .chain(place_spans)
         .filter_map(|span| Range::from_span(span, source_map).ok())
