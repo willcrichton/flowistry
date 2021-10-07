@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use anyhow::{anyhow, Context, Result};
+use rustc_data_structures::sync::Lrc;
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
   itemlikevisit::ItemLikeVisitor,
@@ -8,8 +9,7 @@ use rustc_hir::{
 };
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::{FileName, RealFileName, SourceFile, Span};
-
-use std::{path::Path, rc::Rc};
+use std::path::Path;
 
 pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
   struct Finder<'tcx> {
@@ -69,7 +69,7 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
 pub fn path_to_source_file<'tcx>(
   path: impl AsRef<str>,
   tcx: TyCtxt<'tcx>,
-) -> Result<Rc<SourceFile>> {
+) -> Result<Lrc<SourceFile>> {
   let source_map = tcx.sess.source_map();
   let files = source_map.files();
   let path = path.as_ref();

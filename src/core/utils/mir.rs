@@ -1,4 +1,5 @@
 use anyhow::{bail, Result};
+use lazy_static::lazy_static;
 use log::{trace, warn};
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
@@ -20,7 +21,8 @@ use rustc_mir_transform::MirPass;
 use rustc_span::Span;
 use rustc_target::abi::VariantIdx;
 use std::{
-  collections::hash_map::Entry, fs::File, hash::Hash, io::Write, ops::ControlFlow, process::Command,
+  collections::hash_map::Entry, fs::File, hash::Hash, io::Write, ops::ControlFlow,
+  process::Command, sync::Mutex,
 };
 
 use crate::core::extensions::{is_extension_active, MutabilityMode};
@@ -547,19 +549,27 @@ impl MirPass<'tcx> for SimplifyMir {
   }
 }
 
+lazy_static! {
+  static ref TCX_LOCK: Mutex<()> = Mutex::new(());
+}
+
 pub fn get_body_with_borrowck_facts(
   tcx: TyCtxt<'tcx>,
   body_id: BodyId,
 ) -> BodyWithBorrowckFacts<'tcx> {
   let local_def_id = tcx.hir().body_owner_def_id(body_id);
-  let mut body_with_facts = rustc_borrowck::consumers::get_body_with_borrowck_facts(
-    tcx,
-    WithOptConstParam::unknown(local_def_id),
-  );
+  let mut body_with_facts = {
+    // when running the compiler in parallel, I've observed panics when concurrently
+    // calling get_body_with_borrowck_facts, so we need to serialize here
+    let _guard = TCX_LOCK.lock().unwrap();
+    rustc_borrowck::consumers::get_body_with_borrowck_facts(
+      tcx,
+      WithOptConstParam::unknown(local_def_id),
+    )
+  };
 
   let body = &mut body_with_facts.body;
   SimplifyMir.run_pass(tcx, body);
-  // simplify::SimplifyCfg::new("flowistry").run_pass(tcx, body);
 
   body_with_facts
 }
