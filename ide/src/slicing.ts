@@ -101,7 +101,8 @@ export function highlight_ranges(
 export async function slice(
   call_flowistry: CallFlowistry,
   direction: "backward" | "forward",
-  type: "highlight" | "select"
+  type: "highlight" | "select",
+  flags: string = ''
 ) {
   let active_editor = vscode.window.activeTextEditor;
   if (!active_editor) {
@@ -115,7 +116,7 @@ export async function slice(
     let subcmd = `${direction}_slice`;
     let start = doc.offsetAt(selection.start);
     let end = doc.offsetAt(selection.end);
-    let cmd = `${subcmd} ${doc.fileName} ${start} ${end}`;
+    let cmd = `${subcmd} ${doc.fileName} ${start} ${end} ${flags}`;
     let slice_output_maybe = await call_flowistry<SliceOutput>(cmd);
     if (slice_output_maybe === null) {
       return;

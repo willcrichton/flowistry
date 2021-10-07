@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use fluid_let::fluid_set;
-use log::info;
+use log::{debug, info};
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
   itemlikevisit::ItemLikeVisitor,
@@ -52,6 +52,7 @@ pub trait FlowistryAnalysis: Send + Sync + Sized {
     };
 
     info!("Starting rustc analysis...");
+    debug!("Eval mode: {:?}", callbacks.eval_mode);
     let compiler = rustc_driver::RunCompiler::new(&compiler_args, &mut callbacks);
     if compiler.run().is_err() {
       return Err(FlowistryError::BuildError);

@@ -176,6 +176,9 @@ pub fn slice(prog: &str, direction: Direction) {
 }
 
 pub fn backward_slice(prog: &str) {
+  // use fluid_let::fluid_set;
+  // use flowistry::extensions::{ContextMode, EvalMode, EVAL_MODE};
+  // fluid_set!(EVAL_MODE, EvalMode { context_mode: ContextMode::Recurse, ..Default::default() });
   slice(prog, Direction::Backward);
 }
 
