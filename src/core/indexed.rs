@@ -3,7 +3,7 @@
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_index::{
   bit_set::{HybridBitSet, HybridIter, SparseBitMatrix},
-  vec::{Enumerated, Idx, IndexVec},
+  vec::{Idx, IndexVec},
 };
 
 use rustc_mir_dataflow::{fmt::DebugWithContext, JoinSemiLattice};
@@ -12,7 +12,6 @@ use std::{
   hash::Hash,
   ops::{Deref, DerefMut},
   rc::Rc,
-  slice::Iter,
 };
 
 pub trait IndexedValue: Eq + Hash + Clone + fmt::Debug {
@@ -48,8 +47,7 @@ pub trait IndexedDomain {
   fn value(&self, index: Self::Index) -> &Self::Value;
   fn index(&self, value: &Self::Value) -> Self::Index;
   fn contains(&self, value: &Self::Value) -> bool;
-  fn len(&self) -> usize;
-  fn iter_enumerated<'a>(&'a self) -> Enumerated<Self::Index, Iter<'a, Self::Value>>;
+  fn as_vec(&self) -> &IndexVec<Self::Index, Self::Value>;
 }
 
 #[derive(Clone)]
@@ -90,12 +88,8 @@ impl<I: Idx, T: IndexedValue> IndexedDomain for DefaultDomain<I, T> {
     self.value_to_index.contains_key(value)
   }
 
-  fn len(&self) -> usize {
-    self.index_to_value.len()
-  }
-
-  fn iter_enumerated<'a>(&'a self) -> Enumerated<Self::Index, Iter<'a, Self::Value>> {
-    self.index_to_value.iter_enumerated()
+  fn as_vec(&self) -> &IndexVec<Self::Index, Self::Value> {
+    &self.index_to_value
   }
 }
 
@@ -141,7 +135,7 @@ pub struct IndexSet<T: IndexedValue, S = OwnedSet<T>> {
 impl<T: IndexedValue> IndexSet<T, OwnedSet<T>> {
   pub fn new(domain: Rc<T::Domain>) -> Self {
     IndexSet {
-      set: OwnedSet(HybridBitSet::new_empty(domain.len())),
+      set: OwnedSet(HybridBitSet::new_empty(domain.as_vec().len())),
       domain,
     }
   }
@@ -321,7 +315,7 @@ pub struct IndexMatrix<R: IndexedValue, C: IndexedValue> {
 impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
   pub fn new(row_domain: Rc<R::Domain>, col_domain: Rc<C::Domain>) -> Self {
     IndexMatrix {
-      matrix: SparseBitMatrix::new(col_domain.len()),
+      matrix: SparseBitMatrix::new(col_domain.as_vec().len()),
       row_domain,
       col_domain,
     }

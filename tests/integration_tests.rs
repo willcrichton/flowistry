@@ -16,16 +16,16 @@ fn main() {
   `[let `[mut total]` = `[0]`;]`
   loop {
     `[let `[input]` = {
-      `[`[`[buffer]`.clear()]`;]`
-      `[`[`[stdin]`.read_line(`[&mut buffer]`)]`.unwrap();]`
-      `[`[buffer]`.trim()]`
+      `[`[buffer.clear()]`;]`
+      `[`[stdin.read_line(`[&mut buffer]`)]`.unwrap();]`
+      `[buffer.trim()]`
     };]`
 
     `[if `[`[input]` == `["exit"]`]` {
       break;
     }]`
 
-    `[let `[n]` = `[`[`[input]`.parse::<i32>()]`.unwrap()]`;]`
+    `[let `[n]` = `[`[input.parse::<i32>()]`.unwrap()]`;]`
     println!("Read: {}", n);
     `[`[total += `[n]`]`;]`
   }

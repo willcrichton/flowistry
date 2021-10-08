@@ -1,5 +1,5 @@
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
-use rustc_index::vec::Enumerated;
+use rustc_index::vec::IndexVec;
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::{
   mir::{Body, Local, Location, Place, ProjectionElem},
@@ -8,7 +8,7 @@ use rustc_middle::{
 };
 use rustc_span::def_id::DefId;
 use rustc_trait_selection::infer::InferCtxtExt;
-use std::{cell::RefCell, rc::Rc, slice::Iter};
+use std::{cell::RefCell, rc::Rc};
 
 use super::{
   indexed::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, ToIndex},
@@ -125,12 +125,8 @@ impl IndexedDomain for PlaceDomain<'tcx> {
       .contains(&self.normalized_places.borrow_mut().normalize(*value))
   }
 
-  fn len(&self) -> usize {
-    self.domain.len()
-  }
-
-  fn iter_enumerated<'a>(&'a self) -> Enumerated<Self::Index, Iter<'a, Self::Value>> {
-    self.domain.iter_enumerated()
+  fn as_vec(&self) -> &IndexVec<Self::Index, Self::Value> {
+    self.domain.as_vec()
   }
 }
 

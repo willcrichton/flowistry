@@ -190,7 +190,7 @@ impl<A: FlowistryAnalysis> rustc_driver::Callbacks for Callbacks<A> {
           output,
         });
 
-        tcx.hir().krate().visit_all_item_likes(&mut visitor);
+        tcx.hir().visit_all_item_likes(&mut visitor);
         visitor.0.output
       })());
     });

@@ -121,7 +121,7 @@ fn recurse_no_definition() {
   let src = r#"
 fn main() {
   `[let `[mut v]` = `[vec![0]]`;]`
-  `[`[`[v]`.get_mut(0)]`;]`
+  `[`[v.get_mut(0)]`;]`
   `[`(v)`;]`
 }
 "#;

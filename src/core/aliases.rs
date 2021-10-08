@@ -252,6 +252,7 @@ impl Aliases<'tcx> {
           .iter()
           .map(|alias| {
             place_domain
+              .as_vec()
               .iter_enumerated()
               .filter_map(move |(idx, place)| {
                 let relation = PlaceRelation::of(*place, *alias);
@@ -277,7 +278,7 @@ impl Aliases<'tcx> {
           single_pointee,
         }
       },
-      place_domain.len(),
+      place_domain.as_vec().len(),
     )
   }
 
