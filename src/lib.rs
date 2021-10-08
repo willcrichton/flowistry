@@ -38,7 +38,7 @@ mod flow;
 mod slicing;
 
 pub use crate::core::{
-  analysis::{FlowistryError, FlowistryResult},
+  analysis::{get_body_with_borrowck_facts, override_queries, FlowistryError, FlowistryResult},
   config::{self, Range},
   extensions, utils,
 };

@@ -201,7 +201,7 @@ impl<A: FlowistryAnalysis> rustc_driver::Callbacks for Callbacks<A> {
 
 // For why we need to do override mir_borrowck, see:
 // https://github.com/rust-lang/rust/blob/485ced56b8753ec86936903f2a8c95e9be8996a1/src/test/run-make-fulldeps/obtain-borrowck/driver.rs
-fn override_queries(
+pub fn override_queries(
   _session: &rustc_session::Session,
   local: &mut Providers,
   external: &mut Providers,
@@ -233,6 +233,7 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tc
       .insert(def_id, Pin::new(Box::new(body_with_facts)))
       .is_none());
   });
+
   let mut providers = Providers::default();
   rustc_borrowck::provide(&mut providers);
   let original_mir_borrowck = providers.mir_borrowck;
