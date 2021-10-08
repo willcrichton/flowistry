@@ -60,7 +60,7 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
     qpath,
     span: None,
   };
-  tcx.hir().krate().visit_all_item_likes(&mut finder);
+  tcx.hir().visit_all_item_likes(&mut finder);
   finder
     .span
     .with_context(|| format!("No function with qpath {}", finder.qpath))

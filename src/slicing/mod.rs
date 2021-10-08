@@ -79,7 +79,12 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
       .into_iter()
       .map(|span| Range::from_span(span, source_map))
       .collect::<Result<Vec<_>>>()?;
-    let ranges = deps.into_iter().map(|v| v.into_iter()).flatten().collect();
+    let ranges = deps
+      .into_iter()
+      .map(|v| v.into_iter())
+      .flatten()
+      .collect::<Vec<_>>();
+    debug!("found {} ranges in slice", ranges.len());
 
     Ok(SliceOutput {
       body_span,

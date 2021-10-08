@@ -341,9 +341,7 @@ impl TransferFunction<'_, '_, 'tcx> {
 
     if let Some((dst, _)) = destination {
       let inputs = relevant_to_place(utils::local_to_place(RETURN_PLACE, tcx));
-      if !inputs.is_empty() {
-        self.apply_mutation(*dst, &inputs, location, true, false);
-      }
+      self.apply_mutation(*dst, &inputs, location, true, false);
     }
 
     true
