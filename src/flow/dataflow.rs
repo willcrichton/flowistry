@@ -369,20 +369,22 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
           return;
         }
 
+        let inputs_for_arg = |arg: Place<'tcx>| {
+          utils::interior_pointers(arg, tcx, self.analysis.body, self.analysis.def_id)
+            .into_values()
+            .map(|places| {
+              places
+                .into_iter()
+                .map(|(place, _)| tcx.mk_place_deref(place))
+            })
+            .flatten()
+            .chain(iter::once(arg))
+        };
+        
         let arg_places = utils::arg_places(args);
         let arg_inputs = arg_places
           .iter()
-          .map(|(_, place)| {
-            utils::interior_pointers(*place, tcx, self.analysis.body, self.analysis.def_id)
-              .into_values()
-              .map(|places| {
-                places
-                  .into_iter()
-                  .map(|(place, _)| tcx.mk_place_deref(place))
-              })
-              .flatten()
-              .chain(iter::once(*place))
-          })
+          .map(|(_, arg)| inputs_for_arg(*arg))
           .flatten()
           .collect::<Vec<_>>();
 
