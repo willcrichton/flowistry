@@ -74,14 +74,17 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
       TerminatorKind::Call { args, .. } => {
         let arg_places = utils::arg_places(args);
         let arg_mut_ptrs = utils::arg_mut_ptrs(&arg_places, self.tcx, self.body, self.def_id);
+        self
+          .places
+          .extend(arg_mut_ptrs.into_iter().map(|(_, place)| place));
 
         if is_extension_active(|mode| mode.context_mode == ContextMode::Recurse) {
-          let arg_mut_ptrs_interior = arg_mut_ptrs
+          let arg_interiors = arg_places
             .into_iter()
             .map(|(_, place)| utils::interior_places(place, self.tcx, self.body, self.def_id))
             .flatten()
             .collect::<Vec<_>>();
-          self.places.extend(arg_mut_ptrs_interior);
+          self.places.extend(arg_interiors);
         }
       }
 
