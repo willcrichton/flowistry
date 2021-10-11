@@ -67,6 +67,7 @@ impl TransferFunction<'_, '_, 'tcx> {
     inputs: &[Place<'tcx>],
     location: Location,
     definitely_mutated: bool,
+    mutate_aliases_only: bool,
   ) {
     debug!(
       "Applying mutation to {:?} with inputs {:?}",
@@ -137,8 +138,14 @@ impl TransferFunction<'_, '_, 'tcx> {
       }
     }
 
+    let conflicts = if mutate_aliases_only {
+      all_aliases.aliases.row_indices(mutated).collect::<Vec<_>>()
+    } else {
+      all_aliases.conflicts(mutated).indices().collect::<Vec<_>>()
+    };
+
     // Union dependencies into all conflicting places of the mutated place
-    for place in all_aliases.conflicts(mutated).indices() {
+    for place in conflicts {
       self
         .state
         .locations
@@ -159,8 +166,6 @@ impl TransferFunction<'_, '_, 'tcx> {
       _ => unreachable!(),
     };
     debug!("Checking whether can recurse into {:?}", func);
-
-    let parent_arg_places = utils::arg_places(parent_args);
 
     let func = match func.constant() {
       Some(func) => func,
@@ -213,6 +218,7 @@ impl TransferFunction<'_, '_, 'tcx> {
       return false;
     }
 
+    let parent_arg_places = utils::arg_places(parent_args);
     let any_closure_inputs = parent_arg_places.iter().any(|(_, place)| {
       let ty = place.ty(self.analysis.body.local_decls(), tcx).ty;
       ty.walk(tcx).any(|arg| match arg.unpack() {
@@ -244,101 +250,96 @@ impl TransferFunction<'_, '_, 'tcx> {
     let body_with_facts = analysis::get_body_with_borrowck_facts(tcx, def_id.expect_local());
     let flow = &super::compute_flow(tcx, body_id, body_with_facts);
     let body = &body_with_facts.body;
-    let mut cursor = ResultsRefCursor::new(body, flow);
 
-    let return_locs = body
-      .basic_blocks()
-      .iter_enumerated()
-      .filter_map(|(bb, data)| match data.terminator().kind {
-        TerminatorKind::Return => Some(body.terminator_loc(bb)),
-        _ => None,
-      });
-    let combined_deps = return_locs
-      .map(|loc| {
+    let mut return_state = FlowDomain::new(
+      flow.analysis.place_domain().clone(),
+      flow.analysis.location_domain().clone(),
+    );
+    {
+      let return_locs = body
+        .basic_blocks()
+        .iter_enumerated()
+        .filter_map(|(bb, data)| match data.terminator().kind {
+          TerminatorKind::Return => Some(body.terminator_loc(bb)),
+          _ => None,
+        });
+
+      let mut cursor = ResultsRefCursor::new(body, flow);
+      for loc in return_locs {
         cursor.seek_after_primary_effect(loc);
-        cursor.get().clone()
-      })
-      .reduce(|mut a, b| {
-        a.join(&b);
-        a
-      })
-      .unwrap();
-
-    let find_accessible_place = |place: Place<'tcx>, domain: &Rc<PlaceDomain<'tcx>>| {
-      for i in (0..=place.projection.len()).rev() {
-        let sub_place = utils::mk_place(place.local, &place.projection[..i], tcx);
-        if domain.contains(&sub_place) {
-          return sub_place;
-        }
+        return_state.join(cursor.get());
       }
-
-      unreachable!("{:?}", place)
-    };
-
-    let get_parent_arg = |i| {
-      parent_arg_places
-        .iter()
-        .find(|(j, _)| i == *j)
-        .map(|(_, place)| place)
     };
 
     let parent_domain = self.analysis.place_domain();
     let child_domain = flow.analysis.place_domain();
 
-    let relevant_to_place = |child_place| {
-      let child_place_accessible_to_child = find_accessible_place(child_place, child_domain);
-      trace!(
-        "child_place {:?} accessible to child at {:?}",
-        child_place,
-        child_place_accessible_to_child
-      );
+    let translate_child_to_parent = |child: Place<'tcx>| -> Option<Place<'tcx>> {
+      if child.local == RETURN_PLACE && child.projection.len() == 0 {
+        if let Some((dst, _)) = destination {
+          return Some(*dst);
+        }
+      }
 
-      combined_deps
-        .places
-        .row(child_place_accessible_to_child)
-        .filter_map(|child_place_dep| {
-          if !utils::is_arg(*child_place_dep, body) {
-            return None;
-          }
+      if !utils::is_arg(child, body) {
+        return None;
+      }
 
-          let parent_arg = get_parent_arg(child_place_dep.local.as_usize() - 1)?;
-          let mut projection = parent_arg.projection.to_vec();
-          projection.extend_from_slice(child_place_dep.projection);
-          let parent_arg_projected = utils::mk_place(parent_arg.local, &projection, tcx);
-          let accessible_to_parent = find_accessible_place(parent_arg_projected, parent_domain);
-          trace!(
-            "parent_arg_projected {:?} accessible to parent at {:?}",
-            parent_arg_projected,
-            accessible_to_parent
-          );
-          Some(accessible_to_parent)
-        })
-        .collect::<Vec<_>>()
+      // For example, say we're calling f(_5.0) and child = (*_1).1 where
+      // .1 is private to parent. Then:
+      //    parent_toplevel_arg = _5.0
+      //    parent_arg_projected = (*_5.0).1
+      //    parent_arg_accessible = (*_5.0)
+
+      let parent_toplevel_arg = parent_arg_places
+        .iter()
+        .find(|(j, _)| child.local.as_usize() - 1 == *j)
+        .map(|(_, place)| place)?;
+
+      let mut projection = parent_toplevel_arg.projection.to_vec();
+      projection.extend_from_slice(child.projection);
+      let parent_arg_projected = utils::mk_place(parent_toplevel_arg.local, &projection, tcx);
+
+      let parent_arg_accessible = {
+        let mut sub_places = (0..=parent_arg_projected.projection.len()).rev().map(|i| {
+          utils::mk_place(
+            parent_arg_projected.local,
+            &parent_arg_projected.projection[..i],
+            tcx,
+          )
+        });
+
+        sub_places
+          .find(|sub_place| parent_domain.contains(sub_place))
+          .unwrap()
+      };
+
+      Some(parent_arg_accessible)
     };
 
-    for (arg_index, mut_ptr) in utils::arg_mut_ptrs(
-      &parent_arg_places,
-      tcx,
-      self.analysis.body,
-      self.analysis.def_id,
-    ) {
-      let projection = &mut_ptr.projection[get_parent_arg(arg_index).unwrap().projection.len()..];
-      let arg_place = utils::mk_place(Local::from_usize(arg_index + 1), projection, tcx);
-      let was_modified = combined_deps
-        .locations
-        .row(find_accessible_place(arg_place, child_domain))
-        .next()
-        .is_some();
+    for child in child_domain.as_vec().iter() {
+      if let Some(parent) = translate_child_to_parent(*child) {
+        let was_return = child.local == RETURN_PLACE;
+        let was_mutated = return_state.locations.row(child).next().is_some();
+        if !was_mutated && !was_return {
+          continue;
+        }
 
-      if was_modified {
-        let relevant_args = relevant_to_place(arg_place);
-        self.apply_mutation(mut_ptr, &relevant_args, location, false);
+        let child_deps = return_state.places.row(child).copied();
+        let parent_deps = child_deps
+          .filter_map(translate_child_to_parent)
+          .collect::<Vec<_>>();
+
+        debug!(
+          "child {:?} / child_deps {:?} --> parent {:?} / parent_deps {:?}",
+          child,
+          return_state.places.row_set(child),
+          parent,
+          parent_deps
+        );
+
+        self.apply_mutation(parent, &parent_deps, location, was_return, true);
       }
-    }
-
-    if let Some((dst, _)) = destination {
-      let inputs = relevant_to_place(utils::local_to_place(RETURN_PLACE, tcx));
-      self.apply_mutation(*dst, &inputs, location, true);
     }
 
     true
@@ -349,7 +350,7 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
   fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
     let mut collector = PlaceCollector::default();
     collector.visit_rvalue(rvalue, location);
-    self.apply_mutation(*place, &collector.places, location, true);
+    self.apply_mutation(*place, &collector.places, location, true, false);
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
@@ -393,19 +394,19 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
           let empty = vec![];
           let inputs = if ret_is_unit { &empty } else { &arg_inputs };
 
-          self.apply_mutation(*dst_place, inputs, location, true);
+          self.apply_mutation(*dst_place, inputs, location, true, false);
         }
 
         for (_, mut_ptr) in
           utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body, self.analysis.def_id)
         {
-          self.apply_mutation(mut_ptr, &arg_inputs, location, false);
+          self.apply_mutation(mut_ptr, &arg_inputs, location, false, false);
         }
       }
 
       TerminatorKind::DropAndReplace { place, value, .. } => {
         if let Some(src) = utils::operand_to_place(value) {
-          self.apply_mutation(*place, &[src], location, true);
+          self.apply_mutation(*place, &[src], location, true, false);
         }
       }
 
