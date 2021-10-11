@@ -1,5 +1,5 @@
 use super::{
-  extensions::{is_extension_active, PointerMode},
+  extensions::{is_extension_active, ContextMode, PointerMode},
   indexed::{IndexMatrix, IndexSetIteratorExt, IndexedDomain, ToIndex},
   indexed_impls::{NormalizedPlaces, PlaceDomain, PlaceIndex, PlaceSet},
   utils::{self, PlaceRelation},
@@ -74,9 +74,15 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
       TerminatorKind::Call { args, .. } => {
         let arg_places = utils::arg_places(args);
         let arg_mut_ptrs = utils::arg_mut_ptrs(&arg_places, self.tcx, self.body, self.def_id);
-        self
-          .places
-          .extend(arg_mut_ptrs.into_iter().map(|(_, place)| place));
+
+        if is_extension_active(|mode| mode.context_mode == ContextMode::Recurse) {
+          let arg_mut_ptrs_interior = arg_mut_ptrs
+            .into_iter()
+            .map(|(_, place)| utils::interior_places(place, self.tcx, self.body, self.def_id))
+            .flatten()
+            .collect::<Vec<_>>();
+          self.places.extend(arg_mut_ptrs_interior);
+        }
       }
 
       _ => {}
