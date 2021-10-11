@@ -294,7 +294,7 @@ fn main() {
 }
 
 #[test]
-fn struct_mut_ptr() {
+fn struct_mut_ptr_1() {
   let src = r#"
 fn main() {
   struct Foo<'a>(&'a mut i32);
@@ -574,6 +574,21 @@ fn main() {
   `[`[(*y).0 = 2]`;]`
   `[`(x)`;]`
 }
+"#;
+
+  backward_slice(src);
+}
+
+#[test]
+fn pointer_copy_and_read() {
+  let src = r#"
+fn main() {
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[y]` = `[&mut x]`;]`
+  `[`[*y = 2]`;]`
+  `[let `[z]` = `[y]`;]`
+  `[`(*z)`;]`
+}  
 "#;
 
   backward_slice(src);
@@ -1125,3 +1140,20 @@ fn main() {}
 
   backward_slice(src);
 }
+
+// #[test]
+// fn foo() {
+//   let src = r#"
+// fn ye(x: &mut i32, y: (&mut i32,)) {}
+// fn main() {
+//   `[let `[mut x]` = `[1]`;]`
+//   `[let `[mut y]` = `[1]`;]`
+//   `[let `[mut z]` = `[(`[&mut y]`,)]`;]`
+//   `[`[*z.0]` = `[1]`;]`
+//   `[`[ye(`[&mut x]`, `[z]`)]`;]`
+//   `[`(x)`;]`
+// }
+// "#;
+
+//   backward_slice(src);
+// }

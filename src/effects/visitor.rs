@@ -36,7 +36,6 @@ impl FindEffects<'a, 'mir, 'tcx> {
 
         ptrs
           .into_values()
-          .map(|places| places.into_iter())
           .flatten()
           .filter(|(_, mutability)| *mutability == Mutability::Mut)
           .map(|(place, _)| {
@@ -64,17 +63,15 @@ impl FindEffects<'a, 'mir, 'tcx> {
         .or_default()
         .insert((mutated, location));
     } else {
-      let conflicts = self.analysis.aliases.conflicts(mutated);
+      let mut conflicts = self.analysis.aliases.conflicts(mutated);
       debug!(
         "Checking for effect on {:?} (conflicts {:?})",
         mutated, conflicts
       );
 
-      let mut set = conflicts.supers.clone();
-      set.union(&conflicts.subs);
-      set.intersect(&self.mut_args);
+      conflicts.intersect(&self.mut_args);
 
-      for arg in set.iter() {
+      for arg in conflicts.iter() {
         let kind = EffectKind::MutArg(self.analysis.place_domain().index(arg));
         debug!("Mutation on {:?} adding arg effect on {:?}", mutated, arg);
         self

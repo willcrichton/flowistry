@@ -16,9 +16,7 @@ use crate::core::{
   control_dependencies::ControlDependencies,
   extensions::{is_extension_active, ContextMode, REACHED_LIBRARY},
   indexed::{IndexMatrix, IndexedDomain},
-  indexed_impls::{
-    build_location_domain, LocationDomain, LocationSet, PlaceDomain, PlaceIndex, PlaceSet,
-  },
+  indexed_impls::{build_location_domain, LocationDomain, LocationSet, PlaceDomain, PlaceSet},
   utils::{self, PlaceCollector},
 };
 
@@ -46,6 +44,11 @@ impl JoinSemiLattice for FlowDomain<'_> {
 }
 
 impl<C> DebugWithContext<C> for FlowDomain<'_> {
+  fn fmt_with(&self, ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    self.locations.fmt_with(ctxt, f)?;
+    self.places.fmt_with(ctxt, f)
+  }
+
   fn fmt_diff_with(&self, old: &Self, ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     self.locations.fmt_diff_with(&old.locations, ctxt, f)?;
     self.places.fmt_diff_with(&old.places, ctxt, f)
@@ -64,15 +67,25 @@ impl TransferFunction<'_, '_, 'tcx> {
     inputs: &[Place<'tcx>],
     location: Location,
     definitely_mutated: bool,
-    is_borrow: bool,
   ) {
     debug!(
       "Applying mutation to {:?} with inputs {:?}",
       mutated, inputs
     );
-    let tcx = self.analysis.tcx;
     let place_domain = self.analysis.place_domain();
     let location_domain = self.analysis.location_domain();
+
+    let all_aliases = &self.analysis.aliases;
+    let mutated_aliases = all_aliases.aliases.row_set(mutated).unwrap();
+
+    // Clear sub-places of mutated place (if sound to do so)
+    if definitely_mutated && mutated_aliases.len() == 1 {
+      let mutated_direct = mutated_aliases.iter().next().unwrap();
+      for sub in all_aliases.subs.row(*mutated_direct) {
+        self.state.places.clear_row(sub);
+        self.state.locations.clear_row(sub);
+      }
+    }
 
     let mut input_location_deps = LocationSet::new(location_domain.clone());
     input_location_deps.insert(location);
@@ -80,34 +93,34 @@ impl TransferFunction<'_, '_, 'tcx> {
     let mut input_place_deps = PlaceSet::new(place_domain.clone());
 
     let add_deps =
-      |place, input_location_deps: &mut LocationSet, input_place_deps: &mut PlaceSet<'tcx>| {
-        if let Some(loc_deps) = self.state.locations.row_set(place) {
-          input_location_deps.union(&loc_deps);
-        }
+      |place: Place<'tcx>, location_deps: &mut LocationSet, place_deps: &mut PlaceSet<'tcx>| {
+        for dep_place in self.analysis.aliases.deps.row(place) {
+          if let Some(deps) = self.state.locations.row_set(dep_place) {
+            location_deps.union(&deps);
+          }
 
-        input_place_deps.insert(place);
-        if let Some(place_deps) = self.state.places.row_set(place) {
-          trace!(
-            "  Adding {:?} with deps {:?}",
-            place_domain.value(place),
-            place_deps
-          );
-          input_place_deps.union(&place_deps);
+          place_deps.insert(dep_place);
+          if let Some(deps) = self.state.places.row_set(dep_place) {
+            trace!(
+              "  Adding {:?} / dependency {:?} with deps {:?}",
+              place,
+              dep_place,
+              deps
+            );
+            place_deps.union(&deps);
+          }
         }
       };
 
-    let opt_ref = move |place: Place<'tcx>| -> Option<PlaceIndex> {
-      utils::split_deref(place, tcx).map(|(ptr, _)| place_domain.index(&ptr))
-    };
+    // Add deps of mutated to include provenance of mutated pointers
+    add_deps(mutated, &mut input_location_deps, &mut input_place_deps);
 
-    let input_and_ref_prov = inputs
-      .iter()
-      .map(|place| iter::once(place_domain.index(place)).chain(opt_ref(*place).into_iter()))
-      .flatten();
-    for place in input_and_ref_prov {
-      add_deps(place, &mut input_location_deps, &mut input_place_deps);
+    // Add deps of all inputs
+    for place in inputs.iter() {
+      add_deps(*place, &mut input_location_deps, &mut input_place_deps);
     }
 
+    // Add control dependencies
     let controlled_by = self
       .analysis
       .control_dependencies
@@ -119,55 +132,18 @@ impl TransferFunction<'_, '_, 'tcx> {
       let terminator = body.basic_blocks()[block].terminator();
       if let TerminatorKind::SwitchInt { discr, .. } = &terminator.kind {
         if let Some(discr_place) = utils::operand_to_place(discr) {
-          add_deps(
-            place_domain.index(&discr_place),
-            &mut input_location_deps,
-            &mut input_place_deps,
-          );
+          add_deps(discr_place, &mut input_location_deps, &mut input_place_deps);
         }
       }
     }
 
-    if let Some(ptr) = opt_ref(mutated) {
-      // Only need to include provenance for references defined within the function,
-      //   not from arguments.
-      // TODO: this was primarily for recurse_project_dst,
-      //   is this a special case of a more general optimization?
-      let local = place_domain.value(ptr).local.as_usize();
-      let is_arg = local > 0 && local - 1 < self.analysis.body.arg_count;
-      if !is_arg {
-        add_deps(ptr, &mut input_location_deps, &mut input_place_deps);
-      }
-    }
-
-    let conflicts = self.analysis.aliases.conflicts(mutated);
-
-    if definitely_mutated && conflicts.single_pointee {
-      for sub in conflicts.subs.indices() {
-        self.state.places.clear_row(sub);
-        self.state.locations.clear_row(sub);
-      }
-    }
-
-    for place in conflicts.iter() {
+    // Union dependencies into all conflicting places of the mutated place
+    for place in all_aliases.conflicts(mutated).indices() {
       self
         .state
         .locations
         .union_into_row(place, &input_location_deps);
       self.state.places.union_into_row(place, &input_place_deps);
-    }
-
-    // see pointer_reborrow_nested for why this matters
-    if is_borrow {
-      let deref_place = tcx.mk_place_deref(mutated);
-      self
-        .state
-        .locations
-        .union_into_row(deref_place, &input_location_deps);
-      self
-        .state
-        .places
-        .union_into_row(deref_place, &input_place_deps);
     }
   }
 
@@ -230,6 +206,12 @@ impl TransferFunction<'_, '_, 'tcx> {
         return false;
       }
     };
+
+    let unsafety = tcx.unsafety_check_result(def_id.expect_local());
+    if !unsafety.unsafe_blocks.is_empty() {
+      debug!("  Func contains unsafe blocks");
+      return false;
+    }
 
     let any_closure_inputs = parent_arg_places.iter().any(|(_, place)| {
       let ty = place.ty(self.analysis.body.local_decls(), tcx).ty;
@@ -304,22 +286,32 @@ impl TransferFunction<'_, '_, 'tcx> {
     let child_domain = flow.analysis.place_domain();
 
     let relevant_to_place = |child_place| {
-      let child_place_accessible_to_parent = find_accessible_place(child_place, child_domain);
+      let child_place_accessible_to_child = find_accessible_place(child_place, child_domain);
+      trace!(
+        "child_place {:?} accessible to child at {:?}",
+        child_place,
+        child_place_accessible_to_child
+      );
 
       combined_deps
         .places
-        .row(child_place_accessible_to_parent)
+        .row(child_place_accessible_to_child)
         .filter_map(|child_place_dep| {
-          let idx = child_place_dep.local.as_usize();
-          if idx == 0 && idx > body.arg_count {
+          if !utils::is_arg(*child_place_dep, body) {
             return None;
           }
 
-          let parent_arg = get_parent_arg(idx - 1)?;
+          let parent_arg = get_parent_arg(child_place_dep.local.as_usize() - 1)?;
           let mut projection = parent_arg.projection.to_vec();
           projection.extend_from_slice(child_place_dep.projection);
           let parent_arg_projected = utils::mk_place(parent_arg.local, &projection, tcx);
-          Some(find_accessible_place(parent_arg_projected, parent_domain))
+          let accessible_to_parent = find_accessible_place(parent_arg_projected, parent_domain);
+          trace!(
+            "parent_arg_projected {:?} accessible to parent at {:?}",
+            parent_arg_projected,
+            accessible_to_parent
+          );
+          Some(accessible_to_parent)
         })
         .collect::<Vec<_>>()
     };
@@ -332,16 +324,21 @@ impl TransferFunction<'_, '_, 'tcx> {
     ) {
       let projection = &mut_ptr.projection[get_parent_arg(arg_index).unwrap().projection.len()..];
       let arg_place = utils::mk_place(Local::from_usize(arg_index + 1), projection, tcx);
-      let inputs = relevant_to_place(arg_place);
+      let was_modified = combined_deps
+        .locations
+        .row(find_accessible_place(arg_place, child_domain))
+        .next()
+        .is_some();
 
-      if !inputs.is_empty() {
-        self.apply_mutation(mut_ptr, &inputs, location, false, false);
+      if was_modified {
+        let relevant_args = relevant_to_place(arg_place);
+        self.apply_mutation(mut_ptr, &relevant_args, location, false);
       }
     }
 
     if let Some((dst, _)) = destination {
       let inputs = relevant_to_place(utils::local_to_place(RETURN_PLACE, tcx));
-      self.apply_mutation(*dst, &inputs, location, true, false);
+      self.apply_mutation(*dst, &inputs, location, true);
     }
 
     true
@@ -352,9 +349,7 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
   fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
     let mut collector = PlaceCollector::default();
     collector.visit_rvalue(rvalue, location);
-
-    let is_borrow = matches!(rvalue, Rvalue::Ref(..));
-    self.apply_mutation(*place, &collector.places, location, true, is_borrow);
+    self.apply_mutation(*place, &collector.places, location, true);
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
@@ -374,25 +369,43 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
         }
 
         let arg_places = utils::arg_places(args);
-        let arg_just_places = arg_places
+        let arg_inputs = arg_places
           .iter()
-          .map(|(_, place)| *place)
+          .map(|(_, place)| {
+            utils::interior_pointers(*place, tcx, self.analysis.body, self.analysis.def_id)
+              .into_values()
+              .map(|places| {
+                places
+                  .into_iter()
+                  .map(|(place, _)| tcx.mk_place_deref(place))
+              })
+              .flatten()
+              .chain(iter::once(*place))
+          })
+          .flatten()
           .collect::<Vec<_>>();
 
         if let Some((dst_place, _)) = destination {
-          self.apply_mutation(*dst_place, &arg_just_places, location, true, false);
+          let ret_is_unit = dst_place
+            .ty(self.analysis.body.local_decls(), tcx)
+            .ty
+            .is_unit();
+          let empty = vec![];
+          let inputs = if ret_is_unit { &empty } else { &arg_inputs };
+
+          self.apply_mutation(*dst_place, inputs, location, true);
         }
 
         for (_, mut_ptr) in
           utils::arg_mut_ptrs(&arg_places, tcx, self.analysis.body, self.analysis.def_id)
         {
-          self.apply_mutation(mut_ptr, &arg_just_places, location, false, false);
+          self.apply_mutation(mut_ptr, &arg_inputs, location, false);
         }
       }
 
       TerminatorKind::DropAndReplace { place, value, .. } => {
         if let Some(src) = utils::operand_to_place(value) {
-          self.apply_mutation(*place, &[src], location, true, false);
+          self.apply_mutation(*place, &[src], location, true);
         }
       }
 

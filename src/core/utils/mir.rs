@@ -1,7 +1,5 @@
 use anyhow::{bail, Result};
-
 use log::{trace, warn};
-
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
 use rustc_hir::def_id::DefId;
@@ -17,9 +15,12 @@ use rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
 use rustc_mir_transform::MirPass;
 use rustc_span::Span;
 use rustc_target::abi::VariantIdx;
+use smallvec::SmallVec;
 use std::{
-  collections::hash_map::Entry, fs::File, hash::Hash, io::Write, ops::ControlFlow, process::Command,
+  collections::hash_map::Entry, hash::Hash, io::Write, ops::ControlFlow, path::Path,
+  process::Command,
 };
+use tempfile::NamedTempFile;
 
 use crate::core::extensions::{is_extension_active, MutabilityMode};
 
@@ -474,9 +475,10 @@ pub fn span_to_places(body: &Body<'tcx>, span: Span) -> (Vec<(Place<'tcx>, Locat
 }
 
 pub fn dump_results<'tcx, A>(
-  path: &str,
   body: &Body<'tcx>,
   results: &Results<'tcx, A>,
+  def_id: DefId,
+  tcx: TyCtxt<'tcx>,
 ) -> Result<()>
 where
   A: Analysis<'tcx>,
@@ -485,14 +487,26 @@ where
   let graphviz = graphviz::Formatter::new(body, results, graphviz::OutputStyle::AfterOnly);
   let mut buf = Vec::new();
   dot::render(&graphviz, &mut buf)?;
-  let mut file = File::create("/tmp/graph.dot")?;
-  file.write_all(&buf)?;
+
+  let mut file = NamedTempFile::new()?;
+  file.as_file_mut().write_all(&buf)?;
+
+  let output_dir = Path::new("target");
+  let fname = tcx.def_path_debug_str(def_id);
+  let output_path = output_dir.join(format!("{}.png", fname));
+
   let status = Command::new("dot")
-    .args(&["-Tpng", "/tmp/graph.dot", "-o", path])
+    .args(&[
+      "-Tpng",
+      &file.path().display().to_string(),
+      "-o",
+      &output_path.display().to_string(),
+    ])
     .status()?;
   if !status.success() {
-    bail!("dot for {} failed", path)
+    bail!("dot for {} failed", output_path.display())
   };
+
   Ok(())
 }
 
@@ -538,26 +552,28 @@ impl MirPass<'tcx> for SimplifyMir {
   }
 }
 
-pub fn split_deref(
-  place: Place<'tcx>,
-  tcx: TyCtxt<'tcx>,
-) -> Option<(Place<'tcx>, &'tcx [PlaceElem<'tcx>])> {
-  let (deref_index, _) = place
-    .projection
-    .iter()
-    .enumerate()
-    .rev()
-    .find(|(_, elem)| matches!(elem, ProjectionElem::Deref))?;
-
-  Some((
-    mk_place(place.local, &place.projection[..deref_index], tcx),
-    &place.projection[deref_index + 1..],
-  ))
-}
-
 pub fn mk_place(local: Local, projection: &[PlaceElem<'tcx>], tcx: TyCtxt<'tcx>) -> Place<'tcx> {
   Place {
     local,
     projection: tcx.intern_place_elems(projection),
   }
+}
+
+pub fn is_arg(place: Place<'tcx>, body: &Body<'tcx>) -> bool {
+  let i = place.local.as_usize();
+  i > 0 && i - 1 < body.arg_count
+}
+
+pub fn is_direct(place: Place<'tcx>, body: &Body<'tcx>) -> bool {
+  !place.is_indirect() || is_arg(place, body)
+}
+
+pub fn pointers_in_place(place: Place<'tcx>, tcx: TyCtxt<'tcx>) -> SmallVec<[Place<'tcx>; 2]> {
+  place
+    .iter_projections()
+    .filter_map(|(place_ref, elem)| match elem {
+      ProjectionElem::Deref => Some(mk_place(place_ref.local, place_ref.projection, tcx)),
+      _ => None,
+    })
+    .collect()
 }

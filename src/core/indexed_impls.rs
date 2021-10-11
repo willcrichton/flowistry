@@ -137,33 +137,6 @@ impl IndexedValue for Place<'tcx> {
 
 pub type PlaceSet<'tcx> = IndexSet<Place<'tcx>>;
 
-// impl DebugWithContext<PlaceDomain<'tcx>> for PlaceSet {
-//   fn fmt_with(&self, ctxt: &PlaceDomain<'tcx>, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//     let format_place = |place: Place| {
-//       let mut s = format!("{:?}", place.local);
-//       for elem in place.projection.iter() {
-//         s = match elem {
-//           ProjectionElem::Deref => format!("(*{})", s),
-//           ProjectionElem::Field(field, _) => format!("{}.{:?}", s, field.as_usize()),
-//           ProjectionElem::Index(_) => format!("{}[]", s),
-//           _ => format!("TODO({})", s),
-//         };
-//       }
-//       s
-//     };
-
-//     write!(
-//       f,
-//       "{{{}}}",
-//       self
-//         .iter(ctxt)
-//         .map(|place| format_place(place))
-//         .collect::<Vec<_>>()
-//         .join(", ")
-//     )
-//   }
-// }
-
 rustc_index::newtype_index! {
   pub struct LocationIndex {
       DEBUG_FORMAT = "l{}"

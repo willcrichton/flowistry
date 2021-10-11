@@ -186,7 +186,7 @@ fn main() {
     // this conditional check for the --sysroot flag is there so users can call
     // `flowistry-driver` directly without having to pass --sysroot or anything
     if !have_sys_root_arg {
-      args.extend(vec!["--sysroot".into(), sys_root]);
+      args.extend(["--sysroot".into(), sys_root]);
     }
 
     let mut is_flowistry = false;

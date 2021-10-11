@@ -8,13 +8,13 @@ use rustc_index::{
 
 use rustc_mir_dataflow::{fmt::DebugWithContext, JoinSemiLattice};
 use std::{
-  fmt,
+  fmt::{self},
   hash::Hash,
   ops::{Deref, DerefMut},
   rc::Rc,
 };
 
-pub trait IndexedValue: Eq + Hash + Clone + fmt::Debug {
+pub trait IndexedValue: Eq + Hash + Clone + Ord + fmt::Debug {
   type Index: Idx;
   type Domain: IndexedDomain<Index = Self::Index, Value = Self> = DefaultDomain<Self::Index, Self>;
 }
@@ -24,6 +24,12 @@ pub trait ToIndex<T: IndexedValue> {
 }
 
 impl<T: IndexedValue> ToIndex<T> for T {
+  fn to_index(&self, domain: &T::Domain) -> T::Index {
+    domain.index(self)
+  }
+}
+
+impl<T: IndexedValue> ToIndex<T> for &T {
   fn to_index(&self, domain: &T::Domain) -> T::Index {
     domain.index(self)
   }
@@ -257,11 +263,24 @@ impl<T: IndexedValue + fmt::Debug, S: ToSet<T>> fmt::Debug for IndexSet<T, S> {
   }
 }
 
+struct Escape<T>(T);
+impl<T: fmt::Debug> fmt::Display for Escape<T> {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{}", html_escape::encode_text(&format!("{:?}", self.0)))
+  }
+}
+
 impl<T: IndexedValue + fmt::Debug, S: ToSet<T>, C> DebugWithContext<C> for IndexSet<T, S>
 where
   T::Index: ToIndex<T>,
 {
-  fn fmt_diff_with(&self, old: &Self, _ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+  fn fmt_with(&self, _ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let mut elts = self.iter().collect::<Vec<_>>();
+    elts.sort();
+    write!(f, "{}", Escape(elts))
+  }
+
+  fn fmt_diff_with(&self, old: &Self, ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     if self == old {
       return Ok(());
     }
@@ -276,11 +295,13 @@ where
       .collect_indices(self.domain.clone());
 
     if added.len() > 0 {
-      write!(f, "\u{001f}+{:?}", added)?;
+      write!(f, "\u{001f}+")?;
+      added.fmt_with(ctxt, f)?;
     }
 
     if removed.len() > 0 {
-      write!(f, "\u{001f}-{:?}", removed)?;
+      write!(f, "\u{001f}-")?;
+      removed.fmt_with(ctxt, f)?;
     }
 
     Ok(())
@@ -396,7 +417,10 @@ impl<R: IndexedValue, C: IndexedValue> JoinSemiLattice for IndexMatrix<R, C> {
   }
 }
 
-impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug for IndexMatrix<R, C> {
+impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug for IndexMatrix<R, C>
+where
+  R::Index: ToIndex<R>,
+{
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{{")?;
 
@@ -406,17 +430,15 @@ impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug for 
         continue;
       }
 
-      write!(f, "  {:?}: [", self.row_domain.value(row))?;
-      for (i, col) in self.matrix.iter(row).enumerate() {
-        write!(f, "{:?}", self.col_domain.value(col))?;
-        if i < n - 1 {
-          write!(f, ", ")?;
-        }
-      }
-      write!(f, "]<br align=\"left\" />")?;
+      write!(
+        f,
+        "  {:?}: {:?},",
+        self.row_domain.value(row),
+        self.row_set(row).unwrap()
+      )?;
     }
 
-    write!(f, "}}<br align=\"left\" />")
+    write!(f, "}}")
   }
 }
 
@@ -426,6 +448,24 @@ where
   R::Index: ToIndex<R>,
   C::Index: ToIndex<C>,
 {
+  fn fmt_with(&self, ctxt: &Ctx, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{{")?;
+
+    for row in self.matrix.rows() {
+      if let Some(row_set) = self.row_set(row) {
+        if row_set.len() == 0 {
+          continue;
+        }
+
+        write!(f, "  {}: ", Escape(self.row_domain.value(row)))?;
+        row_set.fmt_with(ctxt, f)?;
+        write!(f, "]<br align=\"left\" />")?;
+      }
+    }
+
+    write!(f, "}}<br align=\"left\" />")
+  }
+
   fn fmt_diff_with(&self, old: &Self, ctxt: &Ctx, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     if self == old {
       return Ok(());
@@ -445,7 +485,7 @@ where
         continue;
       }
 
-      write!(f, "{:?}: ", row_value)?;
+      write!(f, "{}: ", Escape(row_value))?;
       set.fmt_diff_with(old_set, ctxt, f)?;
       writeln!(f)?;
     }

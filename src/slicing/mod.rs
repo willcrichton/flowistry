@@ -39,13 +39,13 @@ impl SliceOutput {
 
 impl FlowistryOutput for SliceOutput {
   fn merge(&mut self, other: SliceOutput) {
-    self.ranges.extend(other.ranges.into_iter());
+    self.ranges.extend(other.ranges);
     self.num_instructions = other.num_instructions;
     self.num_relevant_instructions = other.num_relevant_instructions;
     self.mutated_inputs = other.mutated_inputs;
     self.relevant_inputs = other.relevant_inputs;
     self.body_span = other.body_span;
-    self.sliced_spans.extend(other.sliced_spans.into_iter());
+    self.sliced_spans.extend(other.sliced_spans);
   }
 }
 
@@ -62,9 +62,6 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     let body = &body_with_facts.body;
 
     let results = &flow::compute_flow(tcx, body_id, body_with_facts);
-    if std::env::var("DUMP_MIR").is_ok() {
-      utils::dump_results("target/flow.png", body, results)?;
-    }
 
     let source_map = tcx.sess.source_map();
     let (sliced_places, sliced_spans) =
@@ -79,11 +76,7 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
       .into_iter()
       .map(|span| Range::from_span(span, source_map))
       .collect::<Result<Vec<_>>>()?;
-    let ranges = deps
-      .into_iter()
-      .map(|v| v.into_iter())
-      .flatten()
-      .collect::<Vec<_>>();
+    let ranges = deps.into_iter().flatten().collect::<Vec<_>>();
     debug!("found {} ranges in slice", ranges.len());
 
     Ok(SliceOutput {

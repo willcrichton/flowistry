@@ -129,7 +129,7 @@ pub fn compute_dependency_ranges(
     .map(|(locations, places)| {
       let location_spans = locations
         .iter()
-        .map(|location| utils::location_to_spans(*location, body, spanner, source_map).into_iter())
+        .map(|location| utils::location_to_spans(*location, body, spanner, source_map))
         .flatten();
 
       let place_spans = places
