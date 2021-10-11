@@ -81,9 +81,6 @@ impl FlowistryAnalysis for EffectsHarness {
     debug!("{}", utils::mir_to_string(tcx, body)?);
 
     let flow_results = &flow::compute_flow(tcx, body_id, body_with_facts);
-    if std::env::var("DUMP_MIR").is_ok() {
-      utils::dump_results("target/effects.png", body, flow_results)?;
-    }
 
     let mut find_effects = visitor::FindEffects::new(&flow_results.analysis);
     flow_results.visit_reachable_with(body, &mut find_effects);
@@ -108,7 +105,7 @@ impl FlowistryAnalysis for EffectsHarness {
     let source_map = tcx.sess.source_map();
     let mut ranged_effects = effects
       .into_iter()
-      .zip(deps.into_iter())
+      .zip(deps)
       .filter_map(|((kind, loc), slice)| {
         let spans = utils::location_to_spans(loc, body, &spanner, source_map);
         let range = spans
@@ -129,7 +126,7 @@ impl FlowistryAnalysis for EffectsHarness {
         .iter()
         .enumerate()
         .filter(|(j, _)| *j != i)
-        .map(|(_, (_, effect))| effect.slice.clone().into_iter())
+        .map(|(_, (_, effect))| effect.slice.clone())
         .flatten()
         .map(|range| (range.start..range.end, ()))
         .collect::<IntervalTree<_, _>>();

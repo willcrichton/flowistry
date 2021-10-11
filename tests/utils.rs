@@ -83,7 +83,7 @@ fn color_ranges(prog: &str, all_ranges: Vec<(&str, &HashSet<Range>)>) -> String 
               .any(|other| range != other && other.start <= range.end && range.end < other.end)
           });
           let end_marker = if contained { "]" } else { "\x1B[0m]" };
-          vec![("[\x1B[31m", range.start), (end_marker, range.end)].into_iter()
+          [("[\x1B[31m", range.start), (end_marker, range.end)]
         })
         .flatten()
     })

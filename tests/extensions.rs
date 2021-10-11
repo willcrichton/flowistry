@@ -168,7 +168,6 @@ fn main() {
 
 #[test]
 fn recurse_return() {
-  // TODO: ideally we could actually verify that the flow for ok is only computed once?
   let src = r#"
 fn ok(x: i32, y: i32) -> i32 { x }
 
@@ -178,6 +177,53 @@ fn main() {
   `[let `[z]` = `[ok(`[x]`, y)]`;]`
   `[`(z)`;]`  
 }
+"#;
+
+  mode! { context_mode: ContextMode::Recurse };
+  backward_slice(src);
+}
+
+#[test]
+fn recurse_child_privacy() {
+  let src = r#"
+mod foo {
+  pub struct Foo(i32);
+  pub fn new() -> Foo { Foo(0) }
+  pub fn ok(f: &mut Foo) { f.0 = 1; }
+}  
+
+fn main() {
+  `[let `[mut f]` = `[foo::new()]`;]`
+  `[`[foo::ok(`[&mut f]`)]`;]`
+  `[`(f)`;]`
+}
+"#;
+
+  mode! { context_mode: ContextMode::Recurse };
+  backward_slice(src);
+}
+
+#[test]
+fn recurse_parent_privacy() {
+  let src = r#"
+mod bar {
+  pub fn whee(f: &mut super::foo::Foo) {
+    super::foo::ok(f);
+  }
+} 
+
+mod foo {
+  pub struct Foo(i32);
+  pub fn new() -> Foo { Foo(0) }
+  pub fn ok(f: &mut Foo) { f.0 = 1; }
+  pub fn test() {
+    `[let `[mut f]` = `[Foo(0)]`;]`
+    `[`[super::bar::whee(`[&mut f]`)]`;]`
+    `[`(f)`;]`
+  }
+}  
+
+fn main() {}
 "#;
 
   mode! { context_mode: ContextMode::Recurse };

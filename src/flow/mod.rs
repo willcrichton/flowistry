@@ -49,13 +49,21 @@ pub fn compute_flow<'a, 'tcx>(
     let control_dependencies = ControlDependencies::build(body.clone());
     debug!("Control dependencies: {:?}", control_dependencies);
 
-    {
+    let results = {
       let _timer = utils::block_timer("Flow");
 
       FlowAnalysis::new(tcx, def_id, body, aliases, control_dependencies)
         .into_engine(tcx, body)
         .iterate_to_fixpoint()
+    };
+
+    if std::env::var("DUMP_MIR").is_ok()
+      && BODY_STACK.with(|body_stack| body_stack.borrow().len() == 1)
+    {
+      utils::dump_results(body, &results, def_id, tcx).unwrap();
     }
+
+    results
   };
 
   CACHE.with(|cache| {

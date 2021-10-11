@@ -67,7 +67,7 @@ impl HirSpanner {
 
     find(&self.expr_spans)
       .into_iter()
-      .chain(find(&self.stmt_spans).into_iter())
+      .chain(find(&self.stmt_spans))
       .collect()
   }
 }
@@ -116,7 +116,7 @@ pub fn location_to_spans(
   let hir_spans = mir_spans
     .clone()
     .into_iter()
-    .map(|mir_span| spanner.find_enclosing_hir_span(mir_span).into_iter())
+    .map(|mir_span| spanner.find_enclosing_hir_span(mir_span))
     .flatten()
     .collect::<SmallVec<[Span; 4]>>();
 
