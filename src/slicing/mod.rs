@@ -67,10 +67,10 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     let (sliced_places, sliced_spans) =
       utils::span_to_places(body, self.range.to_span(source_map)?);
     debug!("sliced_places {:?}", sliced_places);
-
+    
     let spanner = utils::HirSpanner::new(tcx, body_id);
     let deps = flow::compute_dependency_ranges(results, sliced_places, self.direction, &spanner);
-
+ 
     let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
     let sliced_spans = sliced_spans
       .into_iter()

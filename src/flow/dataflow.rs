@@ -146,6 +146,13 @@ impl TransferFunction<'_, '_, 'tcx> {
 
     // Union dependencies into all conflicting places of the mutated place
     for place in conflicts {
+      {
+        let p = place_domain.value(place);
+        if p.local.as_usize() == 1 && p.projection.len() == 0 {
+          debug!("  FOUND EM HERE");
+          debug!("  {:?} / {:?}", input_location_deps, input_place_deps);
+        }
+      }
       self
         .state
         .locations
@@ -281,7 +288,7 @@ impl TransferFunction<'_, '_, 'tcx> {
         }
       }
 
-      if !utils::is_arg(child, body) {
+      if !utils::is_arg(child, body) || !child.is_indirect() {
         return None;
       }
 
@@ -331,7 +338,7 @@ impl TransferFunction<'_, '_, 'tcx> {
           .collect::<Vec<_>>();
 
         debug!(
-          "child {:?} / child_deps {:?} --> parent {:?} / parent_deps {:?}",
+          "child {:?} \n  / child_deps {:?}\n-->\nparent {:?}\n   / parent_deps {:?}",
           child,
           return_state.places.row_set(child),
           parent,
