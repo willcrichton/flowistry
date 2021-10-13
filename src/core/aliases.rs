@@ -99,7 +99,7 @@ rustc_index::newtype_index! {
 }
 
 impl Aliases<'tcx> {
-  fn compute_region_ancestors(
+  fn process_region_sccs(
     sccs: &Sccs<RegionVid, ConstraintSccIndex>,
     regions_in_scc: &IndexVec<ConstraintSccIndex, BitSet<RegionVid>>,
     node: ConstraintSccIndex,
@@ -126,7 +126,7 @@ impl Aliases<'tcx> {
           .map(|r| (r, initial_set.clone()))
           .collect::<HashMap<_, _>>();
 
-        let grandchildren = Self::compute_region_ancestors(sccs, regions_in_scc, *child)
+        let grandchildren = Self::process_region_sccs(sccs, regions_in_scc, *child)
           .into_iter()
           .map(|(region, mut parents)| {
             parents.insert(node);
@@ -141,22 +141,18 @@ impl Aliases<'tcx> {
       })
   }
 
-  fn compute_region_info(
+  fn compute_region_ancestors(
     body_with_facts: &BodyWithBorrowckFacts<'tcx>,
     region_to_pointers: &HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>,
     tcx: TyCtxt<'tcx>,
-  ) -> (
-    usize,
-    IndexVec<ConstraintSccIndex, BitSet<RegionVid>>,
-    HashMap<RegionVid, BitSet<ConstraintSccIndex>>,
-  ) {
+  ) -> IndexVec<RegionVid, BitSet<RegionVid>> {
     let outlives_constraints = body_with_facts
       .input_facts
       .subset_base
       .iter()
       .map(|(r1, r2, _)| (*r1, *r2))
-      .collect::<Vec<_>>();
-    debug!("outlives_constraints: {:?}", outlives_constraints);
+      .collect::<HashSet<_>>();
+    trace!("outlives_constraints: {:?}", outlives_constraints);
 
     let max_region = region_to_pointers
       .keys()
@@ -209,11 +205,27 @@ impl Aliases<'tcx> {
     trace!("regions_in_scc: {:?}", regions_in_scc);
 
     let root_scc = constraint_sccs.scc(static_region);
-    let region_ancestors =
-      Self::compute_region_ancestors(&constraint_sccs, &regions_in_scc, root_scc);
-    trace!("region ancestors: {:?}", region_ancestors);
+    let region_to_ancestor_sccs =
+      Self::process_region_sccs(&constraint_sccs, &regions_in_scc, root_scc);
 
-    (max_region, regions_in_scc, region_ancestors)
+    let region_ancestors = IndexVec::from_fn_n(
+      |region| {
+        let mut ancestors = BitSet::new_empty(max_region);
+        if let Some(sccs) = region_to_ancestor_sccs.get(&region) {
+          for scc in sccs.iter() {
+            ancestors.union(&regions_in_scc[scc]);
+          }
+        }
+        ancestors
+      },
+      max_region,
+    );
+    debug!(
+      "region ancestors: {:?}",
+      region_ancestors.iter_enumerated().collect::<Vec<_>>()
+    );
+
+    region_ancestors
   }
 
   fn place_deps(
@@ -399,7 +411,11 @@ impl Aliases<'tcx> {
     // Include aliases in the place domain
     all_places.extend(all_aliases.values().flatten().copied());
 
-    debug!("Places: {:#?}", all_places);
+    debug!("Places: {:?}", {
+      let mut v = all_places.iter().collect::<Vec<_>>();
+      v.sort();
+      v
+    });
     debug!("Place domain size: {}", all_places.len());
 
     (
@@ -414,11 +430,11 @@ impl Aliases<'tcx> {
     tcx: TyCtxt<'tcx>,
   ) -> IndexVec<RegionVid, HashSet<Place<'tcx>>> {
     // Get the graph of which regions outlive which other ones
-    let (max_region, regions_in_scc, region_ancestors) =
-      Self::compute_region_info(body_with_facts, &region_to_pointers, tcx);
+    let region_ancestors =
+      Self::compute_region_ancestors(body_with_facts, &region_to_pointers, tcx);
 
     // Initialize the loan set where loan['a] = {*x} if x: &'a T
-    let mut loans = IndexVec::from_elem_n(HashSet::default(), max_region);
+    let mut loans = IndexVec::from_elem_n(HashSet::default(), region_ancestors.len());
     for (region, places) in region_to_pointers.iter() {
       for (sub_place, _) in places {
         loans[*region].insert(tcx.mk_place_deref(*sub_place));
@@ -438,20 +454,11 @@ impl Aliases<'tcx> {
       let mut changed = false;
       let prev_loans = loans.clone();
       for (region, region_loans) in loans.iter_enumerated_mut() {
-        let outlives_loans = region_ancestors
-          .get(&region)
-          .map(|sccs| {
-            let outlives_regions = sccs
-              .iter()
-              .map(|scc_index| regions_in_scc[scc_index].iter())
-              .flatten();
-
-            outlives_regions
-              .filter_map(|region| prev_loans.get(region).map(|places| places.iter().copied()))
-              .flatten()
-              .collect::<HashSet<_>>()
-          })
-          .unwrap_or_default();
+        let outlives_loans = region_ancestors[region]
+          .iter()
+          .map(|ancestor| prev_loans[ancestor].iter().copied())
+          .flatten()
+          .collect::<HashSet<_>>();
 
         let orig_len = region_loans.len();
         region_loans.extend(&outlives_loans);

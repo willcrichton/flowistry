@@ -142,13 +142,24 @@ impl TransferFunction<'_, '_, 'tcx> {
     }
 
     let conflicts = if mutate_aliases_only {
-      all_aliases.aliases.row_indices(mutated).collect::<Vec<_>>()
+      all_aliases.aliases.row_set(mutated).unwrap().to_owned()
     } else {
-      all_aliases.conflicts(mutated).indices().collect::<Vec<_>>()
+      all_aliases.conflicts(mutated)
     };
 
+    // Remove any conflicts that aren't actually mutable, e.g. if x : &T ends up
+    // as an alias of y: &mut T
+    let body = self.analysis.body;
+    let tcx = self.analysis.tcx;
+    let mutable_conflicts = conflicts.iter().filter(|place| {
+      place.iter_projections().all(|(sub_place, _)| {
+        let ty = sub_place.ty(body.local_decls(), tcx).ty;
+        !matches!(ty.ref_mutability(), Some(Mutability::Not))
+      })
+    });
+
     // Union dependencies into all conflicting places of the mutated place
-    for place in conflicts {
+    for place in mutable_conflicts {
       self
         .state
         .locations
