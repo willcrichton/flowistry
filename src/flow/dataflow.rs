@@ -77,7 +77,10 @@ impl TransferFunction<'_, '_, 'tcx> {
     let location_domain = self.analysis.location_domain();
 
     let all_aliases = &self.analysis.aliases;
-    let mutated_aliases = all_aliases.aliases.row_set(mutated).unwrap();
+    let mutated_aliases = all_aliases
+      .aliases
+      .row_set(mutated)
+      .unwrap_or_else(|| panic!("No aliases for mutated {:?}", mutated));
 
     // Clear sub-places of mutated place (if sound to do so)
     if definitely_mutated && mutated_aliases.len() == 1 {
@@ -146,13 +149,6 @@ impl TransferFunction<'_, '_, 'tcx> {
 
     // Union dependencies into all conflicting places of the mutated place
     for place in conflicts {
-      {
-        let p = place_domain.value(place);
-        if p.local.as_usize() == 1 && p.projection.len() == 0 {
-          debug!("  FOUND EM HERE");
-          debug!("  {:?} / {:?}", input_location_deps, input_place_deps);
-        }
-      }
       self
         .state
         .locations
@@ -279,16 +275,21 @@ impl TransferFunction<'_, '_, 'tcx> {
     };
 
     let parent_domain = self.analysis.place_domain();
+    let parent_aliases = &self.analysis.aliases;
     let child_domain = flow.analysis.place_domain();
 
-    let translate_child_to_parent = |child: Place<'tcx>| -> Option<Place<'tcx>> {
+    let translate_child_to_parent = |child: Place<'tcx>, mutated: bool| -> Option<Place<'tcx>> {
       if child.local == RETURN_PLACE && child.projection.len() == 0 {
+        if child.ty(body.local_decls(), tcx).ty.is_unit() {
+          return None;
+        }
+
         if let Some((dst, _)) = destination {
           return Some(*dst);
         }
       }
 
-      if !utils::is_arg(child, body) || !child.is_indirect() {
+      if !utils::is_arg(child, body) || (mutated && !child.is_indirect()) {
         return None;
       }
 
@@ -317,7 +318,10 @@ impl TransferFunction<'_, '_, 'tcx> {
         });
 
         sub_places
-          .find(|sub_place| parent_domain.contains(sub_place))
+          .find(|sub_place| {
+            parent_domain.contains(sub_place)
+              && parent_aliases.aliases.row(sub_place).next().is_some()
+          })
           .unwrap()
       };
 
@@ -325,7 +329,7 @@ impl TransferFunction<'_, '_, 'tcx> {
     };
 
     for child in child_domain.as_vec().iter() {
-      if let Some(parent) = translate_child_to_parent(*child) {
+      if let Some(parent) = translate_child_to_parent(*child, true) {
         let was_return = child.local == RETURN_PLACE;
         let was_mutated = return_state.locations.row(child).next().is_some();
         if !was_mutated && !was_return {
@@ -334,7 +338,7 @@ impl TransferFunction<'_, '_, 'tcx> {
 
         let child_deps = return_state.places.row(child).copied();
         let parent_deps = child_deps
-          .filter_map(translate_child_to_parent)
+          .filter_map(|p| translate_child_to_parent(p, false))
           .collect::<Vec<_>>();
 
         debug!(
@@ -387,7 +391,7 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
             .flatten()
             .chain(iter::once(arg))
         };
-        
+
         let arg_places = utils::arg_places(args);
         let arg_inputs = arg_places
           .iter()
