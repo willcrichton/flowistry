@@ -78,10 +78,13 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
           .places
           .extend(arg_mut_ptrs.into_iter().map(|(_, place)| place));
 
+        const DEPTH_LIMIT: usize = 3;
         if is_extension_active(|mode| mode.context_mode == ContextMode::Recurse) {
           let arg_interiors = arg_places
             .into_iter()
-            .map(|(_, place)| utils::interior_places(place, self.tcx, self.body, self.def_id))
+            .map(|(_, place)| {
+              utils::interior_places(place, self.tcx, self.body, self.def_id, Some(DEPTH_LIMIT))
+            })
             .flatten()
             .collect::<Vec<_>>();
           self.places.extend(arg_interiors);
@@ -311,6 +314,8 @@ impl Aliases<'tcx> {
 
     debug!("aliases_map: {:?}", aliases_map);
     debug!("deps_map: {:?}", deps_map);
+    debug!("supers_map: {:?}", supers_map);
+    debug!("subs_map: {:?}", subs_map);
 
     (aliases_map, deps_map, subs_map, supers_map)
   }
@@ -497,6 +502,11 @@ impl Aliases<'tcx> {
 
     // Use outlives-constraints to get the loan set for each region
     let loans = Self::compute_loans(body_with_facts, region_to_pointers, tcx);
+    debug!("Loans: {:?}", {
+      let mut v = loans.iter_enumerated().collect::<Vec<_>>();
+      v.sort_by_key(|(r, _)| *r);
+      v
+    });
 
     // Convert loan sets for regions to alias sets for places by specializing
     // loans with projections

@@ -40,7 +40,7 @@ impl FindEffects<'a, 'mir, 'tcx> {
           .filter(|(_, mutability)| *mutability == Mutability::Mut)
           .map(|(place, _)| {
             let deref_place = tcx.mk_place_deref(place);
-            utils::interior_places(deref_place, tcx, body, analysis.def_id).into_iter()
+            utils::interior_places(deref_place, tcx, body, analysis.def_id, None).into_iter()
           })
           .flatten()
       })
