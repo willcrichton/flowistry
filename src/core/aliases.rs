@@ -1,5 +1,5 @@
 use super::{
-  extensions::{is_extension_active, ContextMode, PointerMode},
+  extensions::{is_extension_active, PointerMode},
   indexed::{IndexMatrix, IndexSetIteratorExt, IndexedDomain, ToIndex},
   indexed_impls::{NormalizedPlaces, PlaceDomain, PlaceIndex, PlaceSet},
   utils::{self, PlaceRelation},
@@ -77,18 +77,6 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
         self
           .places
           .extend(arg_mut_ptrs.into_iter().map(|(_, place)| place));
-
-        const DEPTH_LIMIT: usize = 3;
-        if is_extension_active(|mode| mode.context_mode == ContextMode::Recurse) {
-          let arg_interiors = arg_places
-            .into_iter()
-            .map(|(_, place)| {
-              utils::interior_places(place, self.tcx, self.body, self.def_id, Some(DEPTH_LIMIT))
-            })
-            .flatten()
-            .collect::<Vec<_>>();
-          self.places.extend(arg_interiors);
-        }
       }
 
       _ => {}

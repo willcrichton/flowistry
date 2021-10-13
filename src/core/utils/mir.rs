@@ -44,7 +44,7 @@ struct CollectRegions<'tcx> {
   places: Option<HashSet<Place<'tcx>>>,
   types: Option<HashSet<Ty<'tcx>>>,
   regions: HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>,
-  depth_limit: Option<usize>
+  depth_limit: Option<usize>,
 }
 
 impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
@@ -230,7 +230,7 @@ pub fn interior_pointers<'tcx>(
     regions: HashMap::default(),
     places: None,
     types: None,
-    depth_limit: None
+    depth_limit: None,
   };
   region_collector.visit_ty(ty);
   region_collector.regions
@@ -241,7 +241,7 @@ pub fn interior_places<'tcx>(
   tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,
   def_id: DefId,
-  depth_limit: Option<usize>
+  depth_limit: Option<usize>,
 ) -> Vec<Place<'tcx>> {
   let ty = place.ty(body.local_decls(), tcx).ty;
   let mut region_collector = CollectRegions {
@@ -253,7 +253,7 @@ pub fn interior_places<'tcx>(
     regions: HashMap::default(),
     places: Some(HashSet::default()),
     types: None,
-    depth_limit
+    depth_limit,
   };
   region_collector.visit_ty(ty);
   region_collector.places.unwrap().into_iter().collect()
@@ -275,7 +275,7 @@ pub fn interior_types<'tcx>(
     regions: HashMap::default(),
     places: None,
     types: Some(HashSet::default()),
-    depth_limit: None
+    depth_limit: None,
   };
   region_collector.visit_ty(ty);
   region_collector.types.unwrap().into_iter().collect()
