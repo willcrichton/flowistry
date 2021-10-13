@@ -488,8 +488,8 @@ pub fn span_to_places(body: &Body<'tcx>, span: Span) -> (Vec<(Place<'tcx>, Locat
 pub fn dump_results<'tcx, A>(
   body: &Body<'tcx>,
   results: &Results<'tcx, A>,
-  def_id: DefId,
-  tcx: TyCtxt<'tcx>,
+  _def_id: DefId,
+  _tcx: TyCtxt<'tcx>,
 ) -> Result<()>
 where
   A: Analysis<'tcx>,
@@ -503,7 +503,8 @@ where
   file.as_file_mut().write_all(&buf)?;
 
   let output_dir = Path::new("target");
-  let fname = tcx.def_path_debug_str(def_id);
+  // let fname = tcx.def_path_debug_str(def_id);
+  let fname = "results";
   let output_path = output_dir.join(format!("{}.png", fname));
 
   let status = Command::new("dot")

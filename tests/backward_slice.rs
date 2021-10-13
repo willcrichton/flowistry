@@ -876,15 +876,56 @@ fn main() {}
 }
 
 #[test]
-fn function_lifetime_outlives_spurious_alias() {
+fn function_lifetime_alias_equal() {
+  let src = r#"
+fn foo<'a>(`[x]`: &'a mut i32, `[y]`: &'a mut i32) {
+  `[let `[z]` = `[x]`;]`
+  `[`[*z = 1]`;]`
+  `[`(*y)`;]`
+}
+
+fn main() {}
+"#;
+
+  backward_slice(src);
+}
+
+#[test]
+fn function_lifetime_alias_outlives() {
   // given our algorithm of estimating aliases from lifetimes, `w` and `x` are considered
   // to aliases `y` and `z` given the constraint `'b: 'a`
   let src = r#"
 fn foo<'a, 'b: 'a>(`[x]`: &'a mut i32, `[y]`: &'b mut i32) -> &'a mut i32 {
-  `[let `[z]` = `[y]`;]`
-  `[let `[w]` = `[x]`;]`
-  `[`[*w = 1]`;]`
-  `[`(z)`]`
+  `[let `[z]` = `[x]`;]`
+  `[`[*z = 1]`;]`
+  `[`(y)`]`
+}
+
+fn main() {}
+"#;
+
+  backward_slice(src);
+
+  let src = r#"
+fn foo<'a, 'b>(x: &'a mut i32, `[y]`: &'b mut i32) -> &'b mut i32 {
+  let z = x;
+  *z = 1;
+  `[`(y)`]`
+}
+
+fn main() {}
+  "#;
+
+  backward_slice(src);
+}
+
+#[test]
+fn function_lifetime_alias_mut() {
+  let src = r#"
+fn foo<'a>(x: &'a mut i32, `[y]`: &'a i32) {
+  let z = x;
+  *z = 1;
+  `[`(*y)`;]`
 }
 
 fn main() {}
@@ -1141,19 +1182,35 @@ fn main() {}
   backward_slice(src);
 }
 
-// #[test]
-// fn foo() {
-//   let src = r#"
-// fn ye(x: &mut i32, y: (&mut i32,)) {}
-// fn main() {
-//   `[let `[mut x]` = `[1]`;]`
-//   `[let `[mut y]` = `[1]`;]`
-//   `[let `[mut z]` = `[(`[&mut y]`,)]`;]`
-//   `[`[*z.0]` = `[1]`;]`
-//   `[`[ye(`[&mut x]`, `[z]`)]`;]`
-//   `[`(x)`;]`
-// }
-// "#;
 
-//   backward_slice(src);
-// }
+#[test]
+fn interior_mutability_observable() {
+  let src = r#"
+use std::cell::RefCell;
+fn main() {
+  `[let `[x]` = `[RefCell::new(0)]`;]`
+  `[`[`[*`[x.borrow_mut()]`]` = 1]`;]`
+  `[`(x)`;]`
+}
+"#;
+
+  backward_slice(src);
+}
+
+
+#[test]
+fn interior_mutability_not_observable() {
+  let src = r#"
+use std::cell::RefCell;
+use std::rc::Rc;
+
+fn main() {
+  `[let `[x]` = `[Rc::new(`[RefCell::new(0)]`)]`;]`
+  let y = x.clone();
+  *y.borrow_mut() = 1;
+  `[`(x)`;]`
+}
+"#;
+
+  backward_slice(src);
+}
