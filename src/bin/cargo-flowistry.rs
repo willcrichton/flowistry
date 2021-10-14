@@ -28,6 +28,7 @@ fn main() {
       (@arg start:)
       (@arg end:)
       (@arg context_mode: --contextmode +takes_value)
+      (@arg mutability_mode: --mutabilitymode +takes_value)
       (@arg flags: ...)
     )
     (@subcommand forward_slice =>
@@ -58,6 +59,10 @@ fn main() {
         (
           "CONTEXT_MODE",
           sub_m.value_of("context_mode").unwrap_or("SigOnly"),
+        ),
+        (
+          "MUTABILITY_MODE",
+          sub_m.value_of("mutability_mode").unwrap_or("DistinguishMut"),
         ),
       ],
       sub_m.value_of("file").unwrap(),

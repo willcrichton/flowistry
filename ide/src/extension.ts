@@ -31,6 +31,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
 
     register_with_opts('backward_highlight_recurse', () => slice(call_flowistry!, 'backward', 'highlight', '--contextmode Recurse'));
+    register_with_opts('backward_highlight_ignoremut', () => slice(call_flowistry!, 'backward', 'highlight', '--mutabilitymode IgnoreMut'));
 
     register_with_opts("effects", () => effects(context, call_flowistry!));
   } catch (e: any) {
