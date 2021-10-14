@@ -14,8 +14,8 @@ use crate::core::{
   aliases::Aliases,
   analysis,
   control_dependencies::ControlDependencies,
-  extensions::{is_extension_active, ContextMode, REACHED_LIBRARY},
-  indexed::{IndexMatrix, IndexedDomain},
+  extensions::{is_extension_active, ContextMode, MutabilityMode, REACHED_LIBRARY},
+  indexed::{IndexMatrix, IndexSetIteratorExt, IndexedDomain},
   indexed_impls::{build_location_domain, LocationDomain, LocationSet, PlaceDomain, PlaceSet},
   utils::{self, PlaceCollector},
 };
@@ -70,7 +70,7 @@ impl TransferFunction<'_, '_, 'tcx> {
     mutate_aliases_only: bool,
   ) {
     debug!(
-      "Applying mutation to {:?} with inputs {:?}",
+      "  Applying mutation to {:?} with inputs {:?}",
       mutated, inputs
     );
     let place_domain = self.analysis.place_domain();
@@ -141,7 +141,7 @@ impl TransferFunction<'_, '_, 'tcx> {
       }
     }
 
-    let conflicts = if mutate_aliases_only {
+    let mut mutable_conflicts = if mutate_aliases_only {
       all_aliases.aliases.row_set(mutated).unwrap().to_owned()
     } else {
       all_aliases.conflicts(mutated)
@@ -149,17 +149,24 @@ impl TransferFunction<'_, '_, 'tcx> {
 
     // Remove any conflicts that aren't actually mutable, e.g. if x : &T ends up
     // as an alias of y: &mut T
-    let body = self.analysis.body;
-    let tcx = self.analysis.tcx;
-    let mutable_conflicts = conflicts.iter().filter(|place| {
-      place.iter_projections().all(|(sub_place, _)| {
-        let ty = sub_place.ty(body.local_decls(), tcx).ty;
-        !matches!(ty.ref_mutability(), Some(Mutability::Not))
-      })
-    });
+    let ignore_mut = is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
+    if !ignore_mut {
+      let body = self.analysis.body;
+      let tcx = self.analysis.tcx;
+      mutable_conflicts = mutable_conflicts
+        .iter()
+        .filter(|place| {
+          place.iter_projections().all(|(sub_place, _)| {
+            let ty = sub_place.ty(body.local_decls(), tcx).ty;
+            !matches!(ty.ref_mutability(), Some(Mutability::Not))
+          })
+        })
+        .collect_indices(place_domain.clone());
+    };
 
     // Union dependencies into all conflicting places of the mutated place
-    for place in mutable_conflicts {
+    debug!("  Mutated conflicting places: {:?}", mutable_conflicts);
+    for place in mutable_conflicts.iter() {
       self
         .state
         .locations
@@ -370,12 +377,14 @@ impl TransferFunction<'_, '_, 'tcx> {
 
 impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
   fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
+    debug!("Checking {:?}: {:?} = {:?}", location, place, rvalue);
     let mut collector = PlaceCollector::default();
     collector.visit_rvalue(rvalue, location);
     self.apply_mutation(*place, &collector.places, location, true, false);
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
+    debug!("Checking {:?}: {:?}", location, terminator.kind);
     let tcx = self.analysis.tcx;
 
     match &terminator.kind {

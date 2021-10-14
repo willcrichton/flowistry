@@ -1182,7 +1182,6 @@ fn main() {}
   backward_slice(src);
 }
 
-
 #[test]
 fn interior_mutability_observable() {
   let src = r#"
@@ -1196,7 +1195,6 @@ fn main() {
 
   backward_slice(src);
 }
-
 
 #[test]
 fn interior_mutability_not_observable() {
