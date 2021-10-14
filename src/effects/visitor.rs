@@ -27,6 +27,7 @@ impl FindEffects<'a, 'mir, 'tcx> {
   pub fn new(analysis: &'a flow::FlowAnalysis<'mir, 'tcx>) -> Self {
     let tcx = analysis.tcx;
     let body = analysis.body;
+    let domain = analysis.place_domain();
     let mut_args = body
       .args_iter()
       .map(|local| {
@@ -45,7 +46,8 @@ impl FindEffects<'a, 'mir, 'tcx> {
           .flatten()
       })
       .flatten()
-      .collect_indices(analysis.place_domain().clone());
+      .filter(|place| domain.contains(place))
+      .collect_indices(domain.clone());
     debug!("mut_args: {:#?}", mut_args);
 
     FindEffects {
