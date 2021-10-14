@@ -1,12 +1,13 @@
 import path from 'path';
 import { runTests } from 'vscode-test';
+import { MOCK_PROJECT_DIRECTORY, MOCK_PROJECT_FILES } from './util/constants';
 
 async function main() {
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
     const extensionDevelopmentPath = path.resolve(__dirname, '../../');
 
-    const launchArgs = ["--disable-extensions"];
+    const launchArgs = ["--disable-extensions", MOCK_PROJECT_DIRECTORY, MOCK_PROJECT_FILES.forward_slice];
 
     // All test suites (either unit tests or integration tests) should be in subfolders.
     const extensionTestsPath = path.resolve(__dirname, './unit/index');
