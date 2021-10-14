@@ -443,6 +443,20 @@ fn main() {
 }
 
 #[test]
+fn pointer_slice_includes_deref() {
+  let src = r#"
+fn main() {
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[y]` = `[&mut x]`;]`
+  `[`[*y = 1]`;]`
+  `[`(y)`;]`
+}
+"#;
+
+  backward_slice(src);
+}
+
+#[test]
 fn pointer_read() {
   let src = r#"
 fn main() {
@@ -592,6 +606,23 @@ fn main() {
 "#;
 
   backward_slice(src);
+}
+
+#[test]
+fn pointer_mutate_pointer() {
+  let src = r#"
+fn main() {
+  `[let `[mut x]` = `[1]`;]`
+  `[let `[mut y]` = `[1]`;]`
+  `[let `[mut a]` = `[&mut x]`;]`
+  `[let `[b]` = `[&mut a]`;]`
+  `[`[*b = `[&mut y]`]`;]`
+  `[`[**b = 2]`;]`
+  `[`(y)`;]`
+}
+"#;
+
+  backward_slice(src);  
 }
 
 #[test]
@@ -788,6 +819,40 @@ fn main() {
 }
 
 #[test]
+fn interprocedural_field_independence() {
+  let src = r#"
+use std::ops::AddAssign;
+struct Foo(i32, i32);
+impl Foo {
+  fn bar(`[&mut self]`) {
+    self.0.add_assign(0);
+    `[`(self.1)`;]`
+  }
+}
+
+fn main() {}
+"#;
+
+  backward_slice(src);
+  
+  let src = r#"
+  use std::ops::AddAssign;
+  struct Foo(i32, i32);
+  impl Foo {
+    fn bar(`[&mut self]`) {
+      `[let `[a]` = `[&mut *self]`;]`
+      `[`[a.0.add_assign(0)]`;]`
+      `[`(a.1)`;]`
+    }
+  }
+  
+  fn main() {}
+  "#;
+  
+    backward_slice(src);
+}
+
+#[test]
 fn interprocedural_ref_output() {
   let src = r#"
 fn foo(x: &i32) -> &i32 { x }
@@ -878,9 +943,9 @@ fn main() {}
 #[test]
 fn function_lifetime_alias_equal() {
   let src = r#"
-fn foo<'a>(`[x]`: &'a mut i32, `[y]`: &'a mut i32) {
-  `[let `[z]` = `[x]`;]`
-  `[`[*z = 1]`;]`
+fn foo<'a>(x: &'a mut i32, `[y]`: &'a mut i32) {
+  let z = x;
+  *z = 1;
   `[`(*y)`;]`
 }
 
@@ -892,12 +957,10 @@ fn main() {}
 
 #[test]
 fn function_lifetime_alias_outlives() {
-  // given our algorithm of estimating aliases from lifetimes, `w` and `x` are considered
-  // to aliases `y` and `z` given the constraint `'b: 'a`
   let src = r#"
-fn foo<'a, 'b: 'a>(`[x]`: &'a mut i32, `[y]`: &'b mut i32) -> &'a mut i32 {
-  `[let `[z]` = `[x]`;]`
-  `[`[*z = 1]`;]`
+fn foo<'a, 'b: 'a>(x: &'a mut i32, `[y]`: &'b mut i32) -> &'a mut i32 {
+  let z = x;
+  *z = 1;
   `[`(y)`]`
 }
 

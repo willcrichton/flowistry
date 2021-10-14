@@ -15,7 +15,7 @@ pub enum Direction {
 }
 
 struct ForwardVisitor<'tcx> {
-  targets: Vec<(Place<'tcx>, Location)>,
+  expanded_targets: Vec<(PlaceSet<'tcx>, Location)>,
   target_deps: Vec<(LocationSet, PlaceSet<'tcx>)>,
   outputs: Vec<(LocationSet, PlaceSet<'tcx>)>,
 }
@@ -29,8 +29,8 @@ impl ResultsVisitor<'mir, 'tcx> for ForwardVisitor<'tcx> {
     _statement: &'mir Statement<'tcx>,
     location: Location,
   ) {
-    for ((target_place, _), ((locs, places), (out_locs, out_places))) in self
-      .targets
+    for ((target_places, _), ((locs, places), (out_locs, out_places))) in self
+      .expanded_targets
       .iter()
       .zip(self.target_deps.iter().zip(self.outputs.iter_mut()))
     {
@@ -43,7 +43,12 @@ impl ResultsVisitor<'mir, 'tcx> for ForwardVisitor<'tcx> {
             }
 
             if let Some(place_deps) = state.places.row_set(place) {
-              if place_deps.contains(*target_place) && place_deps.is_superset(places) {
+              let contains_target = {
+                let mut place_deps = place_deps.to_owned();
+                place_deps.intersect(&target_places);
+                place_deps.len() > 0
+              };
+              if contains_target && place_deps.is_superset(places) {
                 out_places.insert(place);
               }
             }
@@ -63,30 +68,51 @@ pub fn compute_dependencies(
   targets: Vec<(Place<'tcx>, Location)>,
   direction: Direction,
 ) -> Vec<(LocationSet, PlaceSet<'tcx>)> {
+  let tcx = results.analysis.tcx;
   let body = results.analysis.body;
+  let aliases = &results.analysis.aliases;
 
   let new_location_set = || LocationSet::new(results.analysis.location_domain().clone());
   let new_place_set = || PlaceSet::new(results.analysis.place_domain().clone());
 
+  let expanded_targets = targets
+    .into_iter()
+    .map(|(place, location)| {
+      let mut places = new_place_set();
+      places.insert(place);
+
+      for (_, ptrs) in utils::interior_pointers(place, tcx, body, results.analysis.def_id) {
+        for (place, _) in ptrs {
+          places.union(&aliases.aliases.row_set(tcx.mk_place_deref(place)).unwrap());
+        }
+      }
+
+      (places, location)
+    })
+    .collect::<Vec<_>>();
+
   let target_deps = {
     let mut cursor = ResultsRefCursor::new(body, results);
-    let get_deps = |(place, location): &(Place<'tcx>, Location)| {
+    let get_deps = |(targets, location): &(PlaceSet<'tcx>, Location)| {
       cursor.seek_after_primary_effect(*location);
       let state = cursor.get();
-      (
-        state
-          .locations
-          .row_set(*place)
-          .map(|s| s.to_owned())
-          .unwrap_or_else(new_location_set),
-        state
-          .places
-          .row_set(*place)
-          .map(|s| s.to_owned())
-          .unwrap_or_else(new_place_set),
-      )
+
+      let mut locations = new_location_set();
+      let mut places = new_place_set();
+
+      for target in targets.indices() {
+        if let Some(dep_locations) = state.locations.row_set(target) {
+          locations.union(&dep_locations);
+        }
+
+        if let Some(dep_places) = state.places.row_set(target) {
+          places.union(&dep_places);
+        }
+      }
+
+      (locations, places)
     };
-    targets.iter().map(get_deps).collect::<Vec<_>>()
+    expanded_targets.iter().map(get_deps).collect::<Vec<_>>()
   };
 
   match direction {
@@ -96,12 +122,12 @@ pub fn compute_dependencies(
         .iter()
         .map(|_| (new_location_set(), new_place_set()))
         .collect::<Vec<_>>();
-      for ((target_place, _), (_, places)) in targets.iter().zip(outputs.iter_mut()) {
-        places.insert(*target_place);
+      for ((target_places, _), (_, places)) in expanded_targets.iter().zip(outputs.iter_mut()) {
+        places.union(target_places);
       }
 
       let mut visitor = ForwardVisitor {
-        targets,
+        expanded_targets,
         target_deps,
         outputs,
       };
