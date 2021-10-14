@@ -145,6 +145,7 @@ impl Aliases<'tcx> {
     body_with_facts: &BodyWithBorrowckFacts<'tcx>,
     region_to_pointers: &HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>,
     tcx: TyCtxt<'tcx>,
+    def_id: DefId,
   ) -> IndexVec<RegionVid, BitSet<RegionVid>> {
     let outlives_constraints = body_with_facts
       .input_facts
@@ -167,12 +168,33 @@ impl Aliases<'tcx> {
       .unwrap_or(0)
       + 1;
 
+    let body = &body_with_facts.body;
+
+    // All regions for references in function arguments
+    let abstract_regions = body
+      .args_iter()
+      .map(|local| {
+        let arg = utils::local_to_place(local, tcx);
+        utils::interior_pointers(arg, tcx, body, def_id).into_keys()
+      })
+      .flatten()
+      .collect::<HashSet<_>>();
+
     let static_region = RegionVid::from_usize(0);
     let mut processed_constraints = outlives_constraints
       .clone()
       .into_iter()
-      // static region outlives everything
+      //
+      // Static region outlives everything, so add static :> r for all r
       .chain((1..max_region).map(|i| (static_region, RegionVid::from_usize(i))))
+      //
+      // Outlives-constraints on abstract regions are useful for borrow checking but aren't 
+      // useful for alias-analysis. Eg if self : &'a mut (i32, i32) and x = &'b mut *self.0,
+      // then knowing 'a : 'b would naively add self to the loan set of 'b. So for increased
+      // precision, we can safely filter any constraints 'a : _ where 'a is abstract.
+      // See the interprocedural_field_independence test for an example of where this works
+      // and also how it breaks.
+      .filter(|(sup, _)| !abstract_regions.contains(sup))
       .collect::<Vec<_>>();
 
     if is_extension_active(|mode| mode.pointer_mode == PointerMode::Conservative) {
@@ -428,10 +450,11 @@ impl Aliases<'tcx> {
     body_with_facts: &BodyWithBorrowckFacts<'tcx>,
     region_to_pointers: HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>,
     tcx: TyCtxt<'tcx>,
+    def_id: DefId,
   ) -> IndexVec<RegionVid, HashSet<Place<'tcx>>> {
     // Get the graph of which regions outlive which other ones
     let region_ancestors =
-      Self::compute_region_ancestors(body_with_facts, &region_to_pointers, tcx);
+      Self::compute_region_ancestors(body_with_facts, &region_to_pointers, tcx, def_id);
 
     // Initialize the loan set where loan['a] = {*x} if x: &'a T
     let mut loans = IndexVec::from_elem_n(HashSet::default(), region_ancestors.len());
@@ -496,7 +519,7 @@ impl Aliases<'tcx> {
     }
 
     // Use outlives-constraints to get the loan set for each region
-    let loans = Self::compute_loans(body_with_facts, region_to_pointers, tcx);
+    let loans = Self::compute_loans(body_with_facts, region_to_pointers, tcx, def_id);
     debug!("Loans: {:?}", {
       let mut v = loans.iter_enumerated().collect::<Vec<_>>();
       v.sort_by_key(|(r, _)| *r);
