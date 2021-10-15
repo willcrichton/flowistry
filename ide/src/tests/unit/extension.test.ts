@@ -1,16 +1,14 @@
-import assert from "assert";
+import chai, { expect } from "chai";
+import deepEqualAnyOrder from 'deep-equal-in-any-order';
 import { suite, before, describe, it } from "mocha";
 import _ from "lodash";
 import vscode from "vscode";
 import forward_slice from "../mock_data/forward_slice.json";
 
 suite("Extension Test Suite", () => {
-  const delay = (millis: number) =>
-    new Promise<void>((resolve) => {
-      setTimeout((_) => resolve(), millis);
-    });
-
   before(async () => {
+    chai.use(deepEqualAnyOrder);
+
     vscode.window.showInformationMessage("Start all tests");
     await vscode.window.showTextDocument(vscode.workspace.textDocuments[0]);
 
@@ -21,9 +19,6 @@ suite("Extension Test Suite", () => {
       startXPos,
       endXPos
     );
-
-    // Extensions commands aren't available for a couple seconds
-    await delay(5000);
   });
 
   describe("Forward slice", () => {
@@ -38,7 +33,7 @@ suite("Extension Test Suite", () => {
       );
       const expectedSelection = forward_slice;
 
-      assert.deepStrictEqual(expectedSelection, actualSelection);
+      expect(actualSelection).to.deep.equalInAnyOrder(expectedSelection);
     });
   });
 });
