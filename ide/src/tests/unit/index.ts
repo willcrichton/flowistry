@@ -22,7 +22,7 @@ export function run(): Promise<void> {
 
             try {
                 // Run the mocha test
-                mocha.timeout(100000);
+                mocha.timeout(10000);
                 mocha.run(failures => {
                     if (failures > 0) {
                         reject(new Error(`${failures} tests failed.`));
