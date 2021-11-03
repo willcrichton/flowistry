@@ -602,7 +602,7 @@ fn main() {
   `[`[*y = 2]`;]`
   `[let `[z]` = `[y]`;]`
   `[`(*z)`;]`
-}  
+}
 "#;
 
   backward_slice(src);
