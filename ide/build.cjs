@@ -25,7 +25,7 @@ let common = {
 };
 
 let extension = estrella.build({
-  entryPoints: ["src/extension.ts"],
+  entryPoints: ["src/extension.ts", "src/tests/util/get_slice.ts"],
   platform: "node",
   ...common
 });
