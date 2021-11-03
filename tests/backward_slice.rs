@@ -622,7 +622,7 @@ fn main() {
 }
 "#;
 
-  backward_slice(src);  
+  backward_slice(src);
 }
 
 #[test]
@@ -818,39 +818,39 @@ fn main() {
   backward_slice(src);
 }
 
-#[test]
-fn interprocedural_field_independence() {
-  let src = r#"
-use std::ops::AddAssign;
-struct Foo(i32, i32);
-impl Foo {
-  fn bar(`[&mut self]`) {
-    self.0.add_assign(0);
-    `[`(self.1)`;]`
-  }
-}
+// #[test]
+// fn interprocedural_field_independence() {
+//   let src = r#"
+// use std::ops::AddAssign;
+// struct Foo(i32, i32);
+// impl Foo {
+//   fn bar(`[&mut self]`) {
+//     self.0.add_assign(0);
+//     `[`(self.1)`;]`
+//   }
+// }
 
-fn main() {}
-"#;
+// fn main() {}
+// "#;
 
-  backward_slice(src);
-  
-  let src = r#"
-  use std::ops::AddAssign;
-  struct Foo(i32, i32);
-  impl Foo {
-    fn bar(`[&mut self]`) {
-      `[let `[a]` = `[&mut *self]`;]`
-      `[`[a.0.add_assign(0)]`;]`
-      `[`(a.1)`;]`
-    }
-  }
-  
-  fn main() {}
-  "#;
-  
-    backward_slice(src);
-}
+//   backward_slice(src);
+
+//   let src = r#"
+//   use std::ops::AddAssign;
+//   struct Foo(i32, i32);
+//   impl Foo {
+//     fn bar(`[&mut self]`) {
+//       `[let `[a]` = `[&mut *self]`;]`
+//       `[`[a.0.add_assign(0)]`;]`
+//       `[`(a.1)`;]`
+//     }
+//   }
+
+//   fn main() {}
+//   "#;
+
+//     backward_slice(src);
+// }
 
 #[test]
 fn interprocedural_ref_output() {
@@ -940,47 +940,47 @@ fn main() {}
   backward_slice(src);
 }
 
-#[test]
-fn function_lifetime_alias_equal() {
-  let src = r#"
-fn foo<'a>(x: &'a mut i32, `[y]`: &'a mut i32) {
-  let z = x;
-  *z = 1;
-  `[`(*y)`;]`
-}
+// #[test]
+// fn function_lifetime_alias_equal() {
+//   let src = r#"
+// fn foo<'a>(x: &'a mut i32, `[y]`: &'a mut i32) {
+//   let z = x;
+//   *z = 1;
+//   `[`(*y)`;]`
+// }
 
-fn main() {}
-"#;
+// fn main() {}
+// "#;
 
-  backward_slice(src);
-}
+//   backward_slice(src);
+// }
 
-#[test]
-fn function_lifetime_alias_outlives() {
-  let src = r#"
-fn foo<'a, 'b: 'a>(x: &'a mut i32, `[y]`: &'b mut i32) -> &'a mut i32 {
-  let z = x;
-  *z = 1;
-  `[`(y)`]`
-}
+// #[test]
+// fn function_lifetime_alias_outlives() {
+//   let src = r#"
+// fn foo<'a, 'b: 'a>(x: &'a mut i32, `[y]`: &'b mut i32) -> &'a mut i32 {
+//   let z = x;
+//   *z = 1;
+//   `[`(y)`]`
+// }
 
-fn main() {}
-"#;
+// fn main() {}
+// "#;
 
-  backward_slice(src);
+//   backward_slice(src);
 
-  let src = r#"
-fn foo<'a, 'b>(x: &'a mut i32, `[y]`: &'b mut i32) -> &'b mut i32 {
-  let z = x;
-  *z = 1;
-  `[`(y)`]`
-}
+//   let src = r#"
+// fn foo<'a, 'b>(x: &'a mut i32, `[y]`: &'b mut i32) -> &'b mut i32 {
+//   let z = x;
+//   *z = 1;
+//   `[`(y)`]`
+// }
 
-fn main() {}
-  "#;
+// fn main() {}
+//   "#;
 
-  backward_slice(src);
-}
+//   backward_slice(src);
+// }
 
 #[test]
 fn function_lifetime_alias_mut() {
@@ -1271,6 +1271,19 @@ fn main() {
   *y.borrow_mut() = 1;
   `[`(x)`;]`
 }
+"#;
+
+  backward_slice(src);
+}
+
+#[test]
+fn function_ref_in_ret() {
+  let src = r#"
+fn foo(`[x]`: (&mut i32,)) -> (&mut i32,) {
+  `[`[*x.0 = 1]`;]`
+  `(x)`
+}
+fn main() {}
 "#;
 
   backward_slice(src);

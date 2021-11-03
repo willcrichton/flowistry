@@ -8,7 +8,7 @@ extern crate rustc_interface;
 extern crate rustc_serialize;
 
 use flowistry::{
-  extensions::{ContextMode, EvalMode, MutabilityMode, EVAL_MODE},
+  extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
   Direction, FlowistryError, FlowistryResult,
 };
 use fluid_let::fluid_set;
@@ -115,10 +115,16 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
         flag => panic!("Bad value of context mode: {}", flag),
       };
 
+      let pointer_mode = match arg::<String>("POINTER_MODE").as_str() {
+        "Precise" => PointerMode::Precise,
+        "Conservative" => PointerMode::Conservative,
+        flag => panic!("Bad value of pointer mode: {}", flag),
+      };
+
       let eval_mode = EvalMode {
         context_mode,
         mutability_mode,
-        ..Default::default()
+        pointer_mode,
       };
       fluid_set!(EVAL_MODE, eval_mode);
 

@@ -1,3 +1,4 @@
+use log::debug;
 use rustc_middle::mir::*;
 use rustc_mir_dataflow::{Results, ResultsRefCursor, ResultsVisitor};
 
@@ -76,20 +77,29 @@ pub fn compute_dependencies(
   let new_place_set = || PlaceSet::new(results.analysis.place_domain().clone());
 
   let expanded_targets = targets
-    .into_iter()
+    .iter()
     .map(|(place, location)| {
       let mut places = new_place_set();
-      places.insert(place);
+      places.insert(*place);
 
-      for (_, ptrs) in utils::interior_pointers(place, tcx, body, results.analysis.def_id) {
+      for (_, ptrs) in utils::interior_pointers(*place, tcx, body, results.analysis.def_id) {
         for (place, _) in ptrs {
+          debug!(
+            "{:?} // {:?}",
+            tcx.mk_place_deref(place),
+            aliases.aliases.row_set(tcx.mk_place_deref(place))
+          );
           places.union(&aliases.aliases.row_set(tcx.mk_place_deref(place)).unwrap());
         }
       }
 
-      (places, location)
+      (places, *location)
     })
     .collect::<Vec<_>>();
+  debug!(
+    "Expanded targets from {:?} to {:?}",
+    targets, expanded_targets
+  );
 
   let target_deps = {
     let mut cursor = ResultsRefCursor::new(body, results);

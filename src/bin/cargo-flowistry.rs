@@ -29,6 +29,7 @@ fn main() {
       (@arg end:)
       (@arg context_mode: --contextmode +takes_value)
       (@arg mutability_mode: --mutabilitymode +takes_value)
+      (@arg pointer_mode: --pointermode +takes_value)
       (@arg flags: ...)
     )
     (@subcommand forward_slice =>
@@ -62,7 +63,13 @@ fn main() {
         ),
         (
           "MUTABILITY_MODE",
-          sub_m.value_of("mutability_mode").unwrap_or("DistinguishMut"),
+          sub_m
+            .value_of("mutability_mode")
+            .unwrap_or("DistinguishMut"),
+        ),
+        (
+          "POINTER_MODE",
+          sub_m.value_of("pointer_mode").unwrap_or("Precise"),
         ),
       ],
       sub_m.value_of("file").unwrap(),
