@@ -7,53 +7,43 @@ export type TestSlice = {
   slice_on: [[number, number], [number, number]];
 };
 
-export default [
+const forward_slices = [
   {
     "test": "constant",
-    "file": MOCK_PROJECT_FILES.forward_slice,
-    "direction": "forward",
-    "slice_on": [[1, 16], [1, 17]]
+    "slice_on": [[1, 16], [1, 17]],
   },
   {
     "test": "basic_variable",
-    "file": MOCK_PROJECT_FILES.forward_slice,
-    "direction": "forward",
-    "slice_on": [[2, 12], [2, 13]]
+    "slice_on": [[2, 12], [2, 13]],
   },
   {
     "test": "basic_unused",
-    "file": MOCK_PROJECT_FILES.forward_slice,
-    "direction": "forward",
-    "slice_on": [[7, 4], [7, 14]]
+    "slice_on": [[7, 4], [7, 14]],
   },
   {
     "test": "basic_update",
-    "file": MOCK_PROJECT_FILES.forward_slice,
-    "direction": "forward",
-    "slice_on": [[13, 4], [13, 18]]
+    "slice_on": [[13, 4], [13, 18]],
   },
   {
     "test": "condition",
-    "file": MOCK_PROJECT_FILES.forward_slice,
-    "direction": "forward",
-    "slice_on": [[19, 4], [19, 14]]
+    "slice_on": [[19, 4], [19, 14]],
   },
   {
     "test": "pointer_write",
-    "file": MOCK_PROJECT_FILES.forward_slice,
-    "direction": "forward",
-    "slice_on": [[30, 4], [30, 18]]
+    "slice_on": [[30, 4], [30, 18]],
   },
   {
     "test": "function_params",
-    "file": MOCK_PROJECT_FILES.forward_slice,
-    "direction": "forward",
-    "slice_on": [[35, 19], [35, 20]]
+    "slice_on": [[35, 19], [35, 20]],
   },
   {
     "test": "struct_param",
-    "file": MOCK_PROJECT_FILES.forward_slice,
-    "direction": "forward",
-    "slice_on": [[41, 16], [41, 17]]
+    "slice_on": [[41, 16], [41, 17]],
   },
-] as TestSlice[];
+].map((slice) => ({
+  "file": MOCK_PROJECT_FILES.forward_slice,
+  "direction": "forward",
+  ...slice,
+}));
+
+export default forward_slices as TestSlice[];
