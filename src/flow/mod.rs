@@ -10,7 +10,7 @@ use crate::{
   core::{
     aliases::Aliases,
     control_dependencies::ControlDependencies,
-    extensions::{EvalMode, EVAL_MODE},
+    extensions::{EvalMode, EVAL_MODE, REACHED_LIBRARY},
   },
   utils,
 };
@@ -27,7 +27,7 @@ type FlowResults<'a, 'b> = Results<'b, FlowAnalysis<'a, 'b>>;
 thread_local! {
   pub static BODY_STACK: RefCell<Vec<BodyId>> =
     RefCell::new(Vec::new());
-  static CACHE: RefCell<HashMap<CacheKey, Pin<Box<FlowResults<'static, 'static>>>>> =
+  static CACHE: RefCell<HashMap<CacheKey, (Pin<Box<FlowResults<'static, 'static>>>, bool)>> =
     RefCell::new(HashMap::default());
 }
 
@@ -76,19 +76,30 @@ pub fn compute_flow<'a, 'tcx>(
         results
       });
 
+      let reached_library =
+        REACHED_LIBRARY.get(|cell| cell.map(|cell| *cell.borrow()).unwrap_or(false));
       let results =
         unsafe { transmute::<FlowResults<'a, 'tcx>, FlowResults<'static, 'static>>(results) };
-      cache.borrow_mut().insert(key, Pin::new(Box::new(results)));
+      cache
+        .borrow_mut()
+        .insert(key, (Pin::new(Box::new(results)), reached_library));
     }
 
     // TODO: SCARY UNSAFETY
     //    better way to implement this w/o transmute?
     let mut cache = cache.borrow_mut();
-    let results = &mut **cache.get_mut(&key).unwrap();
+    let (results, cached_reached_library) = cache.get_mut(&key).unwrap();
+    let results = &mut **results;
     let results = unsafe {
       transmute::<&mut FlowResults<'static, 'static>, &'a mut FlowResults<'a, 'tcx>>(results)
     };
     results.analysis.body = &body_with_facts.body;
+
+    REACHED_LIBRARY.get(|reached_library| {
+      if let Some(reached_library) = reached_library {
+        *reached_library.borrow_mut() |= *cached_reached_library
+      }
+    });
 
     results
   })
