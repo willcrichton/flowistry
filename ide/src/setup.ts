@@ -16,7 +16,7 @@ declare const TOOLCHAIN: {
 
 const SHOW_LOADER_THRESHOLD = 2000;
 
-let exec_notify = async (
+export let exec_notify = async (
   cmd: string,
   title: string,
   opts?: any
