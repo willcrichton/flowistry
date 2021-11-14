@@ -7,7 +7,7 @@ async function main() {
     // Passed to `--extensionDevelopmentPath`
     const extensionDevelopmentPath = path.resolve(__dirname, '../../');
 
-    const launchArgs = ["--disable-extensions", MOCK_PROJECT_DIRECTORY, MOCK_PROJECT_FILES.forward_slice];
+    const launchArgs = ["--disable-extensions", MOCK_PROJECT_DIRECTORY, ...Object.values(MOCK_PROJECT_FILES)];
 
     // All test suites (either unit tests or integration tests) should be in subfolders.
     const extensionTestsPath = path.resolve(__dirname, './unit/index');

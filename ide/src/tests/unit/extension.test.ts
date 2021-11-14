@@ -102,7 +102,5 @@ suite("Extension Test Suite", async () => {
     });
   });
 
-  it('This is a required placeholder to allow before() to work', function () {
-    console.log('I need to get rid of this or replace it with an actual test');
-  });
+  it('This is a required placeholder to allow before() to work');
 });
