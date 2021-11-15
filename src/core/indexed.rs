@@ -329,7 +329,7 @@ where
 #[derive(Clone)]
 pub struct IndexMatrix<R: IndexedValue, C: IndexedValue> {
   matrix: SparseBitMatrix<R::Index, C::Index>,
-  row_domain: Rc<R::Domain>,
+  pub row_domain: Rc<R::Domain>,
   pub col_domain: Rc<C::Domain>,
 }
 

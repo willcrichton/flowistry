@@ -40,8 +40,10 @@ mod slicing;
 pub use crate::core::{
   analysis::{get_body_with_borrowck_facts, override_queries, FlowistryError, FlowistryResult},
   config::{self, Range},
-  extensions, utils,
+  extensions, indexed, utils,
 };
 pub use effects::{effects, FunctionIdentifier};
-pub use flow::{compute_dependencies, compute_flow, Direction};
+pub use flow::{
+  compute_dependencies, compute_flow, Direction, FlowAnalysis, FlowDomain, FlowResults,
+};
 pub use slicing::{slice, SliceOutput};
