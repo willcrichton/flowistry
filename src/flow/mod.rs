@@ -22,7 +22,7 @@ mod dataflow;
 mod dependencies;
 
 type CacheKey = (BodyId, Option<EvalMode>);
-type FlowResults<'a, 'b> = Results<'b, FlowAnalysis<'a, 'b>>;
+pub type FlowResults<'a, 'b> = Results<'b, FlowAnalysis<'a, 'b>>;
 
 thread_local! {
   pub static BODY_STACK: RefCell<Vec<BodyId>> =
