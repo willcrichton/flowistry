@@ -11,7 +11,7 @@ mod mir;
 mod source_map;
 
 pub fn elapsed(name: &str, start: Instant) {
-  info!("{} took {}s", name, start.elapsed().as_nanos() as f64 / 1e9)
+  info!("{} took {}s", name, start.elapsed().as_secs_f64());
 }
 
 pub struct BlockTimer<'a> {
