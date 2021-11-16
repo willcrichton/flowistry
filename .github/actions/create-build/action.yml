@@ -1,0 +1,19 @@
+name: 'Create Flowistry build artifacts'
+description: 'Builds Flowistry with release flag'
+inputs:
+  target:
+    required: true
+runs:
+  using: "composite"
+  steps: 
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly-2021-09-23
+        components: rust-src, rustc-dev, llvm-tools-preview
+        target: ${{ inputs.target }}
+        profile: minimal
+        override: true
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --release

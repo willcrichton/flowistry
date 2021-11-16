@@ -8,8 +8,7 @@ on:
       - "v*"
 
 jobs:
-  test:
-    name: Build and test
+  build:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -19,10 +18,58 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - run: cargo install --path .
+      - uses: ./.github/actions/create-build
+        with:
+          target: ${{ matrix.target }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: flowistry-build
+          path: |
+            target/release/cargo-flowistry*
+            target/release/flowistry-driver*
+
+  test-rust:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v2
       - run: cargo test
+
+  test-vscode:
+    needs: build
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/install-build
       - run: npm ci
         working-directory: ide
       - name: Run vscode tests
         run: xvfb-run -a npm test
+        working-directory: ide
+
+  install_release:
+    name: Install extension with latest Flowistry release
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm ci
+        working-directory: ide
+      - run: xvfb-run -a npm run test:install
         working-directory: ide

@@ -3,8 +3,8 @@ import deepEqualAnyOrder from 'deep-equal-in-any-order';
 import { suite, before, describe, it } from "mocha";
 import _ from "lodash";
 import vscode from "vscode";
-import slices, { TestSlice } from "../mock_data/slices";
-import { get_slice } from "../util/get_slice";
+import slices, { TestSlice } from "./mock_data/slices";
+import { get_slice } from "./util/get_slice";
 import { SliceOutput } from "../../types";
 import { to_vsc_range } from "../../vsc_utils";
 

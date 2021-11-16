@@ -1,5 +1,5 @@
 import vscode from "vscode";
-import { exec_notify } from "../../setup";
+import { exec_notify } from "../../../setup";
 import { TestSlice } from "../mock_data/slices";
 import { MOCK_PROJECT_DIRECTORY } from "./constants";
 
