@@ -1,6 +1,6 @@
 import path from 'path';
 import { runTests } from 'vscode-test';
-import { MOCK_PROJECT_DIRECTORY, MOCK_PROJECT_FILES } from './util/constants';
+import { MOCK_PROJECT_DIRECTORY, MOCK_PROJECT_FILES } from './unit/util/constants';
 
 async function main() {
     // The folder containing the Extension Manifest package.json
