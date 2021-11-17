@@ -759,7 +759,7 @@ fn foo<'a, 'b>(x: &'a mut i32, y: &'b mut i32) -> &'b mut i32 { y }
 fn main() {
   `[let `[mut x]` = `[1]`;]`
   `[let `[mut y]` = `[2]`;]`
-  `[let z = `[foo(`[&mut x]`, `[&mut y]`)]`;]`
+  `[let `[z]` = `[foo(`[&mut x]`, `[&mut y]`)]`;]`
   *z += 1;
   `[`(x)`;]`
 }
@@ -1279,7 +1279,7 @@ fn main() {
 #[test]
 fn function_ref_in_ret() {
   let src = r#"
-fn foo(`[x]`: (&mut i32,)) -> (&mut i32,) {
+fn foo(`[x]`: (&mut i32,)) -> `[(&mut i32,)]` {
   `[`[*x.0 = 1]`;]`
   `(x)`
 }

@@ -1,10 +1,11 @@
-use log::debug;
+use log::{debug, trace};
 use rustc_middle::mir::*;
 use rustc_mir_dataflow::{Results, ResultsRefCursor, ResultsVisitor};
 
 use super::dataflow::{FlowAnalysis, FlowDomain};
 use crate::core::{
   config::Range,
+  indexed::IndexedDomain,
   indexed_impls::{LocationSet, PlaceSet},
   utils,
 };
@@ -15,13 +16,47 @@ pub enum Direction {
   Backward,
 }
 
-struct ForwardVisitor<'tcx> {
-  expanded_targets: Vec<(PlaceSet<'tcx>, Location)>,
-  target_deps: Vec<(LocationSet, PlaceSet<'tcx>)>,
+struct DepVisitor<'tcx> {
+  direction: Direction,
+  target_deps: Vec<LocationSet>,
   outputs: Vec<(LocationSet, PlaceSet<'tcx>)>,
 }
 
-impl ResultsVisitor<'mir, 'tcx> for ForwardVisitor<'tcx> {
+impl DepVisitor<'tcx> {
+  fn visit(&mut self, state: &FlowDomain<'tcx>, location: Location) {
+    for (target_locs, (out_locs, out_places)) in
+      self.target_deps.iter().zip(self.outputs.iter_mut())
+    {
+      for (place, loc_deps) in state.rows() {
+        if loc_deps.len() == 0 {
+          continue;
+        }
+
+        let matches = match self.direction {
+          Direction::Forward => loc_deps.is_superset(target_locs),
+          Direction::Backward => target_locs.is_superset(&loc_deps),
+        };
+
+        if matches {
+          trace!(
+            "{:?}: place {:?} (deps {:?}) / target_locs {:?}",
+            location,
+            state.row_domain.value(place),
+            loc_deps,
+            target_locs
+          );
+          out_places.insert(place);
+
+          if loc_deps.contains(location) {
+            out_locs.insert(location);
+          }
+        }
+      }
+    }
+  }
+}
+
+impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'tcx> {
   type FlowState = FlowDomain<'tcx>;
 
   fn visit_statement_after_primary_effect(
@@ -30,37 +65,16 @@ impl ResultsVisitor<'mir, 'tcx> for ForwardVisitor<'tcx> {
     _statement: &'mir Statement<'tcx>,
     location: Location,
   ) {
-    for ((target_places, _), ((locs, places), (out_locs, out_places))) in self
-      .expanded_targets
-      .iter()
-      .zip(self.target_deps.iter().zip(self.outputs.iter_mut()))
-    {
-      let mut relevant_loc = false;
-      for place in state.locations.rows() {
-        if let Some(loc_deps) = state.locations.row_set(place) {
-          if loc_deps.contains(location) {
-            if !relevant_loc && loc_deps.is_superset(locs) {
-              relevant_loc = true;
-            }
+    self.visit(state, location);
+  }
 
-            if let Some(place_deps) = state.places.row_set(place) {
-              let contains_target = {
-                let mut place_deps = place_deps.to_owned();
-                place_deps.intersect(&target_places);
-                place_deps.len() > 0
-              };
-              if contains_target && place_deps.is_superset(places) {
-                out_places.insert(place);
-              }
-            }
-          }
-        }
-      }
-
-      if relevant_loc {
-        out_locs.insert(location);
-      }
-    }
+  fn visit_terminator_after_primary_effect(
+    &mut self,
+    state: &Self::FlowState,
+    _terminator: &'mir rustc_middle::mir::Terminator<'tcx>,
+    location: Location,
+  ) {
+    self.visit(state, location);
   }
 }
 
@@ -108,44 +122,35 @@ pub fn compute_dependencies(
       let state = cursor.get();
 
       let mut locations = new_location_set();
-      let mut places = new_place_set();
-
       for target in targets.indices() {
-        if let Some(dep_locations) = state.locations.row_set(target) {
+        if let Some(dep_locations) = state.row_set(target) {
           locations.union(&dep_locations);
-        }
-
-        if let Some(dep_places) = state.places.row_set(target) {
-          places.union(&dep_places);
         }
       }
 
-      (locations, places)
+      locations
     };
     expanded_targets.iter().map(get_deps).collect::<Vec<_>>()
   };
+  debug!("Target deps: {:?}", target_deps);
 
-  match direction {
-    Direction::Backward => target_deps,
-    Direction::Forward => {
-      let mut outputs = target_deps
-        .iter()
-        .map(|_| (new_location_set(), new_place_set()))
-        .collect::<Vec<_>>();
-      for ((target_places, _), (_, places)) in expanded_targets.iter().zip(outputs.iter_mut()) {
-        places.union(target_places);
-      }
-
-      let mut visitor = ForwardVisitor {
-        expanded_targets,
-        target_deps,
-        outputs,
-      };
-      results.visit_reachable_with(body, &mut visitor);
-
-      visitor.outputs
-    }
+  let mut outputs = target_deps
+    .iter()
+    .map(|_| (new_location_set(), new_place_set()))
+    .collect::<Vec<_>>();
+  for ((target_places, _), (_, places)) in expanded_targets.iter().zip(outputs.iter_mut()) {
+    places.union(target_places);
   }
+
+  let mut visitor = DepVisitor {
+    direction,
+    target_deps,
+    outputs,
+  };
+  results.visit_reachable_with(body, &mut visitor);
+  debug!("visitor.outputs: {:?}", visitor.outputs);
+
+  visitor.outputs
 }
 
 pub fn compute_dependency_ranges(

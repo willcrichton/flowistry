@@ -1,8 +1,6 @@
-#![allow(dead_code)]
-
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_index::{
-  bit_set::{HybridBitSet, HybridIter, SparseBitMatrix},
+  bit_set::BitSet,
   vec::{Idx, IndexVec},
 };
 
@@ -15,7 +13,7 @@ use std::{
 };
 
 pub trait IndexedValue: Eq + Hash + Clone + Ord + fmt::Debug {
-  type Index: Idx;
+  type Index: Idx + ToIndex<Self>;
   type Domain: IndexedDomain<Index = Self::Index, Value = Self> = DefaultDomain<Self::Index, Self>;
 }
 
@@ -54,6 +52,9 @@ pub trait IndexedDomain {
   fn index(&self, value: &Self::Value) -> Self::Index;
   fn contains(&self, value: &Self::Value) -> bool;
   fn as_vec(&self) -> &IndexVec<Self::Index, Self::Value>;
+  fn size(&self) -> usize {
+    self.as_vec().len()
+  }
 }
 
 #[derive(Clone)]
@@ -99,14 +100,16 @@ impl<I: Idx, T: IndexedValue> IndexedDomain for DefaultDomain<I, T> {
   }
 }
 
+type IndexSetImpl<T> = BitSet<T>;
+
 #[derive(Clone)]
-pub struct OwnedSet<T: IndexedValue>(HybridBitSet<T::Index>);
+pub struct OwnedSet<T: IndexedValue>(IndexSetImpl<T::Index>);
 #[derive(Clone, Copy)]
-pub struct RefSet<'a, T: IndexedValue>(&'a HybridBitSet<T::Index>);
-pub struct MutSet<'a, T: IndexedValue>(&'a mut HybridBitSet<T::Index>);
+pub struct RefSet<'a, T: IndexedValue>(&'a IndexSetImpl<T::Index>);
+pub struct MutSet<'a, T: IndexedValue>(&'a mut IndexSetImpl<T::Index>);
 
 impl<T: IndexedValue> Deref for OwnedSet<T> {
-  type Target = HybridBitSet<T::Index>;
+  type Target = IndexSetImpl<T::Index>;
 
   fn deref(&self) -> &Self::Target {
     &self.0
@@ -120,18 +123,18 @@ impl<T: IndexedValue> DerefMut for OwnedSet<T> {
 }
 
 impl<T: IndexedValue> Deref for RefSet<'_, T> {
-  type Target = HybridBitSet<T::Index>;
+  type Target = IndexSetImpl<T::Index>;
 
   fn deref(&self) -> &Self::Target {
     self.0
   }
 }
 
-pub trait ToSet<T: IndexedValue>: Deref<Target = HybridBitSet<T::Index>> {}
-pub trait ToSetMut<T: IndexedValue>: DerefMut<Target = HybridBitSet<T::Index>> {}
+pub trait ToSet<T: IndexedValue>: Deref<Target = IndexSetImpl<T::Index>> {}
+pub trait ToSetMut<T: IndexedValue>: DerefMut<Target = IndexSetImpl<T::Index>> {}
 
-impl<S: Deref<Target = HybridBitSet<T::Index>>, T: IndexedValue> ToSet<T> for S {}
-impl<S: DerefMut<Target = HybridBitSet<T::Index>>, T: IndexedValue> ToSetMut<T> for S {}
+impl<S: Deref<Target = IndexSetImpl<T::Index>>, T: IndexedValue> ToSet<T> for S {}
+impl<S: DerefMut<Target = IndexSetImpl<T::Index>>, T: IndexedValue> ToSetMut<T> for S {}
 
 pub struct IndexSet<T: IndexedValue, S = OwnedSet<T>> {
   set: S,
@@ -141,7 +144,7 @@ pub struct IndexSet<T: IndexedValue, S = OwnedSet<T>> {
 impl<T: IndexedValue> IndexSet<T, OwnedSet<T>> {
   pub fn new(domain: Rc<T::Domain>) -> Self {
     IndexSet {
-      set: OwnedSet(HybridBitSet::new_empty(domain.as_vec().len())),
+      set: OwnedSet(IndexSetImpl::new_empty(domain.as_vec().len())),
       domain,
     }
   }
@@ -166,7 +169,7 @@ where
     }
   }
 
-  pub fn indices(&self) -> HybridIter<'_, T::Index> {
+  pub fn indices(&self) -> impl Iterator<Item = T::Index> + '_ {
     self.set.iter()
   }
 
@@ -187,10 +190,7 @@ where
   }
 
   pub fn len(&self) -> usize {
-    match &*self.set {
-      HybridBitSet::Dense(this) => this.count(),
-      HybridBitSet::Sparse(_) => self.set.iter().count(),
-    }
+    self.set.count()
   }
 
   pub fn is_superset<S2: ToSet<T>>(&self, other: &IndexSet<T, S2>) -> bool {
@@ -219,7 +219,7 @@ impl<T: IndexedValue, S: ToSetMut<T>> IndexSet<T, S> {
 
 impl<T: IndexedValue, S: ToSet<T>> PartialEq for IndexSet<T, S> {
   fn eq(&self, other: &Self) -> bool {
-    self.is_superset(other) && other.is_superset(self)
+    &*self.set == &*other.set
   }
 }
 
@@ -326,9 +326,8 @@ where
   }
 }
 
-#[derive(Clone)]
 pub struct IndexMatrix<R: IndexedValue, C: IndexedValue> {
-  matrix: SparseBitMatrix<R::Index, C::Index>,
+  matrix: HashMap<R::Index, IndexSetImpl<C::Index>>,
   pub row_domain: Rc<R::Domain>,
   pub col_domain: Rc<C::Domain>,
 }
@@ -336,70 +335,79 @@ pub struct IndexMatrix<R: IndexedValue, C: IndexedValue> {
 impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
   pub fn new(row_domain: Rc<R::Domain>, col_domain: Rc<C::Domain>) -> Self {
     IndexMatrix {
-      matrix: SparseBitMatrix::new(col_domain.as_vec().len()),
+      matrix: HashMap::default(),
       row_domain,
       col_domain,
     }
   }
 
-  pub fn insert(&mut self, row: impl ToIndex<R>, col: impl ToIndex<C>) -> bool {
+  fn ensure_row(&mut self, row: impl ToIndex<R>) -> &mut IndexSetImpl<C::Index> {
     let row = row.to_index(&self.row_domain);
+    let nc = self.col_domain.size();
+    self
+      .matrix
+      .entry(row)
+      .or_insert_with(|| IndexSetImpl::new_empty(nc))
+  }
+
+  pub fn insert(&mut self, row: impl ToIndex<R>, col: impl ToIndex<C>) -> bool {
     let col = col.to_index(&self.col_domain);
-    self.matrix.insert(row, col)
+    self.ensure_row(row).insert(col)
   }
 
   pub fn union_into_row<S2>(&mut self, into: impl ToIndex<R>, from: &IndexSet<C, S2>) -> bool
   where
-    S2: Deref<Target = HybridBitSet<C::Index>>,
+    S2: ToSet<C>,
   {
-    let into = into.to_index(&self.row_domain);
-    self.matrix.union_row(into, &*from.set)
-  }
-
-  pub fn row_indices(&self, row: impl ToIndex<R>) -> impl Iterator<Item = C::Index> + '_ {
-    let row = row.to_index(&self.row_domain);
-    self
-      .matrix
-      .row(row)
-      .into_iter()
-      .map(|set| set.iter())
-      .flatten()
+    self.ensure_row(into).union(&*from.set)
   }
 
   pub fn row<'a>(&'a self, row: impl ToIndex<R> + 'a) -> impl Iterator<Item = &'a C> + 'a {
+    let row = row.to_index(&self.row_domain);
     self
-      .row_indices(row)
-      .map(move |idx| self.col_domain.value(idx))
+      .matrix
+      .get(&row)
+      .into_iter()
+      .map(move |set| set.iter().map(move |idx| self.col_domain.value(idx)))
+      .flatten()
   }
 
   pub fn row_set<'a>(&'a self, row: impl ToIndex<R>) -> Option<IndexSet<C, RefSet<'a, C>>> {
     let row = row.to_index(&self.row_domain);
-    self.matrix.row(row).map(|set| IndexSet {
+    self.matrix.get(&row).map(|set| IndexSet {
       set: RefSet(set),
       domain: self.col_domain.clone(),
     })
   }
 
-  pub fn rows(&self) -> impl Iterator<Item = R::Index> {
-    self.matrix.rows()
+  pub fn rows<'a>(&'a self) -> impl Iterator<Item = (R::Index, IndexSet<C, RefSet<'a, C>>)> + 'a {
+    self.matrix.iter().map(move |(row, col)| {
+      (
+        *row,
+        IndexSet {
+          set: RefSet(col),
+          domain: self.col_domain.clone(),
+        },
+      )
+    })
   }
 
   pub fn clear_row(&mut self, row: impl ToIndex<R>) {
     let row = row.to_index(&self.row_domain);
-    self.matrix.clear(row);
+    self.matrix.remove(&row);
   }
 }
 
 impl<R: IndexedValue, C: IndexedValue> PartialEq for IndexMatrix<R, C> {
   fn eq(&self, other: &Self) -> bool {
-    self.matrix.rows().count() == other.matrix.rows().count()
-      && self.matrix.rows().all(|row| match self.matrix.row(row) {
-        Some(set) => match other.matrix.row(row) {
-          Some(other_set) => set.superset(other_set) && other_set.superset(set),
+    self.matrix.len() == other.matrix.len()
+      && self
+        .matrix
+        .iter()
+        .all(|(row, col)| match other.matrix.get(row) {
+          Some(other_col) => col == other_col,
           None => false,
-        },
-        None => true,
-      })
+        })
   }
 }
 
@@ -408,24 +416,42 @@ impl<R: IndexedValue, C: IndexedValue> Eq for IndexMatrix<R, C> {}
 impl<R: IndexedValue, C: IndexedValue> JoinSemiLattice for IndexMatrix<R, C> {
   fn join(&mut self, other: &Self) -> bool {
     let mut changed = false;
-    for row in other.matrix.rows() {
-      if let Some(set) = other.matrix.row(row) {
-        changed |= self.matrix.union_row(row, set);
-      }
+    for (row, col) in other.matrix.iter() {
+      changed |= self.ensure_row(*row).union(col);
     }
     return changed;
   }
 }
 
-impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug for IndexMatrix<R, C>
-where
-  R::Index: ToIndex<R>,
-{
+impl<R: IndexedValue, C: IndexedValue> Clone for IndexMatrix<R, C> {
+  fn clone(&self) -> Self {
+    Self {
+      matrix: self.matrix.clone(),
+      row_domain: self.row_domain.clone(),
+      col_domain: self.col_domain.clone(),
+    }
+  }
+
+  fn clone_from(&mut self, source: &Self) {
+    for col in self.matrix.values_mut() {
+      col.clear();
+    }
+
+    for (row, col) in source.matrix.iter() {
+      self.ensure_row(*row).clone_from(col);
+    }
+
+    self.row_domain = source.row_domain.clone();
+    self.col_domain = source.col_domain.clone();
+  }
+}
+
+impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug for IndexMatrix<R, C> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{{")?;
 
-    for row in self.matrix.rows() {
-      let n = self.matrix.iter(row).count();
+    for row in self.matrix.keys() {
+      let n = self.matrix.get(row).map(|set| set.count()).unwrap_or(0);
       if n == 0 {
         continue;
       }
@@ -433,8 +459,8 @@ where
       write!(
         f,
         "  {:?}: {:?},",
-        self.row_domain.value(row),
-        self.row_set(row).unwrap()
+        self.row_domain.value(*row),
+        self.row_set(*row).unwrap()
       )?;
     }
 
@@ -444,20 +470,17 @@ where
 
 impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx> DebugWithContext<Ctx>
   for IndexMatrix<R, C>
-where
-  R::Index: ToIndex<R>,
-  C::Index: ToIndex<C>,
 {
   fn fmt_with(&self, ctxt: &Ctx, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{{")?;
 
-    for row in self.matrix.rows() {
-      if let Some(row_set) = self.row_set(row) {
+    for row in self.matrix.keys() {
+      if let Some(row_set) = self.row_set(*row) {
         if row_set.len() == 0 {
           continue;
         }
 
-        write!(f, "  {}: ", Escape(self.row_domain.value(row)))?;
+        write!(f, "  {}: ", Escape(self.row_domain.value(*row)))?;
         row_set.fmt_with(ctxt, f)?;
         write!(f, "]<br align=\"left\" />")?;
       }
@@ -473,10 +496,7 @@ where
 
     let empty = IndexSet::new(self.col_domain.clone());
     let empty = empty.as_ref();
-    for (row, set) in self
-      .rows()
-      .filter_map(|row| self.row_set(row).map(|set| (row, set)))
-    {
+    for (row, set) in self.rows() {
       let row_value = self.row_domain.value(row);
       let old_set = old.row_set(row);
       let old_set = old_set.as_ref().unwrap_or(&empty);

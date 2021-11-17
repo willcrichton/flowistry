@@ -2,7 +2,7 @@ use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_index::vec::IndexVec;
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::{
-  mir::{Body, Local, Location, Place, ProjectionElem},
+  mir::{BasicBlock, Body, Local, Location, Place, ProjectionElem},
   traits::ObligationCause,
   ty::TyCtxt,
 };
@@ -103,6 +103,16 @@ impl PlaceDomain<'tcx> {
   pub fn normalize(&self, place: Place<'tcx>) -> Place<'tcx> {
     self.normalized_places.borrow_mut().normalize(place)
   }
+
+  pub fn all_args(&self, body: &Body<'tcx>) -> Vec<PlaceIndex> {
+    self
+      .domain
+      .as_vec()
+      .iter_enumerated()
+      .filter(|(_, place)| utils::is_arg(**place, body))
+      .map(|(index, _)| index)
+      .collect()
+  }
 }
 
 impl IndexedDomain for PlaceDomain<'tcx> {
@@ -147,22 +157,85 @@ to_index_impl!(Location);
 
 impl IndexedValue for Location {
   type Index = LocationIndex;
+  type Domain = LocationDomain;
 }
 
 pub type LocationSet = IndexSet<Location>;
-pub type LocationDomain = <Location as IndexedValue>::Domain;
+pub struct LocationDomain {
+  domain: DefaultDomain<LocationIndex, Location>,
+  arg_to_location: HashMap<PlaceIndex, LocationIndex>,
+}
 
-pub fn build_location_domain(body: &Body) -> Rc<LocationDomain> {
-  let locations = body
-    .basic_blocks()
-    .iter_enumerated()
-    .map(|(block, data)| {
-      (0..data.statements.len() + 1).map(move |statement_index| Location {
-        block,
-        statement_index,
+impl LocationDomain {
+  pub fn new(body: &Body, place_domain: &Rc<PlaceDomain>) -> Rc<Self> {
+    let mut locations = body
+      .basic_blocks()
+      .iter_enumerated()
+      .map(|(block, data)| {
+        (0..data.statements.len() + 1).map(move |statement_index| Location {
+          block,
+          statement_index,
+        })
       })
+      .flatten()
+      .collect::<Vec<_>>();
+
+    let arg_block = BasicBlock::from_usize(body.basic_blocks().len());
+
+    let (arg_places, arg_locations): (Vec<_>, Vec<_>) = place_domain
+      .as_vec()
+      .iter()
+      .filter(|place| utils::is_arg(**place, body))
+      .enumerate()
+      .map(|(i, place)| {
+        (
+          *place,
+          Location {
+            block: arg_block,
+            statement_index: i,
+          },
+        )
+      })
+      .unzip();
+
+    locations.extend(&arg_locations);
+
+    let domain = DefaultDomain::new(locations);
+
+    let arg_to_location = arg_places
+      .iter()
+      .zip(arg_locations.iter())
+      .map(|(place, location)| (place_domain.index(place), domain.index(location)))
+      .collect::<HashMap<_, _>>();
+
+    Rc::new(LocationDomain {
+      domain,
+      arg_to_location,
     })
-    .flatten()
-    .collect::<Vec<_>>();
-  Rc::new(LocationDomain::new(locations))
+  }
+
+  pub fn arg_to_location(&self, arg: PlaceIndex) -> LocationIndex {
+    *self.arg_to_location.get(&arg).unwrap()
+  }
+}
+
+impl IndexedDomain for LocationDomain {
+  type Index = LocationIndex;
+  type Value = Location;
+
+  fn value(&self, index: Self::Index) -> &Self::Value {
+    self.domain.value(index)
+  }
+
+  fn index(&self, value: &Self::Value) -> Self::Index {
+    self.domain.index(value)
+  }
+
+  fn contains(&self, value: &Self::Value) -> bool {
+    self.domain.contains(value)
+  }
+
+  fn as_vec(&self) -> &IndexVec<Self::Index, Self::Value> {
+    self.domain.as_vec()
+  }
 }

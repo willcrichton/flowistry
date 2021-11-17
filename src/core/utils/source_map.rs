@@ -78,6 +78,11 @@ pub fn location_to_spans(
   spanner: &HirSpanner,
   source_map: &SourceMap,
 ) -> SmallVec<[Span; 4]> {
+  // special case for synthetic locations that represent arguments
+  if location.block.as_usize() == body.basic_blocks().len() {
+    return smallvec![];
+  }
+
   let mut mir_spans: SmallVec<[Span; 2]> = smallvec![body.source_info(location).span];
   let block = &body.basic_blocks()[location.block];
   if location.statement_index == block.statements.len() {
