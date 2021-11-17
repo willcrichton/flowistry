@@ -6,7 +6,7 @@ use super::dataflow::{FlowAnalysis, FlowDomain};
 use crate::core::{
   config::Range,
   indexed::IndexedDomain,
-  indexed_impls::{LocationSet, PlaceSet},
+  indexed_impls::{LocationSet, PlaceIndex, PlaceSet},
   utils,
 };
 
@@ -16,39 +16,49 @@ pub enum Direction {
   Backward,
 }
 
-struct DepVisitor<'tcx> {
+struct DepVisitor<'a, 'mir, 'tcx> {
   direction: Direction,
   target_deps: Vec<LocationSet>,
   outputs: Vec<(LocationSet, PlaceSet<'tcx>)>,
+  analysis: &'a FlowAnalysis<'mir, 'tcx>,
 }
 
-impl DepVisitor<'tcx> {
-  fn visit(&mut self, state: &FlowDomain<'tcx>, location: Location) {
+impl DepVisitor<'_, '_, 'tcx> {
+  fn visit(
+    &mut self,
+    state: &FlowDomain<'tcx>,
+    opt_location: Option<Location>,
+    to_check: Vec<PlaceIndex>,
+  ) {
     for (target_locs, (out_locs, out_places)) in
       self.target_deps.iter().zip(self.outputs.iter_mut())
     {
-      for (place, loc_deps) in state.rows() {
-        if loc_deps.len() == 0 {
-          continue;
-        }
+      for place in to_check.iter() {
+        if let Some(loc_deps) = state.row_set(*place) {
+          if loc_deps.indices().next().is_none() {
+            continue;
+          }
 
-        let matches = match self.direction {
-          Direction::Forward => loc_deps.is_superset(target_locs),
-          Direction::Backward => target_locs.is_superset(&loc_deps),
-        };
+          let matches = match self.direction {
+            Direction::Forward => loc_deps.is_superset(target_locs),
+            Direction::Backward => target_locs.is_superset(&loc_deps),
+          };
 
-        if matches {
-          trace!(
-            "{:?}: place {:?} (deps {:?}) / target_locs {:?}",
-            location,
-            state.row_domain.value(place),
-            loc_deps,
-            target_locs
-          );
-          out_places.insert(place);
+          if matches {
+            trace!(
+              "{:?}: place {:?} (deps {:?}) / target_locs {:?}",
+              opt_location,
+              state.row_domain.value(*place),
+              loc_deps,
+              target_locs
+            );
+            out_places.insert(*place);
 
-          if loc_deps.contains(location) {
-            out_locs.insert(location);
+            if let Some(location) = opt_location {
+              if loc_deps.contains(location) {
+                out_locs.insert(location);
+              }
+            }
           }
         }
       }
@@ -56,25 +66,59 @@ impl DepVisitor<'tcx> {
   }
 }
 
-impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'tcx> {
+impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
   type FlowState = FlowDomain<'tcx>;
+
+  fn visit_block_start(
+    &mut self,
+    state: &Self::FlowState,
+    _block_data: &'mir BasicBlockData<'tcx>,
+    block: BasicBlock,
+  ) {
+    if block.as_usize() == 0 {
+      let place_domain = self.analysis.place_domain();
+      self.visit(state, None, place_domain.all_args(self.analysis.body));
+    }
+  }
 
   fn visit_statement_after_primary_effect(
     &mut self,
     state: &Self::FlowState,
-    _statement: &'mir Statement<'tcx>,
+    statement: &'mir Statement<'tcx>,
     location: Location,
   ) {
-    self.visit(state, location);
+    match statement.kind {
+      StatementKind::Assign(box (lhs, _)) => {
+        self.visit(
+          state,
+          Some(location),
+          self.analysis.aliases.conflicts(lhs).indices().collect(),
+        );
+      }
+      _ => {}
+    }
   }
 
   fn visit_terminator_after_primary_effect(
     &mut self,
     state: &Self::FlowState,
-    _terminator: &'mir rustc_middle::mir::Terminator<'tcx>,
+    terminator: &'mir rustc_middle::mir::Terminator<'tcx>,
     location: Location,
   ) {
-    self.visit(state, location);
+    if matches!(
+      terminator.kind,
+      TerminatorKind::Call { .. }
+        | TerminatorKind::DropAndReplace { .. }
+        | TerminatorKind::SwitchInt { .. }
+    ) {
+      // TODO: optimize this by only checking the set of possibly mutated objects
+      // BIGGER TODO: unify this logic with dataflow.rs to avoid copying
+      self.visit(
+        state,
+        Some(location),
+        self.analysis.place_domain().as_vec().indices().collect(),
+      );
+    }
   }
 }
 
@@ -143,6 +187,7 @@ pub fn compute_dependencies(
   }
 
   let mut visitor = DepVisitor {
+    analysis: &results.analysis,
     direction,
     target_deps,
     outputs,
