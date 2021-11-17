@@ -1,13 +1,11 @@
-use log::{debug, info, trace};
+use log::{debug, info};
 use rustc_hir::def_id::DefId;
 use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::{subst::GenericArgKind, ClosureKind, TyCtxt, TyKind},
 };
-use rustc_mir_dataflow::{
-  fmt::DebugWithContext, Analysis, AnalysisDomain, Forward, JoinSemiLattice, ResultsRefCursor,
-};
-use std::{fmt, iter, rc::Rc};
+use rustc_mir_dataflow::{Analysis, AnalysisDomain, Forward, JoinSemiLattice, ResultsRefCursor};
+use std::{iter, rc::Rc};
 
 use super::BODY_STACK;
 use crate::core::{
@@ -16,44 +14,11 @@ use crate::core::{
   control_dependencies::ControlDependencies,
   extensions::{is_extension_active, ContextMode, MutabilityMode, REACHED_LIBRARY},
   indexed::{IndexMatrix, IndexSetIteratorExt, IndexedDomain},
-  indexed_impls::{build_location_domain, LocationDomain, LocationSet, PlaceDomain, PlaceSet},
+  indexed_impls::{LocationDomain, LocationSet, PlaceDomain},
   utils::{self, PlaceCollector},
 };
 
-#[derive(PartialEq, Eq, Debug, Clone)]
-pub struct FlowDomain<'tcx> {
-  pub locations: IndexMatrix<Place<'tcx>, Location>,
-  pub places: IndexMatrix<Place<'tcx>, Place<'tcx>>,
-}
-
-impl FlowDomain<'tcx> {
-  pub fn new(place_domain: Rc<PlaceDomain<'tcx>>, location_domain: Rc<LocationDomain>) -> Self {
-    FlowDomain {
-      locations: IndexMatrix::new(place_domain.clone(), location_domain),
-      places: IndexMatrix::new(place_domain.clone(), place_domain),
-    }
-  }
-}
-
-impl JoinSemiLattice for FlowDomain<'_> {
-  fn join(&mut self, other: &Self) -> bool {
-    let a = self.locations.join(&other.locations);
-    let b = self.places.join(&other.places);
-    a || b
-  }
-}
-
-impl<C> DebugWithContext<C> for FlowDomain<'_> {
-  fn fmt_with(&self, ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    self.locations.fmt_with(ctxt, f)?;
-    self.places.fmt_with(ctxt, f)
-  }
-
-  fn fmt_diff_with(&self, old: &Self, ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    self.locations.fmt_diff_with(&old.locations, ctxt, f)?;
-    self.places.fmt_diff_with(&old.places, ctxt, f)
-  }
-}
+pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, Location>;
 
 struct TransferFunction<'a, 'b, 'tcx> {
   analysis: &'a FlowAnalysis<'b, 'tcx>,
@@ -86,42 +51,27 @@ impl TransferFunction<'_, '_, 'tcx> {
     if definitely_mutated && mutated_aliases.len() == 1 {
       let mutated_direct = mutated_aliases.iter().next().unwrap();
       for sub in all_aliases.subs.row(*mutated_direct) {
-        self.state.places.clear_row(sub);
-        self.state.locations.clear_row(sub);
+        self.state.clear_row(sub);
       }
     }
 
     let mut input_location_deps = LocationSet::new(location_domain.clone());
     input_location_deps.insert(location);
 
-    let mut input_place_deps = PlaceSet::new(place_domain.clone());
-
-    let add_deps =
-      |place: Place<'tcx>, location_deps: &mut LocationSet, place_deps: &mut PlaceSet<'tcx>| {
-        for dep_place in self.analysis.aliases.deps.row(place) {
-          if let Some(deps) = self.state.locations.row_set(dep_place) {
-            location_deps.union(&deps);
-          }
-
-          place_deps.insert(dep_place);
-          if let Some(deps) = self.state.places.row_set(dep_place) {
-            trace!(
-              "  Adding {:?} / dependency {:?} with deps {:?}",
-              place,
-              dep_place,
-              deps
-            );
-            place_deps.union(&deps);
-          }
+    let add_deps = |place: Place<'tcx>, location_deps: &mut LocationSet| {
+      for dep_place in self.analysis.aliases.deps.row(place) {
+        if let Some(deps) = self.state.row_set(dep_place) {
+          location_deps.union(&deps);
         }
-      };
+      }
+    };
 
     // Add deps of mutated to include provenance of mutated pointers
-    add_deps(mutated, &mut input_location_deps, &mut input_place_deps);
+    add_deps(mutated, &mut input_location_deps);
 
     // Add deps of all inputs
     for place in inputs.iter() {
-      add_deps(*place, &mut input_location_deps, &mut input_place_deps);
+      add_deps(*place, &mut input_location_deps);
     }
 
     // Add control dependencies
@@ -136,7 +86,7 @@ impl TransferFunction<'_, '_, 'tcx> {
       let terminator = body.basic_blocks()[block].terminator();
       if let TerminatorKind::SwitchInt { discr, .. } = &terminator.kind {
         if let Some(discr_place) = utils::operand_to_place(discr) {
-          add_deps(discr_place, &mut input_location_deps, &mut input_place_deps);
+          add_deps(discr_place, &mut input_location_deps);
         }
       }
     }
@@ -167,11 +117,7 @@ impl TransferFunction<'_, '_, 'tcx> {
     // Union dependencies into all conflicting places of the mutated place
     debug!("  Mutated conflicting places: {:?}", mutable_conflicts);
     for place in mutable_conflicts.iter() {
-      self
-        .state
-        .locations
-        .union_into_row(place, &input_location_deps);
-      self.state.places.union_into_row(place, &input_place_deps);
+      self.state.union_into_row(place, &input_location_deps);
     }
   }
 
@@ -349,22 +295,25 @@ impl TransferFunction<'_, '_, 'tcx> {
     for child in child_domain.as_vec().iter() {
       if let Some(parent) = translate_child_to_parent(*child, true) {
         let was_return = child.local == RETURN_PLACE;
-        let was_mutated = return_state.locations.row(child).next().is_some();
+        // > 1 because arguments will always have their synthetic location in their dep set
+        let was_mutated = return_state
+          .row_set(child)
+          .map(|set| set.len() > 1)
+          .unwrap_or(false);
         if !was_mutated && !was_return {
           continue;
         }
 
-        let child_deps = return_state.places.row(child).copied();
-        let parent_deps = child_deps
-          .filter_map(|p| translate_child_to_parent(p, false))
+        let child_deps = return_state.row_set(child).unwrap();
+        let parent_deps = return_state
+          .rows()
+          .filter(|(_, deps)| child_deps.is_superset(deps))
+          .filter_map(|(row, _)| translate_child_to_parent(*child_domain.value(row), false))
           .collect::<Vec<_>>();
 
         debug!(
           "child {:?} \n  / child_deps {:?}\n-->\nparent {:?}\n   / parent_deps {:?}",
-          child,
-          return_state.places.row_set(child),
-          parent,
-          parent_deps
+          child, child_deps, parent, parent_deps
         );
 
         self.apply_mutation(parent, &parent_deps, location, was_return, true);
@@ -465,7 +414,7 @@ impl FlowAnalysis<'a, 'tcx> {
     aliases: Aliases<'tcx>,
     control_dependencies: ControlDependencies,
   ) -> Self {
-    let location_domain = build_location_domain(body);
+    let location_domain = LocationDomain::new(body, &aliases.place_domain);
 
     FlowAnalysis {
       tcx,
@@ -495,7 +444,11 @@ impl AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
     FlowDomain::new(self.place_domain().clone(), self.location_domain().clone())
   }
 
-  fn initialize_start_block(&self, _body: &Body<'tcx>, _state: &mut Self::Domain) {}
+  fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
+    for arg in self.place_domain().all_args(body) {
+      state.insert(arg, self.location_domain().arg_to_location(arg));
+    }
+  }
 }
 
 impl Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {

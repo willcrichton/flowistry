@@ -5,7 +5,7 @@ use super::{
   utils::{self, PlaceRelation},
 };
 
-use log::{debug, trace};
+use log::{debug, info, trace};
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::{
   fx::{FxHashMap as HashMap, FxHashSet as HashSet},
@@ -440,7 +440,7 @@ impl Aliases<'tcx> {
       v.sort();
       v
     });
-    debug!("Place domain size: {}", all_places.len());
+    info!("Place domain size: {}", all_places.len());
 
     (
       Rc::new(PlaceDomain::new(all_places, normalized_places)),

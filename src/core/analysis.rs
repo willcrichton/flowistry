@@ -244,6 +244,7 @@ pub fn get_body_with_borrowck_facts(
   tcx: TyCtxt<'tcx>,
   def_id: LocalDefId,
 ) -> &'tcx BodyWithBorrowckFacts<'tcx> {
+  let _timer = super::utils::block_timer("get_body_with_borrowck_facts");
   let _ = tcx.mir_borrowck(def_id);
   MIR_BODIES.with(|state| {
     let state = state.borrow();
