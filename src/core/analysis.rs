@@ -216,6 +216,12 @@ thread_local! {
 }
 
 fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
+  let name = format!(
+    "get_body_with_borrowck_facts for {}",
+    tcx.def_path_debug_str(def_id.to_def_id())
+  );
+  let _timer = super::utils::block_timer(&name);
+
   let mut body_with_facts = rustc_borrowck::consumers::get_body_with_borrowck_facts(
     tcx,
     ty::WithOptConstParam::unknown(def_id),
@@ -244,7 +250,6 @@ pub fn get_body_with_borrowck_facts(
   tcx: TyCtxt<'tcx>,
   def_id: LocalDefId,
 ) -> &'tcx BodyWithBorrowckFacts<'tcx> {
-  let _timer = super::utils::block_timer("get_body_with_borrowck_facts");
   let _ = tcx.mir_borrowck(def_id);
   MIR_BODIES.with(|state| {
     let state = state.borrow();

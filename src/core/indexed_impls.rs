@@ -214,6 +214,10 @@ impl LocationDomain {
     })
   }
 
+  pub fn num_real_locations(&self) -> usize {
+    self.domain.size() - self.arg_to_location.len()
+  }
+
   pub fn arg_to_location(&self, arg: PlaceIndex) -> LocationIndex {
     *self.arg_to_location.get(&arg).unwrap()
   }
