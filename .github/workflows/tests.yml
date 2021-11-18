@@ -58,18 +58,42 @@ jobs:
         run: xvfb-run -a npm test
         working-directory: ide
 
-  # install_release:
-  #   name: Install extension with latest Flowistry release
-  #   runs-on: ${{ matrix.os }}
+  install_release:
+    name: Install from release
+    runs-on: ${{ matrix.os }}
 
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       os: [ubuntu-latest]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
 
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - run: npm ci
-  #       working-directory: ide
-  #     - run: xvfb-run -a npm run test:install
-  #       working-directory: ide
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm ci
+        working-directory: ide
+      - run: xvfb-run -a npm run test -- install
+        working-directory: ide
+
+  install_head:
+    name: Install from HEAD
+    needs: build
+    runs-on: ${{ matrix.os }}
+    env:
+      NODE_TLS_REJECT_UNAUTHORIZED: 0
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Retrieve Flowistry build
+        uses: actions/download-artifact@v2
+        with:
+          name: flowistry-build
+      - run: npm ci
+        working-directory: ide
+      - run: zip ${{ matrix.os }}.zip cargo-flowistry* flowistry-driver*
+      - run: xvfb-run -a npm run test -- install --zip=../${{ matrix.os }}.zip
+        working-directory: ide
