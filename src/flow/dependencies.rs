@@ -3,12 +3,12 @@ use rustc_middle::mir::*;
 use rustc_mir_dataflow::{Results, ResultsRefCursor, ResultsVisitor};
 
 use super::dataflow::{FlowAnalysis, FlowDomain};
-use crate::core::{
+use crate::{FlowResults, core::{
   config::Range,
   indexed::IndexedDomain,
   indexed_impls::{LocationSet, PlaceIndex, PlaceSet},
   utils,
-};
+}};
 
 #[derive(Clone, Copy, Debug)]
 pub enum Direction {
@@ -75,7 +75,7 @@ impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
     _block_data: &'mir BasicBlockData<'tcx>,
     block: BasicBlock,
   ) {
-    if block.as_usize() == 0 {
+    if block == START_BLOCK {
       let place_domain = self.analysis.place_domain();
       self.visit(state, None, place_domain.all_args(self.analysis.body));
     }
@@ -123,10 +123,11 @@ impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
 }
 
 pub fn compute_dependencies(
-  results: &Results<'tcx, FlowAnalysis<'mir, 'tcx>>,
+  results: &FlowResults<'_, 'tcx>,
   targets: Vec<(Place<'tcx>, Location)>,
   direction: Direction,
 ) -> Vec<(LocationSet, PlaceSet<'tcx>)> {
+  let _timer = utils::block_timer("compute_dependencies");
   let tcx = results.analysis.tcx;
   let body = results.analysis.body;
   let aliases = &results.analysis.aliases;
@@ -160,10 +161,8 @@ pub fn compute_dependencies(
   );
 
   let target_deps = {
-    let mut cursor = ResultsRefCursor::new(body, results);
     let get_deps = |(targets, location): &(PlaceSet<'tcx>, Location)| {
-      cursor.seek_after_primary_effect(*location);
-      let state = cursor.get();
+      let state = results.state_at(*location);
 
       let mut locations = new_location_set();
       for target in targets.indices() {
@@ -199,7 +198,7 @@ pub fn compute_dependencies(
 }
 
 pub fn compute_dependency_ranges(
-  results: &Results<'tcx, FlowAnalysis<'mir, 'tcx>>,
+  results: &FlowResults<'_, 'tcx>,
   targets: Vec<(Place<'tcx>, Location)>,
   direction: Direction,
   spanner: &utils::HirSpanner,

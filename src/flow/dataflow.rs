@@ -4,7 +4,9 @@ use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::{subst::GenericArgKind, ClosureKind, TyCtxt, TyKind},
 };
-use rustc_mir_dataflow::{Analysis, AnalysisDomain, Forward, JoinSemiLattice, ResultsRefCursor};
+use rustc_mir_dataflow::{
+  Analysis, AnalysisDomain, Forward, GenKillAnalysis, JoinSemiLattice, ResultsRefCursor,
+};
 use std::{iter, rc::Rc};
 
 use super::BODY_STACK;
@@ -231,10 +233,8 @@ impl TransferFunction<'_, '_, 'tcx> {
           _ => None,
         });
 
-      let mut cursor = ResultsRefCursor::new(body, flow);
       for loc in return_locs {
-        cursor.seek_after_primary_effect(loc);
-        return_state.join(cursor.get());
+        return_state.join(flow.state_at(loc));
       }
     };
 
@@ -413,9 +413,8 @@ impl FlowAnalysis<'a, 'tcx> {
     body: &'a Body<'tcx>,
     aliases: Aliases<'tcx>,
     control_dependencies: ControlDependencies,
+    location_domain: Rc<LocationDomain>,
   ) -> Self {
-    let location_domain = LocationDomain::new(body, &aliases.place_domain);
-
     FlowAnalysis {
       tcx,
       def_id,
