@@ -28,7 +28,7 @@ async function main() {
     const extensionDevelopmentPath = path.resolve(__dirname, '../../');
 
     // All test suites (either unit tests or integration tests) should be in subfolders
-    const unitTestsPath = path.resolve(__dirname, './unit/index');
+    const unitTestsPath = path.resolve(__dirname, './slice/index');
     const installTestsPath = path.resolve(__dirname, './install/index');
 
     // Run tests using the latest stable release of VSCode
