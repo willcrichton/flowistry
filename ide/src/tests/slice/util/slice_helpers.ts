@@ -4,7 +4,7 @@ import { exec_notify } from "../../../setup";
 import { SliceOutput } from "../../../types";
 import { to_vsc_range } from "../../../vsc_utils";
 import { TestSlice } from "../mock_data/slices";
-import { MOCK_PROJECT_DIRECTORY } from "./constants";
+import { MOCK_PROJECT_DIRECTORY } from "../../constants";
 
 export declare const TOOLCHAIN: {
     channel: string;

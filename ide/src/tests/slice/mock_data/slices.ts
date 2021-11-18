@@ -1,4 +1,4 @@
-import { MOCK_PROJECT_FILES } from "../util/constants";
+import { MOCK_PROJECT_FILES } from "../../constants";
 
 export type TestSlice = {
   test: string;

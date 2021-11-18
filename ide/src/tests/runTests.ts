@@ -2,7 +2,7 @@ import path from 'path';
 import { runTests } from 'vscode-test';
 import minimist from 'minimist';
 import { Mockttp } from 'mockttp';
-import { MOCK_PROJECT_DIRECTORY, MOCK_PROJECT_FILES } from './unit/util/constants';
+import { MOCK_PROJECT_DIRECTORY, MOCK_PROJECT_FILES } from './constants';
 import { createProxy, PROXY_PORT } from './install/proxy';
 
 async function main() {

@@ -5,7 +5,7 @@ import _ from "lodash";
 import slices from "./mock_data/slices";
 import { get_slice_selections, resolve_sequentially } from "./util/slice_helpers";
 
-suite("Extension Test Suite", async () => {
+suite("Slice Selection Tests", async () => {
   before(async function () {
     chai.use(deepEqualAnyOrder);
 
