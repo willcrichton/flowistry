@@ -9,13 +9,14 @@ const flowistryCommandsExist = async () => {
 };
 
 suite("Flowistry installation tests", () => {
+    const timeout = 50 * 1000;
+
     it("Installs Flowistry", async () => {
-        const timeout = 150 * 1000;
         const interval = 1 * 1000;
 
-        // Wait for Flowistry commands to exist, polling every second for 150 seconds
+        // Wait for Flowistry commands to exist, polling every second for 50 seconds
         await waitForExpect(async () => {
             expect(await flowistryCommandsExist()).to.be.true;
         }, timeout, interval);
-    }).timeout(150000);
+    }).timeout(timeout);
 });
