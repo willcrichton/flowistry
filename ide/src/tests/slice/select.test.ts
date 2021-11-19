@@ -5,12 +5,12 @@ import _ from "lodash";
 import { forward_slices, backward_slices } from "./mock_data/slices";
 import { get_slice_selections, resolve_sequentially } from "./util/slice_helpers";
 
-suite("Slice Selection Tests", async () => {
-  before(async function () {
+suite("Slice selection tests", async () => {
+  before(() => {
     chai.use(deepEqualAnyOrder);
   });
 
-  test("Forward select", async () => {
+  test("forward select", async () => {
     const forward_selections = await resolve_sequentially(forward_slices, get_slice_selections);
 
     forward_selections.forEach(async (selection) => {
@@ -18,7 +18,7 @@ suite("Slice Selection Tests", async () => {
     });
   });
 
-  test("Backward select", async () => {
+  test("backward select", async () => {
     const backward_selections = await resolve_sequentially(backward_slices, get_slice_selections);
 
     backward_selections.forEach(async (selection) => {

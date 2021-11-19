@@ -1,4 +1,4 @@
-import { suite, it } from "mocha";
+import { suite, test } from "mocha";
 import { expect } from "chai";
 import vscode from "vscode";
 import waitForExpect from "wait-for-expect";
@@ -11,7 +11,7 @@ const flowistryCommandsExist = async () => {
 suite("Flowistry installation tests", () => {
     const timeout = 50 * 1000;
 
-    it("Installs Flowistry", async () => {
+    test("installs Flowistry", async () => {
         const interval = 1 * 1000;
 
         // Wait for Flowistry commands to exist, polling every second for 50 seconds
