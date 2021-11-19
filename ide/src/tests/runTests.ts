@@ -20,7 +20,7 @@ async function main() {
         server = await createProxy(zip);
 
         // Use proxy server and ignore cert errors on VSCode launch
-        launchArgs.push(`--proxy-server=http://localhost:${PROXY_PORT}`, '--ignore-certificate-errors')
+        launchArgs.push(`--proxy-server=http://localhost:${PROXY_PORT}`, '--ignore-certificate-errors');
     }
 
     // The folder containing the Extension Manifest package.json
