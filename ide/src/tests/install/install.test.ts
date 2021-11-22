@@ -5,7 +5,7 @@ import waitForExpect from "wait-for-expect";
 
 const flowistryCommandsExist = async () => {
     const commands = await vscode.commands.getCommands();
-    return commands.filter((command) => command.includes('flowistry.')).length > 0;
+    return commands.find(command => command.startsWith('flowistry.'));
 };
 
 suite("Flowistry installation tests", () => {
@@ -16,7 +16,7 @@ suite("Flowistry installation tests", () => {
 
         // Wait for Flowistry commands to exist, polling every second for 50 seconds
         await waitForExpect(async () => {
-            expect(await flowistryCommandsExist()).to.be.true;
+            expect(await flowistryCommandsExist()).is.not.undefined;
         }, timeout, interval);
     }).timeout(timeout);
 });

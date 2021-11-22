@@ -25,7 +25,7 @@ let common = {
 };
 
 let extension = estrella.build({
-  entryPoints: ["src/extension.ts", "src/tests/slice/util/slice_helpers.ts"],
+  entryPoints: ["src/extension.ts"],
   platform: "node",
   ...common
 });
@@ -35,6 +35,13 @@ let page = estrella.build({
   ...common
 });
 
-Promise.all([extension, page])
+let test = estrella.build({
+  entryPoints: ["src/extension.ts", "src/tests/slice/util/slice_helpers.ts"],
+  platform: "node",
+  ...common,
+  outdir: "test",
+});
+
+Promise.all([extension, page, test])
   .then(() => console.log("Build complete."))
   .catch(() => process.exit(1));

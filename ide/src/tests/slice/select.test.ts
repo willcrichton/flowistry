@@ -2,27 +2,23 @@ import chai, { expect } from "chai";
 import deepEqualAnyOrder from 'deep-equal-in-any-order';
 import { suite, before, test } from "mocha";
 import _ from "lodash";
-import { forward_slices, backward_slices } from "./mock_data/slices";
+import { forward_slices, backward_slices, TestSlice } from "./mock_data/slices";
 import { get_slice_selections, resolve_sequentially } from "./util/slice_helpers";
+
+const slice_test = (slices: TestSlice[]) => async () => {
+  const selections = await resolve_sequentially(slices, get_slice_selections);
+
+  selections.forEach(async (selection) => {
+    expect(selection.expected_selections).to.be.deep.equalInAnyOrder(selection.actual_selections);
+  });
+}
 
 suite("Slice selection tests", async () => {
   before(() => {
     chai.use(deepEqualAnyOrder);
   });
 
-  test("forward select", async () => {
-    const forward_selections = await resolve_sequentially(forward_slices, get_slice_selections);
+  test("forward select", slice_test(forward_slices));
 
-    forward_selections.forEach(async (selection) => {
-      expect(selection.expected_selections).to.be.deep.equalInAnyOrder(selection.actual_selections);
-    });
-  });
-
-  test("backward select", async () => {
-    const backward_selections = await resolve_sequentially(backward_slices, get_slice_selections);
-
-    backward_selections.forEach(async (selection) => {
-      expect(selection.expected_selections).to.be.deep.equalInAnyOrder(selection.actual_selections);
-    });
-  });
+  test("backward select", slice_test(backward_slices));
 });
