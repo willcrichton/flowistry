@@ -1,5 +1,5 @@
 name: 'Create Flowistry build artifacts'
-description: 'Builds Flowistry with release flag'
+description: 'Builds Flowistry with release flag and zips build files'
 inputs:
   target:
     required: true
@@ -17,3 +17,6 @@ runs:
       with:
         command: build
         args: --release
+    - run: zip ${{ inputs.target }}.zip cargo-flowistry* flowistry-driver*
+      working-directory: target/release
+      shell: bash

@@ -14,7 +14,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
 
     steps:
       - uses: actions/checkout@v2
@@ -24,9 +26,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: flowistry-build
-          path: |
-            target/release/cargo-flowistry*
-            target/release/flowistry-driver*
+          path: target/release/${{ matrix.target }}.zip
 
   test-rust:
     runs-on: ${{ matrix.os }}
@@ -47,11 +47,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
 
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/actions/install-build
+        with:
+          target: ${{ matrix.target }}
       - run: npm ci
         working-directory: ide
       - name: Run vscode tests
@@ -84,7 +88,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
 
     steps:
       - uses: actions/checkout@v2
@@ -94,6 +100,5 @@ jobs:
           name: flowistry-build
       - run: npm ci
         working-directory: ide
-      - run: zip ${{ matrix.os }}.zip cargo-flowistry* flowistry-driver*
-      - run: xvfb-run -a npm run test -- install --zip=../${{ matrix.os }}.zip
+      - run: xvfb-run -a npm run test -- install --zip=../${{ matrix.target }}.zip
         working-directory: ide

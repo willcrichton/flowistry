@@ -1,5 +1,8 @@
 name: 'Install Flowistry build artifacts'
-description: 'Downloads Flowistry build to cargo bin, adjusts permissions, and confirms install'
+description: 'Unzips Flowistry build to cargo bin and confirms install'
+inputs:
+  target:
+    required: true
 runs:
   using: "composite"
   steps: 
@@ -7,8 +10,7 @@ runs:
       uses: actions/download-artifact@v2
       with:
         name: flowistry-build
-        path: ~/.cargo/bin
-    - run: chmod +x ~/.cargo/bin/*flowistry*
+    - run: unzip ${{ inputs.target }}.zip -d ~/.cargo/bin
       shell: bash
     - run: cargo flowistry -V
       shell: bash
