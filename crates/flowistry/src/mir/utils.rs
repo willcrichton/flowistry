@@ -1,3 +1,4 @@
+use crate::extensions::{is_extension_active, MutabilityMode};
 use anyhow::{bail, Result};
 use log::{trace, warn};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
@@ -21,8 +22,6 @@ use std::{
   process::Command,
 };
 use tempfile::NamedTempFile;
-
-use crate::core::extensions::{is_extension_active, MutabilityMode};
 
 pub fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
   match operand {

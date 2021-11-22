@@ -1,18 +1,15 @@
-use rustc_data_structures::{
-  fx::FxHashMap as HashMap, graph::WithSuccessors, work_queue::WorkQueue,
+use crate::indexed::{
+  impls::{LocationDomain, LocationIndex},
+  IndexedDomain,
 };
+use rustc_data_structures::{graph::WithSuccessors, work_queue::WorkQueue};
 use rustc_index::vec::IndexVec;
 use rustc_middle::{
-  mir::{traversal, visit::Visitor, BasicBlock, Body, Location, Statement, Terminator},
+  mir::{traversal, Body, Location},
   ty::TyCtxt,
 };
 use rustc_mir_dataflow::*;
 use std::rc::Rc;
-
-use crate::core::{
-  indexed::IndexedDomain,
-  indexed_impls::{LocationDomain, LocationIndex},
-};
 
 pub struct AnalysisResults<'tcx, A: Analysis<'tcx>> {
   pub analysis: A,
@@ -57,7 +54,7 @@ impl<'tcx, A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
 }
 
 pub fn iterate_to_fixpoint<'tcx, A: Analysis<'tcx>>(
-  tcx: TyCtxt<'tcx>,
+  _tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,
   location_domain: Rc<LocationDomain>,
   analysis: A,

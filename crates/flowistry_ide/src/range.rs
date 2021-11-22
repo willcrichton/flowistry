@@ -26,6 +26,15 @@ impl Range {
   }
 }
 
+pub fn ranges_from_spans(
+  spans: impl Iterator<Item = Span>,
+  source_map: &SourceMap,
+) -> Result<Vec<Range>> {
+  spans
+    .map(|span| Range::from_span(span, source_map))
+    .collect()
+}
+
 impl Range {
   pub fn from_span(span: Span, source_map: &SourceMap) -> Result<Self> {
     let file = source_map.lookup_source_file(span.lo());

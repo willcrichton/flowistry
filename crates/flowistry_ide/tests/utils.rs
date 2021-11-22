@@ -10,7 +10,8 @@ use std::{
 };
 use tempfile::NamedTempFile;
 
-use flowistry::{Direction, FlowistryResult, FunctionIdentifier, Range};
+use flowistry::infoflow::Direction;
+use flowistry_ide::{analysis::FlowistryResult, effects::FunctionIdentifier, range::Range};
 
 fn parse_ranges(
   prog: &str,
@@ -164,7 +165,7 @@ pub fn slice(prog: &str, direction: Direction) {
 
     let args = args.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
 
-    let output = flowistry::slice(direction, range, &args).unwrap();
+    let output = flowistry_ide::slicing::slice(direction, range, &args).unwrap();
     let actual = output.ranges().into_iter().cloned().collect::<HashSet<_>>();
 
     compare_ranges(expected, actual, &prog_clean);
@@ -190,7 +191,7 @@ pub fn effects(prog: &str, qpath: &str) {
   flow(
     prog,
     FunctionIdentifier::Qpath(qpath.to_owned()),
-    flowistry::effects,
+    flowistry_ide::effects::effects,
   );
 }
 

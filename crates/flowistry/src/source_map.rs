@@ -1,4 +1,5 @@
-use crate::core::utils;
+use crate::mir::utils;
+
 use log::trace;
 use rustc_data_structures::graph::{iterate::reverse_post_order, WithPredecessors};
 use rustc_hir::{
@@ -6,9 +7,9 @@ use rustc_hir::{
   BodyId, Expr, Stmt,
 };
 use rustc_index::bit_set::HybridBitSet;
-use rustc_middle::{hir::map::Map, mir::*, ty::TyCtxt};
 
-use rustc_span::{source_map::SourceMap, Span};
+use rustc_middle::{hir::map::Map, mir::*, ty::TyCtxt};
+use rustc_span::{source_map::SourceMap, Pos, Span};
 use smallvec::{smallvec, SmallVec};
 
 pub struct HirSpanner {
@@ -113,7 +114,7 @@ pub fn location_to_spans(
   let format_spans = |spans: &[Span]| -> String {
     spans
       .iter()
-      .map(|span| utils::span_to_string(*span, source_map))
+      .map(|span| span_to_string(*span, source_map))
       .collect::<Vec<_>>()
       .join(" -- ")
   };
@@ -134,4 +135,18 @@ pub fn location_to_spans(
   );
 
   hir_spans
+}
+
+pub fn span_to_string(span: Span, source_map: &SourceMap) -> String {
+  let lo = source_map.lookup_char_pos(span.lo());
+  let hi = source_map.lookup_char_pos(span.hi());
+  let snippet = source_map.span_to_snippet(span).unwrap();
+  format!(
+    "{} ({}:{}-{}:{})",
+    snippet,
+    lo.line,
+    lo.col.to_usize() + 1,
+    hi.line,
+    hi.col.to_usize() + 1
+  )
 }

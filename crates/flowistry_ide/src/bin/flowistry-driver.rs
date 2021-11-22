@@ -9,7 +9,11 @@ extern crate rustc_serialize;
 
 use flowistry::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
-  Direction, FlowistryError, FlowistryResult,
+  infoflow::Direction,
+};
+use flowistry_ide::{
+  analysis::{FlowistryError, FlowistryResult},
+  range::Range,
 };
 use fluid_let::fluid_set;
 use log::debug;
@@ -91,7 +95,7 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
 
   match arg::<String>("COMMAND").as_str() {
     cmd @ ("backward_slice" | "forward_slice") => {
-      let range = flowistry::Range {
+      let range = Range {
         start: arg::<usize>("START"),
         end: arg::<usize>("END"),
         filename: arg::<String>("FILE"),
@@ -128,16 +132,17 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
       };
       fluid_set!(EVAL_MODE, eval_mode);
 
-      try_analysis(move || flowistry::slice(direction, range, args))
+      try_analysis(move || flowistry_ide::slicing::slice(direction, range, args))
     }
     "effects" => {
-      let pos = arg::<usize>("POS");
-      let id = flowistry::FunctionIdentifier::Range(flowistry::Range {
-        start: pos,
-        end: pos,
-        filename: arg::<String>("FILE"),
-      });
-      try_analysis(move || flowistry::effects(id, args))
+      let _pos = arg::<usize>("POS");
+      todo!()
+      // let id = flowistry::FunctionIdentifier::Range(Range {
+      //   start: pos,
+      //   end: pos,
+      //   filename: arg::<String>("FILE"),
+      // });
+      // try_analysis(move || flowistry_ide::effects::effects(id, args))
     }
     _ => unimplemented!(),
   }
