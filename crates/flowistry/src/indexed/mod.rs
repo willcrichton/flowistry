@@ -3,14 +3,15 @@ use rustc_index::{
   bit_set::BitSet,
   vec::{Idx, IndexVec},
 };
-
 use rustc_mir_dataflow::{fmt::DebugWithContext, JoinSemiLattice};
 use std::{
-  fmt::{self},
+  fmt,
   hash::Hash,
   ops::{Deref, DerefMut},
   rc::Rc,
 };
+
+pub mod impls;
 
 pub trait IndexedValue: Eq + Hash + Clone + Ord + fmt::Debug {
   type Index: Idx + ToIndex<Self>;
@@ -219,7 +220,7 @@ impl<T: IndexedValue, S: ToSetMut<T>> IndexSet<T, S> {
 
 impl<T: IndexedValue, S: ToSet<T>> PartialEq for IndexSet<T, S> {
   fn eq(&self, other: &Self) -> bool {
-    &*self.set == &*other.set
+    *self.set == *other.set
   }
 }
 

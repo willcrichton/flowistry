@@ -1,18 +1,18 @@
 use crate::{
-  core::{
-    analysis::{self, FlowistryAnalysis, FlowistryOutput, FlowistryResult},
-    config::Range,
-    utils,
-  },
-  flow::{self, Direction},
+  analysis::{FlowistryAnalysis, FlowistryOutput, FlowistryResult},
+  range::{ranges_from_spans, Range},
 };
 use anyhow::Result;
+use flowistry::{
+  infoflow::{self, Direction},
+  mir::{borrowck_facts::get_body_with_borrowck_facts, utils},
+  source_map::HirSpanner,
+};
 use log::debug;
 use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_hir::BodyId;
-use rustc_middle::ty::TyCtxt;
-
 use rustc_macros::Encodable;
+use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
 
 struct ForwardSliceAnalysis {
@@ -58,25 +58,22 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
 
   fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
     let def_id = tcx.hir().body_owner_def_id(body_id);
-    let body_with_facts = analysis::get_body_with_borrowck_facts(tcx, def_id);
+    let body_with_facts = get_body_with_borrowck_facts(tcx, def_id);
     let body = &body_with_facts.body;
 
-    let results = &flow::compute_flow(tcx, body_id, body_with_facts);
+    let results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
 
     let source_map = tcx.sess.source_map();
     let (sliced_places, sliced_spans) =
       utils::span_to_places(body, self.range.to_span(source_map)?);
     debug!("sliced_places {:?}", sliced_places);
 
-    let spanner = utils::HirSpanner::new(tcx, body_id);
-    let deps = flow::compute_dependency_ranges(results, sliced_places, self.direction, &spanner);
+    let spanner = HirSpanner::new(tcx, body_id);
+    let deps = infoflow::compute_dependency_spans(results, sliced_places, self.direction, &spanner);
 
     let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
-    let sliced_spans = sliced_spans
-      .into_iter()
-      .map(|span| Range::from_span(span, source_map))
-      .collect::<Result<Vec<_>>>()?;
-    let ranges = deps.into_iter().flatten().collect::<Vec<_>>();
+    let sliced_spans = ranges_from_spans(sliced_spans.into_iter(), source_map)?;
+    let ranges = ranges_from_spans(deps.into_iter().flatten(), source_map)?;
     debug!("found {} ranges in slice", ranges.len());
 
     Ok(SliceOutput {

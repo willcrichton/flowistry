@@ -66,7 +66,7 @@ Alternatively, you can install it from source:
 # Install flowistry binaries
 git clone https://github.com/willcrichton/flowistry
 cd flowistry
-cargo install --path .
+cargo install --path crates/flowistry_ide
 
 # Install vscode extension
 cd ide

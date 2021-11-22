@@ -1,3 +1,5 @@
+use super::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, ToIndex};
+use crate::{mir::utils, to_index_impl};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_index::vec::IndexVec;
 use rustc_infer::infer::TyCtxtInferExt;
@@ -9,12 +11,6 @@ use rustc_middle::{
 use rustc_span::def_id::DefId;
 use rustc_trait_selection::infer::InferCtxtExt;
 use std::{cell::RefCell, rc::Rc};
-
-use super::{
-  indexed::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, ToIndex},
-  utils,
-};
-use crate::to_index_impl;
 
 rustc_index::newtype_index! {
   pub struct PlaceIndex {

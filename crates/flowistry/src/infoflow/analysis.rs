@@ -1,24 +1,26 @@
+use super::{FlowResults, BODY_STACK};
+use crate::{
+  extensions::{is_extension_active, ContextMode, MutabilityMode, REACHED_LIBRARY},
+  indexed::{
+    impls::{LocationDomain, LocationSet, PlaceDomain},
+    IndexMatrix, IndexSetIteratorExt, IndexedDomain,
+  },
+  mir::{
+    aliases::Aliases,
+    borrowck_facts::get_body_with_borrowck_facts,
+    control_dependencies::ControlDependencies,
+    utils::{self, PlaceCollector},
+  },
+};
 use log::{debug, info};
-use rustc_hir::def_id::DefId;
+use rustc_data_structures::fx::FxHashMap as HashMap;
+use rustc_hir::{def_id::DefId, BodyId};
 use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::{subst::GenericArgKind, ClosureKind, TyCtxt, TyKind},
 };
-use rustc_mir_dataflow::{
-  Analysis, AnalysisDomain, Forward, GenKillAnalysis, JoinSemiLattice, ResultsRefCursor,
-};
-use std::{iter, rc::Rc};
-
-use super::BODY_STACK;
-use crate::core::{
-  aliases::Aliases,
-  analysis,
-  control_dependencies::ControlDependencies,
-  extensions::{is_extension_active, ContextMode, MutabilityMode, REACHED_LIBRARY},
-  indexed::{IndexMatrix, IndexSetIteratorExt, IndexedDomain},
-  indexed_impls::{LocationDomain, LocationSet, PlaceDomain},
-  utils::{self, PlaceCollector},
-};
+use rustc_mir_dataflow::{Analysis, AnalysisDomain, Forward, JoinSemiLattice};
+use std::{cell::RefCell, iter, rc::Rc};
 
 pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, Location>;
 
@@ -216,8 +218,11 @@ impl TransferFunction<'_, '_, 'tcx> {
     }
 
     info!("Recursing into {}", tcx.def_path_debug_str(*def_id));
-    let body_with_facts = analysis::get_body_with_borrowck_facts(tcx, def_id.expect_local());
-    let flow = &super::compute_flow(tcx, body_id, body_with_facts);
+    let body_with_facts = get_body_with_borrowck_facts(tcx, def_id.expect_local());
+    let mut recurse_cache = self.analysis.recurse_cache.borrow_mut();
+    let flow = recurse_cache
+      .entry(body_id)
+      .or_insert_with(|| super::compute_flow(tcx, body_id, body_with_facts));
     let body = &body_with_facts.body;
 
     let mut return_state = FlowDomain::new(
@@ -404,6 +409,7 @@ pub struct FlowAnalysis<'a, 'tcx> {
   pub control_dependencies: ControlDependencies,
   pub aliases: Aliases<'tcx>,
   pub location_domain: Rc<LocationDomain>,
+  recurse_cache: RefCell<HashMap<BodyId, FlowResults<'a, 'tcx>>>,
 }
 
 impl FlowAnalysis<'a, 'tcx> {
@@ -415,6 +421,7 @@ impl FlowAnalysis<'a, 'tcx> {
     control_dependencies: ControlDependencies,
     location_domain: Rc<LocationDomain>,
   ) -> Self {
+    let recurse_cache = RefCell::new(HashMap::default());
     FlowAnalysis {
       tcx,
       def_id,
@@ -422,6 +429,7 @@ impl FlowAnalysis<'a, 'tcx> {
       aliases,
       location_domain,
       control_dependencies,
+      recurse_cache,
     }
   }
 

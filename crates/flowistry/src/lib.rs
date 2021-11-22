@@ -32,18 +32,20 @@ extern crate rustc_target;
 extern crate rustc_trait_selection;
 extern crate smallvec;
 
-mod core;
-mod effects;
-mod flow;
-mod slicing;
+pub mod extensions;
+pub mod indexed;
+pub mod infoflow;
+pub mod mir;
+pub mod source_map;
+pub mod timer;
 
-pub use crate::core::{
-  analysis::{get_body_with_borrowck_facts, override_queries, FlowistryError, FlowistryResult},
-  config::{self, Range},
-  extensions, indexed, utils,
-};
-pub use effects::{effects, FunctionIdentifier};
-pub use flow::{
-  compute_dependencies, compute_flow, Direction, FlowAnalysis, FlowDomain, FlowResults,
-};
-pub use slicing::{slice, SliceOutput};
+// pub use crate::core::{
+//   analysis::{get_body_with_borrowck_facts, override_queries, FlowistryError, FlowistryResult},
+//   config::{self, Range},
+//   extensions, indexed, utils,
+// };
+// pub use effects::{effects, FunctionIdentifier};
+// pub use flow::{
+//   compute_dependencies, compute_flow, Direction, FlowAnalysis, FlowDomain, FlowResults,
+// };
+// pub use slicing::{slice, SliceOutput};

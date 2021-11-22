@@ -1,14 +1,20 @@
+use super::{
+  analysis::{FlowAnalysis, FlowDomain},
+  FlowResults,
+};
+use crate::{
+  block_timer,
+  indexed::{
+    impls::{LocationSet, PlaceIndex, PlaceSet},
+    IndexedDomain,
+  },
+  mir::utils,
+  source_map::{location_to_spans, HirSpanner},
+};
 use log::{debug, trace};
 use rustc_middle::mir::*;
-use rustc_mir_dataflow::{Results, ResultsRefCursor, ResultsVisitor};
-
-use super::dataflow::{FlowAnalysis, FlowDomain};
-use crate::{FlowResults, core::{
-  config::Range,
-  indexed::IndexedDomain,
-  indexed_impls::{LocationSet, PlaceIndex, PlaceSet},
-  utils,
-}};
+use rustc_mir_dataflow::ResultsVisitor;
+use rustc_span::Span;
 
 #[derive(Clone, Copy, Debug)]
 pub enum Direction {
@@ -127,7 +133,7 @@ pub fn compute_dependencies(
   targets: Vec<(Place<'tcx>, Location)>,
   direction: Direction,
 ) -> Vec<(LocationSet, PlaceSet<'tcx>)> {
-  let _timer = utils::block_timer("compute_dependencies");
+  block_timer!("compute_dependencies");
   let tcx = results.analysis.tcx;
   let body = results.analysis.body;
   let aliases = &results.analysis.aliases;
@@ -197,12 +203,12 @@ pub fn compute_dependencies(
   visitor.outputs
 }
 
-pub fn compute_dependency_ranges(
+pub fn compute_dependency_spans(
   results: &FlowResults<'_, 'tcx>,
   targets: Vec<(Place<'tcx>, Location)>,
   direction: Direction,
-  spanner: &utils::HirSpanner,
-) -> Vec<Vec<Range>> {
+  spanner: &HirSpanner,
+) -> Vec<Vec<Span>> {
   let tcx = results.analysis.tcx;
   let body = results.analysis.body;
 
@@ -214,7 +220,7 @@ pub fn compute_dependency_ranges(
     .map(|(locations, places)| {
       let location_spans = locations
         .iter()
-        .map(|location| utils::location_to_spans(*location, body, spanner, source_map))
+        .map(|location| location_to_spans(*location, body, spanner, source_map))
         .flatten();
 
       let place_spans = places
@@ -227,10 +233,7 @@ pub fn compute_dependency_ranges(
             .source_callsite()
         });
 
-      location_spans
-        .chain(place_spans)
-        .filter_map(|span| Range::from_span(span, source_map).ok())
-        .collect::<Vec<_>>()
+      location_spans.chain(place_spans).collect::<Vec<_>>()
     })
     .collect::<Vec<_>>()
 }

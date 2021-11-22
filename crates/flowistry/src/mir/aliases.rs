@@ -1,10 +1,12 @@
-use super::{
+use crate::{
+  block_timer,
   extensions::{is_extension_active, PointerMode},
-  indexed::{IndexMatrix, IndexSetIteratorExt, IndexedDomain, ToIndex},
-  indexed_impls::{NormalizedPlaces, PlaceDomain, PlaceIndex, PlaceSet},
-  utils::{self, PlaceRelation},
+  indexed::{
+    impls::{NormalizedPlaces, PlaceDomain, PlaceIndex, PlaceSet},
+    IndexMatrix, IndexSetIteratorExt, IndexedDomain, ToIndex,
+  },
+  mir::utils::{self, PlaceRelation},
 };
-
 use log::{debug, info, trace};
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::{
@@ -20,7 +22,6 @@ use rustc_middle::{
   },
   ty::{RegionKind, RegionVid, TyCtxt, TyKind, TyS},
 };
-
 use std::{cell::RefCell, rc::Rc};
 
 #[derive(Default)]
@@ -503,7 +504,7 @@ impl Aliases<'tcx> {
     def_id: DefId,
     body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
   ) -> Self {
-    let _timer = utils::block_timer("aliases");
+    block_timer!("aliases");
     let body = &body_with_facts.body;
 
     // Get a mapping of regions -> references with that region,

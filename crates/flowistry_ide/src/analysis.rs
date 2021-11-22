@@ -1,32 +1,21 @@
 use anyhow::anyhow;
+use flowistry::{
+  block_timer,
+  extensions::{EvalMode, EVAL_MODE},
+  mir::borrowck_facts,
+  timer::elapsed,
+};
 use fluid_let::fluid_set;
 use log::{debug, info};
-use rustc_borrowck::consumers::BodyWithBorrowckFacts;
-use rustc_data_structures::fx::FxHashMap as HashMap;
+
 use rustc_hir::{
-  def_id::LocalDefId,
   intravisit::{self, NestedVisitorMap, Visitor},
   itemlikevisit::ItemLikeVisitor,
   BodyId, ForeignItem, ImplItem, Item, TraitItem,
 };
-use rustc_middle::{
-  hir::map::Map,
-  ty::{
-    self,
-    query::{query_values::mir_borrowck, Providers},
-    TyCtxt,
-  },
-};
-use rustc_mir_transform::MirPass;
+use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::Span;
-use std::{cell::RefCell, panic, pin::Pin, time::Instant};
-
-use crate::core::{
-  extensions::{EvalMode, EVAL_MODE},
-  utils::{elapsed, SimplifyMir},
-};
-
-use super::utils::block_timer;
+use std::{panic, time::Instant};
 
 pub trait FlowistryOutput: Send + Sync + Default {
   fn merge(&mut self, other: Self);
@@ -96,8 +85,7 @@ where
     let analysis = &mut self.analysis;
 
     let fn_name = tcx.def_path_debug_str(tcx.hir().body_owner_def_id(body_id).to_def_id());
-    let timer_name = format!("Flowistry ({})", fn_name);
-    let _timer = block_timer(&timer_name);
+    block_timer!(&format!("Flowistry ({})", fn_name));
 
     let output = panic::catch_unwind(panic::AssertUnwindSafe(move || {
       analysis.analyze_function(tcx, body_id)
@@ -165,7 +153,7 @@ struct Callbacks<A: FlowistryAnalysis> {
 
 impl<A: FlowistryAnalysis> rustc_driver::Callbacks for Callbacks<A> {
   fn config(&mut self, config: &mut rustc_interface::Config) {
-    config.override_queries = Some(override_queries);
+    config.override_queries = Some(borrowck_facts::override_queries);
   }
 
   // TODO: does this need to be after_analysis? or can we do after_parsing
@@ -197,67 +185,4 @@ impl<A: FlowistryAnalysis> rustc_driver::Callbacks for Callbacks<A> {
 
     rustc_driver::Compilation::Stop
   }
-}
-
-// For why we need to do override mir_borrowck, see:
-// https://github.com/rust-lang/rust/blob/485ced56b8753ec86936903f2a8c95e9be8996a1/src/test/run-make-fulldeps/obtain-borrowck/driver.rs
-pub fn override_queries(
-  _session: &rustc_session::Session,
-  local: &mut Providers,
-  external: &mut Providers,
-) {
-  local.mir_borrowck = mir_borrowck;
-  external.mir_borrowck = mir_borrowck;
-}
-
-thread_local! {
-  static MIR_BODIES: RefCell<HashMap<LocalDefId, Pin<Box<BodyWithBorrowckFacts<'static>>>>> =
-    RefCell::new(HashMap::default());
-}
-
-fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
-  let name = format!(
-    "get_body_with_borrowck_facts for {}",
-    tcx.def_path_debug_str(def_id.to_def_id())
-  );
-  let _timer = super::utils::block_timer(&name);
-
-  let mut body_with_facts = rustc_borrowck::consumers::get_body_with_borrowck_facts(
-    tcx,
-    ty::WithOptConstParam::unknown(def_id),
-  );
-
-  let body = &mut body_with_facts.body;
-  SimplifyMir.run_pass(tcx, body);
-
-  // SAFETY: The reader casts the 'static lifetime to 'tcx before using it.
-  let body_with_facts: BodyWithBorrowckFacts<'static> =
-    unsafe { std::mem::transmute(body_with_facts) };
-  MIR_BODIES.with(|state| {
-    let mut map = state.borrow_mut();
-    assert!(map
-      .insert(def_id, Pin::new(Box::new(body_with_facts)))
-      .is_none());
-  });
-
-  let mut providers = Providers::default();
-  rustc_borrowck::provide(&mut providers);
-  let original_mir_borrowck = providers.mir_borrowck;
-  original_mir_borrowck(tcx, def_id)
-}
-
-pub fn get_body_with_borrowck_facts(
-  tcx: TyCtxt<'tcx>,
-  def_id: LocalDefId,
-) -> &'tcx BodyWithBorrowckFacts<'tcx> {
-  let _ = tcx.mir_borrowck(def_id);
-  MIR_BODIES.with(|state| {
-    let state = state.borrow();
-    let body = &*state.get(&def_id).unwrap();
-    unsafe {
-      std::mem::transmute::<&BodyWithBorrowckFacts<'static>, &'tcx BodyWithBorrowckFacts<'tcx>>(
-        body,
-      )
-    }
-  })
 }

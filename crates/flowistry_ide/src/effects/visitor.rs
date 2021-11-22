@@ -1,10 +1,10 @@
-use crate::{
-  core::{
-    indexed::{IndexSetIteratorExt, IndexedDomain},
-    indexed_impls::{PlaceIndex, PlaceSet},
-    utils,
+use flowistry::{
+  indexed::{
+    impls::{PlaceIndex, PlaceSet},
+    IndexSetIteratorExt, IndexedDomain,
   },
-  flow,
+  infoflow,
+  mir::utils,
 };
 use log::debug;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
@@ -18,13 +18,13 @@ pub enum EffectKind {
 }
 
 pub struct FindEffects<'a, 'mir, 'tcx> {
-  analysis: &'a flow::FlowAnalysis<'mir, 'tcx>,
+  analysis: &'a infoflow::FlowAnalysis<'mir, 'tcx>,
   mut_args: PlaceSet<'tcx>,
   pub effects: HashMap<EffectKind, HashSet<(Place<'tcx>, Location)>>,
 }
 
 impl FindEffects<'a, 'mir, 'tcx> {
-  pub fn new(analysis: &'a flow::FlowAnalysis<'mir, 'tcx>) -> Self {
+  pub fn new(analysis: &'a infoflow::FlowAnalysis<'mir, 'tcx>) -> Self {
     let tcx = analysis.tcx;
     let body = analysis.body;
     let domain = analysis.place_domain();
@@ -87,7 +87,7 @@ impl FindEffects<'a, 'mir, 'tcx> {
 }
 
 impl ResultsVisitor<'mir, 'tcx> for FindEffects<'_, 'mir, 'tcx> {
-  type FlowState = flow::FlowDomain<'tcx>;
+  type FlowState = infoflow::FlowDomain<'tcx>;
 
   fn visit_statement_after_primary_effect(
     &mut self,

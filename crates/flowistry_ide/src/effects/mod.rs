@@ -1,26 +1,27 @@
+use self::visitor::EffectKind;
 use crate::{
-  core::{
-    analysis::{self, FlowistryAnalysis, FlowistryOutput, FlowistryResult},
-    config::Range,
-    indexed::IndexedDomain,
-    utils,
-  },
-  flow::{self, Direction},
+  analysis::{FlowistryAnalysis, FlowistryOutput, FlowistryResult},
+  range::{ranges_from_spans, Range},
 };
 use anyhow::Result;
+use flowistry::{
+  indexed::IndexedDomain,
+  infoflow::{self, Direction},
+  mir::{borrowck_facts::get_body_with_borrowck_facts, utils},
+  source_map::{self, HirSpanner},
+};
 use intervaltree::IntervalTree;
 use log::debug;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::BodyId;
+use rustc_macros::Encodable;
 use rustc_middle::{
   mir::ProjectionElem,
   ty::{TyCtxt, TyKind},
 };
-
-use rustc_macros::Encodable;
 use rustc_span::Span;
-use visitor::EffectKind;
 
+mod hir;
 mod visitor;
 
 #[derive(Debug, Encodable)]
@@ -61,7 +62,7 @@ pub enum FunctionIdentifier {
 impl FunctionIdentifier {
   pub fn to_span(&self, tcx: TyCtxt) -> Result<Span> {
     match self {
-      FunctionIdentifier::Qpath(qpath) => utils::qpath_to_span(tcx, qpath.clone()),
+      FunctionIdentifier::Qpath(qpath) => hir::qpath_to_span(tcx, qpath.clone()),
       FunctionIdentifier::Range(range) => range.to_span(tcx.sess.source_map()),
     }
   }
@@ -76,17 +77,17 @@ impl FlowistryAnalysis for EffectsHarness {
 
   fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
     let def_id = tcx.hir().body_owner_def_id(body_id);
-    let body_with_facts = analysis::get_body_with_borrowck_facts(tcx, def_id);
+    let body_with_facts = get_body_with_borrowck_facts(tcx, def_id);
     let body = &body_with_facts.body;
     debug!("{}", utils::mir_to_string(tcx, body)?);
 
-    let flow_results = &flow::compute_flow(tcx, body_id, body_with_facts);
+    let flow_results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
 
     let mut find_effects = visitor::FindEffects::new(&flow_results.analysis);
     flow_results.visit_reachable_with(body, &mut find_effects);
     debug!("effects: {:?}", find_effects.effects);
 
-    let spanner = utils::HirSpanner::new(tcx, body_id);
+    let spanner = HirSpanner::new(tcx, body_id);
 
     let (effects, targets): (Vec<_>, Vec<_>) = find_effects
       .effects
@@ -99,15 +100,16 @@ impl FlowistryAnalysis for EffectsHarness {
       .flatten()
       .unzip();
 
-    let deps =
-      flow::compute_dependency_ranges(flow_results, targets, Direction::Backward, &spanner);
+    let dep_spans =
+      infoflow::compute_dependency_spans(flow_results, targets, Direction::Backward, &spanner);
 
     let source_map = tcx.sess.source_map();
     let mut ranged_effects = effects
       .into_iter()
-      .zip(deps)
+      .zip(dep_spans)
       .filter_map(|((kind, loc), slice)| {
-        let spans = utils::location_to_spans(loc, body, &spanner, source_map);
+        let slice = ranges_from_spans(slice.into_iter(), source_map).unwrap();
+        let spans = source_map::location_to_spans(loc, body, &spanner, source_map);
         let range = spans
           .into_iter()
           .min_by_key(|span| span.hi() - span.lo())

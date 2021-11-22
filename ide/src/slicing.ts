@@ -1,20 +1,14 @@
 import * as vscode from "vscode";
 import { SliceOutput, Range } from "./types";
-import {
-  log,
-  show_error,
-  CallFlowistry,
-  to_vsc_range,
-  from_vsc_range,
-} from "./vsc_utils";
+import { log, show_error, CallFlowistry, to_vsc_range } from "./vsc_utils";
 import _ from "lodash";
 
 export let highlight_type = vscode.window.createTextEditorDecorationType({
-  backgroundColor: new vscode.ThemeColor("editor.symbolHighlightBackground")
+  backgroundColor: new vscode.ThemeColor("editor.symbolHighlightBackground"),
 });
 
 export let hide_type = vscode.window.createTextEditorDecorationType({
-  opacity: "0.4"
+  opacity: "0.4",
 });
 
 let style = {
@@ -102,7 +96,7 @@ export async function slice(
   call_flowistry: CallFlowistry,
   direction: "backward" | "forward",
   type: "highlight" | "select",
-  flags: string = ''
+  flags: string = ""
 ) {
   let active_editor = vscode.window.activeTextEditor;
   if (!active_editor) {
