@@ -8,83 +8,12 @@ on:
       - "v*"
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./.github/actions/create-build
-        with:
-          target: ${{ matrix.target }}
-      - uses: actions/upload-artifact@v2
-        with:
-          name: flowistry-build
-          path: target/release/${{ matrix.target }}.zip
-
-  test-rust:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-
-    steps:
-      - uses: actions/checkout@v2
-      - run: cargo test
-
-  test-vscode:
-    needs: build
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./.github/actions/install-build
-        with:
-          target: ${{ matrix.target }}
-      - run: npm ci
-        working-directory: ide
-      - name: Run vscode tests
-        run: xvfb-run -a npm test
-        working-directory: ide
-
-  install_release:
-    name: Install from release
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-
-    steps:
-      - uses: actions/checkout@v2
-      - run: npm ci
-        working-directory: ide
-      - run: xvfb-run -a npm run test -- install
-        working-directory: ide
-
-  install_head:
-    name: Install from HEAD
-    needs: build
+  test:
     runs-on: ${{ matrix.os }}
     env:
+      # The proxy server for install tests uses a self-signed certificate
+      # This allows requests to the proxy by disabling certificate validation
       NODE_TLS_REJECT_UNAUTHORIZED: 0
-
     strategy:
       fail-fast: false
       matrix:
@@ -92,13 +21,19 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
 
-    steps:
+    steps: 
       - uses: actions/checkout@v2
-      - name: Retrieve Flowistry build
-        uses: actions/download-artifact@v2
+      - uses: actions-rs/cargo@v1
         with:
-          name: flowistry-build
+          command: build
+      - run: zip ${{ matrix.target }}.zip cargo-flowistry* flowistry-driver*
+        working-directory: target/debug
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
       - run: npm ci
         working-directory: ide
-      - run: xvfb-run -a npm run test -- install --zip=../${{ matrix.target }}.zip
+      - run: xvfb-run -a npm test -- install --zip=../target/debug/${{ matrix.target }}.zip
+        working-directory: ide
+      - run: xvfb-run -a npm test
         working-directory: ide
