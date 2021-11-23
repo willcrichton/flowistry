@@ -66,7 +66,7 @@ Alternatively, you can install it from source:
 # Install flowistry binaries
 git clone https://github.com/willcrichton/flowistry
 cd flowistry
-cargo install --path .
+cargo install --path crates/flowistry_ide
 
 # Install vscode extension
 cd ide
@@ -108,9 +108,9 @@ If rustup fails, especially with an error like "could not rename downloaded file
 To solve the issue, go to the command line and run:
 
 ```
-rustup toolchain install nightly-2021-09-23 -c rust-src -c rustc-dev -c llvm-tools-preview
+rustup toolchain install nightly-2021-10-08 -c rust-src -c rustc-dev -c llvm-tools-preview
 ```
 
-> Note: double check the value of "channel" in `rust-toolchain.toml` if `nightly-2021-09-23` is no longer correct.
+> Note: double check the value of "channel" in `rust-toolchain.toml` if `nightly-2021-10-08` is no longer correct.
 
 Then go back to VSCode and click "Continue" to let Flowistry continue installing.
