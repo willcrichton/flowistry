@@ -588,3 +588,17 @@ pub fn pointers_in_place(place: Place<'tcx>, tcx: TyCtxt<'tcx>) -> SmallVec<[Pla
     })
     .collect()
 }
+
+pub fn all_returns(body: &Body<'tcx>) -> Vec<Location> {
+  body
+    .basic_blocks()
+    .iter_enumerated()
+    .filter_map(|(block, data)| match data.terminator().kind {
+      TerminatorKind::Return => Some(Location {
+        block,
+        statement_index: data.statements.len(),
+      }),
+      _ => None,
+    })
+    .collect()
+}
