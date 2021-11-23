@@ -16,7 +16,38 @@ declare const TOOLCHAIN: {
 
 const SHOW_LOADER_THRESHOLD = 2000;
 
-let exec_notify = async (
+const LIBRARY_PATHS: Partial<Record<NodeJS.Platform, string>> = {
+  darwin: "DYLD_LIBRARY_PATH",
+  win32: "LIB",
+};
+
+export const flowistry_cmd = `cargo +${TOOLCHAIN.channel} flowistry`;
+
+export const get_flowistry_opts = async (cwd: string) => {
+  const rustc_path = await exec_notify(
+    `rustup which --toolchain ${TOOLCHAIN.channel} rustc`,
+    "Waiting for rustc..."
+  );
+  const target_info = await exec_notify(
+    `${rustc_path} --print target-libdir --print sysroot`,
+    "Waiting for rustc..."
+  );
+
+  const [target_libdir, sysroot] = target_info.split("\n");
+  log("Target libdir:", target_libdir);
+  log("Sysroot: ", sysroot);
+
+  const library_path = LIBRARY_PATHS[process.platform] || "LD_LIBRARY_PATH";
+
+  return {
+    cwd,
+    [library_path]: target_libdir,
+    SYSROOT: sysroot,
+    RUST_BACKTRACE: "1",
+  };
+};
+
+export let exec_notify = async (
   cmd: string,
   title: string,
   opts?: any
@@ -146,18 +177,6 @@ export async function setup(
     }
   }
 
-  let rustc_path = await exec_notify(
-    `rustup which --toolchain ${TOOLCHAIN.channel} rustc`,
-    "Waiting for rustc..."
-  );
-  let target_info = await exec_notify(
-    `${rustc_path} --print target-libdir --print sysroot`,
-    "Waiting for rustc..."
-  );
-  let [target_libdir, sysroot] = target_info.split("\n");
-  log("Target libdir:", target_libdir);
-  log("Sysroot: ", sysroot);
-
   const tdcp = new (class implements vscode.TextDocumentContentProvider {
     readonly uri = vscode.Uri.parse("flowistry://build-error");
     readonly eventEmitter = new vscode.EventEmitter<vscode.Uri>();
@@ -179,15 +198,8 @@ export async function setup(
   );
 
   return async <T>(args: string) => {
-    let cmd = `${cargo} flowistry ${args}`;
-    let library_path;
-    if (process.platform == "darwin") {
-      library_path = "DYLD_LIBRARY_PATH";
-    } else if (process.platform == "win32") {
-      library_path = "LIB";
-    } else {
-      library_path = "LD_LIBRARY_PATH";
-    }
+    let cmd = `${flowistry_cmd} ${args}`;
+    let flowisty_opts = await get_flowistry_opts(workspace_root);
 
     let output;
     try {
@@ -196,12 +208,7 @@ export async function setup(
         await editor.document.save();
       }
 
-      output = await exec_notify(cmd, "Waiting for Flowistry...", {
-        cwd: workspace_root,
-        [library_path]: target_libdir,
-        SYSROOT: sysroot,
-        RUST_BACKTRACE: "1",
-      });
+      output = await exec_notify(cmd, "Waiting for Flowistry...", flowisty_opts);
     } catch (e: any) {
       tdcp.contents = e.toString();
       tdcp.eventEmitter.fire(tdcp.uri);

@@ -8,12 +8,32 @@ on:
       - "v*"
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
+  test:
+    runs-on: ${{ matrix.os }}
+    env:
+      # The proxy server for install tests uses a self-signed certificate
+      # This allows requests to the proxy by disabling certificate validation
+      NODE_TLS_REJECT_UNAUTHORIZED: 0
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+
+    steps: 
+      - uses: actions/checkout@v2
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+      - run: zip ${{ matrix.target }}.zip cargo-flowistry* flowistry-driver*
+        working-directory: target/debug
       - uses: actions-rs/cargo@v1
         with:
           command: test
-      - run: npm install && npm run build
+      - run: npm ci
+        working-directory: ide
+      - run: xvfb-run -a npm test -- install --zip=../target/debug/${{ matrix.target }}.zip
+        working-directory: ide
+      - run: xvfb-run -a npm test
         working-directory: ide
