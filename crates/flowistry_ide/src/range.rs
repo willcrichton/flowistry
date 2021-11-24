@@ -1,6 +1,7 @@
 use anyhow::{bail, Context, Result};
 use rustc_data_structures::sync::{Lrc, MappedReadGuard};
 use rustc_macros::Encodable;
+use rustc_middle::ty::TyCtxt;
 use rustc_span::{
   source_map::{monotonic::MonotonicVec, SourceMap},
   BytePos, FileName, RealFileName, SourceFile, Span,
@@ -91,5 +92,19 @@ impl Range {
       offset + BytePos(self.start as u32),
       offset + BytePos(self.end as u32),
     ))
+  }
+}
+
+pub enum FunctionIdentifier {
+  Qpath(String),
+  Range(Range),
+}
+
+impl FunctionIdentifier {
+  pub fn to_span(&self, tcx: TyCtxt) -> Result<Span> {
+    match self {
+      FunctionIdentifier::Qpath(qpath) => crate::hir::qpath_to_span(tcx, qpath.clone()),
+      FunctionIdentifier::Range(range) => range.to_span(tcx.sess.source_map()),
+    }
   }
 }

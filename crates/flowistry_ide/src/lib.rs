@@ -13,5 +13,7 @@ extern crate rustc_span;
 
 pub mod analysis;
 pub mod effects;
+pub mod graph;
+mod hir;
 pub mod range;
 pub mod slicing;

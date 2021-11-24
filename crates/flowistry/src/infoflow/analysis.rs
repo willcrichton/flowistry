@@ -120,6 +120,7 @@ impl TransferFunction<'_, '_, 'tcx> {
 
     // Union dependencies into all conflicting places of the mutated place
     debug!("  Mutated conflicting places: {:?}", mutable_conflicts);
+    debug!("    with deps {:?}", input_location_deps);
     for place in mutable_conflicts.iter() {
       self.state.union_into_row(place, &input_location_deps);
     }

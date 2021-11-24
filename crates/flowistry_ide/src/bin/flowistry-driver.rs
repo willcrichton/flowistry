@@ -13,7 +13,7 @@ use flowistry::{
 };
 use flowistry_ide::{
   analysis::{FlowistryError, FlowistryResult},
-  range::Range,
+  range::{FunctionIdentifier, Range},
 };
 use fluid_let::fluid_set;
 use log::debug;
@@ -135,14 +135,22 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
       try_analysis(move || flowistry_ide::slicing::slice(direction, range, args))
     }
     "effects" => {
-      let _pos = arg::<usize>("POS");
-      todo!()
-      // let id = flowistry::FunctionIdentifier::Range(Range {
-      //   start: pos,
-      //   end: pos,
-      //   filename: arg::<String>("FILE"),
-      // });
-      // try_analysis(move || flowistry_ide::effects::effects(id, args))
+      let pos = arg::<usize>("POS");
+      let id = FunctionIdentifier::Range(Range {
+        start: pos,
+        end: pos,
+        filename: arg::<String>("FILE"),
+      });
+      try_analysis(move || flowistry_ide::effects::effects(id, args))
+    }
+    "graph" => {
+      let pos = arg::<usize>("POS");
+      let id = FunctionIdentifier::Range(Range {
+        start: pos,
+        end: pos,
+        filename: arg::<String>("FILE"),
+      });
+      try_analysis(move || flowistry_ide::graph::graph(id, args))
     }
     _ => unimplemented!(),
   }
