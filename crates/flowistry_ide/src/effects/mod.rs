@@ -1,7 +1,7 @@
 use self::visitor::EffectKind;
 use crate::{
   analysis::{FlowistryAnalysis, FlowistryOutput, FlowistryResult},
-  range::{ranges_from_spans, Range},
+  range::{ranges_from_spans, FunctionIdentifier, Range},
 };
 use anyhow::Result;
 use flowistry::{
@@ -21,7 +21,6 @@ use rustc_middle::{
 };
 use rustc_span::Span;
 
-mod hir;
 mod visitor;
 
 #[derive(Debug, Encodable)]
@@ -52,20 +51,6 @@ impl FlowistryOutput for EffectsOutput {
 
 struct EffectsHarness {
   id: FunctionIdentifier,
-}
-
-pub enum FunctionIdentifier {
-  Qpath(String),
-  Range(Range),
-}
-
-impl FunctionIdentifier {
-  pub fn to_span(&self, tcx: TyCtxt) -> Result<Span> {
-    match self {
-      FunctionIdentifier::Qpath(qpath) => hir::qpath_to_span(tcx, qpath.clone()),
-      FunctionIdentifier::Range(range) => range.to_span(tcx.sess.source_map()),
-    }
-  }
 }
 
 impl FlowistryAnalysis for EffectsHarness {

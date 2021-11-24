@@ -43,6 +43,11 @@ fn main() {
       (@arg pos:)
       (@arg flags: ...)
     )
+    (@subcommand graph =>
+      (@arg file:)
+      (@arg pos:)
+      (@arg flags: ...)
+    )
   )
   .get_matches_from(env::args().skip(1));
 
@@ -74,7 +79,7 @@ fn main() {
       ],
       sub_m.value_of("file").unwrap(),
     ),
-    ("effects", Some(sub_m)) => (
+    ("effects" | "graph", Some(sub_m)) => (
       vec![
         ("FILE", sub_m.value_of("file").unwrap()),
         ("POS", sub_m.value_of("pos").unwrap()),

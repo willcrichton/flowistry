@@ -55,7 +55,6 @@ pub fn compute_flow<'a, 'tcx>(
         location_domain.clone(),
       );
       engine::iterate_to_fixpoint(tcx, body, location_domain, analysis)
-
       // analysis.into_engine(tcx, body).iterate_to_fixpoint()
     };
 
