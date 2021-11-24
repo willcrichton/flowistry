@@ -5,8 +5,7 @@ use crate::{
 use anyhow::Result;
 use flowistry::{
   indexed::{
-    impls::{LocationSet, PlaceIndex, PlaceSet},
-    IndexSetIteratorExt, IndexedDomain,
+    impls::{LocationSet, PlaceIndex}, IndexedDomain,
   },
   infoflow,
   mir::{borrowck_facts::get_body_with_borrowck_facts, utils},
@@ -15,7 +14,7 @@ use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir::BodyId;
 use rustc_macros::Encodable;
 use rustc_middle::{
-  mir::{traversal, Location, Place, ProjectionElem, VarDebugInfoContents, RETURN_PLACE},
+  mir::{traversal, Location, ProjectionElem, VarDebugInfoContents, RETURN_PLACE},
   ty::{AdtKind, TyCtxt},
 };
 use rustc_span::Span;
