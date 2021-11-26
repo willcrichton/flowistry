@@ -1,4 +1,4 @@
-use utils::backward_slice;
+use utils::{backward_slice, forward_slice};
 
 mod utils;
 
@@ -31,6 +31,39 @@ fn main() {
   }
 
   `[println!("{:?}", `(total)`);]`
+}
+"#;
+
+  backward_slice(src);
+}
+
+#[test]
+fn time_calculation() {
+  let src = r#"
+use std::time::Instant;
+fn run_expensive_calculation(){}
+fn main() {
+  `[let `(start)` = `[Instant::now()]`;]`
+  run_expensive_calculation();
+  `[let `[elapsed]` = `[start.elapsed()]`;]`
+  `[println!("Elapsed: {}s", `[elapsed.as_secs()]`);]`
+}
+"#;
+
+  forward_slice(src);
+}
+
+#[test]
+fn hashset_union() {
+  let src = r#"
+use std::collections::HashSet;
+fn union(`[set]`: &mut HashSet<i32>, `[other]`: &HashSet<i32>) -> bool {
+  let orig_len = set.len();
+  `[for `[el]` in `[other]` {
+    `[`[set.insert(`[*el]`)]`;]`
+  }]`
+  `[let `(final_len)` = `[set.len()]`;]`
+  return orig_len != final_len;
 }
 "#;
 

@@ -11,7 +11,10 @@ use std::{
 use tempfile::NamedTempFile;
 
 use flowistry::infoflow::Direction;
-use flowistry_ide::{analysis::FlowistryResult, range::{Range, FunctionIdentifier}};
+use flowistry_ide::{
+  analysis::FlowistryResult,
+  range::{FunctionIdentifier, Range},
+};
 
 fn parse_ranges(
   prog: &str,

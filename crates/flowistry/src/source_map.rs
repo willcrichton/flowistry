@@ -1,14 +1,25 @@
 use crate::mir::utils;
 
 use log::trace;
-use rustc_data_structures::graph::{iterate::reverse_post_order, WithPredecessors};
+use rustc_data_structures::{
+  fx::FxHashSet as HashSet,
+  graph::{iterate::reverse_post_order, WithPredecessors},
+};
 use rustc_hir::{
-  intravisit::{self, NestedVisitorMap, Visitor},
+  intravisit::{self, NestedVisitorMap, Visitor as HirVisitor},
   BodyId, Expr, Stmt,
 };
 use rustc_index::bit_set::HybridBitSet;
-
-use rustc_middle::{hir::map::Map, mir::*, ty::TyCtxt};
+use rustc_middle::{
+  hir::map::Map,
+  mir::{
+    visit::{
+      MutatingUseContext, NonMutatingUseContext, NonUseContext, PlaceContext, Visitor as MirVisitor,
+    },
+    *,
+  },
+  ty::TyCtxt,
+};
 use rustc_span::{source_map::SourceMap, Pos, Span};
 use smallvec::{smallvec, SmallVec};
 
@@ -30,7 +41,7 @@ impl HirSpanner {
 
     struct Collector<'a>(&'a mut HirSpanner);
 
-    impl Visitor<'hir> for Collector<'_> {
+    impl HirVisitor<'hir> for Collector<'_> {
       type Map = Map<'hir>;
 
       fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
@@ -149,4 +160,74 @@ pub fn span_to_string(span: Span, source_map: &SourceMap) -> String {
     hi.line,
     hi.col.to_usize() + 1
   )
+}
+
+pub fn span_to_places(body: &Body<'tcx>, span: Span) -> (Vec<(Place<'tcx>, Location)>, Vec<Span>) {
+  struct FindSpannedPlaces<'a, 'tcx> {
+    body: &'a Body<'tcx>,
+    span: Span,
+    places: HashSet<(Place<'tcx>, Location)>,
+    place_spans: Vec<Span>,
+  }
+
+  impl MirVisitor<'tcx> for FindSpannedPlaces<'_, 'tcx> {
+    fn visit_place(&mut self, place: &Place<'tcx>, context: PlaceContext, location: Location) {
+      // Three cases, shown by example:
+      //   fn foo(x: i32) {
+      //     let y = x + 1;
+      //   }
+      // If the user selects...
+      // * "x: i32" -- this span is contained in the LocalDecls for _1,
+      //   which is represented by NonUseContext::VarDebugInfo
+      // * "x + 1" -- MIR will generate a temporary to assign x into, whose
+      //   span is given to "x". That corresponds to MutatingUseContext::Store
+      // * "y" -- this corresponds to NonMutatingUseContext::Inspect
+      let span = match context {
+        PlaceContext::MutatingUse(MutatingUseContext::Store)
+        | PlaceContext::NonMutatingUse(NonMutatingUseContext::Inspect) => {
+          let source_info = self.body.source_info(location);
+          source_info.span
+        }
+        PlaceContext::NonUse(NonUseContext::VarDebugInfo)
+          if self.body.args_iter().any(|local| local == place.local) =>
+        {
+          let source_info = self.body.local_decls()[place.local].source_info;
+          source_info.span
+        }
+        _ => {
+          return;
+        }
+      };
+
+      if self.span.contains(span) || span.contains(self.span) {
+        self.places.insert((*place, location));
+        self.place_spans.push(span);
+      }
+    }
+  }
+
+  let mut visitor = FindSpannedPlaces {
+    body,
+    span,
+    places: HashSet::default(),
+    place_spans: Vec::new(),
+  };
+  visitor.visit_body(body);
+
+  let places = visitor.places.into_iter().collect::<Vec<_>>();
+
+  // Find the smallest spans that describe the sliced places
+  let mut spans = Vec::new();
+  visitor
+    .place_spans
+    .sort_by_key(|span| span.hi() - span.lo());
+  for span in visitor.place_spans.into_iter() {
+    if spans.iter().any(|other| span.contains(*other)) {
+      continue;
+    }
+
+    spans.push(span);
+  }
+
+  (places, spans)
 }
