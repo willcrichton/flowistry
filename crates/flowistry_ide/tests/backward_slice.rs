@@ -71,15 +71,27 @@ fn main() {
   backward_slice(src);
 }
 
-// FIXME: y not part of slice
+#[test]
+fn variable_select_lhs() {
+  let src = r#"
+fn main() {
+  `[let `[x]` = `[1]`;]`
+  `[let `(y)` = `[x]`;]`
+}
+"#;
+
+  backward_slice(src);
+}
+
 // #[test]
-// fn variable_select_lhs() {
+// fn variable_select_subexp() {
 //   let src = r#"
-// fn main() {
-//   `[let `[x]` = `[1]`;]`
-//   `[let `(y)` = `[x]`;]`
-// }
-// "#;
+//   fn main() {
+//     `[let `[x]` = `[1]`;]`    
+//     let y = 2;
+//     `(x)` + y;
+//   }
+//   "#;
 
 //   backward_slice(src);
 // }

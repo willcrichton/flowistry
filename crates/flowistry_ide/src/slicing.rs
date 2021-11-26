@@ -5,8 +5,8 @@ use crate::{
 use anyhow::Result;
 use flowistry::{
   infoflow::{self, Direction},
-  mir::{borrowck_facts::get_body_with_borrowck_facts, utils},
-  source_map::HirSpanner,
+  mir::borrowck_facts::get_body_with_borrowck_facts,
+  source_map::{span_to_places, HirSpanner},
 };
 use log::debug;
 use rustc_data_structures::fx::FxHashSet as HashSet;
@@ -64,8 +64,7 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     let results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
 
     let source_map = tcx.sess.source_map();
-    let (sliced_places, sliced_spans) =
-      utils::span_to_places(body, self.range.to_span(source_map)?);
+    let (sliced_places, sliced_spans) = span_to_places(body, self.range.to_span(source_map)?);
     debug!("sliced_places {:?}", sliced_places);
 
     let spanner = HirSpanner::new(tcx, body_id);

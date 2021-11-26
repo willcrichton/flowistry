@@ -5,7 +5,8 @@ use crate::{
 use anyhow::Result;
 use flowistry::{
   indexed::{
-    impls::{LocationSet, PlaceIndex}, IndexedDomain,
+    impls::{LocationSet, PlaceIndex},
+    IndexedDomain,
   },
   infoflow,
   mir::{borrowck_facts::get_body_with_borrowck_facts, utils},
@@ -118,18 +119,33 @@ impl FlowistryAnalysis for GraphAnalysis {
       })
       .collect::<HashMap<_, _>>();
 
+    let source_map = tcx.sess.source_map();
     let location_domain = results.analysis.location_domain();
     let location_names = location_domain
       .as_vec()
       .iter_enumerated()
-      .map(|(index, loc)| (index.as_usize(), format!("{:?}", loc)))
+      .filter(|(_, loc)| loc.block.as_usize() != body.basic_blocks().len())
+      .map(|(index, loc)| {
+        let span = body.source_info(*loc).span;
+        let lines = source_map.span_to_lines(span).unwrap().lines;
+        let s = if lines.len() == 1 {
+          format!("{}", lines[0].line_index + 1)
+        } else {
+          format!(
+            "{}-{}",
+            lines[0].line_index + 1,
+            lines[lines.len() - 1].line_index + 1
+          )
+        };
+        (index.as_usize(), s)
+      })
       .collect::<HashMap<_, _>>();
 
     let mut all_deps: HashMap<
       PlaceIndex,
       HashMap<Location, (LocationSet, HashSet<(Location, PlaceIndex)>)>,
     > = HashMap::default();
-    for (block, data) in traversal::preorder(body) {
+    for (block, data) in traversal::reverse_postorder(body) {
       let locations = (0..=data.statements.len()).map(|i| Location {
         block,
         statement_index: i,
