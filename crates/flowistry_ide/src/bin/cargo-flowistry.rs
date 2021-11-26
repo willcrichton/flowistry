@@ -132,9 +132,11 @@ fn main() {
   // Add compile filter to specify the target corresponding to the given file
   cmd.arg("-p").arg(&pkg.name);
   let kind = &target.kind[0];
-  cmd.arg(format!("--{}", kind));
+  if kind != "proc-macro" {
+    cmd.arg(format!("--{}", kind));
+  }
   match kind.as_str() {
-    "lib" => {}
+    "lib" | "proc-macro" => {}
     _ => {
       cmd.arg(&target.name);
     }
