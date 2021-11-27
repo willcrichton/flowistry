@@ -14,7 +14,6 @@ use rustc_middle::{
 };
 use rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
 use rustc_mir_transform::MirPass;
-
 use rustc_span::Symbol;
 use rustc_target::abi::VariantIdx;
 use smallvec::SmallVec;
@@ -27,15 +26,312 @@ use std::{
   process::{Command, Stdio},
 };
 
-pub fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
-  match operand {
-    Operand::Copy(place) | Operand::Move(place) => Some(*place),
-    Operand::Constant(_) => None,
+pub trait OperandExt<'tcx> {
+  fn to_place(&self) -> Option<Place<'tcx>>;
+}
+
+impl OperandExt<'tcx> for Operand<'tcx> {
+  fn to_place(&self) -> Option<Place<'tcx>> {
+    match self {
+      Operand::Copy(place) | Operand::Move(place) => Some(*place),
+      Operand::Constant(_) => None,
+    }
   }
 }
 
-pub fn local_to_place(local: Local, tcx: TyCtxt<'tcx>) -> Place<'tcx> {
-  mk_place(local, &[], tcx)
+pub fn arg_mut_ptrs<'tcx>(
+  args: &[(usize, Place<'tcx>)],
+  tcx: TyCtxt<'tcx>,
+  body: &Body<'tcx>,
+  def_id: DefId,
+) -> Vec<(usize, Place<'tcx>)> {
+  let ignore_mut = is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
+  args
+    .iter()
+    .map(|(i, place)| {
+      place
+        .interior_pointers(tcx, body, def_id)
+        .into_iter()
+        .map(|(_, places)| {
+          places
+            .into_iter()
+            .filter_map(|(place, mutability)| match mutability {
+              Mutability::Mut => Some(place),
+              Mutability::Not => ignore_mut.then(|| place),
+            })
+        })
+        .flatten()
+        .map(move |place| (*i, tcx.mk_place_deref(place)))
+    })
+    .flatten()
+    .collect::<Vec<_>>()
+}
+
+pub fn arg_places<'tcx>(args: &[Operand<'tcx>]) -> Vec<(usize, Place<'tcx>)> {
+  args
+    .iter()
+    .enumerate()
+    .filter_map(|(i, arg)| arg.to_place().map(move |place| (i, place)))
+    .collect::<Vec<_>>()
+}
+
+pub fn hashmap_merge<K: Eq + Hash, V>(
+  mut h1: HashMap<K, V>,
+  h2: HashMap<K, V>,
+  conflict: impl Fn(&mut V, V),
+) -> HashMap<K, V> {
+  for (k, v) in h2.into_iter() {
+    match h1.entry(k) {
+      Entry::Vacant(entry) => {
+        entry.insert(v);
+      }
+      Entry::Occupied(mut entry) => {
+        let entry = entry.get_mut();
+        conflict(entry, v);
+      }
+    }
+  }
+  h1
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub enum PlaceRelation {
+  Super,
+  Sub,
+  Disjoint,
+}
+
+impl PlaceRelation {
+  pub fn overlaps(&self) -> bool {
+    *self != PlaceRelation::Disjoint
+  }
+
+  pub fn of(part_place: Place<'tcx>, whole_place: Place<'tcx>) -> Self {
+    let locals_match = part_place.local == whole_place.local;
+    if !locals_match {
+      return PlaceRelation::Disjoint;
+    }
+
+    let projections_match = part_place
+      .projection
+      .iter()
+      .zip(whole_place.projection.iter())
+      .all(|(elem1, elem2)| {
+        use ProjectionElem::*;
+        match (elem1, elem2) {
+          (Deref, Deref) => true,
+          (Field(f1, _), Field(f2, _)) => f1 == f2,
+          (Index(_), Index(_)) => true,
+          (ConstantIndex { .. }, ConstantIndex { .. }) => true,
+          (Subslice { .. }, Subslice { .. }) => true,
+          (Downcast(_, v1), Downcast(_, v2)) => v1 == v2,
+          _ => false,
+        }
+      });
+
+    let is_sub_part = part_place.projection.len() >= whole_place.projection.len();
+    let remaining_projection = if is_sub_part {
+      &part_place.projection[whole_place.projection.len()..]
+    } else {
+      &whole_place.projection[part_place.projection.len()..]
+    };
+
+    if remaining_projection
+      .iter()
+      .any(|elem| matches!(elem, ProjectionElem::Deref))
+    {
+      return PlaceRelation::Disjoint;
+    }
+
+    if projections_match {
+      if is_sub_part {
+        PlaceRelation::Sub
+      } else {
+        PlaceRelation::Super
+      }
+    } else {
+      PlaceRelation::Disjoint
+    }
+  }
+}
+
+#[derive(Default)]
+pub struct PlaceCollector<'tcx> {
+  pub places: Vec<Place<'tcx>>,
+}
+
+impl Visitor<'tcx> for PlaceCollector<'tcx> {
+  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, _location: Location) {
+    self.places.push(*place);
+  }
+}
+
+pub fn dump_results<'tcx, A>(
+  body: &Body<'tcx>,
+  results: &Results<'tcx, A>,
+  _def_id: DefId,
+  _tcx: TyCtxt<'tcx>,
+) -> Result<()>
+where
+  A: Analysis<'tcx>,
+  A::Domain: DebugWithContext<A>,
+{
+  let graphviz = graphviz::Formatter::new(body, results, graphviz::OutputStyle::AfterOnly);
+  let mut buf = Vec::new();
+  dot::render(&graphviz, &mut buf)?;
+
+  let output_dir = Path::new("target");
+  // let fname = tcx.def_path_debug_str(def_id);
+  let fname = "results";
+  let output_path = output_dir.join(format!("{}.png", fname));
+
+  let mut p = Command::new("dot")
+    .args(&["-Tpng", "-o", &output_path.display().to_string()])
+    .stdin(Stdio::piped())
+    .spawn()?;
+
+  p.stdin.as_mut().unwrap().write_all(&buf)?;
+  let status = p.wait()?;
+
+  if !status.success() {
+    bail!("dot for {} failed", output_path.display())
+  };
+
+  Ok(())
+}
+
+pub fn location_to_string(location: Location, body: &Body<'_>) -> String {
+  let block = &body.basic_blocks()[location.block];
+  if location.statement_index == block.statements.len() {
+    format!("{:?}", block.terminator().kind)
+  } else {
+    format!("{:?}", block.statements[location.statement_index].kind)
+  }
+}
+
+pub struct SimplifyMir;
+impl MirPass<'tcx> for SimplifyMir {
+  fn run_pass(&self, _tcx: TyCtxt<'tcx>, body: &mut Body<'tcx>) {
+    for block in body.basic_blocks_mut() {
+      block.statements.retain(|stmt| {
+        !matches!(
+          stmt.kind,
+          // TODO: variable_select_lhs test fails if we remove FakeRead
+          // StatementKind::FakeRead(..)
+          StatementKind::StorageLive(..) | StatementKind::StorageDead(..)
+        )
+      });
+
+      let terminator = block.terminator_mut();
+      terminator.kind = match terminator.kind {
+        TerminatorKind::FalseEdge { real_target, .. } => TerminatorKind::Goto {
+          target: real_target,
+        },
+        TerminatorKind::FalseUnwind { real_target, .. } => TerminatorKind::Goto {
+          target: real_target,
+        },
+        _ => continue,
+      }
+    }
+  }
+}
+
+pub trait PlaceExt<'tcx> {
+  fn make(local: Local, projection: &[PlaceElem<'tcx>], tcx: TyCtxt<'tcx>) -> Self;
+  fn from_local(local: Local, tcx: TyCtxt<'tcx>) -> Self;
+  fn is_arg(&self, body: &Body<'tcx>) -> bool;
+  fn is_direct(&self, body: &Body<'tcx>) -> bool;
+  fn pointers_in_projection(&self, tcx: TyCtxt<'tcx>) -> SmallVec<[Place<'tcx>; 2]>;
+  fn interior_pointers(
+    &self,
+    tcx: TyCtxt<'tcx>,
+    body: &Body<'tcx>,
+    def_id: DefId,
+  ) -> HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>;
+  fn interior_places(
+    &self,
+    tcx: TyCtxt<'tcx>,
+    body: &Body<'tcx>,
+    def_id: DefId,
+    depth_limit: Option<usize>,
+  ) -> Vec<Place<'tcx>>;
+}
+
+impl PlaceExt<'tcx> for Place<'tcx> {
+  fn make(local: Local, projection: &[PlaceElem<'tcx>], tcx: TyCtxt<'tcx>) -> Self {
+    Place {
+      local,
+      projection: tcx.intern_place_elems(projection),
+    }
+  }
+
+  fn from_local(local: Local, tcx: TyCtxt<'tcx>) -> Self {
+    Place::make(local, &[], tcx)
+  }
+
+  fn is_arg(&self, body: &Body<'tcx>) -> bool {
+    let i = self.local.as_usize();
+    i > 0 && i - 1 < body.arg_count
+  }
+
+  fn is_direct(&self, body: &Body<'tcx>) -> bool {
+    !self.is_indirect() || self.is_arg(body)
+  }
+
+  fn pointers_in_projection(&self, tcx: TyCtxt<'tcx>) -> SmallVec<[Place<'tcx>; 2]> {
+    self
+      .iter_projections()
+      .filter_map(|(place_ref, elem)| match elem {
+        ProjectionElem::Deref => Some(Place::make(place_ref.local, place_ref.projection, tcx)),
+        _ => None,
+      })
+      .collect()
+  }
+
+  fn interior_pointers(
+    &self,
+    tcx: TyCtxt<'tcx>,
+    body: &Body<'tcx>,
+    def_id: DefId,
+  ) -> HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>> {
+    let ty = self.ty(body.local_decls(), tcx).ty;
+    let mut region_collector = CollectRegions {
+      tcx,
+      def_id,
+      local: self.local,
+      place_stack: self.projection.to_vec(),
+      ty_stack: Vec::new(),
+      regions: HashMap::default(),
+      places: None,
+      types: None,
+      depth_limit: None,
+    };
+    region_collector.visit_ty(ty);
+    region_collector.regions
+  }
+
+  fn interior_places(
+    &self,
+    tcx: TyCtxt<'tcx>,
+    body: &Body<'tcx>,
+    def_id: DefId,
+    depth_limit: Option<usize>,
+  ) -> Vec<Place<'tcx>> {
+    let ty = self.ty(body.local_decls(), tcx).ty;
+    let mut region_collector = CollectRegions {
+      tcx,
+      def_id,
+      local: self.local,
+      place_stack: self.projection.to_vec(),
+      ty_stack: Vec::new(),
+      regions: HashMap::default(),
+      places: Some(HashSet::default()),
+      types: None,
+      depth_limit,
+    };
+    region_collector.visit_ty(ty);
+    region_collector.places.unwrap().into_iter().collect()
+  }
 }
 
 struct CollectRegions<'tcx> {
@@ -72,7 +368,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
 
     trace!(
       "exploring {:?} with {:?}",
-      mk_place(self.local, &self.place_stack, self.tcx),
+      Place::make(self.local, &self.place_stack, self.tcx),
       ty
     );
 
@@ -171,7 +467,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
     };
 
     if let Some(places) = self.places.as_mut() {
-      places.insert(mk_place(self.local, &self.place_stack, self.tcx));
+      places.insert(Place::make(self.local, &self.place_stack, self.tcx));
     }
 
     if let Some(types) = self.types.as_mut() {
@@ -196,7 +492,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
           Mutability::Mut
         };
 
-        let place = mk_place(self.local, &self.place_stack, self.tcx);
+        let place = Place::make(self.local, &self.place_stack, self.tcx);
 
         self
           .regions
@@ -217,330 +513,41 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
   }
 }
 
-pub fn interior_pointers<'tcx>(
-  place: Place<'tcx>,
-  tcx: TyCtxt<'tcx>,
-  body: &Body<'tcx>,
-  def_id: DefId,
-) -> HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>> {
-  let ty = place.ty(body.local_decls(), tcx).ty;
-  let mut region_collector = CollectRegions {
-    tcx,
-    def_id,
-    local: place.local,
-    place_stack: place.projection.to_vec(),
-    ty_stack: Vec::new(),
-    regions: HashMap::default(),
-    places: None,
-    types: None,
-    depth_limit: None,
-  };
-  region_collector.visit_ty(ty);
-  region_collector.regions
+pub trait BodyExt<'tcx> {
+  fn all_returns(&self) -> Vec<Location>;
+  fn debug_info_name_map(&self) -> HashMap<Local, Symbol>;
+  fn to_string(&self, tcx: TyCtxt<'tcx>) -> Result<String>;
 }
 
-pub fn interior_places<'tcx>(
-  place: Place<'tcx>,
-  tcx: TyCtxt<'tcx>,
-  body: &Body<'tcx>,
-  def_id: DefId,
-  depth_limit: Option<usize>,
-) -> Vec<Place<'tcx>> {
-  let ty = place.ty(body.local_decls(), tcx).ty;
-  let mut region_collector = CollectRegions {
-    tcx,
-    def_id,
-    local: place.local,
-    place_stack: place.projection.to_vec(),
-    ty_stack: Vec::new(),
-    regions: HashMap::default(),
-    places: Some(HashSet::default()),
-    types: None,
-    depth_limit,
-  };
-  region_collector.visit_ty(ty);
-  region_collector.places.unwrap().into_iter().collect()
-}
-
-pub fn interior_types<'tcx>(
-  place: Place<'tcx>,
-  tcx: TyCtxt<'tcx>,
-  body: &Body<'tcx>,
-  def_id: DefId,
-) -> Vec<Ty<'tcx>> {
-  let ty = place.ty(body.local_decls(), tcx).ty;
-  let mut region_collector = CollectRegions {
-    tcx,
-    def_id,
-    local: place.local,
-    place_stack: place.projection.to_vec(),
-    ty_stack: Vec::new(),
-    regions: HashMap::default(),
-    places: None,
-    types: Some(HashSet::default()),
-    depth_limit: None,
-  };
-  region_collector.visit_ty(ty);
-  region_collector.types.unwrap().into_iter().collect()
-}
-
-pub fn arg_mut_ptrs<'tcx>(
-  args: &[(usize, Place<'tcx>)],
-  tcx: TyCtxt<'tcx>,
-  body: &Body<'tcx>,
-  def_id: DefId,
-) -> Vec<(usize, Place<'tcx>)> {
-  let ignore_mut = is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
-  args
-    .iter()
-    .map(|(i, place)| {
-      interior_pointers(*place, tcx, body, def_id)
-        .into_iter()
-        .map(|(_, places)| {
-          places
-            .into_iter()
-            .filter_map(|(place, mutability)| match mutability {
-              Mutability::Mut => Some(place),
-              Mutability::Not => ignore_mut.then(|| place),
-            })
-        })
-        .flatten()
-        .map(move |place| (*i, tcx.mk_place_deref(place)))
-    })
-    .flatten()
-    .collect::<Vec<_>>()
-}
-
-pub fn arg_places<'tcx>(args: &[Operand<'tcx>]) -> Vec<(usize, Place<'tcx>)> {
-  args
-    .iter()
-    .enumerate()
-    .filter_map(|(i, arg)| operand_to_place(arg).map(move |place| (i, place)))
-    .collect::<Vec<_>>()
-}
-
-pub fn hashmap_merge<K: Eq + Hash, V>(
-  mut h1: HashMap<K, V>,
-  h2: HashMap<K, V>,
-  conflict: impl Fn(&mut V, V),
-) -> HashMap<K, V> {
-  for (k, v) in h2.into_iter() {
-    match h1.entry(k) {
-      Entry::Vacant(entry) => {
-        entry.insert(v);
-      }
-      Entry::Occupied(mut entry) => {
-        let entry = entry.get_mut();
-        conflict(entry, v);
-      }
-    }
-  }
-  h1
-}
-
-#[derive(PartialEq, Eq, Debug)]
-pub enum PlaceRelation {
-  Super,
-  Sub,
-  Disjoint,
-}
-
-impl PlaceRelation {
-  pub fn overlaps(&self) -> bool {
-    *self != PlaceRelation::Disjoint
+impl BodyExt<'tcx> for Body<'tcx> {
+  fn all_returns(&self) -> Vec<Location> {
+    self
+      .basic_blocks()
+      .iter_enumerated()
+      .filter_map(|(block, data)| match data.terminator().kind {
+        TerminatorKind::Return => Some(Location {
+          block,
+          statement_index: data.statements.len(),
+        }),
+        _ => None,
+      })
+      .collect()
   }
 
-  pub fn of(part_place: Place<'tcx>, whole_place: Place<'tcx>) -> Self {
-    let locals_match = part_place.local == whole_place.local;
-    if !locals_match {
-      return PlaceRelation::Disjoint;
-    }
-
-    let projections_match = part_place
-      .projection
+  fn debug_info_name_map(&self) -> HashMap<Local, Symbol> {
+    self
+      .var_debug_info
       .iter()
-      .zip(whole_place.projection.iter())
-      .all(|(elem1, elem2)| {
-        use ProjectionElem::*;
-        match (elem1, elem2) {
-          (Deref, Deref) => true,
-          (Field(f1, _), Field(f2, _)) => f1 == f2,
-          (Index(_), Index(_)) => true,
-          (ConstantIndex { .. }, ConstantIndex { .. }) => true,
-          (Subslice { .. }, Subslice { .. }) => true,
-          (Downcast(_, v1), Downcast(_, v2)) => v1 == v2,
-          _ => false,
-        }
-      });
-
-    let is_sub_part = part_place.projection.len() >= whole_place.projection.len();
-    let remaining_projection = if is_sub_part {
-      &part_place.projection[whole_place.projection.len()..]
-    } else {
-      &whole_place.projection[part_place.projection.len()..]
-    };
-
-    if remaining_projection
-      .iter()
-      .any(|elem| matches!(elem, ProjectionElem::Deref))
-    {
-      return PlaceRelation::Disjoint;
-    }
-
-    if projections_match {
-      if is_sub_part {
-        PlaceRelation::Sub
-      } else {
-        PlaceRelation::Super
-      }
-    } else {
-      PlaceRelation::Disjoint
-    }
+      .filter_map(|info| match info.value {
+        VarDebugInfoContents::Place(place) => Some((place.local, info.name)),
+        _ => None,
+      })
+      .collect()
   }
-}
 
-#[derive(Default)]
-pub struct PlaceCollector<'tcx> {
-  pub places: Vec<Place<'tcx>>,
-}
-
-impl Visitor<'tcx> for PlaceCollector<'tcx> {
-  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, _location: Location) {
-    self.places.push(*place);
+  fn to_string(&self, tcx: TyCtxt<'tcx>) -> Result<String> {
+    let mut buffer = Vec::new();
+    write_mir_fn(tcx, self, &mut |_, _| Ok(()), &mut buffer)?;
+    Ok(String::from_utf8(buffer)?)
   }
-}
-
-pub fn pointer_for_place(place: Place<'tcx>, tcx: TyCtxt<'tcx>) -> Option<Place<'tcx>> {
-  place
-    .iter_projections()
-    .rev()
-    .find(|(_, elem)| matches!(elem, ProjectionElem::Deref))
-    .map(|(place_ref, _)| mk_place(place_ref.local, place_ref.projection, tcx))
-}
-
-pub fn dump_results<'tcx, A>(
-  body: &Body<'tcx>,
-  results: &Results<'tcx, A>,
-  _def_id: DefId,
-  _tcx: TyCtxt<'tcx>,
-) -> Result<()>
-where
-  A: Analysis<'tcx>,
-  A::Domain: DebugWithContext<A>,
-{
-  let graphviz = graphviz::Formatter::new(body, results, graphviz::OutputStyle::AfterOnly);
-  let mut buf = Vec::new();
-  dot::render(&graphviz, &mut buf)?;
-
-  let output_dir = Path::new("target");
-  // let fname = tcx.def_path_debug_str(def_id);
-  let fname = "results";
-  let output_path = output_dir.join(format!("{}.png", fname));
-
-  let mut p = Command::new("dot")
-    .args(&["-Tpng", "-o", &output_path.display().to_string()])
-    .stdin(Stdio::piped())
-    .spawn()?;
-
-  p.stdin.as_mut().unwrap().write_all(&buf)?;
-  let status = p.wait()?;
-
-  if !status.success() {
-    bail!("dot for {} failed", output_path.display())
-  };
-
-  Ok(())
-}
-
-pub fn mir_to_string(tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> Result<String> {
-  let mut buffer = Vec::new();
-  write_mir_fn(tcx, body, &mut |_, _| Ok(()), &mut buffer)?;
-  Ok(String::from_utf8(buffer)?)
-}
-
-pub fn location_to_string(location: Location, body: &Body<'_>) -> String {
-  let block = &body.basic_blocks()[location.block];
-  if location.statement_index == block.statements.len() {
-    format!("{:?}", block.terminator().kind)
-  } else {
-    format!("{:?}", block.statements[location.statement_index].kind)
-  }
-}
-
-pub struct SimplifyMir;
-impl MirPass<'tcx> for SimplifyMir {
-  fn run_pass(&self, _tcx: TyCtxt<'tcx>, body: &mut Body<'tcx>) {
-    for block in body.basic_blocks_mut() {
-      block.statements.retain(|stmt| {
-        !matches!(
-          stmt.kind,
-          // TODO: variable_select_lhs test fails if we remove FakeRead
-          // StatementKind::FakeRead(..)
-          StatementKind::StorageLive(..) | StatementKind::StorageDead(..)
-        )
-      });
-
-      let terminator = block.terminator_mut();
-      terminator.kind = match terminator.kind {
-        TerminatorKind::FalseEdge { real_target, .. } => TerminatorKind::Goto {
-          target: real_target,
-        },
-        TerminatorKind::FalseUnwind { real_target, .. } => TerminatorKind::Goto {
-          target: real_target,
-        },
-        _ => continue,
-      }
-    }
-  }
-}
-
-pub fn mk_place(local: Local, projection: &[PlaceElem<'tcx>], tcx: TyCtxt<'tcx>) -> Place<'tcx> {
-  Place {
-    local,
-    projection: tcx.intern_place_elems(projection),
-  }
-}
-
-pub fn is_arg(place: Place<'tcx>, body: &Body<'tcx>) -> bool {
-  let i = place.local.as_usize();
-  i > 0 && i - 1 < body.arg_count
-}
-
-pub fn is_direct(place: Place<'tcx>, body: &Body<'tcx>) -> bool {
-  !place.is_indirect() || is_arg(place, body)
-}
-
-pub fn pointers_in_place(place: Place<'tcx>, tcx: TyCtxt<'tcx>) -> SmallVec<[Place<'tcx>; 2]> {
-  place
-    .iter_projections()
-    .filter_map(|(place_ref, elem)| match elem {
-      ProjectionElem::Deref => Some(mk_place(place_ref.local, place_ref.projection, tcx)),
-      _ => None,
-    })
-    .collect()
-}
-
-pub fn all_returns(body: &Body<'tcx>) -> Vec<Location> {
-  body
-    .basic_blocks()
-    .iter_enumerated()
-    .filter_map(|(block, data)| match data.terminator().kind {
-      TerminatorKind::Return => Some(Location {
-        block,
-        statement_index: data.statements.len(),
-      }),
-      _ => None,
-    })
-    .collect()
-}
-
-pub fn debug_info_name_map(body: &Body) -> HashMap<Local, Symbol> {
-  body
-    .var_debug_info
-    .iter()
-    .filter_map(|info| match info.value {
-      VarDebugInfoContents::Place(place) => Some((place.local, info.name)),
-      _ => None,
-    })
-    .collect()
 }

@@ -5,7 +5,7 @@ use crate::{
     impls::{NormalizedPlaces, PlaceDomain, PlaceIndex, PlaceSet},
     IndexMatrix, IndexSetIteratorExt, IndexedDomain, ToIndex,
   },
-  mir::utils::{self, PlaceRelation},
+  mir::utils::{self, PlaceExt, PlaceRelation},
 };
 use log::{debug, info, trace};
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
@@ -52,7 +52,7 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
   // this is needed for eval? not sure why locals wouldn't show up in the body as places,
   // maybe optimized out or something
   fn visit_local_decl(&mut self, local: Local, _local_decl: &LocalDecl<'tcx>) {
-    self.places.push(utils::local_to_place(local, self.tcx));
+    self.places.push(Place::from_local(local, self.tcx));
   }
 
   fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, _location: Location) {
@@ -175,8 +175,9 @@ impl Aliases<'tcx> {
     let _abstract_regions = body
       .args_iter()
       .map(|local| {
-        let arg = utils::local_to_place(local, tcx);
-        utils::interior_pointers(arg, tcx, body, def_id).into_keys()
+        Place::from_local(local, tcx)
+          .interior_pointers(tcx, body, def_id)
+          .into_keys()
       })
       .flatten()
       .collect::<HashSet<_>>();
@@ -260,12 +261,13 @@ impl Aliases<'tcx> {
     tcx: TyCtxt<'tcx>,
   ) -> HashSet<Place<'tcx>> {
     let aliases = all_aliases.row(place).copied();
-    let ptr_deps = utils::pointers_in_place(place, tcx)
+    let ptr_deps = place
+      .pointers_in_projection(tcx)
       .into_iter()
       .map(|ptr| Self::place_deps(ptr, all_aliases, body, tcx))
       .flatten();
 
-    let maybe_place = if utils::is_direct(place, body) {
+    let maybe_place = if place.is_direct(body) {
       vec![place]
     } else {
       vec![]
@@ -299,7 +301,7 @@ impl Aliases<'tcx> {
     for (place, aliases) in all_aliases.into_iter() {
       let direct_aliases = aliases
         .iter()
-        .filter(|alias| utils::is_direct(**alias, body))
+        .filter(|alias| alias.is_direct(body))
         .copied()
         .collect_indices(place_domain.clone());
       aliases_map.union_into_row(place, &direct_aliases);
@@ -318,8 +320,7 @@ impl Aliases<'tcx> {
         .iter_enumerated()
         .filter_map(move |(idx, other_place)| {
           let relation = PlaceRelation::of(*other_place, *place);
-          (relation.overlaps() && utils::is_direct(*other_place, body))
-            .then(move || (relation, idx))
+          (relation.overlaps() && other_place.is_direct(body)).then(move || (relation, idx))
         })
         .partition(|(relation, _)| match relation {
           PlaceRelation::Sub => true,
@@ -358,7 +359,7 @@ impl Aliases<'tcx> {
       let mut aliases = HashSet::default();
       aliases.insert(place);
 
-      if utils::is_direct(place, body) {
+      if place.is_direct(body) {
         return aliases;
       }
 
@@ -371,7 +372,7 @@ impl Aliases<'tcx> {
         .find(|(_, elem)| matches!(elem, ProjectionElem::Deref))
         .unwrap();
 
-      let ptr = utils::mk_place(place.local, &place.projection[..deref_index], tcx);
+      let ptr = Place::make(place.local, &place.projection[..deref_index], tcx);
       let projection_past_deref = &place.projection[deref_index + 1..];
 
       let (region, orig_ty) = match ptr.ty(body.local_decls(), tcx).ty.kind() {
@@ -390,7 +391,7 @@ impl Aliases<'tcx> {
         if TyS::same_type(orig_ty, loan_ty) {
           let mut projection = loan.projection.to_vec();
           projection.extend(projection_past_deref);
-          utils::mk_place(loan.local, &projection, tcx)
+          Place::make(loan.local, &projection, tcx)
         } else {
           *loan
         }
@@ -417,7 +418,7 @@ impl Aliases<'tcx> {
     // For every place p = *q, add q
     let all_pointers = all_places
       .iter()
-      .map(|place| utils::pointers_in_place(*place, tcx))
+      .map(|place| place.pointers_in_projection(tcx))
       .flatten()
       .collect::<Vec<_>>();
     all_places.extend(all_pointers);
@@ -512,8 +513,8 @@ impl Aliases<'tcx> {
     let all_locals = body.local_decls().indices();
     let all_pointers = all_locals
       .map(|local| {
-        let place = utils::local_to_place(local, tcx);
-        utils::interior_pointers(place, tcx, body, def_id)
+        let place = Place::from_local(local, tcx);
+        place.interior_pointers(tcx, body, def_id)
       })
       .flatten();
     let mut region_to_pointers: HashMap<_, Vec<_>> = HashMap::default();

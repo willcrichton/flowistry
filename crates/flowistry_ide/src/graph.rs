@@ -9,7 +9,7 @@ use flowistry::{
     IndexedDomain,
   },
   infoflow,
-  mir::{borrowck_facts::get_body_with_borrowck_facts, utils},
+  mir::{borrowck_facts::get_body_with_borrowck_facts, utils::PlaceExt},
 };
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir::BodyId;
@@ -64,7 +64,7 @@ impl FlowistryAnalysis for GraphAnalysis {
     let direct_places = place_domain
       .as_vec()
       .iter_enumerated()
-      .filter(|(_, place)| !place.is_indirect() || utils::is_arg(**place, body))
+      .filter(|(_, place)| !place.is_indirect() || place.is_arg(body))
       .collect::<Vec<_>>();
 
     let mut local_to_name = body

@@ -1,7 +1,7 @@
 use crate::{
   block_timer,
   indexed::impls::LocationDomain,
-  mir::{aliases::Aliases, control_dependencies::ControlDependencies, engine, utils},
+  mir::{aliases::Aliases, control_dependencies::ControlDependencies, engine, utils::BodyExt},
 };
 use log::debug;
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
@@ -29,10 +29,7 @@ pub fn compute_flow<'a, 'tcx>(
 ) -> FlowResults<'a, 'tcx> {
   BODY_STACK.with(|body_stack| {
     body_stack.borrow_mut().push(body_id);
-    debug!(
-      "{}",
-      utils::mir_to_string(tcx, &body_with_facts.body).unwrap()
-    );
+    debug!("{}", body_with_facts.body.to_string(tcx).unwrap());
 
     let def_id = tcx.hir().body_owner_def_id(body_id).to_def_id();
     let aliases = Aliases::build(tcx, def_id, body_with_facts);

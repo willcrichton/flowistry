@@ -4,7 +4,7 @@ use flowistry::{
     IndexSetIteratorExt, IndexedDomain,
   },
   infoflow,
-  mir::utils,
+  mir::utils::{self, PlaceExt},
 };
 use log::debug;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
@@ -31,8 +31,8 @@ impl FindEffects<'a, 'mir, 'tcx> {
     let mut_args = body
       .args_iter()
       .map(|local| {
-        let place = utils::local_to_place(local, tcx);
-        let ptrs = utils::interior_pointers(place, tcx, body, analysis.def_id);
+        let place = Place::from_local(local, tcx);
+        let ptrs = place.interior_pointers(tcx, body, analysis.def_id);
         debug!("interior_pointers: {:?}", ptrs);
 
         ptrs
@@ -41,7 +41,9 @@ impl FindEffects<'a, 'mir, 'tcx> {
           .filter(|(_, mutability)| *mutability == Mutability::Mut)
           .map(|(place, _)| {
             let deref_place = tcx.mk_place_deref(place);
-            utils::interior_places(deref_place, tcx, body, analysis.def_id, None).into_iter()
+            deref_place
+              .interior_places(tcx, body, analysis.def_id, None)
+              .into_iter()
           })
           .flatten()
       })
