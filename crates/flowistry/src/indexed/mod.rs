@@ -344,11 +344,10 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
 
   fn ensure_row(&mut self, row: impl ToIndex<R>) -> &mut IndexSetImpl<C::Index> {
     let row = row.to_index(&self.row_domain);
-    let nc = self.col_domain.size();
     self
       .matrix
       .entry(row)
-      .or_insert_with(|| IndexSetImpl::new_empty(nc))
+      .or_insert_with(|| IndexSetImpl::new_empty(self.col_domain.size()))
   }
 
   pub fn insert(&mut self, row: impl ToIndex<R>, col: impl ToIndex<C>) -> bool {

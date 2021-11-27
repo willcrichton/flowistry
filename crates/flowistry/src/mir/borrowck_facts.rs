@@ -5,7 +5,7 @@ use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::def_id::LocalDefId;
 use rustc_middle::ty::{
   self,
-  query::{query_values::mir_borrowck, Providers},
+  query::{query_values::mir_borrowck, ExternProviders, Providers},
   TyCtxt,
 };
 use rustc_mir_transform::MirPass;
@@ -17,10 +17,9 @@ use std::{cell::RefCell, pin::Pin};
 pub fn override_queries(
   _session: &rustc_session::Session,
   local: &mut Providers,
-  external: &mut Providers,
+  _external: &mut ExternProviders,
 ) {
   local.mir_borrowck = mir_borrowck;
-  external.mir_borrowck = mir_borrowck;
 }
 
 thread_local! {
