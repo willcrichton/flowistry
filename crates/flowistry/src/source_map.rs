@@ -1,9 +1,6 @@
 use crate::mir::utils;
 use log::{debug, trace};
-use rustc_data_structures::{
-  fx::FxHashSet as HashSet,
-  graph::{iterate::reverse_post_order, WithPredecessors},
-};
+use rustc_data_structures::{fx::FxHashSet as HashSet, graph::iterate::reverse_post_order};
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor as HirVisitor},
   BodyId, Expr, Stmt,
@@ -104,10 +101,11 @@ pub fn location_to_spans(
           reachable_set.insert(block);
         }
 
-        for pred in WithPredecessors::predecessors(body, location.block)
-          .filter(|pred| reachable_set.contains(*pred))
+        for pred in body.predecessors()[location.block]
+          .iter()
+          .filter(|pred| reachable_set.contains(**pred))
         {
-          let loop_span = body.source_info(body.terminator_loc(pred)).span;
+          let loop_span = body.source_info(body.terminator_loc(*pred)).span;
           mir_spans.push(loop_span);
         }
       }
@@ -226,18 +224,88 @@ mod test {
   use super::*;
   use crate::test_utils;
 
+  fn harness(src: &str, f: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &Body, Vec<Span>) + Send) {
+    let (input, mut ranges) = test_utils::parse_ranges(src, [("`(", ")`")]).unwrap();
+    test_utils::compile_body(input, move |tcx, body_id, body| {
+      let spans = ranges
+        .remove("`(")
+        .unwrap()
+        .into_iter()
+        .map(test_utils::make_span)
+        .collect::<Vec<_>>();
+      f(tcx, body_id, body, spans);
+    });
+  }
+
   #[test]
   fn test_span_to_places() {
-    let src = "fn main(){
+    let src = r#"fn foo(`(z)`: i32){
       let `(x)` = 1;
       let y = 1;
-    }";
-    let (input, ranges) = test_utils::parse_ranges(src, [("`(", ")`")]).unwrap();
-    test_utils::compile_body(input, |_tcx, _, body| {
-      let name_map = utils::debug_info_name_map(body);
-      let span = test_utils::make_span(ranges["`("][0]);
-      let (place, _location, _span) = span_to_place(body, span).unwrap();
-      assert!(name_map[&place.local].to_string() == "x");
-    })
+      `(x + y)`;
+      `(x)` + y;
+      `(x + )`y;
+      print!("{} {}", x, `(y)`);
+    }"#;
+    harness(src, |tcx, _, body, spans| {
+      let source_map = tcx.sess.source_map();
+      let expected = ["z", "x", "x + y", "x", "x", "y"];
+      for (input_span, desired) in spans.into_iter().zip(expected) {
+        let (_, _, output_span) = span_to_place(body, input_span).unwrap();
+        let snippet = source_map.span_to_snippet(output_span).unwrap();
+        assert_eq!(snippet, desired);
+      }
+    });
+  }
+
+  #[test]
+  fn test_hir_spanner() {
+    let src = r#"fn foo(){
+      let x = `(1)`;
+      let `(y)` = x + 1;      
+    }"#;
+    harness(src, |tcx, body_id, _, spans| {
+      let spanner = HirSpanner::new(tcx, body_id);
+      let source_map = tcx.sess.source_map();
+      let expected: &[&[&str]] = &[&["1", "let x = 1;"], &["let y = x + 1;"]];
+      for (input_span, desired) in spans.into_iter().zip(expected) {
+        let output_spans = spanner.find_enclosing_hir_span(input_span);
+        let mut desired_set = desired.into_iter().copied().collect::<HashSet<_>>();
+        for output_span in &output_spans {
+          let snippet = source_map.span_to_snippet(*output_span).unwrap();
+          assert!(
+            desired_set.remove(snippet.as_str()),
+            "desired {:?} / actual {:?}",
+            desired,
+            output_spans
+          );
+        }
+        assert!(
+          desired_set.is_empty(),
+          "desired {:?} / actual {:?}",
+          desired,
+          output_spans
+        );
+      }
+    });
+  }
+
+  #[test]
+  fn test_location_to_places() {
+    let src = r#"fn foo(){
+      let x = 1;
+      let y = x + 1;      
+    }"#;
+    let (input, _ranges) = test_utils::parse_ranges(src, [("`(", ")`")]).unwrap();
+    test_utils::compile_body(input, move |tcx, body_id, body| {
+      let source_map = tcx.sess.source_map();
+      let snippet = |sp| source_map.span_to_snippet(sp).unwrap();
+
+      let spanner = HirSpanner::new(tcx, body_id);
+      let location = Location::START;
+      let spans = location_to_spans(location, body, &spanner, source_map);
+      assert_eq!(spans.len(), 1);
+      assert_eq!(snippet(spans[0]), "let x = 1;");
+    });
   }
 }
