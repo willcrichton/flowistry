@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v1
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly-2021-10-08
+          toolchain: nightly-2021-11-26
           components: rust-src, rustc-dev, llvm-tools-preview
           target: ${{ matrix.target }}
           profile: minimal
@@ -89,4 +89,21 @@ jobs:
       - run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
       - uses: actions-rs/cargo@v1
         with:
-          command: publish
+          command: publish -p flowistry
+       - uses: actions-rs/cargo@v1
+        with:
+          command: publish -p flowistry_ide
+
+  publish-docs:
+    needs: test
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --lib
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./target/doc
