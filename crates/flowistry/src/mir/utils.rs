@@ -15,13 +15,17 @@ use rustc_middle::{
 use rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
 use rustc_mir_transform::MirPass;
 
+use rustc_span::Symbol;
 use rustc_target::abi::VariantIdx;
 use smallvec::SmallVec;
 use std::{
-  collections::hash_map::Entry, hash::Hash, io::Write, ops::ControlFlow, path::Path,
-  process::Command,
+  collections::hash_map::Entry,
+  hash::Hash,
+  io::Write,
+  ops::ControlFlow,
+  path::Path,
+  process::{Command, Stdio},
 };
-use tempfile::NamedTempFile;
 
 pub fn operand_to_place(operand: &Operand<'tcx>) -> Option<Place<'tcx>> {
   match operand {
@@ -428,22 +432,19 @@ where
   let mut buf = Vec::new();
   dot::render(&graphviz, &mut buf)?;
 
-  let mut file = NamedTempFile::new()?;
-  file.as_file_mut().write_all(&buf)?;
-
   let output_dir = Path::new("target");
   // let fname = tcx.def_path_debug_str(def_id);
   let fname = "results";
   let output_path = output_dir.join(format!("{}.png", fname));
 
-  let status = Command::new("dot")
-    .args(&[
-      "-Tpng",
-      &file.path().display().to_string(),
-      "-o",
-      &output_path.display().to_string(),
-    ])
-    .status()?;
+  let mut p = Command::new("dot")
+    .args(&["-Tpng", "-o", &output_path.display().to_string()])
+    .stdin(Stdio::piped())
+    .spawn()?;
+
+  p.stdin.as_mut().unwrap().write_all(&buf)?;
+  let status = p.wait()?;
+
   if !status.success() {
     bail!("dot for {} failed", output_path.display())
   };
@@ -528,6 +529,17 @@ pub fn all_returns(body: &Body<'tcx>) -> Vec<Location> {
         block,
         statement_index: data.statements.len(),
       }),
+      _ => None,
+    })
+    .collect()
+}
+
+pub fn debug_info_name_map(body: &Body) -> HashMap<Local, Symbol> {
+  body
+    .var_debug_info
+    .iter()
+    .filter_map(|info| match info.value {
+      VarDebugInfoContents::Place(place) => Some((place.local, info.name)),
       _ => None,
     })
     .collect()

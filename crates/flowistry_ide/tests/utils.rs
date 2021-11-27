@@ -1,6 +1,11 @@
 #![allow(dead_code)]
 
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::Result;
+use flowistry::{infoflow::Direction, test_utils::parse_ranges};
+use flowistry_ide::{
+  analysis::FlowistryResult,
+  range::{FunctionIdentifier, Range},
+};
 use lazy_static::lazy_static;
 use std::{
   collections::{HashMap, HashSet},
@@ -9,70 +14,6 @@ use std::{
   process::Command,
 };
 use tempfile::NamedTempFile;
-
-use flowistry::infoflow::Direction;
-use flowistry_ide::{
-  analysis::FlowistryResult,
-  range::{FunctionIdentifier, Range},
-};
-
-fn parse_ranges(
-  prog: &str,
-  delimiters: Vec<(&'static str, &'static str)>,
-  filename: &str,
-) -> Result<(String, HashMap<&'static str, Vec<Range>>)> {
-  let mut in_idx = 0;
-  let mut out_idx = 0;
-  let mut buf = Vec::new();
-  let bytes = prog.bytes().collect::<Vec<_>>();
-  let mut stack = vec![];
-
-  let (opens, closes): (Vec<_>, Vec<_>) = delimiters.into_iter().unzip();
-  let mut ranges = HashMap::new();
-
-  macro_rules! check_token {
-    ($tokens:expr) => {
-      $tokens
-        .iter()
-        .find(|t| {
-          in_idx + t.len() <= bytes.len() && t.as_bytes() == &bytes[in_idx..in_idx + t.len()]
-        })
-        .map(|t| *t)
-    };
-  }
-
-  while in_idx < bytes.len() {
-    if let Some(open) = check_token!(&opens) {
-      stack.push((out_idx, open));
-      in_idx += open.len();
-      continue;
-    }
-
-    if let Some(close) = check_token!(&closes) {
-      let (start, delim) = stack
-        .pop()
-        .with_context(|| anyhow!("Missing open delimiter for \"{}\"", close))?;
-      ranges.entry(delim).or_insert_with(Vec::new).push(Range {
-        start,
-        end: out_idx,
-        filename: filename.to_owned(),
-      });
-      in_idx += close.len();
-      continue;
-    }
-
-    buf.push(bytes[in_idx]);
-    in_idx += 1;
-    out_idx += 1;
-  }
-
-  if stack.len() > 0 {
-    bail!("Unclosed delimiters: {:?}", stack);
-  }
-
-  let prog_clean = String::from_utf8(buf)?;
-  return Ok((prog_clean, ranges));
-}
 
 fn color_ranges(prog: &str, all_ranges: Vec<(&str, &HashSet<Range>)>) -> String {
   let mut new_tokens = all_ranges
@@ -153,7 +94,22 @@ pub fn slice(prog: &str, direction: Direction) {
     let mut f = NamedTempFile::new()?;
     let filename = f.path().to_string_lossy().to_string();
 
-    let (prog_clean, ranges) = parse_ranges(prog, vec![("`[", "]`"), ("`(", ")`")], &filename)?;
+    let (prog_clean, parsed_ranges) = parse_ranges(prog, vec![("`[", "]`"), ("`(", ")`")])?;
+    let ranges = parsed_ranges
+      .into_iter()
+      .map(|(k, vs)| {
+        (
+          k,
+          vs.into_iter()
+            .map(|(start, end)| Range {
+              start,
+              end,
+              filename: filename.to_string(),
+            })
+            .collect::<Vec<_>>(),
+        )
+      })
+      .collect::<HashMap<_, _>>();
     let range = ranges["`("][0].clone();
     let mut expected = ranges["`["].clone().into_iter().collect::<HashSet<_>>();
     expected.insert(range.clone());

@@ -1,4 +1,10 @@
 #![feature(rustc_private, in_band_lifetimes, box_patterns)]
+#![allow(
+  clippy::single_match,
+  clippy::needless_lifetimes,
+  clippy::needless_return,
+  clippy::len_zero
+)]
 
 extern crate rustc_data_structures;
 extern crate rustc_driver;

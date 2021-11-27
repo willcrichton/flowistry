@@ -2,13 +2,14 @@
   rustc_private,             // for rustc internals
   box_patterns,              // nice-to-have
   in_band_lifetimes,         // nice-to-have
-  associated_type_defaults,  // for crate::core::indexed::Indexed
+  associated_type_defaults,  // for crate::indexed::Indexed
   min_specialization,        // for rustc_index::newtype_index
 )]
 #![allow(
   clippy::single_match,
   clippy::needless_lifetimes,
-  clippy::needless_return
+  clippy::needless_return,
+  clippy::len_zero
 )]
 
 extern crate polonius_engine;
@@ -37,15 +38,5 @@ pub mod indexed;
 pub mod infoflow;
 pub mod mir;
 pub mod source_map;
+pub mod test_utils;
 pub mod timer;
-
-// pub use crate::core::{
-//   analysis::{get_body_with_borrowck_facts, override_queries, FlowistryError, FlowistryResult},
-//   config::{self, Range},
-//   extensions, indexed, utils,
-// };
-// pub use effects::{effects, FunctionIdentifier};
-// pub use flow::{
-//   compute_dependencies, compute_flow, Direction, FlowAnalysis, FlowDomain, FlowResults,
-// };
-// pub use slicing::{slice, SliceOutput};
