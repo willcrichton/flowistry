@@ -6,19 +6,16 @@ use rustc_middle::{
   mir::Body,
   ty::{TyCtxt, WithOptConstParam},
 };
-use rustc_span::{BytePos, Span, SyntaxContext};
+use rustc_span::{source_map::FileLoader, BytePos, Span, SyntaxContext};
 use std::{io, path::Path, process::Command};
 
-struct StringLoader {
-  src: String,
-}
-
-impl rustc_span::source_map::FileLoader for StringLoader {
+struct StringLoader(String);
+impl FileLoader for StringLoader {
   fn file_exists(&self, _: &Path) -> bool {
     true
   }
   fn read_file(&self, _: &Path) -> io::Result<String> {
-    Ok(self.src.clone())
+    Ok(self.0.clone())
   }
 }
 
@@ -58,7 +55,6 @@ pub fn compile_body(
 }
 
 pub fn compile(input: impl Into<String>, callback: impl FnOnce(TyCtxt<'_>) + Send) {
-  let loader = StringLoader { src: input.into() };
   let mut callbacks = TestCallbacks {
     callback: Some(callback),
   };
@@ -67,7 +63,7 @@ pub fn compile(input: impl Into<String>, callback: impl FnOnce(TyCtxt<'_>) + Sen
 
   rustc_driver::catch_fatal_errors(|| {
     let mut compiler = rustc_driver::RunCompiler::new(&args, &mut callbacks);
-    compiler.set_file_loader(Some(Box::new(loader)));
+    compiler.set_file_loader(Some(Box::new(StringLoader(input.into()))));
     compiler.run()
   })
   .unwrap()
