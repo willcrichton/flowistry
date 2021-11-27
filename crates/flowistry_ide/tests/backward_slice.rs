@@ -44,19 +44,6 @@ fn main() {
 }
 
 #[test]
-fn variable_read_multiple() {
-  let src = r#"
-fn main() {
-  `[let `[x]` = `[1]`;]`
-  `[let `[y]` = `[2]`;]`
-  `[`(`[x]` + `[y]`)`;]`
-}
-"#;
-
-  backward_slice(src);
-}
-
-#[test]
 fn variable_slice_from_middle() {
   // should not include x += 3
   let src = r#"
@@ -72,7 +59,7 @@ fn main() {
 }
 
 #[test]
-fn variable_select_lhs() {
+fn variable_slice_lhs() {
   let src = r#"
 fn main() {
   `[let `[x]` = `[1]`;]`
@@ -83,18 +70,31 @@ fn main() {
   backward_slice(src);
 }
 
-// #[test]
-// fn variable_select_subexp() {
-//   let src = r#"
-//   fn main() {
-//     `[let `[x]` = `[1]`;]`    
-//     let y = 2;
-//     `(x)` + y;
-//   }
-//   "#;
+#[test]
+fn variable_slice_sub_exp() {
+  let src = r#"
+  fn main() {
+    `[let `[x]` = `[1]`;]`    
+    let y = 2;
+    `[`(x)` + y;]`
+  }
+  "#;
 
-//   backward_slice(src);
-// }
+  backward_slice(src);
+}
+
+#[test]
+fn variable_slice_whole_exp() {
+  let src = r#"
+fn main() {
+  `[let `[x]` = `[1]`;]`
+  `[let `[y]` = `[2]`;]`
+  `[`(`[x]` + `[y]`)`;]`
+}
+"#;
+
+  backward_slice(src);
+}
 
 #[test]
 fn if_both_paths_relevant() {
@@ -370,9 +370,9 @@ fn main() {
   `[if `[let `[Foo::Y(`[z]`)]` = `[&mut x]`]` {
     `[`[*z += 1]`;]`
   }]`
-  if `[let `[Foo::X(`[z]`)]` = x]` `[{
+  if `[let `[Foo::X(`[z]`)]` = x]` {
     `[`(z)`;]`
-  }]`
+  }
 }
 "#;
 
@@ -1064,10 +1064,10 @@ fn closure_slice_inner_write_inner() {
   let src = r#"
 fn main() {
   let x = 1;
-  `[`[`[(|| {
+  (|| {
     `[let `[y]` = `[1]`;]`
     `[`(y)`;]`
-  })]`()]`;]`
+  })();
 }
 "#;
 
@@ -1078,11 +1078,11 @@ fn main() {
 fn closure_slice_inner_write_outer() {
   let src = r#"
 fn main() {
-  `[let `[mut x]` = `[1]`;]`
-  `[`[`[(|| {
+  let mut x = 1;
+  `[(|| {
     `[`[x += 1]`;]`
     `[`(x)`;]`
-  })]`()]`;]`
+  })]`();
 }
 "#;
 
@@ -1137,8 +1137,8 @@ fn macro_slice() {
   let src = r#"
 fn main() {
   `[let `[x]` = `[1]`;]`
-  `[let `[y]` = `[2]`;]`
-  `[println!("{} {}", `[`(x)`]`, `[y]`);]`
+  let y = 2;
+  `[println!("{} {}", `[`(x)`]`, y);]`
 }
 "#;
 
@@ -1246,11 +1246,11 @@ fn main() {
 fn async_simple() {
   let src = r#"
 async fn foobar(x: &mut i32) -> i32 { 0 }
-async fn test() `[{
+async fn test() {
   `[let `[mut x]` = `[1]`;]`
   `[`[foobar(`[&mut x]`)]`.await]`;
   `[`(x)`;]`
-}]`
+}
 fn main() {}
 "#;
 

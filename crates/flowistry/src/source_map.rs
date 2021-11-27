@@ -1,6 +1,5 @@
 use crate::mir::utils;
-
-use log::trace;
+use log::{debug, trace};
 use rustc_data_structures::{
   fx::FxHashSet as HashSet,
   graph::{iterate::reverse_post_order, WithPredecessors},
@@ -162,12 +161,11 @@ pub fn span_to_string(span: Span, source_map: &SourceMap) -> String {
   )
 }
 
-pub fn span_to_places(body: &Body<'tcx>, span: Span) -> (Vec<(Place<'tcx>, Location)>, Vec<Span>) {
+pub fn span_to_place(body: &Body<'tcx>, span: Span) -> Option<(Place<'tcx>, Location, Span)> {
   struct FindSpannedPlaces<'a, 'tcx> {
     body: &'a Body<'tcx>,
     span: Span,
-    places: HashSet<(Place<'tcx>, Location)>,
-    place_spans: Vec<Span>,
+    places: HashSet<(Place<'tcx>, Location, Span)>,
   }
 
   impl MirVisitor<'tcx> for FindSpannedPlaces<'_, 'tcx> {
@@ -199,9 +197,12 @@ pub fn span_to_places(body: &Body<'tcx>, span: Span) -> (Vec<(Place<'tcx>, Locat
         }
       };
 
-      if self.span.contains(span) || span.contains(self.span) {
-        self.places.insert((*place, location));
-        self.place_spans.push(span);
+      if span.from_expansion() {
+        return;
+      }
+
+      if self.span.contains(span) {
+        self.places.insert((*place, location, span));
       }
     }
   }
@@ -210,24 +211,33 @@ pub fn span_to_places(body: &Body<'tcx>, span: Span) -> (Vec<(Place<'tcx>, Locat
     body,
     span,
     places: HashSet::default(),
-    place_spans: Vec::new(),
   };
   visitor.visit_body(body);
 
-  let places = visitor.places.into_iter().collect::<Vec<_>>();
-
-  // Find the smallest spans that describe the sliced places
-  let mut spans = Vec::new();
+  debug!("Spanned places: {:#?}", visitor.places);
   visitor
-    .place_spans
-    .sort_by_key(|span| span.hi() - span.lo());
-  for span in visitor.place_spans.into_iter() {
-    if spans.iter().any(|other| span.contains(*other)) {
-      continue;
-    }
+    .places
+    .into_iter()
+    .max_by_key(|(_, _, span)| span.hi() - span.lo())
+}
 
-    spans.push(span);
+#[cfg(test)]
+mod test {
+  use super::*;
+  use crate::test_utils;
+
+  #[test]
+  fn test_span_to_places() {
+    let src = "fn main(){
+      let `(x)` = 1;
+      let y = 1;
+    }";
+    let (input, ranges) = test_utils::parse_ranges(src, [("`(", ")`")]).unwrap();
+    test_utils::compile_body(input, |_tcx, _, body| {
+      let name_map = utils::debug_info_name_map(body);
+      let span = test_utils::make_span(ranges["`("][0]);
+      let (place, _location, _span) = span_to_place(body, span).unwrap();
+      assert!(name_map[&place.local].to_string() == "x");
+    })
   }
-
-  (places, spans)
 }

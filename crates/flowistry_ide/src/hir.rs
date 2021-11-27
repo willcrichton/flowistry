@@ -66,10 +66,7 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
     .with_context(|| format!("No function with qpath {}", finder.qpath))
 }
 
-pub fn path_to_source_file<'tcx>(
-  path: impl AsRef<str>,
-  tcx: TyCtxt<'tcx>,
-) -> Result<Lrc<SourceFile>> {
+pub fn path_to_source_file(path: impl AsRef<str>, tcx: TyCtxt<'_>) -> Result<Lrc<SourceFile>> {
   let source_map = tcx.sess.source_map();
   let files = source_map.files();
   let path = path.as_ref();

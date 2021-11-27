@@ -6,7 +6,7 @@ use anyhow::Result;
 use flowistry::{
   infoflow::{self, Direction},
   mir::borrowck_facts::get_body_with_borrowck_facts,
-  source_map::{span_to_places, HirSpanner},
+  source_map,
 };
 use log::debug;
 use rustc_data_structures::fx::FxHashSet as HashSet;
@@ -64,14 +64,25 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     let results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
 
     let source_map = tcx.sess.source_map();
-    let (sliced_places, sliced_spans) = span_to_places(body, self.range.to_span(source_map)?);
-    debug!("sliced_places {:?}", sliced_places);
+    let (sliced_place, sliced_location, sliced_span) =
+      match source_map::span_to_place(body, self.range.to_span(source_map)?) {
+        Some(t) => t,
+        None => {
+          return Ok(SliceOutput::default());
+        }
+      };
+    debug!("sliced_place {:?}", sliced_place);
 
-    let spanner = HirSpanner::new(tcx, body_id);
-    let deps = infoflow::compute_dependency_spans(results, sliced_places, self.direction, &spanner);
+    let spanner = source_map::HirSpanner::new(tcx, body_id);
+    let deps = infoflow::compute_dependency_spans(
+      results,
+      vec![(sliced_place, sliced_location)],
+      self.direction,
+      &spanner,
+    );
 
     let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
-    let sliced_spans = ranges_from_spans(sliced_spans.into_iter(), source_map)?;
+    let sliced_spans = ranges_from_spans([sliced_span].into_iter(), source_map)?;
     let ranges = ranges_from_spans(deps.into_iter().flatten(), source_map)?;
     debug!("found {} ranges in slice", ranges.len());
 
