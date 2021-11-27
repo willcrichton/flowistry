@@ -163,7 +163,7 @@ export async function setup(
     } catch (e: any) {
       log("Install script failed with error:", e.toString());
 
-      let cargo_cmd = `${cargo} install flowistry --version ${VERSION} --force`;
+      let cargo_cmd = `${cargo} install flowistry_ide --version ${VERSION} --force`;
       await exec_notify(
         cargo_cmd,
         "Flowistry binaries not available, instead installing Flowistry crate from source... (this may take a minute)"
