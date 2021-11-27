@@ -7,7 +7,7 @@ use anyhow::Result;
 use flowistry::{
   indexed::IndexedDomain,
   infoflow::{self, Direction},
-  mir::{borrowck_facts::get_body_with_borrowck_facts, utils},
+  mir::{borrowck_facts::get_body_with_borrowck_facts, utils::BodyExt},
   source_map::{self, HirSpanner},
 };
 use intervaltree::IntervalTree;
@@ -64,7 +64,7 @@ impl FlowistryAnalysis for EffectsHarness {
     let def_id = tcx.hir().body_owner_def_id(body_id);
     let body_with_facts = get_body_with_borrowck_facts(tcx, def_id);
     let body = &body_with_facts.body;
-    debug!("{}", utils::mir_to_string(tcx, body)?);
+    debug!("{}", body.to_string(tcx)?);
 
     let flow_results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
 

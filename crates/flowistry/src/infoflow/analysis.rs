@@ -9,7 +9,7 @@ use crate::{
     aliases::Aliases,
     borrowck_facts::get_body_with_borrowck_facts,
     control_dependencies::ControlDependencies,
-    utils::{self, PlaceCollector},
+    utils::{self, OperandExt, PlaceCollector, PlaceExt},
   },
 };
 use log::{debug, info};
@@ -89,7 +89,7 @@ impl TransferFunction<'_, '_, 'tcx> {
 
       let terminator = body.basic_blocks()[block].terminator();
       if let TerminatorKind::SwitchInt { discr, .. } = &terminator.kind {
-        if let Some(discr_place) = utils::operand_to_place(discr) {
+        if let Some(discr_place) = discr.to_place() {
           add_deps(discr_place, &mut input_location_deps);
         }
       }
@@ -259,7 +259,7 @@ impl TransferFunction<'_, '_, 'tcx> {
         }
       }
 
-      if !utils::is_arg(child, body) || (mutated && !child.is_indirect()) {
+      if !child.is_arg(body) || (mutated && !child.is_indirect()) {
         return None;
       }
 
@@ -276,11 +276,11 @@ impl TransferFunction<'_, '_, 'tcx> {
 
       let mut projection = parent_toplevel_arg.projection.to_vec();
       projection.extend_from_slice(child.projection);
-      let parent_arg_projected = utils::mk_place(parent_toplevel_arg.local, &projection, tcx);
+      let parent_arg_projected = Place::make(parent_toplevel_arg.local, &projection, tcx);
 
       let parent_arg_accessible = {
         let mut sub_places = (0..=parent_arg_projected.projection.len()).rev().map(|i| {
-          utils::mk_place(
+          Place::make(
             parent_arg_projected.local,
             &parent_arg_projected.projection[..i],
             tcx,
@@ -356,7 +356,8 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
         }
 
         let inputs_for_arg = |arg: Place<'tcx>| {
-          utils::interior_pointers(arg, tcx, self.analysis.body, self.analysis.def_id)
+          arg
+            .interior_pointers(tcx, self.analysis.body, self.analysis.def_id)
             .into_values()
             .map(|places| {
               places
@@ -393,7 +394,7 @@ impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
       }
 
       TerminatorKind::DropAndReplace { place, value, .. } => {
-        if let Some(src) = utils::operand_to_place(value) {
+        if let Some(src) = value.to_place() {
           self.apply_mutation(*place, &[src], location, true, false);
         }
       }

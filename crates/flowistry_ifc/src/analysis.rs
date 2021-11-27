@@ -5,7 +5,7 @@ use anyhow::{Context, Result};
 use flowistry::{
   indexed::{IndexSetIteratorExt, IndexedDomain},
   infoflow::FlowResults,
-  mir::utils,
+  mir::utils::BodyExt,
 };
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::{def::Res, def_id::DefId, BodyId};
@@ -75,7 +75,8 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
   let secure_places = find_implements(ifc_items["Secure"]);
   let insecure_places = find_implements(ifc_items["Insecure"]);
 
-  let final_state = utils::all_returns(body)
+  let final_state = body
+    .all_returns()
     .into_iter()
     .map(|location| results.state_at(location).clone())
     .reduce(|mut a, b| {

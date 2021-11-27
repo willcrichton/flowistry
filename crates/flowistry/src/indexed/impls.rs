@@ -1,5 +1,5 @@
 use super::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, ToIndex};
-use crate::{mir::utils, to_index_impl};
+use crate::{mir::utils::PlaceExt, to_index_impl};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_index::vec::IndexVec;
 use rustc_infer::infer::TyCtxtInferExt;
@@ -65,7 +65,7 @@ impl NormalizedPlaces<'tcx> {
         })
         .collect::<Vec<_>>();
 
-      utils::mk_place(place.local, &projection, tcx)
+      Place::make(place.local, &projection, tcx)
     })
   }
 }
@@ -105,7 +105,7 @@ impl PlaceDomain<'tcx> {
       .domain
       .as_vec()
       .iter_enumerated()
-      .filter(|(_, place)| utils::is_arg(**place, body))
+      .filter(|(_, place)| place.is_arg(body))
       .map(|(index, _)| index)
       .collect()
   }
@@ -181,7 +181,7 @@ impl LocationDomain {
     let (arg_places, arg_locations): (Vec<_>, Vec<_>) = place_domain
       .as_vec()
       .iter()
-      .filter(|place| utils::is_arg(**place, body))
+      .filter(|place| place.is_arg(body))
       .enumerate()
       .map(|(i, place)| {
         (

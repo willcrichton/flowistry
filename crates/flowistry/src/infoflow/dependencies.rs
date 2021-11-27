@@ -8,7 +8,7 @@ use crate::{
     impls::{LocationSet, PlaceIndex, PlaceSet},
     IndexedDomain,
   },
-  mir::utils,
+  mir::utils::PlaceExt,
   source_map::{location_to_spans, HirSpanner},
 };
 use log::{debug, trace};
@@ -147,7 +147,7 @@ pub fn compute_dependencies(
       let mut places = new_place_set();
       places.insert(*place);
 
-      for (_, ptrs) in utils::interior_pointers(*place, tcx, body, results.analysis.def_id) {
+      for (_, ptrs) in place.interior_pointers(tcx, body, results.analysis.def_id) {
         for (place, _) in ptrs {
           debug!(
             "{:?} // {:?}",
