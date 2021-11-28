@@ -90,7 +90,11 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: publish -p flowistry
-       - uses: actions-rs/cargo@v1
+      # Sleep is b/c flowistry_ide won't publish until flowistry
+      # has registered on crates.io which takes a second. 
+      # TODO: is there a better way to wait?
+      - run: sleep 1min 
+      - uses: actions-rs/cargo@v1
         with:
           command: publish -p flowistry_ide
 

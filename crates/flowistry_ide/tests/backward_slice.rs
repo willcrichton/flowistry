@@ -941,7 +941,7 @@ fn main() {}
 fn function_ret_not_sliced() {
   let src = r#"
 fn foo(`[x]`: i32) -> i32 {
-  `[print!("{}", `(x)`);]`
+  `[print!("{}", `(x)`)]`;
   let y = 1;
   y
 }
@@ -1138,7 +1138,7 @@ fn macro_slice() {
 fn main() {
   `[let `[x]` = `[1]`;]`
   let y = 2;
-  `[println!("{} {}", `[`(x)`]`, y);]`
+  `[println!("{} {}", `[`(x)`]`, y)]`;
 }
 "#;
 
