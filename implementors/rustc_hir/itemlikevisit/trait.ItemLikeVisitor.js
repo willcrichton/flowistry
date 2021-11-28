@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["flowistry_ifc"] = [{"text":"impl&lt;'tcx&gt; ItemLikeVisitor&lt;'tcx&gt; for <a class=\"struct\" href=\"flowistry_ifc/struct.Visitor.html\" title=\"struct flowistry_ifc::Visitor\">Visitor</a>&lt;'tcx&gt;","synthetic":false,"types":["flowistry_ifc::Visitor"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

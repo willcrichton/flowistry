@@ -1,0 +1,1 @@
+initSidebarItems({"macro":[["insecure_print",""]],"struct":[["InsecureString",""]],"trait":[["Insecure",""],["Secure",""]]});

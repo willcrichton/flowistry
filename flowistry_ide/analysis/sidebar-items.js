@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["FlowistryError",""]],"trait":[["FlowistryAnalysis",""],["FlowistryOutput",""]],"type":[["FlowistryResult",""]]});

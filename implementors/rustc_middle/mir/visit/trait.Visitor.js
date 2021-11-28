@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["flowistry"] = [{"text":"impl&lt;'tcx&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/visit/trait.Visitor.html\" title=\"trait rustc_middle::mir::visit::Visitor\">Visitor</a>&lt;'tcx&gt; for <a class=\"struct\" href=\"flowistry/mir/utils/struct.PlaceCollector.html\" title=\"struct flowistry::mir::utils::PlaceCollector\">PlaceCollector</a>&lt;'tcx&gt;","synthetic":false,"types":["flowistry::mir::utils::PlaceCollector"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

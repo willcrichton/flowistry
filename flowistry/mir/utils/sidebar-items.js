@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["PlaceRelation",""]],"fn":[["arg_mut_ptrs",""],["arg_places",""],["dump_results",""],["hashmap_merge",""],["location_to_string",""]],"struct":[["PlaceCollector",""],["SimplifyMir",""]],"trait":[["BodyExt",""],["OperandExt",""],["PlaceExt",""]]});

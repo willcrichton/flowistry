@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["LocationDomain",""],["LocationIndex",""],["NormalizedPlaces",""],["PlaceDomain",""],["PlaceIndex",""]],"type":[["LocationSet",""],["PlaceSet",""]]});

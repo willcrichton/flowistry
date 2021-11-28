@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ContextMode",""],["MutabilityMode",""],["PointerMode",""]],"fn":[["is_extension_active",""]],"static":[["EVAL_MODE",""],["REACHED_LIBRARY",""]],"struct":[["EvalMode",""]]});

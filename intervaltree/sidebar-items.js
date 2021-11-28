@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Element","An element of an interval tree."],["IntervalTree","A simple and generic implementation of an immutable interval tree."],["QueryIter","Iterator for query results."],["TreeIntoIter","An iterator that moves out of an interval tree."],["TreeIter","An iterator over all the elements in the tree (in no particular order)."]]});
