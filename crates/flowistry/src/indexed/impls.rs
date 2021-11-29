@@ -1,5 +1,8 @@
 use super::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, ToIndex};
-use crate::{mir::utils::PlaceExt, to_index_impl};
+use crate::{
+  mir::utils::{BodyExt, PlaceExt},
+  to_index_impl,
+};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_index::vec::IndexVec;
 use rustc_infer::infer::TyCtxtInferExt;
@@ -164,17 +167,7 @@ pub struct LocationDomain {
 
 impl LocationDomain {
   pub fn new(body: &Body, place_domain: &Rc<PlaceDomain>) -> Rc<Self> {
-    let mut locations = body
-      .basic_blocks()
-      .iter_enumerated()
-      .map(|(block, data)| {
-        (0..data.statements.len() + 1).map(move |statement_index| Location {
-          block,
-          statement_index,
-        })
-      })
-      .flatten()
-      .collect::<Vec<_>>();
+    let mut locations = body.all_locations();
 
     let arg_block = BasicBlock::from_usize(body.basic_blocks().len());
 

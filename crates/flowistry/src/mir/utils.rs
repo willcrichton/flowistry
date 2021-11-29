@@ -515,6 +515,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
 
 pub trait BodyExt<'tcx> {
   fn all_returns(&self) -> Vec<Location>;
+  fn all_locations(&self) -> Vec<Location>;
   fn debug_info_name_map(&self) -> HashMap<Local, Symbol>;
   fn to_string(&self, tcx: TyCtxt<'tcx>) -> Result<String>;
 }
@@ -532,6 +533,20 @@ impl BodyExt<'tcx> for Body<'tcx> {
         _ => None,
       })
       .collect()
+  }
+
+  fn all_locations(&self) -> Vec<Location> {
+    self
+      .basic_blocks()
+      .iter_enumerated()
+      .map(|(block, data)| {
+        (0..data.statements.len() + 1).map(move |statement_index| Location {
+          block,
+          statement_index,
+        })
+      })
+      .flatten()
+      .collect::<Vec<_>>()
   }
 
   fn debug_info_name_map(&self) -> HashMap<Local, Symbol> {
