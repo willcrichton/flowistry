@@ -197,12 +197,61 @@ impl ControlDependencies {
   pub fn dependent_on(&self, block: BasicBlock) -> Option<&HybridBitSet<BasicBlock>> {
     self.0.row(block)
   }
+}
 
-  // pub fn is_dependent(&self, child: BasicBlock, parent: BasicBlock) -> bool {
-  //   self
-  //     .0
-  //     .row(parent)
-  //     .map(|row| row.contains(child))
-  //     .unwrap_or(false)
-  // }
+#[cfg(test)]
+mod test {
+  use super::*;
+  use crate::{mir::utils::BodyExt, test_utils};
+  use rustc_data_structures::fx::FxHashMap as HashMap;
+
+  #[test]
+  fn test_control_dependencies() {
+    let input = r#"
+    fn main() {
+      let mut x = 1;
+      x = 2;
+      if true { x = 3; }
+      for _ in 0 .. 1 { x = 4; }
+    }"#;
+    test_utils::compile_body(input, move |tcx, _, body_with_facts| {
+      let body = &body_with_facts.body;
+      let control_deps = ControlDependencies::build(body.clone());
+      let snippet = |loc| {
+        tcx
+          .sess
+          .source_map()
+          .span_to_snippet(body.source_info(loc).span)
+          .unwrap()
+      };
+
+      let mut snippet_to_loc: HashMap<_, Vec<_>> = HashMap::default();
+      for loc in body.all_locations() {
+        snippet_to_loc.entry(snippet(loc)).or_default().push(loc);
+      }
+
+      let x_eq_1 = &snippet_to_loc["mut x"];
+      let x_eq_2 = &snippet_to_loc["x = 2"];
+      let if_true = &snippet_to_loc["true"];
+      let x_eq_3 = &snippet_to_loc["x = 3"];
+      let for_in = &snippet_to_loc["0 .. 1"];
+      let x_eq_4 = &snippet_to_loc["x = 4"];
+
+      let is_dep_loc = |l1: Location, l2: Location| {
+        control_deps
+          .dependent_on(l1.block)
+          .map(|deps| deps.contains(l2.block))
+          .unwrap_or(false)
+      };
+
+      let is_dep = |l1: &[Location], l2: &[Location]| {
+        l1.iter().any(|l1| l2.iter().any(|l2| is_dep_loc(*l1, *l2)))
+      };
+
+      assert!(!is_dep(x_eq_2, x_eq_1));
+      assert!(is_dep(x_eq_3, if_true));
+      assert!(!is_dep(x_eq_2, if_true));
+      assert!(is_dep(x_eq_4, for_in));
+    });
+  }
 }

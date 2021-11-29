@@ -594,3 +594,38 @@ pub fn generate_conservative_constraints<'tcx>(
     .flatten()
     .collect::<Vec<_>>()
 }
+
+#[cfg(test)]
+mod test {
+  use super::*;
+  use crate::{
+    mir::utils::{BodyExt, PlaceExt},
+    test_utils,
+  };
+
+  #[test]
+  fn test_sccs() {
+    let input = r#"
+    fn main() {
+      let mut x = 1;
+      let y = &mut x;
+      *y;
+    }
+    "#;
+    test_utils::compile_body(input, |tcx, body_id, body_with_facts| {
+      let body = &body_with_facts.body;
+      let def_id = tcx.hir().body_owner_def_id(body_id);
+      let aliases = Aliases::build(tcx, def_id.to_def_id(), body_with_facts);
+      let name_map = body
+        .debug_info_name_map()
+        .into_iter()
+        .map(|(k, v)| (v.to_string(), k))
+        .collect::<HashMap<_, _>>();
+
+      let x = Place::from_local(name_map["x"], tcx);
+      let y = Place::from_local(name_map["y"], tcx);
+      let y_deref = tcx.mk_place_deref(y);
+      assert!(aliases.aliases.row_set(y_deref).unwrap().contains(x));
+    })
+  }
+}
