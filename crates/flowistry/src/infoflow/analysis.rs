@@ -1,3 +1,14 @@
+use std::{cell::RefCell, iter, rc::Rc};
+
+use log::{debug, info};
+use rustc_data_structures::fx::FxHashMap as HashMap;
+use rustc_hir::{def_id::DefId, BodyId};
+use rustc_middle::{
+  mir::{visit::Visitor, *},
+  ty::{subst::GenericArgKind, ClosureKind, TyCtxt, TyKind},
+};
+use rustc_mir_dataflow::{Analysis, AnalysisDomain, Forward, JoinSemiLattice};
+
 use super::{FlowResults, BODY_STACK};
 use crate::{
   extensions::{is_extension_active, ContextMode, MutabilityMode, REACHED_LIBRARY},
@@ -12,15 +23,6 @@ use crate::{
     utils::{self, OperandExt, PlaceCollector, PlaceExt},
   },
 };
-use log::{debug, info};
-use rustc_data_structures::fx::FxHashMap as HashMap;
-use rustc_hir::{def_id::DefId, BodyId};
-use rustc_middle::{
-  mir::{visit::Visitor, *},
-  ty::{subst::GenericArgKind, ClosureKind, TyCtxt, TyKind},
-};
-use rustc_mir_dataflow::{Analysis, AnalysisDomain, Forward, JoinSemiLattice};
-use std::{cell::RefCell, iter, rc::Rc};
 
 pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, Location>;
 
@@ -103,7 +105,8 @@ impl TransferFunction<'_, '_, 'tcx> {
 
     // Remove any conflicts that aren't actually mutable, e.g. if x : &T ends up
     // as an alias of y: &mut T
-    let ignore_mut = is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
+    let ignore_mut =
+      is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
     if !ignore_mut {
       let body = self.analysis.body;
       let tcx = self.analysis.tcx;
@@ -126,7 +129,11 @@ impl TransferFunction<'_, '_, 'tcx> {
     }
   }
 
-  fn recurse_into_call(&mut self, call: &TerminatorKind<'tcx>, location: Location) -> bool {
+  fn recurse_into_call(
+    &mut self,
+    call: &TerminatorKind<'tcx>,
+    location: Location,
+  ) -> bool {
     let tcx = self.analysis.tcx;
     let (func, parent_args, destination) = match call {
       TerminatorKind::Call {
@@ -248,7 +255,9 @@ impl TransferFunction<'_, '_, 'tcx> {
     let parent_aliases = &self.analysis.aliases;
     let child_domain = flow.analysis.place_domain();
 
-    let translate_child_to_parent = |child: Place<'tcx>, mutated: bool| -> Option<Place<'tcx>> {
+    let translate_child_to_parent = |child: Place<'tcx>,
+                                     mutated: bool|
+     -> Option<Place<'tcx>> {
       if child.local == RETURN_PLACE && child.projection.len() == 0 {
         if child.ty(body.local_decls(), tcx).ty.is_unit() {
           return None;
@@ -279,13 +288,16 @@ impl TransferFunction<'_, '_, 'tcx> {
       let parent_arg_projected = Place::make(parent_toplevel_arg.local, &projection, tcx);
 
       let parent_arg_accessible = {
-        let mut sub_places = (0..=parent_arg_projected.projection.len()).rev().map(|i| {
-          Place::make(
-            parent_arg_projected.local,
-            &parent_arg_projected.projection[..i],
-            tcx,
-          )
-        });
+        let mut sub_places =
+          (0 ..= parent_arg_projected.projection.len())
+            .rev()
+            .map(|i| {
+              Place::make(
+                parent_arg_projected.local,
+                &parent_arg_projected.projection[.. i],
+                tcx,
+              )
+            });
 
         sub_places
           .find(|sub_place| {
@@ -314,7 +326,9 @@ impl TransferFunction<'_, '_, 'tcx> {
         let parent_deps = return_state
           .rows()
           .filter(|(_, deps)| child_deps.is_superset(deps))
-          .filter_map(|(row, _)| translate_child_to_parent(*child_domain.value(row), false))
+          .filter_map(|(row, _)| {
+            translate_child_to_parent(*child_domain.value(row), false)
+          })
           .collect::<Vec<_>>();
 
         debug!(
@@ -331,7 +345,12 @@ impl TransferFunction<'_, '_, 'tcx> {
 }
 
 impl Visitor<'tcx> for TransferFunction<'a, 'b, 'tcx> {
-  fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
+  fn visit_assign(
+    &mut self,
+    place: &Place<'tcx>,
+    rvalue: &Rvalue<'tcx>,
+    location: Location,
+  ) {
     debug!("Checking {:?}: {:?} = {:?}", location, place, rvalue);
     let mut collector = PlaceCollector::default();
     collector.visit_rvalue(rvalue, location);

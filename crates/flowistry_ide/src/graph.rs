@@ -1,7 +1,3 @@
-use crate::{
-  analysis::{FlowistryAnalysis, FlowistryOutput, FlowistryResult},
-  range::FunctionIdentifier,
-};
 use anyhow::Result;
 use flowistry::{
   indexed::{
@@ -11,14 +7,20 @@ use flowistry::{
   infoflow,
   mir::{borrowck_facts::get_body_with_borrowck_facts, utils::PlaceExt},
 };
+use log::debug;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir::BodyId;
 use rustc_macros::Encodable;
 use rustc_middle::{
-  mir::{traversal, Location, ProjectionElem, VarDebugInfoContents, RETURN_PLACE},
+  mir::{traversal, Location, Place, ProjectionElem, VarDebugInfoContents, RETURN_PLACE},
   ty::{AdtKind, TyCtxt},
 };
 use rustc_span::Span;
+
+use crate::{
+  analysis::{FlowistryAnalysis, FlowistryOutput, FlowistryResult},
+  range::FunctionIdentifier,
+};
 
 #[derive(Debug, Clone, Encodable, Default)]
 pub struct PlaceDescriptor {
@@ -54,7 +56,11 @@ impl FlowistryAnalysis for GraphAnalysis {
     Ok(vec![self.id.to_span(tcx)?])
   }
 
-  fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> Result<Self::Output> {
+  fn analyze_function(
+    &mut self,
+    tcx: TyCtxt<'tcx>,
+    body_id: BodyId,
+  ) -> Result<Self::Output> {
     let def_id = tcx.hir().body_owner_def_id(body_id);
     let body_with_facts = get_body_with_borrowck_facts(tcx, def_id);
     let body = &body_with_facts.body;
@@ -64,24 +70,35 @@ impl FlowistryAnalysis for GraphAnalysis {
     let direct_places = place_domain
       .as_vec()
       .iter_enumerated()
-      .filter(|(_, place)| !place.is_indirect() || place.is_arg(body))
+      .filter(|(_, place)| {
+        place.is_direct(body) && {
+          let local_is_ref = Place::from_local(place.local, tcx)
+            .ty(&body.local_decls, tcx)
+            .ty
+            .is_ref();
+          !(place.is_arg(body) && local_is_ref && !place.is_indirect())
+        }
+      })
       .collect::<Vec<_>>();
 
+    let source_map = tcx.sess.source_map();
     let mut local_to_name = body
       .var_debug_info
       .iter()
       .filter_map(|info| match info.value {
-        VarDebugInfoContents::Place(place) => Some((place.local, info.name.to_string())),
+        VarDebugInfoContents::Place(place) => {
+          let from_expansion = info.source_info.span.from_expansion();
+          (!from_expansion).then(move || (place.local, info.name.to_string()))
+        }
         _ => None,
       })
       .collect::<HashMap<_, _>>();
     local_to_name.insert(RETURN_PLACE, "RETURN".into());
 
-    let place_names = direct_places
-      .iter()
-      .filter_map(|(index, place)| {
-        let local_name = local_to_name.get(&place.local)?;
-        let name = place
+    let place_to_string = |place: Place<'tcx>| -> Option<String> {
+      let local_name = local_to_name.get(&place.local)?;
+      Some(
+        place
           .iter_projections()
           .fold(local_name.to_string(), |s, (place, elem)| match elem {
             ProjectionElem::Deref => format!("*{}", s),
@@ -101,41 +118,42 @@ impl FlowistryAnalysis for GraphAnalysis {
               }
             }
             _ => unimplemented!(),
-          });
+          }),
+      )
+    };
 
-        Some((
-          index.as_usize(),
-          PlaceDescriptor {
-            place: format!("{:?}", place),
-            name,
-            local: place.local.as_usize(),
-            projection: place
-              .projection
-              .iter()
-              .map(|elem| format!("{:?}", elem))
-              .collect(),
-          },
-        ))
+    let place_names = direct_places
+      .iter()
+      .filter_map(|(index, place)| {
+        Some((index.as_usize(), PlaceDescriptor {
+          place: format!("{:?}", place),
+          name: place_to_string(**place)?,
+          local: place.local.as_usize(),
+          projection: place
+            .projection
+            .iter()
+            .map(|elem| format!("{:?}", elem))
+            .collect(),
+        }))
       })
       .collect::<HashMap<_, _>>();
 
-    let source_map = tcx.sess.source_map();
     let location_domain = results.analysis.location_domain();
     let location_names = location_domain
       .as_vec()
       .iter_enumerated()
       .filter(|(_, loc)| loc.block.as_usize() != body.basic_blocks().len())
       .map(|(index, loc)| {
-        let span = body.source_info(*loc).span;
+        let span = body.source_info(*loc).span.source_callsite();
         let lines = source_map.span_to_lines(span).unwrap().lines;
-        let s = if lines.len() == 1 {
-          format!("{}", lines[0].line_index + 1)
-        } else {
-          format!(
+        let s = match lines.len() {
+          0 => "???".into(),
+          1 => format!("{}", lines[0].line_index + 1),
+          _ => format!(
             "{}-{}",
             lines[0].line_index + 1,
             lines[lines.len() - 1].line_index + 1
-          )
+          ),
         };
         (index.as_usize(), s)
       })
@@ -146,7 +164,7 @@ impl FlowistryAnalysis for GraphAnalysis {
       HashMap<Location, (LocationSet, HashSet<(Location, PlaceIndex)>)>,
     > = HashMap::default();
     for (block, data) in traversal::reverse_postorder(body) {
-      let locations = (0..=data.statements.len()).map(|i| Location {
+      let locations = (0 ..= data.statements.len()).map(|i| Location {
         block,
         statement_index: i,
       });
@@ -158,24 +176,40 @@ impl FlowistryAnalysis for GraphAnalysis {
           .filter(|(place, deps)| {
             place_names.contains_key(&place.as_usize()) && deps.indices().next().is_some()
           })
-          .collect::<Vec<_>>();
+          .collect::<HashMap<_, _>>();
 
         for (place, place_loc_deps) in &rows {
           let place_entry = all_deps.entry(*place).or_default();
-          let unchanged = place_entry
-            .values()
-            .any(|(prev_place_loc_deps, _)| prev_place_loc_deps.as_ref() == *place_loc_deps);
+          let unchanged = place_entry.values().any(|(prev_place_loc_deps, _)| {
+            prev_place_loc_deps.as_ref() == *place_loc_deps
+          });
           if !unchanged {
             let place_place_deps = all_deps
               .iter()
               .filter_map(|(other, other_deps)| {
+                if let Some(other_loc_deps) = rows.get(other) {
+                  if place != other {
+                    return place_loc_deps
+                      .is_superset(other_loc_deps)
+                      .then(move || (location, *other));
+                  }
+                }
+
                 let (loc, _) = other_deps
                   .iter()
-                  .filter(|(_, (other_loc_deps, _))| place_loc_deps.is_superset(other_loc_deps))
+                  .filter(|(_, (other_loc_deps, _))| {
+                    place_loc_deps.is_superset(other_loc_deps)
+                  })
                   .max_by_key(|(_, (other_loc_deps, _))| other_loc_deps.len())?;
                 Some((*loc, *other))
               })
               .collect();
+            debug!(
+              "Adding {} @ {:?} -- {:?}",
+              place_names[&place.as_usize()].name,
+              location,
+              place_place_deps
+            );
             all_deps
               .entry(*place)
               .or_default()
@@ -185,6 +219,8 @@ impl FlowistryAnalysis for GraphAnalysis {
       }
     }
 
+    // from: Place -> Location -> {(Location, Place)}
+    // to: int -> int -> {(int, int)}
     let place_deps = all_deps
       .into_iter()
       .map(|(index, deps)| {
@@ -197,7 +233,9 @@ impl FlowistryAnalysis for GraphAnalysis {
                 location_domain.index(&loc).as_usize(),
                 deps
                   .into_iter()
-                  .map(|(loc, index)| (location_domain.index(&loc).as_usize(), index.as_usize()))
+                  .map(|(loc, index)| {
+                    (location_domain.index(&loc).as_usize(), index.as_usize())
+                  })
                   .collect(),
               )
             })
@@ -214,6 +252,9 @@ impl FlowistryAnalysis for GraphAnalysis {
   }
 }
 
-pub fn graph(id: FunctionIdentifier, compiler_args: &[String]) -> FlowistryResult<GraphOutput> {
+pub fn graph(
+  id: FunctionIdentifier,
+  compiler_args: &[String],
+) -> FlowistryResult<GraphOutput> {
   GraphAnalysis { id }.run(compiler_args)
 }

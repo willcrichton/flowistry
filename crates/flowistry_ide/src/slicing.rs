@@ -1,7 +1,3 @@
-use crate::{
-  analysis::{FlowistryAnalysis, FlowistryOutput, FlowistryResult},
-  range::{ranges_from_spans, Range},
-};
 use anyhow::Result;
 use flowistry::{
   infoflow::{self, Direction},
@@ -14,6 +10,11 @@ use rustc_hir::BodyId;
 use rustc_macros::Encodable;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
+
+use crate::{
+  analysis::{FlowistryAnalysis, FlowistryOutput, FlowistryResult},
+  range::{ranges_from_spans, Range},
+};
 
 struct ForwardSliceAnalysis {
   direction: Direction,

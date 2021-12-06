@@ -1,6 +1,7 @@
-use crate::mir::utils;
 use log::{debug, trace};
-use rustc_data_structures::{fx::FxHashSet as HashSet, graph::iterate::reverse_post_order};
+use rustc_data_structures::{
+  fx::FxHashSet as HashSet, graph::iterate::reverse_post_order,
+};
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor as HirVisitor},
   BodyId, Expr, Stmt,
@@ -10,7 +11,8 @@ use rustc_middle::{
   hir::map::Map,
   mir::{
     visit::{
-      MutatingUseContext, NonMutatingUseContext, NonUseContext, PlaceContext, Visitor as MirVisitor,
+      MutatingUseContext, NonMutatingUseContext, NonUseContext, PlaceContext,
+      Visitor as MirVisitor,
     },
     *,
   },
@@ -18,6 +20,8 @@ use rustc_middle::{
 };
 use rustc_span::{source_map::SourceMap, Pos, Span};
 use smallvec::{smallvec, SmallVec};
+
+use crate::mir::utils;
 
 pub struct HirSpanner {
   expr_spans: Vec<Span>,
@@ -159,7 +163,10 @@ pub fn span_to_string(span: Span, source_map: &SourceMap) -> String {
   )
 }
 
-pub fn span_to_place(body: &Body<'tcx>, span: Span) -> Option<(Place<'tcx>, Location, Span)> {
+pub fn span_to_place(
+  body: &Body<'tcx>,
+  span: Span,
+) -> Option<(Place<'tcx>, Location, Span)> {
   struct FindSpannedPlaces<'a, 'tcx> {
     body: &'a Body<'tcx>,
     span: Span,
@@ -167,7 +174,12 @@ pub fn span_to_place(body: &Body<'tcx>, span: Span) -> Option<(Place<'tcx>, Loca
   }
 
   impl MirVisitor<'tcx> for FindSpannedPlaces<'_, 'tcx> {
-    fn visit_place(&mut self, place: &Place<'tcx>, context: PlaceContext, location: Location) {
+    fn visit_place(
+      &mut self,
+      place: &Place<'tcx>,
+      context: PlaceContext,
+      location: Location,
+    ) {
       // Three cases, shown by example:
       //   fn foo(x: i32) {
       //     let y = x + 1;
@@ -224,7 +236,10 @@ mod test {
   use super::*;
   use crate::test_utils;
 
-  fn harness(src: &str, f: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &Body, Vec<Span>) + Send) {
+  fn harness(
+    src: &str,
+    f: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &Body, Vec<Span>) + Send,
+  ) {
     let (input, mut ranges) = test_utils::parse_ranges(src, [("`(", ")`")]).unwrap();
     test_utils::compile_body(input, move |tcx, body_id, body_with_facts| {
       let spans = ranges
@@ -303,7 +318,8 @@ mod test {
 
       let spanner = HirSpanner::new(tcx, body_id);
       let location = Location::START;
-      let _spans = location_to_spans(location, &body_with_facts.body, &spanner, source_map);
+      let _spans =
+        location_to_spans(location, &body_with_facts.body, &spanner, source_map);
       // TODO: finish these tests
     });
   }

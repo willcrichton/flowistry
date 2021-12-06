@@ -1,6 +1,7 @@
+use std::cell::RefCell;
+
 use fluid_let::fluid_let;
 use rustc_macros::Encodable;
-use std::cell::RefCell;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Encodable, Hash)]
 pub enum MutabilityMode {

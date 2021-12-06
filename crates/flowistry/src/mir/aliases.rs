@@ -1,12 +1,5 @@
-use crate::{
-  block_timer,
-  extensions::{is_extension_active, PointerMode},
-  indexed::{
-    impls::{NormalizedPlaces, PlaceDomain, PlaceIndex, PlaceSet},
-    IndexMatrix, IndexSetIteratorExt, IndexedDomain, ToIndex,
-  },
-  mir::utils::{self, PlaceExt, PlaceRelation},
-};
+use std::{cell::RefCell, rc::Rc};
+
 use log::{debug, info, trace};
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::{
@@ -22,7 +15,16 @@ use rustc_middle::{
   },
   ty::{RegionKind, RegionVid, TyCtxt, TyKind, TyS},
 };
-use std::{cell::RefCell, rc::Rc};
+
+use crate::{
+  block_timer,
+  extensions::{is_extension_active, PointerMode},
+  indexed::{
+    impls::{NormalizedPlaces, PlaceDomain, PlaceIndex, PlaceSet},
+    IndexMatrix, IndexSetIteratorExt, IndexedDomain, ToIndex,
+  },
+  mir::utils::{self, PlaceExt, PlaceRelation},
+};
 
 #[derive(Default)]
 struct GatherBorrows<'tcx> {
@@ -30,7 +32,12 @@ struct GatherBorrows<'tcx> {
 }
 
 impl Visitor<'tcx> for GatherBorrows<'tcx> {
-  fn visit_assign(&mut self, _place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, _location: Location) {
+  fn visit_assign(
+    &mut self,
+    _place: &Place<'tcx>,
+    rvalue: &Rvalue<'tcx>,
+    _location: Location,
+  ) {
     if let Rvalue::Ref(region, kind, borrowed_place) = *rvalue {
       let region_vid = match region {
         RegionKind::ReVar(region_vid) => *region_vid,
@@ -55,11 +62,21 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
     self.places.push(Place::from_local(local, self.tcx));
   }
 
-  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, _location: Location) {
+  fn visit_place(
+    &mut self,
+    place: &Place<'tcx>,
+    _context: PlaceContext,
+    _location: Location,
+  ) {
     self.places.push(*place);
   }
 
-  fn visit_assign(&mut self, place: &Place<'tcx>, rvalue: &Rvalue<'tcx>, location: Location) {
+  fn visit_assign(
+    &mut self,
+    place: &Place<'tcx>,
+    rvalue: &Rvalue<'tcx>,
+    location: Location,
+  ) {
     self.super_assign(place, rvalue, location);
 
     let is_borrow = matches!(rvalue, Rvalue::Ref(..));
@@ -74,7 +91,8 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
     match &terminator.kind {
       TerminatorKind::Call { args, .. } => {
         let arg_places = utils::arg_places(args);
-        let arg_mut_ptrs = utils::arg_mut_ptrs(&arg_places, self.tcx, self.body, self.def_id);
+        let arg_mut_ptrs =
+          utils::arg_mut_ptrs(&arg_places, self.tcx, self.body, self.def_id);
         self
           .places
           .extend(arg_mut_ptrs.into_iter().map(|(_, place)| place));
@@ -106,7 +124,8 @@ impl Aliases<'tcx> {
     node: ConstraintSccIndex,
   ) -> HashMap<RegionVid, BitSet<ConstraintSccIndex>> {
     let new_set = || BitSet::new_empty(sccs.num_sccs());
-    let set_merge = |s1: &mut BitSet<ConstraintSccIndex>, s2: BitSet<ConstraintSccIndex>| {
+    let set_merge = |s1: &mut BitSet<ConstraintSccIndex>,
+                     s2: BitSet<ConstraintSccIndex>| {
       s1.union(&s2);
     };
 
@@ -188,7 +207,7 @@ impl Aliases<'tcx> {
       .into_iter()
       //
       // Static region outlives everything, so add static :> r for all r
-      .chain((1..max_region).map(|i| (static_region, RegionVid::from_usize(i))))
+      .chain((1 .. max_region).map(|i| (static_region, RegionVid::from_usize(i))))
       //
       // Outlives-constraints on abstract regions are useful for borrow checking but aren't
       // useful for alias-analysis. Eg if self : &'a mut (i32, i32) and x = &'b mut *self.0,
@@ -220,7 +239,7 @@ impl Aliases<'tcx> {
         .map(|constraint| [constraint.0, constraint.1])
         .flatten()
         .collect::<HashSet<_>>();
-      for region in 0..max_region {
+      for region in 0 .. max_region {
         let region = RegionVid::from_usize(region);
         if regions_in_constraint.contains(&region) {
           let scc = constraint_sccs.scc(region);
@@ -320,7 +339,8 @@ impl Aliases<'tcx> {
         .iter_enumerated()
         .filter_map(move |(idx, other_place)| {
           let relation = PlaceRelation::of(*other_place, *place);
-          (relation.overlaps() && other_place.is_direct(body)).then(move || (relation, idx))
+          (relation.overlaps() && other_place.is_direct(body))
+            .then(move || (relation, idx))
         })
         .partition(|(relation, _)| match relation {
           PlaceRelation::Sub => true,
@@ -372,8 +392,8 @@ impl Aliases<'tcx> {
         .find(|(_, elem)| matches!(elem, ProjectionElem::Deref))
         .unwrap();
 
-      let ptr = Place::make(place.local, &place.projection[..deref_index], tcx);
-      let projection_past_deref = &place.projection[deref_index + 1..];
+      let ptr = Place::make(place.local, &place.projection[.. deref_index], tcx);
+      let projection_past_deref = &place.projection[deref_index + 1 ..];
 
       let (region, orig_ty) = match ptr.ty(body.local_decls(), tcx).ty.kind() {
         TyKind::Ref(RegionKind::ReVar(region), ty, _) => (*region, ty),
@@ -532,7 +552,8 @@ impl Aliases<'tcx> {
 
     // Convert loan sets for regions to alias sets for places by specializing
     // loans with projections
-    let (place_domain, all_aliases) = Self::compute_place_domain(tcx, body, def_id, &loans);
+    let (place_domain, all_aliases) =
+      Self::compute_place_domain(tcx, body, def_id, &loans);
 
     // Use alias sets to build derived metadata like the conflicts (#) relation
     let (aliases, deps, subs, supers) =

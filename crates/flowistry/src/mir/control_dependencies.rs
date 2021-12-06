@@ -1,3 +1,5 @@
+use std::{fmt, iter, option};
+
 use rustc_data_structures::graph::{
   self, dominators, iterate, vec_graph::VecGraph, WithSuccessors,
 };
@@ -7,7 +9,6 @@ use rustc_index::{
 };
 use rustc_middle::mir::*;
 use smallvec::SmallVec;
-use std::{fmt, iter, option};
 
 #[derive(Clone)]
 pub struct BodyReversed<'tcx> {
@@ -17,24 +18,27 @@ pub struct BodyReversed<'tcx> {
   dummy_set: BitSet<BasicBlock>,
 }
 
-pub fn compute_post_dominators(body: Body) -> (dominators::Dominators<BasicBlock>, BodyReversed) {
+pub fn compute_post_dominators(
+  body: Body,
+) -> (dominators::Dominators<BasicBlock>, BodyReversed) {
   let nblocks = body.basic_blocks().len();
   let exit_node = BasicBlock::from_usize(nblocks);
 
   let mut exit_set = BitSet::new_empty(nblocks);
   let dummy_set = BitSet::new_empty(nblocks);
-  let exit_nodes = body
-    .basic_blocks()
-    .iter_enumerated()
-    .filter_map(|(bb_index, bb_data)| {
-      // Specifically DO NOT check that #successors == 0, b/c that would include
-      // panic/unwind blocks which ruin the value of the post-dominator tree
-      if let TerminatorKind::Return = bb_data.terminator().kind {
-        Some(bb_index)
-      } else {
-        None
-      }
-    });
+  let exit_nodes =
+    body
+      .basic_blocks()
+      .iter_enumerated()
+      .filter_map(|(bb_index, bb_data)| {
+        // Specifically DO NOT check that #successors == 0, b/c that would include
+        // panic/unwind blocks which ruin the value of the post-dominator tree
+        if let TerminatorKind::Return = bb_data.terminator().kind {
+          Some(bb_index)
+        } else {
+          None
+        }
+      });
   for node in exit_nodes {
     exit_set.insert(node);
   }
@@ -91,7 +95,10 @@ impl<'tcx, 'graph> graph::GraphPredecessors<'graph> for BodyReversed<'tcx> {
 
 impl<'tcx> graph::WithPredecessors for BodyReversed<'tcx> {
   #[inline]
-  fn predecessors(&self, node: Self::Node) -> <Self as graph::GraphPredecessors<'_>>::Iter {
+  fn predecessors(
+    &self,
+    node: Self::Node,
+  ) -> <Self as graph::GraphPredecessors<'_>>::Iter {
     assert!(node != self.exit_node);
 
     let exit_pred = if self.exit_set.contains(node) {
@@ -201,9 +208,10 @@ impl ControlDependencies {
 
 #[cfg(test)]
 mod test {
+  use rustc_data_structures::fx::FxHashMap as HashMap;
+
   use super::*;
   use crate::{mir::utils::BodyExt, test_utils};
-  use rustc_data_structures::fx::FxHashMap as HashMap;
 
   #[test]
   fn test_control_dependencies() {

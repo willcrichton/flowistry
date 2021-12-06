@@ -3,10 +3,9 @@
 extern crate rustc_driver;
 extern crate rustc_interface;
 
-use rustc_interface::interface::Result as RustcResult;
-use std::env;
+use std::{env, process::exit};
 
-use std::process::exit;
+use rustc_interface::interface::Result as RustcResult;
 
 struct DefaultCallbacks;
 impl rustc_driver::Callbacks for DefaultCallbacks {}

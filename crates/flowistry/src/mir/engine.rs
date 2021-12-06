@@ -1,7 +1,5 @@
-use crate::indexed::{
-  impls::{LocationDomain, LocationIndex},
-  IndexedDomain,
-};
+use std::rc::Rc;
+
 use rustc_data_structures::{graph::WithSuccessors, work_queue::WorkQueue};
 use rustc_index::vec::IndexVec;
 use rustc_middle::{
@@ -9,7 +7,11 @@ use rustc_middle::{
   ty::TyCtxt,
 };
 use rustc_mir_dataflow::*;
-use std::rc::Rc;
+
+use crate::indexed::{
+  impls::{LocationDomain, LocationIndex},
+  IndexedDomain,
+};
 
 pub struct AnalysisResults<'tcx, A: Analysis<'tcx>> {
   pub analysis: A,
@@ -23,7 +25,7 @@ impl<'tcx, A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
     V: ResultsVisitor<'mir, 'tcx, FlowState = A::Domain>,
   {
     for (block, data) in traversal::reachable(body) {
-      for statement_index in 0..=data.statements.len() {
+      for statement_index in 0 ..= data.statements.len() {
         let location = Location {
           block,
           statement_index,
@@ -36,7 +38,11 @@ impl<'tcx, A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
         }
 
         if statement_index == data.statements.len() {
-          visitor.visit_terminator_after_primary_effect(state, data.terminator(), location)
+          visitor.visit_terminator_after_primary_effect(
+            state,
+            data.terminator(),
+            location,
+          )
         } else {
           visitor.visit_statement_after_primary_effect(
             state,
@@ -64,12 +70,13 @@ pub fn iterate_to_fixpoint<'tcx, A: Analysis<'tcx>>(
   let num_locs = location_domain.num_real_locations();
   let mut state = IndexVec::from_elem_n(bottom_value, num_locs);
 
-  analysis.initialize_start_block(body, &mut state[location_domain.index(&Location::START)]);
+  analysis
+    .initialize_start_block(body, &mut state[location_domain.index(&Location::START)]);
 
   let mut dirty_queue: WorkQueue<LocationIndex> = WorkQueue::with_none(num_locs);
   if A::Direction::is_forward() {
     for (block, data) in traversal::reverse_postorder(body) {
-      for statement_index in 0..=data.statements.len() {
+      for statement_index in 0 ..= data.statements.len() {
         dirty_queue.insert(location_domain.index(&Location {
           block,
           statement_index,

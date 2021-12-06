@@ -1,16 +1,19 @@
-use crate::{
-  block_timer,
-  indexed::impls::LocationDomain,
-  mir::{aliases::Aliases, control_dependencies::ControlDependencies, engine, utils::BodyExt},
-};
-use log::debug;
-use rustc_borrowck::consumers::BodyWithBorrowckFacts;
-use rustc_hir::BodyId;
-use rustc_middle::ty::TyCtxt;
 use std::cell::RefCell;
 
 pub use analysis::{FlowAnalysis, FlowDomain};
 pub use dependencies::{compute_dependencies, compute_dependency_spans, Direction};
+use log::debug;
+use rustc_borrowck::consumers::BodyWithBorrowckFacts;
+use rustc_hir::BodyId;
+use rustc_middle::ty::TyCtxt;
+
+use crate::{
+  block_timer,
+  indexed::impls::LocationDomain,
+  mir::{
+    aliases::Aliases, control_dependencies::ControlDependencies, engine, utils::BodyExt,
+  },
+};
 
 mod analysis;
 mod dependencies;
@@ -29,6 +32,11 @@ pub fn compute_flow<'a, 'tcx>(
 ) -> FlowResults<'a, 'tcx> {
   BODY_STACK.with(|body_stack| {
     body_stack.borrow_mut().push(body_id);
+    debug!(
+      "{}",
+      rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| s
+        .print_expr(&tcx.hir().body(body_id).value))
+    );
     debug!("{}", body_with_facts.body.to_string(tcx).unwrap());
 
     let def_id = tcx.hir().body_owner_def_id(body_id).to_def_id();
