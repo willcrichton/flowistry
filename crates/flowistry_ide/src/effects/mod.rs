@@ -1,8 +1,3 @@
-use self::visitor::EffectKind;
-use crate::{
-  analysis::{FlowistryAnalysis, FlowistryOutput, FlowistryResult},
-  range::{ranges_from_spans, FunctionIdentifier, Range},
-};
 use anyhow::Result;
 use flowistry::{
   indexed::IndexedDomain,
@@ -20,6 +15,12 @@ use rustc_middle::{
   ty::{TyCtxt, TyKind},
 };
 use rustc_span::Span;
+
+use self::visitor::EffectKind;
+use crate::{
+  analysis::{FlowistryAnalysis, FlowistryOutput, FlowistryResult},
+  range::{ranges_from_spans, FunctionIdentifier, Range},
+};
 
 mod visitor;
 
@@ -85,8 +86,12 @@ impl FlowistryAnalysis for EffectsHarness {
       .flatten()
       .unzip();
 
-    let dep_spans =
-      infoflow::compute_dependency_spans(flow_results, targets, Direction::Backward, &spanner);
+    let dep_spans = infoflow::compute_dependency_spans(
+      flow_results,
+      targets,
+      Direction::Backward,
+      &spanner,
+    );
 
     let source_map = tcx.sess.source_map();
     let mut ranged_effects = effects
@@ -108,21 +113,26 @@ impl FlowistryAnalysis for EffectsHarness {
       })
       .collect::<Vec<_>>();
 
-    for i in 0..ranged_effects.len() {
+    for i in 0 .. ranged_effects.len() {
       let other_ranges = ranged_effects
         .iter()
         .enumerate()
         .filter(|(j, _)| *j != i)
         .map(|(_, (_, effect))| effect.slice.clone())
         .flatten()
-        .map(|range| (range.start..range.end, ()))
+        .map(|range| (range.start .. range.end, ()))
         .collect::<IntervalTree<_, _>>();
 
       let unique = ranged_effects[i]
         .1
         .slice
         .iter()
-        .filter(|range| other_ranges.query(range.start..range.end).next().is_none())
+        .filter(|range| {
+          other_ranges
+            .query(range.start .. range.end)
+            .next()
+            .is_none()
+        })
         .cloned()
         .collect::<Vec<_>>();
 
@@ -156,13 +166,14 @@ impl FlowistryAnalysis for EffectsHarness {
         EffectKind::MutArg(arg) => {
           let arg_place = flow_results.analysis.place_domain().value(arg);
           let effect_str = {
-            let local_str =
-              if arg_place.local.as_usize() == 1 && fn_decl.implicit_self.has_implicit_self() {
-                "self".to_string()
-              } else {
-                let local_span = body.local_decls[arg_place.local].source_info.span;
-                source_map.span_to_snippet(local_span).unwrap()
-              };
+            let local_str = if arg_place.local.as_usize() == 1
+              && fn_decl.implicit_self.has_implicit_self()
+            {
+              "self".to_string()
+            } else {
+              let local_span = body.local_decls[arg_place.local].source_info.span;
+              source_map.span_to_snippet(local_span).unwrap()
+            };
 
             arg_place
               .iter_projections()
@@ -174,7 +185,8 @@ impl FlowistryAnalysis for EffectsHarness {
                       TyKind::Tuple(..) => format!("{}", field.as_usize()),
                       TyKind::Adt(..) => {
                         let adt_def = ty.ty_adt_def().unwrap();
-                        let field_def = adt_def.all_fields().nth(field.as_usize()).unwrap();
+                        let field_def =
+                          adt_def.all_fields().nth(field.as_usize()).unwrap();
                         format!("{}", field_def.ident)
                       }
                       _ => unimplemented!("{:?}", ty),
@@ -223,6 +235,9 @@ impl FlowistryAnalysis for EffectsHarness {
   }
 }
 
-pub fn effects(id: FunctionIdentifier, compiler_args: &[String]) -> FlowistryResult<EffectsOutput> {
+pub fn effects(
+  id: FunctionIdentifier,
+  compiler_args: &[String],
+) -> FlowistryResult<EffectsOutput> {
   EffectsHarness { id }.run(compiler_args)
 }

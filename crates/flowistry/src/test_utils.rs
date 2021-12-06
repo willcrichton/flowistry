@@ -1,11 +1,13 @@
-use crate::mir::borrowck_facts;
+use std::{io, path::Path, process::Command};
+
 use anyhow::{anyhow, bail, Context, Result};
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::{BodyId, ItemKind};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::{source_map::FileLoader, BytePos, Span, SyntaxContext};
-use std::{io, path::Path, process::Command};
+
+use crate::mir::borrowck_facts;
 
 struct StringLoader(String);
 impl FileLoader for StringLoader {
@@ -117,7 +119,8 @@ pub fn parse_ranges(
       $tokens
         .iter()
         .find(|t| {
-          in_idx + t.len() <= bytes.len() && t.as_bytes() == &bytes[in_idx..in_idx + t.len()]
+          in_idx + t.len() <= bytes.len()
+            && t.as_bytes() == &bytes[in_idx .. in_idx + t.len()]
         })
         .map(|t| *t)
     };

@@ -1,3 +1,5 @@
+use std::{default::Default, path::Path};
+
 use anyhow::{bail, Context, Result};
 use rustc_data_structures::sync::{Lrc, MappedReadGuard};
 use rustc_macros::Encodable;
@@ -6,7 +8,6 @@ use rustc_span::{
   source_map::{monotonic::MonotonicVec, SourceMap},
   BytePos, FileName, RealFileName, SourceFile, Span,
 };
-use std::{default::Default, path::Path};
 
 #[derive(Encodable, Debug, Clone, Hash, PartialEq, Eq, Default)]
 pub struct Range {
@@ -40,7 +41,9 @@ impl Range {
   pub fn from_span(span: Span, source_map: &SourceMap) -> Result<Self> {
     let file = source_map.lookup_source_file(span.lo());
     let filename = match &file.name {
-      FileName::Real(RealFileName::LocalPath(filename)) => filename.to_string_lossy().into_owned(),
+      FileName::Real(RealFileName::LocalPath(filename)) => {
+        filename.to_string_lossy().into_owned()
+      }
       filename => bail!("Range::from_span doesn't support {:?}", filename),
     };
 

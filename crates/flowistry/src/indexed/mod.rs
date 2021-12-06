@@ -1,9 +1,3 @@
-use rustc_data_structures::fx::FxHashMap as HashMap;
-use rustc_index::{
-  bit_set::BitSet,
-  vec::{Idx, IndexVec},
-};
-use rustc_mir_dataflow::{fmt::DebugWithContext, JoinSemiLattice};
 use std::{
   fmt,
   hash::Hash,
@@ -11,11 +5,19 @@ use std::{
   rc::Rc,
 };
 
+use rustc_data_structures::fx::FxHashMap as HashMap;
+use rustc_index::{
+  bit_set::BitSet,
+  vec::{Idx, IndexVec},
+};
+use rustc_mir_dataflow::{fmt::DebugWithContext, JoinSemiLattice};
+
 pub mod impls;
 
 pub trait IndexedValue: Eq + Hash + Clone + Ord + fmt::Debug {
   type Index: Idx + ToIndex<Self>;
-  type Domain: IndexedDomain<Index = Self::Index, Value = Self> = DefaultDomain<Self::Index, Self>;
+  type Domain: IndexedDomain<Index = Self::Index, Value = Self> =
+    DefaultDomain<Self::Index, Self>;
 }
 
 pub trait ToIndex<T: IndexedValue> {
@@ -39,7 +41,10 @@ impl<T: IndexedValue> ToIndex<T> for &T {
 macro_rules! to_index_impl {
   ($t:ty) => {
     impl ToIndex<$t> for <$t as IndexedValue>::Index {
-      fn to_index(&self, _domain: &<$t as IndexedValue>::Domain) -> <$t as IndexedValue>::Index {
+      fn to_index(
+        &self,
+        _domain: &<$t as IndexedValue>::Domain,
+      ) -> <$t as IndexedValue>::Index {
         *self
       }
     }
@@ -281,7 +286,12 @@ where
     write!(f, "{}", Escape(elts))
   }
 
-  fn fmt_diff_with(&self, old: &Self, ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+  fn fmt_diff_with(
+    &self,
+    old: &Self,
+    ctxt: &C,
+    f: &mut fmt::Formatter<'_>,
+  ) -> fmt::Result {
     if self == old {
       return Ok(());
     }
@@ -355,14 +365,21 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
     self.ensure_row(row).insert(col)
   }
 
-  pub fn union_into_row<S2>(&mut self, into: impl ToIndex<R>, from: &IndexSet<C, S2>) -> bool
+  pub fn union_into_row<S2>(
+    &mut self,
+    into: impl ToIndex<R>,
+    from: &IndexSet<C, S2>,
+  ) -> bool
   where
     S2: ToSet<C>,
   {
     self.ensure_row(into).union(&*from.set)
   }
 
-  pub fn row<'a>(&'a self, row: impl ToIndex<R> + 'a) -> impl Iterator<Item = &'a C> + 'a {
+  pub fn row<'a>(
+    &'a self,
+    row: impl ToIndex<R> + 'a,
+  ) -> impl Iterator<Item = &'a C> + 'a {
     let row = row.to_index(&self.row_domain);
     self
       .matrix
@@ -372,7 +389,10 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
       .flatten()
   }
 
-  pub fn row_set<'a>(&'a self, row: impl ToIndex<R>) -> Option<IndexSet<C, RefSet<'a, C>>> {
+  pub fn row_set<'a>(
+    &'a self,
+    row: impl ToIndex<R>,
+  ) -> Option<IndexSet<C, RefSet<'a, C>>> {
     let row = row.to_index(&self.row_domain);
     self.matrix.get(&row).map(|set| IndexSet {
       set: RefSet(set),
@@ -380,15 +400,14 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
     })
   }
 
-  pub fn rows<'a>(&'a self) -> impl Iterator<Item = (R::Index, IndexSet<C, RefSet<'a, C>>)> + 'a {
+  pub fn rows<'a>(
+    &'a self,
+  ) -> impl Iterator<Item = (R::Index, IndexSet<C, RefSet<'a, C>>)> + 'a {
     self.matrix.iter().map(move |(row, col)| {
-      (
-        *row,
-        IndexSet {
-          set: RefSet(col),
-          domain: self.col_domain.clone(),
-        },
-      )
+      (*row, IndexSet {
+        set: RefSet(col),
+        domain: self.col_domain.clone(),
+      })
     })
   }
 
@@ -446,7 +465,9 @@ impl<R: IndexedValue, C: IndexedValue> Clone for IndexMatrix<R, C> {
   }
 }
 
-impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug for IndexMatrix<R, C> {
+impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug
+  for IndexMatrix<R, C>
+{
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{{")?;
 
@@ -468,8 +489,8 @@ impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug for 
   }
 }
 
-impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx> DebugWithContext<Ctx>
-  for IndexMatrix<R, C>
+impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx>
+  DebugWithContext<Ctx> for IndexMatrix<R, C>
 {
   fn fmt_with(&self, ctxt: &Ctx, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{{")?;
@@ -489,7 +510,12 @@ impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx> DebugWithC
     write!(f, "}}<br align=\"left\" />")
   }
 
-  fn fmt_diff_with(&self, old: &Self, ctxt: &Ctx, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+  fn fmt_diff_with(
+    &self,
+    old: &Self,
+    ctxt: &Ctx,
+    f: &mut fmt::Formatter<'_>,
+  ) -> fmt::Result {
     if self == old {
       return Ok(());
     }

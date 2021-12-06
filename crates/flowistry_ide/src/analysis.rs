@@ -1,3 +1,5 @@
+use std::{panic, time::Instant};
+
 use anyhow::anyhow;
 use flowistry::{
   block_timer,
@@ -7,7 +9,6 @@ use flowistry::{
 };
 use fluid_let::fluid_set;
 use log::{debug, info};
-
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
   itemlikevisit::ItemLikeVisitor,
@@ -15,7 +16,6 @@ use rustc_hir::{
 };
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::Span;
-use std::{panic, time::Instant};
 
 pub trait FlowistryOutput: Send + Sync + Default {
   fn merge(&mut self, other: Self);
@@ -33,7 +33,11 @@ pub trait FlowistryAnalysis: Send + Sync + Sized {
   type Output: FlowistryOutput;
 
   fn locations(&self, tcx: TyCtxt) -> anyhow::Result<Vec<Span>>;
-  fn analyze_function(&mut self, tcx: TyCtxt, body_id: BodyId) -> anyhow::Result<Self::Output>;
+  fn analyze_function(
+    &mut self,
+    tcx: TyCtxt,
+    body_id: BodyId,
+  ) -> anyhow::Result<Self::Output>;
 
   fn run(self, compiler_args: &[String]) -> FlowistryResult<Self::Output> {
     let mut compiler_args = compiler_args.to_vec();
@@ -77,14 +81,17 @@ where
   A: FlowistryAnalysis,
 {
   fn analyze(&mut self, item_span: Span, body_id: BodyId) {
-    if !self.locations.iter().any(|span| item_span.contains(*span)) || self.output.is_err() {
+    if !self.locations.iter().any(|span| item_span.contains(*span))
+      || self.output.is_err()
+    {
       return;
     }
 
     let tcx = self.tcx;
     let analysis = &mut self.analysis;
 
-    let fn_name = tcx.def_path_debug_str(tcx.hir().body_owner_def_id(body_id).to_def_id());
+    let fn_name =
+      tcx.def_path_debug_str(tcx.hir().body_owner_def_id(body_id).to_def_id());
     block_timer!(&format!("Flowistry ({})", fn_name));
 
     let output = panic::catch_unwind(panic::AssertUnwindSafe(move || {
@@ -106,7 +113,9 @@ where
   }
 }
 
-struct AnalysisItemVisitor<'a, 'tcx, A: FlowistryAnalysis>(&'a mut VisitorContext<'tcx, A>);
+struct AnalysisItemVisitor<'a, 'tcx, A: FlowistryAnalysis>(
+  &'a mut VisitorContext<'tcx, A>,
+);
 
 impl<A: FlowistryAnalysis> Visitor<'tcx> for AnalysisItemVisitor<'_, 'tcx, A> {
   type Map = Map<'tcx>;

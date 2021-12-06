@@ -1,4 +1,4 @@
-use crate::{block_timer, mir::utils::SimplifyMir};
+use std::{cell::RefCell, pin::Pin};
 
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::FxHashMap as HashMap;
@@ -10,7 +10,7 @@ use rustc_middle::ty::{
 };
 use rustc_mir_transform::MirPass;
 
-use std::{cell::RefCell, pin::Pin};
+use crate::{block_timer, mir::utils::SimplifyMir};
 
 // For why we need to do override mir_borrowck, see:
 // https://github.com/rust-lang/rust/blob/485ced56b8753ec86936903f2a8c95e9be8996a1/src/test/run-make-fulldeps/obtain-borrowck/driver.rs
@@ -66,9 +66,10 @@ pub fn get_body_with_borrowck_facts(
     let state = state.borrow();
     let body = &*state.get(&def_id).unwrap();
     unsafe {
-      std::mem::transmute::<&BodyWithBorrowckFacts<'static>, &'tcx BodyWithBorrowckFacts<'tcx>>(
-        body,
-      )
+      std::mem::transmute::<
+        &BodyWithBorrowckFacts<'static>,
+        &'tcx BodyWithBorrowckFacts<'tcx>,
+      >(body)
     }
   })
 }
