@@ -1,4 +1,6 @@
-use flowistry::extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE};
+use flowistry::extensions::{
+  ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE,
+};
 use fluid_let::fluid_set;
 use test_env_log::test;
 use utils::backward_slice;
@@ -7,13 +9,10 @@ mod utils;
 
 macro_rules! mode {
   ($key:ident : $val:expr) => {
-    fluid_set!(
-      EVAL_MODE,
-      &EvalMode {
-        $key: $val,
-        ..Default::default()
-      }
-    );
+    fluid_set!(EVAL_MODE, &EvalMode {
+      $key: $val,
+      ..Default::default()
+    });
   };
 }
 

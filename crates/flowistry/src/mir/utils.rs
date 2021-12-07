@@ -1,4 +1,12 @@
-use crate::extensions::{is_extension_active, MutabilityMode};
+use std::{
+  collections::hash_map::Entry,
+  hash::Hash,
+  io::Write,
+  ops::ControlFlow,
+  path::Path,
+  process::{Command, Stdio},
+};
+
 use anyhow::{bail, Result};
 use log::{trace, warn};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
@@ -17,14 +25,8 @@ use rustc_mir_transform::MirPass;
 use rustc_span::Symbol;
 use rustc_target::abi::VariantIdx;
 use smallvec::SmallVec;
-use std::{
-  collections::hash_map::Entry,
-  hash::Hash,
-  io::Write,
-  ops::ControlFlow,
-  path::Path,
-  process::{Command, Stdio},
-};
+
+use crate::extensions::{is_extension_active, MutabilityMode};
 
 pub trait OperandExt<'tcx> {
   fn to_place(&self) -> Option<Place<'tcx>>;
@@ -45,7 +47,8 @@ pub fn arg_mut_ptrs<'tcx>(
   body: &Body<'tcx>,
   def_id: DefId,
 ) -> Vec<(usize, Place<'tcx>)> {
-  let ignore_mut = is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
+  let ignore_mut =
+    is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
   args
     .iter()
     .map(|(i, place)| {
@@ -131,9 +134,9 @@ impl PlaceRelation {
 
     let is_sub_part = part_place.projection.len() >= whole_place.projection.len();
     let remaining_projection = if is_sub_part {
-      &part_place.projection[whole_place.projection.len()..]
+      &part_place.projection[whole_place.projection.len() ..]
     } else {
-      &whole_place.projection[part_place.projection.len()..]
+      &whole_place.projection[part_place.projection.len() ..]
     };
 
     if remaining_projection
@@ -161,7 +164,12 @@ pub struct PlaceCollector<'tcx> {
 }
 
 impl Visitor<'tcx> for PlaceCollector<'tcx> {
-  fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, _location: Location) {
+  fn visit_place(
+    &mut self,
+    place: &Place<'tcx>,
+    _context: PlaceContext,
+    _location: Location,
+  ) {
     self.places.push(*place);
   }
 }
@@ -176,7 +184,8 @@ where
   A: Analysis<'tcx>,
   A::Domain: DebugWithContext<A>,
 {
-  let graphviz = graphviz::Formatter::new(body, results, graphviz::OutputStyle::AfterOnly);
+  let graphviz =
+    graphviz::Formatter::new(body, results, graphviz::OutputStyle::AfterOnly);
   let mut buf = Vec::new();
   dot::render(&graphviz, &mut buf)?;
 
@@ -282,7 +291,9 @@ impl PlaceExt<'tcx> for Place<'tcx> {
     self
       .iter_projections()
       .filter_map(|(place_ref, elem)| match elem {
-        ProjectionElem::Deref => Some(Place::make(place_ref.local, place_ref.projection, tcx)),
+        ProjectionElem::Deref => {
+          Some(Place::make(place_ref.local, place_ref.projection, tcx))
+        }
         _ => None,
       })
       .collect()
@@ -515,6 +526,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
 
 pub trait BodyExt<'tcx> {
   fn all_returns(&self) -> Vec<Location>;
+  fn all_locations(&self) -> Vec<Location>;
   fn debug_info_name_map(&self) -> HashMap<Local, Symbol>;
   fn to_string(&self, tcx: TyCtxt<'tcx>) -> Result<String>;
 }
@@ -532,6 +544,20 @@ impl BodyExt<'tcx> for Body<'tcx> {
         _ => None,
       })
       .collect()
+  }
+
+  fn all_locations(&self) -> Vec<Location> {
+    self
+      .basic_blocks()
+      .iter_enumerated()
+      .map(|(block, data)| {
+        (0 .. data.statements.len() + 1).map(move |statement_index| Location {
+          block,
+          statement_index,
+        })
+      })
+      .flatten()
+      .collect::<Vec<_>>()
   }
 
   fn debug_info_name_map(&self) -> HashMap<Local, Symbol> {

@@ -1,13 +1,13 @@
-use crate::mir::borrowck_facts;
+use std::{io, path::Path, process::Command};
+
 use anyhow::{anyhow, bail, Context, Result};
+use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::{BodyId, ItemKind};
-use rustc_middle::{
-  mir::Body,
-  ty::{TyCtxt, WithOptConstParam},
-};
+use rustc_middle::ty::TyCtxt;
 use rustc_span::{source_map::FileLoader, BytePos, Span, SyntaxContext};
-use std::{io, path::Path, process::Command};
+
+use crate::mir::borrowck_facts;
 
 struct StringLoader(String);
 impl FileLoader for StringLoader {
@@ -34,7 +34,7 @@ lazy_static::lazy_static! {
 
 pub fn compile_body(
   input: impl Into<String>,
-  callback: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &Body<'tcx>) + Send,
+  callback: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &BodyWithBorrowckFacts<'tcx>) + Send,
 ) {
   compile(input, |tcx| {
     let body_id = tcx
@@ -48,9 +48,9 @@ pub fn compile_body(
       .unwrap();
 
     let def_id = tcx.hir().body_owner_def_id(body_id);
-    let body = tcx.mir_built(WithOptConstParam::unknown(def_id)).borrow();
+    let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
 
-    callback(tcx, body_id, &*body);
+    callback(tcx, body_id, body_with_facts);
   })
 }
 
@@ -58,7 +58,10 @@ pub fn compile(input: impl Into<String>, callback: impl FnOnce(TyCtxt<'_>) + Sen
   let mut callbacks = TestCallbacks {
     callback: Some(callback),
   };
-  let args = format!("rustc dummy.rs --crate-type lib --sysroot {}", &*SYSROOT);
+  let args = format!(
+    "rustc dummy.rs --crate-type lib -Z identify-regions -Z mir-opt-level=0 --sysroot {}",
+    &*SYSROOT
+  );
   let args = args.split(' ').map(|s| s.to_string()).collect::<Vec<_>>();
 
   rustc_driver::catch_fatal_errors(|| {
@@ -116,7 +119,8 @@ pub fn parse_ranges(
       $tokens
         .iter()
         .find(|t| {
-          in_idx + t.len() <= bytes.len() && t.as_bytes() == &bytes[in_idx..in_idx + t.len()]
+          in_idx + t.len() <= bytes.len()
+            && t.as_bytes() == &bytes[in_idx .. in_idx + t.len()]
         })
         .map(|t| *t)
     };

@@ -1,5 +1,12 @@
 #![allow(dead_code)]
 
+use std::{
+  collections::{HashMap, HashSet},
+  fmt::Debug,
+  io::Write,
+  process::Command,
+};
+
 use anyhow::Result;
 use flowistry::{infoflow::Direction, test_utils::parse_ranges};
 use flowistry_ide::{
@@ -7,12 +14,6 @@ use flowistry_ide::{
   range::{FunctionIdentifier, Range},
 };
 use lazy_static::lazy_static;
-use std::{
-  collections::{HashMap, HashSet},
-  fmt::Debug,
-  io::Write,
-  process::Command,
-};
 use tempfile::NamedTempFile;
 
 fn color_ranges(prog: &str, all_ranges: Vec<(&str, &HashSet<Range>)>) -> String {
@@ -23,9 +24,9 @@ fn color_ranges(prog: &str, all_ranges: Vec<(&str, &HashSet<Range>)>) -> String 
         .iter()
         .map(|range| {
           let contained = all_ranges.iter().any(|(_, ranges)| {
-            ranges
-              .iter()
-              .any(|other| range != other && other.start <= range.end && range.end < other.end)
+            ranges.iter().any(|other| {
+              range != other && other.start <= range.end && range.end < other.end
+            })
           });
           let end_marker = if contained { "]" } else { "\x1B[0m]" };
           [("[\x1B[31m", range.start), (end_marker, range.end)]
@@ -48,7 +49,8 @@ fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &str) 
   let missing = &expected - &actual;
   let extra = &actual - &expected;
 
-  let fmt_ranges = |s: &HashSet<Range>| textwrap::indent(&color_ranges(prog, vec![("", s)]), "  ");
+  let fmt_ranges =
+    |s: &HashSet<Range>| textwrap::indent(&color_ranges(prog, vec![("", s)]), "  ");
 
   let check = |s: HashSet<Range>, message: &str| {
     if s.len() > 0 {
@@ -94,7 +96,8 @@ pub fn slice(prog: &str, direction: Direction) {
     let mut f = NamedTempFile::new()?;
     let filename = f.path().to_string_lossy().to_string();
 
-    let (prog_clean, parsed_ranges) = parse_ranges(prog, vec![("`[", "]`"), ("`(", ")`")])?;
+    let (prog_clean, parsed_ranges) =
+      parse_ranges(prog, vec![("`[", "]`"), ("`(", ")`")])?;
     let ranges = parsed_ranges
       .into_iter()
       .map(|(k, vs)| {

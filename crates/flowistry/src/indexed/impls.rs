@@ -1,5 +1,5 @@
-use super::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, ToIndex};
-use crate::{mir::utils::PlaceExt, to_index_impl};
+use std::{cell::RefCell, rc::Rc};
+
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_index::vec::IndexVec;
 use rustc_infer::infer::TyCtxtInferExt;
@@ -10,7 +10,12 @@ use rustc_middle::{
 };
 use rustc_span::def_id::DefId;
 use rustc_trait_selection::infer::InferCtxtExt;
-use std::{cell::RefCell, rc::Rc};
+
+use super::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, ToIndex};
+use crate::{
+  mir::utils::{BodyExt, PlaceExt},
+  to_index_impl,
+};
 
 rustc_index::newtype_index! {
   pub struct PlaceIndex {
@@ -49,7 +54,11 @@ impl NormalizedPlaces<'tcx> {
       let place = tcx.erase_regions(place);
       let place = tcx.infer_ctxt().enter(|infcx| {
         infcx
-          .partially_normalize_associated_types_in(ObligationCause::dummy(), param_env, place)
+          .partially_normalize_associated_types_in(
+            ObligationCause::dummy(),
+            param_env,
+            place,
+          )
           .value
       });
 
@@ -164,17 +173,7 @@ pub struct LocationDomain {
 
 impl LocationDomain {
   pub fn new(body: &Body, place_domain: &Rc<PlaceDomain>) -> Rc<Self> {
-    let mut locations = body
-      .basic_blocks()
-      .iter_enumerated()
-      .map(|(block, data)| {
-        (0..data.statements.len() + 1).map(move |statement_index| Location {
-          block,
-          statement_index,
-        })
-      })
-      .flatten()
-      .collect::<Vec<_>>();
+    let mut locations = body.all_locations();
 
     let arg_block = BasicBlock::from_usize(body.basic_blocks().len());
 
@@ -184,13 +183,10 @@ impl LocationDomain {
       .filter(|place| place.is_arg(body))
       .enumerate()
       .map(|(i, place)| {
-        (
-          *place,
-          Location {
-            block: arg_block,
-            statement_index: i,
-          },
-        )
+        (*place, Location {
+          block: arg_block,
+          statement_index: i,
+        })
       })
       .unzip();
 

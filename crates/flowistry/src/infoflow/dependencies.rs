@@ -1,3 +1,8 @@
+use log::{debug, trace};
+use rustc_middle::mir::*;
+use rustc_mir_dataflow::ResultsVisitor;
+use rustc_span::Span;
+
 use super::{
   analysis::{FlowAnalysis, FlowDomain},
   FlowResults,
@@ -11,10 +16,6 @@ use crate::{
   mir::utils::PlaceExt,
   source_map::{location_to_spans, HirSpanner},
 };
-use log::{debug, trace};
-use rustc_middle::mir::*;
-use rustc_mir_dataflow::ResultsVisitor;
-use rustc_span::Span;
 
 #[derive(Clone, Copy, Debug)]
 pub enum Direction {
@@ -187,7 +188,8 @@ pub fn compute_dependencies(
     .iter()
     .map(|_| (new_location_set(), new_place_set()))
     .collect::<Vec<_>>();
-  for ((target_places, _), (_, places)) in expanded_targets.iter().zip(outputs.iter_mut()) {
+  for ((target_places, _), (_, places)) in expanded_targets.iter().zip(outputs.iter_mut())
+  {
     places.union(target_places);
   }
 

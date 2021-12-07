@@ -2,13 +2,14 @@
 
 extern crate rustc_interface;
 
-use clap::clap_app;
-use rand::prelude::*;
 use std::{
   env,
   path::PathBuf,
   process::{exit, Command},
 };
+
+use clap::clap_app;
+use rand::prelude::*;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 

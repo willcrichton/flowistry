@@ -89,14 +89,16 @@ jobs:
       - run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
       - uses: actions-rs/cargo@v1
         with:
-          command: publish -p flowistry
+          command: publish
+          args: -p flowistry
       # Sleep is b/c flowistry_ide won't publish until flowistry
       # has registered on crates.io which takes a second. 
       # TODO: is there a better way to wait?
-      - run: sleep 1min 
+      - run: sleep 1min; cp README.md crates/flowistry_ide/
       - uses: actions-rs/cargo@v1
         with:
-          command: publish -p flowistry_ide
+          command: publish
+          args: -p flowistry_ide --allow-dirty
 
   publish-docs:
     needs: test

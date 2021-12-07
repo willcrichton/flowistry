@@ -7,6 +7,15 @@ extern crate rustc_errors;
 extern crate rustc_interface;
 extern crate rustc_serialize;
 
+use std::{
+  env,
+  fmt::Debug,
+  ops::Deref,
+  path::PathBuf,
+  process::{exit, Command},
+  str::FromStr,
+};
+
 use flowistry::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
   infoflow::Direction,
@@ -19,14 +28,6 @@ use fluid_let::fluid_set;
 use log::debug;
 use rustc_interface::interface::Result as RustcResult;
 use rustc_serialize::{json, Encodable};
-use std::{
-  env,
-  fmt::Debug,
-  ops::Deref,
-  path::PathBuf,
-  process::{exit, Command},
-  str::FromStr,
-};
 
 fn arg<T>(s: &str) -> T
 where

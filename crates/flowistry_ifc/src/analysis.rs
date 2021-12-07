@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 #![allow(dead_code)]
 
+use std::io::Write;
+
 use anyhow::{Context, Result};
 use flowistry::{
   indexed::{IndexSetIteratorExt, IndexedDomain},
@@ -17,7 +19,6 @@ use rustc_middle::{
 use rustc_mir_dataflow::JoinSemiLattice;
 use rustc_span::FileName;
 use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
-use std::io::Write;
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 fn implements_trait(
@@ -28,8 +29,12 @@ fn implements_trait(
 ) -> bool {
   tcx.infer_ctxt().enter(|infcx| {
     let ty = tcx.erase_regions(ty);
-    let result =
-      infcx.type_implements_trait(trait_def_id, ty, tcx.mk_substs_trait(ty, &[]), param_env);
+    let result = infcx.type_implements_trait(
+      trait_def_id,
+      ty,
+      tcx.mk_substs_trait(ty, &[]),
+      param_env,
+    );
     matches!(
       result,
       EvaluationResult::EvaluatedToOk | EvaluationResult::EvaluatedToOkModuloRegions

@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use std::path::Path;
+
 use anyhow::{anyhow, Context, Result};
 use rustc_data_structures::sync::Lrc;
 use rustc_hir::{
@@ -9,7 +11,6 @@ use rustc_hir::{
 };
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::{FileName, RealFileName, SourceFile, Span};
-use std::path::Path;
 
 pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
   struct Finder<'tcx> {
@@ -33,7 +34,7 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
         .tcx
         .def_path(local_def_id.to_def_id())
         .to_string_no_crate_verbose();
-      if function_path[2..] == self.qpath {
+      if function_path[2 ..] == self.qpath {
         self.span = Some(self.tcx.hir().span(id.hir_id));
       }
     }
@@ -66,7 +67,10 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
     .with_context(|| format!("No function with qpath {}", finder.qpath))
 }
 
-pub fn path_to_source_file(path: impl AsRef<str>, tcx: TyCtxt<'_>) -> Result<Lrc<SourceFile>> {
+pub fn path_to_source_file(
+  path: impl AsRef<str>,
+  tcx: TyCtxt<'_>,
+) -> Result<Lrc<SourceFile>> {
   let source_map = tcx.sess.source_map();
   let files = source_map.files();
   let path = path.as_ref();
