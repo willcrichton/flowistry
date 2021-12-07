@@ -1,6 +1,9 @@
 use anyhow::Result;
 use flowistry::{
-  mir::{borrowck_facts::get_body_with_borrowck_facts, mutations::find_mutations},
+  mir::{
+    aliases::Aliases, borrowck_facts::get_body_with_borrowck_facts,
+    mutations::find_mutations,
+  },
   source_map::{self, location_to_spans},
 };
 use log::debug;
@@ -50,6 +53,7 @@ impl FlowistryAnalysis for MutationAnalysis {
     let def_id = tcx.hir().body_owner_def_id(body_id);
     let body_with_facts = get_body_with_borrowck_facts(tcx, def_id);
     let body = &body_with_facts.body;
+    let aliases = Aliases::build(tcx, def_id.to_def_id(), body_with_facts);
 
     let source_map = tcx.sess.source_map();
     let (selected_place, _, selected_span) =
@@ -66,7 +70,7 @@ impl FlowistryAnalysis for MutationAnalysis {
     let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
     let selected_spans = ranges_from_spans([selected_span].into_iter(), source_map)?;
 
-    let mutation_locations = find_mutations(body, selected_place);
+    let mutation_locations = find_mutations(tcx, body, selected_place, aliases);
     let mutation_spans = mutation_locations
       .into_iter()
       .map(|location| location_to_spans(location, body, &spanner, source_map))
