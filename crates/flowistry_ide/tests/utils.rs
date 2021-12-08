@@ -8,7 +8,10 @@ use std::{
 };
 
 use anyhow::Result;
-use flowistry::{infoflow::Direction, test_utils::parse_ranges};
+use flowistry::{
+  infoflow::Direction,
+  test_utils::{parse_ranges, ParsedRangeMap},
+};
 use flowistry_ide::{
   analysis::FlowistryResult,
   range::{FunctionIdentifier, Range},
@@ -98,21 +101,7 @@ pub fn slice(prog: &str, direction: Direction) {
 
     let (prog_clean, parsed_ranges) =
       parse_ranges(prog, vec![("`[", "]`"), ("`(", ")`")])?;
-    let ranges = parsed_ranges
-      .into_iter()
-      .map(|(k, vs)| {
-        (
-          k,
-          vs.into_iter()
-            .map(|(start, end)| Range {
-              start,
-              end,
-              filename: filename.to_string(),
-            })
-            .collect::<Vec<_>>(),
-        )
-      })
-      .collect::<HashMap<_, _>>();
+    let ranges = parsed_to_ranges(parsed_ranges, filename);
     let range = ranges["`("][0].clone();
     let mut expected = ranges["`["].clone().into_iter().collect::<HashSet<_>>();
     expected.insert(range.clone());
@@ -128,6 +117,38 @@ pub fn slice(prog: &str, direction: Direction) {
     let args = args.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
 
     let output = flowistry_ide::slicing::slice(direction, range, &args).unwrap();
+    let actual = output.ranges().into_iter().cloned().collect::<HashSet<_>>();
+
+    compare_ranges(expected, actual, &prog_clean);
+
+    Ok(())
+  };
+
+  inner().unwrap();
+}
+
+pub fn find_mutations(prog: &str) {
+  let inner = move || -> Result<()> {
+    let mut f = NamedTempFile::new()?;
+    let filename = f.path().to_string_lossy().to_string();
+
+    let (prog_clean, parsed_ranges) =
+      parse_ranges(prog, vec![("`[", "]`"), ("`(", ")`")])?;
+    let ranges = parsed_to_ranges(parsed_ranges, filename);
+    let range = ranges["`("][0].clone();
+    let expected = ranges["`["].clone().into_iter().collect::<HashSet<_>>();
+
+    f.as_file_mut().write(prog_clean.as_bytes())?;
+
+    let args = format!(
+      "rustc --crate-name tmp --edition=2018 {} -A warnings --sysroot {}",
+      f.path().display(),
+      *SYSROOT
+    );
+
+    let args = args.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
+
+    let output = flowistry_ide::mutations::find(range, &args).unwrap();
     let actual = output.ranges().into_iter().cloned().collect::<HashSet<_>>();
 
     compare_ranges(expected, actual, &prog_clean);
@@ -168,4 +189,25 @@ lazy_static! {
   .unwrap()
   .trim()
   .to_owned();
+}
+
+pub fn parsed_to_ranges(
+  parsed: ParsedRangeMap,
+  filename: String,
+) -> HashMap<&'static str, Vec<Range>> {
+  parsed
+    .into_iter()
+    .map(|(k, vs)| {
+      (
+        k,
+        vs.into_iter()
+          .map(|(start, end)| Range {
+            start,
+            end,
+            filename: filename.to_string(),
+          })
+          .collect::<Vec<_>>(),
+      )
+    })
+    .collect()
 }

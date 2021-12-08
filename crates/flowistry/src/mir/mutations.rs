@@ -25,7 +25,7 @@ impl Visitor<'tcx> for GatherInputs<'tcx> {
   ) {
     let mut collector = PlaceCollector::default();
     collector.visit_rvalue(rvalue, location);
-    
+
     if collector.places.is_empty() {
       collector.places.push(*place);
     }
