@@ -102,11 +102,15 @@ fn main() {
 
 #[test]
 fn recurse_project_dst() {
+  // TODO: other(&mut x) should be excluded from the slice.
+  // this was originally done via
+  //   all_aliases.aliases.row_set(mutated).unwrap().to_owned()
+  // in apply_mutation
   let src = r#"
 fn other(x: &mut (i32, i32)) { (*x).0 = 1; }
 fn main() {
   `[let `[mut x]` = `[(0, 0)]`;]`
-  other(&mut x);
+  `[`[other(`[&mut x]`)]`;]`
   `[`(x.1)`;]`
 }
 "#;

@@ -525,14 +525,30 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
 }
 
 pub trait BodyExt<'tcx> {
-  fn all_returns(&self) -> Vec<Location>;
-  fn all_locations(&self) -> Vec<Location>;
+  type AllReturnsIter<'a>: Iterator<Item = Location>
+  where
+    Self: 'a;
+  fn all_returns(&self) -> Self::AllReturnsIter<'_>;
+
+  type AllLocationsIter<'a>: Iterator<Item = Location>
+  where
+    Self: 'a;
+  fn all_locations(&self) -> Self::AllLocationsIter<'_>;
+
+  type LocationsIter: Iterator<Item = Location>;
+  fn locations_in_block(&self, block: BasicBlock) -> Self::LocationsIter;
+
   fn debug_info_name_map(&self) -> HashMap<Local, Symbol>;
+
   fn to_string(&self, tcx: TyCtxt<'tcx>) -> Result<String>;
 }
 
 impl BodyExt<'tcx> for Body<'tcx> {
-  fn all_returns(&self) -> Vec<Location> {
+  type AllReturnsIter<'a>
+  where
+    Self: 'a,
+  = impl Iterator<Item = Location>;
+  fn all_returns(&self) -> Self::AllReturnsIter<'_> {
     self
       .basic_blocks()
       .iter_enumerated()
@@ -543,10 +559,13 @@ impl BodyExt<'tcx> for Body<'tcx> {
         }),
         _ => None,
       })
-      .collect()
   }
 
-  fn all_locations(&self) -> Vec<Location> {
+  type AllLocationsIter<'a>
+  where
+    Self: 'a,
+  = impl Iterator<Item = Location>;
+  fn all_locations(&self) -> Self::AllLocationsIter<'_> {
     self
       .basic_blocks()
       .iter_enumerated()
@@ -557,7 +576,15 @@ impl BodyExt<'tcx> for Body<'tcx> {
         })
       })
       .flatten()
-      .collect::<Vec<_>>()
+  }
+
+  type LocationsIter = impl Iterator<Item = Location>;
+  fn locations_in_block(&self, block: BasicBlock) -> Self::LocationsIter {
+    let num_stmts = self.basic_blocks()[block].statements.len();
+    (0 ..= num_stmts).map(move |statement_index| Location {
+      block,
+      statement_index,
+    })
   }
 
   fn debug_info_name_map(&self) -> HashMap<Local, Symbol> {
@@ -577,3 +604,54 @@ impl BodyExt<'tcx> for Body<'tcx> {
     Ok(String::from_utf8(buffer)?)
   }
 }
+
+// #[derive(Debug)]
+// struct Loop {
+//   header: Location,
+//   body: LocationSet,
+// }
+
+// fn find_loops(
+//   body: &Body,
+//   location_domain: &Rc<LocationDomain>,
+// ) -> (Vec<Loop>, LocationSet) {
+//   let mut loops = vec![];
+//   for node in body.basic_blocks().indices() {
+//     for successor in body.successors(node) {
+//       if body.dominators().is_dominated_by(node, successor) {
+//         let mut loop_body = HashSet::default();
+//         loop_body.insert(successor);
+
+//         let mut stack = vec![node];
+//         while !stack.is_empty() {
+//           let n = stack.pop().unwrap();
+//           loop_body.insert(n);
+//           stack.extend(
+//             body.predecessors()[n]
+//               .iter()
+//               .filter(|p| **p != successor && !loop_body.contains(p))
+//               .copied(),
+//           );
+//         }
+
+//         loops.push(Loop {
+//           header: successor.start_location(),
+//           body: loop_body
+//             .into_iter()
+//             .map(|block| body.locations_in_block(block))
+//             .flatten()
+//             .collect_indices(location_domain.clone()),
+//         });
+//       }
+//     }
+//   }
+
+//   let mut outer = body
+//     .all_locations()
+//     .collect_indices(location_domain.clone());
+//   for l in &loops {
+//     outer.subtract(&l.body);
+//   }
+
+//   (loops, outer)
+// }

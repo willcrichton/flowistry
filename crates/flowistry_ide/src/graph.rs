@@ -4,15 +4,20 @@ use flowistry::{
     impls::{LocationSet, PlaceIndex},
     IndexedDomain,
   },
-  infoflow,
-  mir::{borrowck_facts::get_body_with_borrowck_facts, utils::PlaceExt},
+  infoflow::{self, mutation::ModularMutationVisitor},
+  mir::{
+    borrowck_facts::get_body_with_borrowck_facts,
+    utils::{BodyExt, PlaceExt},
+  },
 };
-use log::debug;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir::BodyId;
 use rustc_macros::Encodable;
 use rustc_middle::{
-  mir::{traversal, Location, Place, ProjectionElem, VarDebugInfoContents, RETURN_PLACE},
+  mir::{
+    traversal, visit::Visitor, Location, Place, ProjectionElem, VarDebugInfoContents,
+    RETURN_PLACE,
+  },
   ty::{AdtKind, TyCtxt},
 };
 use rustc_span::Span;
@@ -66,7 +71,11 @@ impl FlowistryAnalysis for GraphAnalysis {
     let body = &body_with_facts.body;
     let results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
 
+    let _location_domain = results.analysis.location_domain();
     let place_domain = results.analysis.place_domain();
+
+    // let (loops, outer) = find_loops(body, location_domain);
+
     let direct_places = place_domain
       .as_vec()
       .iter_enumerated()
@@ -117,6 +126,12 @@ impl FlowistryAnalysis for GraphAnalysis {
                 default()
               }
             }
+            ProjectionElem::Downcast(sym, _) => format!(
+              "{} as {}",
+              s,
+              sym.map(|s| s.to_string()).unwrap_or_else(|| "??".into())
+            ),
+            ProjectionElem::Index(_) => format!("{}[]", s),
             _ => unimplemented!(),
           }),
       )
@@ -146,16 +161,18 @@ impl FlowistryAnalysis for GraphAnalysis {
       .map(|(index, loc)| {
         let span = body.source_info(*loc).span.source_callsite();
         let lines = source_map.span_to_lines(span).unwrap().lines;
-        let s = match lines.len() {
-          0 => "???".into(),
-          1 => format!("{}", lines[0].line_index + 1),
-          _ => format!(
-            "{}-{}",
-            lines[0].line_index + 1,
-            lines[lines.len() - 1].line_index + 1
+        let s = match &lines[..] {
+          [] => "???".into(),
+          [l] => format!("{}:{}-{}", l.line_index + 1, l.start_col.0, l.end_col.0),
+          [l1, .., l2] => format!(
+            "{}:{}-{}:{}",
+            l1.line_index + 1,
+            l1.start_col.0,
+            l2.line_index + 1,
+            l2.end_col.0
           ),
         };
-        (index.as_usize(), s)
+        (index.as_usize(), s /*format!("{} ({:?})", s, loc)*/)
       })
       .collect::<HashMap<_, _>>();
 
@@ -163,61 +180,135 @@ impl FlowistryAnalysis for GraphAnalysis {
       PlaceIndex,
       HashMap<Location, (LocationSet, HashSet<(Location, PlaceIndex)>)>,
     > = HashMap::default();
-    for (block, data) in traversal::reverse_postorder(body) {
-      let locations = (0 ..= data.statements.len()).map(|i| Location {
-        block,
-        statement_index: i,
-      });
-      for location in locations {
-        let state = results.state_at(location);
 
-        let rows = state
-          .rows()
-          .filter(|(place, deps)| {
-            place_names.contains_key(&place.as_usize()) && deps.indices().next().is_some()
-          })
-          .collect::<HashMap<_, _>>();
+    for (place, deps) in results
+      .state_at(Location::START)
+      .rows()
+      .filter(|(place, _)| {
+        place_domain.value(*place).is_arg(body)
+          && place_names.contains_key(&place.as_usize())
+      })
+    {
+      all_deps
+        .entry(place)
+        .or_default()
+        .insert(Location::START, (deps.to_owned(), HashSet::default()));
+    }
 
-        for (place, place_loc_deps) in &rows {
-          let place_entry = all_deps.entry(*place).or_default();
-          let unchanged = place_entry.values().any(|(prev_place_loc_deps, _)| {
-            prev_place_loc_deps.as_ref() == *place_loc_deps
-          });
-          if !unchanged {
-            let place_place_deps = all_deps
+    for location in traversal::reverse_postorder(body)
+      .map(|(block, _)| body.locations_in_block(block))
+      .flatten()
+    {
+      let mut all_mutated = HashSet::default();
+
+      let data = &body.basic_blocks()[location.block];
+      let mut visitor =
+        ModularMutationVisitor::new(tcx, body, def_id.to_def_id(), |mutated, _, _, _| {
+          all_mutated.insert(mutated);
+        });
+      if location.statement_index == data.statements.len() {
+        visitor.visit_terminator(data.terminator(), location);
+      } else {
+        visitor.visit_statement(&data.statements[location.statement_index], location);
+      }
+
+      let all_mutated_conflicts = all_mutated
+        .into_iter()
+        .map(|place| {
+          results
+            .analysis
+            .aliases
+            .conflicts(place)
+            .indices()
+            .collect::<Vec<_>>()
+        })
+        .flatten()
+        .filter(|place| place_names.contains_key(&place.as_usize()))
+        .collect::<HashSet<_>>();
+
+      let state = results.state_at(location);
+      for place in all_mutated_conflicts.iter().copied() {
+        let place_loc_deps = state.row_set(place).unwrap();
+        let mut place_place_deps = all_deps
+          .iter()
+          .filter_map(|(other, other_deps)| {
+            let (loc, _) = other_deps
               .iter()
-              .filter_map(|(other, other_deps)| {
-                if let Some(other_loc_deps) = rows.get(other) {
-                  if place != other {
-                    return place_loc_deps
-                      .is_superset(other_loc_deps)
-                      .then(move || (location, *other));
-                  }
-                }
-
-                let (loc, _) = other_deps
-                  .iter()
-                  .filter(|(_, (other_loc_deps, _))| {
-                    place_loc_deps.is_superset(other_loc_deps)
-                  })
-                  .max_by_key(|(_, (other_loc_deps, _))| other_loc_deps.len())?;
-                Some((*loc, *other))
+              .filter(|(_, (other_loc_deps, _))| {
+                place_loc_deps.is_superset(other_loc_deps)
               })
-              .collect();
-            debug!(
-              "Adding {} @ {:?} -- {:?}",
-              place_names[&place.as_usize()].name,
-              location,
-              place_place_deps
-            );
-            all_deps
-              .entry(*place)
-              .or_default()
-              .insert(location, (place_loc_deps.to_owned(), place_place_deps));
-          }
-        }
+              .max_by_key(|(_, (other_loc_deps, _))| other_loc_deps.len())?;
+
+            Some((*loc, *other))
+          })
+          .collect::<HashSet<_>>();
+
+        place_place_deps.extend(all_mutated_conflicts.iter().copied().filter_map(
+          |other| {
+            state.row_set(other).and_then(|other_loc_deps| {
+              (place != other && place_loc_deps.is_superset(&other_loc_deps))
+                .then(move || (location, other))
+            })
+          },
+        ));
+
+        all_deps
+          .entry(place)
+          .or_default()
+          .insert(location, (place_loc_deps.to_owned(), place_place_deps));
       }
     }
+
+    // for location in traversal::reverse_postorder(body)
+    //   .map(|(block, _)| body.locations_in_block(block))
+    //   .flatten()
+    // {
+    //   let state = results.state_at(location);
+
+    //   let rows = state
+    //     .rows()
+    //     .filter(|(place, deps)| {
+    //       place_names.contains_key(&place.as_usize()) && deps.indices().next().is_some()
+    //     })
+    //     .collect::<HashMap<_, _>>();
+
+    //   let changed_places = rows
+    //     .into_iter()
+    //     .filter(|(place, place_loc_deps)| {
+    //       let place_entry = all_deps.entry(*place).or_default();
+    //       place_entry.values().all(|(prev_place_loc_deps, _)| {
+    //         prev_place_loc_deps.as_ref() != *place_loc_deps
+    //       })
+    //     })
+    //     .collect::<HashMap<_, _>>();
+
+    //   for (place, place_loc_deps) in &changed_places {
+    //     let mut place_place_deps = all_deps
+    //       .iter()
+    //       .filter_map(|(other, other_deps)| {
+    //         let (loc, _) = other_deps
+    //           .iter()
+    //           .filter(|(_, (other_loc_deps, _))| {
+    //             place_loc_deps.is_superset(other_loc_deps)
+    //           })
+    //           .max_by_key(|(_, (other_loc_deps, _))| other_loc_deps.len())?;
+
+    //         Some((*loc, *other))
+    //       })
+    //       .collect::<HashSet<_>>();
+
+    //     debug!(
+    //       "Adding {} @ {:?} -- {:?}",
+    //       place_names[&place.as_usize()].name,
+    //       location,
+    //       place_place_deps
+    //     );
+    //     all_deps
+    //       .entry(*place)
+    //       .or_default()
+    //       .insert(location, (place_loc_deps.to_owned(), place_place_deps));
+    //   }
+    // }
 
     // from: Place -> Location -> {(Location, Place)}
     // to: int -> int -> {(int, int)}
