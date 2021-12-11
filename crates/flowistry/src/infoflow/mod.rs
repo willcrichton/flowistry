@@ -17,6 +17,8 @@ use crate::{
 
 mod analysis;
 mod dependencies;
+pub mod mutation;
+mod recursive;
 
 pub type FlowResults<'a, 'b> = engine::AnalysisResults<'b, FlowAnalysis<'a, 'b>>;
 

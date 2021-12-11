@@ -82,7 +82,6 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
 
   let final_state = body
     .all_returns()
-    .into_iter()
     .map(|location| results.state_at(location).clone())
     .reduce(|mut a, b| {
       a.join(&b);
