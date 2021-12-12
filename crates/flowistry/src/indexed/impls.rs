@@ -173,7 +173,7 @@ pub struct LocationDomain {
 
 impl LocationDomain {
   pub fn new(body: &Body, place_domain: &Rc<PlaceDomain>) -> Rc<Self> {
-    let mut locations = body.all_locations();
+    let mut locations = body.all_locations().collect::<Vec<_>>();
 
     let arg_block = BasicBlock::from_usize(body.basic_blocks().len());
 
