@@ -1,38 +1,14 @@
-use std::collections::HashMap;
-
-use rustc_hir::Mutability;
+use rustc_hir::{def_id::DefId, Mutability};
 use rustc_middle::{
   mir::{
     visit::{PlaceContext, Visitor},
-    Body, HasLocalDecls, Location, Place, Rvalue,
+    Body, HasLocalDecls, Location, Place
   },
   ty::TyCtxt,
 };
 
 use super::aliases::Aliases;
-use crate::mir::utils::PlaceCollector;
-
-struct GatherInputs<'tcx> {
-  inputs: HashMap<Place<'tcx>, Vec<Place<'tcx>>>,
-}
-
-impl Visitor<'tcx> for GatherInputs<'tcx> {
-  fn visit_assign(
-    &mut self,
-    place: &Place<'tcx>,
-    rvalue: &Rvalue<'tcx>,
-    location: Location,
-  ) {
-    let mut collector = PlaceCollector::default();
-    collector.visit_rvalue(rvalue, location);
-
-    if collector.places.is_empty() {
-      collector.places.push(*place);
-    }
-
-    self.inputs.insert(*place, collector.places);
-  }
-}
+use crate::{infoflow::mutation::ModularMutationVisitor};
 
 struct FindMutations<'a, 'tcx> {
   tcx: TyCtxt<'tcx>,
@@ -66,19 +42,22 @@ impl Visitor<'tcx> for FindMutations<'a, 'tcx> {
 pub fn find_mutations(
   tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,
+  def_id: DefId,
   place: Place<'tcx>,
   aliases: Aliases<'tcx>,
 ) -> Vec<Location> {
-  let mut input_gatherer = GatherInputs {
-    inputs: HashMap::new(),
-  };
-  input_gatherer.visit_body(body);
+  let mut places = vec![];
 
-  let places = input_gatherer
-    .inputs
-    .get(&place)
-    .cloned()
-    .unwrap_or_default();
+  ModularMutationVisitor::new(tcx, body, def_id, |visitor_place, inputs, _, _| {
+    if place == visitor_place {
+      places = if inputs.is_empty() {
+        vec![place]
+      } else {
+        inputs
+      }
+    }
+  })
+  .visit_body(body);
 
   let mut finder = FindMutations {
     tcx,

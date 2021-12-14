@@ -16,7 +16,7 @@ pub enum MutationStatus {
 
 pub struct ModularMutationVisitor<'a, 'tcx, F>
 where
-  F: FnMut(Place<'tcx>, &[Place<'tcx>], Location, MutationStatus),
+  F: FnMut(Place<'tcx>, Vec<Place<'tcx>>, Location, MutationStatus),
 {
   f: F,
   tcx: TyCtxt<'tcx>,
@@ -26,7 +26,7 @@ where
 
 impl<'a, 'tcx, F> ModularMutationVisitor<'a, 'tcx, F>
 where
-  F: FnMut(Place<'tcx>, &[Place<'tcx>], Location, MutationStatus),
+  F: FnMut(Place<'tcx>, Vec<Place<'tcx>>, Location, MutationStatus),
 {
   pub fn new(tcx: TyCtxt<'tcx>, body: &'a Body<'tcx>, def_id: DefId, f: F) -> Self {
     ModularMutationVisitor {
@@ -40,7 +40,7 @@ where
 
 impl<'tcx, F> Visitor<'tcx> for ModularMutationVisitor<'_, 'tcx, F>
 where
-  F: FnMut(Place<'tcx>, &[Place<'tcx>], Location, MutationStatus),
+  F: FnMut(Place<'tcx>, Vec<Place<'tcx>>, Location, MutationStatus),
 {
   fn visit_assign(
     &mut self,
@@ -53,7 +53,7 @@ where
     collector.visit_rvalue(rvalue, location);
     (self.f)(
       *place,
-      &collector.places,
+      collector.places,
       location,
       MutationStatus::Definitely,
     );
@@ -95,18 +95,28 @@ where
           let empty = vec![];
           let inputs = if ret_is_unit { &empty } else { &arg_inputs };
 
-          (self.f)(*dst_place, inputs, location, MutationStatus::Definitely);
+          (self.f)(
+            *dst_place,
+            inputs.to_vec(),
+            location,
+            MutationStatus::Definitely,
+          );
         }
 
         for (_, mut_ptr) in utils::arg_mut_ptrs(&arg_places, tcx, self.body, self.def_id)
         {
-          (self.f)(mut_ptr, &arg_inputs, location, MutationStatus::Possibly);
+          (self.f)(
+            mut_ptr,
+            arg_inputs.to_vec(),
+            location,
+            MutationStatus::Possibly,
+          );
         }
       }
 
       TerminatorKind::DropAndReplace { place, value, .. } => {
         if let Some(src) = value.to_place() {
-          (self.f)(*place, &[src], location, MutationStatus::Definitely);
+          (self.f)(*place, vec![src], location, MutationStatus::Definitely);
         }
       }
 

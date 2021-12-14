@@ -70,7 +70,8 @@ impl FlowistryAnalysis for MutationAnalysis {
     let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
     let selected_spans = ranges_from_spans([selected_span].into_iter(), source_map)?;
 
-    let mutation_locations = find_mutations(tcx, body, selected_place, aliases);
+    let mutation_locations =
+      find_mutations(tcx, body, def_id.to_def_id(), selected_place, aliases);
     let mutation_spans = mutation_locations
       .into_iter()
       .map(|location| location_to_spans(location, body, &spanner, source_map))
