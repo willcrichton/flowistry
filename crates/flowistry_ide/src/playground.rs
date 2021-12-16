@@ -18,7 +18,7 @@ struct Playground {
 
 #[derive(Debug, Clone, Encodable, Default)]
 pub struct PlaygroundOutput {
-  outlives: HashSet<(usize, usize)>,
+  outlives: HashSet<(String, String)>,
 }
 
 impl FlowistryOutput for PlaygroundOutput {
@@ -44,7 +44,7 @@ impl FlowistryAnalysis for Playground {
       .input_facts
       .subset_base
       .iter()
-      .map(|(sup, sub, _)| (sup.as_usize(), sub.as_usize()))
+      .map(|(sup, sub, _)| (format!("{:?}", sup), format!("{:?}", sub)))
       .collect::<HashSet<_>>();
 
     Ok(PlaygroundOutput { outlives })
