@@ -1,9 +1,6 @@
 use anyhow::Result;
 use flowistry::{
-  mir::{
-    aliases::Aliases, borrowck_facts::get_body_with_borrowck_facts,
-    mutations::find_mutations,
-  },
+  mir::{aliases::Aliases, borrowck_facts::get_body_with_borrowck_facts},
   source_map::{self, location_to_spans},
 };
 use log::debug;
@@ -12,10 +9,13 @@ use rustc_macros::Encodable;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
 
+use self::find_mutations::find_mutations;
 use crate::{
   analysis::{FlowistryAnalysis, FlowistryOutput, FlowistryResult},
   range::{ranges_from_spans, Range},
 };
+
+mod find_mutations;
 
 struct MutationAnalysis {
   range: Range,

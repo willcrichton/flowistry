@@ -1,14 +1,13 @@
+use flowistry::{
+  indexed::IndexSetIteratorExt,
+  infoflow::mutation::ModularMutationVisitor,
+  mir::{aliases::Aliases, utils::PlaceExt},
+};
 use log::debug;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{
   mir::{visit::Visitor, Body, Location, Place},
   ty::TyCtxt,
-};
-
-use super::aliases::Aliases;
-use crate::{
-  indexed::IndexSetIteratorExt, infoflow::mutation::ModularMutationVisitor,
-  mir::utils::PlaceExt,
 };
 
 pub fn find_mutations(
