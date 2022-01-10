@@ -16,10 +16,10 @@ export interface Range {
   filename: string;
 }
 
-export interface SliceOutput {
+export interface CommandOutput {
   ranges: Range[];
   body_span: Range;
-  sliced_spans: Range[];
+  selected_spans: Range[];
 }
 
 export interface Effect {

@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { SliceOutput, Range } from "./types";
+import { CommandOutput, Range } from "./types";
 import { log, show_error, CallFlowistry, to_vsc_range } from "./vsc_utils";
 import _ from "lodash";
 
@@ -111,13 +111,13 @@ export async function display_subcmd_results(
     let start = doc.offsetAt(selection.start);
     let end = doc.offsetAt(selection.end);
     let cmd = `${subcmd} ${doc.fileName} ${start} ${end} ${flags}`;
-    let slice_output_maybe = await call_flowistry<SliceOutput>(cmd);
-    if (slice_output_maybe === null) {
+    let command_output_maybe = await call_flowistry<CommandOutput>(cmd);
+    if (command_output_maybe === null) {
       return;
     }
-    let slice_output: SliceOutput = slice_output_maybe;
+    let command_output: CommandOutput = command_output_maybe;
 
-    if (slice_output.ranges.length === 0) {
+    if (command_output.ranges.length === 0) {
       let selected_text = active_editor.document.getText(selection);
       vscode.window.showInformationMessage(
         `${action} on "${selected_text}" did not generate any results`
@@ -126,16 +126,16 @@ export async function display_subcmd_results(
     }
 
     if (display_type === "select") {
-      active_editor.selections = slice_output.ranges.map((range) => {
+      active_editor.selections = command_output.ranges.map((range) => {
         let vsc_range = to_vsc_range(range, doc);
         return new vscode.Selection(vsc_range.start, vsc_range.end);
       });
     } else {
       highlight_slice(
         active_editor,
-        slice_output.body_span,
-        slice_output.sliced_spans,
-        slice_output.ranges
+        command_output.body_span,
+        command_output.selected_spans,
+        command_output.ranges
       );
     }
   } catch (exc) {

@@ -36,7 +36,7 @@ let page = estrella.build({
 });
 
 let test = estrella.build({
-  entryPoints: ["src/extension.ts", "src/tests/slice/util/slice_helpers.ts"],
+  entryPoints: ["src/extension.ts", "src/tests/commands/util/helpers.ts"],
   platform: "node",
   ...common,
   outdir: "test",

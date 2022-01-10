@@ -28,7 +28,7 @@ pub struct SliceOutput {
   pub num_relevant_instructions: usize,
   pub mutated_inputs: HashSet<usize>,
   pub relevant_inputs: HashSet<usize>,
-  pub sliced_spans: Vec<Range>,
+  pub selected_spans: Vec<Range>,
   pub body_span: Range,
 }
 
@@ -46,7 +46,7 @@ impl FlowistryOutput for SliceOutput {
     self.mutated_inputs = other.mutated_inputs;
     self.relevant_inputs = other.relevant_inputs;
     self.body_span = other.body_span;
-    self.sliced_spans.extend(other.sliced_spans);
+    self.selected_spans.extend(other.selected_spans);
   }
 }
 
@@ -83,13 +83,13 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     );
 
     let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
-    let sliced_spans = ranges_from_spans([sliced_span].into_iter(), source_map)?;
+    let selected_spans = ranges_from_spans([sliced_span].into_iter(), source_map)?;
     let ranges = ranges_from_spans(deps.into_iter().flatten(), source_map)?;
     debug!("found {} ranges in slice", ranges.len());
 
     Ok(SliceOutput {
       body_span,
-      sliced_spans,
+      selected_spans,
       ranges,
       ..Default::default()
     })
