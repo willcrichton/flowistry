@@ -830,39 +830,23 @@ fn main() {
   backward_slice(src);
 }
 
-// #[test]
-// fn interprocedural_field_independence() {
-//   let src = r#"
-// use std::ops::AddAssign;
-// struct Foo(i32, i32);
-// impl Foo {
-//   fn bar(`[&mut self]`) {
-//     self.0.add_assign(0);
-//     `[`(self.1)`;]`
-//   }
-// }
+#[test]
+fn interprocedural_field_independence() {
+  let src = r#"
+use std::ops::AddAssign;
+struct Foo(i32, i32);
+impl Foo {
+  fn bar(`[&mut self]`) {
+    self.0.add_assign(0);
+    `[`(self.1)`;]`
+  }
+}
 
-// fn main() {}
-// "#;
+fn main() {}
+"#;
 
-//   backward_slice(src);
-
-//   let src = r#"
-//   use std::ops::AddAssign;
-//   struct Foo(i32, i32);
-//   impl Foo {
-//     fn bar(`[&mut self]`) {
-//       `[let `[a]` = `[&mut *self]`;]`
-//       `[`[a.0.add_assign(0)]`;]`
-//       `[`(a.1)`;]`
-//     }
-//   }
-
-//   fn main() {}
-//   "#;
-
-//     backward_slice(src);
-// }
+  backward_slice(src);
+}
 
 #[test]
 fn interprocedural_ref_output() {
