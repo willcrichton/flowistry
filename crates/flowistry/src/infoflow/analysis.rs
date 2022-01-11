@@ -195,7 +195,7 @@ impl Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
       self.body,
       self.def_id,
       |mutated, inputs, location, mutation_status| {
-        self.transfer_function(state, mutated, &inputs, location, mutation_status)
+        self.transfer_function(state, mutated, inputs, location, mutation_status)
       },
     )
     .visit_statement(statement, location);
@@ -219,7 +219,7 @@ impl Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
       self.body,
       self.def_id,
       |mutated, inputs, location, mutation_status| {
-        self.transfer_function(state, mutated, &inputs, location, mutation_status)
+        self.transfer_function(state, mutated, inputs, location, mutation_status)
       },
     )
     .visit_terminator(terminator, location);
