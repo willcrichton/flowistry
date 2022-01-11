@@ -22,5 +22,6 @@ pub mod effects;
 pub mod graph;
 mod hir;
 pub mod mutations;
+pub mod playground;
 pub mod range;
 pub mod slicing;

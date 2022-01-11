@@ -19,7 +19,11 @@ use crate::{
     impls::{LocationDomain, LocationSet, PlaceDomain},
     IndexMatrix, IndexSetIteratorExt,
   },
-  mir::{aliases::Aliases, control_dependencies::ControlDependencies, utils::OperandExt},
+  mir::{
+    aliases::Aliases,
+    control_dependencies::ControlDependencies,
+    utils::{OperandExt, PlaceExt},
+  },
 };
 
 pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, Location>;
@@ -88,7 +92,7 @@ impl FlowAnalysis<'a, 'tcx> {
     if matches!(mutation_status, MutationStatus::Definitely) && mutated_aliases.len() == 1
     {
       let mutated_direct = mutated_aliases.iter().next().unwrap();
-      for sub in all_aliases.subs.row(*mutated_direct) {
+      for sub in all_aliases.children.row(*mutated_direct) {
         state.clear_row(sub);
       }
     }
@@ -97,9 +101,17 @@ impl FlowAnalysis<'a, 'tcx> {
     input_location_deps.insert(location);
 
     let add_deps = |place: Place<'tcx>, location_deps: &mut LocationSet| {
-      for dep_place in self.aliases.deps.row(place) {
-        if let Some(deps) = state.row_set(dep_place) {
-          location_deps.union(&deps);
+      use std::iter;
+      for place in iter::once(place).chain(
+        place
+          .refs_in_projection()
+          .into_iter()
+          .map(|(ptr, _)| Place::from_ref(ptr, self.tcx)),
+      ) {
+        for alias in all_aliases.aliases.row(place) {
+          if let Some(deps) = state.row_set(alias) {
+            location_deps.union(&deps);
+          }
         }
       }
     };
@@ -126,10 +138,10 @@ impl FlowAnalysis<'a, 'tcx> {
       }
     }
 
-    let mut mutable_conflicts = all_aliases.conflicts(mutated);
+    let mut mutable_conflicts = all_aliases.conflicts(mutated).to_owned();
 
     // Remove any conflicts that aren't actually mutable, e.g. if x : &T ends up
-    // as an alias of y: &mut T
+    // as an alias of y: &mut T. See test function_lifetime_alias_mut for an example.
     let ignore_mut =
       is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
     if !ignore_mut {

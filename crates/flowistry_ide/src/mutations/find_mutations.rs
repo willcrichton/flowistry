@@ -37,7 +37,7 @@ pub fn find_mutations(
     |mutated_place, _, mutated_location, _| {
       debug!("checking mutated location {:?}", mutated_location);
 
-      let mut place_conflicts = aliases.conflicts(mutated_place);
+      let mut place_conflicts = aliases.conflicts(mutated_place).to_owned();
       place_conflicts.intersect(&pointer_aliases);
 
       if place_conflicts.len() > 0 {

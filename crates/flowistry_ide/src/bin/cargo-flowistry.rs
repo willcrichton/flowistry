@@ -53,6 +53,11 @@ fn main() {
     (@subcommand graph =>
       (@arg file:)
       (@arg pos:)
+      (@arg flags: ...))
+    (@subcommand playground =>
+      (@arg file:)
+      (@arg start:)
+      (@arg end:)
       (@arg flags: ...)
     )
   )
@@ -64,7 +69,7 @@ fn main() {
       println!("{}", commit_hash);
       exit(0);
     }
-    ("backward_slice" | "forward_slice", Some(sub_m)) => (
+    ("backward_slice" | "forward_slice" | "playground", Some(sub_m)) => (
       vec![
         ("FILE", sub_m.value_of("file").unwrap()),
         ("START", sub_m.value_of("start").unwrap()),
