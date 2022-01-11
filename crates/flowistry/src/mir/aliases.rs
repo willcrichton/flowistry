@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use datafrog::Iteration;
+use datafrog::{Iteration, Relation};
 use log::{debug, info};
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
@@ -131,70 +131,72 @@ impl Aliases<'tcx> {
     let body = &body_with_facts.body;
     let mut iteration = Iteration::new();
 
-    let subset = iteration.variable::<(RegionVid, RegionVid)>("subset");
-    let contains = iteration.variable::<(RegionVid, Place<'static>)>("contains");
+    let subset = {
+      let mut subset = HashSet::default();
 
-    // subset('a, 'b) :- subset_base('a, 'b, _).
-    {
-      let subset_base = &body_with_facts.input_facts.subset_base;
-      subset.extend(subset_base.iter().copied().map(|(o1, o2, _)| (o1, o2)));
-    }
-
-    // subset('static, 'a).
-    {
-      let static_region = RegionVid::from_usize(0);
-      let base = &subset.recent.borrow().elements;
-      let static_outlives = base
-        .iter()
-        .map(|(o1, o2)| [o1, o2])
-        .flatten()
-        .map(|o| (static_region, *o));
-      subset.extend(static_outlives);
-    }
-
-    // Outlives-constraints on abstract regions are useful for borrow checking but aren't
-    // useful for alias-analysis. Eg if self : &'a mut (i32, i32) and x = &'b mut *self.0,
-    // then knowing 'a : 'b would naively add self to the loan set of 'b. So for increased
-    // precision, we can safely filter any constraints 'a : _ where 'a is abstract.
-    // See the interprocedural_field_independence test for an example of where this works
-    // and also how it breaks.
-    //
-    // FIXME: need to figure out the right approximation here for field-sensitivity
-    // .filter(|(sup, sub)| !(abstract_regions.contains(sup) && abstract_regions.contains(sub)))
-
-    if is_extension_active(|mode| mode.pointer_mode == PointerMode::Conservative) {
-      // for all p1 : &'a T, p2: &'b T: subset('a, 'b).
-      let mut region_to_pointers: HashMap<_, Vec<_>> = HashMap::default();
-      for local in body.local_decls().indices() {
-        for (k, vs) in Place::from_local(local, tcx).interior_pointers(tcx, body, def_id)
-        {
-          region_to_pointers.entry(k).or_default().extend(vs);
-        }
+      // subset('a, 'b) :- subset_base('a, 'b, _).
+      {
+        let subset_base = &body_with_facts.input_facts.subset_base;
+        subset.extend(subset_base.iter().copied().map(|(o1, o2, _)| (o1, o2)));
       }
 
-      subset.extend(
-        generate_conservative_constraints(
-          tcx,
-          &body_with_facts.body,
-          &region_to_pointers,
-        )
-        .into_iter(),
-      );
-    }
+      // subset('static, 'a).
+      {
+        let static_region = RegionVid::from_usize(0);
+        let static_outlives = subset
+          .iter()
+          .map(|(o1, o2)| [o1, o2])
+          .flatten()
+          .map(|o| (static_region, *o))
+          .collect::<Vec<_>>();
+        subset.extend(static_outlives);
+      }
 
-    // For all e = &'a p in body: contains('a, p).
+      if is_extension_active(|mode| mode.pointer_mode == PointerMode::Conservative) {
+        // for all p1 : &'a T, p2: &'b T: subset('a, 'b).
+        let mut region_to_pointers: HashMap<_, Vec<_>> = HashMap::default();
+        for local in body.local_decls().indices() {
+          for (k, vs) in
+            Place::from_local(local, tcx).interior_pointers(tcx, body, def_id)
+          {
+            region_to_pointers.entry(k).or_default().extend(vs);
+          }
+        }
+
+        subset.extend(
+          generate_conservative_constraints(
+            tcx,
+            &body_with_facts.body,
+            &region_to_pointers,
+          )
+          .into_iter(),
+        );
+      }
+
+      Relation::from_iter(subset)
+    };
+
+    let contains = iteration.variable::<(RegionVid, Place<'static>)>("contains");
+    let mut definite = HashMap::default();
     let mk_tuple =
       |region: RegionVid, place: Place<'tcx>| -> (RegionVid, Place<'static>) {
         (region, unsafe { std::mem::transmute(place) })
       };
+
+    // For all e = &'a p in body: contains('a, p).
     {
       let mut gather_borrows = GatherBorrows::default();
       gather_borrows.visit_body(&body_with_facts.body);
-      let borrows = gather_borrows
-        .borrows
-        .into_iter()
-        .map(|(region, _, place)| mk_tuple(region, place));
-      contains.extend(borrows);
+
+      for (region, _, place) in gather_borrows.borrows {
+        contains.extend([mk_tuple(region, place)]);
+
+        let projection = match place.refs_in_projection().last() {
+          Some((_, proj)) => proj.to_vec(),
+          None => place.projection.to_vec(),
+        };
+        definite.insert(region, projection);
+      }
     }
 
     // For all args p : &'a T where 'a is abstract: contains('a, *p).
@@ -214,18 +216,23 @@ impl Aliases<'tcx> {
       contains.extend(body.args_iter().map(arg_ptrs).flatten());
     }
 
-    // Intermediates for datafrog joins
-    let subset_rev = iteration.variable_indistinct("subset_rev");
-
     while iteration.changed() {
-      // Subset is transitive: 'a ⊆ 'b ∧ 'b ⊆ 'c ⇒ 'a ⊆ 'c
-      // i.e. subset('a, 'c) :- subset('a, 'b), subset('b, 'c);
-      subset_rev.from_map(&subset, |&(o1, o2)| (o2, o1));
-      subset.from_join(&subset_rev, &subset, |_, a, c| (*a, *c));
-
       // Subset implies containment: p ∈ 'a ∧ 'a ⊆ 'b ⇒ p ∈ 'b
       // i.e. contains('b, p) :- contains('a, p), subset('a, 'b).
-      contains.from_join(&contains, &subset, |_, p, r| (*r, *p));
+      //
+      // If 'a is from a borrow expression &'a proj[*p'], then we add proj to all inherited aliases.
+      // See interprocedural_field_independence for an example where this matters.
+      contains.from_join(&contains, &subset, |_, p, r| {
+        let p_proj = match definite.get(r) {
+          Some(proj) => {
+            let mut full_proj = p.projection.to_vec();
+            full_proj.extend(proj);
+            Place::make(p.local, tcx.intern_place_elems(&full_proj), tcx)
+          }
+          None => *p,
+        };
+        mk_tuple(*r, p_proj)
+      });
     }
 
     let mut loans: HashMap<_, HashSet<_>> = HashMap::default();
@@ -356,6 +363,7 @@ impl Aliases<'tcx> {
     let body = &body_with_facts.body;
 
     let loans = Self::compute_loans(tcx, def_id, body_with_facts);
+    debug!("Loans: {:#?}", loans);
 
     let mut all_places = Self::compute_all_places(tcx, body, def_id, &loans);
 
