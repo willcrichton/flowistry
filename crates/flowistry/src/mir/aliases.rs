@@ -1,13 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
-use log::{debug, info, trace};
+use datafrog::Iteration;
+use log::{debug, info};
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
-use rustc_data_structures::{
-  fx::{FxHashMap as HashMap, FxHashSet as HashSet},
-  graph::{scc::Sccs, vec_graph::VecGraph},
-};
+use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir::def_id::DefId;
-use rustc_index::{bit_set::BitSet, vec::IndexVec};
 use rustc_middle::{
   mir::{
     visit::{PlaceContext, Visitor},
@@ -21,7 +18,7 @@ use crate::{
   extensions::{is_extension_active, PointerMode},
   indexed::{
     impls::{NormalizedPlaces, PlaceDomain, PlaceIndex, PlaceSet},
-    IndexMatrix, IndexSetIteratorExt, IndexedDomain, ToIndex,
+    IndexMatrix, IndexSetIteratorExt, IndexedDomain, RefSet, ToIndex,
   },
   mir::utils::{self, PlaceExt, PlaceRelation},
 };
@@ -38,12 +35,12 @@ impl Visitor<'tcx> for GatherBorrows<'tcx> {
     rvalue: &Rvalue<'tcx>,
     _location: Location,
   ) {
-    if let Rvalue::Ref(region, kind, borrowed_place) = *rvalue {
+    if let Rvalue::Ref(region, kind, borrowed_place) = rvalue {
       let region_vid = match region {
         RegionKind::ReVar(region_vid) => *region_vid,
         _ => unreachable!(),
       };
-      self.borrows.push((region_vid, kind, borrowed_place));
+      self.borrows.push((region_vid, *kind, *borrowed_place));
     }
   }
 }
@@ -104,10 +101,16 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
 }
 
 pub struct Aliases<'tcx> {
+  /// For each place p, {p' | exists execution s.t. eval(p) # eval(p')}
   pub aliases: IndexMatrix<Place<'tcx>, Place<'tcx>>,
-  pub deps: IndexMatrix<Place<'tcx>, Place<'tcx>>,
-  pub subs: IndexMatrix<Place<'tcx>, Place<'tcx>>,
-  pub supers: IndexMatrix<Place<'tcx>, Place<'tcx>>,
+
+  /// For each place p, {p' | p' = proj[p]}
+  pub children: IndexMatrix<Place<'tcx>, Place<'tcx>>,
+
+  /// For each place p, {p' | p' # p}
+  pub conflicts: IndexMatrix<Place<'tcx>, Place<'tcx>>,
+
+  /// Every place used during analysis (but not every reachable place!)
   pub place_domain: Rc<PlaceDomain<'tcx>>,
 }
 
@@ -117,220 +120,278 @@ rustc_index::newtype_index! {
   }
 }
 
+type LoanMap<'tcx> = HashMap<RegionVid, HashSet<Place<'tcx>>>;
+
 impl Aliases<'tcx> {
-  fn process_region_sccs(
-    sccs: &Sccs<RegionVid, ConstraintSccIndex>,
-    regions_in_scc: &IndexVec<ConstraintSccIndex, BitSet<RegionVid>>,
-    node: ConstraintSccIndex,
-  ) -> HashMap<RegionVid, BitSet<ConstraintSccIndex>> {
-    let new_set = || BitSet::new_empty(sccs.num_sccs());
-    let set_merge = |s1: &mut BitSet<ConstraintSccIndex>,
-                     s2: BitSet<ConstraintSccIndex>| {
-      s1.union(&s2);
-    };
-
-    let mut initial_set = new_set();
-    initial_set.insert(node);
-
-    let mut initial_map = HashMap::default();
-    for r in regions_in_scc[node].iter() {
-      initial_map.insert(r, initial_set.clone());
-    }
-
-    sccs
-      .successors(node)
-      .iter()
-      .map(|child| {
-        let in_child = regions_in_scc[*child]
-          .iter()
-          .map(|r| (r, initial_set.clone()))
-          .collect::<HashMap<_, _>>();
-
-        let grandchildren = Self::process_region_sccs(sccs, regions_in_scc, *child)
-          .into_iter()
-          .map(|(region, mut parents)| {
-            parents.insert(node);
-            (region, parents)
-          })
-          .collect::<HashMap<_, _>>();
-
-        utils::hashmap_merge(in_child, grandchildren, set_merge)
-      })
-      .fold(initial_map, |h1, h2| {
-        utils::hashmap_merge(h1, h2, set_merge)
-      })
-  }
-
-  fn compute_region_ancestors(
-    body_with_facts: &BodyWithBorrowckFacts<'tcx>,
-    region_to_pointers: &HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>,
+  fn compute_loans(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
-  ) -> IndexVec<RegionVid, BitSet<RegionVid>> {
-    let outlives_constraints = body_with_facts
-      .input_facts
-      .subset_base
-      .iter()
-      .map(|(r1, r2, _)| (*r1, *r2))
-      .collect::<HashSet<_>>();
-    trace!("outlives_constraints: {:?}", outlives_constraints);
-
-    let max_region = region_to_pointers
-      .keys()
-      .chain(
-        outlives_constraints
-          .iter()
-          .map(|(r1, r2)| [r1, r2])
-          .flatten(),
-      )
-      .map(|region| region.as_usize())
-      .max()
-      .unwrap_or(0)
-      + 1;
-
+    body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
+  ) -> LoanMap<'tcx> {
     let body = &body_with_facts.body;
+    let mut iteration = Iteration::new();
 
-    // All regions for references in function arguments
-    let _abstract_regions = body
-      .args_iter()
-      .map(|local| {
-        Place::from_local(local, tcx)
-          .interior_pointers(tcx, body, def_id)
-          .into_keys()
-      })
-      .flatten()
-      .collect::<HashSet<_>>();
+    let subset = iteration.variable::<(RegionVid, RegionVid)>("subset");
+    let contains = iteration.variable::<(RegionVid, Place<'static>)>("contains");
 
-    let static_region = RegionVid::from_usize(0);
-    let mut processed_constraints = outlives_constraints
-      .clone()
-      .into_iter()
-      //
-      // Static region outlives everything, so add static :> r for all r
-      .chain((1 .. max_region).map(|i| (static_region, RegionVid::from_usize(i))))
-      //
-      // Outlives-constraints on abstract regions are useful for borrow checking but aren't
-      // useful for alias-analysis. Eg if self : &'a mut (i32, i32) and x = &'b mut *self.0,
-      // then knowing 'a : 'b would naively add self to the loan set of 'b. So for increased
-      // precision, we can safely filter any constraints 'a : _ where 'a is abstract.
-      // See the interprocedural_field_independence test for an example of where this works
-      // and also how it breaks.
-      //
-      // FIXME: need to figure out the right approximation here for field-sensitivity
-      // .filter(|(sup, sub)| !(abstract_regions.contains(sup) && abstract_regions.contains(sub)))
-      .collect::<Vec<_>>();
+    // subset('a, 'b) :- subset_base('a, 'b, _).
+    {
+      let subset_base = &body_with_facts.input_facts.subset_base;
+      subset.extend(subset_base.iter().copied().map(|(o1, o2, _)| (o1, o2)));
+    }
+
+    // subset('static, 'a).
+    {
+      let static_region = RegionVid::from_usize(0);
+      let base = &subset.recent.borrow().elements;
+      let static_outlives = base
+        .iter()
+        .map(|(o1, o2)| [o1, o2])
+        .flatten()
+        .map(|o| (static_region, *o));
+      subset.extend(static_outlives);
+    }
+
+    // Outlives-constraints on abstract regions are useful for borrow checking but aren't
+    // useful for alias-analysis. Eg if self : &'a mut (i32, i32) and x = &'b mut *self.0,
+    // then knowing 'a : 'b would naively add self to the loan set of 'b. So for increased
+    // precision, we can safely filter any constraints 'a : _ where 'a is abstract.
+    // See the interprocedural_field_independence test for an example of where this works
+    // and also how it breaks.
+    //
+    // FIXME: need to figure out the right approximation here for field-sensitivity
+    // .filter(|(sup, sub)| !(abstract_regions.contains(sup) && abstract_regions.contains(sub)))
 
     if is_extension_active(|mode| mode.pointer_mode == PointerMode::Conservative) {
-      processed_constraints.extend(generate_conservative_constraints(
-        tcx,
-        &body_with_facts.body,
-        region_to_pointers,
-      ));
-    }
-
-    let region_graph = VecGraph::new(max_region, processed_constraints);
-    let constraint_sccs: Sccs<_, ConstraintSccIndex> = Sccs::new(&region_graph);
-
-    let mut regions_in_scc =
-      IndexVec::from_elem_n(BitSet::new_empty(max_region), constraint_sccs.num_sccs());
-    {
-      let regions_in_constraint = outlives_constraints
-        .iter()
-        .map(|constraint| [constraint.0, constraint.1])
-        .flatten()
-        .collect::<HashSet<_>>();
-      for region in 0 .. max_region {
-        let region = RegionVid::from_usize(region);
-        if regions_in_constraint.contains(&region) {
-          let scc = constraint_sccs.scc(region);
-          regions_in_scc[scc].insert(region);
+      // for all p1 : &'a T, p2: &'b T: subset('a, 'b).
+      let mut region_to_pointers: HashMap<_, Vec<_>> = HashMap::default();
+      for local in body.local_decls().indices() {
+        for (k, vs) in Place::from_local(local, tcx).interior_pointers(tcx, body, def_id)
+        {
+          region_to_pointers.entry(k).or_default().extend(vs);
         }
       }
+
+      subset.extend(
+        generate_conservative_constraints(
+          tcx,
+          &body_with_facts.body,
+          &region_to_pointers,
+        )
+        .into_iter(),
+      );
     }
-    trace!("regions_in_scc: {:?}", regions_in_scc);
 
-    let root_scc = constraint_sccs.scc(static_region);
-    let region_to_ancestor_sccs =
-      Self::process_region_sccs(&constraint_sccs, &regions_in_scc, root_scc);
+    // For all e = &'a p in body: contains('a, p).
+    let mk_tuple =
+      |region: RegionVid, place: Place<'tcx>| -> (RegionVid, Place<'static>) {
+        (region, unsafe { std::mem::transmute(place) })
+      };
+    {
+      let mut gather_borrows = GatherBorrows::default();
+      gather_borrows.visit_body(&body_with_facts.body);
+      let borrows = gather_borrows
+        .borrows
+        .into_iter()
+        .map(|(region, _, place)| mk_tuple(region, place));
+      contains.extend(borrows);
+    }
 
-    let region_ancestors = IndexVec::from_fn_n(
-      |region| {
-        let mut ancestors = BitSet::new_empty(max_region);
-        if let Some(sccs) = region_to_ancestor_sccs.get(&region) {
-          for scc in sccs.iter() {
-            ancestors.union(&regions_in_scc[scc]);
-          }
-        }
-        ancestors
-      },
-      max_region,
-    );
-    debug!(
-      "region ancestors: {:?}",
-      region_ancestors.iter_enumerated().collect::<Vec<_>>()
-    );
+    // For all args p : &'a T where 'a is abstract: contains('a, *p).
+    {
+      let arg_ptrs = |arg: Local| {
+        let place = Place::from_local(arg, tcx);
+        place
+          .interior_pointers(tcx, body, def_id)
+          .into_iter()
+          .map(|(region, places)| {
+            places
+              .into_iter()
+              .map(move |(place, _)| mk_tuple(region, tcx.mk_place_deref(place)))
+          })
+          .flatten()
+      };
+      contains.extend(body.args_iter().map(arg_ptrs).flatten());
+    }
 
-    region_ancestors
+    // Intermediates for datafrog joins
+    let subset_rev = iteration.variable_indistinct("subset_rev");
+
+    while iteration.changed() {
+      // Subset is transitive: 'a ⊆ 'b ∧ 'b ⊆ 'c ⇒ 'a ⊆ 'c
+      // i.e. subset('a, 'c) :- subset('a, 'b), subset('b, 'c);
+      subset_rev.from_map(&subset, |&(o1, o2)| (o2, o1));
+      subset.from_join(&subset_rev, &subset, |_, a, c| (*a, *c));
+
+      // Subset implies containment: p ∈ 'a ∧ 'a ⊆ 'b ⇒ p ∈ 'b
+      // i.e. contains('b, p) :- contains('a, p), subset('a, 'b).
+      contains.from_join(&contains, &subset, |_, p, r| (*r, *p));
+    }
+
+    let mut loans: HashMap<_, HashSet<_>> = HashMap::default();
+    for (region, place) in contains.complete().iter() {
+      loans.entry(*region).or_default().insert(*place);
+    }
+    loans
   }
 
-  fn place_deps(
+  fn compute_all_places(
+    tcx: TyCtxt<'tcx>,
+    body: &Body<'tcx>,
+    def_id: DefId,
+    loans: &LoanMap<'tcx>,
+  ) -> HashSet<Place<'tcx>> {
+    // Get every place that explicitly appears within the MIR body
+    let mut finder = FindPlaces {
+      tcx,
+      body,
+      def_id,
+      places: Vec::new(),
+    };
+    finder.visit_body(body);
+
+    let mut all_places = finder.places.into_iter().collect::<HashSet<_>>();
+
+    // Add every place that appears in a loan set
+    all_places.extend(loans.values().flatten().cloned());
+
+    // For every place p = *q, add q
+    let all_pointers = all_places
+      .iter()
+      .map(|place| {
+        place
+          .refs_in_projection()
+          .into_iter()
+          .map(|(ptr, _)| Place::from_ref(ptr, tcx))
+      })
+      .flatten()
+      .collect::<Vec<_>>();
+    all_places.extend(all_pointers);
+
+    let all_locals = body.local_decls().indices();
+    all_places.extend(
+      all_locals
+        .map(|local| {
+          let place = Place::from_local(local, tcx);
+          place
+            .interior_pointers(tcx, body, def_id)
+            .into_values()
+            .map(|places| {
+              places
+                .into_iter()
+                .map(|(p, _)| vec![p, tcx.mk_place_deref(p)].into_iter())
+                .flatten()
+            })
+            .flatten()
+        })
+        .flatten(),
+    );
+
+    debug!("Places: {:?}", {
+      let mut v = all_places.iter().collect::<Vec<_>>();
+      v.sort();
+      v
+    });
+    info!("Place domain size: {}", all_places.len());
+
+    all_places
+  }
+
+  fn aliases_from_loans(
     place: Place<'tcx>,
-    all_aliases: &IndexMatrix<Place<'tcx>, Place<'tcx>>,
+    loans: &LoanMap<'tcx>,
     body: &Body<'tcx>,
     tcx: TyCtxt<'tcx>,
   ) -> HashSet<Place<'tcx>> {
-    let aliases = all_aliases.row(place).copied();
-    let ptr_deps = place
-      .pointers_in_projection(tcx)
-      .into_iter()
-      .map(|ptr| Self::place_deps(ptr, all_aliases, body, tcx))
-      .flatten();
+    let mut aliases = HashSet::default();
+    aliases.insert(place);
 
-    let maybe_place = if place.is_direct(body) {
-      vec![place]
-    } else {
-      vec![]
-    };
-
-    maybe_place
-      .into_iter()
-      .chain(aliases)
-      .chain(ptr_deps)
-      .collect()
-  }
-
-  // TODO: extremely ugly return type
-  fn compute_conflicts(
-    place_domain: &Rc<PlaceDomain<'tcx>>,
-    tcx: TyCtxt<'tcx>,
-    body: &Body<'tcx>,
-    all_aliases: HashMap<Place<'tcx>, HashSet<Place<'tcx>>>,
-  ) -> (
-    IndexMatrix<Place<'tcx>, Place<'tcx>>,
-    IndexMatrix<Place<'tcx>, Place<'tcx>>,
-    IndexMatrix<Place<'tcx>, Place<'tcx>>,
-    IndexMatrix<Place<'tcx>, Place<'tcx>>,
-  ) {
-    let new_mtx = || IndexMatrix::new(place_domain.clone(), place_domain.clone());
-    let mut deps_map = new_mtx();
-    let mut aliases_map = new_mtx();
-    let mut subs_map = new_mtx();
-    let mut supers_map = new_mtx();
-
-    for (place, aliases) in all_aliases.into_iter() {
-      let direct_aliases = aliases
-        .iter()
-        .filter(|alias| alias.is_direct(body))
-        .copied()
-        .collect_indices(place_domain.clone());
-      aliases_map.union_into_row(place, &direct_aliases);
+    // Places with no derefs, or derefs from arguments, have no aliases
+    if place.is_direct(body) {
+      return aliases;
     }
 
-    for place in place_domain.as_vec().iter() {
-      let deps = Self::place_deps(*place, &aliases_map, body, tcx)
+    // place = after[*ptr]
+    let (ptr, after) = *place.refs_in_projection().last().unwrap();
+
+    // ptr : &'region orig_ty
+    let (region, orig_ty) = match ptr.ty(body.local_decls(), tcx).ty.kind() {
+      TyKind::Ref(RegionKind::ReVar(region), ty, _) => (*region, ty),
+      // ty => unreachable!("{:?} / {:?}", place, ty),
+      // TODO: how to deal with box?
+      _ => {
+        return aliases;
+      }
+    };
+
+    // For each p ∈ loans('region),
+    //   if p : orig_ty then add: after[p]
+    //   else add: p
+    let region_loans = loans
+      .get(&region)
+      .map(|loans| loans.iter())
+      .into_iter()
+      .flatten();
+    let region_aliases = region_loans.map(|loan| {
+      let loan_ty = loan.ty(body.local_decls(), tcx).ty;
+      if TyS::same_type(orig_ty, loan_ty) {
+        let mut projection = loan.projection.to_vec();
+        projection.extend(after.iter().copied());
+        Place::make(loan.local, &projection, tcx)
+      } else {
+        *loan
+      }
+    });
+
+    aliases.extend(region_aliases);
+    aliases
+  }
+
+  pub fn build(
+    tcx: TyCtxt<'tcx>,
+    def_id: DefId,
+    body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
+  ) -> Self {
+    block_timer!("aliases");
+    let body = &body_with_facts.body;
+
+    let loans = Self::compute_loans(tcx, def_id, body_with_facts);
+
+    let mut all_places = Self::compute_all_places(tcx, body, def_id, &loans);
+
+    let normalized_places = Rc::new(RefCell::new(NormalizedPlaces::new(tcx, def_id)));
+    let all_aliases = all_places
+      .iter()
+      .map(|place| {
+        (
+          normalized_places.borrow_mut().normalize(*place),
+          Self::aliases_from_loans(*place, &loans, body, tcx),
+        )
+      })
+      .collect::<HashMap<_, _>>();
+
+    all_places.extend(all_aliases.values().map(|s| s.iter().copied()).flatten());
+
+    let place_domain = Rc::new(PlaceDomain::new(all_places, normalized_places));
+
+    Self::compute_conflicts(place_domain, body, all_aliases)
+  }
+
+  fn compute_conflicts(
+    place_domain: Rc<PlaceDomain<'tcx>>,
+    body: &Body<'tcx>,
+    aliases_map: HashMap<Place<'tcx>, HashSet<Place<'tcx>>>,
+  ) -> Aliases<'tcx> {
+    let new_mtx = || IndexMatrix::new(place_domain.clone(), place_domain.clone());
+    let mut aliases = new_mtx();
+    let mut children = new_mtx();
+    let mut conflicts = new_mtx();
+
+    for (place, aliases_hashset) in aliases_map.into_iter() {
+      let aliases_indexset = aliases_hashset
         .into_iter()
         .collect_indices(place_domain.clone());
-      deps_map.union_into_row(place, &deps);
+      aliases.union_into_row(place, &aliases_indexset);
     }
 
     for place in place_domain.as_vec().iter() {
@@ -354,232 +415,35 @@ impl Aliases<'tcx> {
           .collect_indices(place_domain.clone())
       };
 
-      subs_map.union_into_row(place, &to_set(subs));
-      supers_map.union_into_row(place, &to_set(supers));
+      let subs = to_set(subs);
+      let supers = to_set(supers);
+
+      children.union_into_row(place, &subs);
+
+      conflicts.union_into_row(place, &subs);
+      conflicts.union_into_row(place, &supers);
     }
 
-    debug!("aliases_map: {:?}", aliases_map);
-    debug!("deps_map: {:?}", deps_map);
-    debug!("supers_map: {:?}", supers_map);
-    debug!("subs_map: {:?}", subs_map);
-
-    (aliases_map, deps_map, subs_map, supers_map)
-  }
-
-  fn compute_place_domain(
-    tcx: TyCtxt<'tcx>,
-    body: &Body<'tcx>,
-    def_id: DefId,
-    loans: &IndexVec<RegionVid, HashSet<Place<'tcx>>>,
-  ) -> (
-    Rc<PlaceDomain<'tcx>>,
-    HashMap<Place<'tcx>, HashSet<Place<'tcx>>>,
-  ) {
-    let compute_aliases = |place: Place<'tcx>| {
-      let mut aliases = HashSet::default();
-      aliases.insert(place);
-
-      if place.is_direct(body) {
-        return aliases;
-      }
-
-      // If place = (*p).1, then get ptr = p and projection_past_deref = .1
-      let (deref_index, _) = place
-        .projection
-        .iter()
-        .enumerate()
-        .rev()
-        .find(|(_, elem)| matches!(elem, ProjectionElem::Deref))
-        .unwrap();
-
-      let ptr = Place::make(place.local, &place.projection[.. deref_index], tcx);
-      let projection_past_deref = &place.projection[deref_index + 1 ..];
-
-      let (region, orig_ty) = match ptr.ty(body.local_decls(), tcx).ty.kind() {
-        TyKind::Ref(RegionKind::ReVar(region), ty, _) => (*region, ty),
-        // ty => unreachable!("{:?} / {:?}", place, ty),
-        // TODO: how to deal with box?
-        _ => {
-          return aliases;
-        }
-      };
-
-      // For ptr : &w T1 and each loan : T2, if T1 == T2 then add the projection
-      // to the loan (so as to make the alias more precise), otherwise leave it alone
-      let region_aliases = loans[region].iter().map(|loan| {
-        let loan_ty = loan.ty(body.local_decls(), tcx).ty;
-        if TyS::same_type(orig_ty, loan_ty) {
-          let mut projection = loan.projection.to_vec();
-          projection.extend(projection_past_deref);
-          Place::make(loan.local, &projection, tcx)
-        } else {
-          *loan
-        }
-      });
-
-      aliases.extend(region_aliases);
-      aliases
-    };
-
-    // Get every place that explicitly appears within the MIR body
-    let mut finder = FindPlaces {
-      tcx,
-      body,
-      def_id,
-      places: Vec::new(),
-    };
-    finder.visit_body(body);
-
-    let mut all_places = finder.places.into_iter().collect::<HashSet<_>>();
-
-    // Add every place that appears in a loan set
-    all_places.extend(loans.into_iter().flatten());
-
-    // For every place p = *q, add q
-    let all_pointers = all_places
-      .iter()
-      .map(|place| place.pointers_in_projection(tcx))
-      .flatten()
-      .collect::<Vec<_>>();
-    all_places.extend(all_pointers);
-
-    // Compute aliases for each (normalized) place
-    let normalized_places = Rc::new(RefCell::new(NormalizedPlaces::new(tcx, def_id)));
-    let all_aliases = all_places
-      .iter()
-      .map(|place| {
-        let norm_place = normalized_places.borrow_mut().normalize(*place);
-        // can't compute aliases w/ normalized place b/c that has regions erased
-        (norm_place, compute_aliases(*place))
-      })
-      .collect::<HashMap<_, _>>();
-
-    // Include aliases in the place domain
-    all_places.extend(all_aliases.values().flatten().copied());
-
-    debug!("Places: {:?}", {
-      let mut v = all_places.iter().collect::<Vec<_>>();
-      v.sort();
-      v
-    });
-    info!("Place domain size: {}", all_places.len());
-
-    (
-      Rc::new(PlaceDomain::new(all_places, normalized_places)),
-      all_aliases,
-    )
-  }
-
-  fn compute_loans(
-    body_with_facts: &BodyWithBorrowckFacts<'tcx>,
-    region_to_pointers: HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>,
-    tcx: TyCtxt<'tcx>,
-    def_id: DefId,
-  ) -> IndexVec<RegionVid, HashSet<Place<'tcx>>> {
-    // Get the graph of which regions outlive which other ones
-    let region_ancestors =
-      Self::compute_region_ancestors(body_with_facts, &region_to_pointers, tcx, def_id);
-
-    // Initialize the loan set where loan['a] = {*x} if x: &'a T
-    let mut loans = IndexVec::from_elem_n(HashSet::default(), region_ancestors.len());
-    for (region, places) in region_to_pointers.iter() {
-      for (sub_place, _) in places {
-        loans[*region].insert(tcx.mk_place_deref(*sub_place));
+    for place in place_domain.as_vec().iter() {
+      for alias in aliases.row(place) {
+        children.union_rows(alias, place);
+        conflicts.union_rows(alias, place);
       }
     }
-
-    // Given expressions e = &'a p, add p to loan['a]
-    let mut gather_borrows = GatherBorrows::default();
-    gather_borrows.visit_body(&body_with_facts.body);
-    for (region, _, place) in gather_borrows.borrows.into_iter() {
-      loans[region].insert(place);
-    }
-
-    // Propagate all loans where if 'a : 'b, then add loan['a] to loan['b].
-    // Iterate to fixpoint.
-    loop {
-      let mut changed = false;
-      let prev_loans = loans.clone();
-      for (region, region_loans) in loans.iter_enumerated_mut() {
-        let outlives_loans = region_ancestors[region]
-          .iter()
-          .map(|ancestor| prev_loans[ancestor].iter().copied())
-          .flatten()
-          .collect::<HashSet<_>>();
-
-        let orig_len = region_loans.len();
-        region_loans.extend(&outlives_loans);
-        changed |= orig_len != region_loans.len();
-      }
-
-      if !changed {
-        break;
-      }
-    }
-
-    loans
-  }
-
-  pub fn build(
-    tcx: TyCtxt<'tcx>,
-    def_id: DefId,
-    body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
-  ) -> Self {
-    block_timer!("aliases");
-    let body = &body_with_facts.body;
-
-    // Get a mapping of regions -> references with that region,
-    // i.e. 'a -> {p | p : &'a T}
-    let all_locals = body.local_decls().indices();
-    let all_pointers = all_locals
-      .map(|local| {
-        let place = Place::from_local(local, tcx);
-        place.interior_pointers(tcx, body, def_id)
-      })
-      .flatten();
-    let mut region_to_pointers: HashMap<_, Vec<_>> = HashMap::default();
-    for (region, places) in all_pointers {
-      region_to_pointers.entry(region).or_default().extend(places);
-    }
-
-    // Use outlives-constraints to get the loan set for each region
-    let loans = Self::compute_loans(body_with_facts, region_to_pointers, tcx, def_id);
-    debug!("Loans: {:?}", {
-      let mut v = loans.iter_enumerated().collect::<Vec<_>>();
-      v.sort_by_key(|(r, _)| *r);
-      v
-    });
-
-    // Convert loan sets for regions to alias sets for places by specializing
-    // loans with projections
-    let (place_domain, all_aliases) =
-      Self::compute_place_domain(tcx, body, def_id, &loans);
-
-    // Use alias sets to build derived metadata like the conflicts (#) relation
-    let (aliases, deps, subs, supers) =
-      Self::compute_conflicts(&place_domain, tcx, body, all_aliases);
 
     Aliases {
-      place_domain,
       aliases,
-      deps,
-      subs,
-      supers,
+      children,
+      conflicts,
+      place_domain,
     }
   }
 
-  pub fn conflicts(&self, place: impl ToIndex<Place<'tcx>>) -> PlaceSet<'tcx> {
-    self
-      .aliases
-      .row(place)
-      .map(|alias| {
-        let subs = self.subs.row(alias);
-        let supers = self.supers.row(alias);
-        subs.chain(supers)
-      })
-      .flatten()
-      .copied()
-      .collect_indices(self.place_domain.clone())
+  pub fn conflicts(
+    &self,
+    place: impl ToIndex<Place<'tcx>>,
+  ) -> PlaceSet<'tcx, RefSet<'_, Place<'tcx>>> {
+    self.conflicts.row_set(place).unwrap()
   }
 }
 

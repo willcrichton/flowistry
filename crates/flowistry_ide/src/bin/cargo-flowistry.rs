@@ -48,7 +48,7 @@ fn main() {
       (@arg file:)
       (@arg pos:)
       (@arg flags: ...))
-    (@subcommand playground => 
+    (@subcommand playground =>
       (@arg file:)
       (@arg start:)
       (@arg end:)
