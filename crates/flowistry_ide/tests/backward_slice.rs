@@ -1284,3 +1284,38 @@ fn main() {}
 
   backward_slice(src);
 }
+
+#[test]
+fn self_write_independent() {
+  let src = r#"
+struct Foo(i32, i32);
+impl Foo {
+  fn foo(`[&mut self]`) {
+    let x = 1;
+    `[let `[y]` = `[2]`;]`
+    self.0 = x;
+    `[`[self.1 = `[y]`]`;]`
+    `[`(self.1)`;]`
+  }
+}
+"#;
+
+  backward_slice(src);
+}
+
+#[test]
+fn self_read_independent() {
+  let src = r#"
+struct Foo(i32, i32);
+impl Foo {
+  fn foo(`[&mut self]`) {
+    self.0 += 1;
+    `[`[self.1 += 1]`;]`
+    `[let `[x]` = `[self.1]`;]`
+    `[`(x)`;]`
+  }
+}
+"#;
+
+  backward_slice(src);
+}

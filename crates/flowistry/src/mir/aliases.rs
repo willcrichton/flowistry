@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, hash::Hash, rc::Rc};
 
 use datafrog::{Iteration, Relation};
 use log::{debug, info};
@@ -122,6 +122,16 @@ rustc_index::newtype_index! {
 
 type LoanMap<'tcx> = HashMap<RegionVid, HashSet<Place<'tcx>>>;
 
+fn group_pairs<K: Hash + Eq, V: Hash + Eq>(
+  pairs: impl Iterator<Item = (K, V)>,
+) -> HashMap<K, HashSet<V>> {
+  let mut map: HashMap<_, HashSet<_>> = HashMap::default();
+  for (k, v) in pairs {
+    map.entry(k).or_default().insert(v);
+  }
+  map
+}
+
 impl Aliases<'tcx> {
   fn compute_loans(
     tcx: TyCtxt<'tcx>,
@@ -191,11 +201,17 @@ impl Aliases<'tcx> {
       for (region, _, place) in gather_borrows.borrows {
         contains.extend([mk_tuple(region, place)]);
 
-        let projection = match place.refs_in_projection().last() {
-          Some((_, proj)) => proj.to_vec(),
-          None => place.projection.to_vec(),
+        let (ty, projection) = match place.refs_in_projection().last() {
+          Some((ptr, proj)) => (
+            ptr.ty(body.local_decls(), tcx).ty.peel_refs(),
+            proj.to_vec(),
+          ),
+          None => (
+            body.local_decls()[place.local].ty,
+            place.projection.to_vec(),
+          ),
         };
-        definite.insert(region, projection);
+        definite.insert(region, (ty, projection));
       }
     }
 
@@ -216,30 +232,44 @@ impl Aliases<'tcx> {
       contains.extend(body.args_iter().map(arg_ptrs).flatten());
     }
 
+    // reachable is the transitive closure of subset
+    let reachable = {
+      let mut iteration = Iteration::new();
+      let reachable = iteration.variable("reachable");
+      reachable.extend(subset.as_ref().iter().copied());
+      let reachable_rev = iteration.variable_indistinct("reachable_rev");
+      while iteration.changed() {
+        reachable_rev.from_map(&reachable, |&(o1, o2)| (o2, o1));
+        reachable.from_join(&reachable_rev, &reachable, |_, a, c| (*a, *c));
+      }
+      group_pairs(reachable.complete().iter().copied())
+    };
+
     while iteration.changed() {
       // Subset implies containment: p ∈ 'a ∧ 'a ⊆ 'b ⇒ p ∈ 'b
       // i.e. contains('b, p) :- contains('a, p), subset('a, 'b).
       //
       // If 'a is from a borrow expression &'a proj[*p'], then we add proj to all inherited aliases.
       // See interprocedural_field_independence for an example where this matters.
-      contains.from_join(&contains, &subset, |_, p, r| {
-        let p_proj = match definite.get(r) {
-          Some(proj) => {
+      // But we only do this if:
+      //   * !subset('b, 'a) since otherwise projections would be added infinitely.
+      //   * if p' : &T, then p : T since otherwise proj[p] is not well-typed.
+      contains.from_join(&contains, &subset, |a, p, b| {
+        let is_reachable = reachable.get(b).map(|set| set.contains(a)).unwrap_or(false);
+        let p_ty = p.ty(body.local_decls(), tcx).ty;
+        let p_proj = match definite.get(b) {
+          Some((ty, proj)) if !is_reachable && TyS::same_type(ty, p_ty) => {
             let mut full_proj = p.projection.to_vec();
             full_proj.extend(proj);
             Place::make(p.local, tcx.intern_place_elems(&full_proj), tcx)
           }
-          None => *p,
+          _ => *p,
         };
-        mk_tuple(*r, p_proj)
+        mk_tuple(*b, p_proj)
       });
     }
 
-    let mut loans: HashMap<_, HashSet<_>> = HashMap::default();
-    for (region, place) in contains.complete().iter() {
-      loans.entry(*region).or_default().insert(*place);
-    }
-    loans
+    group_pairs(contains.complete().iter().copied())
   }
 
   fn compute_all_places(
