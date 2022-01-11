@@ -247,10 +247,11 @@ impl MirPass<'tcx> for SimplifyMir {
 
 pub trait PlaceExt<'tcx> {
   fn make(local: Local, projection: &[PlaceElem<'tcx>], tcx: TyCtxt<'tcx>) -> Self;
+  fn from_ref(place: PlaceRef<'tcx>, tcx: TyCtxt<'tcx>) -> Self;
   fn from_local(local: Local, tcx: TyCtxt<'tcx>) -> Self;
   fn is_arg(&self, body: &Body<'tcx>) -> bool;
   fn is_direct(&self, body: &Body<'tcx>) -> bool;
-  fn pointers_in_projection(&self, tcx: TyCtxt<'tcx>) -> SmallVec<[Place<'tcx>; 2]>;
+  fn refs_in_projection(&self) -> SmallVec<[(PlaceRef<'tcx>, &[PlaceElem<'tcx>]); 2]>;
   fn interior_pointers(
     &self,
     tcx: TyCtxt<'tcx>,
@@ -274,6 +275,10 @@ impl PlaceExt<'tcx> for Place<'tcx> {
     }
   }
 
+  fn from_ref(place: PlaceRef<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+    Self::make(place.local, place.projection, tcx)
+  }
+
   fn from_local(local: Local, tcx: TyCtxt<'tcx>) -> Self {
     Place::make(local, &[], tcx)
   }
@@ -287,12 +292,19 @@ impl PlaceExt<'tcx> for Place<'tcx> {
     !self.is_indirect() || self.is_arg(body)
   }
 
-  fn pointers_in_projection(&self, tcx: TyCtxt<'tcx>) -> SmallVec<[Place<'tcx>; 2]> {
+  fn refs_in_projection(&self) -> SmallVec<[(PlaceRef<'tcx>, &[PlaceElem<'tcx>]); 2]> {
     self
-      .iter_projections()
-      .filter_map(|(place_ref, elem)| match elem {
+      .projection
+      .iter()
+      .enumerate()
+      .filter_map(|(i, elem)| match elem {
         ProjectionElem::Deref => {
-          Some(Place::make(place_ref.local, place_ref.projection, tcx))
+          let ptr = PlaceRef {
+            local: self.local,
+            projection: &self.projection[.. i],
+          };
+          let after = &self.projection[i + 1 ..];
+          Some((ptr, after))
         }
         _ => None,
       })

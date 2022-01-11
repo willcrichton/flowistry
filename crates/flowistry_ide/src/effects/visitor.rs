@@ -67,7 +67,7 @@ impl FindEffects<'a, 'mir, 'tcx> {
         .or_default()
         .insert((mutated, location));
     } else {
-      let mut conflicts = self.analysis.aliases.conflicts(mutated);
+      let mut conflicts = self.analysis.aliases.conflicts(mutated).to_owned();
       debug!(
         "Checking for effect on {:?} (conflicts {:?})",
         mutated, conflicts

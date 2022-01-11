@@ -141,7 +141,7 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
         end: arg::<usize>("END"),
         filename: arg::<String>("FILE"),
       };
-      
+
       try_analysis(move || flowistry_ide::playground::playground(range, args))
     }
     "effects" => {

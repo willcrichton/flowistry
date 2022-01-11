@@ -136,6 +136,20 @@ impl<T: IndexedValue> Deref for RefSet<'_, T> {
   }
 }
 
+impl<T: IndexedValue> Deref for MutSet<'_, T> {
+  type Target = IndexSetImpl<T::Index>;
+
+  fn deref(&self) -> &Self::Target {
+    self.0
+  }
+}
+
+impl<T: IndexedValue> DerefMut for MutSet<'_, T> {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    self.0
+  }
+}
+
 pub trait ToSet<T: IndexedValue>: Deref<Target = IndexSetImpl<T::Index>> {}
 pub trait ToSetMut<T: IndexedValue>: DerefMut<Target = IndexSetImpl<T::Index>> {}
 
@@ -374,6 +388,26 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
     S2: ToSet<C>,
   {
     self.ensure_row(into).union(&*from.set)
+  }
+
+  pub fn union_rows(&mut self, from: impl ToIndex<R>, to: impl ToIndex<R>) -> bool {
+    let from = from.to_index(&self.row_domain);
+    let to = to.to_index(&self.row_domain);
+    if from == to {
+      return false;
+    }
+
+    self.ensure_row(to);
+
+    match self.row_set(from) {
+      Some(from) => {
+        let to = self.row_set(to).unwrap();
+        // SAFETY: `from` != `to` therefore this is a disjoint mutable borrow
+        let mut to = unsafe { std::mem::transmute::<_, IndexSet<C, MutSet<C>>>(to) };
+        to.union(&from)
+      }
+      None => false,
+    }
   }
 
   pub fn row<'a>(

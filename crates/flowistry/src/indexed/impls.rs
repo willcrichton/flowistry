@@ -11,7 +11,7 @@ use rustc_middle::{
 use rustc_span::def_id::DefId;
 use rustc_trait_selection::infer::InferCtxtExt;
 
-use super::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, ToIndex};
+use super::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, OwnedSet, ToIndex};
 use crate::{
   mir::utils::{BodyExt, PlaceExt},
   to_index_impl,
@@ -150,7 +150,7 @@ impl IndexedValue for Place<'tcx> {
   type Domain = PlaceDomain<'tcx>;
 }
 
-pub type PlaceSet<'tcx> = IndexSet<Place<'tcx>>;
+pub type PlaceSet<'tcx, S = OwnedSet<Place<'tcx>>> = IndexSet<Place<'tcx>, S>;
 
 rustc_index::newtype_index! {
   pub struct LocationIndex {
