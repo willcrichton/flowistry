@@ -1,3 +1,5 @@
+use std::iter;
+
 use anyhow::Result;
 use flowistry::{
   mir::{aliases::Aliases, borrowck_facts::get_body_with_borrowck_facts},
@@ -26,12 +28,6 @@ pub struct MutationOutput {
   pub ranges: Vec<Range>,
   pub selected_spans: Vec<Range>,
   pub body_span: Range,
-}
-
-impl MutationOutput {
-  pub fn ranges(&self) -> &Vec<Range> {
-    &self.ranges
-  }
 }
 
 impl FlowistryOutput for MutationOutput {
@@ -73,7 +69,7 @@ impl FlowistryAnalysis for MutationAnalysis {
     let spanner = source_map::HirSpanner::new(tcx, body_id);
 
     let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
-    let selected_spans = ranges_from_spans([selected_span].into_iter(), source_map)?;
+    let selected_spans = ranges_from_spans(iter::once(selected_span), source_map)?;
 
     let mutated_locations =
       find_mutations(tcx, body, def_id.to_def_id(), selected_place, aliases);
@@ -88,7 +84,6 @@ impl FlowistryAnalysis for MutationAnalysis {
       body_span,
       selected_spans,
       ranges,
-      ..Default::default()
     })
   }
 }
