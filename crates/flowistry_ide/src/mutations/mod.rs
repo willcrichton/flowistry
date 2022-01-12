@@ -61,7 +61,9 @@ impl FlowistryAnalysis for MutationAnalysis {
       match source_map::span_to_place(body, body_span, self.range.to_span(source_map)?) {
         Some(t) => t,
         None => {
-          return Ok(MutationOutput::default());
+          return Err(anyhow::format_err!(
+            "Selection could not be mapped to a place."
+          ));
         }
       };
     debug!("selected_place {:?}", selected_place);
