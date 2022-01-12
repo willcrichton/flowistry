@@ -7,7 +7,7 @@ use rustc_data_structures::sync::Lrc;
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor},
   itemlikevisit::ItemLikeVisitor,
-  BodyId, Expr,
+  BodyId,
 };
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::{FileName, RealFileName, SourceFile, Span};
@@ -86,8 +86,4 @@ pub fn path_to_source_file(
     })
     .cloned()
     .ok_or_else(|| anyhow!("Could not find file {} out of files {:#?}", path, **files))
-}
-
-pub fn expr_to_string(expr: &Expr) -> String {
-  rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| s.print_expr(expr))
 }

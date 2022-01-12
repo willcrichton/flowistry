@@ -3,20 +3,25 @@
 use std::{
   collections::{HashMap, HashSet},
   fmt::Debug,
+  fs,
   io::Write,
+  path::Path,
   process::Command,
 };
 
 use anyhow::Result;
 use flowistry::{
+  extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
   infoflow::Direction,
   test_utils::{parse_ranges, ParsedRangeMap},
 };
 use flowistry_ide::{
-  analysis::FlowistryResult,
+  analysis::{FlowistryOutput, FlowistryResult},
   range::{FunctionIdentifier, Range},
 };
+use fluid_let::fluid_set;
 use lazy_static::lazy_static;
+use log::info;
 use tempfile::NamedTempFile;
 
 fn color_ranges(prog: &str, all_ranges: Vec<(&str, &HashSet<Range>)>) -> String {
@@ -48,7 +53,12 @@ fn color_ranges(prog: &str, all_ranges: Vec<(&str, &HashSet<Range>)>) -> String 
   return output;
 }
 
-fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &str) {
+fn compare_ranges(
+  path: &Path,
+  expected: HashSet<Range>,
+  actual: HashSet<Range>,
+  prog: &str,
+) {
   let missing = &expected - &actual;
   let extra = &actual - &expected;
 
@@ -57,7 +67,11 @@ fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &str) 
 
   let check = |s: HashSet<Range>, message: &str| {
     if s.len() > 0 {
-      println!("In program:\n{}", textwrap::indent(prog.trim(), "  "));
+      println!(
+        "In program  {}:\n{}",
+        path.file_name().unwrap().to_string_lossy(),
+        textwrap::indent(prog.trim(), "  ")
+      );
       println!("Expected ranges:\n{}", fmt_ranges(&expected));
       println!("Actual ranges:\n{}", fmt_ranges(&actual));
       panic!("{} ranges:\n{}", message, fmt_ranges(&s));
@@ -94,19 +108,64 @@ pub fn flow<O: Debug>(
   inner().unwrap();
 }
 
-pub fn slice(prog: &str, direction: Direction) {
+fn bless(path: &Path, contents: String, actual: HashSet<Range>) -> Result<()> {
+  let mut delims = actual
+    .into_iter()
+    .map(|range| [("`[", range.start), ("]`", range.end)])
+    .flatten()
+    .collect::<Vec<_>>();
+  delims.sort_by_key(|(_, i)| *i);
+
+  let mut output = String::new();
+  for (i, ch) in contents.chars().enumerate() {
+    while delims.len() > 0 && delims[0].1 == i {
+      let (delim, _) = delims.remove(0);
+      output.push_str(delim);
+    }
+    output.push(ch);
+  }
+
+  fs::write(path.with_extension("txt.expected"), output)?;
+
+  Ok(())
+}
+
+pub fn test_command_output<T: FlowistryOutput>(
+  path: &Path,
+  expected: Option<&Path>,
+  output_fn: impl Fn(Range, &[String]) -> T,
+) {
   let inner = move || -> Result<()> {
+    info!("Testing {}", path.file_name().unwrap().to_string_lossy());
+    let input = String::from_utf8(fs::read(path)?)?;
+
     let mut f = NamedTempFile::new()?;
     let filename = f.path().to_string_lossy().to_string();
 
-    let (prog_clean, parsed_ranges) =
-      parse_ranges(prog, vec![("`[", "]`"), ("`(", ")`")])?;
-    let ranges = parsed_to_ranges(parsed_ranges, filename);
-    let range = ranges["`("][0].clone();
-    let mut expected = ranges["`["].clone().into_iter().collect::<HashSet<_>>();
-    expected.insert(range.clone());
+    let parse_range_map = |src, delims| -> Result<_> {
+      let (clean, parsed_ranges) = parse_ranges(src, delims)?;
+      let map = parsed_ranges
+        .into_iter()
+        .map(|(k, vs)| {
+          (
+            k,
+            vs.into_iter()
+              .map(|(start, end)| Range {
+                start,
+                end,
+                filename: filename.to_string(),
+              })
+              .collect::<Vec<_>>(),
+          )
+        })
+        .collect::<HashMap<_, _>>();
+      Ok((clean, map))
+    };
 
-    f.as_file_mut().write(prog_clean.as_bytes())?;
+    let (input_clean, input_ranges) = parse_range_map(&input, vec![("`(", ")`")])?;
+    let range = input_ranges["`("][0].clone();
+
+    f.as_file_mut().write(input_clean.as_bytes())?;
 
     let args = format!(
       "rustc --crate-name tmp --edition=2018 {} -A warnings --sysroot {}",
@@ -116,42 +175,40 @@ pub fn slice(prog: &str, direction: Direction) {
 
     let args = args.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
 
-    let output = flowistry_ide::slicing::slice(direction, range, &args).unwrap();
-    let actual = output.ranges().into_iter().cloned().collect::<HashSet<_>>();
+    let header = input.lines().next().unwrap();
+    let mut mode = EvalMode::default();
+    if header.starts_with("/*") {
+      if header.contains("recurse") {
+        mode.context_mode = ContextMode::Recurse;
+      }
+      if header.contains("ignoremut") {
+        mode.mutability_mode = MutabilityMode::IgnoreMut;
+      }
+      if header.contains("conservative") {
+        mode.pointer_mode = PointerMode::Conservative;
+      }
+    }
 
-    compare_ranges(expected, actual, &prog_clean);
+    fluid_set!(EVAL_MODE, &mode);
+    let output = output_fn(range, &args);
+    let actual = output.ranges().unwrap().into_iter().collect::<HashSet<_>>();
 
-    Ok(())
-  };
+    match expected {
+      Some(expected_path) => {
+        let output = String::from_utf8(fs::read(expected_path)?)?;
+        let (_output_clean, output_ranges) =
+          parse_range_map(&output, vec![("`[", "]`")])?;
 
-  inner().unwrap();
-}
-
-pub fn find_mutations(prog: &str) {
-  let inner = move || -> Result<()> {
-    let mut f = NamedTempFile::new()?;
-    let filename = f.path().to_string_lossy().to_string();
-
-    let (prog_clean, parsed_ranges) =
-      parse_ranges(prog, vec![("`[", "]`"), ("`(", ")`")])?;
-    let ranges = parsed_to_ranges(parsed_ranges, filename);
-    let range = ranges["`("][0].clone();
-    let expected = ranges["`["].clone().into_iter().collect::<HashSet<_>>();
-
-    f.as_file_mut().write(prog_clean.as_bytes())?;
-
-    let args = format!(
-      "rustc --crate-name tmp --edition=2018 {} -A warnings --sysroot {}",
-      f.path().display(),
-      *SYSROOT
-    );
-
-    let args = args.split(" ").map(|s| s.to_owned()).collect::<Vec<_>>();
-
-    let output = flowistry_ide::mutations::find(range, &args).unwrap();
-    let actual = output.ranges().into_iter().cloned().collect::<HashSet<_>>();
-
-    compare_ranges(expected, actual, &prog_clean);
+        let expected = output_ranges["`["]
+          .clone()
+          .into_iter()
+          .collect::<HashSet<_>>();
+        compare_ranges(path, expected, actual, &input_clean);
+      }
+      None => {
+        bless(path, input_clean, actual)?;
+      }
+    }
 
     Ok(())
   };
@@ -159,15 +216,16 @@ pub fn find_mutations(prog: &str) {
   inner().unwrap();
 }
 
-pub fn backward_slice(prog: &str) {
-  // use fluid_let::fluid_set;
-  // use flowistry::extensions::{ContextMode, EvalMode, EVAL_MODE};
-  // fluid_set!(EVAL_MODE, EvalMode { context_mode: ContextMode::Recurse, ..Default::default() });
-  slice(prog, Direction::Backward);
+pub fn slice(path: &Path, expected: Option<&Path>, direction: Direction) {
+  test_command_output(path, expected, |range, args| {
+    flowistry_ide::slicing::slice(direction, range, &args).unwrap()
+  });
 }
 
-pub fn forward_slice(prog: &str) {
-  slice(prog, Direction::Forward);
+pub fn find_mutations(path: &Path, expected: Option<&Path>) {
+  test_command_output(path, expected, |range, args| {
+    flowistry_ide::mutations::find(range, args).unwrap()
+  });
 }
 
 pub fn effects(prog: &str, qpath: &str) {
@@ -210,4 +268,27 @@ pub fn parsed_to_ranges(
       )
     })
     .collect()
+}
+
+const BLESS: bool = option_env!("BLESS").is_some();
+
+pub fn run_tests(dir: impl AsRef<Path>, test_fn: impl Fn(&Path, Option<&Path>)) {
+  let main = || -> Result<()> {
+    let test_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+      .join("tests")
+      .join(dir.as_ref());
+    let tests = fs::read_dir(test_dir)?;
+    for test in tests {
+      let test = test?.path();
+      if test.extension().unwrap() == "expected" {
+        continue;
+      }
+      let expected_path = test.with_extension("txt.expected");
+      let expected = (!BLESS).then(|| expected_path.as_ref());
+      test_fn(&test, expected);
+    }
+    Ok(())
+  };
+
+  main().unwrap();
 }

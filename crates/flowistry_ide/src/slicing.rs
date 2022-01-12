@@ -32,12 +32,6 @@ pub struct SliceOutput {
   pub body_span: Range,
 }
 
-impl SliceOutput {
-  pub fn ranges(&self) -> &Vec<Range> {
-    &self.ranges
-  }
-}
-
 impl FlowistryOutput for SliceOutput {
   fn merge(&mut self, other: SliceOutput) {
     self.ranges.extend(other.ranges);
@@ -47,6 +41,10 @@ impl FlowistryOutput for SliceOutput {
     self.relevant_inputs = other.relevant_inputs;
     self.body_span = other.body_span;
     self.selected_spans.extend(other.selected_spans);
+  }
+
+  fn ranges(&self) -> Option<Vec<Range>> {
+    Some(self.ranges.clone())
   }
 }
 
@@ -65,8 +63,9 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     let results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
 
     let source_map = tcx.sess.source_map();
+    let body_span = tcx.hir().body(body_id).value.span;
     let (sliced_place, sliced_location, sliced_span) =
-      match source_map::span_to_place(body, self.range.to_span(source_map)?) {
+      match source_map::span_to_place(body, body_span, self.range.to_span(source_map)?) {
         Some(t) => t,
         None => {
           return Ok(SliceOutput::default());

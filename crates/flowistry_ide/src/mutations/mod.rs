@@ -1,7 +1,7 @@
 use anyhow::Result;
 use flowistry::{
   mir::{aliases::Aliases, borrowck_facts::get_body_with_borrowck_facts},
-  source_map::{self, location_to_spans},
+  source_map::{self, location_to_spans, simplify_spans},
 };
 use log::debug;
 use rustc_hir::BodyId;
@@ -40,6 +40,10 @@ impl FlowistryOutput for MutationOutput {
     self.body_span = other.body_span;
     self.selected_spans.extend(other.selected_spans);
   }
+
+  fn ranges(&self) -> Option<Vec<Range>> {
+    Some(self.ranges.clone())
+  }
 }
 
 impl FlowistryAnalysis for MutationAnalysis {
@@ -56,8 +60,9 @@ impl FlowistryAnalysis for MutationAnalysis {
     let aliases = Aliases::build(tcx, def_id.to_def_id(), body_with_facts);
 
     let source_map = tcx.sess.source_map();
+    let body_span = tcx.hir().body(body_id).value.span;
     let (selected_place, _, selected_span) =
-      match source_map::span_to_place(body, self.range.to_span(source_map)?) {
+      match source_map::span_to_place(body, body_span, self.range.to_span(source_map)?) {
         Some(t) => t,
         None => {
           return Ok(MutationOutput::default());
@@ -70,13 +75,14 @@ impl FlowistryAnalysis for MutationAnalysis {
     let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
     let selected_spans = ranges_from_spans([selected_span].into_iter(), source_map)?;
 
-    let mutation_locations =
+    let mutated_locations =
       find_mutations(tcx, body, def_id.to_def_id(), selected_place, aliases);
-    let mutation_spans = mutation_locations
+    let mutated_spans = mutated_locations
       .into_iter()
       .map(|location| location_to_spans(location, body, &spanner, source_map))
       .flatten();
-    let ranges = ranges_from_spans(mutation_spans, source_map)?;
+    let mutated_spans = simplify_spans(mutated_spans.collect::<Vec<_>>());
+    let ranges = ranges_from_spans(mutated_spans.into_iter(), source_map)?;
 
     Ok(MutationOutput {
       body_span,

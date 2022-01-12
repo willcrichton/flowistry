@@ -14,7 +14,7 @@ use crate::{
     IndexedDomain,
   },
   mir::utils::PlaceExt,
-  source_map::{location_to_spans, HirSpanner},
+  source_map::{location_to_spans, HirSpanner, simplify_spans},
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -235,7 +235,7 @@ pub fn compute_dependency_spans(
             .source_callsite()
         });
 
-      location_spans.chain(place_spans).collect::<Vec<_>>()
+      simplify_spans(location_spans.chain(place_spans).collect::<Vec<_>>())
     })
     .collect::<Vec<_>>()
 }
