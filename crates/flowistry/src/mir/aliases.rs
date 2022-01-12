@@ -18,7 +18,7 @@ use crate::{
   extensions::{is_extension_active, PointerMode},
   indexed::{
     impls::{NormalizedPlaces, PlaceDomain, PlaceIndex, PlaceSet},
-    IndexMatrix, IndexSetIteratorExt, IndexedDomain, RefSet, ToIndex,
+    IndexMatrix, IndexSet, IndexSetIteratorExt, IndexedDomain, RefSet, ToIndex,
   },
   mir::utils::{self, PlaceExt, PlaceRelation},
 };
@@ -483,6 +483,26 @@ impl Aliases<'tcx> {
     place: impl ToIndex<Place<'tcx>>,
   ) -> PlaceSet<'tcx, RefSet<'_, Place<'tcx>>> {
     self.conflicts.row_set(place).unwrap()
+  }
+
+  pub fn reachable_values(
+    &self,
+    tcx: TyCtxt<'tcx>,
+    body: &Body<'tcx>,
+    def_id: DefId,
+    place: Place<'tcx>,
+  ) -> IndexSet<Place<'tcx>> {
+    let interior_pointer_places = place
+      .interior_pointers(tcx, body, def_id)
+      .into_values()
+      .map(|v| v.into_iter().map(|(place, _)| place))
+      .flatten();
+
+    interior_pointer_places
+      .map(|place| self.aliases.row(tcx.mk_place_deref(place)).copied())
+      .flatten()
+      .chain(vec![place])
+      .collect_indices(self.place_domain.clone())
   }
 }
 

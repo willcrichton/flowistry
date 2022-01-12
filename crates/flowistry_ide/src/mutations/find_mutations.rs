@@ -1,8 +1,4 @@
-use flowistry::{
-  indexed::IndexSetIteratorExt,
-  infoflow::mutation::ModularMutationVisitor,
-  mir::{aliases::Aliases, utils::PlaceExt},
-};
+use flowistry::{infoflow::mutation::ModularMutationVisitor, mir::aliases::Aliases};
 use log::debug;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{
@@ -18,16 +14,7 @@ pub fn find_mutations(
   aliases: Aliases<'tcx>,
 ) -> Vec<Location> {
   let mut locations = vec![];
-  let pointer_aliases = place
-    .interior_pointers(tcx, body, def_id)
-    .into_values()
-    .map(|v| v.into_iter().map(|(place, _)| place))
-    .flatten()
-    .map(|place| aliases.aliases.row(tcx.mk_place_deref(place)).copied())
-    .flatten()
-    .chain(vec![place])
-    .collect_indices(aliases.place_domain.clone());
-
+  let pointer_aliases = aliases.reachable_values(tcx, body, def_id, place);
   debug!("pointer aliases: {:?}", pointer_aliases);
 
   ModularMutationVisitor::new(
