@@ -411,7 +411,7 @@ mod test {
       let source_map = tcx.sess.source_map();
       let expected: &[&[&str]] =
         &[&["1", "let x = ", ";"], &["let y = ", ";"], &["true"], &[
-          " + ",
+          " + ", ";",
         ]];
       debug!("{}", body.to_string(tcx).unwrap());
       for (input_span, desired) in spans.into_iter().zip(expected) {
