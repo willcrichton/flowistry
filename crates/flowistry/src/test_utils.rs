@@ -163,3 +163,16 @@ pub fn make_span((lo, hi): (usize, usize)) -> Span {
     None,
   )
 }
+
+#[cfg(test)]
+mod test {
+  use super::*;
+
+  #[test]
+  fn test_parse_ranges() {
+    let s = "`[`[f]`oo]`";
+    let (clean, ranges) = parse_ranges(s, vec![("`[", "]`")]).unwrap();
+    assert_eq!(clean, "foo");
+    assert_eq!(ranges["`["], vec![(0, 1), (0, 3)])
+  }
+}

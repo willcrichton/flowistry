@@ -205,6 +205,28 @@ pub fn compute_dependencies(
   visitor.outputs
 }
 
+fn span_overlaps(s1: Span, s2: Span) -> bool {
+  let s1 = s1.data();
+  let s2 = s2.data();
+  s1.lo <= s2.hi && s2.lo <= s1.hi
+}
+
+fn simplify_spans(mut spans: Vec<Span>) -> Vec<Span> {
+  spans.sort_by_key(|s| s.lo());
+  let mut output = Vec::new();
+  for span in spans {
+    match output.iter_mut().find(|other| span_overlaps(span, **other)) {
+      Some(other) => {
+        *other = span.to(*other);
+      }
+      None => {
+        output.push(span);
+      }
+    }
+  }
+  output
+}
+
 pub fn compute_dependency_spans(
   results: &FlowResults<'_, 'tcx>,
   targets: Vec<(Place<'tcx>, Location)>,
@@ -235,7 +257,7 @@ pub fn compute_dependency_spans(
             .source_callsite()
         });
 
-      location_spans.chain(place_spans).collect::<Vec<_>>()
+      simplify_spans(location_spans.chain(place_spans).collect::<Vec<_>>())
     })
     .collect::<Vec<_>>()
 }

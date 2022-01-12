@@ -65,8 +65,9 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     let results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
 
     let source_map = tcx.sess.source_map();
+    let body_span = tcx.hir().body(body_id).value.span;
     let (sliced_place, sliced_location, sliced_span) =
-      match source_map::span_to_place(body, self.range.to_span(source_map)?) {
+      match source_map::span_to_place(body, body_span, self.range.to_span(source_map)?) {
         Some(t) => t,
         None => {
           return Ok(SliceOutput::default());
