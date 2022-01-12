@@ -407,6 +407,7 @@ impl Aliases<'tcx> {
         )
       })
       .collect::<HashMap<_, _>>();
+    debug!("Aliases: {:#?}", all_aliases);
 
     all_places.extend(all_aliases.values().map(|s| s.iter().copied()).flatten());
 

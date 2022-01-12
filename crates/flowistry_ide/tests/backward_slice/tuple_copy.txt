@@ -1,0 +1,13 @@
+// TODO: y.1 shoudn't be part of the slice
+  //   the issue is that when we do z = y, then the collected influence of y
+  //   is broadcast into every conflicting place in z. So y.1 -> z -> z.0.
+  //   we need something to "match up" influences so y.1 only flows to z.1
+
+fn main() {
+  let mut x = 1;
+  let mut y = (0, 0);
+  y.1 += 1;
+  let z = y;
+  x += z.0;
+  `(x)`;
+}
