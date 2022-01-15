@@ -71,7 +71,7 @@ impl FlowAnalysis<'a, 'tcx> {
     &self,
     state: &mut FlowDomain<'tcx>,
     mutated: Place<'tcx>,
-    inputs: &[Place<'tcx>],
+    inputs: &[(Place<'tcx>, Option<PlaceElem<'tcx>>)],
     location: Location,
     mutation_status: MutationStatus,
   ) {
@@ -120,8 +120,22 @@ impl FlowAnalysis<'a, 'tcx> {
     add_deps(mutated, &mut input_location_deps);
 
     // Add deps of all inputs
-    for place in inputs.iter() {
+    let mut children = Vec::new();
+    for (place, elem) in inputs.iter() {
       add_deps(*place, &mut input_location_deps);
+
+      // If the input is associated to a specific projection of the mutated
+      // place, then save that input's dependencies with the projection
+      if let Some(elem) = elem {
+        let mut projection = mutated.projection.to_vec();
+        projection.push(*elem);
+        let mut child_deps = LocationSet::new(location_domain.clone());
+        add_deps(*place, &mut child_deps);
+        children.push((
+          Place::make(mutated.local, &projection, self.tcx),
+          child_deps,
+        ));
+      }
     }
 
     // Add control dependencies
@@ -130,6 +144,7 @@ impl FlowAnalysis<'a, 'tcx> {
     for block in controlled_by.into_iter().map(|set| set.iter()).flatten() {
       input_location_deps.insert(body.terminator_loc(block));
 
+      // Include dependencies of the switch's operand
       let terminator = body.basic_blocks()[block].terminator();
       if let TerminatorKind::SwitchInt { discr, .. } = &terminator.kind {
         if let Some(discr_place) = discr.to_place() {
@@ -138,31 +153,41 @@ impl FlowAnalysis<'a, 'tcx> {
       }
     }
 
-    let mut mutable_conflicts = all_aliases.conflicts(mutated).to_owned();
+    if children.len() > 0 {
+      // In the special case of mutated = aggregate { x: .., y: .. }
+      // then we ensure that deps(mutated.x) != deps(mutated)
+      for (child, deps) in children {
+        state.union_into_row(child, &deps);
+      }
+      state.union_into_row(mutated, &input_location_deps);
+    } else {
+      // Union dependencies into all conflicting places of the mutated place
+      let mut mutable_conflicts = all_aliases.conflicts(mutated).to_owned();
 
-    // Remove any conflicts that aren't actually mutable, e.g. if x : &T ends up
-    // as an alias of y: &mut T. See test function_lifetime_alias_mut for an example.
-    let ignore_mut =
-      is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
-    if !ignore_mut {
-      let body = self.body;
-      let tcx = self.tcx;
-      mutable_conflicts = mutable_conflicts
-        .iter()
-        .filter(|place| {
-          place.iter_projections().all(|(sub_place, _)| {
-            let ty = sub_place.ty(body.local_decls(), tcx).ty;
-            !matches!(ty.ref_mutability(), Some(Mutability::Not))
+      // Remove any conflicts that aren't actually mutable, e.g. if x : &T ends up
+      // as an alias of y: &mut T. See test function_lifetime_alias_mut for an example.
+      let ignore_mut =
+        is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
+      if !ignore_mut {
+        let body = self.body;
+        let tcx = self.tcx;
+        mutable_conflicts = mutable_conflicts
+          .iter()
+          .filter(|place| {
+            place.iter_projections().all(|(sub_place, _)| {
+              let ty = sub_place.ty(body.local_decls(), tcx).ty;
+              !matches!(ty.ref_mutability(), Some(Mutability::Not))
+            })
           })
-        })
-        .collect_indices(place_domain.clone());
-    };
+          .collect_indices(place_domain.clone());
+      };
 
-    // Union dependencies into all conflicting places of the mutated place
-    debug!("  Mutated conflicting places: {:?}", mutable_conflicts);
-    debug!("    with deps {:?}", input_location_deps);
-    for place in mutable_conflicts.iter() {
-      state.union_into_row(place, &input_location_deps);
+      debug!("  Mutated conflicting places: {:?}", mutable_conflicts);
+      debug!("    with deps {:?}", input_location_deps);
+
+      for place in mutable_conflicts.iter() {
+        state.union_into_row(place, &input_location_deps);
+      }
     }
   }
 }
@@ -194,7 +219,10 @@ impl Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
       self.tcx,
       self.body,
       self.def_id,
-      |mutated, inputs, location, mutation_status| {
+      |mutated: Place<'tcx>,
+       inputs: &[(Place<'tcx>, Option<PlaceElem<'tcx>>)],
+       location: Location,
+       mutation_status: MutationStatus| {
         self.transfer_function(state, mutated, inputs, location, mutation_status)
       },
     )
@@ -218,7 +246,10 @@ impl Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
       self.tcx,
       self.body,
       self.def_id,
-      |mutated, inputs, location, mutation_status| {
+      |mutated: Place<'tcx>,
+       inputs: &[(Place<'tcx>, Option<PlaceElem<'tcx>>)],
+       location: Location,
+       mutation_status: MutationStatus| {
         self.transfer_function(state, mutated, inputs, location, mutation_status)
       },
     )

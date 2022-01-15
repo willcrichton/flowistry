@@ -158,9 +158,9 @@ impl PlaceRelation {
   }
 }
 
-#[derive(Default)]
 pub struct PlaceCollector<'tcx> {
-  pub places: Vec<Place<'tcx>>,
+  pub tcx: TyCtxt<'tcx>,
+  pub places: Vec<(Place<'tcx>, Option<PlaceElem<'tcx>>)>,
 }
 
 impl Visitor<'tcx> for PlaceCollector<'tcx> {
@@ -170,7 +170,32 @@ impl Visitor<'tcx> for PlaceCollector<'tcx> {
     _context: PlaceContext,
     _location: Location,
   ) {
-    self.places.push(*place);
+    self.places.push((*place, None));
+  }
+
+  fn visit_rvalue(&mut self, rvalue: &Rvalue<'tcx>, location: Location) {
+    match rvalue {
+      Rvalue::Aggregate(box kind, ops) => match kind {
+        AggregateKind::Adt(adt_def, idx, _substs, _, _) => {
+          // In the case of _1 = aggregate { field1: op1, field2: op2, ... }
+          // we want to remember which places correspond to which fields so the infoflow
+          // analysis can be field-sensitive for constructors.
+          let variant = &adt_def.variants[*idx];
+          let places =
+            (0 .. variant.fields.len())
+              .zip(ops.iter())
+              .filter_map(|(field, op)| {
+                let place = op.to_place()?;
+                let field =
+                  ProjectionElem::Field(Field::from_usize(field), self.tcx.mk_unit());
+                Some((place, Some(field)))
+              });
+          self.places.extend(places);
+        }
+        _ => self.super_rvalue(rvalue, location),
+      },
+      _ => self.super_rvalue(rvalue, location),
+    }
   }
 }
 

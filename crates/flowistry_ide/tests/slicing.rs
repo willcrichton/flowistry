@@ -8,6 +8,7 @@ use utils::slice;
 mod utils;
 
 const BLESS: bool = option_env!("BLESS").is_some();
+const ONLY: Option<&'static str> = option_env!("ONLY");
 
 fn run_tests(dir: impl AsRef<Path>, direction: Direction) {
   let main = || -> Result<()> {
@@ -19,6 +20,11 @@ fn run_tests(dir: impl AsRef<Path>, direction: Direction) {
       let test = test?.path();
       if test.extension().unwrap() == "expected" {
         continue;
+      }
+      if let Some(only) = ONLY {
+        if !test.file_name().unwrap().to_str().unwrap().contains(only) {
+          continue;
+        }
       }
       let expected_path = test.with_extension("txt.expected");
       let expected = (!BLESS).then(|| expected_path.as_ref());

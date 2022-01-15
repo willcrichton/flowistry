@@ -36,35 +36,36 @@ impl DepVisitor<'_, '_, 'tcx> {
     state: &FlowDomain<'tcx>,
     opt_location: Option<Location>,
     to_check: Vec<PlaceIndex>,
+    is_switch: bool,
   ) {
     for (target_locs, (out_locs, out_places)) in
       self.target_deps.iter().zip(self.outputs.iter_mut())
     {
-      for place in to_check.iter() {
-        if let Some(loc_deps) = state.row_set(*place) {
-          if loc_deps.indices().next().is_none() {
-            continue;
-          }
+      for (place, loc_deps) in to_check
+        .iter()
+        .filter_map(|place| Some((place, state.row_set(*place)?)))
+        .filter(|(_, loc_deps)| loc_deps.indices().next().is_some())
+      {
+        let matches = match self.direction {
+          Direction::Forward => loc_deps.is_superset(target_locs),
+          Direction::Backward => target_locs.is_superset(&loc_deps),
+        };
 
-          let matches = match self.direction {
-            Direction::Forward => loc_deps.is_superset(target_locs),
-            Direction::Backward => target_locs.is_superset(&loc_deps),
-          };
+        if matches {
+          trace!(
+            "{:?}: place {:?} (deps {:?}) / target_locs {:?}",
+            opt_location,
+            state.row_domain.value(*place),
+            loc_deps,
+            target_locs
+          );
+          out_places.insert(*place);
 
-          if matches {
-            trace!(
-              "{:?}: place {:?} (deps {:?}) / target_locs {:?}",
-              opt_location,
-              state.row_domain.value(*place),
-              loc_deps,
-              target_locs
-            );
-            out_places.insert(*place);
-
-            if let Some(location) = opt_location {
-              if loc_deps.contains(location) {
-                out_locs.insert(location);
-              }
+          if let Some(location) = opt_location {
+            if loc_deps.contains(location)
+              || (is_switch && target_locs.contains(location))
+            {
+              out_locs.insert(location);
             }
           }
         }
@@ -84,7 +85,12 @@ impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
   ) {
     if block == START_BLOCK {
       let place_domain = self.analysis.place_domain();
-      self.visit(state, None, place_domain.all_args(self.analysis.body));
+      self.visit(
+        state,
+        None,
+        place_domain.all_args(self.analysis.body),
+        false,
+      );
     }
   }
 
@@ -100,6 +106,7 @@ impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
           state,
           Some(location),
           self.analysis.aliases.conflicts(lhs).indices().collect(),
+          false,
         );
       }
       _ => {}
@@ -124,6 +131,7 @@ impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
         state,
         Some(location),
         self.analysis.place_domain().as_vec().indices().collect(),
+        matches!(terminator.kind, TerminatorKind::SwitchInt { .. }),
       );
     }
   }

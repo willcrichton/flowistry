@@ -14,9 +14,17 @@ pub enum MutationStatus {
   Possibly,
 }
 
+// Note: wcrichto tried making FnMut(...) a trait alias, but this
+// interacted poorly with type inference and required ModularMutationVisitor
+// clients to explicitly write out the type parameter of every closure argument.
 pub struct ModularMutationVisitor<'a, 'tcx, F>
 where
-  F: FnMut(Place<'tcx>, &[Place<'tcx>], Location, MutationStatus),
+  F: FnMut(
+    Place<'tcx>,
+    &[(Place<'tcx>, Option<PlaceElem<'tcx>>)],
+    Location,
+    MutationStatus,
+  ),
 {
   f: F,
   tcx: TyCtxt<'tcx>,
@@ -26,7 +34,12 @@ where
 
 impl<'a, 'tcx, F> ModularMutationVisitor<'a, 'tcx, F>
 where
-  F: FnMut(Place<'tcx>, &[Place<'tcx>], Location, MutationStatus),
+  F: FnMut(
+    Place<'tcx>,
+    &[(Place<'tcx>, Option<PlaceElem<'tcx>>)],
+    Location,
+    MutationStatus,
+  ),
 {
   pub fn new(tcx: TyCtxt<'tcx>, body: &'a Body<'tcx>, def_id: DefId, f: F) -> Self {
     ModularMutationVisitor {
@@ -40,7 +53,12 @@ where
 
 impl<'tcx, F> Visitor<'tcx> for ModularMutationVisitor<'_, 'tcx, F>
 where
-  F: FnMut(Place<'tcx>, &[Place<'tcx>], Location, MutationStatus),
+  F: FnMut(
+    Place<'tcx>,
+    &[(Place<'tcx>, Option<PlaceElem<'tcx>>)],
+    Location,
+    MutationStatus,
+  ),
 {
   fn visit_assign(
     &mut self,
@@ -49,7 +67,10 @@ where
     location: Location,
   ) {
     debug!("Checking {:?}: {:?} = {:?}", location, place, rvalue);
-    let mut collector = PlaceCollector::default();
+    let mut collector = PlaceCollector {
+      places: Vec::new(),
+      tcx: self.tcx,
+    };
     collector.visit_rvalue(rvalue, location);
     (self.f)(
       *place,
@@ -88,6 +109,7 @@ where
           .iter()
           .map(|(_, arg)| inputs_for_arg(*arg))
           .flatten()
+          .map(|place| (place, None))
           .collect::<Vec<_>>();
 
         if let Some((dst_place, _)) = destination {
@@ -106,7 +128,7 @@ where
 
       TerminatorKind::DropAndReplace { place, value, .. } => {
         if let Some(src) = value.to_place() {
-          (self.f)(*place, &[src], location, MutationStatus::Definitely);
+          (self.f)(*place, &[(src, None)], location, MutationStatus::Definitely);
         }
       }
 
