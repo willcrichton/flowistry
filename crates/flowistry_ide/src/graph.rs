@@ -1,4 +1,5 @@
 use anyhow::Result;
+use either::Either;
 use flowistry::{
   indexed::{
     impls::{LocationSet, PlaceIndex},
@@ -14,11 +15,8 @@ use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir::BodyId;
 use rustc_macros::Encodable;
 use rustc_middle::{
-  mir::{
-    traversal, visit::Visitor, Location, Place, ProjectionElem, VarDebugInfoContents,
-    RETURN_PLACE,
-  },
-  ty::{AdtKind, TyCtxt},
+  mir::{traversal, visit::Visitor, Location, Place},
+  ty::TyCtxt,
 };
 use rustc_span::Span;
 
@@ -71,7 +69,7 @@ impl FlowistryAnalysis for GraphAnalysis {
     let body = &body_with_facts.body;
     let results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
 
-    let _location_domain = results.analysis.location_domain();
+    let location_domain = results.analysis.location_domain();
     let place_domain = results.analysis.place_domain();
 
     // let (loops, outer) = find_loops(body, location_domain);
@@ -91,57 +89,13 @@ impl FlowistryAnalysis for GraphAnalysis {
       .collect::<Vec<_>>();
 
     let source_map = tcx.sess.source_map();
-    let mut local_to_name = body
-      .var_debug_info
-      .iter()
-      .filter_map(|info| match info.value {
-        VarDebugInfoContents::Place(place) => {
-          let from_expansion = info.source_info.span.from_expansion();
-          (!from_expansion).then(move || (place.local, info.name.to_string()))
-        }
-        _ => None,
-      })
-      .collect::<HashMap<_, _>>();
-    local_to_name.insert(RETURN_PLACE, "RETURN".into());
-
-    let place_to_string = |place: Place<'tcx>| -> Option<String> {
-      let local_name = local_to_name.get(&place.local)?;
-      Some(
-        place
-          .iter_projections()
-          .fold(local_name.to_string(), |s, (place, elem)| match elem {
-            ProjectionElem::Deref => format!("*{s}"),
-            ProjectionElem::Field(f, _) => {
-              let ty = place.ty(&body.local_decls, tcx).ty;
-              let default = || format!("{s}.{}", f.as_usize());
-              if let Some(def) = ty.ty_adt_def() {
-                match def.adt_kind() {
-                  AdtKind::Struct => {
-                    let name = def.non_enum_variant().fields[f.as_usize()].ident(tcx);
-                    format!("{s}.{name}")
-                  }
-                  _ => default(),
-                }
-              } else {
-                default()
-              }
-            }
-            ProjectionElem::Downcast(sym, _) => format!(
-              "{s} as {}",
-              sym.map(|s| s.to_string()).unwrap_or_else(|| "??".into())
-            ),
-            ProjectionElem::Index(_) => format!("{s}[]"),
-            _ => unimplemented!(),
-          }),
-      )
-    };
 
     let place_names = direct_places
       .iter()
       .filter_map(|(index, place)| {
         Some((index.as_usize(), PlaceDescriptor {
           place: format!("{place:?}"),
-          name: place_to_string(**place)?,
+          name: place.to_string(tcx, body)?,
           local: place.local.as_usize(),
           projection: place
             .projection
@@ -152,7 +106,6 @@ impl FlowistryAnalysis for GraphAnalysis {
       })
       .collect::<HashMap<_, _>>();
 
-    let location_domain = results.analysis.location_domain();
     let location_names = location_domain
       .as_vec()
       .iter_enumerated()
@@ -171,7 +124,7 @@ impl FlowistryAnalysis for GraphAnalysis {
             l2.end_col.0
           ),
         };
-        (index.as_usize(), s /*format!("{} ({:?})", s, loc)*/)
+        (index.as_usize(), s)
       })
       .collect::<HashMap<_, _>>();
 
@@ -200,7 +153,6 @@ impl FlowistryAnalysis for GraphAnalysis {
     {
       let mut all_mutated = HashSet::default();
 
-      let data = &body.basic_blocks()[location.block];
       let mut visitor = ModularMutationVisitor::new(
         tcx,
         body,
@@ -209,11 +161,14 @@ impl FlowistryAnalysis for GraphAnalysis {
           all_mutated.insert(mutated);
         },
       );
-      if location.statement_index == data.statements.len() {
-        visitor.visit_terminator(data.terminator(), location);
-      } else {
-        visitor.visit_statement(&data.statements[location.statement_index], location);
-      }
+      match body.stmt_at(location) {
+        Either::Left(stmt) => {
+          visitor.visit_statement(stmt, location);
+        }
+        Either::Right(terminator) => {
+          visitor.visit_terminator(terminator, location);
+        }
+      };
 
       let all_mutated_conflicts = all_mutated
         .into_iter()

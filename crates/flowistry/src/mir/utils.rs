@@ -8,6 +8,7 @@ use std::{
 };
 
 use anyhow::{bail, Result};
+use either::Either;
 use log::{debug, trace, warn};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
@@ -18,7 +19,10 @@ use rustc_middle::{
     visit::{PlaceContext, Visitor},
     MirPass, *,
   },
-  ty::{self, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS, TypeFoldable, TypeVisitor},
+  ty::{
+    self, AdtKind, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS, TypeFoldable,
+    TypeVisitor,
+  },
 };
 use rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
 use rustc_span::{Pos, Span, Symbol, SyntaxContext};
@@ -235,11 +239,9 @@ where
 }
 
 pub fn location_to_string(location: Location, body: &Body<'_>) -> String {
-  let block = &body.basic_blocks()[location.block];
-  if location.statement_index == block.statements.len() {
-    format!("{:?}", block.terminator().kind)
-  } else {
-    format!("{:?}", block.statements[location.statement_index].kind)
+  match body.stmt_at(location) {
+    Either::Left(stmt) => format!("{:?}", stmt.kind),
+    Either::Right(terminator) => format!("{:?}", terminator.kind),
   }
 }
 
@@ -290,6 +292,7 @@ pub trait PlaceExt<'tcx> {
     def_id: DefId,
     depth_limit: Option<usize>,
   ) -> Vec<Place<'tcx>>;
+  fn to_string(&self, tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> Option<String>;
 }
 
 impl PlaceExt<'tcx> for Place<'tcx> {
@@ -379,6 +382,57 @@ impl PlaceExt<'tcx> for Place<'tcx> {
     };
     region_collector.visit_ty(ty);
     region_collector.places.unwrap().into_iter().collect()
+  }
+
+  fn to_string(&self, tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> Option<String> {
+    let local_name = if self.local == RETURN_PLACE {
+      "RETURN".into()
+    } else {
+      body
+        .var_debug_info
+        .iter()
+        .filter_map(|info| match info.value {
+          VarDebugInfoContents::Place(place) if place.local == self.local => info
+            .source_info
+            .span
+            .as_local(tcx)
+            .map(|_| info.name.to_string()),
+          _ => None,
+        })
+        .next()?
+    };
+
+    let projection_to_string =
+      |s: String, (place, elem): (PlaceRef<'tcx>, PlaceElem<'tcx>)| match elem {
+        ProjectionElem::Deref => format!("*{s}"),
+        ProjectionElem::Field(f, _) => {
+          let ty = place.ty(&body.local_decls, tcx).ty;
+          let default = || format!("{s}.{}", f.as_usize());
+          if let Some(def) = ty.ty_adt_def() {
+            match def.adt_kind() {
+              AdtKind::Struct => {
+                let name = def.non_enum_variant().fields[f.as_usize()].ident(tcx);
+                format!("{s}.{name}")
+              }
+              _ => default(),
+            }
+          } else {
+            default()
+          }
+        }
+        ProjectionElem::Downcast(sym, _) => format!(
+          "{s} as {}",
+          sym.map(|s| s.to_string()).unwrap_or_else(|| "??".into())
+        ),
+        ProjectionElem::Index(_) => format!("{s}[]"),
+        _ => unimplemented!(),
+      };
+
+    Some(
+      self
+        .iter_projections()
+        .fold(local_name, projection_to_string),
+    )
   }
 }
 

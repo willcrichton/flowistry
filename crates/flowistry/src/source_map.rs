@@ -193,9 +193,8 @@ pub fn location_to_spans(
     hir_spans.extend(stmt_spans.clone());
   }
 
-  let block = &body.basic_blocks()[location.block];
-  if location.statement_index == block.statements.len() {
-    match block.terminator().kind {
+  if let Either::Right(terminator) = body.stmt_at(location) {
+    match terminator.kind {
       TerminatorKind::SwitchInt { .. } => {
         // If the location is a switch, then include the closest enclosing if or loop
         if let Some(spans) = enclosing_hir

@@ -6,6 +6,7 @@
   clippy::len_zero
 )]
 
+extern crate either;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_hir;

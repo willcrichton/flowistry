@@ -238,9 +238,7 @@ mod test {
       let x_eq_5 = pair("x = 5");
 
       let is_dep_loc = |l1: Location, l2: Location| {
-        let is_terminator =
-          l2.statement_index == body.basic_blocks()[l2.block].statements.len();
-
+        let is_terminator = body.stmt_at(l2).is_right();
         is_terminator
           && control_deps
             .dependent_on(l1.block)
