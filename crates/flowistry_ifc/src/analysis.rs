@@ -58,7 +58,7 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
     index: rustc_hir::def_id::CRATE_DEF_INDEX,
   };
   let ifc_items = tcx
-    .item_children(ifc_mod)
+    .module_children(ifc_mod)
     .iter()
     .filter_map(|export| match export.res {
       Res::Def(_, id) => Some((export.ident.to_string(), id)),

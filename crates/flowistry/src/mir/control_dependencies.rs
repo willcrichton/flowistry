@@ -1,21 +1,20 @@
-use std::{fmt, iter, option};
+use std::fmt;
 
 use rustc_data_structures::graph::{
   self, dominators, iterate, vec_graph::VecGraph, WithSuccessors,
 };
 use rustc_index::{
-  bit_set::{BitIter, BitSet, HybridBitSet, SparseBitMatrix},
+  bit_set::{BitSet, HybridBitSet, SparseBitMatrix},
   vec::IndexVec,
 };
 use rustc_middle::mir::*;
-use smallvec::SmallVec;
 
 #[derive(Clone)]
 pub struct BodyReversed<'tcx> {
   body: Body<'tcx>,
   exit_node: BasicBlock,
   exit_set: BitSet<BasicBlock>,
-  dummy_set: BitSet<BasicBlock>,
+  unreachable: BitSet<BasicBlock>,
 }
 
 pub fn compute_post_dominators(
@@ -25,93 +24,82 @@ pub fn compute_post_dominators(
   let exit_node = BasicBlock::from_usize(nblocks);
 
   let mut exit_set = BitSet::new_empty(nblocks);
-  let dummy_set = BitSet::new_empty(nblocks);
-  let exit_nodes =
-    body
-      .basic_blocks()
-      .iter_enumerated()
-      .filter_map(|(bb_index, bb_data)| {
-        // Specifically DO NOT check that #successors == 0, b/c that would include
-        // panic/unwind blocks which ruin the value of the post-dominator tree
-        if let TerminatorKind::Return = bb_data.terminator().kind {
-          Some(bb_index)
-        } else {
-          None
-        }
-      });
-  for node in exit_nodes {
-    exit_set.insert(node);
+  for (bb_index, bb_data) in body.basic_blocks().iter_enumerated() {
+    if matches!(bb_data.terminator().kind, TerminatorKind::Return) {
+      exit_set.insert(bb_index);
+    }
   }
 
-  let graph = BodyReversed {
+  let mut graph = BodyReversed {
     body,
     exit_node,
     exit_set,
-    dummy_set,
+    unreachable: BitSet::new_empty(nblocks),
   };
+
+  let reachable = iterate::post_order_from(&graph, graph.exit_node);
+  graph.unreachable.insert_all();
+  for n in reachable {
+    if n != graph.exit_node {
+      graph.unreachable.remove(n);
+    }
+  }
 
   (dominators::dominators(graph.clone()), graph)
 }
 
-impl<'tcx> graph::DirectedGraph for BodyReversed<'tcx> {
+impl graph::DirectedGraph for BodyReversed<'_> {
   type Node = BasicBlock;
 }
 
-impl<'tcx> graph::WithNumNodes for BodyReversed<'tcx> {
+impl graph::WithNumNodes for BodyReversed<'_> {
   fn num_nodes(&self) -> usize {
     // +1 for exit node
     self.body.basic_blocks().len() + 1
   }
 }
 
-impl<'tcx> graph::WithStartNode for BodyReversed<'tcx> {
+impl graph::WithStartNode for BodyReversed<'_> {
   fn start_node(&self) -> Self::Node {
     self.exit_node
   }
 }
 
-impl<'tcx> graph::WithSuccessors for BodyReversed<'tcx> {
+impl graph::WithSuccessors for BodyReversed<'_> {
   fn successors(&self, node: Self::Node) -> <Self as graph::GraphSuccessors<'_>>::Iter {
     if node == self.exit_node {
-      SmallVec::new().into_iter().chain(self.exit_set.iter())
+      Box::new(self.exit_set.iter())
     } else {
-      self.body.predecessors()[node]
-        .clone()
-        .into_iter()
-        .chain(self.dummy_set.iter())
+      Box::new(self.body.predecessors()[node].iter().copied())
     }
   }
 }
 
-impl<'a, 'b> graph::GraphSuccessors<'b> for BodyReversed<'a> {
+impl graph::GraphSuccessors<'graph> for BodyReversed<'_> {
   type Item = BasicBlock;
-  type Iter = iter::Chain<smallvec::IntoIter<[BasicBlock; 4]>, BitIter<'b, BasicBlock>>;
+  type Iter = Box<dyn Iterator<Item = BasicBlock> + 'graph>;
 }
 
-impl<'tcx, 'graph> graph::GraphPredecessors<'graph> for BodyReversed<'tcx> {
+impl graph::GraphPredecessors<'graph> for BodyReversed<'_> {
   type Item = BasicBlock;
-  type Iter = iter::Chain<option::IntoIter<BasicBlock>, iter::Cloned<Successors<'graph>>>;
+  type Iter = Box<dyn Iterator<Item = BasicBlock> + 'graph>;
 }
 
-impl<'tcx> graph::WithPredecessors for BodyReversed<'tcx> {
-  #[inline]
+impl graph::WithPredecessors for BodyReversed<'_> {
   fn predecessors(
     &self,
     node: Self::Node,
   ) -> <Self as graph::GraphPredecessors<'_>>::Iter {
     assert!(node != self.exit_node);
 
-    let exit_pred = if self.exit_set.contains(node) {
-      Some(self.exit_node)
-    } else {
-      None
-    };
+    let exit_pred = self.exit_set.contains(node).then(|| self.exit_node);
     let preds = self.body.basic_blocks()[node]
       .terminator()
       .successors()
-      .cloned();
+      .filter(|bb| !self.unreachable.contains(**bb))
+      .copied();
 
-    exit_pred.into_iter().chain(preds)
+    Box::new(exit_pred.into_iter().chain(preds))
   }
 }
 
@@ -128,12 +116,12 @@ impl fmt::Debug for ControlDependencies {
       if i > 0 {
         write!(f, ", ")?;
       }
-      write!(f, "{:?}: {{", bb)?;
+      write!(f, "{bb:?}: {{")?;
       for (j, bb2) in bbs.iter().enumerate() {
         if j > 0 {
           write!(f, ", ")?;
         }
-        write!(f, "{:?}", bb2)?;
+        write!(f, "{bb2:?}")?;
       }
       write!(f, "}}")?;
     }
@@ -208,7 +196,9 @@ impl ControlDependencies {
 
 #[cfg(test)]
 mod test {
-  use rustc_data_structures::fx::FxHashMap as HashMap;
+  use log::debug;
+  use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
+  use test_log::test;
 
   use super::*;
   use crate::{mir::utils::BodyExt, test_utils};
@@ -221,45 +211,80 @@ mod test {
       x = 2;
       if true { x = 3; }
       for _ in 0 .. 1 { x = 4; }
+      x = 5;
     }"#;
     test_utils::compile_body(input, move |tcx, _, body_with_facts| {
       let body = &body_with_facts.body;
       let control_deps = ControlDependencies::build(body.clone());
-      let snippet = |loc| {
-        tcx
-          .sess
-          .source_map()
-          .span_to_snippet(body.source_info(loc).span)
-          .unwrap()
-      };
 
       let mut snippet_to_loc: HashMap<_, Vec<_>> = HashMap::default();
       for loc in body.all_locations() {
-        snippet_to_loc.entry(snippet(loc)).or_default().push(loc);
+        let snippet = tcx
+          .sess
+          .source_map()
+          .span_to_snippet(body.source_info(loc).span)
+          .unwrap();
+        snippet_to_loc.entry(snippet).or_default().push(loc);
       }
+      debug!("snippet_to_loc: {snippet_to_loc:#?}");
+      let pair = |s| (s, &snippet_to_loc[s]);
 
-      let x_eq_1 = &snippet_to_loc["mut x"];
-      let x_eq_2 = &snippet_to_loc["x = 2"];
-      let if_true = &snippet_to_loc["true"];
-      let x_eq_3 = &snippet_to_loc["x = 3"];
-      let for_in = &snippet_to_loc["0 .. 1"];
-      let x_eq_4 = &snippet_to_loc["x = 4"];
+      let x_eq_1 = pair("mut x");
+      let x_eq_2 = pair("x = 2");
+      let if_true = pair("true");
+      let x_eq_3 = pair("x = 3");
+      let for_in = pair("0 .. 1");
+      let x_eq_4 = pair("x = 4");
+      let x_eq_5 = pair("x = 5");
 
       let is_dep_loc = |l1: Location, l2: Location| {
-        control_deps
-          .dependent_on(l1.block)
-          .map(|deps| deps.contains(l2.block))
-          .unwrap_or(false)
+        let is_terminator =
+          l2.statement_index == body.basic_blocks()[l2.block].statements.len();
+
+        is_terminator
+          && control_deps
+            .dependent_on(l1.block)
+            .map(|deps| deps.contains(l2.block))
+            .unwrap_or(false)
       };
 
       let is_dep = |l1: &[Location], l2: &[Location]| {
         l1.iter().any(|l1| l2.iter().any(|l2| is_dep_loc(*l1, *l2)))
       };
 
-      assert!(!is_dep(x_eq_2, x_eq_1));
-      assert!(is_dep(x_eq_3, if_true));
-      assert!(!is_dep(x_eq_2, if_true));
-      assert!(is_dep(x_eq_4, for_in));
+      let all_locs = [x_eq_1, x_eq_2, if_true, x_eq_3, for_in, x_eq_4, x_eq_5]
+        .into_iter()
+        .collect::<HashSet<_>>();
+      let all_deps: &[(_, &[_])] = &[
+        (x_eq_1, &[]),
+        (x_eq_2, &[]),
+        (if_true, &[x_eq_3]),
+        (x_eq_3, &[]),
+        (for_in, &[x_eq_4]),
+        (x_eq_5, &[]),
+      ];
+
+      for ((parent_name, parent_locs), desired) in all_deps {
+        let desired = desired.iter().copied().collect::<HashSet<_>>();
+        for (child_name, child_locs) in &desired {
+          assert!(
+            is_dep(child_locs, parent_locs),
+            "{child_name} was not dependent on {parent_name}, but should be"
+          );
+        }
+
+        let remaining = &all_locs - &desired;
+        for (child_name, child_locs) in remaining {
+          if *parent_name == child_name {
+            continue;
+          }
+
+          assert!(
+            !is_dep(child_locs, parent_locs),
+            "{child_name} was dependent on {parent_name}, but should not be"
+          );
+        }
+      }
     });
   }
 }

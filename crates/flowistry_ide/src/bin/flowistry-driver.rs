@@ -34,8 +34,8 @@ where
   T: FromStr,
   T::Err: Debug,
 {
-  env::var(format!("FLOWISTRY_{}", s))
-    .unwrap_or_else(|_| panic!("Missing argument: {}", s))
+  env::var(format!("FLOWISTRY_{s}"))
+    .unwrap_or_else(|_| panic!("Missing argument: {s}"))
     .parse()
     .unwrap()
 }
@@ -111,19 +111,19 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
       let context_mode = match arg::<String>("CONTEXT_MODE").as_str() {
         "Recurse" => ContextMode::Recurse,
         "SigOnly" => ContextMode::SigOnly,
-        flag => panic!("Bad value of context mode: {}", flag),
+        flag => panic!("Bad value of context mode: {flag}"),
       };
 
       let mutability_mode = match arg::<String>("MUTABILITY_MODE").as_str() {
         "DistinguishMut" => MutabilityMode::DistinguishMut,
         "IgnoreMut" => MutabilityMode::IgnoreMut,
-        flag => panic!("Bad value of context mode: {}", flag),
+        flag => panic!("Bad value of context mode: {flag}"),
       };
 
       let pointer_mode = match arg::<String>("POINTER_MODE").as_str() {
         "Precise" => PointerMode::Precise,
         "Conservative" => PointerMode::Conservative,
-        flag => panic!("Bad value of pointer mode: {}", flag),
+        flag => panic!("Bad value of pointer mode: {flag}"),
       };
 
       let eval_mode = EvalMode {

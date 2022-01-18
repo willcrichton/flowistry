@@ -44,7 +44,7 @@ impl Range {
       FileName::Real(RealFileName::LocalPath(filename)) => {
         filename.to_string_lossy().into_owned()
       }
-      filename => bail!("Range::from_span doesn't support {:?}", filename),
+      filename => bail!("Range::from_span doesn't support {filename:?}"),
     };
 
     let offset = file.start_pos;

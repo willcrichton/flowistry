@@ -53,12 +53,7 @@ fn color_ranges(prog: &str, all_ranges: Vec<(&str, &HashSet<Range>)>) -> String 
   return output;
 }
 
-fn compare_ranges(
-  path: &Path,
-  expected: HashSet<Range>,
-  actual: HashSet<Range>,
-  prog: &str,
-) {
+fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &str) {
   let missing = &expected - &actual;
   let extra = &actual - &expected;
 
@@ -67,14 +62,9 @@ fn compare_ranges(
 
   let check = |s: HashSet<Range>, message: &str| {
     if s.len() > 0 {
-      println!(
-        "In program  {}:\n{}",
-        path.file_name().unwrap().to_string_lossy(),
-        textwrap::indent(prog.trim(), "  ")
-      );
       println!("Expected ranges:\n{}", fmt_ranges(&expected));
       println!("Actual ranges:\n{}", fmt_ranges(&actual));
-      panic!("{} ranges:\n{}", message, fmt_ranges(&s));
+      panic!("{message} ranges:\n{}", fmt_ranges(&s));
     }
   };
 
@@ -199,7 +189,7 @@ pub fn slice(path: &Path, expected: Option<&Path>, direction: Direction) {
           .clone()
           .into_iter()
           .collect::<HashSet<_>>();
-        compare_ranges(path, expected, actual, &input_clean);
+        compare_ranges(expected, actual, &input_clean);
       }
       None => {
         bless(path, input_clean, actual)?;

@@ -33,7 +33,7 @@ impl FlowAnalysis<'_, 'tcx> {
       } => (func, args, destination),
       _ => unreachable!(),
     };
-    debug!("Checking whether can recurse into {:?}", func);
+    debug!("Checking whether can recurse into {func:?}");
 
     let func = match func.constant() {
       Some(func) => func,
@@ -89,7 +89,7 @@ impl FlowAnalysis<'_, 'tcx> {
     let parent_arg_places = utils::arg_places(parent_args);
     let any_closure_inputs = parent_arg_places.iter().any(|(_, place)| {
       let ty = place.ty(self.body.local_decls(), tcx).ty;
-      ty.walk(tcx).any(|arg| match arg.unpack() {
+      ty.walk().any(|arg| match arg.unpack() {
         GenericArgKind::Type(ty) => match ty.kind() {
           TyKind::Closure(_, substs) => matches!(
             substs.as_closure().kind(),
@@ -224,8 +224,7 @@ impl FlowAnalysis<'_, 'tcx> {
           .collect::<Vec<_>>();
 
         debug!(
-          "child {:?} \n  / child_deps {:?}\n-->\nparent {:?}\n   / parent_deps {:?}",
-          child, child_deps, parent, parent_deps
+          "child {child:?} \n  / child_deps {child_deps:?}\n-->\nparent {parent:?}\n   / parent_deps {parent_deps:?}"
         );
 
         self.transfer_function(

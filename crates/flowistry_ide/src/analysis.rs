@@ -92,14 +92,14 @@ where
 
     let fn_name =
       tcx.def_path_debug_str(tcx.hir().body_owner_def_id(body_id).to_def_id());
-    block_timer!(&format!("Flowistry ({})", fn_name));
+    block_timer!(&format!("Flowistry ({fn_name})"));
 
     let output = panic::catch_unwind(panic::AssertUnwindSafe(move || {
       analysis.analyze_function(tcx, body_id)
     }))
     .unwrap_or_else(|panic_msg| {
       Err(match panic_msg.downcast_ref::<String>() {
-        Some(msg) => anyhow!("{}", msg),
+        Some(msg) => anyhow!("{msg}"),
         None => anyhow!("Unknown panic"),
       })
     });

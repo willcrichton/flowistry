@@ -136,7 +136,7 @@ pub fn parse_ranges(
     if let Some(close) = check_token!(&closes) {
       let (start, delim) = stack
         .pop()
-        .with_context(|| anyhow!("Missing open delimiter for \"{}\"", close))?;
+        .with_context(|| anyhow!("Missing open delimiter for \"{close}\""))?;
       ranges.entry(delim).or_default().push((start, out_idx));
       in_idx += close.len();
       continue;
@@ -148,7 +148,7 @@ pub fn parse_ranges(
   }
 
   if stack.len() > 0 {
-    bail!("Unclosed delimiters: {:?}", stack);
+    bail!("Unclosed delimiters: {stack:?}");
   }
 
   let prog_clean = String::from_utf8(buf)?;

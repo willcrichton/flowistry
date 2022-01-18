@@ -33,7 +33,7 @@ impl FindEffects<'a, 'mir, 'tcx> {
       .map(|local| {
         let place = Place::from_local(local, tcx);
         let ptrs = place.interior_pointers(tcx, body, analysis.def_id);
-        debug!("interior_pointers: {:?}", ptrs);
+        debug!("interior_pointers: {ptrs:?}");
 
         ptrs
           .into_values()
@@ -68,16 +68,13 @@ impl FindEffects<'a, 'mir, 'tcx> {
         .insert((mutated, location));
     } else {
       let mut conflicts = self.analysis.aliases.conflicts(mutated).to_owned();
-      debug!(
-        "Checking for effect on {:?} (conflicts {:?})",
-        mutated, conflicts
-      );
+      debug!("Checking for effect on {mutated:?} (conflicts {conflicts:?})",);
 
       conflicts.intersect(&self.mut_args);
 
       for arg in conflicts.iter() {
         let kind = EffectKind::MutArg(self.analysis.place_domain().index(arg));
-        debug!("Mutation on {:?} adding arg effect on {:?}", mutated, arg);
+        debug!("Mutation on {mutated:?} adding arg effect on {arg:?}");
         self
           .effects
           .entry(kind)

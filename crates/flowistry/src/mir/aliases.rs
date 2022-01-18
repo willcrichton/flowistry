@@ -82,9 +82,10 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
     }
 
     // See PlaceCollector for where this matters
-    if let Rvalue::Aggregate(box AggregateKind::Adt(adt_def, idx, _substs, _, _), _) =
+    if let Rvalue::Aggregate(box AggregateKind::Adt(def_id, idx, _substs, _, _), _) =
       rvalue
     {
+      let adt_def = self.tcx.adt_def(*def_id);
       let variant = &adt_def.variants[*idx];
       let places = (0 .. variant.fields.len()).map(|i| {
         let mut projection = place.projection.to_vec();
@@ -409,7 +410,7 @@ impl Aliases<'tcx> {
     let body = &body_with_facts.body;
 
     let loans = Self::compute_loans(tcx, def_id, body_with_facts);
-    debug!("Loans: {:#?}", loans);
+    debug!("Loans: {loans:#?}");
 
     let mut all_places = Self::compute_all_places(tcx, body, def_id, &loans);
 
@@ -423,7 +424,7 @@ impl Aliases<'tcx> {
         )
       })
       .collect::<HashMap<_, _>>();
-    debug!("Aliases: {:#?}", all_aliases);
+    debug!("Aliases: {all_aliases:#?}");
 
     all_places.extend(all_aliases.values().map(|s| s.iter().copied()).flatten());
 

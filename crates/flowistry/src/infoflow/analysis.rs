@@ -75,10 +75,7 @@ impl FlowAnalysis<'a, 'tcx> {
     location: Location,
     mutation_status: MutationStatus,
   ) {
-    debug!(
-      "  Applying mutation to {:?} with inputs {:?}",
-      mutated, inputs
-    );
+    debug!("  Applying mutation to {mutated:?} with inputs {inputs:?}");
     let place_domain = self.place_domain();
     let location_domain = self.location_domain();
 
@@ -86,7 +83,7 @@ impl FlowAnalysis<'a, 'tcx> {
     let mutated_aliases = all_aliases
       .aliases
       .row_set(mutated)
-      .unwrap_or_else(|| panic!("No aliases for mutated {:?}", mutated));
+      .unwrap_or_else(|| panic!("No aliases for mutated {mutated:?}"));
 
     // Clear sub-places of mutated place (if sound to do so)
     if matches!(mutation_status, MutationStatus::Definitely) && mutated_aliases.len() == 1
@@ -182,8 +179,8 @@ impl FlowAnalysis<'a, 'tcx> {
           .collect_indices(place_domain.clone());
       };
 
-      debug!("  Mutated conflicting places: {:?}", mutable_conflicts);
-      debug!("    with deps {:?}", input_location_deps);
+      debug!("  Mutated conflicting places: {mutable_conflicts:?}");
+      debug!("    with deps {input_location_deps:?}");
 
       for place in mutable_conflicts.iter() {
         state.union_into_row(place, &input_location_deps);
@@ -260,9 +257,7 @@ impl Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
     &self,
     _state: &mut Self::Domain,
     _block: BasicBlock,
-    _func: &Operand<'tcx>,
-    _args: &[Operand<'tcx>],
-    _return_place: Place<'tcx>,
+    _return_places: rustc_mir_dataflow::CallReturnPlaces<'_, 'tcx>,
   ) {
   }
 }

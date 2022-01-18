@@ -3,12 +3,14 @@ use std::{cell::RefCell, pin::Pin};
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::def_id::LocalDefId;
-use rustc_middle::ty::{
-  self,
-  query::{query_values::mir_borrowck, ExternProviders, Providers},
-  TyCtxt,
+use rustc_middle::{
+  mir::MirPass,
+  ty::{
+    self,
+    query::{query_values::mir_borrowck, ExternProviders, Providers},
+    TyCtxt,
+  },
 };
-use rustc_mir_transform::MirPass;
 
 use crate::{block_timer, mir::utils::SimplifyMir};
 
