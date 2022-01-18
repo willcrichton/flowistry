@@ -17,13 +17,8 @@ use rustc_hir::{
 use rustc_middle::{hir::map::Map, ty::TyCtxt};
 use rustc_span::Span;
 
-use crate::range::Range;
-
 pub trait FlowistryOutput: Send + Sync + Default {
   fn merge(&mut self, other: Self);
-  fn ranges(&self) -> Option<Vec<Range>> {
-    None
-  }
 }
 
 #[derive(Debug)]

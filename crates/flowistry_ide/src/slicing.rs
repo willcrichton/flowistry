@@ -42,10 +42,6 @@ impl FlowistryOutput for SliceOutput {
     self.body_span = other.body_span;
     self.selected_spans.extend(other.selected_spans);
   }
-
-  fn ranges(&self) -> Option<Vec<Range>> {
-    Some(self.ranges.clone())
-  }
 }
 
 impl FlowistryAnalysis for ForwardSliceAnalysis {

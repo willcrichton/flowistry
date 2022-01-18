@@ -16,7 +16,7 @@ use flowistry::{
   test_utils::{parse_ranges, ParsedRangeMap},
 };
 use flowistry_ide::{
-  analysis::{FlowistryOutput, FlowistryResult},
+  analysis::FlowistryResult,
   range::{FunctionIdentifier, Range},
 };
 use fluid_let::fluid_set;
@@ -130,10 +130,10 @@ fn bless(path: &Path, contents: String, actual: HashSet<Range>) -> Result<()> {
   Ok(())
 }
 
-pub fn test_command_output<T: FlowistryOutput>(
+pub fn test_command_output(
   path: &Path,
   expected: Option<&Path>,
-  output_fn: impl Fn(Range, &[String]) -> T,
+  output_fn: impl Fn(Range, &[String]) -> Vec<Range>,
 ) {
   let inner = move || -> Result<()> {
     info!("Testing {}", path.file_name().unwrap().to_string_lossy());
@@ -190,8 +190,7 @@ pub fn test_command_output<T: FlowistryOutput>(
     }
 
     fluid_set!(EVAL_MODE, &mode);
-    let output = output_fn(range, &args);
-    let actual = output.ranges().unwrap().into_iter().collect::<HashSet<_>>();
+    let actual = output_fn(range, &args).into_iter().collect::<HashSet<_>>();
 
     match expected {
       Some(expected_path) => {
@@ -218,13 +217,15 @@ pub fn test_command_output<T: FlowistryOutput>(
 
 pub fn slice(path: &Path, expected: Option<&Path>, direction: Direction) {
   test_command_output(path, expected, |range, args| {
-    flowistry_ide::slicing::slice(direction, range, &args).unwrap()
+    flowistry_ide::slicing::slice(direction, range, &args)
+      .unwrap()
+      .ranges
   });
 }
 
 pub fn find_mutations(path: &Path, expected: Option<&Path>) {
   test_command_output(path, expected, |range, args| {
-    flowistry_ide::mutations::find(range, args).unwrap()
+    flowistry_ide::mutations::find(range, args).unwrap().ranges
   });
 }
 

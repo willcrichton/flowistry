@@ -1,6 +1,6 @@
 use std::iter;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use flowistry::{
   mir::{aliases::Aliases, borrowck_facts::get_body_with_borrowck_facts},
   source_map::{self, location_to_spans, simplify_spans},
@@ -36,10 +36,6 @@ impl FlowistryOutput for MutationOutput {
     self.body_span = other.body_span;
     self.selected_spans.extend(other.selected_spans);
   }
-
-  fn ranges(&self) -> Option<Vec<Range>> {
-    Some(self.ranges.clone())
-  }
 }
 
 impl FlowistryAnalysis for MutationAnalysis {
@@ -58,14 +54,8 @@ impl FlowistryAnalysis for MutationAnalysis {
     let source_map = tcx.sess.source_map();
     let body_span = tcx.hir().body(body_id).value.span;
     let (selected_place, _, selected_span) =
-      match source_map::span_to_place(body, body_span, self.range.to_span(source_map)?) {
-        Some(t) => t,
-        None => {
-          return Err(anyhow::format_err!(
-            "Selection could not be mapped to a place."
-          ));
-        }
-      };
+      source_map::span_to_place(body, body_span, self.range.to_span(source_map)?)
+        .context("Selection could not be mapped to a place.")?;
     debug!("selected_place {:?}", selected_place);
 
     let spanner = source_map::HirSpanner::new(tcx, body_id);
