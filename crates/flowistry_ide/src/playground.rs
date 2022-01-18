@@ -44,7 +44,7 @@ impl FlowistryAnalysis for Playground {
       .input_facts
       .subset_base
       .iter()
-      .map(|(sup, sub, _)| (format!("{:?}", sup), format!("{:?}", sub)))
+      .map(|(sup, sub, _)| (format!("{sup:?}"), format!("{sub:?}")))
       .collect::<HashSet<_>>();
 
     Ok(PlaygroundOutput { outlives })

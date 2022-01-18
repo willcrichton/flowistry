@@ -95,7 +95,7 @@ impl<I: Idx, T: IndexedValue> IndexedDomain for DefaultDomain<I, T> {
     *self
       .value_to_index
       .get(value)
-      .unwrap_or_else(|| panic!("No index for value: {:?}", value))
+      .unwrap_or_else(|| panic!("No index for value: {value:?}"))
   }
   fn contains(&self, value: &T) -> bool {
     self.value_to_index.contains_key(value)
@@ -270,7 +270,7 @@ impl<T: IndexedValue + fmt::Debug, S: ToSet<T>> fmt::Debug for IndexSet<T, S> {
     write!(f, "{{")?;
     let n = self.len();
     for (i, elt) in self.iter().enumerate() {
-      write!(f, "{:?}", elt)?;
+      write!(f, "{elt:?}")?;
       if i < n - 1 {
         write!(f, ", ")?;
         if f.alternate() {

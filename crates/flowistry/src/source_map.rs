@@ -1,5 +1,5 @@
 use either::Either;
-use log::{debug, trace};
+use log::trace;
 use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor as HirVisitor},
@@ -16,61 +16,20 @@ use rustc_middle::{
   },
   ty::TyCtxt,
 };
-use rustc_span::{source_map::SourceMap, Pos, Span};
-use smallvec::{smallvec, SmallVec};
+use rustc_span::Span;
 
-use crate::mir::utils;
-
-type SpanVec = SmallVec<[Span; 4]>;
+use crate::mir::utils::{self, SpanExt};
 
 type HirNode<'hir> = Either<&'hir Expr<'hir>, &'hir Stmt<'hir>>;
-
-// Given a span for an AST node and a visitor function to visit that AST node,
-// compute the set of spans that is span with all children removed
-fn compute_outer_spans(span: Span, node: &HirNode) -> SpanVec {
-  let mut child_spans = {
-    let mut visitor = ChildExprSpans::default();
-    match node {
-      Either::Left(expr) => intravisit::walk_expr(&mut visitor, expr),
-      Either::Right(stmt) => intravisit::walk_stmt(&mut visitor, stmt),
-    };
-    visitor.0
-  };
-
-  let mut outer_spans = smallvec![];
-  if !child_spans.is_empty() {
-    child_spans.sort_by_key(|s| s.lo());
-
-    let start = span.until(*child_spans.first().unwrap());
-    if (start.hi() - start.lo()).0 > 0 {
-      outer_spans.push(start);
-    }
-
-    for children in child_spans.windows(2) {
-      outer_spans.push(children[0].between(children[1]));
-    }
-
-    if let Some(end) = span.trim_start(*child_spans.last().unwrap()) {
-      outer_spans.push(end);
-    }
-  } else {
-    outer_spans.push(span);
-  };
-
-  debug!(
-    "outer span for {:?} with inner spans {:?} is {:?}",
-    span, child_spans, outer_spans
-  );
-
-  outer_spans
-}
 
 // Collect all the spans for children beneath the visited node.
 // For example, when visiting "if true { 1 } else { 2 }" then we
 // should collect: "true" "1" "2"
-#[derive(Default)]
-struct ChildExprSpans(SpanVec);
-impl HirVisitor<'hir> for ChildExprSpans {
+struct ChildExprSpans<'tcx> {
+  spans: Vec<Span>,
+  tcx: TyCtxt<'tcx>,
+}
+impl HirVisitor<'hir> for ChildExprSpans<'_> {
   type Map = Map<'hir>;
 
   fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
@@ -85,18 +44,22 @@ impl HirVisitor<'hir> for ChildExprSpans {
         intravisit::walk_expr(self, ex);
       }
       _ => {
-        self.0.push(ex.span.source_callsite());
+        if let Some(span) = ex.span.as_local(self.tcx) {
+          self.spans.push(span);
+        }
       }
     }
   }
 
   fn visit_stmt(&mut self, stmt: &Stmt) {
-    self.0.push(stmt.span.source_callsite());
+    if let Some(span) = stmt.span.as_local(self.tcx) {
+      self.spans.push(span);
+    }
   }
 }
 
 pub struct HirSpanner<'hir> {
-  spans: Vec<(Span, SpanVec, HirNode<'hir>)>,
+  spans: Vec<(Span, Vec<Span>, HirNode<'hir>)>,
   body_span: Span,
 }
 
@@ -112,9 +75,12 @@ impl HirSpanner<'hir> {
       body_span: body.value.span,
     };
 
-    struct Collector<'a, 'hir>(&'a mut HirSpanner<'hir>);
+    struct Collector<'a, 'hir, 'tcx> {
+      spanner: &'a mut HirSpanner<'hir>,
+      tcx: TyCtxt<'tcx>,
+    }
 
-    impl HirVisitor<'hir> for Collector<'_, 'hir> {
+    impl HirVisitor<'hir> for Collector<'_, 'hir, '_> {
       type Map = Map<'hir>;
 
       fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
@@ -124,36 +90,60 @@ impl HirSpanner<'hir> {
       fn visit_expr(&mut self, expr: &'hir Expr<'hir>) {
         intravisit::walk_expr(self, expr);
 
-        let span = expr.span.source_callsite();
-        if span == self.0.body_span {
-          return;
-        }
+        let span = match expr.span.as_local(self.tcx) {
+          Some(span) if span != self.spanner.body_span => span,
+          _ => {
+            return;
+          }
+        };
 
-        let expr = Either::Left(expr);
-        let outer_spans = compute_outer_spans(span, &expr);
+        let mut visitor = ChildExprSpans {
+          spans: Vec::new(),
+          tcx: self.tcx,
+        };
+        intravisit::walk_expr(&mut visitor, expr);
+        let outer_spans = span.subtract(visitor.spans);
 
-        self.0.spans.push((span, outer_spans, expr));
+        self
+          .spanner
+          .spans
+          .push((span, outer_spans, Either::Left(expr)));
       }
 
       fn visit_stmt(&mut self, stmt: &'hir Stmt<'hir>) {
         intravisit::walk_stmt(self, stmt);
 
-        let span = stmt.span.source_callsite();
+        let span = match stmt.span.as_local(self.tcx) {
+          Some(span) if span != self.spanner.body_span => span,
+          _ => {
+            return;
+          }
+        };
 
-        let stmt = Either::Right(stmt);
-        let outer_spans = compute_outer_spans(span, &stmt);
+        let mut visitor = ChildExprSpans {
+          spans: Vec::new(),
+          tcx: self.tcx,
+        };
+        intravisit::walk_stmt(&mut visitor, stmt);
+        let outer_spans = span.subtract(visitor.spans);
 
-        self.0.spans.push((span, outer_spans, stmt));
+        self
+          .spanner
+          .spans
+          .push((span, outer_spans, Either::Right(stmt)));
       }
     }
 
-    let mut collector = Collector(&mut spanner);
+    let mut collector = Collector {
+      spanner: &mut spanner,
+      tcx,
+    };
     intravisit::walk_body(&mut collector, body);
 
     spanner
   }
 
-  pub fn find_enclosing_hir(&self, span: Span) -> Vec<(SpanVec, HirNode<'hir>)> {
+  pub fn find_enclosing_hir(&self, span: Span) -> Vec<(Vec<Span>, HirNode<'hir>)> {
     let mut enclosing = self
       .spans
       .iter()
@@ -170,19 +160,29 @@ impl HirSpanner<'hir> {
 
 pub fn location_to_spans(
   location: Location,
+  tcx: TyCtxt<'_>,
   body: &Body,
   spanner: &HirSpanner,
-  source_map: &SourceMap,
-) -> SpanVec {
+) -> Vec<Span> {
   // special case for synthetic locations that represent arguments
   if location.block.as_usize() == body.basic_blocks().len() {
-    return smallvec![];
+    return vec![];
   }
 
-  let loc_span = body.source_info(location).span.source_callsite();
+  let loc_span = match body.source_info(location).span.as_local(tcx) {
+    Some(span) => span,
+    None => {
+      return vec![];
+    }
+  };
+
   let mut enclosing_hir = spanner.find_enclosing_hir(loc_span);
 
   // Get the spans of the immediately enclosing HIR node
+  debug_assert!(
+    !enclosing_hir.is_empty(),
+    "Location {location:?} (span {loc_span:?}) had no enclosing HIR nodes"
+  );
   let (mut hir_spans, _) = enclosing_hir.remove(0);
 
   // Include the MIR span
@@ -219,14 +219,13 @@ pub fn location_to_spans(
   let format_spans = |spans: &[Span]| -> String {
     spans
       .iter()
-      .map(|span| span_to_string(*span, source_map))
+      .map(|span| span.to_string(tcx))
       .collect::<Vec<_>>()
       .join(" -- ")
   };
 
   trace!(
-    "Location {:?} ({})\n  has loc span:\n  {}\n  and HIR spans:\n  {}",
-    location,
+    "Location {location:?} ({})\n  has loc span:\n  {}\n  and HIR spans:\n  {}",
     utils::location_to_string(location, body),
     format_spans(&[loc_span]),
     format_spans(&hir_spans)
@@ -235,26 +234,14 @@ pub fn location_to_spans(
   hir_spans
 }
 
-pub fn span_to_string(span: Span, source_map: &SourceMap) -> String {
-  let lo = source_map.lookup_char_pos(span.lo());
-  let hi = source_map.lookup_char_pos(span.hi());
-  let snippet = source_map.span_to_snippet(span).unwrap();
-  format!(
-    "{} ({}:{}-{}:{})",
-    snippet,
-    lo.line,
-    lo.col.to_usize() + 1,
-    hi.line,
-    hi.col.to_usize() + 1
-  )
-}
-
-pub fn span_to_place(
+pub fn span_to_places(
+  tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,
   body_span: Span,
   span: Span,
-) -> Option<(Place<'tcx>, Location, Span)> {
+) -> Vec<(Place<'tcx>, Location, Span)> {
   struct FindSpannedPlaces<'a, 'tcx> {
+    tcx: TyCtxt<'tcx>,
     body: &'a Body<'tcx>,
     body_span: Span,
     span: Span,
@@ -296,9 +283,12 @@ pub fn span_to_place(
         }
       };
 
-      if span.from_expansion() || span.source_equal(&self.body_span) {
-        return;
-      }
+      let span = match span.as_local(self.tcx) {
+        Some(span) if !span.source_equal(&self.body_span) => span,
+        _ => {
+          return;
+        }
+      };
 
       // Note that MIR does not have granular source maps around projections.
       // So in the expression `let x = z.0`, the MIR Body only contains the place
@@ -315,6 +305,7 @@ pub fn span_to_place(
   }
 
   let mut visitor = FindSpannedPlaces {
+    tcx,
     body,
     body_span,
     span,
@@ -323,21 +314,36 @@ pub fn span_to_place(
   };
   visitor.visit_body(body);
 
-  visitor
-    .contained
-    .into_iter()
-    .max_by_key(|(_, _, span)| span.hi() - span.lo())
-    .or_else(|| {
-      visitor
-        .containing
-        .into_iter()
-        .min_by_key(|(_, _, span)| span.hi() - span.lo())
-    })
+  let mut contained = Vec::from_iter(visitor.contained);
+  let mut containing = Vec::from_iter(visitor.containing);
+
+  let metric = |sp: &Span| (sp.hi() - sp.lo()).0 as i32;
+  contained.sort_by_key(|(_, _, span)| metric(span));
+
+  if !contained.is_empty() {
+    let (_, _, sp) = &contained[0];
+    let min = metric(sp);
+    contained
+      .into_iter()
+      .take_while(|(_, _, sp)| metric(sp) == min)
+      .collect()
+  } else if !containing.is_empty() {
+    containing.sort_by_key(|(_, _, span)| -metric(span));
+    let (_, _, sp) = &containing[0];
+    let max = metric(sp);
+    containing
+      .into_iter()
+      .take_while(|(_, _, sp)| metric(sp) == max)
+      .collect()
+  } else {
+    vec![]
+  }
 }
 
 #[cfg(test)]
 mod test {
-  use test_env_log::test;
+  use log::debug;
+  use test_log::test;
 
   use super::*;
   use crate::{mir::utils::BodyExt, test_utils};
@@ -374,15 +380,26 @@ mod test {
     }"#;
     harness(src, |tcx, body_id, body, spans| {
       let source_map = tcx.sess.source_map();
-      let expected = ["z", "x", "x + y", "x", "x", "y", "w.0", "w.0", "w.0"];
+      let expected: &[&[_]] = &[
+        &["z"],
+        &["x"],
+        &["x", "y"],
+        &["x"],
+        &["x"],
+        &["y"],
+        &["w.0"],
+        &["w.0"],
+        &["w.0"],
+      ];
       let body_span = tcx.hir().body(body_id).value.span;
-      for (input_span, desired) in spans.into_iter().zip(expected) {
-        let (_, _, output_span) = span_to_place(body, body_span, input_span)
-          .unwrap_or_else(|| {
-            panic!("No place for span: {:?} / {:?}", input_span, desired)
-          });
-        let snippet = source_map.span_to_snippet(output_span).unwrap();
-        assert_eq!(snippet, desired, "{:?}", input_span);
+      for (input_span, desired) in spans.into_iter().zip(expected.into_iter()) {
+        let outputs = span_to_places(tcx, body, body_span, input_span);
+        let snippets = outputs
+          .into_iter()
+          .map(|(_, _, span)| source_map.span_to_snippet(span).unwrap())
+          .collect::<HashSet<_>>();
+
+        compare_sets(&desired.iter().collect::<HashSet<_>>(), &snippets);
       }
     });
   }
@@ -395,10 +412,7 @@ mod test {
 
     let check = |key: &str, set: HashSet<&str>| {
       if let Some(el) = set.iter().next() {
-        panic!(
-          "Missing {}: {}. Actual = {:?}. Desired = {:?}",
-          key, el, actual, desired
-        );
+        panic!("Missing {key}: {el}. Actual = {actual:?}. Desired = {desired:?}",);
       }
     };
 
@@ -411,13 +425,19 @@ mod test {
     let src = r#"fn foo() {
       let x = `(1)`;
       let `(y)` = x + 1;
-      if `(true)` { let z = 1; }
+      if `(true)``( )`{ let z = 1; }
       x `(+)` y;
     }"#;
     harness(src, |tcx, body_id, body, spans| {
       let spanner = HirSpanner::new(tcx, body_id);
       let source_map = tcx.sess.source_map();
-      let expected: &[&[&str]] = &[&["1"], &["let y = ", ";"], &["true"], &[" + "]];
+      let expected: &[&[&str]] = &[
+        &["1"],
+        &["let y = ", ";"],
+        &["true"],
+        &["if ", " { ", " }"],
+        &[" + "],
+      ];
       debug!("{}", body.to_string(tcx).unwrap());
       for (input_span, desired) in spans.into_iter().zip(expected) {
         let mut enclosing = spanner.find_enclosing_hir(input_span);
@@ -436,14 +456,17 @@ mod test {
   #[test]
   fn test_location_to_spans() {
     let src = r#"fn foo() {
-      let mut x = 1;
-      let y = x + 2;
-      if true {
-         let z = 0; 
-      }
-      let z = &mut x; 
-      *z = 2;
-    }"#;
+  let mut x = 1;
+  let y = x + 2;
+  let w = if true {
+    let z = 0;
+    z
+  } else {
+    3
+  };
+  let z = &mut x; 
+  *z = 4;
+}"#;
     let (input, _ranges) = test_utils::parse_ranges(src, [("`(", ")`")]).unwrap();
     test_utils::compile_body(input, move |tcx, body_id, body_with_facts| {
       debug!("{}", body_with_facts.body.to_string(tcx).unwrap());
@@ -457,23 +480,29 @@ mod test {
         statement_index: j,
       };
 
+      // These locations are just selected by inspecting the actual body, so this test might break
+      // if the compiler is updated. Run with RUST_LOG=debug to see the body.
       let pairs: &[(_, &[&str])] = &[
         (mk_loc(0, 0), &["let mut x = ", "1", ";"]),
         (mk_loc(0, 2), &["let y = ", "x", ";"]),
         (mk_loc(0, 3), &["let y = ", " + ", "x + 2", ";"]),
-        (mk_loc(1, 2), &["true"]),
+        (mk_loc(1, 2), &["let w = ", "true", ";"]),
         (mk_loc(1, 3), &[
+          "let w = ",
           "if ",
-          " {\n         ",
-          " \n      }",
           "true",
+          " {\n    ",
+          "\n    ",
+          "\n  } else {\n    ",
+          "\n  }",
+          ";",
         ]),
-        (mk_loc(4, 0), &["let z = ", "&mut ", "&mut x", ";"]),
-        (mk_loc(4, 2), &[" = ", ";", "*z = 2"]),
+        (mk_loc(4, 1), &["let z = ", "&mut ", "&mut x", ";"]),
+        (mk_loc(4, 3), &[" = ", ";", "*z = 4"]),
       ];
 
       for (loc, outp) in pairs {
-        let spans = location_to_spans(*loc, &body_with_facts.body, &spanner, source_map);
+        let spans = location_to_spans(*loc, tcx, &body_with_facts.body, &spanner);
         let desired = outp.iter().collect::<HashSet<_>>();
         let actual = spans
           .into_iter()

@@ -99,7 +99,7 @@ impl FlowistryAnalysis for EffectsHarness {
       .zip(dep_spans)
       .filter_map(|((kind, loc), slice)| {
         let slice = ranges_from_spans(slice.into_iter(), source_map).unwrap();
-        let spans = source_map::location_to_spans(loc, body, &spanner, source_map);
+        let spans = source_map::location_to_spans(loc, tcx, body, &spanner);
         let range = spans
           .into_iter()
           .min_by_key(|span| span.hi() - span.lo())
@@ -136,7 +136,7 @@ impl FlowistryAnalysis for EffectsHarness {
         .cloned()
         .collect::<Vec<_>>();
 
-      debug!("{}: {:?}", i, unique);
+      debug!("{i}: {unique:?}");
       ranged_effects[i].1.unique = unique;
     }
 
@@ -187,24 +187,24 @@ impl FlowistryAnalysis for EffectsHarness {
                         let adt_def = ty.ty_adt_def().unwrap();
                         let field_def =
                           adt_def.all_fields().nth(field.as_usize()).unwrap();
-                        format!("{}", field_def.ident)
+                        format!("{}", field_def.ident(tcx))
                       }
-                      _ => unimplemented!("{:?}", ty),
+                      _ => unimplemented!("{ty:?}"),
                     };
-                    format!("{}.{}", acc, field_str)
+                    format!("{acc}.{field_str}")
                   }
                   ProjectionElem::Downcast(_, variant) => {
                     let adt_def = ty.ty_adt_def().unwrap();
                     let variant_def = &adt_def.variants[variant];
-                    format!("{} as {}", acc, variant_def.ident)
+                    format!("{acc} as {}", variant_def.ident(tcx))
                   }
                   ProjectionElem::Deref => acc,
-                  ProjectionElem::Index(_) => format!("{}[]", acc),
+                  ProjectionElem::Index(_) => format!("{acc}[]"),
                   ProjectionElem::ConstantIndex { .. } => {
-                    format!("{}[TODO]", acc)
+                    format!("{acc}[TODO]",)
                   }
                   ProjectionElem::Subslice { from, to, .. } => {
-                    format!("{}[{}..{}]", acc, from, to)
+                    format!("{acc}[{from}..{to}]")
                   }
                 }
               })

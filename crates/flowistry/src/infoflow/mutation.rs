@@ -66,7 +66,7 @@ where
     rvalue: &Rvalue<'tcx>,
     location: Location,
   ) {
-    debug!("Checking {:?}: {:?} = {:?}", location, place, rvalue);
+    debug!("Checking {location:?}: {place:?} = {rvalue:?}");
     let mut collector = PlaceCollector {
       places: Vec::new(),
       tcx: self.tcx,
@@ -81,7 +81,7 @@ where
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
-    debug!("Checking {:?}: {:?}", location, terminator.kind);
+    debug!("Checking {location:?}: {:?}", terminator.kind);
     let tcx = self.tcx;
 
     match &terminator.kind {

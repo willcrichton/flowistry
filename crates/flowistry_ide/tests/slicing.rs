@@ -1,14 +1,15 @@
-use std::{env, fs, path::Path};
+use std::{env, fs, panic, path::Path};
 
 use anyhow::Result;
 use flowistry::infoflow::Direction;
-use test_env_log::test;
+use test_log::test;
 use utils::slice;
 
 mod utils;
 
 const BLESS: bool = option_env!("BLESS").is_some();
 const ONLY: Option<&'static str> = option_env!("ONLY");
+const EXIT: bool = option_env!("EXIT").is_some();
 
 fn run_tests(dir: impl AsRef<Path>, direction: Direction) {
   let main = || -> Result<()> {
@@ -16,20 +17,36 @@ fn run_tests(dir: impl AsRef<Path>, direction: Direction) {
       .join("tests")
       .join(dir.as_ref());
     let tests = fs::read_dir(test_dir)?;
+    let mut failed = false;
     for test in tests {
       let test = test?.path();
       if test.extension().unwrap() == "expected" {
         continue;
       }
+      let test_name = test.file_name().unwrap().to_str().unwrap();
       if let Some(only) = ONLY {
-        if !test.file_name().unwrap().to_str().unwrap().contains(only) {
+        if !test_name.contains(only) {
           continue;
         }
       }
       let expected_path = test.with_extension("txt.expected");
       let expected = (!BLESS).then(|| expected_path.as_ref());
-      slice(&test, expected, direction);
+
+      let result = panic::catch_unwind(|| slice(&test, expected, direction));
+      if let Err(e) = result {
+        if EXIT {
+          panic!("{test_name}:\n{e:?}");
+        } else {
+          failed = true;
+          eprintln!("\n\n{test_name}:\n{e:?}\n\n");
+        }
+      }
     }
+
+    if failed {
+      panic!("Tests failed.")
+    }
+
     Ok(())
   };
 

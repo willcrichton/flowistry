@@ -3,7 +3,7 @@ use std::time::Instant;
 use log::info;
 
 pub fn elapsed(name: &str, start: Instant) {
-  info!("{} took {}s", name, start.elapsed().as_secs_f64());
+  info!("{name} took {}s", start.elapsed().as_secs_f64());
 }
 
 pub struct BlockTimer<'a> {

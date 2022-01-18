@@ -60,7 +60,7 @@ fn main() {
   let (mut args, file_name) = match matches.subcommand() {
     ("rustc_version", _) => {
       let commit_hash = rustc_interface::util::commit_hash_str().unwrap_or("unknown");
-      println!("{}", commit_hash);
+      println!("{commit_hash}");
       exit(0);
     }
     ("backward_slice" | "forward_slice" | "playground", Some(sub_m)) => (
@@ -128,7 +128,7 @@ fn main() {
       target.map(move |target| (pkg, target))
     })
     .next()
-    .unwrap_or_else(|| panic!("Could not find target for path: {}", file_name));
+    .unwrap_or_else(|| panic!("Could not find target for path: {file_name}"));
 
   let mut cmd = Command::new(cargo_path);
   cmd
@@ -139,7 +139,7 @@ fn main() {
   cmd.arg("-p").arg(&pkg.name);
   let kind = &target.kind[0];
   if kind != "proc-macro" {
-    cmd.arg(format!("--{}", kind));
+    cmd.arg(format!("--{kind}"));
   }
   match kind.as_str() {
     "lib" | "proc-macro" => {}
@@ -150,12 +150,12 @@ fn main() {
 
   // RNG is necessary to avoid caching
   let n = thread_rng().gen::<u64>();
-  cmd.args(&["--", &format!("--flowistry={}", n)]).args(flags);
+  cmd.args(&["--", &format!("--flowistry={n}")]).args(flags);
 
   // FIXME(wcrichto): we should make these CLI args as well, then do
   //   caching on VSCode's side
   for (k, v) in args {
-    cmd.env(format!("FLOWISTRY_{}", k), v);
+    cmd.env(format!("FLOWISTRY_{k}"), v);
   }
 
   let exit_status = cmd.status().expect("could not run cargo");

@@ -110,15 +110,15 @@ impl FlowistryAnalysis for GraphAnalysis {
         place
           .iter_projections()
           .fold(local_name.to_string(), |s, (place, elem)| match elem {
-            ProjectionElem::Deref => format!("*{}", s),
+            ProjectionElem::Deref => format!("*{s}"),
             ProjectionElem::Field(f, _) => {
               let ty = place.ty(&body.local_decls, tcx).ty;
-              let default = || format!("{}.{}", s, f.as_usize());
+              let default = || format!("{s}.{}", f.as_usize());
               if let Some(def) = ty.ty_adt_def() {
                 match def.adt_kind() {
                   AdtKind::Struct => {
-                    let name = def.non_enum_variant().fields[f.as_usize()].ident;
-                    format!("{}.{}", s, name)
+                    let name = def.non_enum_variant().fields[f.as_usize()].ident(tcx);
+                    format!("{s}.{name}")
                   }
                   _ => default(),
                 }
@@ -127,11 +127,10 @@ impl FlowistryAnalysis for GraphAnalysis {
               }
             }
             ProjectionElem::Downcast(sym, _) => format!(
-              "{} as {}",
-              s,
+              "{s} as {}",
               sym.map(|s| s.to_string()).unwrap_or_else(|| "??".into())
             ),
-            ProjectionElem::Index(_) => format!("{}[]", s),
+            ProjectionElem::Index(_) => format!("{s}[]"),
             _ => unimplemented!(),
           }),
       )
@@ -141,13 +140,13 @@ impl FlowistryAnalysis for GraphAnalysis {
       .iter()
       .filter_map(|(index, place)| {
         Some((index.as_usize(), PlaceDescriptor {
-          place: format!("{:?}", place),
+          place: format!("{place:?}"),
           name: place_to_string(**place)?,
           local: place.local.as_usize(),
           projection: place
             .projection
             .iter()
-            .map(|elem| format!("{:?}", elem))
+            .map(|elem| format!("{elem:?}"))
             .collect(),
         }))
       })
@@ -202,10 +201,14 @@ impl FlowistryAnalysis for GraphAnalysis {
       let mut all_mutated = HashSet::default();
 
       let data = &body.basic_blocks()[location.block];
-      let mut visitor =
-        ModularMutationVisitor::new(tcx, body, def_id.to_def_id(), |mutated: Place<'tcx>, _, _, _| {
+      let mut visitor = ModularMutationVisitor::new(
+        tcx,
+        body,
+        def_id.to_def_id(),
+        |mutated: Place<'tcx>, _, _, _| {
           all_mutated.insert(mutated);
-        });
+        },
+      );
       if location.statement_index == data.statements.len() {
         visitor.visit_terminator(data.terminator(), location);
       } else {

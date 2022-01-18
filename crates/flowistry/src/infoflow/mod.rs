@@ -46,7 +46,7 @@ pub fn compute_flow<'a, 'tcx>(
 
     let body = &body_with_facts.body;
     let control_dependencies = ControlDependencies::build(body.clone());
-    debug!("Control dependencies: {:?}", control_dependencies);
+    debug!("Control dependencies: {control_dependencies:?}");
 
     let location_domain = LocationDomain::new(body, &aliases.place_domain);
 
