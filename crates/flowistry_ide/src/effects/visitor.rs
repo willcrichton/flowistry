@@ -30,7 +30,7 @@ impl FindEffects<'a, 'mir, 'tcx> {
     let domain = analysis.place_domain();
     let mut_args = body
       .args_iter()
-      .map(|local| {
+      .flat_map(|local| {
         let place = Place::from_local(local, tcx);
         let ptrs = place.interior_pointers(tcx, body, analysis.def_id);
         debug!("interior_pointers: {ptrs:?}");
@@ -39,17 +39,15 @@ impl FindEffects<'a, 'mir, 'tcx> {
           .into_values()
           .flatten()
           .filter(|(_, mutability)| *mutability == Mutability::Mut)
-          .map(|(place, _)| {
+          .flat_map(|(place, _)| {
             let deref_place = tcx.mk_place_deref(place);
             deref_place
               .interior_places(tcx, body, analysis.def_id, None)
               .into_iter()
           })
-          .flatten()
       })
-      .flatten()
       .filter(|place| domain.contains(place))
-      .collect_indices(domain.clone());
+      .collect_indices(domain);
     debug!("mut_args: {:#?}", mut_args);
 
     FindEffects {

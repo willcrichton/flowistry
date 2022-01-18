@@ -94,7 +94,7 @@ impl FlowAnalysis<'a, 'tcx> {
       }
     }
 
-    let mut input_location_deps = LocationSet::new(location_domain.clone());
+    let mut input_location_deps = LocationSet::new(location_domain);
     input_location_deps.insert(location);
 
     let add_deps = |place: Place<'tcx>, location_deps: &mut LocationSet| {
@@ -126,7 +126,7 @@ impl FlowAnalysis<'a, 'tcx> {
       if let Some(elem) = elem {
         let mut projection = mutated.projection.to_vec();
         projection.push(*elem);
-        let mut child_deps = LocationSet::new(location_domain.clone());
+        let mut child_deps = LocationSet::new(location_domain);
         add_deps(*place, &mut child_deps);
         children.push((
           Place::make(mutated.local, &projection, self.tcx),
@@ -138,7 +138,7 @@ impl FlowAnalysis<'a, 'tcx> {
     // Add control dependencies
     let controlled_by = self.control_dependencies.dependent_on(location.block);
     let body = self.body;
-    for block in controlled_by.into_iter().map(|set| set.iter()).flatten() {
+    for block in controlled_by.into_iter().flat_map(|set| set.iter()) {
       input_location_deps.insert(body.terminator_loc(block));
 
       // Include dependencies of the switch's operand
@@ -176,7 +176,7 @@ impl FlowAnalysis<'a, 'tcx> {
               !matches!(ty.ref_mutability(), Some(Mutability::Not))
             })
           })
-          .collect_indices(place_domain.clone());
+          .collect_indices(place_domain);
       };
 
       debug!("  Mutated conflicting places: {mutable_conflicts:?}");
@@ -195,7 +195,7 @@ impl AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
   const NAME: &'static str = "FlowAnalysis";
 
   fn bottom_value(&self, _body: &Body<'tcx>) -> Self::Domain {
-    FlowDomain::new(self.place_domain().clone(), self.location_domain().clone())
+    FlowDomain::new(self.place_domain(), self.location_domain())
   }
 
   fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {

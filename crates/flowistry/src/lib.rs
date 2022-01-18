@@ -12,7 +12,8 @@
   clippy::single_match,
   clippy::needless_lifetimes,
   clippy::needless_return,
-  clippy::len_zero
+  clippy::len_zero,
+  clippy::len_without_is_empty
 )]
 
 extern crate datafrog;

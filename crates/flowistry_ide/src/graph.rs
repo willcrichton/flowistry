@@ -1,8 +1,9 @@
+#![allow(warnings)]
 use anyhow::Result;
 use either::Either;
 use flowistry::{
   indexed::{
-    impls::{LocationSet, PlaceIndex},
+    impls::{LocationSet, PlaceIndex, PlaceSet},
     IndexedDomain,
   },
   infoflow::{self, mutation::ModularMutationVisitor},
@@ -151,14 +152,14 @@ impl FlowistryAnalysis for GraphAnalysis {
       .map(|(block, _)| body.locations_in_block(block))
       .flatten()
     {
-      let mut all_mutated = HashSet::default();
+      let mut inputs = PlaceSet::new(place_domain);
 
       let mut visitor = ModularMutationVisitor::new(
         tcx,
         body,
         def_id.to_def_id(),
         |mutated: Place<'tcx>, _, _, _| {
-          all_mutated.insert(mutated);
+          // all_mutated.insert(mutated);
         },
       );
       match body.stmt_at(location) {
@@ -170,142 +171,85 @@ impl FlowistryAnalysis for GraphAnalysis {
         }
       };
 
-      let all_mutated_conflicts = all_mutated
-        .into_iter()
-        .map(|place| {
-          results
-            .analysis
-            .aliases
-            .conflicts(place)
-            .indices()
-            .collect::<Vec<_>>()
-        })
-        .flatten()
-        .filter(|place| place_names.contains_key(&place.as_usize()))
-        .collect::<HashSet<_>>();
+      // let aliases = &results.analysis.aliases;
+      // let all_mutated_conflicts = all_mutated
+      //   .into_iter()
+      //   .map(|place| aliases.conflicts(place).indices().collect::<Vec<_>>())
+      //   .flatten()
+      //   .filter(|place| place_names.contains_key(&place.as_usize()))
+      //   .collect::<HashSet<_>>();
 
-      let state = results.state_at(location);
-      for place in all_mutated_conflicts.iter().copied() {
-        let place_loc_deps = state.row_set(place).unwrap();
-        let mut place_place_deps = all_deps
-          .iter()
-          .filter_map(|(other, other_deps)| {
-            let (loc, _) = other_deps
-              .iter()
-              .filter(|(_, (other_loc_deps, _))| {
-                place_loc_deps.is_superset(other_loc_deps)
-              })
-              .max_by_key(|(_, (other_loc_deps, _))| other_loc_deps.len())?;
+      // let state = results.state_at(location);
+      // for place in all_mutated_conflicts.iter().copied() {
+      //   let place_loc_deps = state.row_set(place).unwrap();
+      //   let mut place_place_deps = all_deps
+      //     .iter()
+      //     .filter_map(|(other, other_deps)| {
+      //       let (loc, _) = other_deps
+      //         .iter()
+      //         .filter(|(_, (other_loc_deps, _))| {
+      //           place_loc_deps.is_superset(other_loc_deps)
+      //         })
+      //         .max_by_key(|(_, (other_loc_deps, _))| other_loc_deps.len())?;
 
-            Some((*loc, *other))
-          })
-          .collect::<HashSet<_>>();
+      //       Some((*loc, *other))
+      //     })
+      //     .collect::<HashSet<_>>();
 
-        let place_place_deps2 = place_place_deps.clone();
-        place_place_deps.retain(|(loc1, place1)| {
-          !place_place_deps2.iter().any(|(loc2, place2)| {
-            let (deps1, _) = &all_deps[place1][loc1];
-            let (deps2, _) = &all_deps[place2][loc2];
-            deps2.len() > deps1.len() && deps2.is_superset(deps1)
-          })
-        });
+      //   let place_place_deps2 = place_place_deps.clone();
+      //   place_place_deps.retain(|(loc1, place1)| {
+      //     !place_place_deps2.iter().any(|(loc2, place2)| {
+      //       let (deps1, _) = &all_deps[place1][loc1];
+      //       let (deps2, _) = &all_deps[place2][loc2];
+      //       deps2.len() > deps1.len() && deps2.is_superset(deps1)
+      //     })
+      //   });
 
-        place_place_deps.extend(all_mutated_conflicts.iter().copied().filter_map(
-          |other| {
-            state.row_set(other).and_then(|other_loc_deps| {
-              (place != other && place_loc_deps.is_superset(&other_loc_deps))
-                .then(move || (location, other))
-            })
-          },
-        ));
+      //   place_place_deps.extend(all_mutated_conflicts.iter().copied().filter_map(
+      //     |other| {
+      //       state.row_set(other).and_then(|other_loc_deps| {
+      //         (place != other && place_loc_deps.is_superset(&other_loc_deps))
+      //           .then(move || (location, other))
+      //       })
+      //     },
+      //   ));
 
-        all_deps
-          .entry(place)
-          .or_default()
-          .insert(location, (place_loc_deps.to_owned(), place_place_deps));
-      }
+      //   all_deps
+      //     .entry(place)
+      //     .or_default()
+      //     .insert(location, (place_loc_deps.to_owned(), place_place_deps));
+      // }
     }
 
-    // for location in traversal::reverse_postorder(body)
-    //   .map(|(block, _)| body.locations_in_block(block))
-    //   .flatten()
-    // {
-    //   let state = results.state_at(location);
-
-    //   let rows = state
-    //     .rows()
-    //     .filter(|(place, deps)| {
-    //       place_names.contains_key(&place.as_usize()) && deps.indices().next().is_some()
-    //     })
-    //     .collect::<HashMap<_, _>>();
-
-    //   let changed_places = rows
-    //     .into_iter()
-    //     .filter(|(place, place_loc_deps)| {
-    //       let place_entry = all_deps.entry(*place).or_default();
-    //       place_entry.values().all(|(prev_place_loc_deps, _)| {
-    //         prev_place_loc_deps.as_ref() != *place_loc_deps
-    //       })
-    //     })
-    //     .collect::<HashMap<_, _>>();
-
-    //   for (place, place_loc_deps) in &changed_places {
-    //     let mut place_place_deps = all_deps
-    //       .iter()
-    //       .filter_map(|(other, other_deps)| {
-    //         let (loc, _) = other_deps
-    //           .iter()
-    //           .filter(|(_, (other_loc_deps, _))| {
-    //             place_loc_deps.is_superset(other_loc_deps)
-    //           })
-    //           .max_by_key(|(_, (other_loc_deps, _))| other_loc_deps.len())?;
-
-    //         Some((*loc, *other))
-    //       })
-    //       .collect::<HashSet<_>>();
-
-    //     debug!(
-    //       "Adding {} @ {:?} -- {:?}",
-    //       place_names[&place.as_usize()].name,
-    //       location,
-    //       place_place_deps
-    //     );
-    //     all_deps
-    //       .entry(*place)
-    //       .or_default()
-    //       .insert(location, (place_loc_deps.to_owned(), place_place_deps));
-    //   }
-    // }
-
-    // from: Place -> Location -> {(Location, Place)}
-    // to: int -> int -> {(int, int)}
-    let place_deps = all_deps
-      .into_iter()
-      .map(|(index, deps)| {
-        (
-          index.as_usize(),
-          deps
-            .into_iter()
-            .map(|(loc, (_, deps))| {
-              (
-                location_domain.index(&loc).as_usize(),
-                deps
-                  .into_iter()
-                  .map(|(loc, index)| {
-                    (location_domain.index(&loc).as_usize(), index.as_usize())
-                  })
-                  .collect(),
-              )
-            })
-            .collect(),
-        )
-      })
-      .collect();
+    // // from: Place -> Location -> {(Location, Place)}
+    // // to: int -> int -> {(int, int)}
+    // let place_deps = all_deps
+    //   .into_iter()
+    //   .map(|(index, deps)| {
+    //     (
+    //       index.as_usize(),
+    //       deps
+    //         .into_iter()
+    //         .map(|(loc, (_, deps))| {
+    //           (
+    //             location_domain.index(&loc).as_usize(),
+    //             deps
+    //               .into_iter()
+    //               .map(|(loc, index)| {
+    //                 (location_domain.index(&loc).as_usize(), index.as_usize())
+    //               })
+    //               .collect(),
+    //           )
+    //         })
+    //         .collect(),
+    //     )
+    //   })
+    //   .collect();
 
     Ok(GraphOutput {
       place_names,
       location_names,
-      place_deps,
+      place_deps: todo!(),
     })
   }
 }

@@ -144,8 +144,8 @@ pub fn compute_dependencies(
   let body = results.analysis.body;
   let aliases = &results.analysis.aliases;
 
-  let new_location_set = || LocationSet::new(results.analysis.location_domain().clone());
-  let new_place_set = || PlaceSet::new(results.analysis.place_domain().clone());
+  let new_location_set = || LocationSet::new(results.analysis.location_domain());
+  let new_place_set = || PlaceSet::new(results.analysis.place_domain());
 
   let expanded_targets = targets
     .iter()
@@ -223,8 +223,7 @@ pub fn compute_dependency_spans(
     .map(|(locations, places)| {
       let location_spans = locations
         .iter()
-        .map(|location| location_to_spans(*location, tcx, body, spanner))
-        .flatten();
+        .flat_map(|location| location_to_spans(*location, tcx, body, spanner));
 
       let place_spans = places
         .iter()
