@@ -80,6 +80,22 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
     if is_borrow {
       self.places.push(self.tcx.mk_place_deref(*place));
     }
+
+    // See PlaceCollector for where this matters
+    if let Rvalue::Aggregate(box AggregateKind::Adt(adt_def, idx, _substs, _, _), _) =
+      rvalue
+    {
+      let variant = &adt_def.variants[*idx];
+      let places = (0 .. variant.fields.len()).map(|i| {
+        let mut projection = place.projection.to_vec();
+        projection.push(ProjectionElem::Field(
+          Field::from_usize(i),
+          self.tcx.mk_unit(),
+        ));
+        Place::make(place.local, &projection, self.tcx)
+      });
+      self.places.extend(places);
+    }
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {

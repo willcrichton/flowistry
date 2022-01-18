@@ -44,12 +44,11 @@ impl NormalizedPlaces<'tcx> {
     let tcx = self.tcx;
     let def_id = self.def_id;
     *self.cache.entry(place).or_insert_with(|| {
-      // consider a place _1: &'1 <T as SomeTrait>::Foo[2]
+      // Consider a place _1: &'1 <T as SomeTrait>::Foo[2]
       //   we might encounter this type with a different region, e.g. &'2
       //   we might encounter this type with a more specific type for the associated type, e.g. &'1 [i32][0]
-      // to account for this variation, we use normalize_erasing_regions
-      //
-      // we also want any index to be treated the same, so we replace [i] => [0]
+      // to account for this variation, we normalize associated types,
+      //   erase regions, and normalize projections
       let param_env = tcx.param_env(def_id);
       let place = tcx.erase_regions(place);
       let place = tcx.infer_ctxt().enter(|infcx| {
@@ -66,10 +65,18 @@ impl NormalizedPlaces<'tcx> {
         .projection
         .into_iter()
         .filter_map(|elem| match elem {
+          // Map all indexes [i] to [0] since they should be considered equal
           ProjectionElem::Index(_) | ProjectionElem::ConstantIndex { .. } => {
             Some(ProjectionElem::Index(Local::from_usize(0)))
           }
+          // Ignore subslices, they should be treated the same as the
+          // full slice
           ProjectionElem::Subslice { .. } => None,
+          // Remove the type component so artificially manufactured Field
+          // work along with projections retrieved from the Body
+          ProjectionElem::Field(field, _) => {
+            Some(ProjectionElem::Field(field, tcx.mk_unit()))
+          }
           _ => Some(elem),
         })
         .collect::<Vec<_>>();

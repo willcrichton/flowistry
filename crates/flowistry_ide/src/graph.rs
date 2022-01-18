@@ -203,7 +203,7 @@ impl FlowistryAnalysis for GraphAnalysis {
 
       let data = &body.basic_blocks()[location.block];
       let mut visitor =
-        ModularMutationVisitor::new(tcx, body, def_id.to_def_id(), |mutated, _, _, _| {
+        ModularMutationVisitor::new(tcx, body, def_id.to_def_id(), |mutated: Place<'tcx>, _, _, _| {
           all_mutated.insert(mutated);
         });
       if location.statement_index == data.statements.len() {
@@ -242,6 +242,15 @@ impl FlowistryAnalysis for GraphAnalysis {
             Some((*loc, *other))
           })
           .collect::<HashSet<_>>();
+
+        let place_place_deps2 = place_place_deps.clone();
+        place_place_deps.retain(|(loc1, place1)| {
+          !place_place_deps2.iter().any(|(loc2, place2)| {
+            let (deps1, _) = &all_deps[place1][loc1];
+            let (deps2, _) = &all_deps[place2][loc2];
+            deps2.len() > deps1.len() && deps2.is_superset(deps1)
+          })
+        });
 
         place_place_deps.extend(all_mutated_conflicts.iter().copied().filter_map(
           |other| {
