@@ -1,6 +1,6 @@
 use test_log::test;
 
-mod utils;
+pub mod utils;
 
 #[test]
 fn foo() {

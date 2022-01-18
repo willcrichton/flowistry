@@ -5,7 +5,7 @@ use flowistry::infoflow::Direction;
 use test_log::test;
 use utils::slice;
 
-mod utils;
+pub mod utils;
 
 const BLESS: bool = option_env!("BLESS").is_some();
 const ONLY: Option<&'static str> = option_env!("ONLY");
