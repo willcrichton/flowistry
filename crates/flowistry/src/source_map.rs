@@ -153,7 +153,7 @@ impl HirSpanner<'hir> {
 
     enclosing
       .into_iter()
-      .map(|(_, spans, node)| (spans.clone(), node.clone()))
+      .map(|(_, spans, node)| (spans.clone(), *node))
       .collect()
   }
 }

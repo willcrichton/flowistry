@@ -158,8 +158,7 @@ impl ControlDependencies {
       let up = dominator_tree
         .successors(x)
         .iter()
-        .map(|z| df[*z].iter())
-        .flatten();
+        .flat_map(|z| df[*z].iter());
       let frontier = local
         .chain(up)
         .filter(|y| idom(*y).map(|yd| yd != x).unwrap_or(false))

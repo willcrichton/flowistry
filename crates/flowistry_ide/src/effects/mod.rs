@@ -78,12 +78,11 @@ impl FlowistryAnalysis for EffectsHarness {
     let (effects, targets): (Vec<_>, Vec<_>) = find_effects
       .effects
       .into_iter()
-      .map(|(kind, effects)| {
+      .flat_map(|(kind, effects)| {
         effects
           .into_iter()
           .map(move |(place, loc)| ((kind, loc), (place, loc)))
       })
-      .flatten()
       .unzip();
 
     let dep_spans = infoflow::compute_dependency_spans(
@@ -118,8 +117,7 @@ impl FlowistryAnalysis for EffectsHarness {
         .iter()
         .enumerate()
         .filter(|(j, _)| *j != i)
-        .map(|(_, (_, effect))| effect.slice.clone())
-        .flatten()
+        .flat_map(|(_, (_, effect))| effect.slice.clone())
         .map(|range| (range.start .. range.end, ()))
         .collect::<IntervalTree<_, _>>();
 

@@ -123,8 +123,8 @@ impl FlowAnalysis<'_, 'tcx> {
     let body = &body_with_facts.body;
 
     let mut return_state = FlowDomain::new(
-      flow.analysis.place_domain().clone(),
-      flow.analysis.location_domain().clone(),
+      flow.analysis.place_domain(),
+      flow.analysis.location_domain(),
     );
     {
       let return_locs = body

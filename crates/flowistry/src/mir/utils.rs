@@ -54,11 +54,11 @@ pub fn arg_mut_ptrs<'tcx>(
     is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
   args
     .iter()
-    .map(|(i, place)| {
+    .flat_map(|(i, place)| {
       place
         .interior_pointers(tcx, body, def_id)
         .into_iter()
-        .map(|(_, places)| {
+        .flat_map(|(_, places)| {
           places
             .into_iter()
             .filter_map(|(place, mutability)| match mutability {
@@ -66,10 +66,8 @@ pub fn arg_mut_ptrs<'tcx>(
               Mutability::Not => ignore_mut.then(|| place),
             })
         })
-        .flatten()
         .map(move |place| (*i, tcx.mk_place_deref(place)))
     })
-    .flatten()
     .collect::<Vec<_>>()
 }
 
@@ -178,26 +176,23 @@ impl Visitor<'tcx> for PlaceCollector<'tcx> {
 
   fn visit_rvalue(&mut self, rvalue: &Rvalue<'tcx>, location: Location) {
     match rvalue {
-      Rvalue::Aggregate(box kind, ops) => match kind {
-        AggregateKind::Adt(def_id, idx, _substs, _, _) => {
-          // In the case of _1 = aggregate { field1: op1, field2: op2, ... }
-          // we want to remember which places correspond to which fields so the infoflow
-          // analysis can be field-sensitive for constructors.
-          let adt_def = self.tcx.adt_def(*def_id);
-          let variant = &adt_def.variants[*idx];
-          let places =
-            (0 .. variant.fields.len())
-              .zip(ops.iter())
-              .filter_map(|(field, op)| {
-                let place = op.to_place()?;
-                let field =
-                  ProjectionElem::Field(Field::from_usize(field), self.tcx.mk_unit());
-                Some((place, Some(field)))
-              });
-          self.places.extend(places);
-        }
-        _ => self.super_rvalue(rvalue, location),
-      },
+      Rvalue::Aggregate(box AggregateKind::Adt(def_id, idx, _substs, _, _), ops) => {
+        // In the case of _1 = aggregate { field1: op1, field2: op2, ... }
+        // we want to remember which places correspond to which fields so the infoflow
+        // analysis can be field-sensitive for constructors.
+        let adt_def = self.tcx.adt_def(*def_id);
+        let variant = &adt_def.variants[*idx];
+        let places =
+          (0 .. variant.fields.len())
+            .zip(ops.iter())
+            .filter_map(|(field, op)| {
+              let place = op.to_place()?;
+              let field =
+                ProjectionElem::Field(Field::from_usize(field), self.tcx.mk_unit());
+              Some((place, Some(field)))
+            });
+        self.places.extend(places);
+      }
       _ => self.super_rvalue(rvalue, location),
     }
   }
@@ -655,13 +650,12 @@ impl BodyExt<'tcx> for Body<'tcx> {
     self
       .basic_blocks()
       .iter_enumerated()
-      .map(|(block, data)| {
+      .flat_map(|(block, data)| {
         (0 .. data.statements.len() + 1).map(move |statement_index| Location {
           block,
           statement_index,
         })
       })
-      .flatten()
   }
 
   type LocationsIter = impl Iterator<Item = Location>;
