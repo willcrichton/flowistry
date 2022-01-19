@@ -82,9 +82,10 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
     }
 
     // See PlaceCollector for where this matters
-    if let Rvalue::Aggregate(box AggregateKind::Adt(adt_def, idx, _substs, _, _), _) =
+    if let Rvalue::Aggregate(box AggregateKind::Adt(def_id, idx, _substs, _, _), _) =
       rvalue
     {
+      let adt_def = self.tcx.adt_def(*def_id);
       let variant = &adt_def.variants[*idx];
       let places = (0 .. variant.fields.len()).map(|i| {
         let mut projection = place.projection.to_vec();
@@ -171,8 +172,7 @@ impl Aliases<'tcx> {
         let static_region = RegionVid::from_usize(0);
         let static_outlives = subset
           .iter()
-          .map(|(o1, o2)| [o1, o2])
-          .flatten()
+          .flat_map(|(o1, o2)| [o1, o2])
           .map(|o| (static_region, *o))
           .collect::<Vec<_>>();
         subset.extend(static_outlives);
@@ -206,6 +206,10 @@ impl Aliases<'tcx> {
     let mut definite = HashMap::default();
     let mk_tuple =
       |region: RegionVid, place: Place<'tcx>| -> (RegionVid, Place<'static>) {
+        // SAFETY: this transmutation is temporarily replacing the 'tcx lifetime with 'static
+        // because datafrog only allows T: 'static. This is a safe operation because the results
+        // are casted back to 'tcx at the return, and 'tcx is a valid lifetime throughout this
+        // function.
         (region, unsafe { std::mem::transmute(place) })
       };
 
@@ -238,14 +242,13 @@ impl Aliases<'tcx> {
         place
           .interior_pointers(tcx, body, def_id)
           .into_iter()
-          .map(|(region, places)| {
+          .flat_map(|(region, places)| {
             places
               .into_iter()
               .map(move |(place, _)| mk_tuple(region, tcx.mk_place_deref(place)))
           })
-          .flatten()
       };
-      contains.extend(body.args_iter().map(arg_ptrs).flatten());
+      contains.extend(body.args_iter().flat_map(arg_ptrs));
     }
 
     // reachable is the transitive closure of subset
@@ -306,39 +309,32 @@ impl Aliases<'tcx> {
     let mut all_places = finder.places.into_iter().collect::<HashSet<_>>();
 
     // Add every place that appears in a loan set
-    all_places.extend(loans.values().flatten().cloned());
+    all_places.extend(loans.values().flatten().copied());
 
     // For every place p = *q, add q
     let all_pointers = all_places
       .iter()
-      .map(|place| {
+      .flat_map(|place| {
         place
           .refs_in_projection()
           .into_iter()
           .map(|(ptr, _)| Place::from_ref(ptr, tcx))
       })
-      .flatten()
       .collect::<Vec<_>>();
     all_places.extend(all_pointers);
 
     let all_locals = body.local_decls().indices();
-    all_places.extend(
-      all_locals
-        .map(|local| {
-          let place = Place::from_local(local, tcx);
-          place
-            .interior_pointers(tcx, body, def_id)
-            .into_values()
-            .map(|places| {
-              places
-                .into_iter()
-                .map(|(p, _)| vec![p, tcx.mk_place_deref(p)].into_iter())
-                .flatten()
-            })
-            .flatten()
+    all_places.extend(all_locals.flat_map(|local| {
+      let place = Place::from_local(local, tcx);
+      place
+        .interior_pointers(tcx, body, def_id)
+        .into_values()
+        .flat_map(|places| {
+          places
+            .into_iter()
+            .flat_map(|(p, _)| vec![p, tcx.mk_place_deref(p)].into_iter())
         })
-        .flatten(),
-    );
+    }));
 
     debug!("Places: {:?}", {
       let mut v = all_places.iter().collect::<Vec<_>>();
@@ -409,7 +405,7 @@ impl Aliases<'tcx> {
     let body = &body_with_facts.body;
 
     let loans = Self::compute_loans(tcx, def_id, body_with_facts);
-    debug!("Loans: {:#?}", loans);
+    debug!("Loans: {loans:#?}");
 
     let mut all_places = Self::compute_all_places(tcx, body, def_id, &loans);
 
@@ -423,9 +419,9 @@ impl Aliases<'tcx> {
         )
       })
       .collect::<HashMap<_, _>>();
-    debug!("Aliases: {:#?}", all_aliases);
+    debug!("Aliases: {all_aliases:#?}");
 
-    all_places.extend(all_aliases.values().map(|s| s.iter().copied()).flatten());
+    all_places.extend(all_aliases.values().flat_map(|s| s.iter().copied()));
 
     let place_domain = Rc::new(PlaceDomain::new(all_places, normalized_places));
 
@@ -437,15 +433,13 @@ impl Aliases<'tcx> {
     body: &Body<'tcx>,
     aliases_map: HashMap<Place<'tcx>, HashSet<Place<'tcx>>>,
   ) -> Aliases<'tcx> {
-    let new_mtx = || IndexMatrix::new(place_domain.clone(), place_domain.clone());
+    let new_mtx = || IndexMatrix::new(&place_domain, &place_domain);
     let mut aliases = new_mtx();
     let mut children = new_mtx();
     let mut conflicts = new_mtx();
 
     for (place, aliases_hashset) in aliases_map.into_iter() {
-      let aliases_indexset = aliases_hashset
-        .into_iter()
-        .collect_indices(place_domain.clone());
+      let aliases_indexset = aliases_hashset.into_iter().collect_indices(&place_domain);
       aliases.union_into_row(place, &aliases_indexset);
     }
 
@@ -467,7 +461,7 @@ impl Aliases<'tcx> {
       let to_set = |v: Vec<(PlaceRelation, PlaceIndex)>| {
         v.into_iter()
           .map(|(_, idx)| idx)
-          .collect_indices(place_domain.clone())
+          .collect_indices(&place_domain)
       };
 
       let subs = to_set(subs);
@@ -518,7 +512,7 @@ impl Aliases<'tcx> {
       .map(|place| self.aliases.row(tcx.mk_place_deref(place)).copied())
       .flatten()
       .chain(vec![place])
-      .collect_indices(self.place_domain.clone())
+      .collect_indices(&self.place_domain)
   }
 }
 
@@ -532,7 +526,7 @@ pub fn generate_conservative_constraints<'tcx>(
 
   region_to_pointers
     .iter()
-    .map(|(region, places)| {
+    .flat_map(|(region, places)| {
       let regions_with_place = region_to_pointers
         .iter()
         // find other regions that contain a loan matching any type in places
@@ -547,11 +541,11 @@ pub fn generate_conservative_constraints<'tcx>(
 
       // add 'a : 'b and 'b : 'a to ensure the lifetimes are considered equal
       regions_with_place
-        .map(|(other_region, _)| [(*region, *other_region), (*other_region, *region)])
-        .flatten()
+        .flat_map(|(other_region, _)| {
+          [(*region, *other_region), (*other_region, *region)]
+        })
         .collect::<Vec<_>>()
     })
-    .flatten()
     .collect::<Vec<_>>()
 }
 

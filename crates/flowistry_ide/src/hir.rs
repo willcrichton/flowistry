@@ -85,5 +85,5 @@ pub fn path_to_source_file(
       }
     })
     .cloned()
-    .ok_or_else(|| anyhow!("Could not find file {} out of files {:#?}", path, **files))
+    .ok_or_else(|| anyhow!("Could not find file {path} out of files {:#?}", **files))
 }

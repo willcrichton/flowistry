@@ -95,7 +95,7 @@ impl<I: Idx, T: IndexedValue> IndexedDomain for DefaultDomain<I, T> {
     *self
       .value_to_index
       .get(value)
-      .unwrap_or_else(|| panic!("No index for value: {:?}", value))
+      .unwrap_or_else(|| panic!("No index for value: {value:?}"))
   }
   fn contains(&self, value: &T) -> bool {
     self.value_to_index.contains_key(value)
@@ -162,10 +162,10 @@ pub struct IndexSet<T: IndexedValue, S = OwnedSet<T>> {
 }
 
 impl<T: IndexedValue> IndexSet<T, OwnedSet<T>> {
-  pub fn new(domain: Rc<T::Domain>) -> Self {
+  pub fn new(domain: &Rc<T::Domain>) -> Self {
     IndexSet {
       set: OwnedSet(IndexSetImpl::new_empty(domain.as_vec().len())),
-      domain,
+      domain: domain.clone(),
     }
   }
 }
@@ -270,7 +270,7 @@ impl<T: IndexedValue + fmt::Debug, S: ToSet<T>> fmt::Debug for IndexSet<T, S> {
     write!(f, "{{")?;
     let n = self.len();
     for (i, elt) in self.iter().enumerate() {
-      write!(f, "{:?}", elt)?;
+      write!(f, "{elt:?}")?;
       if i < n - 1 {
         write!(f, ", ")?;
         if f.alternate() {
@@ -313,11 +313,11 @@ where
     let added = self
       .indices()
       .filter(|idx| !old.contains(*idx))
-      .collect_indices(self.domain.clone());
+      .collect_indices(&self.domain);
     let removed = old
       .indices()
       .filter(|idx| !self.contains(*idx))
-      .collect_indices(self.domain.clone());
+      .collect_indices(&self.domain);
 
     if added.len() > 0 {
       write!(f, "\u{001f}+")?;
@@ -333,7 +333,7 @@ where
   }
 }
 pub trait IndexSetIteratorExt<T: IndexedValue> {
-  fn collect_indices(self, domain: Rc<T::Domain>) -> IndexSet<T>;
+  fn collect_indices(self, domain: &Rc<T::Domain>) -> IndexSet<T>;
 }
 
 impl<T, S, Iter> IndexSetIteratorExt<T> for Iter
@@ -342,7 +342,7 @@ where
   Iter: Iterator<Item = S>,
   S: ToIndex<T>,
 {
-  fn collect_indices(self, domain: Rc<T::Domain>) -> IndexSet<T> {
+  fn collect_indices(self, domain: &Rc<T::Domain>) -> IndexSet<T> {
     let mut set = IndexSet::new(domain);
     for s in self {
       set.insert(s);
@@ -358,11 +358,11 @@ pub struct IndexMatrix<R: IndexedValue, C: IndexedValue> {
 }
 
 impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
-  pub fn new(row_domain: Rc<R::Domain>, col_domain: Rc<C::Domain>) -> Self {
+  pub fn new(row_domain: &Rc<R::Domain>, col_domain: &Rc<C::Domain>) -> Self {
     IndexMatrix {
       matrix: HashMap::default(),
-      row_domain,
-      col_domain,
+      row_domain: row_domain.clone(),
+      col_domain: col_domain.clone(),
     }
   }
 
@@ -419,8 +419,7 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
       .matrix
       .get(&row)
       .into_iter()
-      .map(move |set| set.iter().map(move |idx| self.col_domain.value(idx)))
-      .flatten()
+      .flat_map(move |set| set.iter().map(move |idx| self.col_domain.value(idx)))
   }
 
   pub fn row_set<'a>(
@@ -554,7 +553,7 @@ impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx>
       return Ok(());
     }
 
-    let empty = IndexSet::new(self.col_domain.clone());
+    let empty = IndexSet::new(&self.col_domain);
     let empty = empty.as_ref();
     for (row, set) in self.rows() {
       let row_value = self.row_domain.value(row);

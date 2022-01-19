@@ -8,7 +8,8 @@ use std::{
 };
 
 use anyhow::{bail, Result};
-use log::{trace, warn};
+use either::Either;
+use log::{debug, trace, warn};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
 use rustc_hir::def_id::DefId;
@@ -16,13 +17,15 @@ use rustc_middle::{
   mir::{
     pretty::write_mir_fn,
     visit::{PlaceContext, Visitor},
-    *,
+    MirPass, *,
   },
-  ty::{self, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS, TypeFoldable, TypeVisitor},
+  ty::{
+    self, AdtKind, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS, TypeFoldable,
+    TypeVisitor,
+  },
 };
 use rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
-use rustc_mir_transform::MirPass;
-use rustc_span::Symbol;
+use rustc_span::{Pos, Span, Symbol, SyntaxContext};
 use rustc_target::abi::VariantIdx;
 use smallvec::SmallVec;
 
@@ -51,11 +54,11 @@ pub fn arg_mut_ptrs<'tcx>(
     is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
   args
     .iter()
-    .map(|(i, place)| {
+    .flat_map(|(i, place)| {
       place
         .interior_pointers(tcx, body, def_id)
         .into_iter()
-        .map(|(_, places)| {
+        .flat_map(|(_, places)| {
           places
             .into_iter()
             .filter_map(|(place, mutability)| match mutability {
@@ -63,10 +66,8 @@ pub fn arg_mut_ptrs<'tcx>(
               Mutability::Not => ignore_mut.then(|| place),
             })
         })
-        .flatten()
         .map(move |place| (*i, tcx.mk_place_deref(place)))
     })
-    .flatten()
     .collect::<Vec<_>>()
 }
 
@@ -175,25 +176,23 @@ impl Visitor<'tcx> for PlaceCollector<'tcx> {
 
   fn visit_rvalue(&mut self, rvalue: &Rvalue<'tcx>, location: Location) {
     match rvalue {
-      Rvalue::Aggregate(box kind, ops) => match kind {
-        AggregateKind::Adt(adt_def, idx, _substs, _, _) => {
-          // In the case of _1 = aggregate { field1: op1, field2: op2, ... }
-          // we want to remember which places correspond to which fields so the infoflow
-          // analysis can be field-sensitive for constructors.
-          let variant = &adt_def.variants[*idx];
-          let places =
-            (0 .. variant.fields.len())
-              .zip(ops.iter())
-              .filter_map(|(field, op)| {
-                let place = op.to_place()?;
-                let field =
-                  ProjectionElem::Field(Field::from_usize(field), self.tcx.mk_unit());
-                Some((place, Some(field)))
-              });
-          self.places.extend(places);
-        }
-        _ => self.super_rvalue(rvalue, location),
-      },
+      Rvalue::Aggregate(box AggregateKind::Adt(def_id, idx, _substs, _, _), ops) => {
+        // In the case of _1 = aggregate { field1: op1, field2: op2, ... }
+        // we want to remember which places correspond to which fields so the infoflow
+        // analysis can be field-sensitive for constructors.
+        let adt_def = self.tcx.adt_def(*def_id);
+        let variant = &adt_def.variants[*idx];
+        let places =
+          (0 .. variant.fields.len())
+            .zip(ops.iter())
+            .filter_map(|(field, op)| {
+              let place = op.to_place()?;
+              let field =
+                ProjectionElem::Field(Field::from_usize(field), self.tcx.mk_unit());
+              Some((place, Some(field)))
+            });
+        self.places.extend(places);
+      }
       _ => self.super_rvalue(rvalue, location),
     }
   }
@@ -217,7 +216,7 @@ where
   let output_dir = Path::new("target");
   // let fname = tcx.def_path_debug_str(def_id);
   let fname = "results";
-  let output_path = output_dir.join(format!("{}.png", fname));
+  let output_path = output_dir.join(format!("{fname}.png"));
 
   let mut p = Command::new("dot")
     .args(&["-Tpng", "-o", &output_path.display().to_string()])
@@ -235,11 +234,9 @@ where
 }
 
 pub fn location_to_string(location: Location, body: &Body<'_>) -> String {
-  let block = &body.basic_blocks()[location.block];
-  if location.statement_index == block.statements.len() {
-    format!("{:?}", block.terminator().kind)
-  } else {
-    format!("{:?}", block.statements[location.statement_index].kind)
+  match body.stmt_at(location) {
+    Either::Left(stmt) => format!("{:?}", stmt.kind),
+    Either::Right(terminator) => format!("{:?}", terminator.kind),
   }
 }
 
@@ -290,6 +287,7 @@ pub trait PlaceExt<'tcx> {
     def_id: DefId,
     depth_limit: Option<usize>,
   ) -> Vec<Place<'tcx>>;
+  fn to_string(&self, tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> Option<String>;
 }
 
 impl PlaceExt<'tcx> for Place<'tcx> {
@@ -380,6 +378,57 @@ impl PlaceExt<'tcx> for Place<'tcx> {
     region_collector.visit_ty(ty);
     region_collector.places.unwrap().into_iter().collect()
   }
+
+  fn to_string(&self, tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> Option<String> {
+    let local_name = if self.local == RETURN_PLACE {
+      "RETURN".into()
+    } else {
+      body
+        .var_debug_info
+        .iter()
+        .filter_map(|info| match info.value {
+          VarDebugInfoContents::Place(place) if place.local == self.local => info
+            .source_info
+            .span
+            .as_local(tcx)
+            .map(|_| info.name.to_string()),
+          _ => None,
+        })
+        .next()?
+    };
+
+    let projection_to_string =
+      |s: String, (place, elem): (PlaceRef<'tcx>, PlaceElem<'tcx>)| match elem {
+        ProjectionElem::Deref => format!("*{s}"),
+        ProjectionElem::Field(f, _) => {
+          let ty = place.ty(&body.local_decls, tcx).ty;
+          let default = || format!("{s}.{}", f.as_usize());
+          if let Some(def) = ty.ty_adt_def() {
+            match def.adt_kind() {
+              AdtKind::Struct => {
+                let name = def.non_enum_variant().fields[f.as_usize()].ident(tcx);
+                format!("{s}.{name}")
+              }
+              _ => default(),
+            }
+          } else {
+            default()
+          }
+        }
+        ProjectionElem::Downcast(sym, _) => format!(
+          "{s} as {}",
+          sym.map(|s| s.to_string()).unwrap_or_else(|| "??".into())
+        ),
+        ProjectionElem::Index(_) => format!("{s}[]"),
+        _ => unimplemented!(),
+      };
+
+    Some(
+      self
+        .iter_projections()
+        .fold(local_name, projection_to_string),
+    )
+  }
 }
 
 struct CollectRegions<'tcx> {
@@ -395,10 +444,6 @@ struct CollectRegions<'tcx> {
 }
 
 impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
-  fn tcx_for_anon_const_substs(&self) -> Option<TyCtxt<'tcx>> {
-    Some(self.tcx)
-  }
-
   fn visit_ty(&mut self, ty: Ty<'tcx>) -> ControlFlow<Self::BreakTy> {
     if self
       .ty_stack
@@ -415,9 +460,8 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
     }
 
     trace!(
-      "exploring {:?} with {:?}",
-      Place::make(self.local, &self.place_stack, self.tcx),
-      ty
+      "exploring {:?} with {ty:?}",
+      Place::make(self.local, &self.place_stack, self.tcx)
     );
 
     self.ty_stack.push(ty);
@@ -462,7 +506,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
           for (i, variant) in adt_def.variants.iter().enumerate() {
             let variant_index = VariantIdx::from_usize(i);
             let cast = PlaceElem::Downcast(
-              Some(adt_def.variants[variant_index].ident.name),
+              Some(adt_def.variants[variant_index].ident(self.tcx).name),
               variant_index,
             );
             self.place_stack.push(cast);
@@ -510,7 +554,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
       _ if ty.is_primitive_ty() => {}
 
       _ => {
-        warn!("unimplemented {:?} ({:?})", ty, ty.kind());
+        warn!("unimplemented {ty:?} ({:?})", ty.kind());
       }
     };
 
@@ -527,7 +571,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
   }
 
   fn visit_region(&mut self, region: ty::Region<'tcx>) -> ControlFlow<Self::BreakTy> {
-    trace!("visiting region {:?}", region);
+    trace!("visiting region {region:?}");
     match region {
       RegionKind::ReVar(region) => {
         let mutability = if self
@@ -606,13 +650,12 @@ impl BodyExt<'tcx> for Body<'tcx> {
     self
       .basic_blocks()
       .iter_enumerated()
-      .map(|(block, data)| {
+      .flat_map(|(block, data)| {
         (0 .. data.statements.len() + 1).map(move |statement_index| Location {
           block,
           statement_index,
         })
       })
-      .flatten()
   }
 
   type LocationsIter = impl Iterator<Item = Location>;
@@ -639,6 +682,117 @@ impl BodyExt<'tcx> for Body<'tcx> {
     let mut buffer = Vec::new();
     write_mir_fn(tcx, self, &mut |_, _| Ok(()), &mut buffer)?;
     Ok(String::from_utf8(buffer)?)
+  }
+}
+
+pub trait SpanExt {
+  fn subtract(&self, child_spans: Vec<Span>) -> Vec<Span>;
+  fn as_local(&self, tcx: TyCtxt<'tcx>) -> Option<Span>;
+  fn overlaps_inclusive(&self, other: Span) -> bool;
+  fn merge_overlaps(spans: Vec<Span>) -> Vec<Span>;
+  fn to_string(&self, tcx: TyCtxt<'_>) -> String;
+}
+
+impl SpanExt for Span {
+  /// Get spans for regions in `self` not in `child_spans`.
+  ///
+  /// Example:
+  ///  self:          ---------------
+  ///  child_spans:    ---      --  -
+  ///  output:        -   ------  --
+  fn subtract(&self, mut child_spans: Vec<Span>) -> Vec<Span> {
+    let mut outer_spans = vec![];
+    if !child_spans.is_empty() {
+      child_spans.sort_by_key(|s| (s.lo(), s.hi()));
+
+      // Note: .until() was changed to just return `end` if the two spans have a different
+      // SyntaxContext. I don't think this affects us if we ensure that all spans are local?
+      // So just give `self` and `end` the Root context.
+      let first = child_spans
+        .first()
+        .unwrap()
+        .with_ctxt(SyntaxContext::root());
+      let start = self.with_ctxt(SyntaxContext::root()).until(first);
+      if start.hi() > start.lo() {
+        outer_spans.push(start);
+      }
+
+      for children in child_spans.windows(2) {
+        outer_spans.push(children[0].between(children[1]));
+      }
+
+      if let Some(end) = self.trim_start(*child_spans.last().unwrap()) {
+        outer_spans.push(end);
+      }
+    } else {
+      outer_spans.push(*self);
+    };
+
+    debug!("outer span for {self:?} with inner spans {child_spans:?} is {outer_spans:?}");
+
+    outer_spans
+  }
+
+  fn as_local(&self, tcx: TyCtxt<'_>) -> Option<Span> {
+    // Before we call source_callsite, we check and see if the span is already local.
+    // This is important b/c in print!("{}", y) if the user selects `y`, the source_callsite
+    // of that span is the entire macro.
+    let is_local = |sp| tcx.sess.source_map().is_local_span(sp);
+    if is_local(*self) {
+      return Some(*self);
+    } else {
+      let sp = self.source_callsite();
+      if is_local(sp) {
+        return Some(sp);
+      }
+    }
+
+    None
+  }
+
+  fn overlaps_inclusive(&self, other: Span) -> bool {
+    let s1 = self.data();
+    let s2 = other.data();
+    s1.lo <= s2.hi && s2.lo <= s1.hi
+  }
+
+  fn merge_overlaps(mut spans: Vec<Span>) -> Vec<Span> {
+    spans.sort_by_key(|s| (s.lo(), s.hi()));
+
+    // See note in Span::subtract
+    for span in spans.iter_mut() {
+      *span = span.with_ctxt(SyntaxContext::root());
+    }
+
+    let mut output = Vec::new();
+    for span in spans {
+      match output
+        .iter_mut()
+        .find(|other| span.overlaps_inclusive(**other))
+      {
+        Some(other) => {
+          *other = span.to(*other);
+        }
+        None => {
+          output.push(span);
+        }
+      }
+    }
+    output
+  }
+
+  fn to_string(&self, tcx: TyCtxt<'_>) -> String {
+    let source_map = tcx.sess.source_map();
+    let lo = source_map.lookup_char_pos(self.lo());
+    let hi = source_map.lookup_char_pos(self.hi());
+    let snippet = source_map.span_to_snippet(*self).unwrap();
+    format!(
+      "{snippet} ({}:{}-{}:{})",
+      lo.line,
+      lo.col.to_usize() + 1,
+      hi.line,
+      hi.col.to_usize() + 1
+    )
   }
 }
 
@@ -692,3 +846,21 @@ impl BodyExt<'tcx> for Body<'tcx> {
 
 //   (loops, outer)
 // }
+
+#[cfg(test)]
+mod test {
+  use rustc_span::BytePos;
+
+  use super::*;
+
+  #[test]
+  fn test_span_subtract() {
+    rustc_span::create_default_session_if_not_set_then(|_| {
+      let mk = |lo, hi| Span::with_root_ctxt(BytePos(lo), BytePos(hi));
+      let outer = mk(0, 10);
+      let inner: Vec<Span> = vec![mk(0, 1), mk(3, 5), mk(8, 9)];
+      let desired: Vec<Span> = vec![mk(1, 3), mk(5, 8), mk(9, 10)];
+      assert_eq!(outer.subtract(inner), desired);
+    });
+  }
+}

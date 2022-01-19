@@ -19,7 +19,7 @@ pub struct AnalysisResults<'tcx, A: Analysis<'tcx>> {
   state: IndexVec<LocationIndex, A::Domain>,
 }
 
-impl<'tcx, A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
+impl<A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
   pub fn visit_reachable_with<'mir, V>(&self, body: &'mir Body<'tcx>, visitor: &mut V)
   where
     V: ResultsVisitor<'mir, 'tcx, FlowState = A::Domain>,

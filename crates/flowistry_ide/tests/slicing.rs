@@ -1,8 +1,8 @@
 use flowistry::infoflow::Direction;
-use test_env_log::test;
+use test_log::test;
 use utils::{run_tests, slice};
 
-mod utils;
+pub mod utils;
 
 #[test]
 fn test_backward_slice() {

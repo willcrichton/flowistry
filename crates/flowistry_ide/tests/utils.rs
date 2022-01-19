@@ -1,10 +1,9 @@
-#![allow(dead_code)]
-
 use std::{
   collections::{HashMap, HashSet},
   fmt::Debug,
   fs,
   io::Write,
+  panic,
   path::Path,
   process::Command,
 };
@@ -13,7 +12,7 @@ use anyhow::Result;
 use flowistry::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
   infoflow::Direction,
-  test_utils::{parse_ranges, ParsedRangeMap},
+  test_utils::{parse_ranges},
 };
 use flowistry_ide::{
   analysis::FlowistryResult,
@@ -53,12 +52,7 @@ fn color_ranges(prog: &str, all_ranges: Vec<(&str, &HashSet<Range>)>) -> String 
   return output;
 }
 
-fn compare_ranges(
-  path: &Path,
-  expected: HashSet<Range>,
-  actual: HashSet<Range>,
-  prog: &str,
-) {
+fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &str) {
   let missing = &expected - &actual;
   let extra = &actual - &expected;
 
@@ -67,14 +61,9 @@ fn compare_ranges(
 
   let check = |s: HashSet<Range>, message: &str| {
     if s.len() > 0 {
-      println!(
-        "In program  {}:\n{}",
-        path.file_name().unwrap().to_string_lossy(),
-        textwrap::indent(prog.trim(), "  ")
-      );
       println!("Expected ranges:\n{}", fmt_ranges(&expected));
       println!("Actual ranges:\n{}", fmt_ranges(&actual));
-      panic!("{} ranges:\n{}", message, fmt_ranges(&s));
+      panic!("{message} ranges:\n{}", fmt_ranges(&s));
     }
   };
 
@@ -202,7 +191,7 @@ pub fn test_command_output(
           .clone()
           .into_iter()
           .collect::<HashSet<_>>();
-        compare_ranges(path, expected, actual, &input_clean);
+        compare_ranges(expected, actual, &input_clean);
       }
       None => {
         bless(path, input_clean, actual)?;
@@ -250,50 +239,49 @@ lazy_static! {
   .to_owned();
 }
 
-pub fn parsed_to_ranges(
-  parsed: ParsedRangeMap,
-  filename: String,
-) -> HashMap<&'static str, Vec<Range>> {
-  parsed
-    .into_iter()
-    .map(|(k, vs)| {
-      (
-        k,
-        vs.into_iter()
-          .map(|(start, end)| Range {
-            start,
-            end,
-            filename: filename.to_string(),
-          })
-          .collect::<Vec<_>>(),
-      )
-    })
-    .collect()
-}
-
 const BLESS: bool = option_env!("BLESS").is_some();
 const ONLY: Option<&'static str> = option_env!("ONLY");
+const EXIT: bool = option_env!("EXIT").is_some();
 
-pub fn run_tests(dir: impl AsRef<Path>, test_fn: impl Fn(&Path, Option<&Path>)) {
+pub fn run_tests(
+  dir: impl AsRef<Path>,
+  test_fn: impl Fn(&Path, Option<&Path>) + std::panic::RefUnwindSafe,
+) {
   let main = || -> Result<()> {
     let test_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
       .join("tests")
       .join(dir.as_ref());
     let tests = fs::read_dir(test_dir)?;
+    let mut failed = false;
     for test in tests {
       let test = test?.path();
       if test.extension().unwrap() == "expected" {
         continue;
       }
+      let test_name = test.file_name().unwrap().to_str().unwrap();
       if let Some(only) = ONLY {
-        if !test.file_name().unwrap().to_str().unwrap().contains(only) {
+        if !test_name.contains(only) {
           continue;
         }
       }
       let expected_path = test.with_extension("txt.expected");
       let expected = (!BLESS).then(|| expected_path.as_ref());
-      test_fn(&test, expected);
+
+      let result = panic::catch_unwind(|| test_fn(&test, expected));
+      if let Err(e) = result {
+        if EXIT {
+          panic!("{test_name}:\n{e:?}");
+        } else {
+          failed = true;
+          eprintln!("\n\n{test_name}:\n{e:?}\n\n");
+        }
+      }
     }
+
+    if failed {
+      panic!("Tests failed.")
+    }
+
     Ok(())
   };
 

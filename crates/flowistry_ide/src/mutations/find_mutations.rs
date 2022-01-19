@@ -15,20 +15,20 @@ pub fn find_mutations(
 ) -> Vec<Location> {
   let mut locations = vec![];
   let pointer_aliases = aliases.reachable_values(tcx, body, def_id, place);
-  debug!("pointer aliases: {:?}", pointer_aliases);
+  debug!("pointer aliases: {pointer_aliases:?}");
 
   ModularMutationVisitor::new(
     tcx,
     body,
     def_id,
     |mutated_place, _, mutated_location, _| {
-      debug!("checking mutated location {:?}", mutated_location);
+      debug!("checking mutated location {mutated_location:?}");
 
       let mut place_conflicts = aliases.conflicts(mutated_place).to_owned();
       place_conflicts.intersect(&pointer_aliases);
 
       if place_conflicts.len() > 0 {
-        debug!("  found conflicts: {:?}", place_conflicts);
+        debug!("  found conflicts: {place_conflicts:?}");
         locations.push(mutated_location);
       }
     },

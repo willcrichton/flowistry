@@ -13,7 +13,8 @@ use crate::{
     impls::{LocationSet, PlaceIndex, PlaceSet},
     IndexedDomain,
   },
-  source_map::{location_to_spans, simplify_spans, HirSpanner},
+  mir::utils::SpanExt,
+  source_map::{location_to_spans, HirSpanner},
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -52,11 +53,8 @@ impl DepVisitor<'_, '_, 'tcx> {
 
         if matches {
           trace!(
-            "{:?}: place {:?} (deps {:?}) / target_locs {:?}",
-            opt_location,
-            state.row_domain.value(*place),
-            loc_deps,
-            target_locs
+            "{opt_location:?}: place {:?} (deps {loc_deps:?}) / target_locs {target_locs:?}",
+            state.row_domain.value(*place)
           );
           out_places.insert(*place);
 
@@ -146,8 +144,8 @@ pub fn compute_dependencies(
   let body = results.analysis.body;
   let aliases = &results.analysis.aliases;
 
-  let new_location_set = || LocationSet::new(results.analysis.location_domain().clone());
-  let new_place_set = || PlaceSet::new(results.analysis.place_domain().clone());
+  let new_location_set = || LocationSet::new(results.analysis.location_domain());
+  let new_place_set = || PlaceSet::new(results.analysis.place_domain());
 
   let expanded_targets = targets
     .iter()
@@ -157,10 +155,7 @@ pub fn compute_dependencies(
       (places, *location)
     })
     .collect::<Vec<_>>();
-  debug!(
-    "Expanded targets from {:?} to {:?}",
-    targets, expanded_targets
-  );
+  debug!("Expanded targets from {targets:?} to {expanded_targets:?}");
 
   let target_deps = {
     let get_deps = |(targets, location): &(PlaceSet<'tcx>, Location)| {
@@ -177,7 +172,7 @@ pub fn compute_dependencies(
     };
     expanded_targets.iter().map(get_deps).collect::<Vec<_>>()
   };
-  debug!("Target deps: {:?}", target_deps);
+  debug!("Target deps: {target_deps:?}");
 
   let mut outputs = target_deps
     .iter()
@@ -209,7 +204,6 @@ pub fn compute_dependency_spans(
   let tcx = results.analysis.tcx;
   let body = results.analysis.body;
 
-  let source_map = tcx.sess.source_map();
   let deps = compute_dependencies(results, targets, direction);
 
   deps
@@ -217,20 +211,19 @@ pub fn compute_dependency_spans(
     .map(|(locations, places)| {
       let location_spans = locations
         .iter()
-        .map(|location| location_to_spans(*location, body, spanner, source_map))
-        .flatten();
+        .flat_map(|location| location_to_spans(*location, tcx, body, spanner));
 
       let place_spans = places
         .iter()
         .filter(|place| **place != Place::return_place())
-        .map(|place| {
+        .filter_map(|place| {
           body.local_decls()[place.local]
             .source_info
             .span
-            .source_callsite()
+            .as_local(tcx)
         });
 
-      simplify_spans(location_spans.chain(place_spans).collect::<Vec<_>>())
+      Span::merge_overlaps(location_spans.chain(place_spans).collect::<Vec<_>>())
     })
     .collect::<Vec<_>>()
 }

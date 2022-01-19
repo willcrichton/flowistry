@@ -1,9 +1,7 @@
-use std::iter;
-
 use anyhow::{Context, Result};
 use flowistry::{
-  mir::{aliases::Aliases, borrowck_facts::get_body_with_borrowck_facts},
-  source_map::{self, location_to_spans, simplify_spans},
+  mir::{aliases::Aliases, borrowck_facts::get_body_with_borrowck_facts, utils::SpanExt},
+  source_map::{self, location_to_spans},
 };
 use log::debug;
 use rustc_hir::BodyId;
@@ -53,24 +51,29 @@ impl FlowistryAnalysis for MutationAnalysis {
 
     let source_map = tcx.sess.source_map();
     let body_span = tcx.hir().body(body_id).value.span;
-    let (selected_place, _, selected_span) =
-      source_map::span_to_place(body, body_span, self.range.to_span(source_map)?)
-        .context("Selection could not be mapped to a place.")?;
-    debug!("selected_place {:?}", selected_place);
+    let targets =
+      source_map::span_to_places(tcx, body, body_span, self.range.to_span(source_map)?);
+
+    let selected_place = targets
+      .first()
+      .context("Selection could not be mapped to a place.")?
+      .0;
+    debug!("selected_place {selected_place:?}");
 
     let spanner = source_map::HirSpanner::new(tcx, body_id);
 
     let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
-    let selected_spans = ranges_from_spans(iter::once(selected_span), source_map)?;
+    let selected_spans =
+      ranges_from_spans(targets.iter().map(|(_, _, sp)| *sp), source_map)?;
 
     let mutated_locations =
       find_mutations(tcx, body, def_id.to_def_id(), selected_place, aliases);
     let mutated_spans = mutated_locations
       .into_iter()
-      .map(|location| location_to_spans(location, body, &spanner, source_map))
+      .map(|location| location_to_spans(location, tcx, body, &spanner))
       .flatten();
-    let mutated_spans = simplify_spans(mutated_spans.collect::<Vec<_>>());
-    let ranges = ranges_from_spans(mutated_spans.into_iter(), source_map)?;
+    let output_spans = Span::merge_overlaps(mutated_spans.collect());
+    let ranges = ranges_from_spans(output_spans.into_iter(), source_map)?;
 
     Ok(MutationOutput {
       body_span,

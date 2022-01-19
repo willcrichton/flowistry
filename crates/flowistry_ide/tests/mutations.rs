@@ -1,4 +1,4 @@
-use test_env_log::test;
+use test_log::test;
 use utils::{find_mutations, run_tests};
 
 mod utils;

@@ -58,7 +58,7 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
     index: rustc_hir::def_id::CRATE_DEF_INDEX,
   };
   let ifc_items = tcx
-    .item_children(ifc_mod)
+    .module_children(ifc_mod)
     .iter()
     .filter_map(|export| match export.res {
       Res::Def(_, id) => Some((export.ident.to_string(), id)),
@@ -75,7 +75,7 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
         let ty = place.ty(body.local_decls(), tcx).ty;
         implements_trait(tcx, tcx.param_env(def_id), ty, trait_def_id)
       })
-      .collect_indices(place_domain.clone())
+      .collect_indices(place_domain)
   };
   let secure_places = find_implements(ifc_items["Secure"]);
   let insecure_places = find_implements(ifc_items["Insecure"]);

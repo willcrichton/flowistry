@@ -66,7 +66,7 @@ where
     rvalue: &Rvalue<'tcx>,
     location: Location,
   ) {
-    debug!("Checking {:?}: {:?} = {:?}", location, place, rvalue);
+    debug!("Checking {location:?}: {place:?} = {rvalue:?}");
     let mut collector = PlaceCollector {
       places: Vec::new(),
       tcx: self.tcx,
@@ -81,7 +81,7 @@ where
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
-    debug!("Checking {:?}: {:?}", location, terminator.kind);
+    debug!("Checking {location:?}: {:?}", terminator.kind);
     let tcx = self.tcx;
 
     match &terminator.kind {
@@ -95,20 +95,18 @@ where
           arg
             .interior_pointers(tcx, self.body, self.def_id)
             .into_values()
-            .map(|places| {
+            .flat_map(|places| {
               places
                 .into_iter()
                 .map(|(place, _)| tcx.mk_place_deref(place))
             })
-            .flatten()
             .chain(iter::once(arg))
         };
 
         let arg_places = utils::arg_places(args);
         let arg_inputs = arg_places
           .iter()
-          .map(|(_, arg)| inputs_for_arg(*arg))
-          .flatten()
+          .flat_map(|(_, arg)| inputs_for_arg(*arg))
           .map(|place| (place, None))
           .collect::<Vec<_>>();
 

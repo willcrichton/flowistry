@@ -30,26 +30,24 @@ impl FindEffects<'a, 'mir, 'tcx> {
     let domain = analysis.place_domain();
     let mut_args = body
       .args_iter()
-      .map(|local| {
+      .flat_map(|local| {
         let place = Place::from_local(local, tcx);
         let ptrs = place.interior_pointers(tcx, body, analysis.def_id);
-        debug!("interior_pointers: {:?}", ptrs);
+        debug!("interior_pointers: {ptrs:?}");
 
         ptrs
           .into_values()
           .flatten()
           .filter(|(_, mutability)| *mutability == Mutability::Mut)
-          .map(|(place, _)| {
+          .flat_map(|(place, _)| {
             let deref_place = tcx.mk_place_deref(place);
             deref_place
               .interior_places(tcx, body, analysis.def_id, None)
               .into_iter()
           })
-          .flatten()
       })
-      .flatten()
       .filter(|place| domain.contains(place))
-      .collect_indices(domain.clone());
+      .collect_indices(domain);
     debug!("mut_args: {:#?}", mut_args);
 
     FindEffects {
@@ -68,16 +66,13 @@ impl FindEffects<'a, 'mir, 'tcx> {
         .insert((mutated, location));
     } else {
       let mut conflicts = self.analysis.aliases.conflicts(mutated).to_owned();
-      debug!(
-        "Checking for effect on {:?} (conflicts {:?})",
-        mutated, conflicts
-      );
+      debug!("Checking for effect on {mutated:?} (conflicts {conflicts:?})",);
 
       conflicts.intersect(&self.mut_args);
 
       for arg in conflicts.iter() {
         let kind = EffectKind::MutArg(self.analysis.place_domain().index(arg));
-        debug!("Mutation on {:?} adding arg effect on {:?}", mutated, arg);
+        debug!("Mutation on {mutated:?} adding arg effect on {arg:?}");
         self
           .effects
           .entry(kind)
