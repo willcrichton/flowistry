@@ -12,7 +12,7 @@ use anyhow::Result;
 use flowistry::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
   infoflow::Direction,
-  test_utils::{parse_ranges},
+  test_utils::parse_ranges,
 };
 use flowistry_ide::{
   analysis::FlowistryResult,

@@ -14,7 +14,7 @@ use crate::{
     IndexedDomain,
   },
   mir::utils::SpanExt,
-  source_map::{location_to_spans, HirSpanner},
+  source_map::{location_to_spans, EnclosingHirSpans, HirSpanner},
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -209,9 +209,9 @@ pub fn compute_dependency_spans(
   deps
     .into_iter()
     .map(|(locations, places)| {
-      let location_spans = locations
-        .iter()
-        .flat_map(|location| location_to_spans(*location, tcx, body, spanner));
+      let location_spans = locations.iter().flat_map(|location| {
+        location_to_spans(*location, tcx, body, spanner, EnclosingHirSpans::Outer)
+      });
 
       let place_spans = places
         .iter()

@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use flowistry::{
   mir::{aliases::Aliases, borrowck_facts::get_body_with_borrowck_facts, utils::SpanExt},
-  source_map::{self, location_to_spans},
+  source_map::{self, location_to_spans, EnclosingHirSpans},
 };
 use log::debug;
 use rustc_hir::BodyId;
@@ -70,7 +70,9 @@ impl FlowistryAnalysis for MutationAnalysis {
       find_mutations(tcx, body, def_id.to_def_id(), selected_place, aliases);
     let mutated_spans = mutated_locations
       .into_iter()
-      .map(|location| location_to_spans(location, tcx, body, &spanner))
+      .map(|location| {
+        location_to_spans(location, tcx, body, &spanner, EnclosingHirSpans::Node)
+      })
       .flatten();
     let output_spans = Span::merge_overlaps(mutated_spans.collect());
     let ranges = ranges_from_spans(output_spans.into_iter(), source_map)?;
