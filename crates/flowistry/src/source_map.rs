@@ -60,8 +60,8 @@ impl HirVisitor<'hir> for ChildExprSpans<'_> {
 
 #[derive(Clone)]
 pub enum EnclosingHirSpans {
-  Outer,
-  Node,
+  OuterOnly,
+  Full,
 }
 
 pub struct HirSpanner<'hir> {
@@ -166,8 +166,8 @@ impl HirSpanner<'hir> {
       .map(|(node_span, spans, node)| {
         (
           match span_type {
-            EnclosingHirSpans::Outer => spans.clone(),
-            EnclosingHirSpans::Node => vec![node_span.clone()],
+            EnclosingHirSpans::OuterOnly => spans.clone(),
+            EnclosingHirSpans::Full => vec![*node_span],
           },
           *node,
         )
@@ -358,28 +358,6 @@ pub fn span_to_places(
   }
 }
 
-pub fn span_overlaps(s1: Span, s2: Span) -> bool {
-  let s1 = s1.data();
-  let s2 = s2.data();
-  s1.lo <= s2.hi && s2.lo <= s1.hi
-}
-
-pub fn simplify_spans(mut spans: Vec<Span>) -> Vec<Span> {
-  spans.sort_by_key(|s| s.lo());
-  let mut output = Vec::new();
-  for span in spans {
-    match output.iter_mut().find(|other| span_overlaps(span, **other)) {
-      Some(other) => {
-        *other = span.to(*other);
-      }
-      None => {
-        output.push(span);
-      }
-    }
-  }
-  output
-}
-
 #[cfg(test)]
 mod test {
   use log::debug;
@@ -485,7 +463,7 @@ mod test {
   }
 
   #[test]
-  fn test_hir_spanner_all() {
+  fn test_hir_spanner_outer() {
     let src = r#"fn foo() {
       let x = `(1)`;
       let `(y)` = x + 1;
@@ -499,18 +477,18 @@ mod test {
       &["if ", " { ", " }"],
       &[" + "],
     ];
-    hir_spanner_harness(src, expected, EnclosingHirSpans::Outer)
+    hir_spanner_harness(src, expected, EnclosingHirSpans::OuterOnly)
   }
 
   #[test]
-  fn test_hir_spanner_local() {
+  fn test_hir_spanner_full() {
     let src = r#"fn foo() {
       `(let mut x: Vec<()> = Vec::new();)`
       `(x = Vec::new();)`
     }"#;
     let expected: &[&[&str]] =
       &[&["let mut x: Vec<()> = Vec::new();"], &["x = Vec::new();"]];
-    hir_spanner_harness(src, expected, EnclosingHirSpans::Node)
+    hir_spanner_harness(src, expected, EnclosingHirSpans::Full)
   }
 
   #[test]
@@ -567,7 +545,7 @@ mod test {
           tcx,
           &body_with_facts.body,
           &spanner,
-          EnclosingHirSpans::Outer,
+          EnclosingHirSpans::OuterOnly,
         );
         let desired = outp.iter().collect::<HashSet<_>>();
         let actual = spans

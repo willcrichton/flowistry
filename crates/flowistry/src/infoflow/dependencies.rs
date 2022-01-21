@@ -210,7 +210,7 @@ pub fn compute_dependency_spans(
     .into_iter()
     .map(|(locations, places)| {
       let location_spans = locations.iter().flat_map(|location| {
-        location_to_spans(*location, tcx, body, spanner, EnclosingHirSpans::Outer)
+        location_to_spans(*location, tcx, body, spanner, EnclosingHirSpans::OuterOnly)
       });
 
       let place_spans = places

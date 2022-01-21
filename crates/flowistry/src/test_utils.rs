@@ -98,12 +98,12 @@ where
   }
 }
 
-pub type ParsedRangeMap = HashMap<&'static str, Vec<(usize, usize)>>;
+pub type RangeMap = HashMap<&'static str, Vec<(usize, usize)>>;
 
 pub fn parse_ranges(
   src: impl AsRef<str>,
   delimiters: impl AsRef<[(&'static str, &'static str)]>,
-) -> Result<(String, ParsedRangeMap)> {
+) -> Result<(String, RangeMap)> {
   let src = src.as_ref();
   let delimiters = delimiters.as_ref();
 

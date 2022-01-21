@@ -54,10 +54,9 @@ impl FlowistryAnalysis for MutationAnalysis {
     let targets =
       source_map::span_to_places(tcx, body, body_span, self.range.to_span(source_map)?);
 
-    let selected_place = targets
+    let (selected_place, _, _) = targets
       .first()
-      .context("Selection could not be mapped to a place.")?
-      .0;
+      .context("Selection could not be mapped to a place.")?;
     debug!("selected_place {selected_place:?}");
 
     let spanner = source_map::HirSpanner::new(tcx, body_id);
@@ -67,13 +66,10 @@ impl FlowistryAnalysis for MutationAnalysis {
       ranges_from_spans(targets.iter().map(|(_, _, sp)| *sp), source_map)?;
 
     let mutated_locations =
-      find_mutations(tcx, body, def_id.to_def_id(), selected_place, aliases);
-    let mutated_spans = mutated_locations
-      .into_iter()
-      .map(|location| {
-        location_to_spans(location, tcx, body, &spanner, EnclosingHirSpans::Node)
-      })
-      .flatten();
+      find_mutations(tcx, body, def_id.to_def_id(), *selected_place, aliases);
+    let mutated_spans = mutated_locations.into_iter().flat_map(|location| {
+      location_to_spans(location, tcx, body, &spanner, EnclosingHirSpans::Full)
+    });
     let output_spans = Span::merge_overlaps(mutated_spans.collect());
     let ranges = ranges_from_spans(output_spans.into_iter(), source_map)?;
 

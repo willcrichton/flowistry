@@ -103,7 +103,7 @@ impl FlowistryAnalysis for EffectsHarness {
           tcx,
           body,
           &spanner,
-          EnclosingHirSpans::Outer,
+          EnclosingHirSpans::OuterOnly,
         );
         let range = spans
           .into_iter()

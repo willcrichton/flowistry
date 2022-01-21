@@ -505,12 +505,10 @@ impl Aliases<'tcx> {
     let interior_pointer_places = place
       .interior_pointers(tcx, body, def_id)
       .into_values()
-      .map(|v| v.into_iter().map(|(place, _)| place))
-      .flatten();
+      .flat_map(|v| v.into_iter().map(|(place, _)| place));
 
     interior_pointer_places
-      .map(|place| self.aliases.row(tcx.mk_place_deref(place)).copied())
-      .flatten()
+      .flat_map(|place| self.aliases.row(tcx.mk_place_deref(place)).copied())
       .chain(vec![place])
       .collect_indices(&self.place_domain)
   }

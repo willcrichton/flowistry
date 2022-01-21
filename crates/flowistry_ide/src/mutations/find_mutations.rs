@@ -14,8 +14,8 @@ pub fn find_mutations(
   aliases: Aliases<'tcx>,
 ) -> Vec<Location> {
   let mut locations = vec![];
-  let pointer_aliases = aliases.reachable_values(tcx, body, def_id, place);
-  debug!("pointer aliases: {pointer_aliases:?}");
+  let reachable_values = aliases.reachable_values(tcx, body, def_id, place);
+  debug!("reachable values: {reachable_values:?}");
 
   ModularMutationVisitor::new(
     tcx,
@@ -25,7 +25,7 @@ pub fn find_mutations(
       debug!("checking mutated location {mutated_location:?}");
 
       let mut place_conflicts = aliases.conflicts(mutated_place).to_owned();
-      place_conflicts.intersect(&pointer_aliases);
+      place_conflicts.intersect(&reachable_values);
 
       if place_conflicts.len() > 0 {
         debug!("  found conflicts: {place_conflicts:?}");
@@ -35,5 +35,5 @@ pub fn find_mutations(
   )
   .visit_body(body);
 
-  locations
+  return locations;
 }
