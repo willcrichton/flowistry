@@ -2,6 +2,7 @@ use std::{
   collections::hash_map::Entry,
   hash::Hash,
   io::Write,
+  iter,
   ops::ControlFlow,
   path::Path,
   process::{Command, Stdio},
@@ -198,6 +199,22 @@ impl Visitor<'tcx> for PlaceCollector<'tcx> {
   }
 }
 
+pub fn run_dot(path: &Path, buf: Vec<u8>) -> Result<()> {
+  let mut p = Command::new("dot")
+    .args(&["-Tpdf", "-o", &path.display().to_string()])
+    .stdin(Stdio::piped())
+    .spawn()?;
+
+  p.stdin.as_mut().unwrap().write_all(&buf)?;
+  let status = p.wait()?;
+
+  if !status.success() {
+    bail!("dot for {} failed", path.display())
+  };
+
+  Ok(())
+}
+
 pub fn dump_results<'tcx, A>(
   body: &Body<'tcx>,
   results: &Results<'tcx, A>,
@@ -218,19 +235,7 @@ where
   let fname = "results";
   let output_path = output_dir.join(format!("{fname}.png"));
 
-  let mut p = Command::new("dot")
-    .args(&["-Tpng", "-o", &output_path.display().to_string()])
-    .stdin(Stdio::piped())
-    .spawn()?;
-
-  p.stdin.as_mut().unwrap().write_all(&buf)?;
-  let status = p.wait()?;
-
-  if !status.success() {
-    bail!("dot for {} failed", output_path.display())
-  };
-
-  Ok(())
+  run_dot(&output_path, buf)
 }
 
 pub fn location_to_string(location: Location, body: &Body<'_>) -> String {
@@ -274,6 +279,8 @@ pub trait PlaceExt<'tcx> {
   fn is_arg(&self, body: &Body<'tcx>) -> bool;
   fn is_direct(&self, body: &Body<'tcx>) -> bool;
   fn refs_in_projection(&self) -> SmallVec<[(PlaceRef<'tcx>, &[PlaceElem<'tcx>]); 2]>;
+  fn place_and_refs_in_projection(&self, tcx: TyCtxt<'tcx>)
+    -> SmallVec<[Place<'tcx>; 2]>;
   fn interior_pointers(
     &self,
     tcx: TyCtxt<'tcx>,
@@ -331,6 +338,20 @@ impl PlaceExt<'tcx> for Place<'tcx> {
         }
         _ => None,
       })
+      .collect()
+  }
+
+  fn place_and_refs_in_projection(
+    &self,
+    tcx: TyCtxt<'tcx>,
+  ) -> SmallVec<[Place<'tcx>; 2]> {
+    iter::once(*self)
+      .chain(
+        self
+          .refs_in_projection()
+          .into_iter()
+          .map(|(ptr, _)| Place::from_ref(ptr, tcx)),
+      )
       .collect()
   }
 

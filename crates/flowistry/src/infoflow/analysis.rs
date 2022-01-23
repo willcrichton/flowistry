@@ -98,13 +98,7 @@ impl FlowAnalysis<'a, 'tcx> {
     input_location_deps.insert(location);
 
     let add_deps = |place: Place<'tcx>, location_deps: &mut LocationSet| {
-      use std::iter;
-      for place in iter::once(place).chain(
-        place
-          .refs_in_projection()
-          .into_iter()
-          .map(|(ptr, _)| Place::from_ref(ptr, self.tcx)),
-      ) {
+      for place in place.place_and_refs_in_projection(self.tcx) {
         for alias in all_aliases.aliases.row(place) {
           if let Some(deps) = state.row_set(alias) {
             location_deps.union(&deps);

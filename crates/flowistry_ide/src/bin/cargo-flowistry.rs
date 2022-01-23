@@ -44,7 +44,7 @@ fn main() {
       (@arg pos:)
       (@arg flags: ...)
     )
-    (@subcommand graph =>
+    (@subcommand decompose =>
       (@arg file:)
       (@arg pos:)
       (@arg flags: ...))
@@ -85,7 +85,7 @@ fn main() {
       ],
       sub_m.value_of("file").unwrap(),
     ),
-    ("effects" | "graph", Some(sub_m)) => (
+    ("effects" | "decompose", Some(sub_m)) => (
       vec![
         ("FILE", sub_m.value_of("file").unwrap()),
         ("POS", sub_m.value_of("pos").unwrap()),
