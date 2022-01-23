@@ -176,10 +176,21 @@ pub fn location_to_spans(
     }
   };
 
+  let is_return = match body.stmt_at(location) {
+    Either::Right(Terminator {
+      kind: TerminatorKind::Return | TerminatorKind::Resume | TerminatorKind::Drop { .. },
+      ..
+    }) => true,
+    _ => false,
+  };
+  if loc_span == spanner.body_span || is_return {
+    return vec![];
+  }
+
   let mut enclosing_hir = spanner.find_enclosing_hir(loc_span);
 
   // Get the spans of the immediately enclosing HIR node
-  debug_assert!(
+  assert!(
     !enclosing_hir.is_empty(),
     "Location {location:?} (span {loc_span:?}) had no enclosing HIR nodes"
   );
