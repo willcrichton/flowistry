@@ -1,4 +1,5 @@
 use std::{
+  cmp,
   collections::hash_map::Entry,
   hash::Hash,
   io::Write,
@@ -710,11 +711,22 @@ pub trait SpanExt {
   fn subtract(&self, child_spans: Vec<Span>) -> Vec<Span>;
   fn as_local(&self, tcx: TyCtxt<'tcx>) -> Option<Span>;
   fn overlaps_inclusive(&self, other: Span) -> bool;
+  fn trim_end(&self, other: Span) -> Option<Span>;
   fn merge_overlaps(spans: Vec<Span>) -> Vec<Span>;
   fn to_string(&self, tcx: TyCtxt<'_>) -> String;
 }
 
 impl SpanExt for Span {
+  fn trim_end(&self, other: Span) -> Option<Span> {
+    let span = self.data();
+    let other = other.data();
+    if span.lo < other.lo {
+      Some(span.with_hi(cmp::min(span.hi, other.lo)))
+    } else {
+      None
+    }
+  }
+
   /// Get spans for regions in `self` not in `child_spans`.
   ///
   /// Example:
@@ -724,17 +736,12 @@ impl SpanExt for Span {
   fn subtract(&self, mut child_spans: Vec<Span>) -> Vec<Span> {
     let mut outer_spans = vec![];
     if !child_spans.is_empty() {
-      child_spans.sort_by_key(|s| (s.lo(), s.hi()));
+      child_spans.retain(|s| s.overlaps_inclusive(*self));
 
-      // Note: .until() was changed to just return `end` if the two spans have a different
-      // SyntaxContext. I don't think this affects us if we ensure that all spans are local?
-      // So just give `self` and `end` the Root context.
-      let first = child_spans
-        .first()
-        .unwrap()
-        .with_ctxt(SyntaxContext::root());
-      let start = self.with_ctxt(SyntaxContext::root()).until(first);
-      if start.hi() > start.lo() {
+      // Output will be sorted
+      child_spans = Span::merge_overlaps(child_spans);
+
+      if let Some(start) = self.trim_end(*child_spans.first().unwrap()) {
         outer_spans.push(start);
       }
 
@@ -878,9 +885,9 @@ mod test {
   fn test_span_subtract() {
     rustc_span::create_default_session_if_not_set_then(|_| {
       let mk = |lo, hi| Span::with_root_ctxt(BytePos(lo), BytePos(hi));
-      let outer = mk(0, 10);
-      let inner: Vec<Span> = vec![mk(0, 1), mk(3, 5), mk(8, 9)];
-      let desired: Vec<Span> = vec![mk(1, 3), mk(5, 8), mk(9, 10)];
+      let outer = mk(1, 10);
+      let inner: Vec<Span> = vec![mk(0, 2), mk(3, 4), mk(3, 5), mk(7, 8), mk(9, 13)];
+      let desired: Vec<Span> = vec![mk(2, 3), mk(5, 7), mk(8, 9)];
       assert_eq!(outer.subtract(inner), desired);
     });
   }

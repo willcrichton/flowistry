@@ -1,11 +1,13 @@
+use itertools::Itertools;
 use log::debug;
 use petgraph::{
   graph::{DiGraph, IndexType, Neighbors, NodeIndex},
-  visit::{depth_first_search, Control, DfsEvent},
+  unionfind::UnionFind,
+  visit::{depth_first_search, Control, DfsEvent, EdgeRef, NodeIndexable},
   EdgeDirection, EdgeType, Graph,
 };
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
-use rustc_index::bit_set::HybridBitSet;
+use rustc_index::bit_set::{HybridBitSet, SparseBitMatrix};
 
 trait GraphExt<E, Ix> {
   fn successors<'a>(&'a self, n: NodeIndex<Ix>) -> Neighbors<'a, E, Ix>;
@@ -24,6 +26,23 @@ where
   fn predecessors<'a>(&'a self, n: NodeIndex<Ix>) -> Neighbors<'a, E, Ix> {
     self.neighbors_directed(n, EdgeDirection::Incoming)
   }
+}
+
+#[allow(dead_code)]
+pub fn connected_components<N, E, Ix>(g: &DiGraph<N, E, Ix>) -> Vec<Vec<NodeIndex<Ix>>>
+where
+  Ix: IndexType,
+{
+  let mut vertex_sets = UnionFind::<NodeIndex<Ix>>::new(g.node_bound());
+  for edge in g.edge_references() {
+    vertex_sets.union(edge.source(), edge.target());
+  }
+
+  g.node_indices()
+    .group_by(|n| vertex_sets.find(*n))
+    .into_iter()
+    .map(|(_, group)| group.collect())
+    .collect()
 }
 
 // Implementation copied almost verbatim from NetworkX:
@@ -91,13 +110,17 @@ fn pick2_mut<T>(v: &mut Vec<T>, i: usize, j: usize) -> (&mut T, &mut T) {
   }
 }
 
-pub fn naive_greedy_modularity_communities<N, E, Ix>(
-  g: &DiGraph<N, E, Ix>,
-) -> Vec<Vec<NodeIndex<Ix>>>
+fn make_modularity<'a, N, E, Ix>(
+  g: &'a DiGraph<N, E, Ix>,
+  resolution: f64,
+) -> impl Fn(&[HybridBitSet<usize>]) -> f64 + 'a
 where
   Ix: IndexType,
 {
-  let size = g.node_count();
+  let mut adj_mtx = SparseBitMatrix::new(g.node_count());
+  for edge in g.raw_edges() {
+    adj_mtx.insert(edge.source().index(), edge.target().index());
+  }
 
   let (out_degree, in_degree): (Vec<_>, Vec<_>) = g
     .node_indices()
@@ -110,22 +133,34 @@ where
     .unzip();
 
   let m = g.edge_count() as f64;
-  let modularity = |communities: &[HybridBitSet<usize>]| {
-    let contribution = |community: &HybridBitSet<usize>| {
-      let l_c = g
-        .raw_edges()
-        .iter()
-        .filter(|edge| {
-          community.contains(edge.source().index())
-            && community.contains(edge.target().index())
-        })
-        .count() as f64;
-      let k_c_out = community.iter().map(|n| out_degree[n]).sum::<f64>();
-      let k_c_in = community.iter().map(|n| in_degree[n]).sum::<f64>();
-      (l_c - k_c_out * k_c_in / m) / m
-    };
-    communities.iter().map(contribution).sum::<f64>()
+
+  let contribution = move |community: &HybridBitSet<usize>| {
+    let mut l_c = 0;
+    for u in community.iter() {
+      if let Some(set) = adj_mtx.row(u) {
+        let mut community = community.clone();
+        community.intersect(set);
+        l_c += community.iter().count();
+      }
+    }
+
+    let k_c_out = community.iter().map(|n| out_degree[n]).sum::<f64>();
+    let k_c_in = community.iter().map(|n| in_degree[n]).sum::<f64>();
+    (l_c as f64 - resolution * k_c_out * k_c_in / m) / m
   };
+
+  move |communities| communities.iter().map(|c| contribution(c)).sum::<f64>()
+}
+
+pub fn naive_greedy_modularity_communities<N, E, Ix>(
+  g: &DiGraph<N, E, Ix>,
+  resolution: f64,
+) -> Vec<Vec<NodeIndex<Ix>>>
+where
+  Ix: IndexType,
+{
+  let size = g.node_count();
+  let modularity = make_modularity(g, resolution);
 
   let mut communities = (0 .. size)
     .map(|i| {

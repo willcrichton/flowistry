@@ -5,7 +5,7 @@ import { log, show_error, CallFlowistry } from "./vsc_utils";
 import _ from "lodash";
 
 interface Decomposition {
-  chunks: Range[][];
+  chunks: [number, Range[][]][];
 }
 
 /*
@@ -15,16 +15,16 @@ interface Decomposition {
 ]
 */
 let palette = [
-  "rgba(161, 201, 244, 0.2)",
-  "rgba(255, 180, 130, 0.2)",
-  "rgba(141, 229, 161, 0.2)",
-  "rgba(255, 159, 155, 0.2)",
-  "rgba(208, 187, 255, 0.2)",
-  "rgba(222, 187, 155, 0.2)",
-  "rgba(250, 176, 228, 0.2)",
-  "rgba(207, 207, 207, 0.2)",
-  "rgba(255, 254, 163, 0.2)",
-  "rgba(185, 242, 240, 0.2)",
+  "rgba(31, 119, 180, 0.5)",
+  "rgba(255, 127, 14, 0.5)",
+  "rgba(44, 160, 44, 0.5)",
+  "rgba(214, 39, 40, 0.5)",
+  "rgba(148, 103, 189, 0.5)",
+  "rgba(140, 86, 75, 0.5)",
+  "rgba(227, 119, 194, 0.5)",
+  "rgba(127, 127, 127, 0.5)",
+  "rgba(188, 189, 34, 0.5)",
+  "rgba(23, 190, 207, 0.5)",
 ].map((backgroundColor) =>
   vscode.window.createTextEditorDecorationType({
     backgroundColor,
@@ -47,9 +47,47 @@ export let decompose = async (call_flowistry: CallFlowistry) => {
       return;
     }
 
-    decomp.chunks.forEach((chunk, i) => {
-      highlight_ranges(chunk!, active_editor!, palette[i]);
+    const panel = vscode.window.createWebviewPanel(
+      "flowistry.decomp",
+      `Flowistry: decomp`,
+      vscode.ViewColumn.Beside,
+      {
+        enableScripts: true,
+      }
+    );
+    panel.webview.html = `
+<!DOCTYPE html>
+<html>      
+<body class="">
+  <div id="app">
+      <input type="range" id="range" min="0" max="${decomp.chunks.length}" />
+  </div>
+  <script>
+      const vscode = window.acquireVsCodeApi();
+      document.getElementById('range').addEventListener('input', function() {
+        vscode.postMessage(this.value);
+      })
+  </script>
+</body>        
+</html>        
+`;
+
+    let show_chunks = (chunks: Range[][]) => {
+      let editor = active_editor!;
+      palette.forEach(type => {
+        editor.setDecorations(type, []);
+      });
+
+      chunks.forEach((chunk, i) => {
+        highlight_ranges(chunk, editor, palette[i]);
+      });
+    };
+    show_chunks(decomp.chunks[Math.ceil(decomp.chunks.length / 2)][1])
+
+    panel.webview.onDidReceiveMessage((i) => {
+      show_chunks(decomp!.chunks[i][1]);
     });
+    
   } catch (exc: any) {
     log("ERROR", exc);
     show_error(exc);
