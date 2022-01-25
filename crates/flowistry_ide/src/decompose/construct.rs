@@ -1,16 +1,10 @@
-use std::path::Path;
-
 use either::Either;
 use flowistry::{
   indexed::{impls::PlaceSet, IndexMatrix, IndexedDomain},
   infoflow::FlowResults,
-  mir::utils::{run_dot, BodyExt, PlaceCollector, PlaceExt},
+  mir::utils::{BodyExt, PlaceCollector, PlaceExt},
 };
-use petgraph::{
-  algo,
-  dot::{Config as DotConfig, Dot},
-  graph::DiGraph,
-};
+use petgraph::{algo, graph::DiGraph};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_middle::{
   mir::{traversal, visit::Visitor, Body, Location, StatementKind},
@@ -115,10 +109,5 @@ pub fn build(
   results: &FlowResults<'_, 'tcx>,
 ) -> LocGraph {
   let adj_mtx = compute_adjacency_matrix(body, tcx, results);
-  let g = compute_graph(adj_mtx, results);
-
-  let dot = Dot::with_config(&g, &[DotConfig::EdgeNoLabel]);
-  run_dot(Path::new("test.pdf"), format!("{dot:?}").into_bytes()).unwrap();
-
-  g
+  compute_graph(adj_mtx, results)
 }
