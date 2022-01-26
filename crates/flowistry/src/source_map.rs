@@ -3,7 +3,7 @@ use log::trace;
 use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_hir::{
   intravisit::{self, NestedVisitorMap, Visitor as HirVisitor},
-  BodyId, Expr, ExprKind, Stmt,
+  BodyId, Expr, ExprKind, MatchSource, Stmt,
 };
 use rustc_middle::{
   hir::map::Map,
@@ -42,6 +42,11 @@ impl HirVisitor<'hir> for ChildExprSpans<'_> {
       // curly braces to be associated with the outer statement
       ExprKind::Block(..) => {
         intravisit::walk_expr(self, ex);
+      }
+      ExprKind::Match(_, arms, MatchSource::ForLoopDesugar) => {
+        for arm in arms {
+          intravisit::walk_arm(self, arm);
+        }
       }
       _ => {
         if let Some(span) = ex.span.as_local(self.tcx) {
@@ -103,12 +108,36 @@ impl HirSpanner<'hir> {
           }
         };
 
-        let mut visitor = ChildExprSpans {
-          spans: Vec::new(),
-          tcx: self.tcx,
+        let inner_spans = match expr.kind {
+          ExprKind::Loop(_, _, _, header) => {
+            vec![expr.span.trim_start(header).unwrap_or(expr.span)]
+          }
+          ExprKind::Break(..) => {
+            return;
+          }
+          _ => {
+            let mut visitor = ChildExprSpans {
+              spans: Vec::new(),
+              tcx: self.tcx,
+            };
+            intravisit::walk_expr(&mut visitor, expr);
+            visitor.spans
+          }
         };
-        intravisit::walk_expr(&mut visitor, expr);
-        let outer_spans = span.subtract(visitor.spans);
+
+        let outer_spans = span.subtract(inner_spans.clone());
+
+        trace!(
+          "Expr:\n{}\nhas span: {:?}\nand inner spans: {:?}\nand outer spans: {:?}",
+          expr_to_string(expr),
+          span,
+          inner_spans,
+          outer_spans
+        );
+
+        if outer_spans.is_empty() {
+          return;
+        }
 
         self
           .spanner
@@ -176,6 +205,21 @@ impl HirSpanner<'hir> {
   }
 }
 
+fn stmt_to_string(st: &Stmt) -> String {
+  rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| s.print_stmt(st))
+}
+
+fn expr_to_string(ex: &Expr) -> String {
+  rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| s.print_expr(ex))
+}
+
+fn node_to_string(node: HirNode) -> String {
+  match node {
+    Either::Left(ex) => expr_to_string(ex),
+    Either::Right(st) => stmt_to_string(st),
+  }
+}
+
 pub fn location_to_spans(
   location: Location,
   tcx: TyCtxt<'_>,
@@ -195,20 +239,41 @@ pub fn location_to_spans(
     }
   };
 
+  let is_return = match body.stmt_at(location) {
+    Either::Right(Terminator {
+      kind: TerminatorKind::Return | TerminatorKind::Resume | TerminatorKind::Drop { .. },
+      ..
+    }) => true,
+    _ => false,
+  };
+  if loc_span == spanner.body_span || is_return {
+    return vec![];
+  }
+
   let mut enclosing_hir = spanner.find_enclosing_hir(loc_span, span_type);
 
   // Get the spans of the immediately enclosing HIR node
-  debug_assert!(
+  assert!(
     !enclosing_hir.is_empty(),
     "Location {location:?} (span {loc_span:?}) had no enclosing HIR nodes"
   );
-  let (mut hir_spans, _) = enclosing_hir.remove(0);
+  let (mut hir_spans, node) = enclosing_hir.remove(0);
+  trace!(
+    "Initial hir node:\n{}\nhas spans: {:?}",
+    node_to_string(node),
+    hir_spans
+  );
 
   // Include the MIR span
   hir_spans.push(loc_span);
 
   // Add the spans of the first enclosing statement
-  if let Some((stmt_spans, _)) = enclosing_hir.iter().find(|(_, node)| node.is_right()) {
+  if let Some((stmt_spans, stmt)) = enclosing_hir.iter().find(|(_, node)| node.is_right())
+  {
+    trace!(
+      "Spans for stmt:\n{}\nare {stmt_spans:?}",
+      stmt_to_string(stmt.right().unwrap())
+    );
     hir_spans.extend(stmt_spans.clone());
   }
 
@@ -219,14 +284,12 @@ pub fn location_to_spans(
         if let Some(spans) = enclosing_hir
           .iter()
           .filter_map(|(spans, node)| {
-            matches!(
-              node.left()?.kind,
-              ExprKind::If(..) | ExprKind::Loop(..) | ExprKind::Break(..)
-            )
-            .then(|| spans)
+            matches!(node.left()?.kind, ExprKind::If(..) | ExprKind::Loop(..))
+              .then(|| spans)
           })
           .next()
         {
+          trace!("Switch spans: {:?}", spans);
           hir_spans.extend(spans.clone());
         }
       }
@@ -494,7 +557,7 @@ mod test {
   #[test]
   fn test_location_to_spans() {
     let src = r#"fn foo() {
-  let mut x = 1;
+  let mut x: i32 = 1;
   let y = x + 2;
   let w = if true {
     let z = 0;
@@ -504,6 +567,9 @@ mod test {
   };
   let z = &mut x; 
   *z = 4;
+  let q = x
+    .leading_ones()
+    .trailing_zeros();
 }"#;
     let (input, _ranges) = test_utils::parse_ranges(src, [("`(", ")`")]).unwrap();
     test_utils::compile_body(input, move |tcx, body_id, body_with_facts| {
@@ -513,19 +579,17 @@ mod test {
 
       let spanner = HirSpanner::new(tcx, body_id);
 
-      let mk_loc = |i, j| Location {
-        block: BasicBlock::from_usize(i),
-        statement_index: j,
-      };
-
       // These locations are just selected by inspecting the actual body, so this test might break
       // if the compiler is updated. Run with RUST_LOG=debug to see the body.
       let pairs: &[(_, &[&str])] = &[
-        (mk_loc(0, 0), &["let mut x = ", "1", ";"]),
-        (mk_loc(0, 2), &["let y = ", "x", ";"]),
-        (mk_loc(0, 3), &["let y = ", " + ", "x + 2", ";"]),
-        (mk_loc(1, 2), &["let w = ", "true", ";"]),
-        (mk_loc(1, 3), &[
+        // Variable assignment
+        ((0, 0), &["let mut x: i32 = ", "1", ";"]),
+        // Expression RHS
+        ((0, 3), &["let y = ", "x", ";"]),
+        ((0, 4), &["let y = ", " + ", "x + 2", ";"]),
+        // If expression
+        ((1, 2), &["let w = ", "true", ";"]),
+        ((1, 3), &[
           "let w = ",
           "if ",
           "true",
@@ -535,13 +599,33 @@ mod test {
           "\n  }",
           ";",
         ]),
-        (mk_loc(4, 1), &["let z = ", "&mut ", "&mut x", ";"]),
-        (mk_loc(4, 3), &[" = ", ";", "*z = 4"]),
+        // Reference
+        ((4, 1), &["let z = ", "&mut ", "&mut x", ";"]),
+        // Reference assignment
+        ((4, 3), &[" = ", ";", "*z = 4"]),
+        // Method chain
+        ((4, 4), &["let q = ", "x", ";"]),
+        ((4, 5), &[
+          "let q = ",
+          "x\n    .leading_ones()",
+          "\n    .leading_ones()",
+          ";",
+        ]),
+        ((5, 0), &[
+          "let q = ",
+          "x\n    .leading_ones()\n    .trailing_zeros()",
+          "\n    .trailing_zeros()",
+          ";",
+        ]),
       ];
 
-      for (loc, outp) in pairs {
+      for ((i, j), outp) in pairs {
+        let loc = Location {
+          block: BasicBlock::from_usize(*i),
+          statement_index: *j,
+        };
         let spans = location_to_spans(
-          *loc,
+          loc,
           tcx,
           &body_with_facts.body,
           &spanner,

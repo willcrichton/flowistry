@@ -162,14 +162,14 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
       });
       try_analysis(move || flowistry_ide::effects::effects(id, args))
     }
-    "graph" => {
+    "decompose" => {
       let pos = arg::<usize>("POS");
       let id = FunctionIdentifier::Range(Range {
         start: pos,
         end: pos,
         filename: arg::<String>("FILE"),
       });
-      try_analysis(move || flowistry_ide::graph::graph(id, args))
+      try_analysis(move || flowistry_ide::decompose::decompose(id, args))
     }
     _ => unimplemented!(),
   }

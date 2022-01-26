@@ -20,7 +20,7 @@ mod dependencies;
 pub mod mutation;
 mod recursive;
 
-pub type FlowResults<'a, 'b> = engine::AnalysisResults<'b, FlowAnalysis<'a, 'b>>;
+pub type FlowResults<'a, 'tcx> = engine::AnalysisResults<'tcx, FlowAnalysis<'a, 'tcx>>;
 
 thread_local! {
   pub static BODY_STACK: RefCell<Vec<BodyId>> =

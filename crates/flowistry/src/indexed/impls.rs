@@ -176,6 +176,7 @@ pub type LocationSet = IndexSet<Location>;
 pub struct LocationDomain {
   domain: DefaultDomain<LocationIndex, Location>,
   arg_to_location: HashMap<PlaceIndex, LocationIndex>,
+  location_to_arg: HashMap<LocationIndex, PlaceIndex>,
 }
 
 impl LocationDomain {
@@ -207,9 +208,15 @@ impl LocationDomain {
       .map(|(place, location)| (place_domain.index(place), domain.index(location)))
       .collect::<HashMap<_, _>>();
 
+    let location_to_arg = arg_to_location
+      .iter()
+      .map(|(k, v)| (*v, *k))
+      .collect::<HashMap<_, _>>();
+
     Rc::new(LocationDomain {
       domain,
       arg_to_location,
+      location_to_arg,
     })
   }
 
@@ -219,6 +226,10 @@ impl LocationDomain {
 
   pub fn arg_to_location(&self, arg: PlaceIndex) -> LocationIndex {
     *self.arg_to_location.get(&arg).unwrap()
+  }
+
+  pub fn location_to_arg(&self, location: impl ToIndex<Location>) -> Option<PlaceIndex> {
+    self.location_to_arg.get(&location.to_index(self)).copied()
   }
 }
 
