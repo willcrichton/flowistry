@@ -52,6 +52,17 @@ Like before, lines that are outside of a given slice are grayed out. But for thi
 <br>
 <br>
 
+### 4. Find mutations
+
+Flowistry's mutation search feature identifies statements or expressions where a value is mutated. This is particularly useful when trying to understand where a variable may be mutated within a complex function or when dealing with *indirection* (i.e. values hidden behind references).
+
+![demo mp4](https://user-images.githubusercontent.com/40175891/150615429-ba58dc8c-eef2-455f-8e6d-7b24bdcc8fea.gif)
+
+The `reflect` method in this example, while not clear when calling it, mutates `my_point` through a mutable reference. Similarily, assigning to `*x` doesn't obviously mutate `my_point` until considering the mutable borrow `&mut my_point.x`.
+
+<br>
+<br>
+
 ## Installation
 
 You can install Flowistry from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=wcrichton.flowistry) or the [Open VSX Registry](https://open-vsx.org/extension/wcrichton/flowistry). In VSCode: 

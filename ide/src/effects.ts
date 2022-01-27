@@ -3,12 +3,9 @@ import { log, show_error, CallFlowistry, to_vsc_range } from "./vsc_utils";
 import { Effects, Message, Range, SelectedSlice } from "./types";
 import {
   highlight_ranges,
-  select_type,
   highlight_type,
-  hide_type,
-  invert_ranges,
   highlight_slice,
-} from "./slicing";
+} from "./utils";
 import _ from "lodash";
 
 export let effects = async (

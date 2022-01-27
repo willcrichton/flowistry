@@ -7,7 +7,7 @@ use flowistry::{
     borrowck_facts::get_body_with_borrowck_facts,
     utils::{run_dot, SpanExt},
   },
-  source_map,
+  source_map::{self, EnclosingHirSpans},
 };
 use petgraph::dot::{Config as DotConfig, Dot};
 use rayon::prelude::*;
@@ -119,7 +119,13 @@ impl FlowistryAnalysis for DecomposeAnalysis {
             let spans = Span::merge_overlaps(
               c.into_iter()
                 .flat_map(|location| {
-                  source_map::location_to_spans(*location, tcx, body, &spanner)
+                  source_map::location_to_spans(
+                    *location,
+                    tcx,
+                    body,
+                    &spanner,
+                    EnclosingHirSpans::OuterOnly,
+                  )
                 })
                 .collect::<Vec<_>>(),
             );

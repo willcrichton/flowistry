@@ -39,6 +39,12 @@ fn main() {
       (@arg end:)
       (@arg flags: ...)
     )
+    (@subcommand find_mutations =>
+      (@arg file:)
+      (@arg start:)
+      (@arg end:)
+      (@arg flags: ...)
+    )
     (@subcommand effects =>
       (@arg file:)
       (@arg pos:)
@@ -82,6 +88,14 @@ fn main() {
           "POINTER_MODE",
           sub_m.value_of("pointer_mode").unwrap_or("Precise"),
         ),
+      ],
+      sub_m.value_of("file").unwrap(),
+    ),
+    ("find_mutations", Some(sub_m)) => (
+      vec![
+        ("FILE", sub_m.value_of("file").unwrap()),
+        ("START", sub_m.value_of("start").unwrap()),
+        ("END", sub_m.value_of("end").unwrap()),
       ],
       sub_m.value_of("file").unwrap(),
     ),

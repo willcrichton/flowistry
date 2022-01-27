@@ -135,6 +135,15 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
 
       try_analysis(move || flowistry_ide::slicing::slice(direction, range, args))
     }
+    "find_mutations" => {
+      let range = Range {
+        start: arg::<usize>("START"),
+        end: arg::<usize>("END"),
+        filename: arg::<String>("FILE"),
+      };
+
+      try_analysis(move || flowistry_ide::mutations::find(range, args))
+    }
     "playground" => {
       let range = Range {
         start: arg::<usize>("START"),

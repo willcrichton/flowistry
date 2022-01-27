@@ -13,8 +13,8 @@ use crate::{
     impls::{LocationSet, PlaceIndex, PlaceSet},
     IndexedDomain,
   },
-  mir::utils::{PlaceExt, SpanExt},
-  source_map::{location_to_spans, HirSpanner},
+  mir::utils::SpanExt,
+  source_map::{location_to_spans, EnclosingHirSpans, HirSpanner},
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -150,19 +150,7 @@ pub fn compute_dependencies(
   let expanded_targets = targets
     .iter()
     .map(|(place, location)| {
-      let mut places = new_place_set();
-      places.insert(*place);
-
-      for (_, ptrs) in place.interior_pointers(tcx, body, results.analysis.def_id) {
-        for (place, _) in ptrs {
-          debug!(
-            "{:?} // {:?}",
-            tcx.mk_place_deref(place),
-            aliases.aliases.row_set(tcx.mk_place_deref(place))
-          );
-          places.union(&aliases.aliases.row_set(tcx.mk_place_deref(place)).unwrap());
-        }
-      }
+      let places = aliases.reachable_values(tcx, body, results.analysis.def_id, *place);
 
       (places, *location)
     })
@@ -221,9 +209,9 @@ pub fn compute_dependency_spans(
   deps
     .into_iter()
     .map(|(locations, places)| {
-      let location_spans = locations
-        .iter()
-        .flat_map(|location| location_to_spans(*location, tcx, body, spanner));
+      let location_spans = locations.iter().flat_map(|location| {
+        location_to_spans(*location, tcx, body, spanner, EnclosingHirSpans::OuterOnly)
+      });
 
       let place_spans = places
         .iter()
