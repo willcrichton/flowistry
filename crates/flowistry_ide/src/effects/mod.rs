@@ -3,7 +3,7 @@ use flowistry::{
   indexed::IndexedDomain,
   infoflow::{self, Direction},
   mir::{borrowck_facts::get_body_with_borrowck_facts, utils::BodyExt},
-  source_map::{self, HirSpanner},
+  source_map::{self, EnclosingHirSpans, HirSpanner},
 };
 use intervaltree::IntervalTree;
 use log::debug;
@@ -98,7 +98,13 @@ impl FlowistryAnalysis for EffectsHarness {
       .zip(dep_spans)
       .filter_map(|((kind, loc), slice)| {
         let slice = ranges_from_spans(slice.into_iter(), source_map).unwrap();
-        let spans = source_map::location_to_spans(loc, tcx, body, &spanner);
+        let spans = source_map::location_to_spans(
+          loc,
+          tcx,
+          body,
+          &spanner,
+          EnclosingHirSpans::OuterOnly,
+        );
         let range = spans
           .into_iter()
           .min_by_key(|span| span.hi() - span.lo())

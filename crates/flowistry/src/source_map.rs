@@ -63,6 +63,12 @@ impl HirVisitor<'hir> for ChildExprSpans<'_> {
   }
 }
 
+#[derive(Clone)]
+pub enum EnclosingHirSpans {
+  OuterOnly,
+  Full,
+}
+
 pub struct HirSpanner<'hir> {
   spans: Vec<(Span, Vec<Span>, HirNode<'hir>)>,
   body_span: Span,
@@ -172,7 +178,11 @@ impl HirSpanner<'hir> {
     spanner
   }
 
-  pub fn find_enclosing_hir(&self, span: Span) -> Vec<(Vec<Span>, HirNode<'hir>)> {
+  pub fn find_enclosing_hir(
+    &self,
+    span: Span,
+    span_type: EnclosingHirSpans,
+  ) -> Vec<(Vec<Span>, HirNode<'hir>)> {
     let mut enclosing = self
       .spans
       .iter()
@@ -182,7 +192,15 @@ impl HirSpanner<'hir> {
 
     enclosing
       .into_iter()
-      .map(|(_, spans, node)| (spans.clone(), *node))
+      .map(|(node_span, spans, node)| {
+        (
+          match span_type {
+            EnclosingHirSpans::OuterOnly => spans.clone(),
+            EnclosingHirSpans::Full => vec![*node_span],
+          },
+          *node,
+        )
+      })
       .collect()
   }
 }
@@ -207,6 +225,7 @@ pub fn location_to_spans(
   tcx: TyCtxt<'_>,
   body: &Body,
   spanner: &HirSpanner,
+  span_type: EnclosingHirSpans,
 ) -> Vec<Span> {
   // special case for synthetic locations that represent arguments
   if location.block.as_usize() == body.basic_blocks().len() {
@@ -231,7 +250,7 @@ pub fn location_to_spans(
     return vec![];
   }
 
-  let mut enclosing_hir = spanner.find_enclosing_hir(loc_span);
+  let mut enclosing_hir = spanner.find_enclosing_hir(loc_span, span_type);
 
   // Get the spans of the immediately enclosing HIR node
   assert!(
@@ -482,27 +501,18 @@ mod test {
     check("actual", missing_actual);
   }
 
-  #[test]
-  fn test_hir_spanner() {
-    let src = r#"fn foo() {
-      let x = `(1)`;
-      let `(y)` = x + 1;
-      if `(true)``( )`{ let z = 1; }
-      x `(+)` y;
-    }"#;
+  fn hir_spanner_harness(
+    src: &str,
+    expected: &[&[&str]],
+    enclosing_spans: EnclosingHirSpans,
+  ) {
     harness(src, |tcx, body_id, body, spans| {
       let spanner = HirSpanner::new(tcx, body_id);
       let source_map = tcx.sess.source_map();
-      let expected: &[&[&str]] = &[
-        &["1"],
-        &["let y = ", ";"],
-        &["true"],
-        &["if ", " { ", " }"],
-        &[" + "],
-      ];
       debug!("{}", body.to_string(tcx).unwrap());
       for (input_span, desired) in spans.into_iter().zip(expected) {
-        let mut enclosing = spanner.find_enclosing_hir(input_span);
+        let mut enclosing =
+          spanner.find_enclosing_hir(input_span, enclosing_spans.clone());
         let desired_set = desired.into_iter().copied().collect::<HashSet<_>>();
         let output_snippets = enclosing
           .remove(0)
@@ -513,6 +523,35 @@ mod test {
         compare_sets(&desired_set, &output_snippets);
       }
     });
+  }
+
+  #[test]
+  fn test_hir_spanner_outer() {
+    let src = r#"fn foo() {
+      let x = `(1)`;
+      let `(y)` = x + 1;
+      if `(true)``( )`{ let z = 1; }
+      x `(+)` y;
+    }"#;
+    let expected: &[&[&str]] = &[
+      &["1"],
+      &["let y = ", ";"],
+      &["true"],
+      &["if ", " { ", " }"],
+      &[" + "],
+    ];
+    hir_spanner_harness(src, expected, EnclosingHirSpans::OuterOnly)
+  }
+
+  #[test]
+  fn test_hir_spanner_full() {
+    let src = r#"fn foo() {
+      `(let mut x: Vec<()> = Vec::new();)`
+      `(x = Vec::new();)`
+    }"#;
+    let expected: &[&[&str]] =
+      &[&["let mut x: Vec<()> = Vec::new();"], &["x = Vec::new();"]];
+    hir_spanner_harness(src, expected, EnclosingHirSpans::Full)
   }
 
   #[test]
@@ -585,7 +624,13 @@ mod test {
           block: BasicBlock::from_usize(*i),
           statement_index: *j,
         };
-        let spans = location_to_spans(loc, tcx, &body_with_facts.body, &spanner);
+        let spans = location_to_spans(
+          loc,
+          tcx,
+          &body_with_facts.body,
+          &spanner,
+          EnclosingHirSpans::OuterOnly,
+        );
         let desired = outp.iter().collect::<HashSet<_>>();
         let actual = spans
           .into_iter()

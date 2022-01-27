@@ -3,6 +3,7 @@ use std::{
   fmt::Debug,
   fs,
   io::Write,
+  panic,
   path::Path,
   process::Command,
 };
@@ -118,7 +119,11 @@ fn bless(path: &Path, contents: String, actual: HashSet<Range>) -> Result<()> {
   Ok(())
 }
 
-pub fn slice(path: &Path, expected: Option<&Path>, direction: Direction) {
+pub fn test_command_output(
+  path: &Path,
+  expected: Option<&Path>,
+  output_fn: impl Fn(Range, &[String]) -> Vec<Range>,
+) {
   let inner = move || -> Result<()> {
     info!("Testing {}", path.file_name().unwrap().to_string_lossy());
     let input = String::from_utf8(fs::read(path)?)?;
@@ -174,8 +179,7 @@ pub fn slice(path: &Path, expected: Option<&Path>, direction: Direction) {
     }
 
     fluid_set!(EVAL_MODE, &mode);
-    let output = flowistry_ide::slicing::slice(direction, range, &args).unwrap();
-    let actual = output.ranges().into_iter().cloned().collect::<HashSet<_>>();
+    let actual = output_fn(range, &args).into_iter().collect::<HashSet<_>>();
 
     match expected {
       Some(expected_path) => {
@@ -200,6 +204,20 @@ pub fn slice(path: &Path, expected: Option<&Path>, direction: Direction) {
   inner().unwrap();
 }
 
+pub fn slice(path: &Path, expected: Option<&Path>, direction: Direction) {
+  test_command_output(path, expected, |range, args| {
+    flowistry_ide::slicing::slice(direction, range, &args)
+      .unwrap()
+      .ranges
+  });
+}
+
+pub fn find_mutations(path: &Path, expected: Option<&Path>) {
+  test_command_output(path, expected, |range, args| {
+    flowistry_ide::mutations::find(range, args).unwrap().ranges
+  });
+}
+
 pub fn effects(prog: &str, qpath: &str) {
   flow(
     prog,
@@ -219,4 +237,53 @@ lazy_static! {
   .unwrap()
   .trim()
   .to_owned();
+}
+
+const BLESS: bool = option_env!("BLESS").is_some();
+const ONLY: Option<&'static str> = option_env!("ONLY");
+const EXIT: bool = option_env!("EXIT").is_some();
+
+pub fn run_tests(
+  dir: impl AsRef<Path>,
+  test_fn: impl Fn(&Path, Option<&Path>) + std::panic::RefUnwindSafe,
+) {
+  let main = || -> Result<()> {
+    let test_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+      .join("tests")
+      .join(dir.as_ref());
+    let tests = fs::read_dir(test_dir)?;
+    let mut failed = false;
+    for test in tests {
+      let test = test?.path();
+      if test.extension().unwrap() == "expected" {
+        continue;
+      }
+      let test_name = test.file_name().unwrap().to_str().unwrap();
+      if let Some(only) = ONLY {
+        if !test_name.contains(only) {
+          continue;
+        }
+      }
+      let expected_path = test.with_extension("txt.expected");
+      let expected = (!BLESS).then(|| expected_path.as_ref());
+
+      let result = panic::catch_unwind(|| test_fn(&test, expected));
+      if let Err(e) = result {
+        if EXIT {
+          panic!("{test_name}:\n{e:?}");
+        } else {
+          failed = true;
+          eprintln!("\n\n{test_name}:\n{e:?}\n\n");
+        }
+      }
+    }
+
+    if failed {
+      panic!("Tests failed.")
+    }
+
+    Ok(())
+  };
+
+  main().unwrap();
 }

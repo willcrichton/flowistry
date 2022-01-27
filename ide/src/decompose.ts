@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { highlight_ranges } from "./slicing";
+import { highlight_ranges } from "./utils";
 import { Range } from "./types";
 import { log, show_error, CallFlowistry } from "./vsc_utils";
 import _ from "lodash";
