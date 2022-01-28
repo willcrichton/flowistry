@@ -255,7 +255,7 @@ where
     spanner
   }
 
-  fn find_matching<T>(
+  pub fn find_matching<T>(
     predicate: impl Fn(Span) -> bool,
     spans: impl Iterator<Item = (Span, T)>,
   ) -> impl ExactSizeIterator<Item = T> {
@@ -504,58 +504,56 @@ mod test {
     check("actual", missing_actual);
   }
 
-  // fn hir_spanner_harness(
-  //   src: &str,
-  //   expected: &[&[&str]],
-  //   enclosing_spans: EnclosingHirSpans,
-  // ) {
-  //   harness(src, |tcx, body_id, body, spans| {
-  //     let spanner = Spanner::new(tcx, body_id, body);
-  //     let source_map = tcx.sess.source_map();
-  //     debug!("{}", body.to_string(tcx).unwrap());
-  //     for (input_span, desired) in spans.into_iter().zip(expected) {
-  //       let mut enclosing =
-  //         spanner.find_enclosing_hir(input_span, enclosing_spans.clone());
-  //       let desired_set = desired.into_iter().copied().collect::<HashSet<_>>();
-  //       let output_snippets = enclosing
-  //         .remove(0)
-  //         .0
-  //         .into_iter()
-  //         .map(|s| source_map.span_to_snippet(s).unwrap())
-  //         .collect::<HashSet<_>>();
-  //       compare_sets(&desired_set, &output_snippets);
-  //     }
-  //   });
-  // }
+  fn hir_spanner_harness(src: &str, expected: &[&[&str]], span_type: EnclosingHirSpans) {
+    harness(src, |tcx, body_id, body, spans| {
+      let spanner = Spanner::new(tcx, body_id, body);
+      let source_map = tcx.sess.source_map();
+      for (input_span, desired) in spans.into_iter().zip(expected) {
+        let mut enclosing = Spanner::find_matching(
+          |span| span.contains(input_span),
+          spanner.hir_spans.iter().map(|span| (span.full, span)),
+        )
+        .collect::<Vec<_>>();
+        let desired_set = desired.into_iter().copied().collect::<HashSet<_>>();
+        let output_snippets = enclosing
+          .remove(0)
+          .get_spans(span_type)
+          .into_iter()
+          .map(|s| source_map.span_to_snippet(s).unwrap())
+          .collect::<HashSet<_>>();
+        compare_sets(&desired_set, &output_snippets);
+      }
+    });
+  }
 
-  // #[test]
-  // fn test_hir_spanner_outer() {
-  //   let src = r#"fn foo() {
-  //     let x = `(1)`;
-  //     let `(y)` = x + 1;
-  //     if `(true)``( )`{ let z = 1; }
-  //     x `(+)` y;
-  //   }"#;
-  //   let expected: &[&[&str]] = &[
-  //     &["1"],
-  //     &["let y = ", ";"],
-  //     &["true"],
-  //     &["if ", " { ", " }"],
-  //     &[" + "],
-  //   ];
-  //   hir_spanner_harness(src, expected, EnclosingHirSpans::OuterOnly)
-  // }
+  #[test]
+  fn test_hir_spanner_outer() {
+    let src = r#"fn foo() {
+      let x = `(1)`;
+      let `(y)` = x + 1;
+      if `(true)``( )`{ let z = 1; }
+      x `(+)` y;
+    }"#;
+    let expected: &[&[&str]] = &[
+      &["1"],
+      &["let y = ", ";"],
+      &["true"],
+      &["if ", " { ", " }"],
+      &[" + "],
+    ];
+    hir_spanner_harness(src, expected, EnclosingHirSpans::OuterOnly)
+  }
 
-  // #[test]
-  // fn test_hir_spanner_full() {
-  //   let src = r#"fn foo() {
-  //     `(let mut x: Vec<()> = Vec::new();)`
-  //     `(x = Vec::new();)`
-  //   }"#;
-  //   let expected: &[&[&str]] =
-  //     &[&["let mut x: Vec<()> = Vec::new();"], &["x = Vec::new();"]];
-  //   hir_spanner_harness(src, expected, EnclosingHirSpans::Full)
-  // }
+  #[test]
+  fn test_hir_spanner_full() {
+    let src = r#"fn foo() {
+      `(let mut x: Vec<()> = Vec::new();)`
+      `(x = Vec::new();)`
+    }"#;
+    let expected: &[&[&str]] =
+      &[&["let mut x: Vec<()> = Vec::new();"], &["x = Vec::new();"]];
+    hir_spanner_harness(src, expected, EnclosingHirSpans::Full)
+  }
 
   #[test]
   fn test_location_to_spans() {
