@@ -6,6 +6,7 @@ import _ from "lodash";
 
 interface Decomposition {
   chunks: [number, Range[][]][];
+  // chunks: Range[][];
 }
 
 /*
@@ -14,7 +15,7 @@ interface Decomposition {
     for (r, g, b) in sns.color_palette('pastel', n_colors=20)
 ]
 */
-let palette = [
+let colors = [
   "rgba(31, 119, 180, 0.5)",
   "rgba(255, 127, 14, 0.5)",
   "rgba(44, 160, 44, 0.5)",
@@ -25,7 +26,11 @@ let palette = [
   "rgba(127, 127, 127, 0.5)",
   "rgba(188, 189, 34, 0.5)",
   "rgba(23, 190, 207, 0.5)",
-].map((backgroundColor) =>
+];
+_.range(3).forEach(_ => {
+  colors = colors.concat(colors);
+});
+let palette = colors.map((backgroundColor) =>
   vscode.window.createTextEditorDecorationType({
     backgroundColor,
   })
@@ -82,6 +87,9 @@ export let decompose = async (call_flowistry: CallFlowistry) => {
         highlight_ranges(chunk, editor, palette[i]);
       });
     };
+
+    // show_chunks(decomp.chunks);
+
     show_chunks(decomp.chunks[Math.ceil(decomp.chunks.length / 2)][1])
 
     panel.webview.onDidReceiveMessage((i) => {

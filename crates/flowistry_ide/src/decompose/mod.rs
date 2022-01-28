@@ -48,6 +48,80 @@ pub struct DecomposeAnalysis {
   id: FunctionIdentifier,
 }
 
+// fn adjacent_chunk_analysis() {
+
+//   let domain = results.analysis.location_domain();
+//   let adj_mtx = construct::compute_adjacency_matrix(body, tcx, results);
+
+//   let mut locations = domain
+//     .as_vec()
+//     .iter()
+//     .filter_map(|loc| {
+//       let spans = source_map::location_to_spans(
+//         *loc,
+//         tcx,
+//         body,
+//         &spanner,
+//         EnclosingHirSpans::Full,
+//       );
+//       if spans.is_empty() {
+//         return None;
+//       }
+
+//       let (mins, maxs): (Vec<_>, Vec<_>) = spans
+//         .into_iter()
+//         .map(|s| {
+//           let lines = source_map.span_to_lines(s).unwrap();
+//           let line_nums = lines
+//             .lines
+//             .into_iter()
+//             .map(|l| l.line_index)
+//             .collect::<Vec<_>>();
+//           (
+//             *line_nums.iter().min().unwrap(),
+//             *line_nums.iter().max().unwrap(),
+//           )
+//         })
+//         .unzip();
+//       let min = *mins.iter().min().unwrap();
+//       let max = *maxs.iter().max().unwrap();
+
+//       Some((*loc, (min, max)))
+//     })
+//     .collect::<Vec<_>>();
+//   locations.sort_by_key(|(_, (min, _))| *min);
+
+//   let flows = |l1, l2| match adj_mtx.row_set(l2) {
+//     Some(set) => set.contains(l1),
+//     None => false,
+//   };
+
+//   let adjacent = |(min1, max1), (min2, max2)| max1 + 1 >= min2 && min1 <= max2;
+
+//   let mut communities = vec![vec![locations.remove(0)]];
+//   for (loc1, rng1) in locations {
+//     let cur = communities.last_mut().unwrap();
+//     if cur.iter().any(|(loc2, rng2)| {
+//       let has_flow = flows(loc1, *loc2) || flows(*loc2, loc1);
+//       let line_adjacent = adjacent(rng1, *rng2) || adjacent(*rng2, rng1);
+//       debug!("{rng1:?} / {rng2:?} {line_adjacent}");
+//       has_flow || line_adjacent
+//     }) {
+//       cur.push((loc1, rng1));
+//     } else {
+//       communities.push(vec![(loc1, rng1)]);
+//     }
+//     // let overlaps = spans1
+//     //   .iter()
+//     //   .any(|s1| spans2.iter().any(|s2| s1.overlaps_inclusive(*s2)));
+//   }
+//   let communities = communities
+//     .into_iter()
+//     .map(|c| c.into_iter().map(|(l, _)| l).collect::<Vec<_>>())
+//     .collect::<Vec<_>>();
+//   debug!("communities: {:#?}", communities);
+// }
+
 impl FlowistryAnalysis for DecomposeAnalysis {
   type Output = DecomposeOutput;
 
@@ -66,19 +140,23 @@ impl FlowistryAnalysis for DecomposeAnalysis {
     let results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
 
     let source_map = tcx.sess.source_map();
-    let spanner = source_map::HirSpanner::new(tcx, body_id);
+    let spanner = source_map::Spanner::new(tcx, body_id, body);
 
-    let graph = construct::build(body, tcx, results);
+    let graph = construct::build(body, tcx, def_id.to_def_id(), results);
 
-    let resolutions = [0.1, 0.25, 0.5, 1., 2.];
+    let resolutions = [0.01, 0.1, 0.25, 0.5, 1.];
     let communities_idxs = resolutions
       .par_iter()
       .map(|r| (*r, algo::naive_greedy_modularity_communities(&graph, *r)))
       .collect::<Vec<_>>();
 
+    let fn_path = tcx.def_path_str(def_id.to_def_id());
+    let fn_name = fn_path.split("::").last().unwrap();
     let chunks = communities_idxs
       .into_iter()
-      .map(|(r, communities_idxs)| {
+      .map(|(r, mut communities_idxs)| {
+        communities_idxs.sort_by_key(|c| -(c.len() as i32));
+
         let idx_map = communities_idxs
           .iter()
           .enumerate()
@@ -98,16 +176,20 @@ impl FlowistryAnalysis for DecomposeAnalysis {
             "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2",
             "#7f7f7f", "#bcbd22", "#17becf",
           ];
-          let get_color =
-            |_, (n, _)| format!("color=\"{}\"", PALETTE[idx_map[&n] % PALETTE.len()]);
+          let get_node_attributes = |_, (n, _)| {
+            format!(
+              r#"fillcolor="{}" style="filled" fontcolor="white""#,
+              PALETTE[idx_map[&n] % PALETTE.len()]
+            )
+          };
           let dot = Dot::with_attr_getters(
             &graph,
             &[DotConfig::EdgeNoLabel],
             &|_, _| "".into(),
-            &get_color,
+            &get_node_attributes,
           );
           run_dot(
-            Path::new(&format!("test_{r:2}.pdf")),
+            Path::new(&format!("figures/{fn_name}_{r:.2}.pdf")),
             format!("{dot:?}").into_bytes(),
           )
           .unwrap();
@@ -119,13 +201,7 @@ impl FlowistryAnalysis for DecomposeAnalysis {
             let spans = Span::merge_overlaps(
               c.into_iter()
                 .flat_map(|location| {
-                  source_map::location_to_spans(
-                    *location,
-                    tcx,
-                    body,
-                    &spanner,
-                    EnclosingHirSpans::OuterOnly,
-                  )
+                  spanner.location_to_spans(*location, EnclosingHirSpans::OuterOnly)
                 })
                 .collect::<Vec<_>>(),
             );
@@ -140,26 +216,6 @@ impl FlowistryAnalysis for DecomposeAnalysis {
         (r, chunks)
       })
       .collect::<Vec<_>>();
-
-    // debug!(
-    //   "{:#?}",
-    //   communities
-    //     .iter()
-    //     .map(|c| {
-    //       c.iter()
-    //         .map(|l| {
-    //           (
-    //             l,
-    //             source_map::location_to_spans(**l, tcx, body, &spanner)
-    //               .into_iter()
-    //               .map(|s| source_map.span_to_snippet(s).unwrap())
-    //               .collect::<Vec<_>>(),
-    //           )
-    //         })
-    //         .collect::<HashMap<_, _>>()
-    //     })
-    //     .collect::<Vec<_>>()
-    // );
 
     Ok(DecomposeOutput { chunks })
   }

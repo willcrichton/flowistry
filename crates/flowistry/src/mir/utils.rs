@@ -11,7 +11,7 @@ use std::{
 
 use anyhow::{bail, Result};
 use either::Either;
-use log::{debug, trace, warn};
+use log::{trace, warn};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
 use rustc_hir::def_id::DefId;
@@ -253,8 +253,6 @@ impl MirPass<'tcx> for SimplifyMir {
       block.statements.retain(|stmt| {
         !matches!(
           stmt.kind,
-          // TODO: variable_select_lhs test fails if we remove FakeRead
-          // StatementKind::FakeRead(..)
           StatementKind::StorageLive(..) | StatementKind::StorageDead(..)
         )
       });
@@ -714,6 +712,7 @@ pub trait SpanExt {
   fn trim_end(&self, other: Span) -> Option<Span>;
   fn merge_overlaps(spans: Vec<Span>) -> Vec<Span>;
   fn to_string(&self, tcx: TyCtxt<'_>) -> String;
+  fn size(&self) -> u32;
 }
 
 impl SpanExt for Span {
@@ -756,7 +755,7 @@ impl SpanExt for Span {
       outer_spans.push(*self);
     };
 
-    debug!("outer span for {self:?} with inner spans {child_spans:?} is {outer_spans:?}");
+    trace!("outer span for {self:?} with inner spans {child_spans:?} is {outer_spans:?}");
 
     outer_spans
   }
@@ -821,6 +820,10 @@ impl SpanExt for Span {
       hi.line,
       hi.col.to_usize() + 1
     )
+  }
+
+  fn size(&self) -> u32 {
+    self.hi().0 - self.lo().0
   }
 }
 

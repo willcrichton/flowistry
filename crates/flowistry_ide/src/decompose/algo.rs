@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use log::debug;
+use log::trace;
 use petgraph::{
   graph::{DiGraph, IndexType, Neighbors, NodeIndex},
   unionfind::UnionFind,
@@ -9,7 +9,7 @@ use petgraph::{
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_index::bit_set::{HybridBitSet, SparseBitMatrix};
 
-trait GraphExt<E, Ix> {
+pub trait GraphExt<E, Ix> {
   fn successors<'a>(&'a self, n: NodeIndex<Ix>) -> Neighbors<'a, E, Ix>;
   fn predecessors<'a>(&'a self, n: NodeIndex<Ix>) -> Neighbors<'a, E, Ix>;
 }
@@ -183,10 +183,9 @@ where
         trial_communities[i].clear();
 
         let trial_modularity = modularity(&trial_communities);
-        // debug!("comparing {i}/{j} of {trial_modularity:?} vs {old_modularity:?}");
         if trial_modularity >= new_modularity {
           if trial_modularity > new_modularity {
-            debug!("found good one (trial {trial_modularity:?} new {new_modularity:?}");
+            trace!("found good one (trial {trial_modularity:?} new {new_modularity:?}");
             new_modularity = trial_modularity;
             to_merge = Some((i, j, new_modularity - old_modularity));
           } else if let Some((oi, oj, _)) = to_merge {
@@ -208,11 +207,9 @@ where
       ci.union(cj);
       communities.remove(j);
 
-      debug!("new:{new_modularity:?} old:{old_modularity:?}");
+      trace!("new:{new_modularity:?} old:{old_modularity:?}");
     }
   }
-
-  debug!("{merges:#?}");
 
   communities
     .into_iter()

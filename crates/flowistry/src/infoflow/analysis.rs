@@ -80,10 +80,8 @@ impl FlowAnalysis<'a, 'tcx> {
     let location_domain = self.location_domain();
 
     let all_aliases = &self.aliases;
-    let mutated_aliases = all_aliases
-      .aliases
-      .row_set(mutated)
-      .unwrap_or_else(|| panic!("No aliases for mutated {mutated:?}"));
+    let mutated_aliases = all_aliases.aliases.row_set(mutated);
+    assert!(!mutated_aliases.is_empty());
 
     // Clear sub-places of mutated place (if sound to do so)
     if matches!(mutation_status, MutationStatus::Definitely) && mutated_aliases.len() == 1
@@ -100,9 +98,7 @@ impl FlowAnalysis<'a, 'tcx> {
     let add_deps = |place: Place<'tcx>, location_deps: &mut LocationSet| {
       for place in place.place_and_refs_in_projection(self.tcx) {
         for alias in all_aliases.aliases.row(place) {
-          if let Some(deps) = state.row_set(alias) {
-            location_deps.union(&deps);
-          }
+          location_deps.union(&state.row_set(alias));
         }
       }
     };

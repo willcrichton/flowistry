@@ -91,13 +91,11 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
 
   let mut errors = Vec::new();
   for secure in secure_places.indices() {
-    if let Some(secure_deps) = final_state.row_set(secure) {
-      for insecure in insecure_places.indices() {
-        if let Some(insecure_deps) = final_state.row_set(insecure) {
-          if insecure_deps.is_superset(&secure_deps) {
-            errors.push((secure, insecure));
-          }
-        }
+    let secure_deps = final_state.row_set(secure);
+    for insecure in insecure_places.indices() {
+      let insecure_deps = final_state.row_set(insecure);
+      if insecure_deps.is_superset(&secure_deps) {
+        errors.push((secure, insecure));
       }
     }
   }
