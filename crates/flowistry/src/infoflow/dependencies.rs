@@ -14,7 +14,7 @@ use crate::{
     IndexedDomain,
   },
   mir::utils::SpanExt,
-  source_map::{location_to_spans, EnclosingHirSpans, HirSpanner},
+  source_map::{EnclosingHirSpans, Spanner},
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -43,8 +43,8 @@ impl DepVisitor<'_, '_, 'tcx> {
     {
       for (place, loc_deps) in to_check
         .iter()
-        .filter_map(|place| Some((place, state.row_set(*place)?)))
-        .filter(|(_, loc_deps)| loc_deps.indices().next().is_some())
+        .map(|place| (place, state.row_set(*place)))
+        .filter(|(_, loc_deps)| !loc_deps.is_empty())
       {
         let matches = match self.direction {
           Direction::Forward => loc_deps.is_superset(target_locs),
@@ -163,9 +163,7 @@ pub fn compute_dependencies(
 
       let mut locations = new_location_set();
       for target in targets.indices() {
-        if let Some(dep_locations) = state.row_set(target) {
-          locations.union(&dep_locations);
-        }
+        locations.union(&state.row_set(target));
       }
 
       locations
@@ -199,7 +197,7 @@ pub fn compute_dependency_spans(
   results: &FlowResults<'_, 'tcx>,
   targets: Vec<(Place<'tcx>, Location)>,
   direction: Direction,
-  spanner: &HirSpanner,
+  spanner: &Spanner,
 ) -> Vec<Vec<Span>> {
   let tcx = results.analysis.tcx;
   let body = results.analysis.body;
@@ -210,18 +208,18 @@ pub fn compute_dependency_spans(
     .into_iter()
     .map(|(locations, places)| {
       let location_spans = locations.iter().flat_map(|location| {
-        location_to_spans(*location, tcx, body, spanner, EnclosingHirSpans::OuterOnly)
+        spanner.location_to_spans(*location, EnclosingHirSpans::OuterOnly)
       });
 
       let place_spans = places
         .iter()
-        .filter(|place| **place != Place::return_place())
         .filter_map(|place| {
           body.local_decls()[place.local]
             .source_info
             .span
             .as_local(tcx)
-        });
+        })
+        .filter(|span| !span.source_equal(&spanner.body_span));
 
       Span::merge_overlaps(location_spans.chain(place_spans).collect::<Vec<_>>())
     })

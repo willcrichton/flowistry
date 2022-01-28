@@ -59,17 +59,15 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
     let results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
 
     let source_map = tcx.sess.source_map();
-    let body_span = tcx.hir().body(body_id).value.span;
-    let targets =
-      source_map::span_to_places(tcx, body, body_span, self.range.to_span(source_map)?);
+    let spanner = source_map::Spanner::new(tcx, body_id, body);
+    let targets = spanner.span_to_places(self.range.to_span(source_map)?);
     debug!("Targets: {targets:?}");
 
-    let spanner = source_map::HirSpanner::new(tcx, body_id);
     let deps = infoflow::compute_dependency_spans(
       results,
       targets
         .iter()
-        .map(|(place, loc, _)| (*place, *loc))
+        .map(|mir_span| (mir_span.place, mir_span.location))
         .collect(),
       self.direction,
       &spanner,
@@ -77,7 +75,7 @@ impl FlowistryAnalysis for ForwardSliceAnalysis {
 
     let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
     let selected_spans =
-      ranges_from_spans(targets.iter().map(|(_, _, sp)| *sp), source_map)?;
+      ranges_from_spans(targets.iter().map(|mir_span| mir_span.span), source_map)?;
     let output_spans = Span::merge_overlaps(deps.into_iter().flatten().collect());
     let ranges = ranges_from_spans(output_spans.into_iter(), source_map)?;
     debug!("found {} ranges in slice", ranges.len());

@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use flowistry::{
   mir::{aliases::Aliases, borrowck_facts::get_body_with_borrowck_facts, utils::SpanExt},
-  source_map::{self, location_to_spans, EnclosingHirSpans},
+  source_map::{self, EnclosingHirSpans, MirSpannedPlace},
 };
 use log::debug;
 use rustc_hir::BodyId;
@@ -50,26 +50,26 @@ impl FlowistryAnalysis for MutationAnalysis {
     let aliases = Aliases::build(tcx, def_id.to_def_id(), body_with_facts);
 
     let source_map = tcx.sess.source_map();
-    let body_span = tcx.hir().body(body_id).value.span;
-    let targets =
-      source_map::span_to_places(tcx, body, body_span, self.range.to_span(source_map)?);
+    let spanner = source_map::Spanner::new(tcx, body_id, body);
+    let targets = spanner.span_to_places(self.range.to_span(source_map)?);
 
-    let (selected_place, _, _) = targets
+    let MirSpannedPlace {
+      place: selected_place,
+      ..
+    } = targets
       .first()
       .context("Selection could not be mapped to a place.")?;
     debug!("selected_place {selected_place:?}");
 
-    let spanner = source_map::HirSpanner::new(tcx, body_id);
-
     let body_span = Range::from_span(tcx.hir().body(body_id).value.span, source_map)?;
     let selected_spans =
-      ranges_from_spans(targets.iter().map(|(_, _, sp)| *sp), source_map)?;
+      ranges_from_spans(targets.iter().map(|mir_span| mir_span.span), source_map)?;
 
     let mutated_locations =
       find_mutations(tcx, body, def_id.to_def_id(), *selected_place, aliases);
-    let mutated_spans = mutated_locations.into_iter().flat_map(|location| {
-      location_to_spans(location, tcx, body, &spanner, EnclosingHirSpans::Full)
-    });
+    let mutated_spans = mutated_locations
+      .into_iter()
+      .flat_map(|location| spanner.location_to_spans(location, EnclosingHirSpans::Full));
     let output_spans = Span::merge_overlaps(mutated_spans.collect());
     let ranges = ranges_from_spans(output_spans.into_iter(), source_map)?;
 

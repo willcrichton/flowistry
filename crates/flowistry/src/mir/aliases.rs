@@ -405,7 +405,7 @@ impl Aliases<'tcx> {
     let body = &body_with_facts.body;
 
     let loans = Self::compute_loans(tcx, def_id, body_with_facts);
-    debug!("Loans: {loans:#?}");
+    debug!("Loans: {loans:?}");
 
     let mut all_places = Self::compute_all_places(tcx, body, def_id, &loans);
 
@@ -419,7 +419,7 @@ impl Aliases<'tcx> {
         )
       })
       .collect::<HashMap<_, _>>();
-    debug!("Aliases: {all_aliases:#?}");
+    debug!("Aliases: {all_aliases:?}");
 
     all_places.extend(all_aliases.values().flat_map(|s| s.iter().copied()));
 
@@ -492,7 +492,7 @@ impl Aliases<'tcx> {
     &self,
     place: impl ToIndex<Place<'tcx>>,
   ) -> PlaceSet<'tcx, RefSet<'_, Place<'tcx>>> {
-    self.conflicts.row_set(place).unwrap()
+    self.conflicts.row_set(place)
   }
 
   pub fn reachable_values(
@@ -577,7 +577,7 @@ mod test {
       let x = Place::from_local(name_map["x"], tcx);
       let y = Place::from_local(name_map["y"], tcx);
       let y_deref = tcx.mk_place_deref(y);
-      assert!(aliases.aliases.row_set(y_deref).unwrap().contains(x));
+      assert!(aliases.aliases.row_set(y_deref).contains(x));
     })
   }
 }

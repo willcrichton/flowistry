@@ -203,15 +203,12 @@ impl FlowAnalysis<'_, 'tcx> {
       if let Some(parent) = translate_child_to_parent(*child, true) {
         let was_return = child.local == RETURN_PLACE;
         // > 1 because arguments will always have their synthetic location in their dep set
-        let was_mutated = return_state
-          .row_set(child)
-          .map(|set| set.len() > 1)
-          .unwrap_or(false);
+        let was_mutated = return_state.row_set(child).len() > 1;
         if !was_mutated && !was_return {
           continue;
         }
 
-        let child_deps = return_state.row_set(child).unwrap();
+        let child_deps = return_state.row_set(child);
         let parent_deps = return_state
           .rows()
           .filter(|(_, deps)| child_deps.is_superset(deps))

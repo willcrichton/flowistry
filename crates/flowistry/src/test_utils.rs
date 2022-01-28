@@ -1,13 +1,14 @@
 use std::{io, path::Path, process::Command};
 
 use anyhow::{anyhow, bail, Context, Result};
+use log::debug;
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::{BodyId, ItemKind};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::{source_map::FileLoader, BytePos, Span, SyntaxContext};
 
-use crate::mir::borrowck_facts;
+use crate::mir::{borrowck_facts, utils::BodyExt};
 
 struct StringLoader(String);
 impl FileLoader for StringLoader {
@@ -49,6 +50,7 @@ pub fn compile_body(
 
     let def_id = tcx.hir().body_owner_def_id(body_id);
     let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
+    debug!("{}", body_with_facts.body.to_string(tcx).unwrap());
 
     callback(tcx, body_id, body_with_facts);
   })

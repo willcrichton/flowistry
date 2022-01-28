@@ -1,4 +1,4 @@
-#![feature(rustc_private, in_band_lifetimes, box_patterns)]
+#![feature(rustc_private, in_band_lifetimes, box_patterns, slice_group_by)]
 #![allow(
   clippy::single_match,
   clippy::needless_lifetimes,

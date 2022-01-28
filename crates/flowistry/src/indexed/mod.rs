@@ -213,6 +213,10 @@ where
     self.set.count()
   }
 
+  pub fn is_empty(&self) -> bool {
+    self.len() == 0
+  }
+
   pub fn is_superset<S2: ToSet<T>>(&self, other: &IndexSet<T, S2>) -> bool {
     self.set.superset(&*other.set)
   }
@@ -353,6 +357,7 @@ where
 
 pub struct IndexMatrix<R: IndexedValue, C: IndexedValue> {
   matrix: HashMap<R::Index, IndexSetImpl<C::Index>>,
+  empty_set: IndexSetImpl<C::Index>,
   pub row_domain: Rc<R::Domain>,
   pub col_domain: Rc<C::Domain>,
 }
@@ -361,6 +366,7 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
   pub fn new(row_domain: &Rc<R::Domain>, col_domain: &Rc<C::Domain>) -> Self {
     IndexMatrix {
       matrix: HashMap::default(),
+      empty_set: IndexSetImpl::new_empty(col_domain.size()),
       row_domain: row_domain.clone(),
       col_domain: col_domain.clone(),
     }
@@ -397,17 +403,14 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
       return false;
     }
 
+    self.ensure_row(from);
     self.ensure_row(to);
 
-    match self.row_set(from) {
-      Some(from) => {
-        let to = self.row_set(to).unwrap();
-        // SAFETY: `from` != `to` therefore this is a disjoint mutable borrow
-        let mut to = unsafe { std::mem::transmute::<_, IndexSet<C, MutSet<C>>>(to) };
-        to.union(&from)
-      }
-      None => false,
-    }
+    let from = self.row_set(from);
+    let to = self.row_set(to);
+    // SAFETY: `from` != `to` therefore this is a disjoint mutable borrow
+    let mut to = unsafe { std::mem::transmute::<_, IndexSet<C, MutSet<C>>>(to) };
+    to.union(&from)
   }
 
   pub fn row<'a>(
@@ -422,15 +425,15 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
       .flat_map(move |set| set.iter().map(move |idx| self.col_domain.value(idx)))
   }
 
-  pub fn row_set<'a>(
-    &'a self,
-    row: impl ToIndex<R>,
-  ) -> Option<IndexSet<C, RefSet<'a, C>>> {
+  // This use to return Option<...> for the empty case, but in my experience it's usually fine to return an empty set
+  // and reduces the amount of error handling at the user's end.
+  pub fn row_set<'a>(&'a self, row: impl ToIndex<R>) -> IndexSet<C, RefSet<'a, C>> {
     let row = row.to_index(&self.row_domain);
-    self.matrix.get(&row).map(|set| IndexSet {
+    let set = self.matrix.get(&row).unwrap_or(&self.empty_set);
+    IndexSet {
       set: RefSet(set),
       domain: self.col_domain.clone(),
-    })
+    }
   }
 
   pub fn rows<'a>(
@@ -479,6 +482,7 @@ impl<R: IndexedValue, C: IndexedValue> Clone for IndexMatrix<R, C> {
   fn clone(&self) -> Self {
     Self {
       matrix: self.matrix.clone(),
+      empty_set: self.empty_set.clone(),
       row_domain: self.row_domain.clone(),
       col_domain: self.col_domain.clone(),
     }
@@ -493,6 +497,7 @@ impl<R: IndexedValue, C: IndexedValue> Clone for IndexMatrix<R, C> {
       self.ensure_row(*row).clone_from(col);
     }
 
+    self.empty_set = source.empty_set.clone();
     self.row_domain = source.row_domain.clone();
     self.col_domain = source.col_domain.clone();
   }
@@ -514,7 +519,7 @@ impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug
         f,
         "  {:?}: {:?},",
         self.row_domain.value(*row),
-        self.row_set(*row).unwrap()
+        self.row_set(*row)
       )?;
     }
 
@@ -529,15 +534,14 @@ impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx>
     write!(f, "{{")?;
 
     for row in self.matrix.keys() {
-      if let Some(row_set) = self.row_set(*row) {
-        if row_set.len() == 0 {
-          continue;
-        }
-
-        write!(f, "  {}: ", Escape(self.row_domain.value(*row)))?;
-        row_set.fmt_with(ctxt, f)?;
-        write!(f, "]<br align=\"left\" />")?;
+      let row_set = self.row_set(*row);
+      if row_set.len() == 0 {
+        continue;
       }
+
+      write!(f, "  {}: ", Escape(self.row_domain.value(*row)))?;
+      row_set.fmt_with(ctxt, f)?;
+      write!(f, "]<br align=\"left\" />")?;
     }
 
     write!(f, "}}<br align=\"left\" />")
@@ -553,19 +557,16 @@ impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx>
       return Ok(());
     }
 
-    let empty = IndexSet::new(&self.col_domain);
-    let empty = empty.as_ref();
     for (row, set) in self.rows() {
       let row_value = self.row_domain.value(row);
       let old_set = old.row_set(row);
-      let old_set = old_set.as_ref().unwrap_or(&empty);
 
-      if old_set == &set {
+      if old_set == set {
         continue;
       }
 
       write!(f, "{}: ", Escape(row_value))?;
-      set.fmt_diff_with(old_set, ctxt, f)?;
+      set.fmt_diff_with(&old_set, ctxt, f)?;
       writeln!(f)?;
     }
 
