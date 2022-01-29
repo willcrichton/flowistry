@@ -69,7 +69,7 @@ pub enum EnclosingHirSpans {
 }
 
 #[derive(Clone, Debug)]
-struct HirSpannedNode<'hir> {
+pub struct HirSpannedNode<'hir> {
   full: Span,
   outer: Vec<Span>,
   node: HirNode<'hir>,
@@ -225,9 +225,9 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
 }
 
 pub struct Spanner<'a, 'hir, 'tcx> {
-  hir_spans: Vec<HirSpannedNode<'hir>>,
-  mir_spans: Vec<MirSpannedPlace<'tcx>>,
-  crate body_span: Span,
+  pub hir_spans: Vec<HirSpannedNode<'hir>>,
+  pub mir_spans: Vec<MirSpannedPlace<'tcx>>,
+  pub body_span: Span,
   tcx: TyCtxt<'tcx>,
   body: &'a Body<'tcx>,
 }

@@ -153,23 +153,21 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
 
       try_analysis(move || flowistry_ide::playground::playground(range, args))
     }
-    "effects" => {
+    cmd @ ("effects" | "decompose" | "focus") => {
       let pos = arg::<usize>("POS");
       let id = FunctionIdentifier::Range(Range {
         start: pos,
         end: pos,
         filename: arg::<String>("FILE"),
       });
-      try_analysis(move || flowistry_ide::effects::effects(id, args))
-    }
-    "decompose" => {
-      let pos = arg::<usize>("POS");
-      let id = FunctionIdentifier::Range(Range {
-        start: pos,
-        end: pos,
-        filename: arg::<String>("FILE"),
-      });
-      try_analysis(move || flowistry_ide::decompose::decompose(id, args))
+      match cmd {
+        "effects" => try_analysis(move || flowistry_ide::effects::effects(id, args)),
+        "decompose" => {
+          try_analysis(move || flowistry_ide::decompose::decompose(id, args))
+        }
+        "focus" => try_analysis(move || flowistry_ide::focus::focus(id, args)),
+        _ => unreachable!(),
+      }
     }
     _ => unimplemented!(),
   }
