@@ -22,6 +22,7 @@ extern crate rustc_span;
 pub mod analysis;
 pub mod decompose;
 pub mod effects;
+pub mod focus;
 mod hir;
 pub mod mutations;
 pub mod playground;

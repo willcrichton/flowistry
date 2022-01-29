@@ -6,6 +6,7 @@ import { slice } from "./slicing";
 import { find_mutations } from "./mutations";
 import { effects } from "./effects";
 import { decompose } from "./decompose";
+import { focus } from "./focus";
 import { setup } from "./setup";
 
 import "./app.scss";
@@ -32,14 +33,29 @@ export async function activate(context: vscode.ExtensionContext) {
       });
     });
 
-    register_with_opts('highlight_mutations', () => find_mutations(call_flowistry!, 'highlight'));
-    register_with_opts('select_mutations', () => find_mutations(call_flowistry!, 'select'));
-    register_with_opts('backward_highlight_recurse', () => slice(call_flowistry!, 'backward', 'highlight', '--contextmode Recurse'));
-    register_with_opts('backward_highlight_ignoremut', () => slice(call_flowistry!, 'backward', 'highlight', '--mutabilitymode IgnoreMut'));
+    register_with_opts("highlight_mutations", () =>
+      find_mutations(call_flowistry!, "highlight")
+    );
+    register_with_opts("select_mutations", () =>
+      find_mutations(call_flowistry!, "select")
+    );
+    register_with_opts("backward_highlight_recurse", () =>
+      slice(call_flowistry!, "backward", "highlight", "--contextmode Recurse")
+    );
+    register_with_opts("backward_highlight_ignoremut", () =>
+      slice(
+        call_flowistry!,
+        "backward",
+        "highlight",
+        "--mutabilitymode IgnoreMut"
+      )
+    );
 
     register_with_opts("effects", () => effects(context, call_flowistry!));
 
     register_with_opts("decompose", () => decompose(call_flowistry!));
+
+    register_with_opts("focus", () => focus(call_flowistry!));
   } catch (e: any) {
     show_error(e.toString());
   }

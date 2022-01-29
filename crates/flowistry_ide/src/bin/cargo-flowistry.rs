@@ -54,6 +54,10 @@ fn main() {
       (@arg file:)
       (@arg pos:)
       (@arg flags: ...))
+    (@subcommand focus =>
+      (@arg file:)
+      (@arg pos:)
+      (@arg flags: ...))
     (@subcommand playground =>
       (@arg file:)
       (@arg start:)
@@ -99,7 +103,7 @@ fn main() {
       ],
       sub_m.value_of("file").unwrap(),
     ),
-    ("effects" | "decompose", Some(sub_m)) => (
+    ("effects" | "decompose" | "focus", Some(sub_m)) => (
       vec![
         ("FILE", sub_m.value_of("file").unwrap()),
         ("POS", sub_m.value_of("pos").unwrap()),
