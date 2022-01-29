@@ -1,5 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates&#x2F;flowistry&#x2F;src&#x2F;source_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>source_map.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../flowistry/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/source_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>source_map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../flowistry/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
+                                <input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -310,242 +312,778 @@
 <span id="309">309</span>
 <span id="310">310</span>
 <span id="311">311</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mir::utils</span>;
-<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
-<span class="kw">use</span> <span class="ident">rustc_data_structures</span>::{<span class="ident">fx::FxHashSet</span> <span class="kw">as</span> <span class="ident">HashSet</span>, <span class="ident">graph::iterate::reverse_post_order</span>};
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">either::Either</span>;
+<span class="kw">use</span> <span class="ident">log::trace</span>;
 <span class="kw">use</span> <span class="ident">rustc_hir</span>::{
   <span class="ident">intravisit</span>::{<span class="self">self</span>, <span class="ident">NestedVisitorMap</span>, <span class="ident">Visitor</span> <span class="kw">as</span> <span class="ident">HirVisitor</span>},
-  <span class="ident">BodyId</span>, <span class="ident">Expr</span>, <span class="ident">Stmt</span>,
+  <span class="ident">BodyId</span>, <span class="ident">Expr</span>, <span class="ident">ExprKind</span>, <span class="ident">MatchSource</span>, <span class="ident">Stmt</span>,
 };
-<span class="kw">use</span> <span class="ident">rustc_index::bit_set::HybridBitSet</span>;
 <span class="kw">use</span> <span class="ident">rustc_middle</span>::{
   <span class="ident">hir::map::Map</span>,
   <span class="ident">mir</span>::{
     <span class="ident">visit</span>::{
-      <span class="ident">MutatingUseContext</span>, <span class="ident">NonMutatingUseContext</span>, <span class="ident">NonUseContext</span>, <span class="ident">PlaceContext</span>, <span class="ident">Visitor</span> <span class="kw">as</span> <span class="ident">MirVisitor</span>,
+      <span class="ident">MutatingUseContext</span>, <span class="ident">NonMutatingUseContext</span>, <span class="ident">NonUseContext</span>, <span class="ident">PlaceContext</span>,
+      <span class="ident">Visitor</span> <span class="kw">as</span> <span class="ident">MirVisitor</span>,
     },
-    <span class="kw-2">*</span>,
+    <span class="ident">Body</span>, <span class="ident">HasLocalDecls</span>, <span class="ident">Location</span>, <span class="ident">Place</span>, <span class="ident">Terminator</span>, <span class="ident">TerminatorKind</span>,
   },
   <span class="ident">ty::TyCtxt</span>,
 };
-<span class="kw">use</span> <span class="ident">rustc_span</span>::{<span class="ident">source_map::SourceMap</span>, <span class="ident">Pos</span>, <span class="ident">Span</span>};
-<span class="kw">use</span> <span class="ident">smallvec</span>::{<span class="ident">smallvec</span>, <span class="ident">SmallVec</span>};
+<span class="kw">use</span> <span class="ident">rustc_span::Span</span>;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirSpanner</span> {
-  <span class="ident">expr_spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
-  <span class="ident">stmt_spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
-  <span class="ident">body_span</span>: <span class="ident">Span</span>,
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mir::utils</span>::{<span class="self">self</span>, <span class="ident">SpanExt</span>};
+
+<span class="kw">type</span> <span class="ident">HirNode</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;hir</span> <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;hir</span> <span class="ident">Stmt</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+
+<span class="comment">// Collect all the spans for children beneath the visited node.</span>
+<span class="comment">// For example, when visiting &quot;if true { 1 } else { 2 }&quot; then we</span>
+<span class="comment">// should collect: &quot;true&quot; &quot;1&quot; &quot;2&quot;</span>
+<span class="kw">struct</span> <span class="ident">ChildExprSpans</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+  <span class="ident">spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
+  <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 }
+<span class="kw">impl</span> <span class="ident">HirVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ChildExprSpans</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+  <span class="kw">type</span> <span class="ident">Map</span> <span class="op">=</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span>;
 
-<span class="kw">impl</span> <span class="ident">HirSpanner</span> {
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">tcx</span>: <span class="ident">TyCtxt</span>, <span class="ident">body_id</span>: <span class="ident">BodyId</span>) -&gt; <span class="self">Self</span> {
-    <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">body</span>(<span class="ident">body_id</span>);
+  <span class="kw">fn</span> <span class="ident">nested_visit_map</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">NestedVisitorMap</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Map</span><span class="op">&gt;</span> {
+    <span class="ident">NestedVisitorMap::None</span>
+  }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spanner</span> <span class="op">=</span> <span class="ident">HirSpanner</span> {
-      <span class="ident">expr_spans</span>: <span class="ident">Vec::new</span>(),
-      <span class="ident">stmt_spans</span>: <span class="ident">Vec::new</span>(),
-      <span class="ident">body_span</span>: <span class="ident">body</span>.<span class="ident">value</span>.<span class="ident">span</span>,
-    };
-
-    <span class="kw">struct</span> <span class="ident">Collector</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">HirSpanner</span>);
-
-    <span class="kw">impl</span> <span class="ident">HirVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Collector</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-      <span class="kw">type</span> <span class="ident">Map</span> <span class="op">=</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span>;
-
-      <span class="kw">fn</span> <span class="ident">nested_visit_map</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">NestedVisitorMap</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Map</span><span class="op">&gt;</span> {
-        <span class="ident">NestedVisitorMap::None</span>
+  <span class="kw">fn</span> <span class="ident">visit_expr</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ex</span>: <span class="kw-2">&amp;</span><span class="ident">Expr</span>) {
+    <span class="kw">match</span> <span class="ident">ex</span>.<span class="ident">kind</span> {
+      <span class="comment">// Don&#39;t take the span for the whole block, since we want to leave</span>
+      <span class="comment">// curly braces to be associated with the outer statement</span>
+      <span class="ident">ExprKind::Block</span>(..) =&gt; {
+        <span class="ident">intravisit::walk_expr</span>(<span class="self">self</span>, <span class="ident">ex</span>);
       }
-
-      <span class="comment">// source_callsite gets the top-level source location if span is</span>
-      <span class="comment">// from a macro expansion</span>
-      <span class="kw">fn</span> <span class="ident">visit_expr</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Expr</span>) {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">expr_spans</span>.<span class="ident">push</span>(<span class="ident">expr</span>.<span class="ident">span</span>.<span class="ident">source_callsite</span>());
-        <span class="ident">intravisit::walk_expr</span>(<span class="self">self</span>, <span class="ident">expr</span>);
+      <span class="ident">ExprKind::Match</span>(<span class="kw">_</span>, <span class="ident">arms</span>, <span class="ident">MatchSource::ForLoopDesugar</span>) =&gt; {
+        <span class="kw">for</span> <span class="ident">arm</span> <span class="kw">in</span> <span class="ident">arms</span> {
+          <span class="ident">intravisit::walk_arm</span>(<span class="self">self</span>, <span class="ident">arm</span>);
+        }
       }
-
-      <span class="kw">fn</span> <span class="ident">visit_stmt</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">stmt</span>: <span class="kw-2">&amp;</span><span class="ident">Stmt</span>) {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">stmt_spans</span>.<span class="ident">push</span>(<span class="ident">stmt</span>.<span class="ident">span</span>.<span class="ident">source_callsite</span>());
-        <span class="ident">intravisit::walk_stmt</span>(<span class="self">self</span>, <span class="ident">stmt</span>);
+      <span class="kw">_</span> =&gt; {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="op">=</span> <span class="ident">ex</span>.<span class="ident">span</span>.<span class="ident">as_local</span>(<span class="self">self</span>.<span class="ident">tcx</span>) {
+          <span class="self">self</span>.<span class="ident">spans</span>.<span class="ident">push</span>(<span class="ident">span</span>);
+        }
       }
     }
+  }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">collector</span> <span class="op">=</span> <span class="ident">Collector</span>(<span class="kw-2">&amp;mut</span> <span class="ident">spanner</span>);
-    <span class="ident">intravisit::walk_body</span>(<span class="kw-2">&amp;mut</span> <span class="ident">collector</span>, <span class="ident">body</span>);
+  <span class="kw">fn</span> <span class="ident">visit_stmt</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">stmt</span>: <span class="kw-2">&amp;</span><span class="ident">Stmt</span>) {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="op">=</span> <span class="ident">stmt</span>.<span class="ident">span</span>.<span class="ident">as_local</span>(<span class="self">self</span>.<span class="ident">tcx</span>) {
+      <span class="self">self</span>.<span class="ident">spans</span>.<span class="ident">push</span>(<span class="ident">span</span>);
+    }
+  }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EnclosingHirSpans</span> {
+  <span class="ident">OuterOnly</span>,
+  <span class="ident">Full</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirSpannedNode</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span> {
+  <span class="ident">full</span>: <span class="ident">Span</span>,
+  <span class="ident">outer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
+  <span class="ident">node</span>: <span class="ident">HirNode</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">HirSpannedNode</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+  <span class="kw">fn</span> <span class="ident">get_spans</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span_type</span>: <span class="ident">EnclosingHirSpans</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="ident">span_type</span> {
+      <span class="ident">EnclosingHirSpans::OuterOnly</span> =&gt; <span class="self">self</span>.<span class="ident">outer</span>.<span class="ident">clone</span>(),
+      <span class="ident">EnclosingHirSpans::Full</span> =&gt; <span class="macro">vec!</span>[<span class="self">self</span>.<span class="ident">full</span>],
+    }
+  }
+}
+
+<span class="kw">struct</span> <span class="ident">HirSpanCollector</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Spanner</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>);
+
+<span class="kw">impl</span> <span class="ident">HirVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">HirSpanCollector</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+  <span class="kw">type</span> <span class="ident">Map</span> <span class="op">=</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span>;
+
+  <span class="kw">fn</span> <span class="ident">nested_visit_map</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">NestedVisitorMap</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Map</span><span class="op">&gt;</span> {
+    <span class="ident">NestedVisitorMap::None</span>
+  }
+
+  <span class="kw">fn</span> <span class="ident">visit_expr</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;hir</span> <span class="ident">Expr</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span>) {
+    <span class="ident">intravisit::walk_expr</span>(<span class="self">self</span>, <span class="ident">expr</span>);
+
+    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">expr</span>.<span class="ident">span</span>.<span class="ident">as_local</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">tcx</span>) {
+      <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="kw">if</span> <span class="ident">span</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">body_span</span> =&gt; <span class="ident">span</span>,
+      <span class="kw">_</span> =&gt; {
+        <span class="kw">return</span>;
+      }
+    };
+
+    <span class="kw">let</span> <span class="ident">inner_spans</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">expr</span>.<span class="ident">kind</span> {
+      <span class="ident">ExprKind::Loop</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">header</span>) =&gt; {
+        <span class="macro">vec!</span>[<span class="ident">expr</span>.<span class="ident">span</span>.<span class="ident">trim_start</span>(<span class="ident">header</span>).<span class="ident">unwrap_or</span>(<span class="ident">expr</span>.<span class="ident">span</span>)]
+      }
+      <span class="ident">ExprKind::Break</span>(..) =&gt; {
+        <span class="kw">return</span>;
+      }
+      <span class="kw">_</span> =&gt; {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <span class="ident">ChildExprSpans</span> {
+          <span class="ident">spans</span>: <span class="ident">Vec::new</span>(),
+          <span class="ident">tcx</span>: <span class="self">self</span>.<span class="number">0</span>.<span class="ident">tcx</span>,
+        };
+        <span class="ident">intravisit::walk_expr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">visitor</span>, <span class="ident">expr</span>);
+        <span class="ident">visitor</span>.<span class="ident">spans</span>
+      }
+    };
+
+    <span class="kw">let</span> <span class="ident">outer_spans</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">subtract</span>(<span class="ident">inner_spans</span>.<span class="ident">clone</span>());
+
+    <span class="macro">trace!</span>(
+      <span class="string">&quot;Expr:\n{}\nhas span: {:?}\nand inner spans: {:?}\nand outer spans: {:?}&quot;</span>,
+      <span class="ident">expr_to_string</span>(<span class="ident">expr</span>),
+      <span class="ident">span</span>,
+      <span class="ident">inner_spans</span>,
+      <span class="ident">outer_spans</span>
+    );
+
+    <span class="kw">if</span> <span class="ident">outer_spans</span>.<span class="ident">is_empty</span>() {
+      <span class="kw">return</span>;
+    }
+
+    <span class="self">self</span>.<span class="number">0</span>.<span class="ident">hir_spans</span>.<span class="ident">push</span>(<span class="ident">HirSpannedNode</span> {
+      <span class="ident">full</span>: <span class="ident">span</span>,
+      <span class="ident">outer</span>: <span class="ident">outer_spans</span>,
+      <span class="ident">node</span>: <span class="ident">Either::Left</span>(<span class="ident">expr</span>),
+    });
+  }
+
+  <span class="kw">fn</span> <span class="ident">visit_stmt</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">stmt</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;hir</span> <span class="ident">Stmt</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span>) {
+    <span class="ident">intravisit::walk_stmt</span>(<span class="self">self</span>, <span class="ident">stmt</span>);
+
+    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">stmt</span>.<span class="ident">span</span>.<span class="ident">as_local</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">tcx</span>) {
+      <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="kw">if</span> <span class="ident">span</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">body_span</span> =&gt; <span class="ident">span</span>,
+      <span class="kw">_</span> =&gt; {
+        <span class="kw">return</span>;
+      }
+    };
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <span class="ident">ChildExprSpans</span> {
+      <span class="ident">spans</span>: <span class="ident">Vec::new</span>(),
+      <span class="ident">tcx</span>: <span class="self">self</span>.<span class="number">0</span>.<span class="ident">tcx</span>,
+    };
+    <span class="ident">intravisit::walk_stmt</span>(<span class="kw-2">&amp;mut</span> <span class="ident">visitor</span>, <span class="ident">stmt</span>);
+    <span class="kw">let</span> <span class="ident">outer_spans</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">subtract</span>(<span class="ident">visitor</span>.<span class="ident">spans</span>);
+
+    <span class="self">self</span>.<span class="number">0</span>.<span class="ident">hir_spans</span>.<span class="ident">push</span>(<span class="ident">HirSpannedNode</span> {
+      <span class="ident">full</span>: <span class="ident">span</span>,
+      <span class="ident">outer</span>: <span class="ident">outer_spans</span>,
+      <span class="ident">node</span>: <span class="ident">Either::Right</span>(<span class="ident">stmt</span>),
+    });
+  }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirSpannedPlace</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+  <span class="kw">pub</span> <span class="ident">place</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+  <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
+  <span class="kw">pub</span> <span class="ident">location</span>: <span class="ident">Location</span>,
+}
+
+<span class="kw">struct</span> <span class="ident">MirSpanCollector</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Spanner</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>);
+
+<span class="kw">impl</span> <span class="ident">MirVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MirSpanCollector</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+  <span class="kw">fn</span> <span class="ident">visit_place</span>(
+    <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+    <span class="ident">place</span>: <span class="kw-2">&amp;</span><span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    <span class="ident">context</span>: <span class="ident">PlaceContext</span>,
+    <span class="ident">location</span>: <span class="ident">Location</span>,
+  ) {
+    <span class="comment">// Three cases, shown by example:</span>
+    <span class="comment">//   fn foo(x: i32) {</span>
+    <span class="comment">//     let y = x + 1;</span>
+    <span class="comment">//   }</span>
+    <span class="comment">// If the user selects...</span>
+    <span class="comment">// * &quot;x: i32&quot; -- this span is contained in the LocalDecls for _1,</span>
+    <span class="comment">//   which is represented by NonUseContext::VarDebugInfo</span>
+    <span class="comment">// * &quot;x + 1&quot; -- MIR will generate a temporary to assign x into, whose</span>
+    <span class="comment">//   span is given to &quot;x&quot;. That corresponds to MutatingUseContext::Store</span>
+    <span class="comment">// * &quot;y&quot; -- this corresponds to NonMutatingUseContext::Inspect</span>
+    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">context</span> {
+      <span class="ident">PlaceContext::MutatingUse</span>(<span class="ident">MutatingUseContext::Store</span>)
+      <span class="op">|</span> <span class="ident">PlaceContext::NonMutatingUse</span>(<span class="ident">NonMutatingUseContext::Inspect</span>) =&gt; {
+        <span class="kw">let</span> <span class="ident">source_info</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">body</span>.<span class="ident">source_info</span>(<span class="ident">location</span>);
+        <span class="ident">source_info</span>.<span class="ident">span</span>
+      }
+      <span class="ident">PlaceContext::NonUse</span>(<span class="ident">NonUseContext::VarDebugInfo</span>)
+        <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">body</span>.<span class="ident">args_iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">local</span><span class="op">|</span> <span class="ident">local</span> <span class="op">==</span> <span class="ident">place</span>.<span class="ident">local</span>) =&gt;
+      {
+        <span class="kw">let</span> <span class="ident">source_info</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">body</span>.<span class="ident">local_decls</span>()[<span class="ident">place</span>.<span class="ident">local</span>].<span class="ident">source_info</span>;
+        <span class="ident">source_info</span>.<span class="ident">span</span>
+      }
+      <span class="kw">_</span> =&gt; {
+        <span class="kw">return</span>;
+      }
+    };
+
+    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">span</span>.<span class="ident">as_local</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">tcx</span>) {
+      <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">span</span>.<span class="ident">source_equal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.<span class="ident">body_span</span>) =&gt; <span class="ident">span</span>,
+      <span class="kw">_</span> =&gt; {
+        <span class="kw">return</span>;
+      }
+    };
+
+    <span class="self">self</span>.<span class="number">0</span>.<span class="ident">mir_spans</span>.<span class="ident">push</span>(<span class="ident">MirSpannedPlace</span> {
+      <span class="ident">place</span>: <span class="kw-2">*</span><span class="ident">place</span>,
+      <span class="ident">location</span>,
+      <span class="ident">span</span>,
+    });
+  }
+}
+
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Spanner</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+  <span class="kw">pub</span> <span class="ident">hir_spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirSpannedNode</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+  <span class="kw">pub</span> <span class="ident">mir_spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirSpannedPlace</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+  <span class="kw">pub</span> <span class="ident">body_span</span>: <span class="ident">Span</span>,
+  <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+  <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Spanner</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+  <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;hir</span>,
+{
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">body_id</span>: <span class="ident">BodyId</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">let</span> <span class="ident">hir_body</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">body</span>(<span class="ident">body_id</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spanner</span> <span class="op">=</span> <span class="ident">Spanner</span> {
+      <span class="ident">hir_spans</span>: <span class="ident">Vec::new</span>(),
+      <span class="ident">mir_spans</span>: <span class="ident">Vec::new</span>(),
+      <span class="ident">body_span</span>: <span class="ident">hir_body</span>.<span class="ident">value</span>.<span class="ident">span</span>,
+      <span class="ident">tcx</span>,
+      <span class="ident">body</span>,
+    };
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hir_collector</span> <span class="op">=</span> <span class="ident">HirSpanCollector</span>(<span class="kw-2">&amp;mut</span> <span class="ident">spanner</span>);
+    <span class="ident">hir_collector</span>.<span class="ident">visit_body</span>(<span class="ident">hir_body</span>);
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mir_collector</span> <span class="op">=</span> <span class="ident">MirSpanCollector</span>(<span class="kw-2">&amp;mut</span> <span class="ident">spanner</span>);
+    <span class="ident">mir_collector</span>.<span class="ident">visit_body</span>(<span class="ident">body</span>);
 
     <span class="ident">spanner</span>
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_enclosing_hir_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="ident">SmallVec</span><span class="op">&lt;</span>[<span class="ident">Span</span>; <span class="number">2</span>]<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">find</span> <span class="op">=</span> <span class="op">|</span><span class="ident">spans</span>: <span class="kw-2">&amp;</span>[<span class="ident">Span</span>]<span class="op">|</span> {
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_matching</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+    <span class="ident">predicate</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Span</span>) -&gt; <span class="ident">bool</span>,
+    <span class="ident">spans</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">Span</span>, <span class="ident">T</span>)<span class="op">&gt;</span>,
+  ) -&gt; <span class="kw">impl</span> <span class="ident">ExactSizeIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matching</span> <span class="op">=</span> <span class="ident">spans</span>
+      .<span class="ident">filter</span>(<span class="op">|</span>(<span class="ident">span</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">predicate</span>(<span class="kw-2">*</span><span class="ident">span</span>))
+      .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    <span class="ident">matching</span>.<span class="ident">sort_by_key</span>(<span class="op">|</span>(<span class="ident">span</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">span</span>.<span class="ident">size</span>());
+    <span class="ident">matching</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">t</span>)<span class="op">|</span> <span class="ident">t</span>)
+  }
+
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location_to_spans</span>(
+    <span class="kw-2">&amp;</span><span class="self">self</span>,
+    <span class="ident">location</span>: <span class="ident">Location</span>,
+    <span class="ident">span_type</span>: <span class="ident">EnclosingHirSpans</span>,
+  ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
+    <span class="comment">// special case for synthetic locations that represent arguments</span>
+    <span class="kw">if</span> <span class="ident">location</span>.<span class="ident">block</span>.<span class="ident">as_usize</span>() <span class="op">==</span> <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">basic_blocks</span>().<span class="ident">len</span>() {
+      <span class="kw">return</span> <span class="macro">vec!</span>[];
+    }
+
+    <span class="kw">let</span> <span class="ident">loc_span</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">source_info</span>(<span class="ident">location</span>).<span class="ident">span</span>.<span class="ident">as_local</span>(<span class="self">self</span>.<span class="ident">tcx</span>) {
+      <span class="prelude-val">Some</span>(<span class="ident">span</span>) =&gt; <span class="ident">span</span>,
+      <span class="prelude-val">None</span> =&gt; {
+        <span class="kw">return</span> <span class="macro">vec!</span>[];
+      }
+    };
+    <span class="kw">if</span> <span class="ident">loc_span</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">body_span</span> <span class="op">|</span><span class="op">|</span> <span class="ident">loc_span</span>.<span class="ident">is_dummy</span>() {
+      <span class="kw">return</span> <span class="macro">vec!</span>[];
+    }
+
+    <span class="kw">let</span> <span class="ident">is_return</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">stmt_at</span>(<span class="ident">location</span>) {
+      <span class="ident">Either::Right</span>(<span class="ident">Terminator</span> {
+        <span class="ident">kind</span>:
+          <span class="ident">TerminatorKind::Return</span> <span class="op">|</span> <span class="ident">TerminatorKind::Resume</span> <span class="op">|</span> <span class="ident">TerminatorKind::Drop</span> { .. },
+        ..
+      }) =&gt; <span class="bool-val">true</span>,
+      <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+    };
+    <span class="kw">if</span> <span class="ident">is_return</span> {
+      <span class="kw">return</span> <span class="macro">vec!</span>[];
+    }
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">enclosing_hir</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::find_matching</span>(
+      <span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="ident">span</span>.<span class="ident">contains</span>(<span class="ident">loc_span</span>),
+      <span class="self">self</span>.<span class="ident">hir_spans</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">span</span><span class="op">|</span> (<span class="ident">span</span>.<span class="ident">full</span>, <span class="ident">span</span>)),
+    )
+    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+
+    <span class="comment">// Get the spans of the immediately enclosing HIR node</span>
+    <span class="macro">assert!</span>(
+      <span class="op">!</span><span class="ident">enclosing_hir</span>.<span class="ident">is_empty</span>(),
+      <span class="string">&quot;Location {location:?} (span {loc_span:?}) had no enclosing HIR nodes&quot;</span>
+    );
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hir_spans</span> <span class="op">=</span> <span class="ident">enclosing_hir</span>.<span class="ident">remove</span>(<span class="number">0</span>).<span class="ident">get_spans</span>(<span class="ident">span_type</span>);
+    <span class="comment">// trace!(</span>
+    <span class="comment">//   &quot;Initial hir node:\n{}\nhas spans: {:?}&quot;,</span>
+    <span class="comment">//   node_to_string(node),</span>
+    <span class="comment">//   hir_spans</span>
+    <span class="comment">// );</span>
+
+    <span class="comment">// Include the MIR span</span>
+    <span class="ident">hir_spans</span>.<span class="ident">push</span>(<span class="ident">loc_span</span>);
+
+    <span class="comment">// Add the spans of the first enclosing statement</span>
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">hir_span</span>) <span class="op">=</span> <span class="ident">enclosing_hir</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="ident">span</span>.<span class="ident">node</span>.<span class="ident">is_right</span>()) {
+      <span class="comment">// trace!(</span>
+      <span class="comment">//   &quot;Spans for stmt:\n{}\nare {:?}&quot;,</span>
+      <span class="comment">//   stmt_to_string(hir_span.node.right().unwrap()),</span>
+      <span class="comment">// );</span>
+      <span class="ident">hir_spans</span>.<span class="ident">extend</span>(<span class="ident">hir_span</span>.<span class="ident">get_spans</span>(<span class="ident">span_type</span>));
+    }
+
+    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Either::Right</span>(<span class="ident">terminator</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">stmt_at</span>(<span class="ident">location</span>) {
+      <span class="kw">match</span> <span class="ident">terminator</span>.<span class="ident">kind</span> {
+        <span class="ident">TerminatorKind::SwitchInt</span> { .. } =&gt; {
+          <span class="comment">// If the location is a switch, then include the closest enclosing if or loop</span>
+          <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">spans</span>) <span class="op">=</span> <span class="ident">enclosing_hir</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">span</span><span class="op">|</span> {
+              <span class="macro">matches!</span>(
+                <span class="ident">span</span>.<span class="ident">node</span>.<span class="ident">left</span>()<span class="question-mark">?</span>.<span class="ident">kind</span>,
+                <span class="ident">ExprKind::If</span>(..) <span class="op">|</span> <span class="ident">ExprKind::Loop</span>(..)
+              )
+              .<span class="ident">then</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">span</span>.<span class="ident">get_spans</span>(<span class="ident">span_type</span>))
+            })
+            .<span class="ident">next</span>()
+          {
+            <span class="comment">// trace!(&quot;Switch spans: {:?}&quot;, spans);</span>
+            <span class="ident">hir_spans</span>.<span class="ident">extend</span>(<span class="ident">spans</span>);
+          }
+        }
+        <span class="kw">_</span> =&gt; {}
+      }
+    }
+
+    <span class="kw">let</span> <span class="ident">format_spans</span> <span class="op">=</span> <span class="op">|</span><span class="ident">spans</span>: <span class="kw-2">&amp;</span>[<span class="ident">Span</span>]<span class="op">|</span> -&gt; <span class="ident">String</span> {
       <span class="ident">spans</span>
         .<span class="ident">iter</span>()
-        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">hir_span</span><span class="op">|</span> <span class="ident">hir_span</span>.<span class="ident">contains</span>(<span class="ident">span</span>))
-        .<span class="ident">min_by_key</span>(<span class="op">|</span><span class="ident">hir_span</span><span class="op">|</span> <span class="ident">hir_span</span>.<span class="ident">hi</span>() <span class="op">-</span> <span class="ident">hir_span</span>.<span class="ident">lo</span>())
-        .<span class="ident">cloned</span>()
-        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">span</span><span class="op">|</span> (<span class="ident">span</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">body_span</span>).<span class="ident">then</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">span</span>))
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="ident">span</span>.<span class="ident">to_string</span>(<span class="self">self</span>.<span class="ident">tcx</span>))
+        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+        .<span class="ident">join</span>(<span class="string">&quot; -- &quot;</span>)
     };
 
-    <span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">expr_spans</span>)
-      .<span class="ident">into_iter</span>()
-      .<span class="ident">chain</span>(<span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">stmt_spans</span>))
-      .<span class="ident">collect</span>()
-  }
-}
+    <span class="macro">trace!</span>(
+      <span class="string">&quot;Location {location:?} ({})\n  has loc span:\n  {}\n  and HIR spans:\n  {}&quot;</span>,
+      <span class="ident">utils::location_to_string</span>(<span class="ident">location</span>, <span class="self">self</span>.<span class="ident">body</span>),
+      <span class="ident">format_spans</span>(<span class="kw-2">&amp;</span>[<span class="ident">loc_span</span>]),
+      <span class="ident">format_spans</span>(<span class="kw-2">&amp;</span><span class="ident">hir_spans</span>)
+    );
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location_to_spans</span>(
-  <span class="ident">location</span>: <span class="ident">Location</span>,
-  <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span>,
-  <span class="ident">spanner</span>: <span class="kw-2">&amp;</span><span class="ident">HirSpanner</span>,
-  <span class="ident">source_map</span>: <span class="kw-2">&amp;</span><span class="ident">SourceMap</span>,
-) -&gt; <span class="ident">SmallVec</span><span class="op">&lt;</span>[<span class="ident">Span</span>; <span class="number">4</span>]<span class="op">&gt;</span> {
-  <span class="comment">// special case for synthetic locations that represent arguments</span>
-  <span class="kw">if</span> <span class="ident">location</span>.<span class="ident">block</span>.<span class="ident">as_usize</span>() <span class="op">==</span> <span class="ident">body</span>.<span class="ident">basic_blocks</span>().<span class="ident">len</span>() {
-    <span class="kw">return</span> <span class="macro">smallvec!</span>[];
+    <span class="ident">hir_spans</span>
   }
 
-  <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mir_spans</span>: <span class="ident">SmallVec</span><span class="op">&lt;</span>[<span class="ident">Span</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="macro">smallvec!</span>[<span class="ident">body</span>.<span class="ident">source_info</span>(<span class="ident">location</span>).<span class="ident">span</span>];
-  <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">body</span>.<span class="ident">basic_blocks</span>()[<span class="ident">location</span>.<span class="ident">block</span>];
-  <span class="kw">if</span> <span class="ident">location</span>.<span class="ident">statement_index</span> <span class="op">==</span> <span class="ident">block</span>.<span class="ident">statements</span>.<span class="ident">len</span>() {
-    <span class="kw">match</span> <span class="ident">block</span>.<span class="ident">terminator</span>().<span class="ident">kind</span> {
-      <span class="ident">TerminatorKind::SwitchInt</span> { .. } =&gt; {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reachable_set</span> <span class="op">=</span> <span class="ident">HybridBitSet::new_empty</span>(<span class="ident">body</span>.<span class="ident">basic_blocks</span>().<span class="ident">len</span>());
-        <span class="kw">for</span> <span class="ident">block</span> <span class="kw">in</span> <span class="ident">reverse_post_order</span>(<span class="ident">body</span>, <span class="ident">location</span>.<span class="ident">block</span>) {
-          <span class="ident">reachable_set</span>.<span class="ident">insert</span>(<span class="ident">block</span>);
-        }
-
-        <span class="kw">for</span> <span class="ident">pred</span> <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">predecessors</span>()[<span class="ident">location</span>.<span class="ident">block</span>]
-          .<span class="ident">iter</span>()
-          .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pred</span><span class="op">|</span> <span class="ident">reachable_set</span>.<span class="ident">contains</span>(<span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">pred</span>))
-        {
-          <span class="kw">let</span> <span class="ident">loop_span</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">source_info</span>(<span class="ident">body</span>.<span class="ident">terminator_loc</span>(<span class="kw-2">*</span><span class="ident">pred</span>)).<span class="ident">span</span>;
-          <span class="ident">mir_spans</span>.<span class="ident">push</span>(<span class="ident">loop_span</span>);
-        }
-      }
-      <span class="kw">_</span> =&gt; {}
-    }
-  }
-
-  <span class="comment">// source_callsite gets the top-level source location if span is</span>
-  <span class="comment">// from a macro expansion</span>
-  <span class="kw">for</span> <span class="ident">span</span> <span class="kw">in</span> <span class="ident">mir_spans</span>.<span class="ident">iter_mut</span>() {
-    <span class="kw-2">*</span><span class="ident">span</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">source_callsite</span>();
-  }
-
-  <span class="kw">let</span> <span class="ident">format_spans</span> <span class="op">=</span> <span class="op">|</span><span class="ident">spans</span>: <span class="kw-2">&amp;</span>[<span class="ident">Span</span>]<span class="op">|</span> -&gt; <span class="ident">String</span> {
-    <span class="ident">spans</span>
-      .<span class="ident">iter</span>()
-      .<span class="ident">map</span>(<span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="ident">span_to_string</span>(<span class="kw-2">*</span><span class="ident">span</span>, <span class="ident">source_map</span>))
-      .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-      .<span class="ident">join</span>(<span class="string">&quot; -- &quot;</span>)
-  };
-
-  <span class="kw">let</span> <span class="ident">hir_spans</span> <span class="op">=</span> <span class="ident">mir_spans</span>
-    .<span class="ident">clone</span>()
-    .<span class="ident">into_iter</span>()
-    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">mir_span</span><span class="op">|</span> <span class="ident">spanner</span>.<span class="ident">find_enclosing_hir_span</span>(<span class="ident">mir_span</span>))
-    .<span class="ident">flatten</span>()
-    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">SmallVec</span><span class="op">&lt;</span>[<span class="ident">Span</span>; <span class="number">4</span>]<span class="op">&gt;</span><span class="op">&gt;</span>();
-
-  <span class="macro">trace!</span>(
-    <span class="string">&quot;Location {:?} ({})\n  has MIR spans:\n  {}\n  and HIR spans:\n  {}&quot;</span>,
-    <span class="ident">location</span>,
-    <span class="ident">utils::location_to_string</span>(<span class="ident">location</span>, <span class="ident">body</span>),
-    <span class="ident">format_spans</span>(<span class="kw-2">&amp;</span><span class="ident">mir_spans</span>),
-    <span class="ident">format_spans</span>(<span class="kw-2">&amp;</span><span class="ident">hir_spans</span>)
-  );
-
-  <span class="ident">hir_spans</span>
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_to_string</span>(<span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">source_map</span>: <span class="kw-2">&amp;</span><span class="ident">SourceMap</span>) -&gt; <span class="ident">String</span> {
-  <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="ident">source_map</span>.<span class="ident">lookup_char_pos</span>(<span class="ident">span</span>.<span class="ident">lo</span>());
-  <span class="kw">let</span> <span class="ident">hi</span> <span class="op">=</span> <span class="ident">source_map</span>.<span class="ident">lookup_char_pos</span>(<span class="ident">span</span>.<span class="ident">hi</span>());
-  <span class="kw">let</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="ident">source_map</span>.<span class="ident">span_to_snippet</span>(<span class="ident">span</span>).<span class="ident">unwrap</span>();
-  <span class="macro">format!</span>(
-    <span class="string">&quot;{} ({}:{}-{}:{})&quot;</span>,
-    <span class="ident">snippet</span>,
-    <span class="ident">lo</span>.<span class="ident">line</span>,
-    <span class="ident">lo</span>.<span class="ident">col</span>.<span class="ident">to_usize</span>() <span class="op">+</span> <span class="number">1</span>,
-    <span class="ident">hi</span>.<span class="ident">line</span>,
-    <span class="ident">hi</span>.<span class="ident">col</span>.<span class="ident">to_usize</span>() <span class="op">+</span> <span class="number">1</span>
-  )
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_to_place</span>(<span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Location</span>, <span class="ident">Span</span>)<span class="op">&gt;</span> {
-  <span class="kw">struct</span> <span class="ident">FindSpannedPlaces</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_to_places</span><span class="op">&lt;</span><span class="lifetime">&#39;this</span><span class="op">&gt;</span>(
+    <span class="kw-2">&amp;</span><span class="lifetime">&#39;this</span> <span class="self">self</span>,
     <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="ident">places</span>: <span class="ident">HashSet</span><span class="op">&lt;</span>(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Location</span>, <span class="ident">Span</span>)<span class="op">&gt;</span>,
-  }
+  ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;this</span> <span class="ident">MirSpannedPlace</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="comment">// Note that MIR does not have granular source maps around projections.</span>
+    <span class="comment">// So in the expression `let x = z.0`, the MIR Body only contains the place</span>
+    <span class="comment">// z.0 with a span for the string &quot;z.0&quot;. If the user selects only &quot;z&quot;, there</span>
+    <span class="comment">// is no way to determine map that selection back to a subset of the projection.</span>
+    <span class="comment">//</span>
+    <span class="comment">// At least, we can conservatively include the containing span &quot;z.0&quot; and slice on that.</span>
 
-  <span class="kw">impl</span> <span class="ident">MirVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FindSpannedPlaces</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">visit_place</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">place</span>: <span class="kw-2">&amp;</span><span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">context</span>: <span class="ident">PlaceContext</span>, <span class="ident">location</span>: <span class="ident">Location</span>) {
-      <span class="comment">// Three cases, shown by example:</span>
-      <span class="comment">//   fn foo(x: i32) {</span>
-      <span class="comment">//     let y = x + 1;</span>
-      <span class="comment">//   }</span>
-      <span class="comment">// If the user selects...</span>
-      <span class="comment">// * &quot;x: i32&quot; -- this span is contained in the LocalDecls for _1,</span>
-      <span class="comment">//   which is represented by NonUseContext::VarDebugInfo</span>
-      <span class="comment">// * &quot;x + 1&quot; -- MIR will generate a temporary to assign x into, whose</span>
-      <span class="comment">//   span is given to &quot;x&quot;. That corresponds to MutatingUseContext::Store</span>
-      <span class="comment">// * &quot;y&quot; -- this corresponds to NonMutatingUseContext::Inspect</span>
-      <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">context</span> {
-        <span class="ident">PlaceContext::MutatingUse</span>(<span class="ident">MutatingUseContext::Store</span>)
-        <span class="op">|</span> <span class="ident">PlaceContext::NonMutatingUse</span>(<span class="ident">NonMutatingUseContext::Inspect</span>) =&gt; {
-          <span class="kw">let</span> <span class="ident">source_info</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">source_info</span>(<span class="ident">location</span>);
-          <span class="ident">source_info</span>.<span class="ident">span</span>
-        }
-        <span class="ident">PlaceContext::NonUse</span>(<span class="ident">NonUseContext::VarDebugInfo</span>)
-          <span class="kw">if</span> <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">args_iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">local</span><span class="op">|</span> <span class="ident">local</span> <span class="op">==</span> <span class="ident">place</span>.<span class="ident">local</span>) =&gt;
-        {
-          <span class="kw">let</span> <span class="ident">source_info</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">local_decls</span>()[<span class="ident">place</span>.<span class="ident">local</span>].<span class="ident">source_info</span>;
-          <span class="ident">source_info</span>.<span class="ident">span</span>
-        }
-        <span class="kw">_</span> =&gt; {
-          <span class="kw">return</span>;
-        }
-      };
+    <span class="kw">let</span> <span class="ident">spans</span> <span class="op">=</span> <span class="self">self</span>
+      .<span class="ident">mir_spans</span>
+      .<span class="ident">iter</span>()
+      .<span class="ident">map</span>(<span class="op">|</span><span class="ident">mir_span</span><span class="op">|</span> (<span class="ident">mir_span</span>.<span class="ident">span</span>, <span class="ident">mir_span</span>));
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contained</span> <span class="op">=</span>
+      <span class="ident"><span class="self">Self</span>::find_matching</span>(<span class="op">|</span><span class="ident">mir_span</span><span class="op">|</span> <span class="ident">span</span>.<span class="ident">contains</span>(<span class="ident">mir_span</span>), <span class="ident">spans</span>.<span class="ident">clone</span>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">containing</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::find_matching</span>(<span class="op">|</span><span class="ident">mir_span</span><span class="op">|</span> <span class="ident">mir_span</span>.<span class="ident">contains</span>(<span class="ident">span</span>), <span class="ident">spans</span>);
 
-      <span class="kw">if</span> <span class="ident">span</span>.<span class="ident">from_expansion</span>() {
-        <span class="kw">return</span>;
-      }
-
-      <span class="kw">if</span> <span class="self">self</span>.<span class="ident">span</span>.<span class="ident">contains</span>(<span class="ident">span</span>) {
-        <span class="self">self</span>.<span class="ident">places</span>.<span class="ident">insert</span>((<span class="kw-2">*</span><span class="ident">place</span>, <span class="ident">location</span>, <span class="ident">span</span>));
-      }
+    <span class="kw">if</span> <span class="ident">contained</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
+      <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">contained</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+      <span class="ident">contained</span>
+        .<span class="ident">take_while</span>(<span class="op">|</span><span class="ident">other</span><span class="op">|</span> <span class="ident">other</span>.<span class="ident">span</span>.<span class="ident">size</span>() <span class="op">==</span> <span class="ident">first</span>.<span class="ident">span</span>.<span class="ident">size</span>())
+        .<span class="ident">chain</span>([<span class="ident">first</span>])
+        .<span class="ident">collect</span>()
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">containing</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
+      <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">containing</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+      <span class="ident">containing</span>
+        .<span class="ident">take_while</span>(<span class="op">|</span><span class="ident">other</span><span class="op">|</span> <span class="ident">other</span>.<span class="ident">span</span>.<span class="ident">size</span>() <span class="op">==</span> <span class="ident">first</span>.<span class="ident">span</span>.<span class="ident">size</span>())
+        .<span class="ident">chain</span>([<span class="ident">first</span>])
+        .<span class="ident">collect</span>()
+    } <span class="kw">else</span> {
+      <span class="ident">Vec::new</span>()
     }
   }
+}
 
-  <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <span class="ident">FindSpannedPlaces</span> {
-    <span class="ident">body</span>,
-    <span class="ident">span</span>,
-    <span class="ident">places</span>: <span class="ident">HashSet::default</span>(),
-  };
-  <span class="ident">visitor</span>.<span class="ident">visit_body</span>(<span class="ident">body</span>);
+<span class="kw">fn</span> <span class="ident">stmt_to_string</span>(<span class="ident">st</span>: <span class="kw-2">&amp;</span><span class="ident">Stmt</span>) -&gt; <span class="ident">String</span> {
+  <span class="ident">rustc_hir_pretty::to_string</span>(<span class="ident">rustc_hir_pretty::NO_ANN</span>, <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">print_stmt</span>(<span class="ident">st</span>))
+}
 
-  <span class="macro">debug!</span>(<span class="string">&quot;Spanned places: {:#?}&quot;</span>, <span class="ident">visitor</span>.<span class="ident">places</span>);
-  <span class="ident">visitor</span>
-    .<span class="ident">places</span>
-    .<span class="ident">into_iter</span>()
-    .<span class="ident">max_by_key</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">span</span>)<span class="op">|</span> <span class="ident">span</span>.<span class="ident">hi</span>() <span class="op">-</span> <span class="ident">span</span>.<span class="ident">lo</span>())
+<span class="kw">fn</span> <span class="ident">expr_to_string</span>(<span class="ident">ex</span>: <span class="kw-2">&amp;</span><span class="ident">Expr</span>) -&gt; <span class="ident">String</span> {
+  <span class="ident">rustc_hir_pretty::to_string</span>(<span class="ident">rustc_hir_pretty::NO_ANN</span>, <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">print_expr</span>(<span class="ident">ex</span>))
+}
+
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
+<span class="kw">fn</span> <span class="ident">node_to_string</span>(<span class="ident">node</span>: <span class="ident">HirNode</span>) -&gt; <span class="ident">String</span> {
+  <span class="kw">match</span> <span class="ident">node</span> {
+    <span class="ident">Either::Left</span>(<span class="ident">ex</span>) =&gt; <span class="ident">expr_to_string</span>(<span class="ident">ex</span>),
+    <span class="ident">Either::Right</span>(<span class="ident">st</span>) =&gt; <span class="ident">stmt_to_string</span>(<span class="ident">st</span>),
+  }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
+
+  <span class="kw">use</span> <span class="ident">rustc_data_structures::fx::FxHashSet</span> <span class="kw">as</span> <span class="ident">HashSet</span>;
+  <span class="kw">use</span> <span class="ident">rustc_middle::mir::BasicBlock</span>;
+  <span class="kw">use</span> <span class="ident">test_log::test</span>;
+
   <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
   <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::test_utils</span>;
 
-  <span class="kw">fn</span> <span class="ident">harness</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">FnOnce</span>(<span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">BodyId</span>, <span class="kw-2">&amp;</span><span class="ident">Body</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>) <span class="op">+</span> <span class="ident">Send</span>) {
+  <span class="kw">fn</span> <span class="ident">harness</span>(
+    <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">f</span>: <span class="kw">impl</span> <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">FnOnce</span>(<span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">BodyId</span>, <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>) <span class="op">+</span> <span class="ident">Send</span>,
+  ) {
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="kw-2">mut</span> <span class="ident">ranges</span>) <span class="op">=</span> <span class="ident">test_utils::parse_ranges</span>(<span class="ident">src</span>, [(<span class="string">&quot;`(&quot;</span>, <span class="string">&quot;)`&quot;</span>)]).<span class="ident">unwrap</span>();
-    <span class="ident">test_utils::compile_body</span>(<span class="ident">input</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body</span><span class="op">|</span> {
+    <span class="ident">test_utils::compile_body</span>(<span class="ident">input</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body_with_facts</span><span class="op">|</span> {
       <span class="kw">let</span> <span class="ident">spans</span> <span class="op">=</span> <span class="ident">ranges</span>
         .<span class="ident">remove</span>(<span class="string">&quot;`(&quot;</span>)
         .<span class="ident">unwrap</span>()
         .<span class="ident">into_iter</span>()
         .<span class="ident">map</span>(<span class="ident">test_utils::make_span</span>)
         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-      <span class="ident">f</span>(<span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body</span>, <span class="ident">spans</span>);
+      <span class="ident">f</span>(<span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="kw-2">&amp;</span><span class="ident">body_with_facts</span>.<span class="ident">body</span>, <span class="ident">spans</span>);
     });
   }
 
@@ -558,69 +1096,183 @@
       `(x)` + y;
       `(x + )`y;
       print!(&quot;{} {}&quot;, x, `(y)`);
+      let w = (0, 0);
+      `(w)`.0;
+      `(w.0)`;
+      `(w.)`0;
     }&quot;#</span>;
-    <span class="ident">harness</span>(<span class="ident">src</span>, <span class="op">|</span><span class="ident">tcx</span>, <span class="kw">_</span>, <span class="ident">body</span>, <span class="ident">spans</span><span class="op">|</span> {
+    <span class="ident">harness</span>(<span class="ident">src</span>, <span class="op">|</span><span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body</span>, <span class="ident">spans</span><span class="op">|</span> {
       <span class="kw">let</span> <span class="ident">source_map</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>();
-      <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> [<span class="string">&quot;z&quot;</span>, <span class="string">&quot;x&quot;</span>, <span class="string">&quot;x + y&quot;</span>, <span class="string">&quot;x&quot;</span>, <span class="string">&quot;x&quot;</span>, <span class="string">&quot;y&quot;</span>];
+      <span class="kw">let</span> <span class="ident">spanner</span> <span class="op">=</span> <span class="ident">Spanner::new</span>(<span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body</span>);
+      <span class="kw">let</span> <span class="ident">expected</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="kw">_</span>]] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+        <span class="kw-2">&amp;</span>[<span class="string">&quot;z&quot;</span>],
+        <span class="kw-2">&amp;</span>[<span class="string">&quot;x&quot;</span>],
+        <span class="kw-2">&amp;</span>[<span class="string">&quot;x&quot;</span>, <span class="string">&quot;y&quot;</span>],
+        <span class="kw-2">&amp;</span>[<span class="string">&quot;x&quot;</span>],
+        <span class="kw-2">&amp;</span>[<span class="string">&quot;x&quot;</span>],
+        <span class="kw-2">&amp;</span>[<span class="string">&quot;y&quot;</span>],
+        <span class="kw-2">&amp;</span>[<span class="string">&quot;w.0&quot;</span>],
+        <span class="kw-2">&amp;</span>[<span class="string">&quot;w.0&quot;</span>],
+        <span class="kw-2">&amp;</span>[<span class="string">&quot;w.0&quot;</span>],
+      ];
+      <span class="kw">for</span> (<span class="ident">input_span</span>, <span class="ident">desired</span>) <span class="kw">in</span> <span class="ident">spans</span>.<span class="ident">into_iter</span>().<span class="ident">zip</span>(<span class="ident">expected</span>.<span class="ident">into_iter</span>()) {
+        <span class="kw">let</span> <span class="ident">outputs</span> <span class="op">=</span> <span class="ident">spanner</span>.<span class="ident">span_to_places</span>(<span class="ident">input_span</span>);
+        <span class="kw">let</span> <span class="ident">snippets</span> <span class="op">=</span> <span class="ident">outputs</span>
+          .<span class="ident">into_iter</span>()
+          .<span class="ident">map</span>(<span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="ident">source_map</span>.<span class="ident">span_to_snippet</span>(<span class="ident">span</span>.<span class="ident">span</span>).<span class="ident">unwrap</span>())
+          .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+
+        <span class="ident">compare_sets</span>(<span class="kw-2">&amp;</span><span class="ident">desired</span>.<span class="ident">iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(), <span class="kw-2">&amp;</span><span class="ident">snippets</span>);
+      }
+    });
+  }
+
+  <span class="kw">fn</span> <span class="ident">compare_sets</span>(<span class="ident">desired</span>: <span class="kw-2">&amp;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">actual</span>: <span class="kw-2">&amp;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
+    <span class="kw">let</span> <span class="ident">desired</span> <span class="op">=</span> <span class="ident">desired</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">as_ref</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">actual</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">as_ref</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    <span class="kw">let</span> <span class="ident">missing_desired</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">desired</span> <span class="op">-</span> <span class="kw-2">&amp;</span><span class="ident">actual</span>;
+    <span class="kw">let</span> <span class="ident">missing_actual</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">actual</span> <span class="op">-</span> <span class="kw-2">&amp;</span><span class="ident">desired</span>;
+
+    <span class="kw">let</span> <span class="ident">check</span> <span class="op">=</span> <span class="op">|</span><span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">set</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">|</span> {
+      <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">el</span>) <span class="op">=</span> <span class="ident">set</span>.<span class="ident">iter</span>().<span class="ident">next</span>() {
+        <span class="macro">panic!</span>(<span class="string">&quot;Missing {key}: {el}. Actual = {actual:?}. Desired = {desired:?}&quot;</span>,);
+      }
+    };
+
+    <span class="ident">check</span>(<span class="string">&quot;desired&quot;</span>, <span class="ident">missing_desired</span>);
+    <span class="ident">check</span>(<span class="string">&quot;actual&quot;</span>, <span class="ident">missing_actual</span>);
+  }
+
+  <span class="kw">fn</span> <span class="ident">hir_spanner_harness</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">expected</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]], <span class="ident">span_type</span>: <span class="ident">EnclosingHirSpans</span>) {
+    <span class="ident">harness</span>(<span class="ident">src</span>, <span class="op">|</span><span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body</span>, <span class="ident">spans</span><span class="op">|</span> {
+      <span class="kw">let</span> <span class="ident">spanner</span> <span class="op">=</span> <span class="ident">Spanner::new</span>(<span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body</span>);
+      <span class="kw">let</span> <span class="ident">source_map</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>();
       <span class="kw">for</span> (<span class="ident">input_span</span>, <span class="ident">desired</span>) <span class="kw">in</span> <span class="ident">spans</span>.<span class="ident">into_iter</span>().<span class="ident">zip</span>(<span class="ident">expected</span>) {
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">output_span</span>) <span class="op">=</span> <span class="ident">span_to_place</span>(<span class="ident">body</span>, <span class="ident">input_span</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="ident">source_map</span>.<span class="ident">span_to_snippet</span>(<span class="ident">output_span</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">snippet</span>, <span class="ident">desired</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">enclosing</span> <span class="op">=</span> <span class="ident">Spanner::find_matching</span>(
+          <span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="ident">span</span>.<span class="ident">contains</span>(<span class="ident">input_span</span>),
+          <span class="ident">spanner</span>.<span class="ident">hir_spans</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">span</span><span class="op">|</span> (<span class="ident">span</span>.<span class="ident">full</span>, <span class="ident">span</span>)),
+        )
+        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">desired_set</span> <span class="op">=</span> <span class="ident">desired</span>.<span class="ident">into_iter</span>().<span class="ident">copied</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">output_snippets</span> <span class="op">=</span> <span class="ident">enclosing</span>
+          .<span class="ident">remove</span>(<span class="number">0</span>)
+          .<span class="ident">get_spans</span>(<span class="ident">span_type</span>)
+          .<span class="ident">into_iter</span>()
+          .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">source_map</span>.<span class="ident">span_to_snippet</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>())
+          .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+        <span class="ident">compare_sets</span>(<span class="kw-2">&amp;</span><span class="ident">desired_set</span>, <span class="kw-2">&amp;</span><span class="ident">output_snippets</span>);
       }
     });
   }
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">test_hir_spanner</span>() {
-    <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="string">r#&quot;fn foo(){
+  <span class="kw">fn</span> <span class="ident">test_hir_spanner_outer</span>() {
+    <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="string">r#&quot;fn foo() {
       let x = `(1)`;
-      let `(y)` = x + 1;      
+      let `(y)` = x + 1;
+      if `(true)``( )`{ let z = 1; }
+      x `(+)` y;
     }&quot;#</span>;
-    <span class="ident">harness</span>(<span class="ident">src</span>, <span class="op">|</span><span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="kw">_</span>, <span class="ident">spans</span><span class="op">|</span> {
-      <span class="kw">let</span> <span class="ident">spanner</span> <span class="op">=</span> <span class="ident">HirSpanner::new</span>(<span class="ident">tcx</span>, <span class="ident">body_id</span>);
-      <span class="kw">let</span> <span class="ident">source_map</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>();
-      <span class="kw">let</span> <span class="ident">expected</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="string">&quot;1&quot;</span>, <span class="string">&quot;let x = 1;&quot;</span>], <span class="kw-2">&amp;</span>[<span class="string">&quot;let y = x + 1;&quot;</span>]];
-      <span class="kw">for</span> (<span class="ident">input_span</span>, <span class="ident">desired</span>) <span class="kw">in</span> <span class="ident">spans</span>.<span class="ident">into_iter</span>().<span class="ident">zip</span>(<span class="ident">expected</span>) {
-        <span class="kw">let</span> <span class="ident">output_spans</span> <span class="op">=</span> <span class="ident">spanner</span>.<span class="ident">find_enclosing_hir_span</span>(<span class="ident">input_span</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">desired_set</span> <span class="op">=</span> <span class="ident">desired</span>.<span class="ident">into_iter</span>().<span class="ident">copied</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="kw">for</span> <span class="ident">output_span</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">output_spans</span> {
-          <span class="kw">let</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="ident">source_map</span>.<span class="ident">span_to_snippet</span>(<span class="kw-2">*</span><span class="ident">output_span</span>).<span class="ident">unwrap</span>();
-          <span class="macro">assert!</span>(
-            <span class="ident">desired_set</span>.<span class="ident">remove</span>(<span class="ident">snippet</span>.<span class="ident">as_str</span>()),
-            <span class="string">&quot;desired {:?} / actual {:?}&quot;</span>,
-            <span class="ident">desired</span>,
-            <span class="ident">output_spans</span>
-          );
-        }
-        <span class="macro">assert!</span>(
-          <span class="ident">desired_set</span>.<span class="ident">is_empty</span>(),
-          <span class="string">&quot;desired {:?} / actual {:?}&quot;</span>,
-          <span class="ident">desired</span>,
-          <span class="ident">output_spans</span>
-        );
-      }
-    });
+    <span class="kw">let</span> <span class="ident">expected</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+      <span class="kw-2">&amp;</span>[<span class="string">&quot;1&quot;</span>],
+      <span class="kw-2">&amp;</span>[<span class="string">&quot;let y = &quot;</span>, <span class="string">&quot;;&quot;</span>],
+      <span class="kw-2">&amp;</span>[<span class="string">&quot;true&quot;</span>],
+      <span class="kw-2">&amp;</span>[<span class="string">&quot;if &quot;</span>, <span class="string">&quot; { &quot;</span>, <span class="string">&quot; }&quot;</span>],
+      <span class="kw-2">&amp;</span>[<span class="string">&quot; + &quot;</span>],
+    ];
+    <span class="ident">hir_spanner_harness</span>(<span class="ident">src</span>, <span class="ident">expected</span>, <span class="ident">EnclosingHirSpans::OuterOnly</span>)
   }
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">test_location_to_places</span>() {
-    <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="string">r#&quot;fn foo(){
-      let x = 1;
-      let y = x + 1;      
+  <span class="kw">fn</span> <span class="ident">test_hir_spanner_full</span>() {
+    <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="string">r#&quot;fn foo() {
+      `(let mut x: Vec&lt;()&gt; = Vec::new();)`
+      `(x = Vec::new();)`
     }&quot;#</span>;
-    <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">_ranges</span>) <span class="op">=</span> <span class="ident">test_utils::parse_ranges</span>(<span class="ident">src</span>, [(<span class="string">&quot;`(&quot;</span>, <span class="string">&quot;)`&quot;</span>)]).<span class="ident">unwrap</span>();
-    <span class="ident">test_utils::compile_body</span>(<span class="ident">input</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body</span><span class="op">|</span> {
-      <span class="kw">let</span> <span class="ident">source_map</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>();
-      <span class="kw">let</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="op">|</span><span class="ident">sp</span><span class="op">|</span> <span class="ident">source_map</span>.<span class="ident">span_to_snippet</span>(<span class="ident">sp</span>).<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">expected</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]] <span class="op">=</span>
+      <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="string">&quot;let mut x: Vec&lt;()&gt; = Vec::new();&quot;</span>], <span class="kw-2">&amp;</span>[<span class="string">&quot;x = Vec::new();&quot;</span>]];
+    <span class="ident">hir_spanner_harness</span>(<span class="ident">src</span>, <span class="ident">expected</span>, <span class="ident">EnclosingHirSpans::Full</span>)
+  }
 
-      <span class="kw">let</span> <span class="ident">spanner</span> <span class="op">=</span> <span class="ident">HirSpanner::new</span>(<span class="ident">tcx</span>, <span class="ident">body_id</span>);
-      <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">Location::START</span>;
-      <span class="kw">let</span> <span class="ident">spans</span> <span class="op">=</span> <span class="ident">location_to_spans</span>(<span class="ident">location</span>, <span class="ident">body</span>, <span class="kw-2">&amp;</span><span class="ident">spanner</span>, <span class="ident">source_map</span>);
-      <span class="macro">assert_eq!</span>(<span class="ident">spans</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-      <span class="macro">assert_eq!</span>(<span class="ident">snippet</span>(<span class="ident">spans</span>[<span class="number">0</span>]), <span class="string">&quot;let x = 1;&quot;</span>);
+  <span class="attribute">#[<span class="ident">test</span>]</span>
+  <span class="kw">fn</span> <span class="ident">test_location_to_spans</span>() {
+    <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="string">r#&quot;fn foo() {
+  let mut x: i32 = 1;
+  let y = x + 2;
+  let w = if true {
+    let z = 0;
+    z
+  } else {
+    3
+  };
+  let z = &amp;mut x; 
+  *z = 4;
+  let q = x
+    .leading_ones()
+    .trailing_zeros();
+}&quot;#</span>;
+    <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">_ranges</span>) <span class="op">=</span> <span class="ident">test_utils::parse_ranges</span>(<span class="ident">src</span>, [(<span class="string">&quot;`(&quot;</span>, <span class="string">&quot;)`&quot;</span>)]).<span class="ident">unwrap</span>();
+    <span class="ident">test_utils::compile_body</span>(<span class="ident">input</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body_with_facts</span><span class="op">|</span> {
+      <span class="kw">let</span> <span class="ident">source_map</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>();
+
+      <span class="kw">let</span> <span class="ident">spanner</span> <span class="op">=</span> <span class="ident">Spanner::new</span>(<span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="kw-2">&amp;</span><span class="ident">body_with_facts</span>.<span class="ident">body</span>);
+
+      <span class="comment">// These locations are just selected by inspecting the actual body, so this test might break</span>
+      <span class="comment">// if the compiler is updated. Run with RUST_LOG=debug to see the body.</span>
+      <span class="kw">let</span> <span class="ident">pairs</span>: <span class="kw-2">&amp;</span>[(<span class="kw">_</span>, <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>])] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+        <span class="comment">// Variable assignment</span>
+        ((<span class="number">0</span>, <span class="number">0</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let mut x: i32 = &quot;</span>, <span class="string">&quot;1&quot;</span>, <span class="string">&quot;;&quot;</span>]),
+        <span class="comment">// Expression RHS</span>
+        ((<span class="number">0</span>, <span class="number">3</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let y = &quot;</span>, <span class="string">&quot;x&quot;</span>, <span class="string">&quot;;&quot;</span>]),
+        ((<span class="number">0</span>, <span class="number">4</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let y = &quot;</span>, <span class="string">&quot; + &quot;</span>, <span class="string">&quot;x + 2&quot;</span>, <span class="string">&quot;;&quot;</span>]),
+        <span class="comment">// If expression</span>
+        ((<span class="number">1</span>, <span class="number">2</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let w = &quot;</span>, <span class="string">&quot;true&quot;</span>, <span class="string">&quot;;&quot;</span>]),
+        ((<span class="number">1</span>, <span class="number">3</span>), <span class="kw-2">&amp;</span>[
+          <span class="string">&quot;let w = &quot;</span>,
+          <span class="string">&quot;if &quot;</span>,
+          <span class="string">&quot;true&quot;</span>,
+          <span class="string">&quot; {\n    &quot;</span>,
+          <span class="string">&quot;\n    &quot;</span>,
+          <span class="string">&quot;\n  } else {\n    &quot;</span>,
+          <span class="string">&quot;\n  }&quot;</span>,
+          <span class="string">&quot;;&quot;</span>,
+        ]),
+        <span class="comment">// Reference</span>
+        ((<span class="number">4</span>, <span class="number">1</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let z = &quot;</span>, <span class="string">&quot;&amp;mut &quot;</span>, <span class="string">&quot;&amp;mut x&quot;</span>, <span class="string">&quot;;&quot;</span>]),
+        <span class="comment">// Reference assignment</span>
+        ((<span class="number">4</span>, <span class="number">3</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot; = &quot;</span>, <span class="string">&quot;;&quot;</span>, <span class="string">&quot;*z = 4&quot;</span>]),
+        <span class="comment">// Method chain</span>
+        ((<span class="number">4</span>, <span class="number">4</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let q = &quot;</span>, <span class="string">&quot;x&quot;</span>, <span class="string">&quot;;&quot;</span>]),
+        ((<span class="number">4</span>, <span class="number">5</span>), <span class="kw-2">&amp;</span>[
+          <span class="string">&quot;let q = &quot;</span>,
+          <span class="string">&quot;x\n    .leading_ones()&quot;</span>,
+          <span class="string">&quot;\n    .leading_ones()&quot;</span>,
+          <span class="string">&quot;;&quot;</span>,
+        ]),
+        ((<span class="number">5</span>, <span class="number">0</span>), <span class="kw-2">&amp;</span>[
+          <span class="string">&quot;let q = &quot;</span>,
+          <span class="string">&quot;x\n    .leading_ones()\n    .trailing_zeros()&quot;</span>,
+          <span class="string">&quot;\n    .trailing_zeros()&quot;</span>,
+          <span class="string">&quot;;&quot;</span>,
+        ]),
+      ];
+
+      <span class="kw">for</span> ((<span class="ident">i</span>, <span class="ident">j</span>), <span class="ident">outp</span>) <span class="kw">in</span> <span class="ident">pairs</span> {
+        <span class="kw">let</span> <span class="ident">loc</span> <span class="op">=</span> <span class="ident">Location</span> {
+          <span class="ident">block</span>: <span class="ident">BasicBlock::from_usize</span>(<span class="kw-2">*</span><span class="ident">i</span>),
+          <span class="ident">statement_index</span>: <span class="kw-2">*</span><span class="ident">j</span>,
+        };
+        <span class="kw">let</span> <span class="ident">spans</span> <span class="op">=</span> <span class="ident">spanner</span>.<span class="ident">location_to_spans</span>(<span class="ident">loc</span>, <span class="ident">EnclosingHirSpans::OuterOnly</span>);
+        <span class="kw">let</span> <span class="ident">desired</span> <span class="op">=</span> <span class="ident">outp</span>.<span class="ident">iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">spans</span>
+          .<span class="ident">into_iter</span>()
+          .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">source_map</span>.<span class="ident">span_to_snippet</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>())
+          .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+        <span class="ident">compare_sets</span>(<span class="kw-2">&amp;</span><span class="ident">desired</span>, <span class="kw-2">&amp;</span><span class="ident">actual</span>);
+      }
     });
   }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="flowistry" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (bd3cb5256 2022-01-16)" ></div>
 </body></html>

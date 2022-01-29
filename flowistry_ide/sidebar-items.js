@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["analysis",""],["effects",""],["graph",""],["range",""],["slicing",""]]});
+initSidebarItems({"mod":[["analysis",""],["decompose",""],["effects",""],["focus",""],["mutations",""],["playground",""],["range",""],["slicing",""]]});

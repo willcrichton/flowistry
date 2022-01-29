@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["compile",""],["compile_body",""],["make_span",""],["parse_ranges",""]]});
+initSidebarItems({"fn":[["compile",""],["compile_body",""],["make_span",""],["parse_ranges",""]],"type":[["RangeMap",""]]});
