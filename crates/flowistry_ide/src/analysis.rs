@@ -10,11 +10,11 @@ use flowistry::{
 use fluid_let::fluid_set;
 use log::{debug, info};
 use rustc_hir::{
-  intravisit::{self, NestedVisitorMap, Visitor},
+  intravisit::{self, Visitor},
   itemlikevisit::ItemLikeVisitor,
   BodyId, ForeignItem, ImplItem, Item, TraitItem,
 };
-use rustc_middle::{hir::map::Map, ty::TyCtxt};
+use rustc_middle::{ty::TyCtxt};
 use rustc_span::Span;
 
 pub trait FlowistryOutput: Send + Sync + Default {
@@ -118,12 +118,6 @@ struct AnalysisItemVisitor<'a, 'tcx, A: FlowistryAnalysis>(
 );
 
 impl<A: FlowistryAnalysis> Visitor<'tcx> for AnalysisItemVisitor<'_, 'tcx, A> {
-  type Map = Map<'tcx>;
-
-  fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
-    NestedVisitorMap::OnlyBodies(self.0.tcx.hir())
-  }
-
   fn visit_nested_body(&mut self, id: BodyId) {
     let tcx = self.0.tcx;
     intravisit::walk_body(self, tcx.hir().body(id));

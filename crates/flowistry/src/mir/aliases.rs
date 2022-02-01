@@ -149,6 +149,33 @@ fn group_pairs<K: Hash + Eq, V: Hash + Eq>(
   map
 }
 
+#[derive(PartialEq, Clone, Copy)]
+struct OrderedPlace(Place<'static>);
+
+impl OrderedPlace {
+  pub fn new(place: Place<'_>) -> Self {
+    // SAFETY: this transmutation is temporarily replacing the 'tcx lifetime with 'static
+    // because datafrog only allows T: 'static. This is a safe operation because the results
+    // are casted back to 'tcx at the return, and 'tcx is a valid lifetime throughout this
+    // function.
+    OrderedPlace(unsafe { std::mem::transmute(place) })
+  }
+}
+
+impl PartialOrd for OrderedPlace {
+  fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    self.0.local.partial_cmp(&other.0.local)
+  }
+}
+
+impl Ord for OrderedPlace {
+  fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    self.0.local.cmp(&other.0.local)
+  }
+}
+
+impl Eq for OrderedPlace {}
+
 impl Aliases<'tcx> {
   fn compute_loans(
     tcx: TyCtxt<'tcx>,
@@ -202,16 +229,11 @@ impl Aliases<'tcx> {
       Relation::from_iter(subset)
     };
 
-    let contains = iteration.variable::<(RegionVid, Place<'static>)>("contains");
+    let contains = iteration.variable::<(RegionVid, OrderedPlace)>("contains");
     let mut definite = HashMap::default();
-    let mk_tuple =
-      |region: RegionVid, place: Place<'tcx>| -> (RegionVid, Place<'static>) {
-        // SAFETY: this transmutation is temporarily replacing the 'tcx lifetime with 'static
-        // because datafrog only allows T: 'static. This is a safe operation because the results
-        // are casted back to 'tcx at the return, and 'tcx is a valid lifetime throughout this
-        // function.
-        (region, unsafe { std::mem::transmute(place) })
-      };
+    let mk_tuple = |region: RegionVid, place: Place<'tcx>| -> (RegionVid, OrderedPlace) {
+      (region, OrderedPlace::new(place))
+    };
 
     // For all e = &'a p in body: contains('a, p).
     {
@@ -275,20 +297,26 @@ impl Aliases<'tcx> {
       //   * if p' : &T, then p : T since otherwise proj[p] is not well-typed.
       contains.from_join(&contains, &subset, |a, p, b| {
         let is_reachable = reachable.get(b).map(|set| set.contains(a)).unwrap_or(false);
-        let p_ty = p.ty(body.local_decls(), tcx).ty;
+        let p_ty = p.0.ty(body.local_decls(), tcx).ty;
         let p_proj = match definite.get(b) {
           Some((ty, proj)) if !is_reachable && TyS::same_type(ty, p_ty) => {
-            let mut full_proj = p.projection.to_vec();
+            let mut full_proj = p.0.projection.to_vec();
             full_proj.extend(proj);
-            Place::make(p.local, tcx.intern_place_elems(&full_proj), tcx)
+            Place::make(p.0.local, tcx.intern_place_elems(&full_proj), tcx)
           }
-          _ => *p,
+          _ => p.0,
         };
         mk_tuple(*b, p_proj)
       });
     }
 
-    group_pairs(contains.complete().iter().copied())
+    group_pairs(
+      contains
+        .complete()
+        .iter()
+        .copied()
+        .map(|(region, place)| (region, place.0)),
+    )
   }
 
   fn compute_all_places(
@@ -336,11 +364,7 @@ impl Aliases<'tcx> {
         })
     }));
 
-    debug!("Places: {:?}", {
-      let mut v = all_places.iter().collect::<Vec<_>>();
-      v.sort();
-      v
-    });
+    debug!("Places: {all_places:?}");
     info!("Place domain size: {}", all_places.len());
 
     all_places

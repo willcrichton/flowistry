@@ -11,22 +11,8 @@ export let hide_type = vscode.window.createTextEditorDecorationType({
   opacity: "0.4",
 });
 
-let style = {
-  color: "white",
-  backgroundColor: "rgb(153, 222, 179)",
-  fontWeight: "bold",
-};
 export let select_type = vscode.window.createTextEditorDecorationType({
-  before: {
-    contentText: "❰",
-    margin: "0 5px 0 0",
-    ...style,
-  },
-  after: {
-    contentText: "❱",
-    margin: "0 0 0 5px",
-    ...style,
-  },
+  backgroundColor: new vscode.ThemeColor("editor.wordHighlightBackground"),
 });
 
 export let invert_ranges = (container: Range, pieces: Range[]): Range[] => {
@@ -62,35 +48,43 @@ export let invert_ranges = (container: Range, pieces: Range[]): Range[] => {
 
 export let highlight_slice = (
   editor: vscode.TextEditor,
-  container: Range,
+  containers: Range[],
   seeds: Range[],
   slice: Range[]
 ) => {
   highlight_ranges(seeds, editor, select_type);
-  highlight_ranges(invert_ranges(container, slice), editor, hide_type);
+  containers.forEach((container) => {
+    highlight_ranges(invert_ranges(container, slice), editor, hide_type);
+  });
 };
 
 export function highlight_ranges(
   ranges: Range[],
   editor: vscode.TextEditor,
-  type: vscode.TextEditorDecorationType = highlight_type
+  type: vscode.TextEditorDecorationType
 ) {
   editor.setDecorations(
     type,
     ranges.map((range) => to_vsc_range(range, editor.document))
   );
 
-  let callback = vscode.workspace.onDidChangeTextDocument((event) => {
-    if (!editor) {
-      return;
-    }
-    if (event.document !== editor.document) {
-      return;
-    }
-    editor.setDecorations(type, []);
-    callback.dispose();
-  });
+  // let callback = vscode.workspace.onDidChangeTextDocument((event) => {
+  //   if (!editor) {
+  //     return;
+  //   }
+  //   if (event.document !== editor.document) {
+  //     return;
+  //   }
+  //   editor.setDecorations(type, []);
+  //   callback.dispose();
+  // });
 }
+
+export let clear_ranges = (editor: vscode.TextEditor) => {
+  [highlight_type, hide_type, select_type].forEach((type) => {
+    editor.setDecorations(type, []);
+  });
+};
 
 export async function display_subcmd_results(
   call_flowistry: CallFlowistry,

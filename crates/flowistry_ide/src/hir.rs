@@ -5,11 +5,11 @@ use std::path::Path;
 use anyhow::{anyhow, Context, Result};
 use rustc_data_structures::sync::Lrc;
 use rustc_hir::{
-  intravisit::{self, NestedVisitorMap, Visitor},
+  intravisit::{self, Visitor},
   itemlikevisit::ItemLikeVisitor,
   BodyId,
 };
-use rustc_middle::{hir::map::Map, ty::TyCtxt};
+use rustc_middle::{ty::TyCtxt};
 use rustc_span::{FileName, RealFileName, SourceFile, Span};
 
 pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
@@ -20,12 +20,6 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
   }
 
   impl Visitor<'tcx> for Finder<'tcx> {
-    type Map = Map<'tcx>;
-
-    fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
-      NestedVisitorMap::OnlyBodies(self.tcx.hir())
-    }
-
     fn visit_nested_body(&mut self, id: BodyId) {
       intravisit::walk_body(self, self.tcx.hir().body(id));
 

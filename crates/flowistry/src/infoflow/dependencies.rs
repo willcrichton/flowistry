@@ -21,6 +21,7 @@ use crate::{
 pub enum Direction {
   Forward,
   Backward,
+  Both
 }
 
 struct DepVisitor<'a, 'mir, 'tcx> {
@@ -49,6 +50,7 @@ impl DepVisitor<'_, '_, 'tcx> {
         let matches = match self.direction {
           Direction::Forward => loc_deps.is_superset(target_locs),
           Direction::Backward => target_locs.is_superset(&loc_deps),
+          Direction::Both => loc_deps.is_superset(target_locs) ||  target_locs.is_superset(&loc_deps)
         };
 
         if matches {
@@ -219,7 +221,7 @@ pub fn compute_dependency_spans(
             .span
             .as_local(tcx)
         })
-        .filter(|span| !span.source_equal(&spanner.body_span));
+        .filter(|span| !span.source_equal(spanner.body_span));
 
       Span::merge_overlaps(location_spans.chain(place_spans).collect::<Vec<_>>())
     })
