@@ -97,7 +97,7 @@ export let effects = async (
           );
           highlight_slice(
             active_editor!,
-            body_range,
+            [body_range],
             [effect.effect],
             effect.slice
           );
