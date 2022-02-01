@@ -10,7 +10,6 @@ use flowistry::{
   source_map::{self, EnclosingHirSpans},
 };
 use petgraph::dot::{Config as DotConfig, Dot};
-use rayon::prelude::*;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::BodyId;
 use rustc_macros::Encodable;
@@ -48,80 +47,6 @@ pub struct DecomposeAnalysis {
   id: FunctionIdentifier,
 }
 
-// fn adjacent_chunk_analysis() {
-
-//   let domain = results.analysis.location_domain();
-//   let adj_mtx = construct::compute_adjacency_matrix(body, tcx, results);
-
-//   let mut locations = domain
-//     .as_vec()
-//     .iter()
-//     .filter_map(|loc| {
-//       let spans = source_map::location_to_spans(
-//         *loc,
-//         tcx,
-//         body,
-//         &spanner,
-//         EnclosingHirSpans::Full,
-//       );
-//       if spans.is_empty() {
-//         return None;
-//       }
-
-//       let (mins, maxs): (Vec<_>, Vec<_>) = spans
-//         .into_iter()
-//         .map(|s| {
-//           let lines = source_map.span_to_lines(s).unwrap();
-//           let line_nums = lines
-//             .lines
-//             .into_iter()
-//             .map(|l| l.line_index)
-//             .collect::<Vec<_>>();
-//           (
-//             *line_nums.iter().min().unwrap(),
-//             *line_nums.iter().max().unwrap(),
-//           )
-//         })
-//         .unzip();
-//       let min = *mins.iter().min().unwrap();
-//       let max = *maxs.iter().max().unwrap();
-
-//       Some((*loc, (min, max)))
-//     })
-//     .collect::<Vec<_>>();
-//   locations.sort_by_key(|(_, (min, _))| *min);
-
-//   let flows = |l1, l2| match adj_mtx.row_set(l2) {
-//     Some(set) => set.contains(l1),
-//     None => false,
-//   };
-
-//   let adjacent = |(min1, max1), (min2, max2)| max1 + 1 >= min2 && min1 <= max2;
-
-//   let mut communities = vec![vec![locations.remove(0)]];
-//   for (loc1, rng1) in locations {
-//     let cur = communities.last_mut().unwrap();
-//     if cur.iter().any(|(loc2, rng2)| {
-//       let has_flow = flows(loc1, *loc2) || flows(*loc2, loc1);
-//       let line_adjacent = adjacent(rng1, *rng2) || adjacent(*rng2, rng1);
-//       debug!("{rng1:?} / {rng2:?} {line_adjacent}");
-//       has_flow || line_adjacent
-//     }) {
-//       cur.push((loc1, rng1));
-//     } else {
-//       communities.push(vec![(loc1, rng1)]);
-//     }
-//     // let overlaps = spans1
-//     //   .iter()
-//     //   .any(|s1| spans2.iter().any(|s2| s1.overlaps_inclusive(*s2)));
-//   }
-//   let communities = communities
-//     .into_iter()
-//     .map(|c| c.into_iter().map(|(l, _)| l).collect::<Vec<_>>())
-//     .collect::<Vec<_>>();
-//   debug!("communities: {:#?}", communities);
-// }
-
 impl FlowistryAnalysis for DecomposeAnalysis {
   type Output = DecomposeOutput;
 
@@ -146,7 +71,7 @@ impl FlowistryAnalysis for DecomposeAnalysis {
 
     let resolutions = [0.01, 0.1, 0.25, 0.5, 1.];
     let communities_idxs = resolutions
-      .par_iter()
+      .iter()
       .map(|r| (*r, algo::naive_greedy_modularity_communities(&graph, *r)))
       .collect::<Vec<_>>();
 

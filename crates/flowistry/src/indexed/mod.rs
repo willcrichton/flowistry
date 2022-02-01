@@ -14,7 +14,7 @@ use rustc_mir_dataflow::{fmt::DebugWithContext, JoinSemiLattice};
 
 pub mod impls;
 
-pub trait IndexedValue: Eq + Hash + Clone + Ord + fmt::Debug {
+pub trait IndexedValue: Eq + Hash + Clone + fmt::Debug {
   type Index: Idx + ToIndex<Self>;
   type Domain: IndexedDomain<Index = Self::Index, Value = Self> =
     DefaultDomain<Self::Index, Self>;
@@ -299,8 +299,8 @@ where
   T::Index: ToIndex<T>,
 {
   fn fmt_with(&self, _ctxt: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let mut elts = self.iter().collect::<Vec<_>>();
-    elts.sort();
+    let elts = self.iter().collect::<Vec<_>>();
+    // elts.sort();
     write!(f, "{}", Escape(elts))
   }
 

@@ -1,11 +1,10 @@
 use either::Either;
 use log::trace;
 use rustc_hir::{
-  intravisit::{self, NestedVisitorMap, Visitor as HirVisitor},
+  intravisit::{self, Visitor as HirVisitor},
   BodyId, Expr, ExprKind, MatchSource, Stmt,
 };
 use rustc_middle::{
-  hir::map::Map,
   mir::{
     visit::{
       MutatingUseContext, NonMutatingUseContext, NonUseContext, PlaceContext,
@@ -29,12 +28,6 @@ struct ChildExprSpans<'tcx> {
   tcx: TyCtxt<'tcx>,
 }
 impl HirVisitor<'hir> for ChildExprSpans<'_> {
-  type Map = Map<'hir>;
-
-  fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
-    NestedVisitorMap::None
-  }
-
   fn visit_expr(&mut self, ex: &Expr) {
     match ex.kind {
       // Don't take the span for the whole block, since we want to leave
@@ -87,12 +80,6 @@ impl HirSpannedNode<'_> {
 struct HirSpanCollector<'a, 'b, 'hir, 'tcx>(&'a mut Spanner<'b, 'hir, 'tcx>);
 
 impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
-  type Map = Map<'hir>;
-
-  fn nested_visit_map(&mut self) -> NestedVisitorMap<Self::Map> {
-    NestedVisitorMap::None
-  }
-
   fn visit_expr(&mut self, expr: &'hir Expr<'hir>) {
     intravisit::walk_expr(self, expr);
 
@@ -210,7 +197,7 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
     };
 
     let span = match span.as_local(self.0.tcx) {
-      Some(span) if !span.source_equal(&self.0.body_span) => span,
+      Some(span) if !span.source_equal(self.0.body_span) => span,
       _ => {
         return;
       }
@@ -286,14 +273,15 @@ where
       return vec![];
     }
 
-    let is_return = match self.body.stmt_at(location) {
+    let is_return = matches!(
+      self.body.stmt_at(location),
       Either::Right(Terminator {
-        kind:
-          TerminatorKind::Return | TerminatorKind::Resume | TerminatorKind::Drop { .. },
+        kind: TerminatorKind::Return
+          | TerminatorKind::Resume
+          | TerminatorKind::Drop { .. },
         ..
-      }) => true,
-      _ => false,
-    };
+      })
+    );
     if is_return {
       return vec![];
     }

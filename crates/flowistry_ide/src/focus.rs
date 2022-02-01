@@ -1,20 +1,10 @@
-#![allow(warnings)]
-
-use std::path::Path;
-
 use anyhow::Result;
 use flowistry::{
   infoflow::{self, Direction},
-  mir::{
-    borrowck_facts::get_body_with_borrowck_facts,
-    utils::{run_dot, SpanExt},
-  },
-  source_map::{self, EnclosingHirSpans},
+  mir::{borrowck_facts::get_body_with_borrowck_facts, utils::SpanExt},
+  source_map::{self},
 };
-use petgraph::dot::{Config as DotConfig, Dot};
-use rayon::prelude::*;
-use rustc_data_structures::fx::FxHashMap as HashMap;
-use rustc_hir::BodyId;
+use rustc_hir::{BodyId, Expr, ExprKind, Node};
 use rustc_macros::Encodable;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
@@ -33,13 +23,15 @@ pub struct Slice {
 #[derive(Debug, Clone, Encodable, Default)]
 pub struct FocusOutput {
   slices: Vec<Slice>,
-  body_span: Range,
+  body_range: Range,
+  arg_range: Range,
 }
 
 impl FlowistryOutput for FocusOutput {
   fn merge(&mut self, other: Self) {
     self.slices.extend(other.slices);
-    self.body_span = other.body_span;
+    self.body_range = other.body_range;
+    self.arg_range = other.arg_range;
   }
 }
 
@@ -71,36 +63,49 @@ impl FlowistryAnalysis for FocusAnalysis {
       .iter()
       .map(|mir_span| (mir_span.place, mir_span.location))
       .collect::<Vec<_>>();
-    let backward_deps = infoflow::compute_dependency_spans(
+    let relevant = infoflow::compute_dependency_spans(
       results,
       targets.clone(),
-      Direction::Backward,
+      Direction::Both,
       &spanner,
     );
-    let forward_deps =
-      infoflow::compute_dependency_spans(results, targets, Direction::Forward, &spanner);
 
     let slices = spanner
       .mir_spans
       .into_iter()
-      .zip(backward_deps)
-      .zip(forward_deps)
-      .filter_map(|((mir_span, mut backward), forward)| {
-        backward.extend(forward);
-        let spans = Span::merge_overlaps(backward);
-
+      .zip(relevant)
+      .filter_map(|(mir_span, relevant)| {
+        let spans = Span::merge_overlaps(relevant);
         let range = Range::from_span(mir_span.span, source_map).ok()?;
         let slice = spans
           .into_iter()
-          .filter_map(|span| Some(Range::from_span(span, source_map).ok()?))
+          .filter_map(|span| Range::from_span(span, source_map).ok())
           .collect::<Vec<_>>();
         Some(Slice { range, slice })
       })
       .collect::<Vec<_>>();
 
-    let body_span = Range::from_span(spanner.body_span, source_map)?;
+    let owner_id = tcx.hir().body_owner(body_id);
+    let owner_node = tcx.hir().get(owner_id);
+    let arg_span = match (owner_node.fn_sig(), owner_node) {
+      (Some(sig), _) => sig.span,
+      (
+        None,
+        Node::Expr(Expr {
+          kind: ExprKind::Closure(_, _, _, arg_span, _),
+          ..
+        }),
+      ) => *arg_span,
+      _ => panic!("Unknown arg span for owner_node: {owner_node:#?}"),
+    };
+    let arg_range = Range::from_span(arg_span, source_map)?;
+    let body_range = Range::from_span(spanner.body_span, source_map)?;
 
-    Ok(FocusOutput { slices, body_span })
+    Ok(FocusOutput {
+      slices,
+      body_range,
+      arg_range,
+    })
   }
 }
 
