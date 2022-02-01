@@ -11,7 +11,7 @@ pub fn find_mutations(
   body: &Body<'tcx>,
   def_id: DefId,
   place: Place<'tcx>,
-  aliases: Aliases<'tcx>,
+  aliases: &Aliases<'tcx>,
 ) -> Vec<Location> {
   let mut locations = vec![];
   let reachable_values = aliases.reachable_values(tcx, body, def_id, place);

@@ -533,7 +533,7 @@ impl Aliases<'tcx> {
 
     interior_pointer_places
       .flat_map(|place| self.aliases.row(tcx.mk_place_deref(place)).copied())
-      .chain(vec![place])
+      .chain([place])
       .collect_indices(&self.place_domain)
   }
 }
