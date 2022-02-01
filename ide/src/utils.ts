@@ -17,7 +17,7 @@ export let select_type = vscode.window.createTextEditorDecorationType({
 
 export let invert_ranges = (container: Range, pieces: Range[]): Range[] => {
   let filename = container.filename;
-  let pieces_sorted = _.sortBy(pieces, (r) => r.start);
+  let pieces_sorted = _.sortBy(pieces, (r) => r.start).filter((r) => container.start <= r.start && r.end <= container.end);
 
   let new_ranges: Range[] = [];
   let start = container.start;
@@ -53,9 +53,8 @@ export let highlight_slice = (
   slice: Range[]
 ) => {
   highlight_ranges(seeds, editor, select_type);
-  containers.forEach((container) => {
-    highlight_ranges(invert_ranges(container, slice), editor, hide_type);
-  });
+  let hide_ranges = containers.map(container => invert_ranges(container, slice)).flat();
+  highlight_ranges(hide_ranges, editor, hide_type);
 };
 
 export function highlight_ranges(
@@ -127,7 +126,7 @@ export async function display_subcmd_results(
     } else {
       highlight_slice(
         active_editor,
-        command_output.body_span,
+        [command_output.body_span],
         command_output.selected_spans,
         command_output.ranges
       );
