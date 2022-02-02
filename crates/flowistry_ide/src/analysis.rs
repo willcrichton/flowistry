@@ -14,7 +14,7 @@ use rustc_hir::{
   itemlikevisit::ItemLikeVisitor,
   BodyId, ForeignItem, ImplItem, Item, TraitItem,
 };
-use rustc_middle::{ty::TyCtxt};
+use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
 
 pub trait FlowistryOutput: Send + Sync + Default {
