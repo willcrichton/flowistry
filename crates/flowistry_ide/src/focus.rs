@@ -1,7 +1,7 @@
 use anyhow::Result;
 use flowistry::{
   infoflow::{self, Direction},
-  mir::{borrowck_facts::get_body_with_borrowck_facts, utils::SpanExt},
+  mir::borrowck_facts::get_body_with_borrowck_facts,
   source_map::{self},
 };
 use rustc_hir::{BodyId, Expr, ExprKind, Node};
@@ -75,9 +75,9 @@ impl FlowistryAnalysis for FocusAnalysis {
       .into_iter()
       .zip(relevant)
       .filter_map(|(mir_span, relevant)| {
-        let spans = Span::merge_overlaps(relevant);
+        log::debug!("Slice for {mir_span:?} is {relevant:#?}");
         let range = Range::from_span(mir_span.span, source_map).ok()?;
-        let slice = spans
+        let slice = relevant
           .into_iter()
           .filter_map(|span| Range::from_span(span, source_map).ok())
           .collect::<Vec<_>>();

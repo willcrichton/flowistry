@@ -9,7 +9,7 @@ use rustc_hir::{
   itemlikevisit::ItemLikeVisitor,
   BodyId,
 };
-use rustc_middle::{ty::TyCtxt};
+use rustc_middle::ty::TyCtxt;
 use rustc_span::{FileName, RealFileName, SourceFile, Span};
 
 pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {

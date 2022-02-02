@@ -84,7 +84,7 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
     intravisit::walk_expr(self, expr);
 
     let span = match expr.span.as_local(self.0.tcx) {
-      Some(span) if span != self.0.body_span => span,
+      Some(span) if !self.0.invalid_span(span) => span,
       _ => {
         return;
       }
@@ -132,7 +132,7 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
     intravisit::walk_stmt(self, stmt);
 
     let span = match stmt.span.as_local(self.0.tcx) {
-      Some(span) if span != self.0.body_span => span,
+      Some(span) if !self.0.invalid_span(span) => span,
       _ => {
         return;
       }
@@ -197,7 +197,7 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
     };
 
     let span = match span.as_local(self.0.tcx) {
-      Some(span) if !span.source_equal(self.0.body_span) => span,
+      Some(span) if !self.0.invalid_span(span) => span,
       _ => {
         return;
       }
@@ -215,6 +215,7 @@ pub struct Spanner<'a, 'hir, 'tcx> {
   pub hir_spans: Vec<HirSpannedNode<'hir>>,
   pub mir_spans: Vec<MirSpannedPlace<'tcx>>,
   pub body_span: Span,
+  pub item_span: Span,
   tcx: TyCtxt<'tcx>,
   body: &'a Body<'tcx>,
 }
@@ -224,14 +225,22 @@ where
   'tcx: 'hir,
 {
   pub fn new(tcx: TyCtxt<'tcx>, body_id: BodyId, body: &'a Body<'tcx>) -> Self {
-    let hir_body = tcx.hir().body(body_id);
+    let hir = tcx.hir();
+    let hir_body = hir.body(body_id);
+    let item_span = hir.span_with_body(hir.body_owner(body_id));
     let mut spanner = Spanner {
       hir_spans: Vec::new(),
       mir_spans: Vec::new(),
       body_span: hir_body.value.span,
+      item_span,
       tcx,
       body,
     };
+    trace!(
+      "Body span: {:?}, item span: {:?}",
+      spanner.body_span,
+      spanner.item_span
+    );
 
     let mut hir_collector = HirSpanCollector(&mut spanner);
     hir_collector.visit_body(hir_body);
@@ -240,6 +249,12 @@ where
     mir_collector.visit_body(body);
 
     spanner
+  }
+
+  pub fn invalid_span(&self, span: Span) -> bool {
+    span.is_dummy()
+      || span.source_equal(self.body_span)
+      || span.source_equal(self.item_span)
   }
 
   pub fn find_matching<T>(
@@ -269,7 +284,7 @@ where
         return vec![];
       }
     };
-    if loc_span == self.body_span || loc_span.is_dummy() {
+    if self.invalid_span(loc_span) {
       return vec![];
     }
 
