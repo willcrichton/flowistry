@@ -30,11 +30,6 @@ let extension = estrella.build({
   ...common
 });
 
-let page = estrella.build({
-  entryPoints: ["src/effects_page.tsx"],
-  ...common
-});
-
 let test = estrella.build({
   entryPoints: ["src/extension.ts", "src/tests/commands/util/helpers.ts"],
   platform: "node",
@@ -42,6 +37,6 @@ let test = estrella.build({
   outdir: "test",
 });
 
-Promise.all([extension, page, test])
+Promise.all([extension, test])
   .then(() => console.log("Build complete."))
   .catch(() => process.exit(1));

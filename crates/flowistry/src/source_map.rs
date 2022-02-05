@@ -1,10 +1,12 @@
 use either::Either;
 use log::trace;
 use rustc_hir::{
-  intravisit::{self, Visitor as HirVisitor},
-  BodyId, Expr, ExprKind, MatchSource, Stmt,
+  intravisit::{self, Visitor as HirVisitor, Visitor},
+  itemlikevisit::ItemLikeVisitor,
+  BodyId, Expr, ExprKind, ForeignItem, ImplItem, Item, MatchSource, Stmt, TraitItem,
 };
 use rustc_middle::{
+  hir::nested_filter::OnlyBodies,
   mir::{
     visit::{
       MutatingUseContext, NonMutatingUseContext, NonUseContext, PlaceContext,
@@ -423,6 +425,59 @@ fn node_to_string(node: HirNode) -> String {
     Either::Left(ex) => expr_to_string(ex),
     Either::Right(st) => stmt_to_string(st),
   }
+}
+
+struct BodyFinder<'tcx> {
+  tcx: TyCtxt<'tcx>,
+  target: Span,
+  bodies: Vec<(Span, BodyId)>,
+}
+
+impl Visitor<'tcx> for BodyFinder<'tcx> {
+  type NestedFilter = OnlyBodies;
+
+  fn nested_visit_map(&mut self) -> Self::Map {
+    self.tcx.hir()
+  }
+
+  fn visit_nested_body(&mut self, id: BodyId) {
+    let body = self.nested_visit_map().body(id);
+    self.visit_body(body);
+
+    let hir = self.tcx.hir();
+    let span = hir.span_with_body(hir.body_owner(id));
+
+    if span.contains(self.target) {
+      self.bodies.push((span, id));
+    }
+  }
+}
+
+impl ItemLikeVisitor<'tcx> for BodyFinder<'tcx> {
+  fn visit_item(&mut self, item: &'tcx Item<'tcx>) {
+    intravisit::walk_item(self, item);
+  }
+
+  fn visit_impl_item(&mut self, impl_item: &'tcx ImplItem<'tcx>) {
+    intravisit::walk_impl_item(self, impl_item);
+  }
+
+  fn visit_trait_item(&mut self, _trait_item: &'tcx TraitItem<'tcx>) {}
+  fn visit_foreign_item(&mut self, _foreign_item: &'tcx ForeignItem<'tcx>) {}
+}
+
+pub fn find_enclosing_bodies(
+  tcx: TyCtxt<'tcx>,
+  sp: Span,
+) -> impl Iterator<Item = BodyId> {
+  let mut finder = BodyFinder {
+    tcx,
+    target: sp,
+    bodies: Vec::new(),
+  };
+  tcx.hir().visit_all_item_likes(&mut finder);
+  finder.bodies.sort_by_key(|(span, _)| span.size());
+  finder.bodies.into_iter().map(|(_, id)| id)
 }
 
 #[cfg(test)]
