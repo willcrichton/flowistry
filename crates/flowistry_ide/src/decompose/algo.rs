@@ -96,7 +96,7 @@ where
   g_reduced
 }
 
-fn pick2_mut<T>(v: &mut Vec<T>, i: usize, j: usize) -> (&mut T, &mut T) {
+fn pick2_mut<T>(v: &mut [T], i: usize, j: usize) -> (&mut T, &mut T) {
   assert!(i != j);
   let lower = i.min(j);
   let upper = i.max(j);

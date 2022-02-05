@@ -1,12 +1,9 @@
 import * as vscode from "vscode";
 import _ from "lodash";
-import { log, show_error } from "./vsc_utils";
+import { CallFlowistry, log, show_error } from "./vsc_utils";
 
-import { slice } from "./slicing";
-import { find_mutations } from "./mutations";
-import { effects } from "./effects";
 import { decompose } from "./decompose";
-import { focus, focus_mark, focus_unmark } from "./focus";
+import { focus, focus_mark, focus_unmark, focus_select } from "./focus";
 import { setup } from "./setup";
 
 import "./app.scss";
@@ -20,12 +17,20 @@ export async function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    let register_with_opts = (name: string, f: () => void) => {
+    let commands: [string, (_f: CallFlowistry) => void][] = [
+      ["focus", focus],
+      ["focus_mark", focus_mark],
+      ["focus_unmark", focus_unmark],
+      ["focus_select", focus_select],
+      ["decompose", decompose],
+    ];
+
+    commands.forEach(([name, func]) => {
       let disposable = vscode.commands.registerCommand(
         `flowistry.${name}`,
         () => {
           try {
-            f();
+            func(call_flowistry!);
           } catch (exc: any) {
             log("ERROR", exc);
             show_error(exc);
@@ -33,41 +38,7 @@ export async function activate(context: vscode.ExtensionContext) {
         }
       );
       context.subscriptions.push(disposable);
-    };
-
-    ["backward", "forward"].forEach((direction: any) => {
-      ["highlight", "select"].forEach((type: any) => {
-        register_with_opts(`${direction}_${type}`, () =>
-          slice(call_flowistry!, direction, type)
-        );
-      });
     });
-
-    register_with_opts("highlight_mutations", () =>
-      find_mutations(call_flowistry!, "highlight")
-    );
-    register_with_opts("select_mutations", () =>
-      find_mutations(call_flowistry!, "select")
-    );
-    register_with_opts("backward_highlight_recurse", () =>
-      slice(call_flowistry!, "backward", "highlight", "--contextmode Recurse")
-    );
-    register_with_opts("backward_highlight_ignoremut", () =>
-      slice(
-        call_flowistry!,
-        "backward",
-        "highlight",
-        "--mutabilitymode IgnoreMut"
-      )
-    );
-
-    register_with_opts("effects", () => effects(context, call_flowistry!));
-
-    register_with_opts("decompose", () => decompose(call_flowistry!));
-
-    register_with_opts("focus", () => focus(call_flowistry!));
-    register_with_opts("focus_mark", () => focus_mark(call_flowistry!));
-    register_with_opts("focus_unmark", () => focus_unmark(call_flowistry!));
   } catch (e: any) {
     show_error(e.toString());
   }

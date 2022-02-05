@@ -12,6 +12,7 @@ use clap::clap_app;
 use rand::prelude::*;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+const TARGET_DIR: &str = "target/flowistry";
 
 fn main() {
   let flowistry_rustc_path = std::env::current_exe()
@@ -24,32 +25,6 @@ fn main() {
     (author: "Will Crichton <wcrichto@cs.stanford.edu>")
     (@setting TrailingVarArg)
     (@subcommand rustc_version =>)
-    (@subcommand backward_slice =>
-      (@arg file:)
-      (@arg start:)
-      (@arg end:)
-      (@arg context_mode: --contextmode +takes_value)
-      (@arg mutability_mode: --mutabilitymode +takes_value)
-      (@arg pointer_mode: --pointermode +takes_value)
-      (@arg flags: ...)
-    )
-    (@subcommand forward_slice =>
-      (@arg file:)
-      (@arg start:)
-      (@arg end:)
-      (@arg flags: ...)
-    )
-    (@subcommand find_mutations =>
-      (@arg file:)
-      (@arg start:)
-      (@arg end:)
-      (@arg flags: ...)
-    )
-    (@subcommand effects =>
-      (@arg file:)
-      (@arg pos:)
-      (@arg flags: ...)
-    )
     (@subcommand decompose =>
       (@arg file:)
       (@arg pos:)
@@ -73,29 +48,7 @@ fn main() {
       println!("{commit_hash}");
       exit(0);
     }
-    ("backward_slice" | "forward_slice" | "playground", Some(sub_m)) => (
-      vec![
-        ("FILE", sub_m.value_of("file").unwrap()),
-        ("START", sub_m.value_of("start").unwrap()),
-        ("END", sub_m.value_of("end").unwrap()),
-        (
-          "CONTEXT_MODE",
-          sub_m.value_of("context_mode").unwrap_or("SigOnly"),
-        ),
-        (
-          "MUTABILITY_MODE",
-          sub_m
-            .value_of("mutability_mode")
-            .unwrap_or("DistinguishMut"),
-        ),
-        (
-          "POINTER_MODE",
-          sub_m.value_of("pointer_mode").unwrap_or("Precise"),
-        ),
-      ],
-      sub_m.value_of("file").unwrap(),
-    ),
-    ("find_mutations", Some(sub_m)) => (
+    ("playground", Some(sub_m)) => (
       vec![
         ("FILE", sub_m.value_of("file").unwrap()),
         ("START", sub_m.value_of("start").unwrap()),
@@ -103,7 +56,7 @@ fn main() {
       ],
       sub_m.value_of("file").unwrap(),
     ),
-    ("effects" | "decompose" | "focus", Some(sub_m)) => (
+    ("decompose" | "focus", Some(sub_m)) => (
       vec![
         ("FILE", sub_m.value_of("file").unwrap()),
         ("POS", sub_m.value_of("pos").unwrap()),
@@ -114,6 +67,27 @@ fn main() {
       unimplemented!()
     }
   };
+
+  let sub_m = match matches.subcommand() {
+    (_, Some(sub_m)) => sub_m,
+    _ => unreachable!(),
+  };
+  args.extend([
+    (
+      "CONTEXT_MODE",
+      sub_m.value_of("context_mode").unwrap_or("SigOnly"),
+    ),
+    (
+      "MUTABILITY_MODE",
+      sub_m
+        .value_of("mutability_mode")
+        .unwrap_or("DistinguishMut"),
+    ),
+    (
+      "POINTER_MODE",
+      sub_m.value_of("pointer_mode").unwrap_or("Precise"),
+    ),
+  ]);
 
   let (cmd, flags) = match matches.subcommand() {
     (cmd, Some(sub_m)) => (cmd, sub_m.value_of("flags")),
@@ -151,7 +125,14 @@ fn main() {
   let mut cmd = Command::new(cargo_path);
   cmd
     .env("RUSTC_WORKSPACE_WRAPPER", flowistry_rustc_path)
-    .args(&["rustc", "--profile", "check", "-q"]);
+    .args(&[
+      "rustc",
+      "--profile",
+      "check",
+      "-q",
+      "--target-dir",
+      TARGET_DIR,
+    ]);
 
   // Add compile filter to specify the target corresponding to the given file
   cmd.arg("-p").arg(&pkg.name);

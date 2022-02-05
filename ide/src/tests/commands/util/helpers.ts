@@ -9,8 +9,8 @@ import { MOCK_PROJECT_DIRECTORY } from "../../constants";
 export type TestCommand = {
     test: string;
     file: string;
-    flowistry_subcmd: "forward_slice" | "backward_slice" | "find_mutations";
-    vscode_cmd: "forward_select" | "backward_select" | "select_mutations";
+    flowistry_subcmd: "focus";
+    vscode_cmd: "focus";
     selection: [[number, number], [number, number]];
 };
 
@@ -28,8 +28,8 @@ type TestCommandResult = {
 export const get_flowistry_output = async ({ test, file, flowistry_subcmd, selection }: TestCommand): Promise<string> => {
     const doc = vscode.window.activeTextEditor?.document!;
     const start = doc.offsetAt(new vscode.Position(...selection[0]));
-    const end = doc.offsetAt(new vscode.Position(...selection[1]));
-    const command = `${flowistry_cmd} ${flowistry_subcmd} ${file} ${start} ${end}`;
+    // const end = doc.offsetAt(new vscode.Position(...selection[1]));
+    const command = `${flowistry_cmd} ${flowistry_subcmd} ${file} ${start}`;
     const command_opts = await get_flowistry_opts(MOCK_PROJECT_DIRECTORY);
 
     const output = await exec_notify(command, test, command_opts);
@@ -138,7 +138,7 @@ export const resolve_sequentially = async <T, R>(items: T[], resolver: (arg0: T)
  */
 export const expect_commands = (commands: TestCommand[]) => async () => {
     const selections = await resolve_sequentially(commands, get_command_selections);
-  
+
     selections.forEach(async (selection) => {
       expect(selection.expected_selections).to.be.deep.equalInAnyOrder(selection.actual_selections);
     });

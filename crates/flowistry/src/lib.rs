@@ -42,6 +42,7 @@ pub mod extensions;
 pub mod indexed;
 pub mod infoflow;
 pub mod mir;
+pub mod range;
 pub mod source_map;
 pub mod test_utils;
 pub mod timer;

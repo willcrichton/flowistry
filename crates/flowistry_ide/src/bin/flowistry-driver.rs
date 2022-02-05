@@ -18,16 +18,13 @@ use std::{
 
 use flowistry::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
-  infoflow::Direction,
+  range::{FunctionIdentifier, Range, ToSpan},
 };
-use flowistry_ide::{
-  analysis::{FlowistryError, FlowistryResult},
-  range::{FunctionIdentifier, Range},
-};
+use flowistry_ide::{FlowistryAnalysis, FlowistryError};
 use fluid_let::fluid_set;
 use log::debug;
 use rustc_interface::interface::Result as RustcResult;
-use rustc_serialize::{json, Encodable};
+use rustc_serialize::json;
 
 fn arg<T>(s: &str) -> T
 where
@@ -73,10 +70,12 @@ fn toolchain_path(home: Option<String>, toolchain: Option<String>) -> Option<Pat
   })
 }
 
-fn try_analysis<T: for<'a> Encodable<json::Encoder<'a>>>(
-  f: impl FnOnce() -> FlowistryResult<T>,
+fn try_analysis<A: FlowistryAnalysis, T: ToSpan>(
+  analysis: A,
+  target: T,
+  args: &[String],
 ) -> RustcResult<()> {
-  let result = match f() {
+  let result = match flowistry_ide::run(analysis, target, args) {
     Ok(output) => Ok(output),
     Err(e) => match e {
       FlowistryError::BuildError => {
@@ -94,56 +93,32 @@ fn try_analysis<T: for<'a> Encodable<json::Encoder<'a>>>(
 fn run_flowistry(args: &[String]) -> RustcResult<()> {
   debug!("Running flowistry with args: {}", args.join(" "));
 
+  let context_mode = match arg::<String>("CONTEXT_MODE").as_str() {
+    "Recurse" => ContextMode::Recurse,
+    "SigOnly" => ContextMode::SigOnly,
+    flag => panic!("Bad value of context mode: {flag}"),
+  };
+
+  let mutability_mode = match arg::<String>("MUTABILITY_MODE").as_str() {
+    "DistinguishMut" => MutabilityMode::DistinguishMut,
+    "IgnoreMut" => MutabilityMode::IgnoreMut,
+    flag => panic!("Bad value of context mode: {flag}"),
+  };
+
+  let pointer_mode = match arg::<String>("POINTER_MODE").as_str() {
+    "Precise" => PointerMode::Precise,
+    "Conservative" => PointerMode::Conservative,
+    flag => panic!("Bad value of pointer mode: {flag}"),
+  };
+
+  let eval_mode = EvalMode {
+    context_mode,
+    mutability_mode,
+    pointer_mode,
+  };
+  fluid_set!(EVAL_MODE, eval_mode);
+
   match arg::<String>("COMMAND").as_str() {
-    cmd @ ("backward_slice" | "forward_slice") => {
-      let range = Range {
-        start: arg::<usize>("START"),
-        end: arg::<usize>("END"),
-        filename: arg::<String>("FILE"),
-      };
-
-      let direction = if cmd == "backward_slice" {
-        Direction::Backward
-      } else {
-        Direction::Forward
-      };
-
-      let context_mode = match arg::<String>("CONTEXT_MODE").as_str() {
-        "Recurse" => ContextMode::Recurse,
-        "SigOnly" => ContextMode::SigOnly,
-        flag => panic!("Bad value of context mode: {flag}"),
-      };
-
-      let mutability_mode = match arg::<String>("MUTABILITY_MODE").as_str() {
-        "DistinguishMut" => MutabilityMode::DistinguishMut,
-        "IgnoreMut" => MutabilityMode::IgnoreMut,
-        flag => panic!("Bad value of context mode: {flag}"),
-      };
-
-      let pointer_mode = match arg::<String>("POINTER_MODE").as_str() {
-        "Precise" => PointerMode::Precise,
-        "Conservative" => PointerMode::Conservative,
-        flag => panic!("Bad value of pointer mode: {flag}"),
-      };
-
-      let eval_mode = EvalMode {
-        context_mode,
-        mutability_mode,
-        pointer_mode,
-      };
-      fluid_set!(EVAL_MODE, eval_mode);
-
-      try_analysis(move || flowistry_ide::slicing::slice(direction, range, args))
-    }
-    "find_mutations" => {
-      let range = Range {
-        start: arg::<usize>("START"),
-        end: arg::<usize>("END"),
-        filename: arg::<String>("FILE"),
-      };
-
-      try_analysis(move || flowistry_ide::mutations::find(range, args))
-    }
     "playground" => {
       let range = Range {
         start: arg::<usize>("START"),
@@ -151,9 +126,9 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
         filename: arg::<String>("FILE"),
       };
 
-      try_analysis(move || flowistry_ide::playground::playground(range, args))
+      try_analysis(flowistry_ide::playground::playground, range, args)
     }
-    cmd @ ("effects" | "decompose" | "focus") => {
+    cmd @ ("decompose" | "focus") => {
       let pos = arg::<usize>("POS");
       let id = FunctionIdentifier::Range(Range {
         start: pos,
@@ -161,11 +136,8 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
         filename: arg::<String>("FILE"),
       });
       match cmd {
-        "effects" => try_analysis(move || flowistry_ide::effects::effects(id, args)),
-        "decompose" => {
-          try_analysis(move || flowistry_ide::decompose::decompose(id, args))
-        }
-        "focus" => try_analysis(move || flowistry_ide::focus::focus(id, args)),
+        "decompose" => try_analysis(flowistry_ide::focus::focus, id, args),
+        "focus" => try_analysis(flowistry_ide::focus::focus, id, args),
         _ => unreachable!(),
       }
     }

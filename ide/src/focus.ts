@@ -1,16 +1,17 @@
 import * as vscode from "vscode";
 import { highlight_slice, clear_ranges } from "./utils";
 import { Range } from "./types";
-import {  CallFlowistry } from "./vsc_utils";
+import { CallFlowistry, to_vsc_range } from "./vsc_utils";
 import _ from "lodash";
 import IntervalTree from "@flatten-js/interval-tree";
 
-interface Slice {
+interface PlaceInfo {
   range: Range;
   slice: Range[];
+  mutations: Range[];
 }
 interface Focus {
-  slices: Slice[];
+  place_info: PlaceInfo[];
   body_range: Range;
   arg_range: Range;
 }
@@ -20,7 +21,7 @@ type Interval = [number, number];
 interface FocusState {
   mark: vscode.Selection | null;
   focus: Focus;
-  ranges: IntervalTree<Slice>;
+  ranges: IntervalTree<PlaceInfo>;
   disposable: vscode.Disposable;
 }
 
@@ -42,15 +43,15 @@ let initialize = async (call_flowistry: CallFlowistry) => {
   }
 
   let ranges = new IntervalTree();
-  focus.slices.forEach((slice) => {
+  focus.place_info.forEach((slice) => {
     ranges.insert([slice.range.start, slice.range.end], slice.slice);
   });
 
-  let disposable = vscode.window.onDidChangeTextEditorSelection(render);
+  let disposable = vscode.window.onDidChangeTextEditorSelection(() => render());
   state = { disposable, focus, ranges, mark: null };
 };
 
-let render = () => {
+let render = (select: boolean = false) => {
   if (!state) {
     throw `Tried to render while state is invalid.`;
   }
@@ -94,39 +95,52 @@ let render = () => {
   let slice = final.map(([_k, v]) => v).flat();
 
   if (seeds.length > 0) {
-    highlight_slice(active_editor, [state.focus.body_range, state.focus.arg_range], seeds, slice);
+    if (select) {
+      active_editor.selections = slice.map((range) => {
+        let vsc_range = to_vsc_range(range, doc);
+        return new vscode.Selection(vsc_range.start, vsc_range.end);
+      });
+    } else {
+      highlight_slice(
+        active_editor,
+        [state.focus.body_range, state.focus.arg_range],
+        seeds,
+        slice
+      );
+    }
   } else {
     clear_ranges(active_editor);
   }
 };
 
-export let focus_mark = async (call_flowistry: CallFlowistry) => {
-  let active_editor = vscode.window.activeTextEditor;
-  if (!active_editor) {
-    return;
-  }
+export let focus_subcommand =
+  (f: (editor: vscode.TextEditor) => void) =>
+  async (call_flowistry: CallFlowistry) => {
+    let active_editor = vscode.window.activeTextEditor;
+    if (!active_editor) {
+      return;
+    }
 
-  if (!state) {
-    await initialize(call_flowistry);
-  }
+    if (!state) {
+      await initialize(call_flowistry);
+    }
 
-  state!.mark = active_editor.selection;
+    f(active_editor);
+  };
+
+export let focus_mark = focus_subcommand((editor) => {
+  state!.mark = editor.selection;
   render();
-};
+});
 
-export let focus_unmark = async (call_flowistry: CallFlowistry) => {
-  let active_editor = vscode.window.activeTextEditor;
-  if (!active_editor) {
-    return;
-  }
-
-  if (!state) {
-    await initialize(call_flowistry);
-  }
-
+export let focus_unmark = focus_subcommand(() => {
   state!.mark = null;
   render();
-};
+});
+
+export let focus_select = focus_subcommand((editor) => {
+  render(true);
+});
 
 export let focus = async (call_flowistry: CallFlowistry) => {
   if (state !== null) {

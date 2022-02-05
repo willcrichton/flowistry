@@ -133,7 +133,7 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
 
     stdout.set_color(&red_spec)?;
     writeln!(
-      &mut stdout,
+      stdout,
       "ERROR: insecure flow in {filename} from data at {src_span}:",
       filename = filename
         .local_path_if_available()
@@ -145,21 +145,21 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
 
     stdout.set_color(&black_spec)?;
     writeln!(
-      &mut stdout,
+      stdout,
       "  {src_snippet}",
       src_snippet = source_map.span_to_snippet(src_span).unwrap()
     )?;
 
     stdout.set_color(&red_spec)?;
     writeln!(
-      &mut stdout,
+      stdout,
       "to data at {dst_span}:",
       dst_span = fmt_span(dst_span.source_callsite())
     )?;
 
     stdout.set_color(&black_spec)?;
     writeln!(
-      &mut stdout,
+      stdout,
       "  {dst_snippet}",
       dst_snippet = if dst_span.from_expansion() {
         "<in macro expansion>".to_string()
