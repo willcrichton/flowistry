@@ -24,6 +24,7 @@ fn main() {
     (version: VERSION)
     (author: "Will Crichton <wcrichto@cs.stanford.edu>")
     (@setting TrailingVarArg)
+    (@arg BENCH: -b --bench)
     (@subcommand rustc_version =>)
     (@subcommand decompose =>
       (@arg file:)
@@ -125,14 +126,10 @@ fn main() {
   let mut cmd = Command::new(cargo_path);
   cmd
     .env("RUSTC_WORKSPACE_WRAPPER", flowistry_rustc_path)
-    .args(&[
-      "rustc",
-      "--profile",
-      "check",
-      "-q",
-      "--target-dir",
-      TARGET_DIR,
-    ]);
+    .args(&["rustc", "--profile", "check", "--target-dir", TARGET_DIR]);
+
+  let bench = matches.is_present("BENCH");
+  cmd.arg(if bench { "-v" } else { "-q" });
 
   // Add compile filter to specify the target corresponding to the given file
   cmd.arg("-p").arg(&pkg.name);
@@ -155,6 +152,16 @@ fn main() {
   //   caching on VSCode's side
   for (k, v) in args {
     cmd.env(format!("FLOWISTRY_{k}"), v);
+  }
+
+  if bench {
+    eprintln!(
+      "{:?}",
+      cmd
+        .get_envs()
+        .map(|(k, v)| vec![k.to_string_lossy(), v.unwrap().to_string_lossy()])
+        .collect::<Vec<_>>()
+    );
   }
 
   let exit_status = cmd.status().expect("could not run cargo");
