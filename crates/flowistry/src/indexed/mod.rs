@@ -61,6 +61,15 @@ pub trait IndexedDomain {
   fn size(&self) -> usize {
     self.as_vec().len()
   }
+
+  fn as_set(domain: &Rc<<Self::Value as IndexedValue>::Domain>) -> IndexSet<Self::Value> {
+    let mut set = IndexSetImpl::new_empty(domain.size());
+    set.insert_all();
+    IndexSet {
+      set: OwnedSet(set),
+      domain: domain.clone(),
+    }
+  }
 }
 
 #[derive(Clone)]

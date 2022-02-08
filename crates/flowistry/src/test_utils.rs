@@ -196,17 +196,15 @@ pub fn color_ranges(prog: &str, all_ranges: Vec<(&str, &HashSet<Range>)>) -> Str
   let mut new_tokens = all_ranges
     .iter()
     .flat_map(|(_, ranges)| {
-      ranges
-        .iter()
-        .flat_map(|range| {
-          let contained = all_ranges.iter().any(|(_, ranges)| {
-            ranges.iter().any(|other| {
-              range != other && other.start <= range.end && range.end < other.end
-            })
-          });
-          let end_marker = if contained { "]" } else { "\x1B[0m]" };
-          [("[\x1B[31m", range.start), (end_marker, range.end)]
-        })
+      ranges.iter().flat_map(|range| {
+        let contained = all_ranges.iter().any(|(_, ranges)| {
+          ranges.iter().any(|other| {
+            range != other && other.start <= range.end && range.end < other.end
+          })
+        });
+        let end_marker = if contained { "]" } else { "\x1B[0m]" };
+        [("[\x1B[31m", range.start), (end_marker, range.end)]
+      })
     })
     .collect::<Vec<_>>();
   new_tokens.sort_by_key(|(_, i)| -(*i as isize));

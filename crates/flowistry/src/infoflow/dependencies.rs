@@ -1,17 +1,18 @@
 use log::{debug, trace};
-use rustc_middle::mir::*;
+use rustc_middle::mir::{visit::Visitor, *};
 use rustc_mir_dataflow::ResultsVisitor;
 use rustc_span::Span;
 
 use super::{
   analysis::{FlowAnalysis, FlowDomain},
+  mutation::ModularMutationVisitor,
   FlowResults,
 };
 use crate::{
   block_timer,
   indexed::{
-    impls::{LocationSet, PlaceIndex, PlaceSet},
-    IndexedDomain,
+    impls::{LocationSet, PlaceDomain, PlaceSet},
+    IndexSetIteratorExt, IndexedDomain,
   },
   mir::utils::SpanExt,
   source_map::{EnclosingHirSpans, Spanner},
@@ -36,15 +37,15 @@ impl DepVisitor<'_, '_, 'tcx> {
     &mut self,
     state: &FlowDomain<'tcx>,
     opt_location: Option<Location>,
-    to_check: Vec<PlaceIndex>,
+    to_check: PlaceSet<'tcx>,
     is_switch: bool,
   ) {
     for (target_locs, (out_locs, out_places)) in
       self.target_deps.iter().zip(self.outputs.iter_mut())
     {
       for (place, loc_deps) in to_check
-        .iter()
-        .map(|place| (place, state.row_set(*place)))
+        .indices()
+        .map(|place| (place, state.row_set(place)))
         .filter(|(_, loc_deps)| !loc_deps.is_empty())
       {
         let matches = match self.direction {
@@ -58,9 +59,9 @@ impl DepVisitor<'_, '_, 'tcx> {
         if matches {
           trace!(
             "{opt_location:?}: place {:?} (deps {loc_deps:?}) / target_locs {target_locs:?}",
-            state.row_domain.value(*place)
+            state.row_domain.value(place)
           );
-          out_places.insert(*place);
+          out_places.insert(place);
 
           if let Some(location) = opt_location {
             if loc_deps.contains(location)
@@ -89,7 +90,10 @@ impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
       self.visit(
         state,
         None,
-        place_domain.all_args(self.analysis.body),
+        place_domain
+          .all_args(self.analysis.body)
+          .into_iter()
+          .collect_indices(place_domain),
         false,
       );
     }
@@ -101,17 +105,17 @@ impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
     statement: &'mir Statement<'tcx>,
     location: Location,
   ) {
-    match statement.kind {
-      StatementKind::Assign(box (lhs, _)) => {
-        self.visit(
-          state,
-          Some(location),
-          self.analysis.aliases.conflicts(lhs).indices().collect(),
-          false,
-        );
-      }
-      _ => {}
-    }
+    let mut to_check = PlaceSet::new(self.analysis.place_domain());
+    ModularMutationVisitor::new(
+      self.analysis.tcx,
+      self.analysis.body,
+      self.analysis.def_id,
+      |mutated, _, _, _| {
+        to_check.union(&self.analysis.aliases.conflicts(mutated));
+      },
+    )
+    .visit_statement(statement, location);
+    self.visit(state, Some(location), to_check, false);
   }
 
   fn visit_terminator_after_primary_effect(
@@ -120,20 +124,24 @@ impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
     terminator: &'mir rustc_middle::mir::Terminator<'tcx>,
     location: Location,
   ) {
-    if matches!(
-      terminator.kind,
-      TerminatorKind::Call { .. }
-        | TerminatorKind::DropAndReplace { .. }
-        | TerminatorKind::SwitchInt { .. }
-    ) {
-      // TODO: optimize this by only checking the set of possibly mutated objects
-      // BIGGER TODO: unify this logic with dataflow.rs to avoid copying
-      self.visit(
-        state,
-        Some(location),
-        self.analysis.place_domain().as_vec().indices().collect(),
-        matches!(terminator.kind, TerminatorKind::SwitchInt { .. }),
-      );
+    match terminator.kind {
+      TerminatorKind::SwitchInt { .. } => {
+        let to_check = PlaceDomain::as_set(self.analysis.place_domain());
+        self.visit(state, Some(location), to_check, true);
+      }
+      _ => {
+        let mut to_check = PlaceSet::new(self.analysis.place_domain());
+        ModularMutationVisitor::new(
+          self.analysis.tcx,
+          self.analysis.body,
+          self.analysis.def_id,
+          |mutated, _, _, _| {
+            to_check.union(&self.analysis.aliases.conflicts(mutated));
+          },
+        )
+        .visit_terminator(terminator, location);
+        self.visit(state, Some(location), to_check, false);
+      }
     }
   }
 }
