@@ -82,16 +82,16 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
     }
 
     // See PlaceCollector for where this matters
-    if let Rvalue::Aggregate(box AggregateKind::Adt(def_id, idx, _substs, _, _), _) =
+    if let Rvalue::Aggregate(box AggregateKind::Adt(def_id, idx, substs, _, _), _) =
       rvalue
     {
       let adt_def = self.tcx.adt_def(*def_id);
       let variant = &adt_def.variants[*idx];
-      let places = (0 .. variant.fields.len()).map(|i| {
+      let places = variant.fields.iter().enumerate().map(|(i, field)| {
         let mut projection = place.projection.to_vec();
         projection.push(ProjectionElem::Field(
           Field::from_usize(i),
-          self.tcx.mk_unit(),
+          field.ty(self.tcx, substs),
         ));
         Place::make(place.local, &projection, self.tcx)
       });
@@ -164,13 +164,19 @@ impl OrderedPlace {
 
 impl PartialOrd for OrderedPlace {
   fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-    self.0.local.partial_cmp(&other.0.local)
+    Some(
+      self
+        .0
+        .local
+        .cmp(&other.0.local)
+        .then_with(|| self.0.projection.cmp(&other.0.projection)),
+    )
   }
 }
 
 impl Ord for OrderedPlace {
   fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-    self.0.local.cmp(&other.0.local)
+    unsafe { self.partial_cmp(other).unwrap_unchecked() }
   }
 }
 
