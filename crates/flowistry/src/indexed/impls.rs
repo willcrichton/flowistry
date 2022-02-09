@@ -72,11 +72,6 @@ impl NormalizedPlaces<'tcx> {
           // Ignore subslices, they should be treated the same as the
           // full slice
           ProjectionElem::Subslice { .. } => None,
-          // Remove the type component so artificially manufactured Field
-          // work along with projections retrieved from the Body
-          ProjectionElem::Field(field, _) => {
-            Some(ProjectionElem::Field(field, tcx.mk_unit()))
-          }
           _ => Some(elem),
         })
         .collect::<Vec<_>>();
