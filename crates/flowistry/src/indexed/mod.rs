@@ -106,6 +106,7 @@ impl<I: Idx, T: IndexedValue> IndexedDomain for DefaultDomain<I, T> {
       .get(value)
       .unwrap_or_else(|| panic!("No index for value: {value:?}"))
   }
+
   fn contains(&self, value: &T) -> bool {
     self.value_to_index.contains_key(value)
   }
