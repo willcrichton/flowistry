@@ -163,7 +163,6 @@ pub fn compute_dependencies(
     .iter()
     .map(|(place, location)| {
       let places = aliases.reachable_values(tcx, body, results.analysis.def_id, *place);
-
       (places, *location)
     })
     .collect::<Vec<_>>();

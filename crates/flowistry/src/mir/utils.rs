@@ -594,34 +594,37 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
 
   fn visit_region(&mut self, region: ty::Region<'tcx>) -> ControlFlow<Self::BreakTy> {
     trace!("visiting region {region:?}");
-    match region {
-      RegionKind::ReVar(region) => {
-        let mutability = if self
-          .ty_stack
-          .iter()
-          .any(|ty| ty.is_ref() && ty.ref_mutability().unwrap() == Mutability::Not)
-        {
-          Mutability::Not
-        } else {
-          Mutability::Mut
-        };
-
-        let place = Place::make(self.local, &self.place_stack, self.tcx);
-
-        self
-          .regions
-          .entry(*region)
-          .or_default()
-          .push((place, mutability));
-
-        // for initialization setup of Aliases::build
-        if let Some(places) = self.places.as_mut() {
-          places.insert(self.tcx.mk_place_deref(place));
-        }
+    let region = match region {
+      RegionKind::ReVar(region) => *region,
+      RegionKind::ReStatic => RegionVid::from_usize(0),
+      RegionKind::ReErased => {
+        return ControlFlow::Continue(());
       }
-      RegionKind::ReStatic | RegionKind::ReErased => {}
       _ => unreachable!("{:?}: {:?}", self.ty_stack.first().unwrap(), region),
     };
+
+    let mutability = if self
+      .ty_stack
+      .iter()
+      .any(|ty| ty.is_ref() && ty.ref_mutability().unwrap() == Mutability::Not)
+    {
+      Mutability::Not
+    } else {
+      Mutability::Mut
+    };
+
+    let place = Place::make(self.local, &self.place_stack, self.tcx);
+
+    self
+      .regions
+      .entry(region)
+      .or_default()
+      .push((place, mutability));
+
+    // for initialization setup of Aliases::build
+    if let Some(places) = self.places.as_mut() {
+      places.insert(self.tcx.mk_place_deref(place));
+    }
 
     ControlFlow::Continue(())
   }
