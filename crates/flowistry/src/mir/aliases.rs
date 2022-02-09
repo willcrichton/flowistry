@@ -169,7 +169,7 @@ impl PartialOrd for OrderedPlace {
         .0
         .local
         .cmp(&other.0.local)
-        .then_with(|| self.0.projection.cmp(&other.0.projection)),
+        .then_with(|| self.0.projection.cmp(other.0.projection)),
     )
   }
 }
@@ -367,7 +367,7 @@ impl Aliases<'tcx> {
         .flat_map(|places| {
           places
             .into_iter()
-            .flat_map(|(p, _)| vec![p, tcx.mk_place_deref(p)].into_iter())
+            .flat_map(|(p, _)| [p, tcx.mk_place_deref(p)])
         })
     }));
 
