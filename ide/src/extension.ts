@@ -1,12 +1,15 @@
 import * as vscode from "vscode";
 import _ from "lodash";
-import { CallFlowistry, log, show_error } from "./vsc_utils";
+import { FocusStatusBarState, render_status_bar } from "./focus_utils";
+import { CallFlowistry, last_error, log, show_error } from "./vsc_utils";
 
 import { decompose } from "./decompose";
 import { focus, focus_mark, focus_unmark, focus_select } from "./focus";
 import { setup } from "./setup";
 
 import "./app.scss";
+
+export let focus_status_bar_item: vscode.StatusBarItem;
 
 export async function activate(context: vscode.ExtensionContext) {
   log("Activating...");
@@ -23,6 +26,7 @@ export async function activate(context: vscode.ExtensionContext) {
       ["focus_unmark", focus_unmark],
       ["focus_select", focus_select],
       ["decompose", decompose],
+      ["last_error", last_error.bind(context)],
     ];
 
     commands.forEach(([name, func]) => {
@@ -39,6 +43,11 @@ export async function activate(context: vscode.ExtensionContext) {
       );
       context.subscriptions.push(disposable);
     });
+
+    focus_status_bar_item = vscode.window.createStatusBarItem();
+    render_status_bar(focus_status_bar_item, FocusStatusBarState.Inactive);
+    focus_status_bar_item.show();
+    context.subscriptions.push(focus_status_bar_item);
   } catch (e: any) {
     show_error(e.toString());
   }

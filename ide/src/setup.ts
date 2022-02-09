@@ -5,7 +5,7 @@ import { Readable } from "stream";
 import open from "open";
 
 import { Result } from "./types";
-import { log, CallFlowistry } from "./vsc_utils";
+import { log, CallFlowistry, FlowistryBuildErrorDocument } from "./vsc_utils";
 import { download } from "./download";
 
 declare const VERSION: string;
@@ -177,27 +177,12 @@ export async function setup(
     }
   }
 
-  const tdcp = new (class implements vscode.TextDocumentContentProvider {
-    readonly uri = vscode.Uri.parse("flowistry://build-error");
-    readonly eventEmitter = new vscode.EventEmitter<vscode.Uri>();
-    contents: string = "";
-
-    provideTextDocumentContent(
-      _uri: vscode.Uri
-    ): vscode.ProviderResult<string> {
-      return `Flowistry could not run because your project failed to build with error:\n${this.contents}`;
-    }
-
-    get onDidChange(): vscode.Event<vscode.Uri> {
-      return this.eventEmitter.event;
-    }
-  })();
-
+  const tdcp = new FlowistryBuildErrorDocument();
   context.subscriptions.push(
     vscode.workspace.registerTextDocumentContentProvider("flowistry", tdcp)
   );
 
-  return async <T>(args: string) => {
+  return async <T>(args: string, hide_error?: boolean) => {
     let cmd = `${flowistry_cmd} ${args}`;
     let flowisty_opts = await get_flowistry_opts(workspace_root);
 
@@ -210,10 +195,14 @@ export async function setup(
 
       output = await exec_notify(cmd, "Waiting for Flowistry...", flowisty_opts);
     } catch (e: any) {
-      tdcp.contents = e.toString();
-      tdcp.eventEmitter.fire(tdcp.uri);
-      let doc = await vscode.workspace.openTextDocument(tdcp.uri);
-      await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
+      if (!hide_error) {
+        tdcp.contents = e.toString();
+        tdcp.eventEmitter.fire(tdcp.uri);
+        let doc = await vscode.workspace.openTextDocument(tdcp.uri);
+        await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
+      }
+      
+      context.workspaceState.update('err_log', e);
       return null;
     }
 
