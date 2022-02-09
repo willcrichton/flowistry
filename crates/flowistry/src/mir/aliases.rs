@@ -357,6 +357,7 @@ impl Aliases<'tcx> {
       .collect::<Vec<_>>();
     all_places.extend(all_pointers);
 
+    // For every local i, add every pointer accessible from i
     let all_locals = body.local_decls().indices();
     all_places.extend(all_locals.flat_map(|local| {
       let place = Place::from_local(local, tcx);
@@ -369,6 +370,14 @@ impl Aliases<'tcx> {
             .flat_map(|(p, _)| vec![p, tcx.mk_place_deref(p)].into_iter())
         })
     }));
+
+    // For every current place, add the refs in its projection
+    all_places.extend(
+      all_places
+        .clone()
+        .into_iter()
+        .flat_map(|place| place.place_and_refs_in_projection(tcx)),
+    );
 
     debug!("Places: {all_places:?}");
     info!("Place domain size: {}", all_places.len());
