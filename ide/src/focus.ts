@@ -4,6 +4,8 @@ import { Range } from "./types";
 import { CallFlowistry, to_vsc_range } from "./vsc_utils";
 import _ from "lodash";
 import IntervalTree from "@flatten-js/interval-tree";
+import { FocusStatusBarState, render_status_bar } from "./focus_utils";
+import { focus_status_bar_item } from "./extension";
 
 interface PlaceInfo {
   range: Range;
@@ -26,8 +28,9 @@ interface FocusState {
 }
 
 let state: FocusState | null = null;
+let doc_save_callback: vscode.Disposable;
 
-let initialize = async (call_flowistry: CallFlowistry) => {
+let initialize = async (call_flowistry: CallFlowistry, hide_error?: boolean) => {
   let active_editor = vscode.window.activeTextEditor;
   if (!active_editor) {
     return;
@@ -37,10 +40,14 @@ let initialize = async (call_flowistry: CallFlowistry) => {
   let selection = active_editor.selection;
 
   let cmd = `focus ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
-  let focus = await call_flowistry<Focus>(cmd);
+  let focus = await call_flowistry<Focus>(cmd, hide_error);
+  
   if (!focus) {
+    render_status_bar(focus_status_bar_item, FocusStatusBarState.Error);
     return;
   }
+
+  render_status_bar(focus_status_bar_item, FocusStatusBarState.Active);
 
   let ranges = new IntervalTree();
   focus.place_info.forEach((slice) => {
@@ -147,8 +154,13 @@ export let focus = async (call_flowistry: CallFlowistry) => {
     clear_ranges(vscode.window.activeTextEditor!);
     state.disposable.dispose();
     state = null;
+
+    render_status_bar(focus_status_bar_item, FocusStatusBarState.Inactive);
+    doc_save_callback.dispose();
   } else {
     await initialize(call_flowistry);
     render();
+
+    doc_save_callback = vscode.workspace.onDidSaveTextDocument(() => initialize(call_flowistry, true));
   }
 };
