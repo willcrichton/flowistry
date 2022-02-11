@@ -66,17 +66,6 @@ export function highlight_ranges(
     type,
     ranges.map((range) => to_vsc_range(range, editor.document))
   );
-
-  // let callback = vscode.workspace.onDidChangeTextDocument((event) => {
-  //   if (!editor) {
-  //     return;
-  //   }
-  //   if (event.document !== editor.document) {
-  //     return;
-  //   }
-  //   editor.setDecorations(type, []);
-  //   callback.dispose();
-  // });
 }
 
 export let clear_ranges = (editor: vscode.TextEditor) => {
