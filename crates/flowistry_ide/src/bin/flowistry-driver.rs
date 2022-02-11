@@ -136,7 +136,7 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
         filename: arg::<String>("FILE"),
       });
       match cmd {
-        "decompose" => try_analysis(flowistry_ide::focus::focus, id, args),
+        "decompose" => try_analysis(flowistry_ide::decompose::decompose, id, args),
         "focus" => try_analysis(flowistry_ide::focus::focus, id, args),
         _ => unreachable!(),
       }

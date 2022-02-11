@@ -27,7 +27,7 @@ let colors = [
   "rgba(188, 189, 34, 0.5)",
   "rgba(23, 190, 207, 0.5)",
 ];
-_.range(3).forEach(_ => {
+_.range(3).forEach((_) => {
   colors = colors.concat(colors);
 });
 let palette = colors.map((backgroundColor) =>
@@ -45,22 +45,21 @@ export let decompose = async (call_flowistry: CallFlowistry) => {
   let doc = active_editor.document;
   let selection = active_editor.selection;
 
-  try {
-    let cmd = `decompose ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
-    let decomp = await call_flowistry<Decomposition>(cmd);
-    if (!decomp) {
-      return;
-    }
+  let cmd = `decompose ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
+  let decomp = await call_flowistry<Decomposition>(cmd);
+  if (!decomp) {
+    return;
+  }
 
-    const panel = vscode.window.createWebviewPanel(
-      "flowistry.decomp",
-      `Flowistry: decomp`,
-      vscode.ViewColumn.Beside,
-      {
-        enableScripts: true,
-      }
-    );
-    panel.webview.html = `
+  const panel = vscode.window.createWebviewPanel(
+    "flowistry.decomp",
+    `Flowistry: decomp`,
+    vscode.ViewColumn.Beside,
+    {
+      enableScripts: true,
+    }
+  );
+  panel.webview.html = `
 <!DOCTYPE html>
 <html>      
 <body class="">
@@ -77,27 +76,22 @@ export let decompose = async (call_flowistry: CallFlowistry) => {
 </html>        
 `;
 
-    let show_chunks = (chunks: Range[][]) => {
-      let editor = active_editor!;
-      palette.forEach(type => {
-        editor.setDecorations(type, []);
-      });
-
-      chunks.forEach((chunk, i) => {
-        highlight_ranges(chunk, editor, palette[i]);
-      });
-    };
-
-    // show_chunks(decomp.chunks);
-
-    show_chunks(decomp.chunks[Math.ceil(decomp.chunks.length / 2)][1])
-
-    panel.webview.onDidReceiveMessage((i) => {
-      show_chunks(decomp!.chunks[i][1]);
+  let show_chunks = (chunks: Range[][]) => {
+    let editor = active_editor!;
+    palette.forEach((type) => {
+      editor.setDecorations(type, []);
     });
-    
-  } catch (exc: any) {
-    log("ERROR", exc);
-    show_error(exc);
-  }
+
+    chunks.forEach((chunk, i) => {
+      highlight_ranges(chunk, editor, palette[i]);
+    });
+  };
+
+  // show_chunks(decomp.chunks);
+
+  show_chunks(decomp.chunks[Math.ceil(decomp.chunks.length / 2)][1]);
+
+  panel.webview.onDidReceiveMessage((i) => {
+    show_chunks(decomp!.chunks[i][1]);
+  });
 };

@@ -446,8 +446,15 @@ impl Visitor<'tcx> for BodyFinder<'tcx> {
 
     let hir = self.tcx.hir();
     let span = hir.span_with_body(hir.body_owner(id));
+    trace!(
+      "Searching body for {:?} with span {span:?} (local {:?})",
+      self
+        .tcx
+        .def_path_debug_str(hir.body_owner_def_id(id).to_def_id()),
+      span.as_local(self.tcx)
+    );
 
-    if span.contains(self.target) {
+    if !span.from_expansion() && span.contains(self.target) {
       self.bodies.push((span, id));
     }
   }
