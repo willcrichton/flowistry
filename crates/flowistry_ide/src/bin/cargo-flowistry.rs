@@ -15,6 +15,8 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 const TARGET_DIR: &str = "target/flowistry";
 
 fn main() {
+  env_logger::init();
+
   let flowistry_rustc_path = std::env::current_exe()
     .expect("current executable path invalid")
     .with_file_name("flowistry-driver");
@@ -94,6 +96,7 @@ fn main() {
     (cmd, Some(sub_m)) => (cmd, sub_m.value_of("flags")),
     _ => unimplemented!(),
   };
+  log::debug!("Command: {cmd}");
   args.push(("COMMAND", cmd));
 
   let file_path = PathBuf::from(file_name);
@@ -102,23 +105,29 @@ fn main() {
     .other_options(["--offline".to_string()])
     .exec()
     .unwrap();
-  let (pkg, target) = metadata
+
+  let workspace_members = metadata
     .workspace_members
     .iter()
-    .filter_map(|pkg_id| {
-      let pkg = metadata
+    .map(|pkg_id| {
+      metadata
         .packages
         .iter()
         .find(|pkg| &pkg.id == pkg_id)
-        .unwrap();
+        .unwrap()
+    })
+    .collect::<Vec<_>>();
 
+  let (pkg, target) = workspace_members
+    .iter()
+    .filter_map(|pkg| {
       let target = pkg
         .targets
         .iter()
         .filter(|target| file_path.starts_with(target.src_path.parent().unwrap()))
-        .max_by_key(|target| target.src_path.components().count());
+        .max_by_key(|target| target.src_path.components().count())?;
 
-      target.map(move |target| (pkg, target))
+      Some((pkg, target))
     })
     .next()
     .unwrap_or_else(|| panic!("Could not find target for path: {file_name}"));
@@ -132,6 +141,7 @@ fn main() {
   cmd.arg(if bench { "-v" } else { "-q" });
 
   // Add compile filter to specify the target corresponding to the given file
+  log::debug!("Package: {}", pkg.name);
   cmd.arg("-p").arg(&pkg.name);
   let kind = &target.kind[0];
   if kind != "proc-macro" {
@@ -146,12 +156,24 @@ fn main() {
 
   // RNG is necessary to avoid caching
   let n = thread_rng().gen::<u64>();
-  cmd.args(&["--", &format!("--flowistry={n}")]).args(flags);
+  cmd.args(&["--", &format!("--flowistry={n}")]);
+
+  // Add args passed from CLI
+  cmd.args(flags);
+
+  // Pass --test to rustc so #[test] functions can be analyzed
+  cmd.arg("--test");
 
   // FIXME(wcrichto): we should make these CLI args as well, then do
   //   caching on VSCode's side
   for (k, v) in args {
     cmd.env(format!("FLOWISTRY_{k}"), v);
+  }
+
+  // HACK: if running flowistry on the rustc codebase, this env var needs to exist
+  // for the code to compile
+  if workspace_members.iter().any(|pkg| pkg.name == "rustc-main") {
+    cmd.env("CFG_RELEASE", "");
   }
 
   if bench {

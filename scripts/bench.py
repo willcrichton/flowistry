@@ -18,6 +18,9 @@ for line in lines[1:]:
     driver_cmd = line.strip()[len(prefix):-1]
 
 env = {k: v for [k, v] in env_vars}
-env['SYSROOT'] = sysroot
+env_vars += [
+  ['SYSROOT', sysroot],
+  ['DYLD_LIBRARY_PATH', sysroot + '/lib']
+]
 env_str = ' '.join([f'{k}={v}' for [k, v] in env_vars])
 print(f"{env_str} xcrun xctrace record --template 'Time Profiler' --launch -- {driver_cmd}")

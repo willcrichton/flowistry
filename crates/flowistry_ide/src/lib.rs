@@ -1,4 +1,4 @@
-#![feature(rustc_private, in_band_lifetimes, unboxed_closures)]
+#![feature(rustc_private, in_band_lifetimes, unboxed_closures, box_patterns)]
 #![allow(
   clippy::single_match,
   clippy::needless_lifetimes,
@@ -35,6 +35,7 @@ extern crate rustc_mir_dataflow;
 extern crate rustc_serialize;
 extern crate rustc_span;
 
+pub mod decompose;
 pub mod focus;
 pub mod playground;
 
