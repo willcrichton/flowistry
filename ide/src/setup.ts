@@ -7,14 +7,14 @@ import open from "open";
 import { Result } from "./types";
 import { log, CallFlowistry, FlowistryBuildErrorDocument } from "./vsc_utils";
 import { download } from "./download";
+import { FocusStatus, render_status_bar } from "./focus_utils";
+import { flowistry_status_bar_item } from "./extension";
 
 declare const VERSION: string;
 declare const TOOLCHAIN: {
   channel: string;
   components: string[];
 };
-
-const SHOW_LOADER_THRESHOLD = 2000;
 
 const LIBRARY_PATHS: Partial<Record<NodeJS.Platform, string>> = {
   darwin: "DYLD_LIBRARY_PATH",
@@ -74,43 +74,22 @@ export let exec_notify = async (
   let stdout = read_stream(proc.stdout);
   let stderr = read_stream(proc.stderr);
 
-  let promise = new Promise<string>((resolve, reject) => {
+  render_status_bar(flowistry_status_bar_item, FocusStatus.Loading, title);
+
+  return new Promise<string>((resolve, reject) => {
     proc.addListener("close", (_) => {
       if (proc.exitCode !== 0) {
+        log('stderr()');
         reject(stderr());
       } else {
         resolve(stdout());
       }
     });
     proc.addListener("error", (e) => {
+      log('e.toString()');
       reject(e.toString());
     });
   });
-
-  let outcome = await Promise.race([
-    promise,
-    new Promise<undefined>((resolve, _) =>
-      setTimeout(resolve, SHOW_LOADER_THRESHOLD)
-    ),
-  ]);
-
-  if (outcome === undefined) {
-    outcome = await vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.Notification,
-        title,
-        cancellable: true,
-      },
-      (_, token) => {
-        token.onCancellationRequested((_) => {
-          proc.kill("SIGINT");
-        });
-        return promise;
-      }
-    );
-  }
-
-  return outcome;
 };
 
 export async function setup(
@@ -181,6 +160,9 @@ export async function setup(
   context.subscriptions.push(
     vscode.workspace.registerTextDocumentContentProvider("flowistry", tdcp)
   );
+
+  // remove loading indicator after setup complete
+  render_status_bar(flowistry_status_bar_item, FocusStatus.Inactive);
 
   return async <T>(args: string, hide_error?: boolean) => {
     let cmd = `${flowistry_cmd} ${args}`;
