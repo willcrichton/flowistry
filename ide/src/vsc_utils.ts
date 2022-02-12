@@ -3,7 +3,8 @@ import { Range } from "./types";
 import open from "open";
 import newGithubIssueUrl from "new-github-issue-url";
 import * as cp from "child_process";
-import os from 'os';
+import os from "os";
+import { FlowistryBuildError, FlowistryError } from "./error_types";
 
 let channel = vscode.window.createOutputChannel("Flowistry");
 let logs: string[] = [];
@@ -68,16 +69,14 @@ ${log_text}`,
   }
 };
 
-export type CallFlowistry = <T>(args: string, show_error?: boolean) => Promise<T | null>;
+export type CallFlowistry = <T>(args: string) => Promise<T | FlowistryError>;
 
-export class FlowistryBuildErrorDocument implements vscode.TextDocumentContentProvider {
+export class FlowistryErrorDocument implements vscode.TextDocumentContentProvider {
   readonly uri = vscode.Uri.parse("flowistry://build-error");
   readonly eventEmitter = new vscode.EventEmitter<vscode.Uri>();
   contents: string = "";
 
-  provideTextDocumentContent(
-    _uri: vscode.Uri
-  ): vscode.ProviderResult<string> {
+  provideTextDocumentContent(_uri: vscode.Uri): vscode.ProviderResult<string> {
     return `Flowistry could not run because your project failed to build with error:\n${this.contents}`;
   }
 
@@ -86,16 +85,12 @@ export class FlowistryBuildErrorDocument implements vscode.TextDocumentContentPr
   }
 }
 
-export async function last_error(this: vscode.ExtensionContext, _f: CallFlowistry) {
-  let tdcp = new FlowistryBuildErrorDocument();
-  this.subscriptions.push(
-    vscode.workspace.registerTextDocumentContentProvider("flowistry", tdcp)
-  );
+export async function last_error(
+  this: vscode.ExtensionContext,
+  _f: CallFlowistry
+) {
+  let err = this.workspaceState.get("err_log") as string;
 
-  let err = this.workspaceState.get('err_log') as string;
-  
-  tdcp.contents = err;
-  tdcp.eventEmitter.fire(tdcp.uri);
-  let doc = await vscode.workspace.openTextDocument(tdcp.uri);
-  await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
+  let flowistry_err = new FlowistryBuildError(err);
+  await flowistry_err.show();
 }

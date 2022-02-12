@@ -1,6 +1,12 @@
 import * as vscode from "vscode";
 import _ from "lodash";
-import { CallFlowistry, last_error, log, show_error } from "./vsc_utils";
+import {
+  CallFlowistry,
+  FlowistryErrorDocument,
+  last_error,
+  log,
+  show_error,
+} from "./vsc_utils";
 
 import { decompose } from "./decompose";
 import { FocusMode } from "./focus";
@@ -9,6 +15,7 @@ import { setup } from "./setup";
 import "./app.scss";
 
 export let flowistry_status_bar_item: vscode.StatusBarItem;
+export const tdcp = new FlowistryErrorDocument();
 
 export async function activate(context: vscode.ExtensionContext) {
   log("Activating...");
@@ -17,6 +24,10 @@ export async function activate(context: vscode.ExtensionContext) {
     flowistry_status_bar_item = vscode.window.createStatusBarItem();
     context.subscriptions.push(flowistry_status_bar_item);
     flowistry_status_bar_item.show();
+
+    context.subscriptions.push(
+      vscode.workspace.registerTextDocumentContentProvider("flowistry", tdcp)
+    );
 
     let call_flowistry = await setup(context);
     if (call_flowistry === null) {

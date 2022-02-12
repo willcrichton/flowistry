@@ -5,6 +5,7 @@ import { CallFlowistry, to_vsc_range } from "./vsc_utils";
 import _ from "lodash";
 import IntervalTree from "@flatten-js/interval-tree";
 import { FocusStatus, render_status_bar } from "./focus_utils";
+import { is_flowisty_error } from "./error_types";
 
 interface PlaceInfo {
   range: Range;
@@ -27,7 +28,7 @@ interface FocusState {
 }
 
 export class FocusMode {
-  status = FocusStatus.Inactive;
+  status = "inactive";
   state: FocusState | null = null;
 
   call_flowistry: CallFlowistry;
@@ -52,6 +53,7 @@ export class FocusMode {
     // reinitialize focus mode state after each save
     this.doc_save_callback = vscode.workspace.onDidSaveTextDocument(
       async () => {
+        // don't display error in document after save
         await this.initialize(true);
       }
     );
@@ -63,9 +65,9 @@ export class FocusMode {
 
         if (event.document === active_editor.document) {
           if (active_editor.document.isDirty) {
-            this.pause_rendering(FocusStatus.UnsavedChanges);
+            this.pause_rendering("unsaved");
           } else {
-            this.setStatus(FocusStatus.Active);
+            this.setStatus("active");
             this.render();
           }
         }
@@ -84,11 +86,11 @@ export class FocusMode {
   }
 
   private is_active() {
-    return this.status !== FocusStatus.Inactive;
+    return this.status !== "inactive";
   }
 
   private should_render() {
-    return [FocusStatus.Active, FocusStatus.Loading].includes(this.status);
+    return ["active", "loading"].includes(this.status);
   }
 
   private focus_subcommand =
@@ -117,11 +119,14 @@ export class FocusMode {
     let selection = active_editor.selection;
 
     let cmd = `focus ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
-    let focus = await this.call_flowistry<Focus>(cmd, hide_error);
+    let focus = await this.call_flowistry<Focus>(cmd);
 
     // pause rendering and add error status when program doesn't compile
-    if (!focus) {
-      return this.pause_rendering(FocusStatus.Error);
+    if (is_flowisty_error(focus)) {
+      if (!hide_error) {
+        focus.show();
+      }
+      return this.pause_rendering("error");
     }
 
     let ranges = new IntervalTree();
@@ -134,7 +139,7 @@ export class FocusMode {
     );
     this.state = { disposable, focus, ranges, mark: null };
 
-    this.setStatus(FocusStatus.Active);
+    this.setStatus("active");
   }
 
   async render(select: boolean = false) {
@@ -205,7 +210,7 @@ export class FocusMode {
       clear_ranges(active_editor);
     }
 
-    this.setStatus(FocusStatus.Active);
+    this.setStatus("active");
   }
 
   focus_mark = this.focus_subcommand((editor) => {
@@ -228,7 +233,7 @@ export class FocusMode {
   }
 
   private uninitialize() {
-    this.pause_rendering(FocusStatus.Inactive);
+    this.pause_rendering("inactive");
     this.dispose_watchers();
 
     this.state = null;
