@@ -19,7 +19,7 @@ fn slice(dir: &str, direction: Direction) {
         &results,
         targets
           .iter()
-          .map(|mir_span| (mir_span.place, mir_span.location))
+          .map(|mir_span| vec![(mir_span.place, mir_span.location)])
           .collect(),
         direction,
         &spanner,

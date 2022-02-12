@@ -9,7 +9,7 @@ use rustc_middle::{
   },
 };
 
-use crate::{block_timer, cached::Cached, mir::utils::SimplifyMir};
+use crate::{block_timer, cached::Cache, mir::utils::SimplifyMir};
 
 // For why we need to do override mir_borrowck, see:
 // https://github.com/rust-lang/rust/blob/485ced56b8753ec86936903f2a8c95e9be8996a1/src/test/run-make-fulldeps/obtain-borrowck/driver.rs
@@ -22,7 +22,7 @@ pub fn override_queries(
 }
 
 thread_local! {
-  static MIR_BODIES: Cached<LocalDefId, BodyWithBorrowckFacts<'static>> = Cached::default();
+  static MIR_BODIES: Cache<LocalDefId, BodyWithBorrowckFacts<'static>> = Cache::default();
 }
 
 fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {

@@ -38,15 +38,17 @@ impl DepVisitor<'_, '_, 'tcx> {
     to_check: PlaceSet<'tcx>,
     is_switch: bool,
   ) {
+    let to_check = to_check
+      .iter()
+      .copied()
+      .map(|place| (place, state.row_set(self.analysis.aliases.normalize(place))))
+      .filter(|(_, loc_deps)| !loc_deps.is_empty())
+      .collect::<Vec<_>>();
+
     for (target_locs, (out_locs, out_places)) in
       self.target_deps.iter().zip(self.outputs.iter_mut())
     {
-      for (place, loc_deps) in to_check
-        .iter()
-        .copied()
-        .map(|place| (place, state.row_set(self.analysis.aliases.normalize(place))))
-        .filter(|(_, loc_deps)| !loc_deps.is_empty())
-      {
+      for (place, loc_deps) in to_check.iter() {
         let matches = match self.direction {
           Direction::Forward => loc_deps.is_superset(target_locs),
           Direction::Backward => target_locs.is_superset(&loc_deps),
@@ -60,7 +62,7 @@ impl DepVisitor<'_, '_, 'tcx> {
             "{opt_location:?}: place {:?} (deps {loc_deps:?}) / target_locs {target_locs:?}",
             place
           );
-          out_places.insert(place);
+          out_places.insert(*place);
 
           if let Some(location) = opt_location {
             if loc_deps.contains(location)
@@ -148,7 +150,7 @@ impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
 
 pub fn compute_dependencies(
   results: &FlowResults<'_, 'tcx>,
-  targets: Vec<(Place<'tcx>, Location)>,
+  targets: Vec<Vec<(Place<'tcx>, Location)>>,
   direction: Direction,
 ) -> Vec<(LocationSet, PlaceSet<'tcx>)> {
   block_timer!("compute_dependencies");
@@ -158,13 +160,14 @@ pub fn compute_dependencies(
 
   let target_deps = targets
     .into_iter()
-    .map(|(place, location)| {
-      let places = aliases.reachable_values(place);
-      let state = results.state_at(location);
-
+    .map(|targets| {
       let mut locations = LocationSet::new(location_domain);
-      for place in places {
-        locations.union(&state.row_set(aliases.normalize(*place)));
+      for (place, location) in targets {
+        let state = results.state_at(location);
+        let places = aliases.reachable_values(place);
+        for place in places {
+          locations.union(&state.row_set(aliases.normalize(*place)));
+        }
       }
 
       locations
@@ -190,7 +193,7 @@ pub fn compute_dependencies(
 
 pub fn compute_dependency_spans(
   results: &FlowResults<'_, 'tcx>,
-  targets: Vec<(Place<'tcx>, Location)>,
+  targets: Vec<Vec<(Place<'tcx>, Location)>>,
   direction: Direction,
   spanner: &Spanner,
 ) -> Vec<Vec<Span>> {

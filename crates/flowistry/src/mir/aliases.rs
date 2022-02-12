@@ -13,7 +13,7 @@ use rustc_middle::{
 
 use crate::{
   block_timer,
-  cached::Cached,
+  cached::{Cache, CopyCache},
   extensions::{is_extension_active, PointerMode},
   indexed::impls::PlaceSet,
   mir::utils::{self, PlaceExt},
@@ -116,18 +116,19 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
 type LoanMap<'tcx> = HashMap<RegionVid, HashSet<Place<'tcx>>>;
 
 pub struct Aliases<'a, 'tcx> {
+  // Compiler data
   tcx: TyCtxt<'tcx>,
   body: &'a Body<'tcx>,
   def_id: DefId,
 
+  // Core computed data structure
   loans: LoanMap<'tcx>,
 
-  normalized_cache: Cached<Place<'tcx>, Place<'tcx>>,
-  aliases_cache: Cached<Place<'tcx>, PlaceSet<'tcx>>,
-  conflicts_cache: Cached<Place<'tcx>, PlaceSet<'tcx>>,
-  reachable_cache: Cached<Place<'tcx>, PlaceSet<'tcx>>,
-  // // For each place p, {p' | exists execution s.t. eval(p) # eval(p')}
-  // pub aliases: HashMap<Place<'tcx>, HashSet<Place<'tcx>>>
+  // Caching for derived analysis
+  normalized_cache: CopyCache<Place<'tcx>, Place<'tcx>>,
+  aliases_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
+  conflicts_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
+  reachable_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
 }
 
 impl Aliases<'a, 'tcx> {
@@ -283,15 +284,15 @@ impl Aliases<'a, 'tcx> {
       tcx,
       body,
       def_id,
-      aliases_cache: Cached::default(),
-      normalized_cache: Cached::default(),
-      conflicts_cache: Cached::default(),
-      reachable_cache: Cached::default(),
+      aliases_cache: Cache::default(),
+      normalized_cache: CopyCache::default(),
+      conflicts_cache: Cache::default(),
+      reachable_cache: Cache::default(),
     }
   }
 
   pub fn normalize(&self, place: Place<'tcx>) -> Place<'tcx> {
-    *self
+    self
       .normalized_cache
       .get(place, |place| place.normalize(self.tcx, self.def_id))
   }
