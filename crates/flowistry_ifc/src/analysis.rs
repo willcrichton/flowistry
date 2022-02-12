@@ -4,11 +4,7 @@
 use std::io::Write;
 
 use anyhow::{Context, Result};
-use flowistry::{
-  indexed::{IndexSetIteratorExt, IndexedDomain},
-  infoflow::FlowResults,
-  mir::utils::BodyExt,
-};
+use flowistry::{indexed::impls::PlaceSet, infoflow::FlowResults, mir::utils::BodyExt};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::{def::Res, def_id::DefId, BodyId};
 use rustc_infer::traits::EvaluationResult;
@@ -45,7 +41,7 @@ fn implements_trait(
 pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
   let tcx = results.analysis.tcx;
   let body = results.analysis.body;
-  let def_id = tcx.hir().body_owner_def_id(*body_id).to_def_id();
+  let _def_id = tcx.hir().body_owner_def_id(*body_id).to_def_id();
 
   let ifc_crate = tcx
     .crates(())
@@ -66,16 +62,16 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
     })
     .collect::<HashMap<_, _>>();
 
-  let place_domain = results.analysis.place_domain();
-  let find_implements = |trait_def_id| {
-    place_domain
-      .as_vec()
-      .iter()
-      .filter(|place| {
-        let ty = place.ty(body.local_decls(), tcx).ty;
-        implements_trait(tcx, tcx.param_env(def_id), ty, trait_def_id)
-      })
-      .collect_indices(place_domain)
+  let find_implements = |_trait_def_id| -> PlaceSet {
+    // place_domain
+    //   .as_vec()
+    //   .iter()
+    //   .filter(|place| {
+    //     let ty = place.ty(body.local_decls(), tcx).ty;
+    //     implements_trait(tcx, tcx.param_env(def_id), ty, trait_def_id)
+    //   })
+    // .collect_indices(place_domain)
+    todo!()
   };
   let secure_places = find_implements(ifc_items["Secure"]);
   let insecure_places = find_implements(ifc_items["Insecure"]);
@@ -90,10 +86,10 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
     .unwrap();
 
   let mut errors = Vec::new();
-  for secure in secure_places.indices() {
-    let secure_deps = final_state.row_set(secure);
-    for insecure in insecure_places.indices() {
-      let insecure_deps = final_state.row_set(insecure);
+  for secure in secure_places.iter() {
+    let secure_deps = final_state.row_set(*secure);
+    for insecure in insecure_places.iter() {
+      let insecure_deps = final_state.row_set(*insecure);
       if insecure_deps.is_superset(&secure_deps) {
         errors.push((secure, insecure));
       }
@@ -113,8 +109,6 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
     _ => unimplemented!(),
   };
   for (src, dst) in errors {
-    let src = place_domain.value(src);
-    let dst = place_domain.value(dst);
     let src_span = decls[src.local].source_info.span;
     let dst_span = decls[dst.local].source_info.span;
 

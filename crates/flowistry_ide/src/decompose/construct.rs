@@ -22,23 +22,16 @@ pub fn compute_adjacency_matrix(
 ) -> IndexMatrix<Location, Location> {
   let analysis = &results.analysis;
   let location_domain = analysis.location_domain();
-  let place_domain = analysis.place_domain();
 
-  let mut mutation_locs = IndexMatrix::new(place_domain, location_domain);
+  let mut mutation_locs = IndexMatrix::new(location_domain);
 
-  for arg in place_domain
-    .as_vec()
-    .iter()
-    .filter(|place| place.is_arg(body))
-  {
-    let index = place_domain.index(arg);
-    let loc = location_domain.arg_to_location(index);
-    mutation_locs.insert(index, loc);
+  for (arg, loc) in location_domain.all_args() {
+    mutation_locs.insert(arg, loc);
   }
 
   ModularMutationVisitor::new(tcx, body, def_id, |mutated, _, location, _| {
-    for p in analysis.aliases.conflicts(mutated).indices() {
-      mutation_locs.insert(p, location);
+    for p in analysis.aliases.conflicts(mutated).iter() {
+      mutation_locs.insert(*p, location);
     }
   })
   .visit_body(body);
@@ -46,7 +39,7 @@ pub fn compute_adjacency_matrix(
   log::debug!("mutation_locs: {mutation_locs:#?}");
 
   let inputs_at = |location: Location| -> PlaceSet {
-    let mut inputs = PlaceSet::new(place_domain);
+    let mut inputs = PlaceSet::default();
 
     let mut visitor = PlaceCollector {
       tcx,
@@ -66,14 +59,14 @@ pub fn compute_adjacency_matrix(
 
     for (input, _) in visitor.places {
       for place in input.place_and_refs_in_projection(tcx) {
-        inputs.union(&analysis.aliases.conflicts(place));
+        inputs.extend(analysis.aliases.conflicts(place));
       }
     }
 
     inputs
   };
 
-  let mut adj_mtx = IndexMatrix::new(location_domain, location_domain);
+  let mut adj_mtx = IndexMatrix::new(location_domain);
   for location in traversal::reverse_postorder(body)
     .flat_map(|(block, _)| body.locations_in_block(block))
     .filter(|location| match body.stmt_at(*location) {
@@ -90,7 +83,7 @@ pub fn compute_adjacency_matrix(
   {
     let inputs = inputs_at(location);
     let infoflow = results.state_at(location);
-    for input in inputs.indices() {
+    for input in inputs {
       let mut deps = infoflow.row_set(input).to_owned();
       deps.intersect(&mutation_locs.row_set(input));
       adj_mtx.union_into_row(location, &deps);
@@ -115,9 +108,8 @@ fn compute_graph(
   results: &FlowResults<'_, 'tcx>,
 ) -> LocGraph {
   let mut g = DiGraph::<Location, ()>::default();
-  let loc_idx_to_pg_idx = results
-    .analysis
-    .location_domain()
+  let location_domain = results.analysis.location_domain();
+  let loc_idx_to_pg_idx = location_domain
     .as_vec()
     .iter_enumerated()
     .map(|(loc_idx, loc)| (loc_idx, g.add_node(*loc)))
@@ -129,7 +121,11 @@ fn compute_graph(
       .map(move |src| (src, dst))
       .collect::<Vec<_>>()
   }) {
-    g.add_edge(loc_idx_to_pg_idx[&src], loc_idx_to_pg_idx[&dst], ());
+    g.add_edge(
+      loc_idx_to_pg_idx[&src],
+      loc_idx_to_pg_idx[&location_domain.index(&dst)],
+      (),
+    );
   }
 
   let to_remove = g

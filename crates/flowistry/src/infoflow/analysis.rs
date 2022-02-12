@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
-use log::debug;
-use rustc_data_structures::fx::FxHashMap as HashMap;
+use log::{debug, trace};
+use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir::{def_id::DefId, BodyId};
 use rustc_middle::{
   mir::{visit::Visitor, *},
@@ -16,8 +16,8 @@ use super::{
 use crate::{
   extensions::{is_extension_active, ContextMode, MutabilityMode},
   indexed::{
-    impls::{LocationDomain, LocationSet, PlaceDomain},
-    IndexMatrix, IndexSetIteratorExt,
+    impls::{LocationDomain, LocationSet},
+    IndexMatrix,
   },
   mir::{
     aliases::Aliases,
@@ -33,7 +33,7 @@ pub struct FlowAnalysis<'a, 'tcx> {
   pub def_id: DefId,
   pub body: &'a Body<'tcx>,
   pub control_dependencies: ControlDependencies,
-  pub aliases: Aliases<'tcx>,
+  pub aliases: Aliases<'a, 'tcx>,
   pub location_domain: Rc<LocationDomain>,
   crate recurse_cache: RefCell<HashMap<BodyId, FlowResults<'a, 'tcx>>>,
 }
@@ -43,7 +43,7 @@ impl FlowAnalysis<'a, 'tcx> {
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
     body: &'a Body<'tcx>,
-    aliases: Aliases<'tcx>,
+    aliases: Aliases<'a, 'tcx>,
     control_dependencies: ControlDependencies,
     location_domain: Rc<LocationDomain>,
   ) -> Self {
@@ -59,10 +59,6 @@ impl FlowAnalysis<'a, 'tcx> {
     }
   }
 
-  pub fn place_domain(&self) -> &Rc<PlaceDomain<'tcx>> {
-    &self.aliases.place_domain
-  }
-
   pub fn location_domain(&self) -> &Rc<LocationDomain> {
     &self.location_domain
   }
@@ -76,19 +72,19 @@ impl FlowAnalysis<'a, 'tcx> {
     mutation_status: MutationStatus,
   ) {
     debug!("  Applying mutation to {mutated:?} with inputs {inputs:?}");
-    let place_domain = self.place_domain();
     let location_domain = self.location_domain();
 
     let all_aliases = &self.aliases;
-    let mutated_aliases = all_aliases.aliases.row_set(mutated);
+    let mutated_aliases = all_aliases.aliases(mutated);
+    trace!("    Mutated aliases: {mutated_aliases:?}");
     assert!(!mutated_aliases.is_empty());
 
     // Clear sub-places of mutated place (if sound to do so)
     if matches!(mutation_status, MutationStatus::Definitely) && mutated_aliases.len() == 1
     {
       let mutated_direct = mutated_aliases.iter().next().unwrap();
-      for sub in all_aliases.children.row(*mutated_direct) {
-        state.clear_row(sub);
+      for sub in all_aliases.children(*mutated_direct).iter() {
+        state.clear_row(all_aliases.normalize(*sub));
       }
     }
 
@@ -97,8 +93,10 @@ impl FlowAnalysis<'a, 'tcx> {
 
     let add_deps = |place: Place<'tcx>, location_deps: &mut LocationSet| {
       for place in place.place_and_refs_in_projection(self.tcx) {
-        for alias in all_aliases.aliases.row(place) {
-          location_deps.union(&state.row_set(alias));
+        for alias in all_aliases.aliases(place).iter() {
+          let deps = state.row_set(all_aliases.normalize(*alias));
+          trace!("    For alias {alias:?} for input {place:?} adding deps {deps:?}");
+          location_deps.union(&deps);
         }
       }
     };
@@ -144,9 +142,9 @@ impl FlowAnalysis<'a, 'tcx> {
       // In the special case of mutated = aggregate { x: .., y: .. }
       // then we ensure that deps(mutated.x) != deps(mutated)
       for (child, deps) in children {
-        state.union_into_row(child, &deps);
+        state.union_into_row(all_aliases.normalize(child), &deps);
       }
-      state.union_into_row(mutated, &input_location_deps);
+      state.union_into_row(all_aliases.normalize(mutated), &input_location_deps);
     } else {
       // Union dependencies into all conflicting places of the mutated place
       let mut mutable_conflicts = all_aliases.conflicts(mutated).to_owned();
@@ -166,14 +164,15 @@ impl FlowAnalysis<'a, 'tcx> {
               !matches!(ty.ref_mutability(), Some(Mutability::Not))
             })
           })
-          .collect_indices(place_domain);
+          .copied()
+          .collect::<HashSet<_>>();
       };
 
       debug!("  Mutated conflicting places: {mutable_conflicts:?}");
       debug!("    with deps {input_location_deps:?}");
 
-      for place in mutable_conflicts.iter() {
-        state.union_into_row(place, &input_location_deps);
+      for place in mutable_conflicts.into_iter() {
+        state.union_into_row(all_aliases.normalize(place), &input_location_deps);
       }
     }
   }
@@ -185,12 +184,12 @@ impl AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
   const NAME: &'static str = "FlowAnalysis";
 
   fn bottom_value(&self, _body: &Body<'tcx>) -> Self::Domain {
-    FlowDomain::new(self.place_domain(), self.location_domain())
+    FlowDomain::new(self.location_domain())
   }
 
-  fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
-    for arg in self.place_domain().all_args(body) {
-      state.insert(arg, self.location_domain().arg_to_location(arg));
+  fn initialize_start_block(&self, _body: &Body<'tcx>, state: &mut Self::Domain) {
+    for (arg, loc) in self.location_domain().all_args() {
+      state.insert(self.aliases.normalize(arg), loc);
     }
   }
 }

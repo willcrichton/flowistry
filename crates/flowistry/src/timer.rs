@@ -23,5 +23,6 @@ macro_rules! block_timer {
     let name = $name;
     let start = std::time::Instant::now();
     let _timer = $crate::timer::BlockTimer { name, start };
+    log::debug!("Starting {name}...");
   };
 }

@@ -1,4 +1,5 @@
 use log::{debug, trace};
+use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_middle::mir::{visit::Visitor, *};
 use rustc_mir_dataflow::ResultsVisitor;
 use rustc_span::Span;
@@ -10,10 +11,7 @@ use super::{
 };
 use crate::{
   block_timer,
-  indexed::{
-    impls::{LocationSet, PlaceDomain, PlaceSet},
-    IndexSetIteratorExt, IndexedDomain,
-  },
+  indexed::impls::{LocationSet, PlaceSet},
   mir::utils::SpanExt,
   source_map::{EnclosingHirSpans, Spanner},
 };
@@ -44,8 +42,9 @@ impl DepVisitor<'_, '_, 'tcx> {
       self.target_deps.iter().zip(self.outputs.iter_mut())
     {
       for (place, loc_deps) in to_check
-        .indices()
-        .map(|place| (place, state.row_set(place)))
+        .iter()
+        .copied()
+        .map(|place| (place, state.row_set(self.analysis.aliases.normalize(place))))
         .filter(|(_, loc_deps)| !loc_deps.is_empty())
       {
         let matches = match self.direction {
@@ -59,7 +58,7 @@ impl DepVisitor<'_, '_, 'tcx> {
         if matches {
           trace!(
             "{opt_location:?}: place {:?} (deps {loc_deps:?}) / target_locs {target_locs:?}",
-            state.row_domain.value(place)
+            place
           );
           out_places.insert(place);
 
@@ -86,14 +85,15 @@ impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
     block: BasicBlock,
   ) {
     if block == START_BLOCK {
-      let place_domain = self.analysis.place_domain();
       self.visit(
         state,
         None,
-        place_domain
-          .all_args(self.analysis.body)
-          .into_iter()
-          .collect_indices(place_domain),
+        self
+          .analysis
+          .location_domain()
+          .all_args()
+          .map(|(place, _)| place)
+          .collect(),
         false,
       );
     }
@@ -105,13 +105,13 @@ impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
     statement: &'mir Statement<'tcx>,
     location: Location,
   ) {
-    let mut to_check = PlaceSet::new(self.analysis.place_domain());
+    let mut to_check = PlaceSet::default();
     ModularMutationVisitor::new(
       self.analysis.tcx,
       self.analysis.body,
       self.analysis.def_id,
       |mutated, _, _, _| {
-        to_check.union(&self.analysis.aliases.conflicts(mutated));
+        to_check.extend(self.analysis.aliases.conflicts(mutated));
       },
     )
     .visit_statement(statement, location);
@@ -126,17 +126,17 @@ impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
   ) {
     match terminator.kind {
       TerminatorKind::SwitchInt { .. } => {
-        let to_check = PlaceDomain::as_set(self.analysis.place_domain());
+        let to_check = state.rows().map(|(p, _)| p).collect::<HashSet<_>>();
         self.visit(state, Some(location), to_check, true);
       }
       _ => {
-        let mut to_check = PlaceSet::new(self.analysis.place_domain());
+        let mut to_check = PlaceSet::default();
         ModularMutationVisitor::new(
           self.analysis.tcx,
           self.analysis.body,
           self.analysis.def_id,
           |mutated, _, _, _| {
-            to_check.union(&self.analysis.aliases.conflicts(mutated));
+            to_check.extend(self.analysis.aliases.conflicts(mutated));
           },
         )
         .visit_terminator(terminator, location);
@@ -152,45 +152,29 @@ pub fn compute_dependencies(
   direction: Direction,
 ) -> Vec<(LocationSet, PlaceSet<'tcx>)> {
   block_timer!("compute_dependencies");
-  let tcx = results.analysis.tcx;
   let body = results.analysis.body;
   let aliases = &results.analysis.aliases;
+  let location_domain = results.analysis.location_domain();
 
-  let new_location_set = || LocationSet::new(results.analysis.location_domain());
-  let new_place_set = || PlaceSet::new(results.analysis.place_domain());
-
-  let expanded_targets = targets
-    .iter()
+  let target_deps = targets
+    .into_iter()
     .map(|(place, location)| {
-      let places = aliases.reachable_values(tcx, body, results.analysis.def_id, *place);
-      (places, *location)
-    })
-    .collect::<Vec<_>>();
-  debug!("Expanded targets from {targets:?} to {expanded_targets:?}");
+      let places = aliases.reachable_values(place);
+      let state = results.state_at(location);
 
-  let target_deps = {
-    let get_deps = |(targets, location): &(PlaceSet<'tcx>, Location)| {
-      let state = results.state_at(*location);
-
-      let mut locations = new_location_set();
-      for target in targets.indices() {
-        locations.union(&state.row_set(target));
+      let mut locations = LocationSet::new(location_domain);
+      for place in places {
+        locations.union(&state.row_set(aliases.normalize(*place)));
       }
 
       locations
-    };
-    expanded_targets.iter().map(get_deps).collect::<Vec<_>>()
-  };
-  debug!("Target deps: {target_deps:?}");
-
-  let mut outputs = target_deps
-    .iter()
-    .map(|_| (new_location_set(), new_place_set()))
+    })
     .collect::<Vec<_>>();
-  for ((target_places, _), (_, places)) in expanded_targets.iter().zip(outputs.iter_mut())
-  {
-    places.union(target_places);
-  }
+
+  let outputs = target_deps
+    .iter()
+    .map(|_| (LocationSet::new(location_domain), PlaceSet::default()))
+    .collect::<Vec<_>>();
 
   let mut visitor = DepVisitor {
     analysis: &results.analysis,

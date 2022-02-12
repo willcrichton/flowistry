@@ -48,7 +48,7 @@ pub fn compute_flow<'a, 'tcx>(
     let control_dependencies = ControlDependencies::build(body.clone());
     debug!("Control dependencies: {control_dependencies:?}");
 
-    let location_domain = LocationDomain::new(body, &aliases.place_domain);
+    let location_domain = LocationDomain::new(body, tcx, def_id);
 
     let results = {
       block_timer!("Flow");
