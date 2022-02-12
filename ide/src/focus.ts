@@ -5,7 +5,7 @@ import { CallFlowistry, to_vsc_range } from "./vsc_utils";
 import _ from "lodash";
 import IntervalTree from "@flatten-js/interval-tree";
 import { FocusStatus, render_status_bar } from "./focus_utils";
-import { is_flowisty_error } from "./error_types";
+import { is_flowistry_error } from "./error_types";
 
 interface PlaceInfo {
   range: Range;
@@ -122,7 +122,7 @@ export class FocusMode {
     let focus = await this.call_flowistry<Focus>(cmd);
 
     // pause rendering and add error status when program doesn't compile
-    if (is_flowisty_error(focus)) {
+    if (is_flowistry_error(focus)) {
       if (!hide_error) {
         focus.show();
       }

@@ -33,6 +33,6 @@ export class FlowistryRuntimeError extends Error implements FlowistryError {
   }
 }
 
-export const is_flowisty_error = (err: any): err is FlowistryError => {
+export const is_flowistry_error = (err: any): err is FlowistryError => {
   return err.show !== undefined;
 };

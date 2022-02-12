@@ -160,7 +160,7 @@ export async function setup(
 
   return async <T>(args: string) => {
     let cmd = `${flowistry_cmd} ${args}`;
-    let flowisty_opts = await get_flowistry_opts(workspace_root);
+    let flowistry_opts = await get_flowistry_opts(workspace_root);
 
     let output;
     try {
@@ -169,7 +169,7 @@ export async function setup(
         await editor.document.save();
       }
 
-      output = await exec_notify(cmd, "Waiting for Flowistry...", flowisty_opts);
+      output = await exec_notify(cmd, "Waiting for Flowistry...", flowistry_opts);
     } catch (e: any) {
       context.workspaceState.update("err_log", e);
       return new FlowistryBuildError(e);

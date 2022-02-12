@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { CommandOutput, Range } from "./types";
 import { CallFlowistry, to_vsc_range } from "./vsc_utils";
 import _ from "lodash";
-import { is_flowisty_error } from "./error_types";
+import { is_flowistry_error } from "./error_types";
 
 export let highlight_type = vscode.window.createTextEditorDecorationType({
   backgroundColor: new vscode.ThemeColor("editor.symbolHighlightBackground"),
@@ -94,7 +94,7 @@ export async function display_subcmd_results(
   let cmd = `${subcmd} ${doc.fileName} ${start} ${end} ${flags}`;
 
   let command_output = await call_flowistry<CommandOutput>(cmd);
-  if (is_flowisty_error(command_output)) {
+  if (is_flowistry_error(command_output)) {
     return command_output.show();
   }
 

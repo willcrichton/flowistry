@@ -3,7 +3,7 @@ import { highlight_ranges } from "./utils";
 import { Range } from "./types";
 import { CallFlowistry } from "./vsc_utils";
 import _ from "lodash";
-import { is_flowisty_error } from "./error_types";
+import { is_flowistry_error } from "./error_types";
 
 interface Decomposition {
   chunks: [number, Range[][]][];
@@ -48,7 +48,7 @@ export let decompose = async (call_flowistry: CallFlowistry) => {
 
   let cmd = `decompose ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
   let decomp = await call_flowistry<Decomposition>(cmd);
-  if (is_flowisty_error(decomp)) {
+  if (is_flowistry_error(decomp)) {
     return decomp.show();
   }
 
