@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
 import { CommandOutput, Range } from "./types";
-import { log, show_error, CallFlowistry, to_vsc_range } from "./vsc_utils";
+import { CallFlowistry, to_vsc_range } from "./vsc_utils";
 import _ from "lodash";
+import { is_flowisty_error } from "./error_types";
 
 export let highlight_type = vscode.window.createTextEditorDecorationType({
   backgroundColor: new vscode.ThemeColor("editor.symbolHighlightBackground"),
@@ -88,40 +89,34 @@ export async function display_subcmd_results(
 
   let doc = active_editor.document;
   let selection = active_editor.selection;
+  let start = doc.offsetAt(selection.start);
+  let end = doc.offsetAt(selection.end);
+  let cmd = `${subcmd} ${doc.fileName} ${start} ${end} ${flags}`;
 
-  try {
-    let start = doc.offsetAt(selection.start);
-    let end = doc.offsetAt(selection.end);
-    let cmd = `${subcmd} ${doc.fileName} ${start} ${end} ${flags}`;
-    let command_output_maybe = await call_flowistry<CommandOutput>(cmd);
-    if (command_output_maybe === null) {
-      return;
-    }
-    let command_output: CommandOutput = command_output_maybe;
+  let command_output = await call_flowistry<CommandOutput>(cmd);
+  if (is_flowisty_error(command_output)) {
+    return command_output.show();
+  }
 
-    if (command_output.ranges.length === 0) {
-      let selected_text = active_editor.document.getText(selection);
-      vscode.window.showInformationMessage(
-        `${action} on "${selected_text}" did not generate any results`
-      );
-      return;
-    }
+  if (command_output.ranges.length === 0) {
+    let selected_text = active_editor.document.getText(selection);
+    vscode.window.showInformationMessage(
+      `${action} on "${selected_text}" did not generate any results`
+    );
+    return;
+  }
 
-    if (display_type === "select") {
-      active_editor.selections = command_output.ranges.map((range) => {
-        let vsc_range = to_vsc_range(range, doc);
-        return new vscode.Selection(vsc_range.start, vsc_range.end);
-      });
-    } else {
-      highlight_slice(
-        active_editor,
-        [command_output.body_span],
-        command_output.selected_spans,
-        command_output.ranges
-      );
-    }
-  } catch (exc) {
-    log("ERROR", exc);
-    show_error(exc);
+  if (display_type === "select") {
+    active_editor.selections = command_output.ranges.map((range) => {
+      let vsc_range = to_vsc_range(range, doc);
+      return new vscode.Selection(vsc_range.start, vsc_range.end);
+    });
+  } else {
+    highlight_slice(
+      active_editor,
+      [command_output.body_span],
+      command_output.selected_spans,
+      command_output.ranges
+    );
   }
 }

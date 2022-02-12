@@ -5,10 +5,11 @@ import { Readable } from "stream";
 import open from "open";
 
 import { Result } from "./types";
-import { log, CallFlowistry, FlowistryBuildErrorDocument } from "./vsc_utils";
+import { log, CallFlowistry } from "./vsc_utils";
 import { download } from "./download";
-import { FocusStatus, render_status_bar } from "./focus_utils";
+import { render_status_bar } from "./focus_utils";
 import { flowistry_status_bar_item } from "./extension";
+import { FlowistryBuildError, FlowistryRuntimeError} from "./error_types";
 
 declare const VERSION: string;
 declare const TOOLCHAIN: {
@@ -74,19 +75,17 @@ export let exec_notify = async (
   let stdout = read_stream(proc.stdout);
   let stderr = read_stream(proc.stderr);
 
-  render_status_bar(flowistry_status_bar_item, FocusStatus.Loading, title);
+  render_status_bar(flowistry_status_bar_item, "loading", title);
 
   return new Promise<string>((resolve, reject) => {
     proc.addListener("close", (_) => {
       if (proc.exitCode !== 0) {
-        log('stderr()');
         reject(stderr());
       } else {
         resolve(stdout());
       }
     });
     proc.addListener("error", (e) => {
-      log('e.toString()');
       reject(e.toString());
     });
   });
@@ -136,7 +135,7 @@ export async function setup(
       }
     }
 
-
+    
     try {
       await download();
     } catch (e: any) {
@@ -156,15 +155,10 @@ export async function setup(
     }
   }
 
-  const tdcp = new FlowistryBuildErrorDocument();
-  context.subscriptions.push(
-    vscode.workspace.registerTextDocumentContentProvider("flowistry", tdcp)
-  );
-
   // remove loading indicator after setup complete
-  render_status_bar(flowistry_status_bar_item, FocusStatus.Inactive);
+  render_status_bar(flowistry_status_bar_item, "inactive");
 
-  return async <T>(args: string, hide_error?: boolean) => {
+  return async <T>(args: string) => {
     let cmd = `${flowistry_cmd} ${args}`;
     let flowisty_opts = await get_flowistry_opts(workspace_root);
 
@@ -177,20 +171,13 @@ export async function setup(
 
       output = await exec_notify(cmd, "Waiting for Flowistry...", flowisty_opts);
     } catch (e: any) {
-      if (!hide_error) {
-        tdcp.contents = e.toString();
-        tdcp.eventEmitter.fire(tdcp.uri);
-        let doc = await vscode.workspace.openTextDocument(tdcp.uri);
-        await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
-      }
-      
-      context.workspaceState.update('err_log', e);
-      return null;
+      context.workspaceState.update("err_log", e);
+      return new FlowistryBuildError(e);
     }
 
     let output_typed: Result<T> = JSON.parse(output);
     if (output_typed.variant === "Err") {
-      throw output_typed.fields[0];
+      return new FlowistryRuntimeError(output_typed.fields[0]);
     }
 
     return output_typed.fields[0];
