@@ -161,8 +161,9 @@ fn main() {
   // Add args passed from CLI
   cmd.args(flags);
 
-  // Pass --test to rustc so #[test] functions can be analyzed
-  cmd.arg("--test");
+  // TODO: need to figure out how to download / compile dev-dependencies
+  // // Pass --test to rustc so #[test] functions can be analyzed
+  // cmd.arg("--test");
 
   // FIXME(wcrichto): we should make these CLI args as well, then do
   //   caching on VSCode's side

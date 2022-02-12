@@ -365,50 +365,43 @@ where
   }
 }
 
-pub struct IndexMatrix<R: IndexedValue, C: IndexedValue> {
-  matrix: HashMap<R::Index, IndexSetImpl<C::Index>>,
+pub struct IndexMatrix<R, C: IndexedValue> {
+  matrix: HashMap<R, IndexSetImpl<C::Index>>,
   empty_set: IndexSetImpl<C::Index>,
-  pub row_domain: Rc<R::Domain>,
   pub col_domain: Rc<C::Domain>,
 }
 
-impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
-  pub fn new(row_domain: &Rc<R::Domain>, col_domain: &Rc<C::Domain>) -> Self {
+pub trait RowBounds = Hash + PartialEq + Eq + Copy;
+
+impl<R: RowBounds, C: IndexedValue> IndexMatrix<R, C> {
+  pub fn new(col_domain: &Rc<C::Domain>) -> Self {
     IndexMatrix {
       matrix: HashMap::default(),
       empty_set: IndexSetImpl::new_empty(col_domain.size()),
-      row_domain: row_domain.clone(),
       col_domain: col_domain.clone(),
     }
   }
 
-  fn ensure_row(&mut self, row: impl ToIndex<R>) -> &mut IndexSetImpl<C::Index> {
-    let row = row.to_index(&self.row_domain);
+  fn ensure_row(&mut self, row: R) -> &mut IndexSetImpl<C::Index> {
     self
       .matrix
       .entry(row)
       .or_insert_with(|| IndexSetImpl::new_empty(self.col_domain.size()))
   }
 
-  pub fn insert(&mut self, row: impl ToIndex<R>, col: impl ToIndex<C>) -> bool {
+  pub fn insert(&mut self, row: R, col: impl ToIndex<C>) -> bool {
     let col = col.to_index(&self.col_domain);
     self.ensure_row(row).insert(col)
   }
 
-  pub fn union_into_row<S2>(
-    &mut self,
-    into: impl ToIndex<R>,
-    from: &IndexSet<C, S2>,
-  ) -> bool
+  pub fn union_into_row<S2>(&mut self, into: R, from: &IndexSet<C, S2>) -> bool
   where
     S2: ToSet<C>,
   {
     self.ensure_row(into).union(&*from.set)
   }
 
-  pub fn union_rows(&mut self, from: impl ToIndex<R>, to: impl ToIndex<R>) -> bool {
-    let from = from.to_index(&self.row_domain);
-    let to = to.to_index(&self.row_domain);
+  pub fn union_rows(&mut self, from: R, to: R) -> bool {
     if from == to {
       return false;
     }
@@ -423,11 +416,7 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
     to.union(&from)
   }
 
-  pub fn row<'a>(
-    &'a self,
-    row: impl ToIndex<R> + 'a,
-  ) -> impl Iterator<Item = &'a C> + 'a {
-    let row = row.to_index(&self.row_domain);
+  pub fn row<'a>(&'a self, row: R) -> impl Iterator<Item = &'a C> + 'a {
     self
       .matrix
       .get(&row)
@@ -437,8 +426,7 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
 
   // This use to return Option<...> for the empty case, but in my experience it's usually fine to return an empty set
   // and reduces the amount of error handling at the user's end.
-  pub fn row_set<'a>(&'a self, row: impl ToIndex<R>) -> IndexSet<C, RefSet<'a, C>> {
-    let row = row.to_index(&self.row_domain);
+  pub fn row_set<'a>(&'a self, row: R) -> IndexSet<C, RefSet<'a, C>> {
     let set = self.matrix.get(&row).unwrap_or(&self.empty_set);
     IndexSet {
       set: RefSet(set),
@@ -448,7 +436,7 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
 
   pub fn rows<'a>(
     &'a self,
-  ) -> impl Iterator<Item = (R::Index, IndexSet<C, RefSet<'a, C>>)> + 'a {
+  ) -> impl Iterator<Item = (R, IndexSet<C, RefSet<'a, C>>)> + 'a {
     self.matrix.iter().map(move |(row, col)| {
       (*row, IndexSet {
         set: RefSet(col),
@@ -457,13 +445,12 @@ impl<R: IndexedValue, C: IndexedValue> IndexMatrix<R, C> {
     })
   }
 
-  pub fn clear_row(&mut self, row: impl ToIndex<R>) {
-    let row = row.to_index(&self.row_domain);
+  pub fn clear_row(&mut self, row: R) {
     self.matrix.remove(&row);
   }
 }
 
-impl<R: IndexedValue, C: IndexedValue> PartialEq for IndexMatrix<R, C> {
+impl<R: RowBounds, C: IndexedValue> PartialEq for IndexMatrix<R, C> {
   fn eq(&self, other: &Self) -> bool {
     self.matrix.len() == other.matrix.len()
       && self
@@ -476,9 +463,9 @@ impl<R: IndexedValue, C: IndexedValue> PartialEq for IndexMatrix<R, C> {
   }
 }
 
-impl<R: IndexedValue, C: IndexedValue> Eq for IndexMatrix<R, C> {}
+impl<R: RowBounds, C: IndexedValue> Eq for IndexMatrix<R, C> {}
 
-impl<R: IndexedValue, C: IndexedValue> JoinSemiLattice for IndexMatrix<R, C> {
+impl<R: RowBounds, C: IndexedValue> JoinSemiLattice for IndexMatrix<R, C> {
   fn join(&mut self, other: &Self) -> bool {
     let mut changed = false;
     for (row, col) in other.matrix.iter() {
@@ -488,12 +475,11 @@ impl<R: IndexedValue, C: IndexedValue> JoinSemiLattice for IndexMatrix<R, C> {
   }
 }
 
-impl<R: IndexedValue, C: IndexedValue> Clone for IndexMatrix<R, C> {
+impl<R: RowBounds, C: IndexedValue> Clone for IndexMatrix<R, C> {
   fn clone(&self) -> Self {
     Self {
       matrix: self.matrix.clone(),
       empty_set: self.empty_set.clone(),
-      row_domain: self.row_domain.clone(),
       col_domain: self.col_domain.clone(),
     }
   }
@@ -508,12 +494,11 @@ impl<R: IndexedValue, C: IndexedValue> Clone for IndexMatrix<R, C> {
     }
 
     self.empty_set = source.empty_set.clone();
-    self.row_domain = source.row_domain.clone();
     self.col_domain = source.col_domain.clone();
   }
 }
 
-impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug
+impl<R: RowBounds + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug
   for IndexMatrix<R, C>
 {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -525,20 +510,15 @@ impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug
         continue;
       }
 
-      write!(
-        f,
-        "  {:?}: {:?},",
-        self.row_domain.value(*row),
-        self.row_set(*row)
-      )?;
+      write!(f, "  {row:?}: {:?},", self.matrix.get(row).unwrap())?;
     }
 
     write!(f, "}}")
   }
 }
 
-impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx>
-  DebugWithContext<Ctx> for IndexMatrix<R, C>
+impl<R: RowBounds + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx> DebugWithContext<Ctx>
+  for IndexMatrix<R, C>
 {
   fn fmt_with(&self, ctxt: &Ctx, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{{")?;
@@ -549,7 +529,7 @@ impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx>
         continue;
       }
 
-      write!(f, "  {}: ", Escape(self.row_domain.value(*row)))?;
+      write!(f, "  {}: ", Escape(*row))?;
       row_set.fmt_with(ctxt, f)?;
       write!(f, "]<br align=\"left\" />")?;
     }
@@ -568,14 +548,13 @@ impl<R: IndexedValue + fmt::Debug, C: IndexedValue + fmt::Debug, Ctx>
     }
 
     for (row, set) in self.rows() {
-      let row_value = self.row_domain.value(row);
       let old_set = old.row_set(row);
 
       if old_set == set {
         continue;
       }
 
-      write!(f, "{}: ", Escape(row_value))?;
+      write!(f, "{}: ", Escape(row))?;
       set.fmt_diff_with(&old_set, ctxt, f)?;
       writeln!(f)?;
     }

@@ -1,7 +1,4 @@
-use std::{cell::RefCell, pin::Pin};
-
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
-use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::def_id::LocalDefId;
 use rustc_middle::{
   mir::MirPass,
@@ -12,7 +9,7 @@ use rustc_middle::{
   },
 };
 
-use crate::{block_timer, mir::utils::SimplifyMir};
+use crate::{block_timer, cached::Cached, mir::utils::SimplifyMir};
 
 // For why we need to do override mir_borrowck, see:
 // https://github.com/rust-lang/rust/blob/485ced56b8753ec86936903f2a8c95e9be8996a1/src/test/run-make-fulldeps/obtain-borrowck/driver.rs
@@ -25,8 +22,7 @@ pub fn override_queries(
 }
 
 thread_local! {
-  static MIR_BODIES: RefCell<HashMap<LocalDefId, Pin<Box<BodyWithBorrowckFacts<'static>>>>> =
-    RefCell::new(HashMap::default());
+  static MIR_BODIES: Cached<LocalDefId, BodyWithBorrowckFacts<'static>> = Cached::default();
 }
 
 fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
@@ -46,11 +42,8 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tc
   // SAFETY: The reader casts the 'static lifetime to 'tcx before using it.
   let body_with_facts: BodyWithBorrowckFacts<'static> =
     unsafe { std::mem::transmute(body_with_facts) };
-  MIR_BODIES.with(|state| {
-    let mut map = state.borrow_mut();
-    assert!(map
-      .insert(def_id, Pin::new(Box::new(body_with_facts)))
-      .is_none());
+  MIR_BODIES.with(|cache| {
+    cache.get(def_id, |_| body_with_facts);
   });
 
   let mut providers = Providers::default();
@@ -64,9 +57,8 @@ pub fn get_body_with_borrowck_facts(
   def_id: LocalDefId,
 ) -> &'tcx BodyWithBorrowckFacts<'tcx> {
   let _ = tcx.mir_borrowck(def_id);
-  MIR_BODIES.with(|state| {
-    let state = state.borrow();
-    let body = &*state.get(&def_id).unwrap();
+  MIR_BODIES.with(|cache| {
+    let body = cache.get(def_id, |_| unreachable!());
     unsafe {
       std::mem::transmute::<
         &BodyWithBorrowckFacts<'static>,

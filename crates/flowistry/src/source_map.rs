@@ -16,9 +16,9 @@ use rustc_middle::{
   },
   ty::TyCtxt,
 };
-use rustc_span::Span;
+use rustc_span::{Span, SpanData};
 
-use crate::mir::utils::{self, SpanExt};
+use crate::mir::utils::{self, SpanDataExt, SpanExt};
 
 type HirNode<'hir> = Either<&'hir Expr<'hir>, &'hir Stmt<'hir>>;
 
@@ -65,7 +65,7 @@ pub enum EnclosingHirSpans {
 
 #[derive(Clone, Debug)]
 pub struct HirSpannedNode<'hir> {
-  full: Span,
+  full: SpanData,
   outer: Vec<Span>,
   node: HirNode<'hir>,
 }
@@ -74,7 +74,7 @@ impl HirSpannedNode<'_> {
   fn get_spans(&self, span_type: EnclosingHirSpans) -> Vec<Span> {
     match span_type {
       EnclosingHirSpans::OuterOnly => self.outer.clone(),
-      EnclosingHirSpans::Full => vec![self.full],
+      EnclosingHirSpans::Full => vec![self.full.span()],
     }
   }
 }
@@ -124,7 +124,7 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
     }
 
     self.0.hir_spans.push(HirSpannedNode {
-      full: span,
+      full: span.data(),
       outer: outer_spans,
       node: Either::Left(expr),
     });
@@ -148,7 +148,7 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
     let outer_spans = span.subtract(visitor.spans);
 
     self.0.hir_spans.push(HirSpannedNode {
-      full: span,
+      full: span.data(),
       outer: outer_spans,
       node: Either::Right(stmt),
     });
@@ -158,7 +158,7 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
 #[derive(Clone, Debug)]
 pub struct MirSpannedPlace<'tcx> {
   pub place: Place<'tcx>,
-  pub span: Span,
+  pub span: SpanData,
   pub location: Location,
 }
 
@@ -208,7 +208,7 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
     self.0.mir_spans.push(MirSpannedPlace {
       place: *place,
       location,
-      span,
+      span: span.data(),
     });
   }
 }
@@ -260,8 +260,8 @@ where
   }
 
   pub fn find_matching<T>(
-    predicate: impl Fn(Span) -> bool,
-    spans: impl Iterator<Item = (Span, T)>,
+    predicate: impl Fn(SpanData) -> bool,
+    spans: impl Iterator<Item = (SpanData, T)>,
   ) -> impl ExactSizeIterator<Item = T> {
     let mut matching = spans
       .filter(|(span, _)| predicate(*span))
@@ -303,8 +303,9 @@ where
       return vec![];
     }
 
+    let loc_span_data = loc_span.data();
     let mut enclosing_hir = Self::find_matching(
-      |span| span.contains(loc_span),
+      |span| span.contains(loc_span_data),
       self.hir_spans.iter().map(|span| (span.full, span)),
     )
     .collect::<Vec<_>>();
@@ -389,9 +390,11 @@ where
       .mir_spans
       .iter()
       .map(|mir_span| (mir_span.span, mir_span));
+    let span_data = span.data();
     let mut contained =
-      Self::find_matching(|mir_span| span.contains(mir_span), spans.clone());
-    let mut containing = Self::find_matching(|mir_span| mir_span.contains(span), spans);
+      Self::find_matching(move |mir_span| span_data.contains(mir_span), spans.clone());
+    let mut containing =
+      Self::find_matching(move |mir_span| mir_span.contains(span_data), spans);
 
     if contained.len() > 0 {
       let first = contained.next().unwrap();
@@ -545,7 +548,7 @@ mod test {
         let outputs = spanner.span_to_places(input_span);
         let snippets = outputs
           .into_iter()
-          .map(|span| source_map.span_to_snippet(span.span).unwrap())
+          .map(|spanned| source_map.span_to_snippet(spanned.span.span()).unwrap())
           .collect::<HashSet<_>>();
 
         compare_sets(&desired.iter().collect::<HashSet<_>>(), &snippets);
@@ -575,7 +578,7 @@ mod test {
       let source_map = tcx.sess.source_map();
       for (input_span, desired) in spans.into_iter().zip(expected) {
         let mut enclosing = Spanner::find_matching(
-          |span| span.contains(input_span),
+          |span| span.contains(input_span.data()),
           spanner.hir_spans.iter().map(|span| (span.full, span)),
         )
         .collect::<Vec<_>>();

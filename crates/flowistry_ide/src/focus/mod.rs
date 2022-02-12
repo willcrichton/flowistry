@@ -52,7 +52,7 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
     .zip(relevant)
     .filter_map(|(mir_span, relevant)| {
       log::debug!("Slice for {mir_span:?} is {relevant:#?}");
-      let range = Range::from_span(mir_span.span, source_map).ok()?;
+      let range = Range::from_span(mir_span.span.span(), source_map).ok()?;
 
       let slice = relevant
         .into_iter()

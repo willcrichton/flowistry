@@ -8,7 +8,6 @@ use rustc_mir_dataflow::JoinSemiLattice;
 use super::{analysis::FlowAnalysis, BODY_STACK};
 use crate::{
   extensions::REACHED_LIBRARY,
-  indexed::IndexedDomain,
   infoflow::{mutation::MutationStatus, FlowDomain},
   mir::{
     borrowck_facts::get_body_with_borrowck_facts,
@@ -122,10 +121,7 @@ impl FlowAnalysis<'_, 'tcx> {
       .or_insert_with(|| super::compute_flow(tcx, body_id, body_with_facts));
     let body = &body_with_facts.body;
 
-    let mut return_state = FlowDomain::new(
-      flow.analysis.place_domain(),
-      flow.analysis.location_domain(),
-    );
+    let mut return_state = FlowDomain::new(flow.analysis.location_domain());
     {
       let return_locs = body
         .basic_blocks()
@@ -139,10 +135,6 @@ impl FlowAnalysis<'_, 'tcx> {
         return_state.join(flow.state_at(loc));
       }
     };
-
-    let parent_domain = self.place_domain();
-    let parent_aliases = &self.aliases;
-    let child_domain = flow.analysis.place_domain();
 
     let translate_child_to_parent = |child: Place<'tcx>,
                                      mutated: bool|
@@ -176,31 +168,11 @@ impl FlowAnalysis<'_, 'tcx> {
       projection.extend_from_slice(child.projection);
       let parent_arg_projected = Place::make(parent_toplevel_arg.local, &projection, tcx);
 
-      let parent_arg_accessible = {
-        let mut sub_places =
-          (0 ..= parent_arg_projected.projection.len())
-            .rev()
-            .map(|i| {
-              Place::make(
-                parent_arg_projected.local,
-                &parent_arg_projected.projection[.. i],
-                tcx,
-              )
-            });
-
-        sub_places
-          .find(|sub_place| {
-            parent_domain.contains(sub_place)
-              && parent_aliases.aliases.row(sub_place).next().is_some()
-          })
-          .unwrap()
-      };
-
-      Some(parent_arg_accessible)
+      Some(parent_arg_projected)
     };
 
-    for child in child_domain.as_vec().iter() {
-      if let Some(parent) = translate_child_to_parent(*child, true) {
+    for (child, _) in return_state.rows() {
+      if let Some(parent) = translate_child_to_parent(child, true) {
         let was_return = child.local == RETURN_PLACE;
         // > 1 because arguments will always have their synthetic location in their dep set
         let was_mutated = return_state.row_set(child).len() > 1;
@@ -212,12 +184,7 @@ impl FlowAnalysis<'_, 'tcx> {
         let parent_deps = return_state
           .rows()
           .filter(|(_, deps)| child_deps.is_superset(deps))
-          .filter_map(|(row, _)| {
-            Some((
-              translate_child_to_parent(*child_domain.value(row), false)?,
-              None,
-            ))
-          })
+          .filter_map(|(row, _)| Some((translate_child_to_parent(row, false)?, None)))
           .collect::<Vec<_>>();
 
         debug!(

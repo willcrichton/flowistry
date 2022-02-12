@@ -11,10 +11,10 @@ pub fn find_mutations(
   body: &Body<'tcx>,
   def_id: DefId,
   place: Place<'tcx>,
-  aliases: &Aliases<'tcx>,
+  aliases: &Aliases<'_, 'tcx>,
 ) -> Vec<Location> {
   let mut locations = vec![];
-  let reachable_values = aliases.reachable_values(tcx, body, def_id, place);
+  let reachable_values = aliases.reachable_values(place);
   debug!("reachable values: {reachable_values:?}");
 
   ModularMutationVisitor::new(
@@ -24,10 +24,8 @@ pub fn find_mutations(
     |mutated_place, _, mutated_location, _| {
       debug!("checking mutated location {mutated_location:?}");
 
-      let mut place_conflicts = aliases.conflicts(mutated_place).to_owned();
-      place_conflicts.intersect(&reachable_values);
-
-      if place_conflicts.len() > 0 {
+      let place_conflicts = aliases.conflicts(mutated_place).to_owned();
+      if place_conflicts.iter().any(|v| reachable_values.contains(v)) {
         debug!("  found conflicts: {place_conflicts:?}");
         locations.push(mutated_location);
       }

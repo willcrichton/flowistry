@@ -7,6 +7,7 @@
   type_alias_impl_trait,     // for impl Trait in trait definition, eg crate::mir::utils 
   generic_associated_types,  // for impl Trait in trait definition
   crate_visibility_modifier, // for crate-wide shared private items
+  trait_alias,
 )]
 #![allow(
   clippy::single_match,
@@ -15,9 +16,7 @@
   clippy::len_zero
 )]
 
-extern crate datafrog;
 extern crate either;
-extern crate polonius_engine;
 extern crate rustc_borrowck;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
@@ -38,6 +37,7 @@ extern crate rustc_target;
 extern crate rustc_trait_selection;
 extern crate smallvec;
 
+mod cached;
 pub mod extensions;
 pub mod indexed;
 pub mod infoflow;

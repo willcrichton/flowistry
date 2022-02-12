@@ -1,5 +1,6 @@
 use std::rc::Rc;
 
+use either::Either;
 use rustc_data_structures::{graph::WithSuccessors, work_queue::WorkQueue};
 use rustc_index::vec::IndexVec;
 use rustc_middle::{
@@ -85,31 +86,25 @@ pub fn iterate_to_fixpoint<'tcx, A: Analysis<'tcx>>(
     }
   }
 
-  let blocks = body.basic_blocks();
   while let Some(loc_index) = dirty_queue.pop() {
     let location = *location_domain.value(loc_index);
-    let data = &blocks[location.block];
-    let is_terminator = location.statement_index == data.statements.len();
-
-    if is_terminator {
-      let terminator = data.terminator();
-      analysis.apply_terminator_effect(&mut state[loc_index], terminator, location);
-    } else {
-      let statement = &data.statements[location.statement_index];
-      analysis.apply_statement_effect(&mut state[loc_index], statement, location);
-    }
-
-    let next_locs = if is_terminator {
-      body
-        .successors(location.block)
-        .map(|block| Location {
-          block,
-          statement_index: 0,
-        })
-        .collect::<Vec<_>>()
-    } else {
-      vec![location.successor_within_block()]
+    let next_locs = match body.stmt_at(location) {
+      Either::Left(statement) => {
+        analysis.apply_statement_effect(&mut state[loc_index], statement, location);
+        vec![location.successor_within_block()]
+      }
+      Either::Right(terminator) => {
+        analysis.apply_terminator_effect(&mut state[loc_index], terminator, location);
+        body
+          .successors(location.block)
+          .map(|block| Location {
+            block,
+            statement_index: 0,
+          })
+          .collect::<Vec<_>>()
+      }
     };
+
     for next_loc in next_locs {
       let next_loc_index = location_domain.index(&next_loc);
       let (cur_state, next_state) = state.pick2_mut(loc_index, next_loc_index);

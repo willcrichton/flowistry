@@ -15,20 +15,23 @@ use log::{trace, warn};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
 use rustc_hir::def_id::DefId;
+use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::{
   mir::{
     pretty::write_mir_fn,
     visit::{PlaceContext, Visitor},
     MirPass, *,
   },
+  traits::ObligationCause,
   ty::{
     self, AdtKind, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS, TypeFoldable,
     TypeVisitor,
   },
 };
 use rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
-use rustc_span::{Pos, Span, Symbol, SyntaxContext};
+use rustc_span::{Pos, Span, SpanData, Symbol, SyntaxContext};
 use rustc_target::abi::VariantIdx;
+use rustc_trait_selection::infer::InferCtxtExt;
 use smallvec::SmallVec;
 
 use crate::extensions::{is_extension_active, MutabilityMode};
@@ -293,9 +296,9 @@ pub trait PlaceExt<'tcx> {
     tcx: TyCtxt<'tcx>,
     body: &Body<'tcx>,
     def_id: DefId,
-    depth_limit: Option<usize>,
   ) -> Vec<Place<'tcx>>;
   fn to_string(&self, tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> Option<String>;
+  fn normalize(&self, tcx: TyCtxt<'tcx>, def_id: DefId) -> Place<'tcx>;
 }
 
 impl PlaceExt<'tcx> for Place<'tcx> {
@@ -372,7 +375,7 @@ impl PlaceExt<'tcx> for Place<'tcx> {
       regions: HashMap::default(),
       places: None,
       types: None,
-      depth_limit: None,
+      stop_at_refs: false,
     };
     region_collector.visit_ty(ty);
     region_collector.regions
@@ -383,7 +386,6 @@ impl PlaceExt<'tcx> for Place<'tcx> {
     tcx: TyCtxt<'tcx>,
     body: &Body<'tcx>,
     def_id: DefId,
-    depth_limit: Option<usize>,
   ) -> Vec<Place<'tcx>> {
     let ty = self.ty(body.local_decls(), tcx).ty;
     let mut region_collector = CollectRegions {
@@ -395,7 +397,7 @@ impl PlaceExt<'tcx> for Place<'tcx> {
       regions: HashMap::default(),
       places: Some(HashSet::default()),
       types: None,
-      depth_limit,
+      stop_at_refs: true,
     };
     region_collector.visit_ty(ty);
     region_collector.places.unwrap().into_iter().collect()
@@ -451,6 +453,42 @@ impl PlaceExt<'tcx> for Place<'tcx> {
         .fold(local_name, projection_to_string),
     )
   }
+
+  fn normalize(&self, tcx: TyCtxt<'tcx>, def_id: DefId) -> Place<'tcx> {
+    // Consider a place _1: &'1 <T as SomeTrait>::Foo[2]
+    //   we might encounter this type with a different region, e.g. &'2
+    //   we might encounter this type with a more specific type for the associated type, e.g. &'1 [i32][0]
+    // to account for this variation, we normalize associated types,
+    //   erase regions, and normalize projections
+    let param_env = tcx.param_env(def_id);
+    let place = tcx.erase_regions(*self);
+    let place = tcx.infer_ctxt().enter(|infcx| {
+      infcx
+        .partially_normalize_associated_types_in(
+          ObligationCause::dummy(),
+          param_env,
+          place,
+        )
+        .value
+    });
+
+    let projection = place
+      .projection
+      .into_iter()
+      .filter_map(|elem| match elem {
+        // Map all indexes [i] to [0] since they should be considered equal
+        ProjectionElem::Index(_) | ProjectionElem::ConstantIndex { .. } => {
+          Some(ProjectionElem::Index(Local::from_usize(0)))
+        }
+        // Ignore subslices, they should be treated the same as the
+        // full slice
+        ProjectionElem::Subslice { .. } => None,
+        _ => Some(elem),
+      })
+      .collect::<Vec<_>>();
+
+    Place::make(place.local, &projection, tcx)
+  }
 }
 
 struct CollectRegions<'tcx> {
@@ -462,7 +500,7 @@ struct CollectRegions<'tcx> {
   places: Option<HashSet<Place<'tcx>>>,
   types: Option<HashSet<Ty<'tcx>>>,
   regions: HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>,
-  depth_limit: Option<usize>,
+  stop_at_refs: bool,
 }
 
 impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
@@ -473,12 +511,6 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
       .any(|visited_ty| TyS::same_type(ty, visited_ty))
     {
       return ControlFlow::Continue(());
-    }
-
-    if let Some(limit) = self.depth_limit {
-      if self.place_stack.len() > limit {
-        return ControlFlow::Continue(());
-      }
     }
 
     trace!(
@@ -553,10 +585,12 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
       }
 
       TyKind::Ref(region, elem_ty, _) => {
-        self.visit_region(region);
-        self.place_stack.push(ProjectionElem::Deref);
-        self.visit_ty(elem_ty);
-        self.place_stack.pop();
+        if !self.stop_at_refs {
+          self.visit_region(region);
+          self.place_stack.push(ProjectionElem::Deref);
+          self.visit_ty(elem_ty);
+          self.place_stack.pop();
+        }
       }
 
       TyKind::Closure(_, substs) => {
@@ -829,6 +863,16 @@ impl SpanExt for Span {
 
   fn size(&self) -> u32 {
     self.hi().0 - self.lo().0
+  }
+}
+
+pub trait SpanDataExt {
+  fn size(&self) -> u32;
+}
+
+impl SpanDataExt for SpanData {
+  fn size(&self) -> u32 {
+    self.hi.0 - self.lo.0
   }
 }
 
