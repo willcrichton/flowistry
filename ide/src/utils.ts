@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { CommandOutput, Range } from "./types";
 import { CallFlowistry, to_vsc_range } from "./vsc_utils";
 import _ from "lodash";
-import { is_flowistry_error } from "./error_types";
+import { is_ok, show } from "./result_types";
 
 export let highlight_type = vscode.window.createTextEditorDecorationType({
   backgroundColor: new vscode.ThemeColor("editor.symbolHighlightBackground"),
@@ -93,10 +93,11 @@ export async function display_subcmd_results(
   let end = doc.offsetAt(selection.end);
   let cmd = `${subcmd} ${doc.fileName} ${start} ${end} ${flags}`;
 
-  let command_output = await call_flowistry<CommandOutput>(cmd);
-  if (is_flowistry_error(command_output)) {
-    return command_output.show();
+  let command_output_res = await call_flowistry<CommandOutput>(cmd);
+  if (!is_ok(command_output_res)) {
+    return show(command_output_res);
   }
+  let command_output = command_output_res.value;
 
   if (command_output.ranges.length === 0) {
     let selected_text = active_editor.document.getText(selection);

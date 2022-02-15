@@ -9,7 +9,6 @@ import { log, CallFlowistry } from "./vsc_utils";
 import { download } from "./download";
 import { render_status_bar } from "./focus_utils";
 import { flowistry_status_bar_item } from "./extension";
-import { FlowistryBuildError, FlowistryRuntimeError} from "./error_types";
 
 declare const VERSION: string;
 declare const TOOLCHAIN: {
@@ -172,14 +171,24 @@ export async function setup(
       output = await exec_notify(cmd, "Waiting for Flowistry...", flowistry_opts);
     } catch (e: any) {
       context.workspaceState.update("err_log", e);
-      return new FlowistryBuildError(e);
+
+      return {
+        type: "build-error",
+        error: e,
+      };
     }
 
     let output_typed: Result<T> = JSON.parse(output);
     if (output_typed.variant === "Err") {
-      return new FlowistryRuntimeError(output_typed.fields[0]);
+      return {
+        type: "analysis-error",
+        error: output_typed.fields[0],
+      };
     }
 
-    return output_typed.fields[0];
+    return {
+      type: "output",
+      value: output_typed.fields[0],
+    };
   };
 }

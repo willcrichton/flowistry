@@ -4,7 +4,7 @@ import open from "open";
 import newGithubIssueUrl from "new-github-issue-url";
 import * as cp from "child_process";
 import os from "os";
-import { FlowistryBuildError, FlowistryError } from "./error_types";
+import { BuildError, FlowistryResult, show } from "./result_types";
 
 let channel = vscode.window.createOutputChannel("Flowistry");
 let logs: string[] = [];
@@ -69,7 +69,7 @@ ${log_text}`,
   }
 };
 
-export type CallFlowistry = <T>(args: string) => Promise<T | FlowistryError>;
+export type CallFlowistry = <T>(args: string) => Promise<FlowistryResult<T>>;
 
 export class FlowistryErrorDocument implements vscode.TextDocumentContentProvider {
   readonly uri = vscode.Uri.parse("flowistry://build-error");
@@ -89,8 +89,8 @@ export async function last_error(
   this: vscode.ExtensionContext,
   _f: CallFlowistry
 ) {
-  let err = this.workspaceState.get("err_log") as string;
+  let error = this.workspaceState.get("err_log") as string;
 
-  let flowistry_err = new FlowistryBuildError(err);
-  await flowistry_err.show();
+  let flowistry_err: BuildError = { type: "build-error", error };
+  await show(flowistry_err);
 }
