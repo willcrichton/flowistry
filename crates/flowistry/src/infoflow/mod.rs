@@ -9,7 +9,6 @@ use rustc_middle::ty::TyCtxt;
 
 use crate::{
   block_timer,
-  indexed::impls::LocationDomain,
   mir::{
     aliases::Aliases, control_dependencies::ControlDependencies, engine, utils::BodyExt,
   },
@@ -43,24 +42,16 @@ pub fn compute_flow<'a, 'tcx>(
 
     let def_id = tcx.hir().body_owner_def_id(body_id).to_def_id();
     let aliases = Aliases::build(tcx, def_id, body_with_facts);
+    let location_domain = aliases.location_domain().clone();
 
     let body = &body_with_facts.body;
     let control_dependencies = ControlDependencies::build(body.clone());
     debug!("Control dependencies: {control_dependencies:?}");
 
-    let location_domain = LocationDomain::new(body, tcx, def_id);
-
     let results = {
       block_timer!("Flow");
 
-      let analysis = FlowAnalysis::new(
-        tcx,
-        def_id,
-        body,
-        aliases,
-        control_dependencies,
-        location_domain.clone(),
-      );
+      let analysis = FlowAnalysis::new(tcx, def_id, body, aliases, control_dependencies);
       engine::iterate_to_fixpoint(tcx, body, location_domain, analysis)
       // analysis.into_engine(tcx, body).iterate_to_fixpoint()
     };

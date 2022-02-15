@@ -34,7 +34,6 @@ pub struct FlowAnalysis<'a, 'tcx> {
   pub body: &'a Body<'tcx>,
   pub control_dependencies: ControlDependencies,
   pub aliases: Aliases<'a, 'tcx>,
-  pub location_domain: Rc<LocationDomain>,
   crate recurse_cache: RefCell<HashMap<BodyId, FlowResults<'a, 'tcx>>>,
 }
 
@@ -45,7 +44,6 @@ impl FlowAnalysis<'a, 'tcx> {
     body: &'a Body<'tcx>,
     aliases: Aliases<'a, 'tcx>,
     control_dependencies: ControlDependencies,
-    location_domain: Rc<LocationDomain>,
   ) -> Self {
     let recurse_cache = RefCell::new(HashMap::default());
     FlowAnalysis {
@@ -53,14 +51,13 @@ impl FlowAnalysis<'a, 'tcx> {
       def_id,
       body,
       aliases,
-      location_domain,
       control_dependencies,
       recurse_cache,
     }
   }
 
   pub fn location_domain(&self) -> &Rc<LocationDomain> {
-    &self.location_domain
+    self.aliases.location_domain()
   }
 
   crate fn transfer_function(

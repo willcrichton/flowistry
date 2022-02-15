@@ -40,12 +40,17 @@ impl LocationDomain {
 
     let arg_block = BasicBlock::from_usize(body.basic_blocks().len());
 
+    // TODO: the shallow interior_pointers was designed to avoid blowing up
+    // the size of the location domain if there's a ton of reachable pointers
+    // from the arguments, e.g. see
+    //   rust/compiler/rustc_typeck/src/check/op.rs 21361
+    // for a stress test. But not sure if this is sound yet.
     let (arg_places, arg_locations): (Vec<_>, Vec<_>) = body
       .args_iter()
       .flat_map(|local| {
         let place = Place::from_local(local, tcx);
         let ptrs = place
-          .interior_pointers(tcx, body, def_id)
+          .interior_pointers(tcx, body, def_id, true)
           .into_values()
           .flat_map(|ptrs| ptrs.into_iter().map(|(ptr, _)| ptr));
         ptrs

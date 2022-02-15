@@ -51,9 +51,9 @@ impl DepVisitor<'_, '_, 'tcx> {
       for (place, loc_deps) in to_check.iter() {
         let matches = match self.direction {
           Direction::Forward => loc_deps.is_superset(target_locs),
-          Direction::Backward => target_locs.is_superset(&loc_deps),
+          Direction::Backward => target_locs.is_superset(loc_deps),
           Direction::Both => {
-            loc_deps.is_superset(target_locs) || target_locs.is_superset(&loc_deps)
+            loc_deps.is_superset(target_locs) || target_locs.is_superset(loc_deps)
           }
         };
 
