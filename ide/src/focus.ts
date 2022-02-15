@@ -28,14 +28,14 @@ interface FocusState {
 }
 
 export class FocusMode {
-  status = "inactive";
+  status: FocusStatus = "inactive";
   state: FocusState | null = null;
 
   call_flowistry: CallFlowistry;
   status_bar_item: vscode.StatusBarItem;
 
-  doc_save_callback: vscode.Disposable | undefined;
-  doc_edit_callback: vscode.Disposable | undefined;
+  doc_save_callback?: vscode.Disposable;
+  doc_edit_callback?: vscode.Disposable;
 
   constructor(
     call_flowistry: CallFlowistry,
@@ -45,7 +45,7 @@ export class FocusMode {
     this.status_bar_item = status_bar_item;
   }
 
-  private add_watchers() {
+  private add_watchers = () => {
     if (this.is_active()) {
       return;
     }
@@ -67,31 +67,31 @@ export class FocusMode {
           if (active_editor.document.isDirty) {
             this.pause_rendering("unsaved");
           } else {
-            this.setStatus("active");
+            this.set_status("active");
             this.render();
           }
         }
       }
     );
-  }
+  };
 
-  private dispose_watchers() {
+  private dispose_watchers = () => {
     this.doc_save_callback?.dispose();
     this.doc_edit_callback?.dispose();
-  }
+  };
 
-  private setStatus(status: FocusStatus) {
+  private set_status = (status: FocusStatus) => {
     this.status = status;
     render_status_bar(this.status_bar_item, status);
-  }
+  };
 
-  private is_active() {
+  private is_active = () => {
     return this.status !== "inactive";
-  }
+  };
 
-  private should_render() {
+  private should_render = () => {
     return ["active", "loading"].includes(this.status);
-  }
+  };
 
   private focus_subcommand =
     (f: (editor: vscode.TextEditor) => void) => async () => {
@@ -107,7 +107,7 @@ export class FocusMode {
       f(active_editor);
     };
 
-  async initialize(hide_error: boolean = false) {
+  private initialize = async (hide_error = false) => {
     this.add_watchers();
 
     let active_editor = vscode.window.activeTextEditor;
@@ -139,10 +139,17 @@ export class FocusMode {
     );
     this.state = { disposable, focus, ranges, mark: null };
 
-    this.setStatus("active");
-  }
+    this.set_status("active");
+  };
 
-  async render(select: boolean = false) {
+  private uninitialize = () => {
+    this.pause_rendering("inactive");
+    this.dispose_watchers();
+
+    this.state = null;
+  };
+
+  private render = async (select = false) => {
     if (!this.state) {
       throw `Tried to render while state is invalid.`;
     }
@@ -210,8 +217,20 @@ export class FocusMode {
       clear_ranges(active_editor);
     }
 
-    this.setStatus("active");
-  }
+    this.set_status("active");
+  };
+
+  private pause_rendering = (reason: FocusStatus) => {
+    clear_ranges(vscode.window.activeTextEditor!);
+    this.set_status(reason);
+  };
+
+  commands = (): [string, (_f: CallFlowistry) => void][] => [
+    ["focus", this.focus],
+    ["focus_mark", this.focus_mark],
+    ["focus_unmark", this.focus_unmark],
+    ["focus_select", this.focus_select],
+  ];
 
   focus_mark = this.focus_subcommand((editor) => {
     this.state!.mark = editor.selection;
@@ -227,24 +246,12 @@ export class FocusMode {
     this.render(true);
   });
 
-  private pause_rendering(reason: FocusStatus) {
-    clear_ranges(vscode.window.activeTextEditor!);
-    this.setStatus(reason);
-  }
-
-  private uninitialize() {
-    this.pause_rendering("inactive");
-    this.dispose_watchers();
-
-    this.state = null;
-  }
-
-  async focus() {
+  focus = async () => {
     if (this.is_active()) {
       this.uninitialize();
     } else {
       await this.initialize();
       this.render();
     }
-  }
+  };
 }

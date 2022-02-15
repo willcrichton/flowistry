@@ -37,10 +37,7 @@ export async function activate(context: vscode.ExtensionContext) {
     let focus = new FocusMode(call_flowistry, flowistry_status_bar_item);
 
     let commands: [string, (_f: CallFlowistry) => void][] = [
-      ["focus", focus.focus.bind(focus)],
-      ["focus_mark", focus.focus_mark.bind(focus)],
-      ["focus_unmark", focus.focus_unmark.bind(focus)],
-      ["focus_select", focus.focus_select.bind(focus)],
+      ...focus.commands(),
       ["decompose", decompose],
       ["last_error", last_error.bind(context)],
     ];
