@@ -5,7 +5,7 @@ import { CallFlowistry, to_vsc_range } from "./vsc_utils";
 import _ from "lodash";
 import IntervalTree from "@flatten-js/interval-tree";
 import { FocusStatus, render_status_bar } from "./focus_utils";
-import { is_flowistry_error } from "./error_types";
+import { is_ok, show } from "./result_types";
 
 interface PlaceInfo {
   range: Range;
@@ -119,15 +119,16 @@ export class FocusMode {
     let selection = active_editor.selection;
 
     let cmd = `focus ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
-    let focus = await this.call_flowistry<Focus>(cmd);
+    let focus_res = await this.call_flowistry<Focus>(cmd);
 
     // pause rendering and add error status when program doesn't compile
-    if (is_flowistry_error(focus)) {
+    if (!is_ok(focus_res)) {
       if (!hide_error) {
-        focus.show();
+        show(focus_res);
       }
       return this.pause_rendering("error");
     }
+    let focus = focus_res.value;
 
     let ranges = new IntervalTree();
     focus.place_info.forEach((slice) => {
