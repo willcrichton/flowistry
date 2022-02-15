@@ -35,20 +35,6 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
   let source_map = tcx.sess.source_map();
   let spanner = source_map::Spanner::new(tcx, body_id, body);
 
-  use std::collections::HashMap;
-
-  use rustc_span::SpanData;
-  let mut groups: HashMap<SpanData, usize> = HashMap::default();
-  for mir_span in &spanner.mir_spans {
-    *groups.entry(mir_span.span).or_insert(0) += 1;
-  }
-  log::info!("groups: {:?}", groups.values().collect::<Vec<_>>());
-  log::info!(
-    "avg: {:?} / {:?}",
-    groups.values().filter(|x| **x > 1).sum::<usize>(),
-    spanner.mir_spans.len()
-  );
-
   let grouped_spans = spanner
     .mir_spans
     .iter()

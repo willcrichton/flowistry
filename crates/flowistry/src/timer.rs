@@ -3,7 +3,7 @@ use std::time::Instant;
 use log::info;
 
 pub fn elapsed(name: &str, start: Instant) {
-  info!("{name} took {}s", start.elapsed().as_secs_f64());
+  info!("{name} took {:.04}s", start.elapsed().as_secs_f64());
 }
 
 pub struct BlockTimer<'a> {
@@ -23,6 +23,6 @@ macro_rules! block_timer {
     let name = $name;
     let start = std::time::Instant::now();
     let _timer = $crate::timer::BlockTimer { name, start };
-    log::debug!("Starting {name}...");
+    log::info!("Starting {name}...");
   };
 }

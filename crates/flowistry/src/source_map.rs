@@ -18,7 +18,10 @@ use rustc_middle::{
 };
 use rustc_span::{Span, SpanData};
 
-use crate::mir::utils::{self, SpanDataExt, SpanExt};
+use crate::{
+  block_timer,
+  mir::utils::{self, SpanDataExt, SpanExt},
+};
 
 type HirNode<'hir> = Either<&'hir Expr<'hir>, &'hir Stmt<'hir>>;
 
@@ -480,6 +483,7 @@ pub fn find_enclosing_bodies(
   tcx: TyCtxt<'tcx>,
   sp: Span,
 ) -> impl Iterator<Item = BodyId> {
+  block_timer!("find_enclosing_bodies");
   let mut finder = BodyFinder {
     tcx,
     target: sp,

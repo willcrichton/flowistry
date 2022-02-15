@@ -121,7 +121,9 @@ impl<A: FlowistryAnalysis, T: ToSpan> rustc_driver::Callbacks
     elapsed("rustc", self.rustc_start);
     fluid_set!(EVAL_MODE, self.eval_mode.unwrap_or_default());
 
+    let start = Instant::now();
     queries.global_ctxt().unwrap().take().enter(|tcx| {
+      elapsed("global_ctxt", start);
       let mut analysis = self.analysis.take().unwrap();
       self.output = Some((|| {
         let target = self.target.to_span(tcx)?;

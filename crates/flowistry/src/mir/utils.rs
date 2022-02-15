@@ -61,7 +61,7 @@ pub fn arg_mut_ptrs<'tcx>(
     .iter()
     .flat_map(|(i, place)| {
       place
-        .interior_pointers(tcx, body, def_id)
+        .interior_pointers(tcx, body, def_id, false)
         .into_iter()
         .flat_map(|(_, places)| {
           places
@@ -290,6 +290,7 @@ pub trait PlaceExt<'tcx> {
     tcx: TyCtxt<'tcx>,
     body: &Body<'tcx>,
     def_id: DefId,
+    shallow: bool,
   ) -> HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>;
   fn interior_places(
     &self,
@@ -364,6 +365,7 @@ impl PlaceExt<'tcx> for Place<'tcx> {
     tcx: TyCtxt<'tcx>,
     body: &Body<'tcx>,
     def_id: DefId,
+    shallow: bool,
   ) -> HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>> {
     let ty = self.ty(body.local_decls(), tcx).ty;
     let mut region_collector = CollectRegions {
@@ -375,7 +377,11 @@ impl PlaceExt<'tcx> for Place<'tcx> {
       regions: HashMap::default(),
       places: None,
       types: None,
-      stop_at_refs: false,
+      stop_at: if shallow {
+        StoppingCondition::AfterRefs
+      } else {
+        StoppingCondition::None
+      },
     };
     region_collector.visit_ty(ty);
     region_collector.regions
@@ -397,7 +403,7 @@ impl PlaceExt<'tcx> for Place<'tcx> {
       regions: HashMap::default(),
       places: Some(HashSet::default()),
       types: None,
-      stop_at_refs: true,
+      stop_at: StoppingCondition::BeforeRefs,
     };
     region_collector.visit_ty(ty);
     region_collector.places.unwrap().into_iter().collect()
@@ -491,6 +497,13 @@ impl PlaceExt<'tcx> for Place<'tcx> {
   }
 }
 
+#[derive(Copy, Clone)]
+enum StoppingCondition {
+  None,
+  BeforeRefs,
+  AfterRefs,
+}
+
 struct CollectRegions<'tcx> {
   tcx: TyCtxt<'tcx>,
   def_id: DefId,
@@ -500,7 +513,7 @@ struct CollectRegions<'tcx> {
   places: Option<HashSet<Place<'tcx>>>,
   types: Option<HashSet<Ty<'tcx>>>,
   regions: HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>,
-  stop_at_refs: bool,
+  stop_at: StoppingCondition,
 }
 
 impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
@@ -584,14 +597,18 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
         self.place_stack.pop();
       }
 
-      TyKind::Ref(region, elem_ty, _) => {
-        if !self.stop_at_refs {
+      TyKind::Ref(region, elem_ty, _) => match self.stop_at {
+        StoppingCondition::None => {
           self.visit_region(region);
           self.place_stack.push(ProjectionElem::Deref);
           self.visit_ty(elem_ty);
           self.place_stack.pop();
         }
-      }
+        StoppingCondition::AfterRefs => {
+          self.visit_region(region);
+        }
+        StoppingCondition::BeforeRefs => {}
+      },
 
       TyKind::Closure(_, substs) => {
         self.visit_ty(substs.as_closure().tupled_upvars_ty());
@@ -772,10 +789,10 @@ impl SpanExt for Span {
   ///  child_spans:    ---      --  -
   ///  output:        -   ------  --
   fn subtract(&self, mut child_spans: Vec<Span>) -> Vec<Span> {
+    child_spans.retain(|s| s.overlaps_inclusive(*self));
+
     let mut outer_spans = vec![];
     if !child_spans.is_empty() {
-      child_spans.retain(|s| s.overlaps_inclusive(*self));
-
       // Output will be sorted
       child_spans = Span::merge_overlaps(child_spans);
 
