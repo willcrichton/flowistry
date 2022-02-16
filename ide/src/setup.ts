@@ -7,14 +7,14 @@ import open from "open";
 import { Result } from "./types";
 import { log, CallFlowistry } from "./vsc_utils";
 import { download } from "./download";
+import { render_status_bar } from "./focus_utils";
+import { flowistry_status_bar_item } from "./extension";
 
 declare const VERSION: string;
 declare const TOOLCHAIN: {
   channel: string;
   components: string[];
 };
-
-const SHOW_LOADER_THRESHOLD = 2000;
 
 const LIBRARY_PATHS: Partial<Record<NodeJS.Platform, string>> = {
   darwin: "DYLD_LIBRARY_PATH",
@@ -74,7 +74,9 @@ export let exec_notify = async (
   let stdout = read_stream(proc.stdout);
   let stderr = read_stream(proc.stderr);
 
-  let promise = new Promise<string>((resolve, reject) => {
+  render_status_bar(flowistry_status_bar_item, "loading", title);
+
+  return new Promise<string>((resolve, reject) => {
     proc.addListener("close", (_) => {
       if (proc.exitCode !== 0) {
         reject(stderr());
@@ -86,31 +88,6 @@ export let exec_notify = async (
       reject(e.toString());
     });
   });
-
-  let outcome = await Promise.race([
-    promise,
-    new Promise<undefined>((resolve, _) =>
-      setTimeout(resolve, SHOW_LOADER_THRESHOLD)
-    ),
-  ]);
-
-  if (outcome === undefined) {
-    outcome = await vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.Notification,
-        title,
-        cancellable: true,
-      },
-      (_, token) => {
-        token.onCancellationRequested((_) => {
-          proc.kill("SIGINT");
-        });
-        return promise;
-      }
-    );
-  }
-
-  return outcome;
 };
 
 export async function setup(
@@ -157,7 +134,7 @@ export async function setup(
       }
     }
 
-
+    
     try {
       await download();
     } catch (e: any) {
@@ -177,29 +154,12 @@ export async function setup(
     }
   }
 
-  const tdcp = new (class implements vscode.TextDocumentContentProvider {
-    readonly uri = vscode.Uri.parse("flowistry://build-error");
-    readonly eventEmitter = new vscode.EventEmitter<vscode.Uri>();
-    contents: string = "";
-
-    provideTextDocumentContent(
-      _uri: vscode.Uri
-    ): vscode.ProviderResult<string> {
-      return `Flowistry could not run because your project failed to build with error:\n${this.contents}`;
-    }
-
-    get onDidChange(): vscode.Event<vscode.Uri> {
-      return this.eventEmitter.event;
-    }
-  })();
-
-  context.subscriptions.push(
-    vscode.workspace.registerTextDocumentContentProvider("flowistry", tdcp)
-  );
+  // remove loading indicator after setup complete
+  render_status_bar(flowistry_status_bar_item, "inactive");
 
   return async <T>(args: string) => {
     let cmd = `${flowistry_cmd} ${args}`;
-    let flowisty_opts = await get_flowistry_opts(workspace_root);
+    let flowistry_opts = await get_flowistry_opts(workspace_root);
 
     let output;
     try {
@@ -208,20 +168,27 @@ export async function setup(
         await editor.document.save();
       }
 
-      output = await exec_notify(cmd, "Waiting for Flowistry...", flowisty_opts);
+      output = await exec_notify(cmd, "Waiting for Flowistry...", flowistry_opts);
     } catch (e: any) {
-      tdcp.contents = e.toString();
-      tdcp.eventEmitter.fire(tdcp.uri);
-      let doc = await vscode.workspace.openTextDocument(tdcp.uri);
-      await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
-      return null;
+      context.workspaceState.update("err_log", e);
+
+      return {
+        type: "build-error",
+        error: e,
+      };
     }
 
     let output_typed: Result<T> = JSON.parse(output);
     if (output_typed.variant === "Err") {
-      throw output_typed.fields[0];
+      return {
+        type: "analysis-error",
+        error: output_typed.fields[0],
+      };
     }
 
-    return output_typed.fields[0];
+    return {
+      type: "output",
+      value: output_typed.fields[0],
+    };
   };
 }
