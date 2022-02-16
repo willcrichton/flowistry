@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 import { highlight_ranges } from "./utils";
 import { Range } from "./types";
-import { log, show_error, CallFlowistry } from "./vsc_utils";
+import { CallFlowistry } from "./vsc_utils";
 import _ from "lodash";
+import { is_ok, show } from "./result_types";
 
 interface Decomposition {
   chunks: [number, Range[][]][];
@@ -46,10 +47,11 @@ export let decompose = async (call_flowistry: CallFlowistry) => {
   let selection = active_editor.selection;
 
   let cmd = `decompose ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
-  let decomp = await call_flowistry<Decomposition>(cmd);
-  if (!decomp) {
-    return;
+  let decomp_res = await call_flowistry<Decomposition>(cmd);
+  if (!is_ok(decomp_res)) {
+    return show(decomp_res);
   }
+  let decomp = decomp_res.value;
 
   const panel = vscode.window.createWebviewPanel(
     "flowistry.decomp",
@@ -63,15 +65,15 @@ export let decompose = async (call_flowistry: CallFlowistry) => {
 <!DOCTYPE html>
 <html>      
 <body class="">
-  <div id="app">
-      <input type="range" id="range" min="0" max="${decomp.chunks.length}" />
-  </div>
-  <script>
-      const vscode = window.acquireVsCodeApi();
-      document.getElementById('range').addEventListener('input', function() {
-        vscode.postMessage(this.value);
-      })
-  </script>
+<div id="app">
+    <input type="range" id="range" min="0" max="${decomp.chunks.length}" />
+</div>
+<script>
+    const vscode = window.acquireVsCodeApi();
+    document.getElementById('range').addEventListener('input', function() {
+      vscode.postMessage(this.value);
+    })
+</script>
 </body>        
 </html>        
 `;
@@ -89,9 +91,9 @@ export let decompose = async (call_flowistry: CallFlowistry) => {
 
   // show_chunks(decomp.chunks);
 
-  show_chunks(decomp.chunks[Math.ceil(decomp.chunks.length / 2)][1]);
+  show_chunks(decomp.chunks[Math.ceil(decomp.chunks.length / 2)][1])
 
   panel.webview.onDidReceiveMessage((i) => {
-    show_chunks(decomp!.chunks[i][1]);
+    show_chunks((decomp as Decomposition).chunks[i][1]);
   });
 };
