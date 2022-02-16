@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import { highlight_ranges } from "./utils";
 import { Range } from "./types";
-import { CallFlowistry } from "./vsc_utils";
 import _ from "lodash";
+import { globals } from "./extension";
 import { is_ok, show } from "./result_types";
 
 interface Decomposition {
@@ -37,7 +37,7 @@ let palette = colors.map((backgroundColor) =>
   })
 );
 
-export let decompose = async (call_flowistry: CallFlowistry) => {
+export let decompose = async () => {
   let active_editor = vscode.window.activeTextEditor;
   if (!active_editor) {
     return;
@@ -47,7 +47,7 @@ export let decompose = async (call_flowistry: CallFlowistry) => {
   let selection = active_editor.selection;
 
   let cmd = `decompose ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
-  let decomp_res = await call_flowistry<Decomposition>(cmd);
+  let decomp_res = await globals.call_flowistry<Decomposition>(cmd);
   if (!is_ok(decomp_res)) {
     return show(decomp_res);
   }
@@ -91,7 +91,7 @@ export let decompose = async (call_flowistry: CallFlowistry) => {
 
   // show_chunks(decomp.chunks);
 
-  show_chunks(decomp.chunks[Math.ceil(decomp.chunks.length / 2)][1])
+  show_chunks(decomp.chunks[Math.ceil(decomp.chunks.length / 2)][1]);
 
   panel.webview.onDidReceiveMessage((i) => {
     show_chunks((decomp as Decomposition).chunks[i][1]);

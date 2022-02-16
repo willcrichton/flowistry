@@ -35,7 +35,7 @@ export let show_error = async (err: string) => {
     "Report bug",
     "Dismiss"
   );
-  if (outcome == "Report bug") {
+  if (outcome === "Report bug") {
     let log_url = null;
     try {
       log_url = cp.execSync("curl --data-binary @- https://paste.rs/", {
@@ -71,10 +71,18 @@ ${log_text}`,
 
 export type CallFlowistry = <T>(args: string) => Promise<FlowistryResult<T>>;
 
-export class FlowistryErrorDocument implements vscode.TextDocumentContentProvider {
+export class FlowistryErrorDocument
+  implements vscode.TextDocumentContentProvider
+{
   readonly uri = vscode.Uri.parse("flowistry://build-error");
   readonly eventEmitter = new vscode.EventEmitter<vscode.Uri>();
   contents: string = "";
+
+  constructor(context: vscode.ExtensionContext) {
+    context.subscriptions.push(
+      vscode.workspace.registerTextDocumentContentProvider("flowistry", this)
+    );
+  }
 
   provideTextDocumentContent(_uri: vscode.Uri): vscode.ProviderResult<string> {
     return `Flowistry could not run because your project failed to build with error:\n${this.contents}`;
@@ -85,12 +93,8 @@ export class FlowistryErrorDocument implements vscode.TextDocumentContentProvide
   }
 }
 
-export async function last_error(
-  this: vscode.ExtensionContext,
-  _f: CallFlowistry
-) {
+export async function last_error(this: vscode.ExtensionContext) {
   let error = this.workspaceState.get("err_log") as string;
-
   let flowistry_err: BuildError = { type: "build-error", error };
   await show(flowistry_err);
 }

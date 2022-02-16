@@ -21,7 +21,7 @@ export let download = async () => {
   let [__, target] = _.chain(rustc_info)
     .split("\n")
     .map((line) => line.split(": "))
-    .find(([key]) => key == "host")
+    .find(([key]) => key === "host")
     .value();
 
   let repo = "willcrichton/flowistry";

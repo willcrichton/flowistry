@@ -1,8 +1,7 @@
 import * as vscode from "vscode";
-import { CommandOutput, Range } from "./types";
-import { CallFlowistry, to_vsc_range } from "./vsc_utils";
+import { Range } from "./types";
+import { to_vsc_range } from "./vsc_utils";
 import _ from "lodash";
-import { is_ok, show } from "./result_types";
 
 export let highlight_type = vscode.window.createTextEditorDecorationType({
   backgroundColor: new vscode.ThemeColor("editor.symbolHighlightBackground"),
@@ -18,7 +17,9 @@ export let select_type = vscode.window.createTextEditorDecorationType({
 
 export let invert_ranges = (container: Range, pieces: Range[]): Range[] => {
   let filename = container.filename;
-  let pieces_sorted = _.sortBy(pieces, (r) => r.start).filter((r) => container.start <= r.start && r.end <= container.end);
+  let pieces_sorted = _.sortBy(pieces, (r) => r.start).filter(
+    (r) => container.start <= r.start && r.end <= container.end
+  );
 
   let new_ranges: Range[] = [];
   let start = container.start;
@@ -54,7 +55,9 @@ export let highlight_slice = (
   slice: Range[]
 ) => {
   highlight_ranges(seeds, editor, select_type);
-  let hide_ranges = containers.map(container => invert_ranges(container, slice)).flat();
+  let hide_ranges = containers
+    .map((container) => invert_ranges(container, slice))
+    .flat();
   highlight_ranges(hide_ranges, editor, hide_type);
 };
 
@@ -74,50 +77,3 @@ export let clear_ranges = (editor: vscode.TextEditor) => {
     editor.setDecorations(type, []);
   });
 };
-
-export async function display_subcmd_results(
-  call_flowistry: CallFlowistry,
-  action: string,
-  subcmd: string,
-  display_type: "highlight" | "select",
-  flags: string = ""
-) {
-  let active_editor = vscode.window.activeTextEditor;
-  if (!active_editor) {
-    return;
-  }
-
-  let doc = active_editor.document;
-  let selection = active_editor.selection;
-  let start = doc.offsetAt(selection.start);
-  let end = doc.offsetAt(selection.end);
-  let cmd = `${subcmd} ${doc.fileName} ${start} ${end} ${flags}`;
-
-  let command_output_res = await call_flowistry<CommandOutput>(cmd);
-  if (!is_ok(command_output_res)) {
-    return show(command_output_res);
-  }
-  let command_output = command_output_res.value;
-
-  if (command_output.ranges.length === 0) {
-    let selected_text = active_editor.document.getText(selection);
-    vscode.window.showInformationMessage(
-      `${action} on "${selected_text}" did not generate any results`
-    );
-    return;
-  }
-
-  if (display_type === "select") {
-    active_editor.selections = command_output.ranges.map((range) => {
-      let vsc_range = to_vsc_range(range, doc);
-      return new vscode.Selection(vsc_range.start, vsc_range.end);
-    });
-  } else {
-    highlight_slice(
-      active_editor,
-      [command_output.body_span],
-      command_output.selected_spans,
-      command_output.ranges
-    );
-  }
-}

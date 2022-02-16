@@ -1,5 +1,5 @@
 import vscode from "vscode";
-import { tdcp } from "./extension";
+import { globals } from "./extension";
 import { show_error } from "./vsc_utils";
 
 export interface BuildError {
@@ -21,6 +21,7 @@ export type FlowistryResult<T> =
 
 export const show = async (error: BuildError | AnalysisError) => {
   if (error.type === "build-error") {
+    let tdcp = globals.error_doc;
     tdcp.contents = error.error;
     tdcp.eventEmitter.fire(tdcp.uri);
     let doc = await vscode.workspace.openTextDocument(tdcp.uri);
@@ -31,4 +32,4 @@ export const show = async (error: BuildError | AnalysisError) => {
 };
 
 export const is_ok = <T>(res: FlowistryResult<T>): res is FlowistryOutput<T> =>
-  res.type == "output";
+  res.type === "output";

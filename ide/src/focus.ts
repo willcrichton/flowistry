@@ -1,11 +1,12 @@
 import * as vscode from "vscode";
 import { highlight_slice, clear_ranges } from "./utils";
 import { Range } from "./types";
-import { CallFlowistry, to_vsc_range } from "./vsc_utils";
+import { to_vsc_range } from "./vsc_utils";
 import _ from "lodash";
 import IntervalTree from "@flatten-js/interval-tree";
-import { FocusStatus, render_status_bar } from "./focus_utils";
+import { StatusBarState } from "./status_bar";
 import { is_ok, show } from "./result_types";
+import { globals } from "./extension";
 
 interface PlaceInfo {
   range: Range;
@@ -38,28 +39,17 @@ interface FocusState {
  * focus mode will stop rendering and set `status` to `unsaved`
  *  - Document selection change: highlight/select ranges based on the new editor
  * selection and current focus `state`
- * 
+ *
  * Updating `status` also changes the appearance of the focus mode status bar item
  * (configurations for each `FocusStatus` can be found in `focus_utils.ts`).
  */
 export class FocusMode {
-  status: FocusStatus = "inactive";
+  status: StatusBarState = "idle";
   state: FocusState | null = null;
-
-  call_flowistry: CallFlowistry;
-  status_bar_item: vscode.StatusBarItem;
 
   doc_save_callback?: vscode.Disposable;
   doc_edit_callback?: vscode.Disposable;
   selection_change_callback?: vscode.Disposable;
-
-  constructor(
-    call_flowistry: CallFlowistry,
-    status_bar_item: vscode.StatusBarItem
-  ) {
-    this.call_flowistry = call_flowistry;
-    this.status_bar_item = status_bar_item;
-  }
 
   private add_watchers = () => {
     if (this.is_active()) {
@@ -100,13 +90,13 @@ export class FocusMode {
     this.doc_edit_callback?.dispose();
   };
 
-  private set_status = (status: FocusStatus) => {
+  private set_status = (status: StatusBarState) => {
     this.status = status;
-    render_status_bar(this.status_bar_item, status);
+    globals.status_bar.set_state(status);
   };
 
   private is_active = () => {
-    return this.status !== "inactive";
+    return this.status !== "idle";
   };
 
   private focus_subcommand =
@@ -135,7 +125,7 @@ export class FocusMode {
     let selection = active_editor.selection;
 
     let cmd = `focus ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
-    let focus_res = await this.call_flowistry<Focus>(cmd);
+    let focus_res = await globals.call_flowistry<Focus>(cmd);
 
     // pause rendering and add error status when program doesn't compile
     if (!is_ok(focus_res)) {
@@ -156,30 +146,23 @@ export class FocusMode {
   };
 
   private uninitialize = () => {
-    this.pause_rendering("inactive");
+    this.pause_rendering("idle");
     this.dispose_watchers();
 
     this.state = null;
   };
 
-  private render = async (select = false) => {
-    if (!this.state) {
-      throw `Tried to render while state is invalid.`;
-    }
-
-    if (!this.is_active()) {
-      return;
-    }
-
-    let active_editor = vscode.window.activeTextEditor!;
-    let doc = active_editor.document;
-    let { start, end } = this.state.mark || active_editor.selection;
+  private find_slice_at_selection = (
+    active_editor: vscode.TextEditor,
+    doc: vscode.TextDocument
+  ): { seeds: Range[]; slice: Range[] } => {
+    let { start, end } = this.state!.mark || active_editor.selection;
     let query: Interval = [doc.offsetAt(start), doc.offsetAt(end)];
 
     let is_contained = (child: Interval, parent: Interval): boolean =>
       parent[0] <= child[0] && child[1] <= parent[1];
 
-    let result = this.state.ranges.search(query, (v, k) => [
+    let result = this.state!.ranges.search(query, (v, k) => [
       [k.low, k.high],
       v,
     ]);
@@ -187,21 +170,15 @@ export class FocusMode {
       is_contained(k, query)
     );
 
-    console.log("query", query);
-    console.log("result", result);
-
     let final;
     if (contained.length > 0) {
       final = contained;
-      console.log("contained", contained);
     } else {
       let [containing, adjacent] = _.partition(others, ([k]) =>
         is_contained(query, k)
       );
       containing = _.sortBy(containing, ([k]) => k[1] - k[0]);
       final = adjacent.concat(containing.slice(0, 1));
-      console.log("adjacent", adjacent);
-      console.log("containing", containing);
     }
 
     let seeds = final.map(([k]) => ({
@@ -211,6 +188,22 @@ export class FocusMode {
     }));
     seeds = _.uniqWith(seeds, _.isEqual);
     let slice = final.map(([_k, v]) => v).flat();
+
+    return { seeds, slice };
+  };
+
+  private render = async (select = false) => {
+    if (!this.state) {
+      throw Error(`Tried to render while state is invalid.`);
+    }
+
+    if (!this.is_active()) {
+      return;
+    }
+
+    let active_editor = vscode.window.activeTextEditor!;
+    let doc = active_editor.document;
+    let { seeds, slice } = this.find_slice_at_selection(active_editor, doc);
 
     if (seeds.length > 0) {
       if (select) {
@@ -233,12 +226,12 @@ export class FocusMode {
     this.set_status("active");
   };
 
-  private pause_rendering = (reason: FocusStatus) => {
+  private pause_rendering = (reason: StatusBarState) => {
     clear_ranges(vscode.window.activeTextEditor!);
     this.set_status(reason);
   };
 
-  commands = (): [string, (_f: CallFlowistry) => void][] => [
+  commands = (): [string, () => Promise<void>][] => [
     ["focus", this.focus],
     ["focus_mark", this.focus_mark],
     ["focus_unmark", this.focus_unmark],
