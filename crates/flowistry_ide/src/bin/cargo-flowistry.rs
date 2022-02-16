@@ -28,6 +28,7 @@ fn main() {
     (@setting TrailingVarArg)
     (@arg BENCH: -b --bench)
     (@subcommand rustc_version =>)
+    (@subcommand preload =>)
     (@subcommand decompose =>
       (@arg file:)
       (@arg pos:)
@@ -50,6 +51,12 @@ fn main() {
       let commit_hash = rustc_interface::util::commit_hash_str().unwrap_or("unknown");
       println!("{commit_hash}");
       exit(0);
+    }
+    ("preload", _) => {
+      let mut cmd = Command::new(cargo_path);
+      cmd.args(&["check", "--all", "--frozen", "--target-dir", TARGET_DIR]);
+      let exit_status = cmd.status().expect("could not run cargo");
+      exit(exit_status.code().unwrap_or(-1));
     }
     ("playground", Some(sub_m)) => (
       vec![

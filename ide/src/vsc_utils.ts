@@ -69,7 +69,7 @@ ${log_text}`,
   }
 };
 
-export type CallFlowistry = <T>(args: string) => Promise<FlowistryResult<T>>;
+export type CallFlowistry = <T>(args: string, no_output?: boolean) => Promise<FlowistryResult<T>>;
 
 export class FlowistryErrorDocument
   implements vscode.TextDocumentContentProvider

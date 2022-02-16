@@ -38,6 +38,8 @@ export async function activate(context: vscode.ExtensionContext) {
       return;
     }
 
+    await call_flowistry("preload", true);
+
     globals.call_flowistry = call_flowistry;
 
     let focus = new FocusMode();
