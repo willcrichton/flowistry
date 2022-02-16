@@ -159,13 +159,7 @@ export async function setup(
     }
   }
 
-  await exec_notify(
-    `${cargo} rustc --locked --profile check --target-dir target/flowistry`,
-    "Analyzing dependencies...",
-    { cwd: workspace_root }
-  );
-
-  return async <T>(args: string) => {
+  return async <T>(args: string, no_output: boolean = false) => {
     let cmd = `${flowistry_cmd} ${args}`;
     let flowistry_opts = await get_flowistry_opts(workspace_root);
 
@@ -187,6 +181,13 @@ export async function setup(
       return {
         type: "build-error",
         error: e,
+      };
+    }
+
+    if (no_output) {
+      return {
+        type: "output",
+        value: undefined as any,
       };
     }
 
