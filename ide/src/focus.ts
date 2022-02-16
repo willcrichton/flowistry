@@ -24,9 +24,24 @@ interface FocusState {
   mark: vscode.Selection | null;
   focus: Focus;
   ranges: IntervalTree<PlaceInfo>;
-  disposable: vscode.Disposable;
 }
 
+/**
+ * Encapsulates the `state` and `status` of focus mode.
+ *
+ * On initialization, focus mode adds the result of the flowistry `focus` subcommand to
+ * its `state` property (setting `status` to `error` if the subcommand call fails)
+ * and creates handlers for user actions:
+ *  - Document save: focus mode reinitializes, fetching new `state` and setting `status` to `active`
+ * if the subcommand call succeeds (`error` otherwise)
+ *  - Document edit: if the changes cause the document to be "dirty" (unsaved changes)
+ * focus mode will stop rendering and set `status` to `unsaved`
+ *  - Document selection change: highlight/select ranges based on the new editor
+ * selection and current focus `state`
+ * 
+ * Updating `status` also changes the appearance of the focus mode status bar item
+ * (configurations for each `FocusStatus` can be found in `focus_utils.ts`).
+ */
 export class FocusMode {
   status: FocusStatus = "inactive";
   state: FocusState | null = null;
@@ -36,6 +51,7 @@ export class FocusMode {
 
   doc_save_callback?: vscode.Disposable;
   doc_edit_callback?: vscode.Disposable;
+  selection_change_callback?: vscode.Disposable;
 
   constructor(
     call_flowistry: CallFlowistry,
@@ -73,6 +89,10 @@ export class FocusMode {
         }
       }
     );
+
+    // rerender when the user's selection changes
+    this.selection_change_callback =
+      vscode.window.onDidChangeTextEditorSelection(() => this.render());
   };
 
   private dispose_watchers = () => {
@@ -87,10 +107,6 @@ export class FocusMode {
 
   private is_active = () => {
     return this.status !== "inactive";
-  };
-
-  private should_render = () => {
-    return ["active", "loading"].includes(this.status);
   };
 
   private focus_subcommand =
@@ -135,11 +151,7 @@ export class FocusMode {
       ranges.insert([slice.range.start, slice.range.end], slice.slice);
     });
 
-    let disposable = vscode.window.onDidChangeTextEditorSelection(() =>
-      this.render()
-    );
-    this.state = { disposable, focus, ranges, mark: null };
-
+    this.state = { focus, ranges, mark: null };
     this.set_status("active");
   };
 
@@ -155,7 +167,7 @@ export class FocusMode {
       throw `Tried to render while state is invalid.`;
     }
 
-    if (!this.is_active() || !this.should_render()) {
+    if (!this.is_active()) {
       return;
     }
 
