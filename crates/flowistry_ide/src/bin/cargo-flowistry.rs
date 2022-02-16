@@ -135,7 +135,7 @@ fn main() {
   let mut cmd = Command::new(cargo_path);
   cmd
     .env("RUSTC_WORKSPACE_WRAPPER", flowistry_rustc_path)
-    .args(&["rustc", "--profile", "check", "--target-dir", TARGET_DIR]);
+    .args(&["rustc", "--profile", "check", "--target-dir", TARGET_DIR, "--frozen"]);
 
   let bench = matches.is_present("BENCH");
   cmd.arg(if bench { "-v" } else { "-q" });

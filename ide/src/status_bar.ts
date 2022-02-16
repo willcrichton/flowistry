@@ -1,20 +1,20 @@
 import vscode from "vscode";
 
-export type FocusStatus =
+export type StatusBarState =
   | "active"
   | "unsaved"
-  | "inactive"
+  | "idle"
   | "error"
   | "loading";
 
-type FocusStatusBarConfig = {
+interface StatusBarConfig {
   foreground: string;
   background: string;
   icon?: string;
   command: string;
-};
+}
 
-const focus_configs: Record<FocusStatus, FocusStatusBarConfig> = {
+const config_for_state: Record<StatusBarState, StatusBarConfig> = {
   active: {
     foreground: "statusBarItem.warningForeground",
     background: "statusBarItem.warningBackground",
@@ -27,7 +27,7 @@ const focus_configs: Record<FocusStatus, FocusStatusBarConfig> = {
     icon: "circle-slash",
     command: "flowistry.focus",
   },
-  inactive: {
+  idle: {
     foreground: "statusBarItem.foreground",
     background: "statusBarItem.background",
     command: "flowistry.focus",
@@ -46,16 +46,27 @@ const focus_configs: Record<FocusStatus, FocusStatusBarConfig> = {
   },
 };
 
-export let render_status_bar = (
-  item: vscode.StatusBarItem,
-  state: FocusStatus,
-  tooltip?: string
-) => {
-  let config = focus_configs[state];
+export class StatusBar {
+  bar_item: vscode.StatusBarItem;
+  state: StatusBarState = "loading";
 
-  item.color = config.foreground;
-  item.backgroundColor = new vscode.ThemeColor(config.background);
-  item.text = `$(${config.icon}) focus mode`;
-  item.command = config.command;
-  item.tooltip = tooltip;
-};
+  constructor(context: vscode.ExtensionContext) {
+    this.bar_item = vscode.window.createStatusBarItem();
+    context.subscriptions.push(this.bar_item);
+    this.bar_item.show();
+  }
+
+  set_state(state: StatusBarState, tooltip: string = "") {
+    this.state = state;
+    this.bar_item.tooltip = tooltip;
+    this.render();
+  }
+
+  render() {
+    let config = config_for_state[this.state];
+    this.bar_item.color = config.foreground;
+    this.bar_item.backgroundColor = new vscode.ThemeColor(config.background);
+    this.bar_item.text = `$(${config.icon}) flowistry`;
+    this.bar_item.command = config.command;
+  }
+}

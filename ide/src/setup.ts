@@ -7,8 +7,7 @@ import open from "open";
 import { Result } from "./types";
 import { log, CallFlowistry } from "./vsc_utils";
 import { download } from "./download";
-import { render_status_bar } from "./focus_utils";
-import { flowistry_status_bar_item } from "./extension";
+import { globals } from "./extension";
 
 declare const VERSION: string;
 declare const TOOLCHAIN: {
@@ -74,10 +73,11 @@ export let exec_notify = async (
   let stdout = read_stream(proc.stdout);
   let stderr = read_stream(proc.stderr);
 
-  render_status_bar(flowistry_status_bar_item, "loading", title);
+  globals.status_bar.set_state("loading", title);
 
   return new Promise<string>((resolve, reject) => {
     proc.addListener("close", (_) => {
+      globals.status_bar.set_state("idle");
       if (proc.exitCode !== 0) {
         reject(stderr());
       } else {
@@ -85,6 +85,7 @@ export let exec_notify = async (
       }
     });
     proc.addListener("error", (e) => {
+      globals.status_bar.set_state("idle");
       reject(e.toString());
     });
   });
@@ -114,27 +115,31 @@ export async function setup(
     version = "";
   }
 
-  if (version != VERSION) {
-    let components = TOOLCHAIN.components.map(c => `-c ${c}`).join(" ");
+  if (version !== VERSION) {
+    let components = TOOLCHAIN.components.map((c) => `-c ${c}`).join(" ");
     let rustup_cmd = `rustup toolchain install ${TOOLCHAIN.channel} ${components}`;
     try {
       await exec_notify(rustup_cmd, "Installing nightly Rust...");
     } catch (e: any) {
       let choice = await vscode.window.showErrorMessage(
-        "Flowistry failed to install because rustup failed. Click \"Show fix\" to resolve, or click \"Dismiss\ to attempt installation later.",
+        'Flowistry failed to install because rustup failed. Click "Show fix" to resolve, or click "Dismiss to attempt installation later.',
         "Show fix",
         "Dismiss"
       );
 
-      if (choice == "Show fix") {
-        open("https://github.com/willcrichton/flowistry/blob/master/README.md#rustup-fails-on-installation");
-        await vscode.window.showInformationMessage("Click \"Continue\" once you have completed the fix.", "Continue");
+      if (choice === "Show fix") {
+        open(
+          "https://github.com/willcrichton/flowistry/blob/master/README.md#rustup-fails-on-installation"
+        );
+        await vscode.window.showInformationMessage(
+          'Click "Continue" once you have completed the fix.',
+          "Continue"
+        );
       } else {
         return null;
       }
     }
 
-    
     try {
       await download();
     } catch (e: any) {
@@ -147,15 +152,18 @@ export async function setup(
       );
     }
 
-    if (version == "") {
+    if (version === "") {
       vscode.window.showInformationMessage(
         "Flowistry has successfully installed! Try selecting a variable in a function, then do: right click -> Flowistry -> Backward Highlight."
       );
     }
   }
 
-  // remove loading indicator after setup complete
-  render_status_bar(flowistry_status_bar_item, "inactive");
+  await exec_notify(
+    `${cargo} rustc --locked --profile check --target-dir target/flowistry`,
+    "Analyzing dependencies...",
+    { cwd: workspace_root }
+  );
 
   return async <T>(args: string) => {
     let cmd = `${flowistry_cmd} ${args}`;
@@ -168,7 +176,11 @@ export async function setup(
         await editor.document.save();
       }
 
-      output = await exec_notify(cmd, "Waiting for Flowistry...", flowistry_opts);
+      output = await exec_notify(
+        cmd,
+        "Waiting for Flowistry...",
+        flowistry_opts
+      );
     } catch (e: any) {
       context.workspaceState.update("err_log", e);
 

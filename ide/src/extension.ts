@@ -11,32 +11,37 @@ import {
 import { decompose } from "./decompose";
 import { FocusMode } from "./focus";
 import { setup } from "./setup";
+import { StatusBar } from "./status_bar";
 
 import "./app.scss";
 
-export let flowistry_status_bar_item: vscode.StatusBarItem;
-export const tdcp = new FlowistryErrorDocument();
+export let globals: {
+  status_bar: StatusBar;
+  error_doc: FlowistryErrorDocument;
+  call_flowistry: CallFlowistry;
+};
 
 export async function activate(context: vscode.ExtensionContext) {
   log("Activating...");
 
   try {
-    flowistry_status_bar_item = vscode.window.createStatusBarItem();
-    context.subscriptions.push(flowistry_status_bar_item);
-    flowistry_status_bar_item.show();
-
-    context.subscriptions.push(
-      vscode.workspace.registerTextDocumentContentProvider("flowistry", tdcp)
-    );
+    globals = {
+      status_bar: new StatusBar(context),
+      error_doc: new FlowistryErrorDocument(context),
+      call_flowistry: () => {
+        throw Error(`Unreachable`);
+      },
+    };
 
     let call_flowistry = await setup(context);
     if (call_flowistry === null) {
       return;
     }
 
-    let focus = new FocusMode(call_flowistry, flowistry_status_bar_item);
+    globals.call_flowistry = call_flowistry;
 
-    let commands: [string, (_f: CallFlowistry) => void][] = [
+    let focus = new FocusMode();
+    let commands: [string, () => Promise<void>][] = [
       ...focus.commands(),
       ["decompose", decompose],
       ["last_error", last_error.bind(context)],
@@ -45,9 +50,9 @@ export async function activate(context: vscode.ExtensionContext) {
     commands.forEach(([name, func]) => {
       let disposable = vscode.commands.registerCommand(
         `flowistry.${name}`,
-        () => {
+        async () => {
           try {
-            func(call_flowistry!);
+            await func();
           } catch (exc: any) {
             log("ERROR", exc);
             show_error(exc);
