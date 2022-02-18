@@ -29,14 +29,17 @@ fn main() {
     (@arg BENCH: -b --bench)
     (@subcommand rustc_version =>)
     (@subcommand preload =>)
-    (@subcommand decompose =>
+    (@subcommand spans =>
       (@arg file:)
-      (@arg pos:)
       (@arg flags: ...))
     (@subcommand focus =>
       (@arg file:)
       (@arg pos:)
       (@arg flags: ...))
+    (@subcommand decompose =>
+        (@arg file:)
+        (@arg pos:)
+        (@arg flags: ...))
     (@subcommand playground =>
       (@arg file:)
       (@arg start:)
@@ -58,6 +61,10 @@ fn main() {
       let exit_status = cmd.status().expect("could not run cargo");
       exit(exit_status.code().unwrap_or(-1));
     }
+    ("spans", Some(sub_m)) => (
+      vec![("FILE", sub_m.value_of("file").unwrap())],
+      sub_m.value_of("file").unwrap(),
+    ),
     ("playground", Some(sub_m)) => (
       vec![
         ("FILE", sub_m.value_of("file").unwrap()),
@@ -142,7 +149,14 @@ fn main() {
   let mut cmd = Command::new(cargo_path);
   cmd
     .env("RUSTC_WORKSPACE_WRAPPER", flowistry_rustc_path)
-    .args(&["rustc", "--profile", "check", "--target-dir", TARGET_DIR, "--frozen"]);
+    .args(&[
+      "rustc",
+      "--profile",
+      "check",
+      "--target-dir",
+      TARGET_DIR,
+      "--frozen",
+    ]);
 
   let bench = matches.is_present("BENCH");
   cmd.arg(if bench { "-v" } else { "-q" });
