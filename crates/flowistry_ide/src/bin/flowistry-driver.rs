@@ -18,9 +18,9 @@ use std::{
 
 use flowistry::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
-  range::{FunctionIdentifier, Range, ToSpan},
+  range::{FunctionIdentifier, Range},
 };
-use flowistry_ide::{FlowistryAnalysis, FlowistryError};
+use flowistry_ide::{FlowistryError, FlowistryResult, JsonEncodable};
 use fluid_let::fluid_set;
 use log::debug;
 use rustc_interface::interface::Result as RustcResult;
@@ -70,12 +70,8 @@ fn toolchain_path(home: Option<String>, toolchain: Option<String>) -> Option<Pat
   })
 }
 
-fn try_analysis<A: FlowistryAnalysis, T: ToSpan>(
-  analysis: A,
-  target: T,
-  args: &[String],
-) -> RustcResult<()> {
-  let result = match flowistry_ide::run(analysis, target, args) {
+fn postprocess<T: JsonEncodable>(result: FlowistryResult<T>) -> RustcResult<()> {
+  let result = match result {
     Ok(output) => Ok(output),
     Err(e) => match e {
       FlowistryError::BuildError => {
@@ -119,6 +115,10 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
   fluid_set!(EVAL_MODE, eval_mode);
 
   match arg::<String>("COMMAND").as_str() {
+    "spans" => {
+      let filename = arg::<String>("FILE");
+      postprocess(flowistry_ide::spans::spans(args, filename))
+    }
     "playground" => {
       let range = Range {
         start: arg::<usize>("START"),
@@ -126,7 +126,11 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
         filename: arg::<String>("FILE"),
       };
 
-      try_analysis(flowistry_ide::playground::playground, range, args)
+      postprocess(flowistry_ide::run(
+        flowistry_ide::playground::playground,
+        range,
+        args,
+      ))
     }
     cmd @ ("decompose" | "focus") => {
       let pos = arg::<usize>("POS");
@@ -136,8 +140,12 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
         filename: arg::<String>("FILE"),
       });
       match cmd {
-        "decompose" => try_analysis(flowistry_ide::decompose::decompose, id, args),
-        "focus" => try_analysis(flowistry_ide::focus::focus, id, args),
+        "decompose" => postprocess(flowistry_ide::run(
+          flowistry_ide::decompose::decompose,
+          id,
+          args,
+        )),
+        "focus" => postprocess(flowistry_ide::run(flowistry_ide::focus::focus, id, args)),
         _ => unreachable!(),
       }
     }

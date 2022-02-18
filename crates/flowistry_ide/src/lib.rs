@@ -1,4 +1,10 @@
-#![feature(rustc_private, in_band_lifetimes, unboxed_closures, box_patterns)]
+#![feature(
+  rustc_private,
+  in_band_lifetimes,
+  unboxed_closures,
+  box_patterns,
+  trait_alias
+)]
 #![allow(
   clippy::single_match,
   clippy::needless_lifetimes,
@@ -23,6 +29,7 @@ use rustc_middle::ty::TyCtxt;
 use rustc_serialize::{json, Encodable};
 
 extern crate either;
+extern crate rustc_ast;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_hir;
@@ -38,6 +45,7 @@ extern crate rustc_span;
 pub mod decompose;
 pub mod focus;
 pub mod playground;
+pub mod spans;
 
 #[derive(Debug)]
 pub enum FlowistryError {
@@ -47,8 +55,10 @@ pub enum FlowistryError {
 
 pub type FlowistryResult<T> = Result<T, FlowistryError>;
 
+pub trait JsonEncodable = for<'a> Encodable<json::Encoder<'a>>;
+
 pub trait FlowistryAnalysis: Sized + Send + Sync {
-  type Output: for<'a> Encodable<json::Encoder<'a>> + Send + Sync;
+  type Output: JsonEncodable + Send + Sync;
   fn analyze(&mut self, tcx: TyCtxt<'tcx>, id: BodyId) -> anyhow::Result<Self::Output>;
 }
 
@@ -57,7 +67,7 @@ pub trait FlowistryAnalysis: Sized + Send + Sync {
 impl<F, O> FlowistryAnalysis for F
 where
   F: for<'tcx> Fn<(TyCtxt<'tcx>, BodyId), Output = anyhow::Result<O>> + Send + Sync,
-  O: for<'a> Encodable<json::Encoder<'a>> + Send + Sync,
+  O: JsonEncodable + Send + Sync,
 {
   type Output = O;
   fn analyze(&mut self, tcx: TyCtxt<'tcx>, id: BodyId) -> anyhow::Result<Self::Output> {
@@ -65,11 +75,10 @@ where
   }
 }
 
-pub fn run<A: FlowistryAnalysis, T: ToSpan>(
-  analysis: A,
-  target: T,
+pub fn run_with_callbacks(
   args: &[String],
-) -> FlowistryResult<A::Output> {
+  callbacks: &mut (dyn rustc_driver::Callbacks + Send),
+) -> FlowistryResult<()> {
   let mut args = args.to_vec();
   args.extend(
     "-Z identify-regions -Z mir-opt-level=0 -A warnings"
@@ -77,6 +86,15 @@ pub fn run<A: FlowistryAnalysis, T: ToSpan>(
       .map(|s| s.to_owned()),
   );
 
+  let compiler = rustc_driver::RunCompiler::new(&args, callbacks);
+  compiler.run().map_err(|_| FlowistryError::BuildError)
+}
+
+pub fn run<A: FlowistryAnalysis, T: ToSpan>(
+  analysis: A,
+  target: T,
+  args: &[String],
+) -> FlowistryResult<A::Output> {
   let mut callbacks = FlowistryCallbacks {
     analysis: Some(analysis),
     target,
@@ -87,10 +105,8 @@ pub fn run<A: FlowistryAnalysis, T: ToSpan>(
 
   info!("Starting rustc analysis...");
   debug!("Eval mode: {:?}", callbacks.eval_mode);
-  let compiler = rustc_driver::RunCompiler::new(&args, &mut callbacks);
-  if compiler.run().is_err() {
-    return Err(FlowistryError::BuildError);
-  }
+
+  run_with_callbacks(args, &mut callbacks)?;
 
   callbacks
     .output

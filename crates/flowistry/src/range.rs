@@ -1,6 +1,6 @@
 use std::{default::Default, path::Path};
 
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{bail, Context, Result};
 use rustc_data_structures::sync::{Lrc, MappedReadGuard};
 use rustc_hir::{
   intravisit::{self, Visitor},
@@ -61,27 +61,6 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
   finder
     .span
     .with_context(|| format!("No function with qpath {}", finder.qpath))
-}
-
-pub fn path_to_source_file(
-  path: impl AsRef<str>,
-  tcx: TyCtxt<'_>,
-) -> Result<Lrc<SourceFile>> {
-  let source_map = tcx.sess.source_map();
-  let files = source_map.files();
-  let path = path.as_ref();
-  let target_file = Path::new(&path).canonicalize().unwrap();
-  files
-    .iter()
-    .find(|file| {
-      if let FileName::Real(RealFileName::LocalPath(other_path)) = &file.name {
-        target_file == other_path.canonicalize().unwrap()
-      } else {
-        false
-      }
-    })
-    .cloned()
-    .ok_or_else(|| anyhow!("Could not find file {path} out of files {:#?}", **files))
 }
 
 #[derive(Encodable, Debug, Clone, Hash, PartialEq, Eq, Default)]
