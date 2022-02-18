@@ -2,7 +2,7 @@ import subprocess as sp
 import json
 import sys
 
-TOOLCHAIN = 'nightly-2022-01-31'
+TOOLCHAIN = 'nightly-2022-02-17'
 CMD = ' '.join(sys.argv[1:])
 
 sysroot = sp.check_output(f'$(rustup which --toolchain {TOOLCHAIN} rustc) --print sysroot', shell=True).decode('utf-8').strip()

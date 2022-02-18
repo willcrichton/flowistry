@@ -5,6 +5,7 @@ use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::{
   fx::{FxHashMap as HashMap, FxHashSet as HashSet},
   graph::{iterate::reverse_post_order, scc::Sccs, vec_graph::VecGraph},
+  intern::Interned,
 };
 use rustc_hir::def_id::DefId;
 use rustc_index::{
@@ -16,7 +17,7 @@ use rustc_middle::{
     visit::{PlaceContext, Visitor},
     *,
   },
-  ty::{RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS},
+  ty::{Region, RegionKind, RegionVid, Ty, TyCtxt, TyKind},
 };
 
 use crate::{
@@ -32,6 +33,12 @@ struct GatherBorrows<'tcx> {
   borrows: Vec<(RegionVid, BorrowKind, Place<'tcx>)>,
 }
 
+macro_rules! region_pat {
+  ($name:ident) => {
+    Region(Interned(RegionKind::ReVar($name), _))
+  };
+}
+
 impl Visitor<'tcx> for GatherBorrows<'tcx> {
   fn visit_assign(
     &mut self,
@@ -39,12 +46,8 @@ impl Visitor<'tcx> for GatherBorrows<'tcx> {
     rvalue: &Rvalue<'tcx>,
     _location: Location,
   ) {
-    if let Rvalue::Ref(region, kind, borrowed_place) = rvalue {
-      let region_vid = match region {
-        RegionKind::ReVar(region_vid) => *region_vid,
-        _ => unreachable!(),
-      };
-      self.borrows.push((region_vid, *kind, *borrowed_place));
+    if let Rvalue::Ref(region_pat!(region), kind, borrowed_place) = rvalue {
+      self.borrows.push((*region, *kind, *borrowed_place));
     }
   }
 }
@@ -228,7 +231,7 @@ impl Aliases<'a, 'tcx> {
     // For all args p : &'a T where 'a is abstract: contains('a, *p).
     for (arg, _) in location_domain.all_args() {
       let ty = arg.ty(body.local_decls(), tcx).ty;
-      if let TyKind::Ref(RegionKind::ReVar(region), _, _) = ty.kind() {
+      if let TyKind::Ref(region_pat!(region), _, _) = ty.kind() {
         contains
           .entry(*region)
           .or_default()
@@ -288,7 +291,7 @@ impl Aliases<'a, 'tcx> {
               for p in places {
                 let p_ty = p.ty(body.local_decls(), tcx).ty;
                 let p_proj = match definite.get(&b) {
-                  Some((ty, proj)) if !cyclic && TyS::same_type(ty, p_ty) => {
+                  Some((ty, proj)) if !cyclic && *ty == p_ty => {
                     let mut full_proj = p.projection.to_vec();
                     full_proj.extend(proj);
                     Place::make(p.local, tcx.intern_place_elems(&full_proj), tcx)
@@ -360,7 +363,9 @@ impl Aliases<'a, 'tcx> {
 
       // ptr : &'region orig_ty
       let (region, orig_ty) = match ptr.ty(self.body.local_decls(), self.tcx).ty.kind() {
-        TyKind::Ref(RegionKind::ReVar(region), ty, _) => (*region, ty),
+        TyKind::Ref(Region(Interned(RegionKind::ReVar(region), _)), ty, _) => {
+          (*region, ty)
+        }
         // ty => unreachable!("{:?} / {:?}", place, ty),
         // TODO: how to deal with box?
         _ => {
@@ -379,7 +384,7 @@ impl Aliases<'a, 'tcx> {
         .flatten();
       let region_aliases = region_loans.map(|loan| {
         let loan_ty = loan.ty(self.body.local_decls(), self.tcx).ty;
-        if TyS::same_type(orig_ty, loan_ty) {
+        if *orig_ty == loan_ty {
           let mut projection = loan.projection.to_vec();
           projection.extend(after.iter().copied());
           Place::make(loan.local, &projection, self.tcx)
@@ -440,7 +445,7 @@ pub fn generate_conservative_constraints<'tcx>(
   region_to_pointers: &HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>,
 ) -> Vec<(RegionVid, RegionVid)> {
   let get_ty = |p| tcx.mk_place_deref(p).ty(body.local_decls(), tcx).ty;
-  let same_ty = |p1, p2| TyS::same_type(get_ty(p1), get_ty(p2));
+  let same_ty = |p1, p2| get_ty(p1) == get_ty(p2);
 
   region_to_pointers
     .iter()
