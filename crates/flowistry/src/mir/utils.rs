@@ -24,7 +24,7 @@ use rustc_middle::{
   },
   traits::ObligationCause,
   ty::{
-    self, AdtKind, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TyS, TypeFoldable,
+    self, AdtKind, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeFoldable,
     TypeVisitor,
   },
 };
@@ -521,7 +521,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
     if self
       .ty_stack
       .iter()
-      .any(|visited_ty| TyS::same_type(ty, visited_ty))
+      .any(|visited_ty| ty == *visited_ty)
     {
       return ControlFlow::Continue(());
     }
@@ -593,19 +593,19 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
         self
           .place_stack
           .push(ProjectionElem::Index(Local::from_usize(0)));
-        self.visit_ty(elem_ty);
+        self.visit_ty(*elem_ty);
         self.place_stack.pop();
       }
 
       TyKind::Ref(region, elem_ty, _) => match self.stop_at {
         StoppingCondition::None => {
-          self.visit_region(region);
+          self.visit_region(*region);
           self.place_stack.push(ProjectionElem::Deref);
-          self.visit_ty(elem_ty);
+          self.visit_ty(*elem_ty);
           self.place_stack.pop();
         }
         StoppingCondition::AfterRefs => {
-          self.visit_region(region);
+          self.visit_region(*region);
         }
         StoppingCondition::BeforeRefs => {}
       },
@@ -645,8 +645,8 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
 
   fn visit_region(&mut self, region: ty::Region<'tcx>) -> ControlFlow<Self::BreakTy> {
     trace!("visiting region {region:?}");
-    let region = match region {
-      RegionKind::ReVar(region) => *region,
+    let region = match region.kind() {
+      RegionKind::ReVar(region) => region,
       RegionKind::ReStatic => RegionVid::from_usize(0),
       RegionKind::ReErased => {
         return ControlFlow::Continue(());
