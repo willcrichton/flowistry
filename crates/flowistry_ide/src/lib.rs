@@ -9,7 +9,8 @@
   clippy::single_match,
   clippy::needless_lifetimes,
   clippy::needless_return,
-  clippy::len_zero
+  clippy::len_zero,
+  clippy::let_and_return
 )]
 
 use std::time::Instant;
@@ -29,7 +30,6 @@ use rustc_middle::ty::TyCtxt;
 use rustc_serialize::{json, Encodable};
 
 extern crate either;
-extern crate rustc_ast;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_hir;

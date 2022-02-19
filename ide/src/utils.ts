@@ -77,3 +77,17 @@ export let clear_ranges = (editor: vscode.TextEditor) => {
     editor.setDecorations(type, []);
   });
 };
+
+// Ensure a value can be changed by-reference
+export class Cell<T> {
+  t: T;
+  constructor(t: T) {
+    this.t = t;
+  }
+  set(t: T) {
+    this.t = t;
+  }
+  get(): T {
+    return this.t;
+  }
+}

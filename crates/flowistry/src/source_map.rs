@@ -435,7 +435,6 @@ fn node_to_string(node: HirNode) -> String {
 
 struct BodyFinder<'tcx> {
   tcx: TyCtxt<'tcx>,
-  target: Span,
   bodies: Vec<(Span, BodyId)>,
 }
 
@@ -460,7 +459,7 @@ impl Visitor<'tcx> for BodyFinder<'tcx> {
       span.as_local(self.tcx)
     );
 
-    if !span.from_expansion() && span.contains(self.target) {
+    if !span.from_expansion() {
       self.bodies.push((span, id));
     }
   }
@@ -479,19 +478,24 @@ impl ItemLikeVisitor<'tcx> for BodyFinder<'tcx> {
   fn visit_foreign_item(&mut self, _foreign_item: &'tcx ForeignItem<'tcx>) {}
 }
 
+pub fn find_bodies(tcx: TyCtxt<'tcx>) -> Vec<(Span, BodyId)> {
+  block_timer!("find_bodies");
+  let mut finder = BodyFinder {
+    tcx,
+    bodies: Vec::new(),
+  };
+  tcx.hir().visit_all_item_likes(&mut finder);
+  finder.bodies
+}
+
 pub fn find_enclosing_bodies(
   tcx: TyCtxt<'tcx>,
   sp: Span,
 ) -> impl Iterator<Item = BodyId> {
-  block_timer!("find_enclosing_bodies");
-  let mut finder = BodyFinder {
-    tcx,
-    target: sp,
-    bodies: Vec::new(),
-  };
-  tcx.hir().visit_all_item_likes(&mut finder);
-  finder.bodies.sort_by_key(|(span, _)| span.size());
-  finder.bodies.into_iter().map(|(_, id)| id)
+  let mut bodies = find_bodies(tcx);
+  bodies.retain(|(other, _)| other.contains(sp));
+  bodies.sort_by_key(|(span, _)| span.size());
+  bodies.into_iter().map(|(_, id)| id)
 }
 
 #[cfg(test)]

@@ -55,14 +55,6 @@ pub fn decompose(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<DecomposeOutput> 
         .enumerate()
         .flat_map(|(i, ns)| ns.iter().map(move |n| (*n, i)))
         .collect::<HashMap<_, _>>();
-      let communities = communities_idxs
-        .into_iter()
-        .map(|c| {
-          c.into_iter()
-            .flat_map(|u| graph.node_weight(u).unwrap())
-            .collect::<Vec<_>>()
-        })
-        .collect::<Vec<_>>();
 
       if log::log_enabled!(log::Level::Debug) {
         const PALETTE: &[&str] = &[
@@ -88,8 +80,12 @@ pub fn decompose(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<DecomposeOutput> 
         .unwrap();
       }
 
+      let communities = communities_idxs.into_iter().map(|c| {
+        c.into_iter()
+          .flat_map(|u| graph.node_weight(u).unwrap())
+          .collect::<Vec<_>>()
+      });
       let chunks = communities
-        .into_iter()
         .map(|c| {
           let spans = Span::merge_overlaps(
             c.into_iter()

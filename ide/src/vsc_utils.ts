@@ -4,7 +4,7 @@ import open from "open";
 import newGithubIssueUrl from "new-github-issue-url";
 import * as cp from "child_process";
 import os from "os";
-import { BuildError, FlowistryResult, show } from "./result_types";
+import { BuildError, FlowistryResult, show_error } from "./result_types";
 
 let channel = vscode.window.createOutputChannel("Flowistry");
 let logs: string[] = [];
@@ -29,7 +29,7 @@ export let from_vsc_range = (
   filename: "",
 });
 
-export let show_error = async (err: string) => {
+export let show_error_dialog = async (err: string) => {
   let outcome = await vscode.window.showErrorMessage(
     `Flowistry error: ${err}`,
     "Report bug",
@@ -69,32 +69,13 @@ ${log_text}`,
   }
 };
 
-export type CallFlowistry = <T>(args: string, no_output?: boolean) => Promise<FlowistryResult<T>>;
-
-export class FlowistryErrorDocument
-  implements vscode.TextDocumentContentProvider
-{
-  readonly uri = vscode.Uri.parse("flowistry://build-error");
-  readonly eventEmitter = new vscode.EventEmitter<vscode.Uri>();
-  contents: string = "";
-
-  constructor(context: vscode.ExtensionContext) {
-    context.subscriptions.push(
-      vscode.workspace.registerTextDocumentContentProvider("flowistry", this)
-    );
-  }
-
-  provideTextDocumentContent(_uri: vscode.Uri): vscode.ProviderResult<string> {
-    return `Flowistry could not run because your project failed to build with error:\n${this.contents}`;
-  }
-
-  get onDidChange(): vscode.Event<vscode.Uri> {
-    return this.eventEmitter.event;
-  }
-}
+export type CallFlowistry = <T>(
+  args: string,
+  no_output?: boolean
+) => Promise<FlowistryResult<T>>;
 
 export async function last_error(this: vscode.ExtensionContext) {
   let error = this.workspaceState.get("err_log") as string;
   let flowistry_err: BuildError = { type: "build-error", error };
-  await show(flowistry_err);
+  await show_error(flowistry_err);
 }

@@ -24,8 +24,7 @@ use rustc_middle::{
   },
   traits::ObligationCause,
   ty::{
-    self, AdtKind, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeFoldable,
-    TypeVisitor,
+    self, AdtKind, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeFoldable, TypeVisitor,
   },
 };
 use rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
@@ -518,11 +517,7 @@ struct CollectRegions<'tcx> {
 
 impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
   fn visit_ty(&mut self, ty: Ty<'tcx>) -> ControlFlow<Self::BreakTy> {
-    if self
-      .ty_stack
-      .iter()
-      .any(|visited_ty| ty == *visited_ty)
-    {
+    if self.ty_stack.iter().any(|visited_ty| ty == *visited_ty) {
       return ControlFlow::Continue(());
     }
 

@@ -1,23 +1,18 @@
 import * as vscode from "vscode";
 import _ from "lodash";
-import {
-  CallFlowistry,
-  FlowistryErrorDocument,
-  last_error,
-  log,
-  show_error,
-} from "./vsc_utils";
 
+import { CallFlowistry, last_error, log, show_error_dialog } from "./vsc_utils";
 import { decompose } from "./decompose";
 import { FocusMode } from "./focus";
 import { setup } from "./setup";
 import { StatusBar } from "./status_bar";
+import { ErrorPane } from "./result_types";
 
 import "./app.scss";
 
 export let globals: {
   status_bar: StatusBar;
-  error_doc: FlowistryErrorDocument;
+  error_pane: ErrorPane;
   call_flowistry: CallFlowistry;
 };
 
@@ -27,7 +22,7 @@ export async function activate(context: vscode.ExtensionContext) {
   try {
     globals = {
       status_bar: new StatusBar(context),
-      error_doc: new FlowistryErrorDocument(context),
+      error_pane: await ErrorPane.load(context),
       call_flowistry: () => {
         throw Error(`Unreachable`);
       },
@@ -57,14 +52,14 @@ export async function activate(context: vscode.ExtensionContext) {
             await func();
           } catch (exc: any) {
             log("ERROR", exc);
-            show_error(exc);
+            show_error_dialog(exc);
           }
         }
       );
       context.subscriptions.push(disposable);
     });
   } catch (e: any) {
-    show_error(e.toString());
+    show_error_dialog(e.toString());
   }
 
   log("flowistry is activated");
