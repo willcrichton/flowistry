@@ -4,7 +4,6 @@ import _ from "lodash";
 import { Readable } from "stream";
 import open from "open";
 
-import { Result } from "./types";
 import { log, CallFlowistry } from "./vsc_utils";
 import { download } from "./download";
 import { globals } from "./extension";
@@ -14,6 +13,17 @@ declare const TOOLCHAIN: {
   channel: string;
   components: string[];
 };
+
+// rustc_serialize-compatible types
+interface Ok<T> {
+  variant: "Ok";
+  fields: [T];
+}
+interface Err {
+  variant: "Err";
+  fields: [string];
+}
+type Result<T> = Ok<T> | Err;
 
 const LIBRARY_PATHS: Partial<Record<NodeJS.Platform, string>> = {
   darwin: "DYLD_LIBRARY_PATH",

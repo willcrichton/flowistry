@@ -3,7 +3,7 @@ import { highlight_ranges } from "./utils";
 import { Range } from "./types";
 import _ from "lodash";
 import { globals } from "./extension";
-import { is_ok, show } from "./result_types";
+import { is_ok, show_error } from "./result_types";
 
 interface Decomposition {
   chunks: [number, Range[][]][];
@@ -49,7 +49,7 @@ export let decompose = async () => {
   let cmd = `decompose ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
   let decomp_res = await globals.call_flowistry<Decomposition>(cmd);
   if (!is_ok(decomp_res)) {
-    return show(decomp_res);
+    return show_error(decomp_res);
   }
   let decomp = decomp_res.value;
 

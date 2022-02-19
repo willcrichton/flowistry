@@ -6,7 +6,7 @@ import os from "os";
 import path from "path";
 import AdmZip from "adm-zip";
 
-import {log} from "./vsc_utils";
+import { log } from "./vsc_utils";
 
 declare const VERSION: string;
 
