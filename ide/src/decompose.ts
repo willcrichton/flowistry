@@ -1,9 +1,10 @@
-import * as vscode from "vscode";
-import { highlight_ranges } from "./utils";
-import { Range } from "./types";
 import _ from "lodash";
+import * as vscode from "vscode";
+
+import { highlight_ranges } from "./decorations";
+import { is_ok, show_error } from "./errors";
 import { globals } from "./extension";
-import { is_ok, show_error } from "./result_types";
+import { Range } from "./range";
 
 interface Decomposition {
   chunks: [number, Range[][]][];
@@ -28,7 +29,7 @@ let colors = [
   "rgba(188, 189, 34, 0.5)",
   "rgba(23, 190, 207, 0.5)",
 ];
-_.range(3).forEach((_) => {
+_.range(3).forEach(() => {
   colors = colors.concat(colors);
 });
 let palette = colors.map((backgroundColor) =>

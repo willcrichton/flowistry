@@ -1,14 +1,13 @@
-import * as vscode from "vscode";
 import _ from "lodash";
-
-import { CallFlowistry, last_error, log, show_error_dialog } from "./vsc_utils";
-import { decompose } from "./decompose";
-import { FocusMode } from "./focus";
-import { setup } from "./setup";
-import { StatusBar } from "./status_bar";
-import { ErrorPane } from "./result_types";
+import * as vscode from "vscode";
 
 import "./app.scss";
+import { decompose } from "./decompose";
+import { ErrorPane, last_error, show_error_dialog } from "./errors";
+import { FocusMode } from "./focus";
+import { log } from "./logging";
+import { CallFlowistry, setup } from "./setup";
+import { StatusBar } from "./status_bar";
 
 export let globals: {
   status_bar: StatusBar;
@@ -41,7 +40,7 @@ export async function activate(context: vscode.ExtensionContext) {
     let commands: [string, () => Promise<void>][] = [
       ...focus.commands(),
       ["decompose", decompose],
-      ["last_error", last_error.bind(context)],
+      ["last_error", () => last_error(context)],
     ];
 
     commands.forEach(([name, func]) => {

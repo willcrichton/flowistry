@@ -3,7 +3,7 @@ import _ from "lodash";
 import vscode from "vscode";
 import { exec_notify, flowistry_cmd, get_flowistry_opts } from "../../../setup";
 import { CommandOutput } from "../../../types";
-import { to_vsc_range } from "../../../vsc_utils";
+import { to_vsc_range } from "../../../range";
 import { MOCK_PROJECT_DIRECTORY } from "../../constants";
 
 export type TestCommand = {

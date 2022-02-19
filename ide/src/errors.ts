@@ -1,24 +1,35 @@
-import vscode from "vscode";
-import { globals } from "./extension";
-import { show_error_dialog } from "./vsc_utils";
+import * as cp from "child_process";
 import _ from "lodash";
+import newGithubIssueUrl from "new-github-issue-url";
+import open from "open";
+import os from "os";
+import vscode from "vscode";
 
-export interface BuildError {
+import { globals } from "./extension";
+import { log, logs } from "./logging";
+
+interface BuildError {
   type: "build-error";
   error: string;
 }
-export interface AnalysisError {
+interface AnalysisError {
   type: "analysis-error";
   error: string;
 }
+export type FlowistryError = BuildError | AnalysisError;
 interface FlowistryOutput<T> {
   type: "output";
   value: T;
 }
-export type FlowistryResult<T> =
-  | FlowistryOutput<T>
-  | BuildError
-  | AnalysisError;
+export type FlowistryResult<T> = FlowistryOutput<T> | FlowistryError;
+
+export let ok = <T>(value: T): FlowistryResult<T> => ({
+  type: "output",
+  value,
+});
+
+export const is_ok = <T>(res: FlowistryResult<T>): res is FlowistryOutput<T> =>
+  res.type === "output";
 
 class ErrorProvider implements vscode.TextDocumentContentProvider {
   readonly uri = vscode.Uri.parse("flowistry://build-error");
@@ -84,6 +95,46 @@ export class ErrorPane {
   };
 }
 
+export let show_error_dialog = async (err: string) => {
+  let outcome = await vscode.window.showErrorMessage(
+    `Flowistry error: ${err}`,
+    "Report bug",
+    "Dismiss"
+  );
+  if (outcome === "Report bug") {
+    let log_url = null;
+    try {
+      log_url = cp.execSync("curl --data-binary @- https://paste.rs/", {
+        input: logs.join("\n"),
+      });
+    } catch (e) {
+      log("Failed to call to paste.rs: ", e.toString());
+    }
+
+    let bts = "```";
+    let log_text = log_url !== null ? `\n**Full log:** ${log_url}` : ``;
+    let url = newGithubIssueUrl({
+      user: "willcrichton",
+      repo: "flowistry",
+      body: `# Problem
+<!-- Please describe the problem and how you encountered it. -->
+
+# Logs
+<!-- You don't need to add or change anything below this point. -->
+
+**OS:** ${os.platform()} (${os.release()})
+**VSCode:** ${vscode.version}
+**Error message**
+${bts}
+${err}
+${bts}
+${log_text}`,
+    });
+
+    await open(url);
+  }
+};
+
 export const show_error = async (error: BuildError | AnalysisError) => {
   if (error.type === "build-error") {
     await globals.error_pane.show(error.error);
@@ -94,10 +145,8 @@ export const show_error = async (error: BuildError | AnalysisError) => {
 
 export let hide_error = () => globals.error_pane.hide();
 
-export let ok = <T>(value: T): FlowistryResult<T> => ({
-  type: "output",
-  value,
-});
-
-export const is_ok = <T>(res: FlowistryResult<T>): res is FlowistryOutput<T> =>
-  res.type === "output";
+export async function last_error(context: vscode.ExtensionContext) {
+  let error = context.workspaceState.get("err_log") as string;
+  let flowistry_err: BuildError = { type: "build-error", error };
+  await show_error(flowistry_err);
+}

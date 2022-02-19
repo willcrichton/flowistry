@@ -2,7 +2,17 @@ import IntervalTree from "@flatten-js/interval-tree";
 import _ from "lodash";
 import vscode from "vscode";
 
-import { Range } from "./types";
+export interface Range {
+  start: number;
+  end: number;
+  filename: string;
+}
+
+export let to_vsc_range = (
+  range: Range,
+  doc: vscode.TextDocument
+): vscode.Range =>
+  new vscode.Range(doc.positionAt(range.start), doc.positionAt(range.end));
 
 type Interval = [number, number];
 

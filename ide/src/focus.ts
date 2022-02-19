@@ -1,19 +1,11 @@
-import * as vscode from "vscode";
 import _ from "lodash";
+import * as vscode from "vscode";
 
-import { highlight_slice, clear_ranges, Cell } from "./utils";
-import { Range } from "./types";
-import { to_vsc_range } from "./vsc_utils";
-import { RangeTree } from "./range_tree";
-import { StatusBarState } from "./status_bar";
-import {
-  FlowistryResult,
-  hide_error,
-  is_ok,
-  ok,
-  show_error,
-} from "./result_types";
+import { clear_ranges, highlight_slice } from "./decorations";
+import { FlowistryResult, hide_error, is_ok, ok, show_error } from "./errors";
 import { globals } from "./extension";
+import { Range, RangeTree, to_vsc_range } from "./range";
+import { StatusBarState } from "./status_bar";
 
 interface Spans {
   spans: Range[];
@@ -106,6 +98,20 @@ class FocusBodyState {
   };
 }
 
+// Ensure a value can be changed by-reference
+export class Cell<T> {
+  t: T;
+  constructor(t: T) {
+    this.t = t;
+  }
+  set(t: T) {
+    this.t = t;
+  }
+  get(): T {
+    return this.t;
+  }
+}
+
 class FocusDocumentState {
   bodies: RangeTree<Cell<FlowistryResult<FocusBodyState> | null>>;
   editor: vscode.TextEditor;
@@ -127,10 +133,6 @@ class FocusDocumentState {
     }
 
     return ok(new FocusDocumentState(editor, spans.value));
-  };
-
-  clear_ranges = () => {
-    clear_ranges(this.editor);
   };
 
   on_change_selection = async (
@@ -176,6 +178,46 @@ class FocusDocumentState {
     } else {
       return body.get();
     }
+  };
+
+  clear_ranges = () => {
+    clear_ranges(this.editor);
+  };
+
+  set_mark = async (): Promise<FlowistryResult<null>> => {
+    let body_state_res = await this.get_body_state(this.editor.selection);
+    if (body_state_res === null) {
+      return ok(null);
+    } else if (!is_ok(body_state_res)) {
+      return body_state_res;
+    }
+
+    body_state_res.value.mark = this.editor.selection;
+    return ok(null);
+  };
+
+  unset_mark = async (): Promise<FlowistryResult<null>> => {
+    let body_state_res = await this.get_body_state(this.editor.selection);
+    if (body_state_res === null) {
+      return ok(null);
+    } else if (!is_ok(body_state_res)) {
+      return body_state_res;
+    }
+
+    body_state_res.value.mark = null;
+    return ok(null);
+  };
+
+  select = async (): Promise<FlowistryResult<null>> => {
+    let body_state_res = await this.get_body_state(this.editor.selection);
+    if (body_state_res === null) {
+      return ok(null);
+    } else if (!is_ok(body_state_res)) {
+      return body_state_res;
+    }
+
+    body_state_res.value.render(this.editor, true);
+    return ok(null);
   };
 }
 
@@ -233,18 +275,15 @@ export class FocusMode {
     this.state.forEach((state) => state.clear_ranges());
   };
 
-  private update_slice = async () => {
-    let editor = vscode.window.activeTextEditor;
-    if (!editor) {
-      return;
-    }
-
+  private get_doc_state = async (
+    editor: vscode.TextEditor
+  ): Promise<FocusDocumentState | null> => {
     if (
       this.mode === "idle" ||
       this.mode === "unsaved" ||
       this.mode === "loading"
     ) {
-      return;
+      return null;
     }
 
     this.set_mode("loading");
@@ -258,12 +297,14 @@ export class FocusMode {
       } else {
         await show_error(doc_state_res);
         this.set_mode("error");
-        return;
+        return null;
       }
     }
 
-    let doc_state = this.state.get(filename)!;
-    let result = await doc_state.on_change_selection(editor.selection);
+    return this.state.get(filename)!;
+  };
+
+  private handle_analysis_result = async <T>(result: FlowistryResult<T>) => {
     if (!is_ok(result)) {
       await show_error(result);
       this.set_mode("error");
@@ -271,6 +312,21 @@ export class FocusMode {
       await hide_error();
       this.set_mode("active");
     }
+  };
+
+  private update_slice = async () => {
+    let editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return null;
+    }
+
+    let doc_state = await this.get_doc_state(editor);
+    if (doc_state === null) {
+      return;
+    }
+
+    let result = await doc_state.on_change_selection(editor.selection);
+    await this.handle_analysis_result(result);
   };
 
   private register_callbacks() {
@@ -291,50 +347,37 @@ export class FocusMode {
   ];
 
   private focus_subcommand =
-    (f: (editor: vscode.TextEditor) => void) => async () => {
-      let active_editor = vscode.window.activeTextEditor;
-      if (!active_editor) {
+    (f: (_state: FocusDocumentState) => Promise<FlowistryResult<null>>) =>
+    async () => {
+      let editor = vscode.window.activeTextEditor;
+      if (!editor) {
         return;
       }
 
-      f(active_editor);
+      if (this.mode === "idle") {
+        this.set_mode("active");
+        this.register_callbacks();
+      }
+
+      let doc_state = await this.get_doc_state(editor);
+      if (doc_state === null) {
+        return;
+      }
+
+      let result = await f(doc_state);
+      await this.handle_analysis_result(result);
+      await this.update_slice();
     };
 
-  focus_mark = this.focus_subcommand(async (editor) => {
-    // let doc_state = await this.get_doc_state(editor);
-    // if (doc_state === "unsaved" || doc_state === "error") {
-    //   return;
-    // }
-    // let body_state = await this.get_body_state(editor, doc_state);
-    // if (body_state === null) {
-    //   return;
-    // }
-    // body_state.mark = editor.selection;
-    // this.update_slice();
-  });
-
-  focus_unmark = this.focus_subcommand(async (editor) => {
-    // let doc_state = await this.get_doc_state(editor);
-    // if (doc_state === "unsaved" || doc_state === "error") {
-    //   return;
-    // }
-    // let body_state = await this.get_body_state(editor, doc_state);
-    // if (body_state === null) {
-    //   return;
-    // }
-    // body_state.mark = null;
-  });
-
-  focus_select = this.focus_subcommand(() => {
-    // TODO
-    // this.render_slice(true);
-  });
+  focus_mark = this.focus_subcommand((doc_state) => doc_state.set_mark());
+  focus_unmark = this.focus_subcommand((doc_state) => doc_state.unset_mark());
+  focus_select = this.focus_subcommand((doc_state) => doc_state.select());
 
   focus = async () => {
     if (this.mode === "idle") {
       this.set_mode("active");
       this.register_callbacks();
-      this.update_slice();
+      await this.update_slice();
     } else {
       this.set_mode("idle");
       this.clear_ranges();

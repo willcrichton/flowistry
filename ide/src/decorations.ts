@@ -1,7 +1,7 @@
-import * as vscode from "vscode";
-import { Range } from "./types";
-import { to_vsc_range } from "./vsc_utils";
 import _ from "lodash";
+import * as vscode from "vscode";
+
+import { Range, to_vsc_range } from "./range";
 
 export let highlight_type = vscode.window.createTextEditorDecorationType({
   backgroundColor: new vscode.ThemeColor("editor.symbolHighlightBackground"),
@@ -77,17 +77,3 @@ export let clear_ranges = (editor: vscode.TextEditor) => {
     editor.setDecorations(type, []);
   });
 };
-
-// Ensure a value can be changed by-reference
-export class Cell<T> {
-  t: T;
-  constructor(t: T) {
-    this.t = t;
-  }
-  set(t: T) {
-    this.t = t;
-  }
-  get(): T {
-    return this.t;
-  }
-}
