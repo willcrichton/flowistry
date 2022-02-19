@@ -1,8 +1,4 @@
-export interface Range {
-  start: number;
-  end: number;
-  filename: string;
-}
+import { Range } from "./range";
 
 export interface CommandOutput {
   ranges: Range[];

@@ -1,12 +1,13 @@
-import * as vscode from "vscode";
 import * as cp from "child_process";
 import _ from "lodash";
-import { Readable } from "stream";
 import open from "open";
+import { Readable } from "stream";
+import * as vscode from "vscode";
 
-import { log, CallFlowistry } from "./vsc_utils";
 import { download } from "./download";
+import { FlowistryResult } from "./errors";
 import { globals } from "./extension";
+import { log } from "./logging";
 
 declare const VERSION: string;
 declare const TOOLCHAIN: {
@@ -25,6 +26,7 @@ interface Err {
 }
 type Result<T> = Ok<T> | Err;
 
+/* eslint no-undef: "off" */
 const LIBRARY_PATHS: Partial<Record<NodeJS.Platform, string>> = {
   darwin: "DYLD_LIBRARY_PATH",
   win32: "LIB",
@@ -100,6 +102,11 @@ export let exec_notify = async (
     });
   });
 };
+
+export type CallFlowistry = <T>(
+  _args: string,
+  _no_output?: boolean
+) => Promise<FlowistryResult<T>>;
 
 export async function setup(
   context: vscode.ExtensionContext

@@ -1,12 +1,12 @@
+import AdmZip from "adm-zip";
 import * as cp from "child_process";
-import _ from "lodash";
-import * as util from "util";
 import got from "got";
+import _ from "lodash";
 import os from "os";
 import path from "path";
-import AdmZip from "adm-zip";
+import * as util from "util";
 
-import { log } from "./vsc_utils";
+import { log } from "./logging";
 
 declare const VERSION: string;
 
