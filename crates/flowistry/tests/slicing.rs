@@ -13,17 +13,15 @@ use test_log::test;
 fn slice(dir: &str, direction: Direction) {
   test_utils::run_tests(dir, |path, expected| {
     test_utils::test_command_output(path, expected, |results, spanner, target| {
-      let targets = spanner.span_to_places(target);
+      let places = spanner.span_to_places(target);
+      let targets = places
+        .iter()
+        .map(|mir_span| vec![(mir_span.place, mir_span.location)])
+        .collect();
+      log::debug!("targets={targets:#?}");
 
-      let deps = infoflow::compute_dependency_spans(
-        &results,
-        targets
-          .iter()
-          .map(|mir_span| vec![(mir_span.place, mir_span.location)])
-          .collect(),
-        direction,
-        &spanner,
-      );
+      let deps =
+        infoflow::compute_dependency_spans(&results, targets, direction, &spanner);
 
       Span::merge_overlaps(deps.into_iter().flatten().collect())
     });
