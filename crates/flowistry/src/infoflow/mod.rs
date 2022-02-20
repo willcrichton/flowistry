@@ -1,12 +1,14 @@
 use std::cell::RefCell;
 
-pub use analysis::{FlowAnalysis, FlowDomain};
-pub use dependencies::{compute_dependencies, compute_dependency_spans, Direction};
 use log::debug;
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
 
+pub use self::{
+  analysis::{FlowAnalysis, FlowDomain},
+  dependencies::{compute_dependencies, compute_dependency_spans, Direction},
+};
 use crate::{
   block_timer,
   mir::{

@@ -217,18 +217,19 @@ pub fn color_ranges(prog: &str, all_ranges: Vec<(&str, &HashSet<Range>)>) -> Str
   return output;
 }
 
+fn fmt_ranges(prog: &str, s: &HashSet<Range>) -> String {
+  textwrap::indent(&color_ranges(prog, vec![("", s)]), "  ")
+}
+
 pub fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &str) {
   let missing = &expected - &actual;
   let extra = &actual - &expected;
 
-  let fmt_ranges =
-    |s: &HashSet<Range>| textwrap::indent(&color_ranges(prog, vec![("", s)]), "  ");
-
   let check = |s: HashSet<Range>, message: &str| {
     if s.len() > 0 {
-      println!("Expected ranges:\n{}", fmt_ranges(&expected));
-      println!("Actual ranges:\n{}", fmt_ranges(&actual));
-      panic!("{message} ranges:\n{}", fmt_ranges(&s));
+      println!("Expected ranges:\n{}", fmt_ranges(prog, &expected));
+      println!("Actual ranges:\n{}", fmt_ranges(prog, &actual));
+      panic!("{message} ranges:\n{}", fmt_ranges(prog, &s));
     }
   };
 
@@ -330,15 +331,27 @@ pub fn test_command_output(
 
         match expected {
           Some(expected_path) => {
-            let output = String::from_utf8(fs::read(expected_path).unwrap()).unwrap();
-            let (_output_clean, output_ranges) =
-              parse_range_map(&output, vec![("`[", "]`")]).unwrap();
+            let expected_file = fs::read(expected_path);
+            match expected_file {
+              Ok(file) => {
+                let output = String::from_utf8(file).unwrap();
+                let (_output_clean, output_ranges) =
+                  parse_range_map(&output, vec![("`[", "]`")]).unwrap();
 
-            let expected = output_ranges["`["]
-              .clone()
-              .into_iter()
-              .collect::<HashSet<_>>();
-            compare_ranges(expected, actual, &input_clean);
+                let expected = output_ranges["`["]
+                  .clone()
+                  .into_iter()
+                  .collect::<HashSet<_>>();
+                compare_ranges(expected, actual, &input_clean);
+              }
+              Err(err) if matches!(err.kind(), io::ErrorKind::NotFound) => {
+                println!("{}", fmt_ranges(&input_clean, &actual));
+                panic!("Expected file not generated yet.");
+              }
+              err => {
+                err.unwrap();
+              }
+            }
           }
           None => {
             bless(path, input_clean, actual).unwrap();
