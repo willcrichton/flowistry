@@ -6,6 +6,7 @@ use rustc_middle::{
   ty::TyCtxt,
 };
 
+#[allow(dead_code)]
 pub fn find_mutations(
   tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,

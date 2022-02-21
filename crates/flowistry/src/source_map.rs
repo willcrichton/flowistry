@@ -1,18 +1,21 @@
 use either::Either;
 use log::trace;
 use rustc_hir::{
-  intravisit::{self, Visitor as HirVisitor, Visitor},
+  self as hir,
+  intravisit::{self, Visitor as HirVisitor},
   itemlikevisit::ItemLikeVisitor,
-  BodyId, Expr, ExprKind, ForeignItem, ImplItem, Item, MatchSource, Stmt, TraitItem,
+  BodyId, Expr, ExprKind, ForeignItem, ImplItem, Item, MatchSource, Node, Param, Stmt,
+  TraitItem,
 };
 use rustc_middle::{
   hir::nested_filter::OnlyBodies,
   mir::{
+    self,
     visit::{
       MutatingUseContext, NonMutatingUseContext, NonUseContext, PlaceContext,
       Visitor as MirVisitor,
     },
-    Body, HasLocalDecls, Location, Place, Terminator, TerminatorKind,
+    Body, HasLocalDecls, Terminator, TerminatorKind,
   },
   ty::TyCtxt,
 };
@@ -23,8 +26,6 @@ use crate::{
   mir::utils::{self, SpanDataExt, SpanExt},
 };
 
-type HirNode<'hir> = Either<&'hir Expr<'hir>, &'hir Stmt<'hir>>;
-
 // Collect all the spans for children beneath the visited node.
 // For example, when visiting "if true { 1 } else { 2 }" then we
 // should collect: "true" "1" "2"
@@ -33,7 +34,7 @@ struct ChildExprSpans<'tcx> {
   tcx: TyCtxt<'tcx>,
 }
 impl HirVisitor<'hir> for ChildExprSpans<'_> {
-  fn visit_expr(&mut self, ex: &Expr) {
+  fn visit_expr(&mut self, ex: &hir::Expr) {
     match ex.kind {
       // Don't take the span for the whole block, since we want to leave
       // curly braces to be associated with the outer statement
@@ -53,7 +54,7 @@ impl HirVisitor<'hir> for ChildExprSpans<'_> {
     }
   }
 
-  fn visit_stmt(&mut self, stmt: &Stmt) {
+  fn visit_stmt(&mut self, stmt: &hir::Stmt) {
     if let Some(span) = stmt.span.as_local(self.tcx) {
       self.spans.push(span);
     }
@@ -70,7 +71,7 @@ pub enum EnclosingHirSpans {
 pub struct HirSpannedNode<'hir> {
   full: SpanData,
   outer: Vec<Span>,
-  node: HirNode<'hir>,
+  node: hir::Node<'hir>,
 }
 
 impl HirSpannedNode<'_> {
@@ -85,7 +86,7 @@ impl HirSpannedNode<'_> {
 struct HirSpanCollector<'a, 'b, 'hir, 'tcx>(&'a mut Spanner<'b, 'hir, 'tcx>);
 
 impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
-  fn visit_expr(&mut self, expr: &'hir Expr<'hir>) {
+  fn visit_expr(&mut self, expr: &'hir hir::Expr<'hir>) {
     intravisit::walk_expr(self, expr);
 
     let span = match expr.span.as_local(self.0.tcx) {
@@ -129,7 +130,7 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
     self.0.hir_spans.push(HirSpannedNode {
       full: span.data(),
       outer: outer_spans,
-      node: Either::Left(expr),
+      node: Node::Expr(expr),
     });
   }
 
@@ -153,16 +154,34 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
     self.0.hir_spans.push(HirSpannedNode {
       full: span.data(),
       outer: outer_spans,
-      node: Either::Right(stmt),
+      node: Node::Stmt(stmt),
+    });
+  }
+
+  fn visit_param(&mut self, param: &'hir Param<'hir>) {
+    intravisit::walk_param(self, param);
+
+    let span = match param.span.as_local(self.0.tcx) {
+      Some(span) if !self.0.invalid_span(span) => span,
+      _ => {
+        return;
+      }
+    };
+
+    // TODO: more precise outer spans
+    self.0.hir_spans.push(HirSpannedNode {
+      full: span.data(),
+      outer: vec![span],
+      node: Node::Param(param),
     });
   }
 }
 
 #[derive(Clone, Debug)]
 pub struct MirSpannedPlace<'tcx> {
-  pub place: Place<'tcx>,
+  pub place: mir::Place<'tcx>,
   pub span: SpanData,
-  pub location: Location,
+  pub location: mir::Location,
 }
 
 struct MirSpanCollector<'a, 'b, 'hir, 'tcx>(&'a mut Spanner<'b, 'hir, 'tcx>);
@@ -170,9 +189,9 @@ struct MirSpanCollector<'a, 'b, 'hir, 'tcx>(&'a mut Spanner<'b, 'hir, 'tcx>);
 impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
   fn visit_place(
     &mut self,
-    place: &Place<'tcx>,
+    place: &mir::Place<'tcx>,
     context: PlaceContext,
-    location: Location,
+    location: mir::Location,
   ) {
     // Three cases, shown by example:
     //   fn foo(x: i32) {
@@ -222,7 +241,7 @@ pub struct Spanner<'a, 'hir, 'tcx> {
   pub body_span: Span,
   pub item_span: Span,
   tcx: TyCtxt<'tcx>,
-  body: &'a Body<'tcx>,
+  body: &'a mir::Body<'tcx>,
 }
 
 impl Spanner<'a, 'hir, 'tcx>
@@ -232,7 +251,9 @@ where
   pub fn new(tcx: TyCtxt<'tcx>, body_id: BodyId, body: &'a Body<'tcx>) -> Self {
     let hir = tcx.hir();
     let hir_body = hir.body(body_id);
-    let item_span = hir.span_with_body(hir.body_owner(body_id));
+    let owner = hir.body_owner(body_id);
+    let item_span = hir.span_with_body(owner);
+
     let mut spanner = Spanner {
       hir_spans: Vec::new(),
       mir_spans: Vec::new(),
@@ -275,7 +296,7 @@ where
 
   pub fn location_to_spans(
     &self,
-    location: Location,
+    location: mir::Location,
     span_type: EnclosingHirSpans,
   ) -> Vec<Span> {
     // special case for synthetic locations that represent arguments
@@ -319,21 +340,15 @@ where
       "Location {location:?} (span {loc_span:?}) had no enclosing HIR nodes"
     );
     let mut hir_spans = enclosing_hir.remove(0).get_spans(span_type);
-    // trace!(
-    //   "Initial hir node:\n{}\nhas spans: {:?}",
-    //   node_to_string(node),
-    //   hir_spans
-    // );
 
     // Include the MIR span
     hir_spans.push(loc_span);
 
     // Add the spans of the first enclosing statement
-    if let Some(hir_span) = enclosing_hir.iter().find(|span| span.node.is_right()) {
-      // trace!(
-      //   "Spans for stmt:\n{}\nare {:?}",
-      //   stmt_to_string(hir_span.node.right().unwrap()),
-      // );
+    if let Some(hir_span) = enclosing_hir
+      .iter()
+      .find(|span| matches!(span.node, Node::Stmt(_)))
+    {
       hir_spans.extend(hir_span.get_spans(span_type));
     }
 
@@ -345,14 +360,16 @@ where
             .iter()
             .filter_map(|span| {
               matches!(
-                span.node.left()?.kind,
-                ExprKind::If(..) | ExprKind::Loop(..)
+                span.node,
+                Node::Expr(hir::Expr {
+                  kind: ExprKind::If(..) | ExprKind::Loop(..),
+                  ..
+                })
               )
-              .then(move || span.get_spans(span_type))
+              .then(|| span.get_spans(span_type))
             })
             .next()
           {
-            // trace!("Switch spans: {:?}", spans);
             hir_spans.extend(spans);
           }
         }
@@ -417,20 +434,8 @@ where
   }
 }
 
-fn stmt_to_string(st: &Stmt) -> String {
-  rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| s.print_stmt(st))
-}
-
 fn expr_to_string(ex: &Expr) -> String {
   rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| s.print_expr(ex))
-}
-
-#[allow(dead_code)]
-fn node_to_string(node: HirNode) -> String {
-  match node {
-    Either::Left(ex) => expr_to_string(ex),
-    Either::Right(st) => stmt_to_string(st),
-  }
 }
 
 struct BodyFinder<'tcx> {
@@ -438,7 +443,7 @@ struct BodyFinder<'tcx> {
   bodies: Vec<(Span, BodyId)>,
 }
 
-impl Visitor<'tcx> for BodyFinder<'tcx> {
+impl HirVisitor<'tcx> for BodyFinder<'tcx> {
   type NestedFilter = OnlyBodies;
 
   fn nested_visit_map(&mut self) -> Self::Map {
@@ -500,7 +505,6 @@ pub fn find_enclosing_bodies(
 
 #[cfg(test)]
 mod test {
-
   use rustc_data_structures::fx::FxHashSet as HashSet;
   use rustc_middle::mir::BasicBlock;
   use test_log::test;
@@ -559,6 +563,7 @@ mod test {
           .map(|spanned| source_map.span_to_snippet(spanned.span.span()).unwrap())
           .collect::<HashSet<_>>();
 
+        println!("input_span={input_span:?}");
         compare_sets(&desired.iter().collect::<HashSet<_>>(), &snippets);
       }
     });
@@ -695,7 +700,7 @@ mod test {
       ];
 
       for ((i, j), outp) in pairs {
-        let loc = Location {
+        let loc = mir::Location {
           block: BasicBlock::from_usize(*i),
           statement_index: *j,
         };
