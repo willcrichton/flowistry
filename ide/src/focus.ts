@@ -241,16 +241,15 @@ export class FocusMode {
     // pause rendering if there are unsaved changes in the doc
     this.doc_edit_callback = vscode.workspace.onDidChangeTextDocument(
       (event) => {
-        if (this.mode === "idle") {
-          return;
-        }
-
         let editor = vscode.window.activeTextEditor!;
         let doc = editor.document;
         if (event.document === doc && doc.isDirty) {
-          this.set_mode("unsaved");
-          this.clear_ranges();
           this.state.clear();
+
+          if (this.mode !== "idle") {
+            this.set_mode("unsaved");
+            this.clear_ranges();
+          }
         }
       }
     );

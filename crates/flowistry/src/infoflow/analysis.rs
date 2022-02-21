@@ -138,9 +138,19 @@ impl FlowAnalysis<'a, 'tcx> {
     if children.len() > 0 {
       // In the special case of mutated = aggregate { x: .., y: .. }
       // then we ensure that deps(mutated.x) != deps(mutated)
+
+      // First, ensure that all children have the current in their deps.
+      // See test struct_read_constant for where this is needed.
+      for child in all_aliases.children(mutated) {
+        state.insert(all_aliases.normalize(child), location);
+      }
+
+      // Then for constructor arguments that were places, add dependencies of those places.
       for (child, deps) in children {
         state.union_into_row(all_aliases.normalize(child), &deps);
       }
+
+      // Finally add input_location_deps *JUST* to mutated, not conflicts of mutated.
       state.union_into_row(all_aliases.normalize(mutated), &input_location_deps);
     } else {
       // Union dependencies into all conflicting places of the mutated place
