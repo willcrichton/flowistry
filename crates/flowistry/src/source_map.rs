@@ -371,25 +371,13 @@ where
       }
     };
 
-    let is_return = matches!(
-      stmt,
-      Some(Either::Right(Terminator {
-        kind: TerminatorKind::Return
-          | TerminatorKind::Resume
-          | TerminatorKind::Drop { .. },
-        ..
-      }))
-    );
-    if is_return {
-      return vec![];
-    }
-
     let target_span_data = target_span.data();
     let mut enclosing_hir = Self::find_matching(
       |span| span.contains(target_span_data),
       self.hir_spans.iter().map(|span| (span.full, span)),
     )
     .collect::<Vec<_>>();
+    trace!("enclosing_hir={enclosing_hir:#?}");
 
     // Get the spans of the immediately enclosing HIR node
     assert!(
@@ -401,37 +389,43 @@ where
     // Include the MIR span
     hir_spans.push(target_span);
 
-    // Add the spans of the first enclosing statement
-    if let Some(hir_span) = enclosing_hir
-      .iter()
-      .find(|span| matches!(span.node, Node::Stmt(_)))
-    {
-      hir_spans.extend(hir_span.get_spans(span_type));
+    macro_rules! add_first_where {
+      ($f:expr) => {
+        if let Some(node) = enclosing_hir.iter().find($f) {
+          hir_spans.extend(node.get_spans(span_type));
+        }
+      };
     }
 
-    if let Some(Either::Right(terminator)) = stmt {
-      match terminator.kind {
-        TerminatorKind::SwitchInt { .. } => {
-          // If the location is a switch, then include the closest enclosing if or loop
-          if let Some(spans) = enclosing_hir
-            .iter()
-            .filter_map(|span| {
-              matches!(
-                span.node,
-                Node::Expr(hir::Expr {
-                  kind: ExprKind::If(..) | ExprKind::Loop(..),
-                  ..
-                })
-              )
-              .then(|| span.get_spans(span_type))
-            })
-            .next()
-          {
-            hir_spans.extend(spans);
-          }
-        }
-        _ => {}
-      }
+    // Add the spans of the first enclosing statement
+    add_first_where!(|node| matches!(node.node, Node::Stmt(_)));
+
+    // Include `return` keyword if the location is an expression under a return.
+    add_first_where!(|node| {
+      matches!(
+        node.node,
+        Node::Expr(hir::Expr {
+          kind: hir::ExprKind::Ret(_),
+          ..
+        })
+      )
+    });
+
+    if let Some(Either::Right(mir::Terminator {
+      kind: TerminatorKind::SwitchInt { .. },
+      ..
+    })) = stmt
+    {
+      // If the location is a switch, then include the closest enclosing if or loop
+      add_first_where!(|node| {
+        matches!(
+          node.node,
+          Node::Expr(hir::Expr {
+            kind: ExprKind::If(..) | ExprKind::Loop(..),
+            ..
+          })
+        )
+      });
     }
 
     let format_spans = |spans: &[Span]| -> String {
