@@ -1,3 +1,5 @@
+//! Data structure for memoizing computations.
+
 use std::{cell::RefCell, hash::Hash, mem, pin::Pin};
 
 use rustc_data_structures::fx::FxHashMap as HashMap;

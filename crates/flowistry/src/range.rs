@@ -1,3 +1,5 @@
+//! Data structure for sharing [spans][Span] outside rustc.
+
 use std::{default::Default, path::Path};
 
 use anyhow::{bail, Context, Result};

@@ -428,11 +428,9 @@ impl Aliases<'a, 'tcx> {
       let interior_pointer_places = place
         .interior_pointers(self.tcx, self.body, self.def_id, shallow)
         .into_values()
-        .flat_map(|v| v.into_iter().map(|(place, _)| place))
-        .collect::<Vec<_>>();
-      debug!("interior_pointer_places={interior_pointer_places:#?}");
+        .flat_map(|v| v.into_iter().map(|(place, _)| place));
+
       interior_pointer_places
-        .into_iter()
         .flat_map(|place| self.aliases(self.tcx.mk_place_deref(place)).iter().copied())
         .chain([place])
         .filter(|place| place.is_direct(self.body))

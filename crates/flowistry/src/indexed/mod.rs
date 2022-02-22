@@ -1,3 +1,5 @@
+//! APIs for efficiently representing values with an fixed-size domain.
+
 use std::{
   fmt,
   hash::Hash,
