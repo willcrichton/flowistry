@@ -340,10 +340,11 @@ pub fn test_command_output(
                 let (_output_clean, output_ranges) =
                   parse_range_map(&output, vec![("`[", "]`")]).unwrap();
 
-                let expected = output_ranges["`["]
-                  .clone()
-                  .into_iter()
-                  .collect::<HashSet<_>>();
+                let expected = match output_ranges.get("`[") {
+                  Some(ranges) => ranges.clone().into_iter().collect::<HashSet<_>>(),
+                  None => HashSet::default(),
+                };
+
                 compare_ranges(expected, actual, &input_clean);
               }
               Err(err) if matches!(err.kind(), io::ErrorKind::NotFound) => {
