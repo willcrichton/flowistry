@@ -8,7 +8,7 @@ use rustc_middle::{
 };
 use rustc_span::def_id::DefId;
 
-use super::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, ToIndex};
+use super::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, OwnedSet, ToIndex};
 use crate::{
   mir::utils::{BodyExt, PlaceExt},
   to_index_impl,
@@ -27,7 +27,7 @@ impl IndexedValue for Location {
   type Domain = LocationDomain;
 }
 
-pub type LocationSet = IndexSet<Location>;
+pub type LocationSet<S = OwnedSet<Location>> = IndexSet<Location, S>;
 pub struct LocationDomain {
   domain: DefaultDomain<LocationIndex, Location>,
   arg_to_location: HashMap<Place<'static>, LocationIndex>,
@@ -45,30 +45,30 @@ impl LocationDomain {
     // from the arguments, e.g. see
     //   rust/compiler/rustc_typeck/src/check/op.rs 21361
     // for a stress test. But not sure if this is sound yet.
-    let (arg_places, arg_locations): (Vec<_>, Vec<_>) = body
+    let mut arg_places = body
       .args_iter()
       .flat_map(|local| {
         let place = Place::from_local(local, tcx);
         let ptrs = place
           .interior_pointers(tcx, body, def_id, true)
           .into_values()
-          .flat_map(|ptrs| ptrs.into_iter().map(|(ptr, _)| ptr));
+          .flat_map(|ptrs| ptrs.into_iter().map(|(ptr, _)| tcx.mk_place_deref(ptr)));
         ptrs
           .chain([place])
           .flat_map(|place| place.interior_places(tcx, body, def_id))
       })
-      .enumerate()
-      .map(|(i, place)| {
-        (
-          unsafe { mem::transmute::<Place<'tcx>, Place<'static>>(place) },
-          Location {
-            block: arg_block,
-            statement_index: i,
-          },
-        )
-      })
-      .unzip();
+      .map(|place| unsafe { mem::transmute::<Place<'tcx>, Place<'static>>(place) })
+      .collect::<Vec<_>>();
+    arg_places.dedup();
 
+    let arg_locations = (0 .. arg_places.len())
+      .map(|i| Location {
+        block: arg_block,
+        statement_index: i,
+      })
+      .collect::<Vec<_>>();
+
+    log::debug!("Arg places: {arg_places:?}");
     log::info!(
       "Location domain size: {} real, {} args",
       locations.len(),
@@ -80,8 +80,7 @@ impl LocationDomain {
     let domain = DefaultDomain::new(locations);
 
     let arg_to_location = arg_places
-      .iter()
-      .copied()
+      .into_iter()
       .zip(arg_locations.iter().map(|loc| domain.index(loc)))
       .collect::<HashMap<_, _>>();
 

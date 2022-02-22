@@ -17,7 +17,7 @@ use crate::{
   extensions::{is_extension_active, ContextMode, MutabilityMode},
   indexed::{
     impls::{LocationDomain, LocationSet},
-    IndexMatrix,
+    IndexMatrix, IndexedDomain,
   },
   mir::{
     aliases::Aliases,
@@ -196,7 +196,13 @@ impl AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
 
   fn initialize_start_block(&self, _body: &Body<'tcx>, state: &mut Self::Domain) {
     for (arg, loc) in self.location_domain().all_args() {
-      state.insert(self.aliases.normalize(arg), loc);
+      for place in self.aliases.conflicts(arg) {
+        debug!(
+          "arg={arg:?} / place={place:?} / loc={:?}",
+          self.location_domain().value(loc)
+        );
+        state.insert(self.aliases.normalize(*place), loc);
+      }
     }
   }
 }

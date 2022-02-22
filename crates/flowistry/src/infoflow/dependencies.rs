@@ -23,9 +23,57 @@ pub enum Direction {
   Both,
 }
 
+#[derive(Debug, Clone)]
+struct TargetDeps {
+  backward: LocationSet,
+  all_forward: Vec<LocationSet>,
+}
+
+impl TargetDeps {
+  pub fn new(
+    targets: Vec<(Place<'tcx>, Location)>,
+    results: &FlowResults<'_, 'tcx>,
+  ) -> Self {
+    let aliases = &results.analysis.aliases;
+    let location_domain = results.analysis.location_domain();
+    let mut backward = LocationSet::new(location_domain);
+    let mut all_forward = Vec::new();
+
+    let expanded_targets = targets
+      .into_iter()
+      .flat_map(|(place, location)| {
+        aliases
+          .reachable_values(place, true)
+          .iter()
+          .map(move |reachable| (*reachable, location))
+      })
+      .collect::<Vec<_>>();
+    debug!("expanded_targets={expanded_targets:#180?}");
+
+    for (place, location) in expanded_targets {
+      let state = results.state_at(location);
+      backward.union(&aliases.deps(state, place));
+
+      let mut forward = LocationSet::new(location_domain);
+      forward.insert_all();
+      for conflict in aliases.conflicts(place) {
+        let deps = aliases.deps(state, *conflict);
+        trace!("place={place:?}, conflict={conflict:?}, deps={deps:?}");
+        forward.intersect(&deps);
+      }
+      all_forward.push(forward);
+    }
+
+    TargetDeps {
+      backward,
+      all_forward,
+    }
+  }
+}
+
 struct DepVisitor<'a, 'mir, 'tcx> {
   direction: Direction,
-  target_deps: Vec<LocationSet>,
+  target_deps: Vec<TargetDeps>,
   outputs: Vec<(LocationSet, PlaceSet<'tcx>)>,
   analysis: &'a FlowAnalysis<'mir, 'tcx>,
 }
@@ -49,12 +97,17 @@ impl DepVisitor<'_, '_, 'tcx> {
       self.target_deps.iter().zip(self.outputs.iter_mut())
     {
       for (place, loc_deps) in to_check.iter() {
+        let fwd = || {
+          target_locs
+            .all_forward
+            .iter()
+            .any(|fwd_target| loc_deps.is_superset(fwd_target))
+        };
+        let bwd = || target_locs.backward.is_superset(loc_deps);
         let matches = match self.direction {
-          Direction::Forward => loc_deps.is_superset(target_locs),
-          Direction::Backward => target_locs.is_superset(loc_deps),
-          Direction::Both => {
-            loc_deps.is_superset(target_locs) || target_locs.is_superset(loc_deps)
-          }
+          Direction::Forward => fwd(),
+          Direction::Backward => bwd(),
+          Direction::Both => fwd() || bwd(),
         };
 
         if matches {
@@ -66,7 +119,7 @@ impl DepVisitor<'_, '_, 'tcx> {
 
           if let Some(location) = opt_location {
             if loc_deps.contains(location)
-              || (is_switch && target_locs.contains(location))
+              || (is_switch && target_locs.backward.contains(location))
             {
               out_locs.insert(location);
             }
@@ -154,25 +207,17 @@ pub fn compute_dependencies(
   direction: Direction,
 ) -> Vec<(LocationSet, PlaceSet<'tcx>)> {
   block_timer!("compute_dependencies");
+  log::info!("Computing dependencies for {:?} targets", targets.len());
+  debug!("targets={targets:#?}");
+
   let body = results.analysis.body;
-  let aliases = &results.analysis.aliases;
   let location_domain = results.analysis.location_domain();
 
   let target_deps = targets
     .into_iter()
-    .map(|targets| {
-      let mut locations = LocationSet::new(location_domain);
-      for (place, location) in targets {
-        let state = results.state_at(location);
-        let places = aliases.reachable_values(place);
-        for place in places {
-          locations.union(&state.row_set(aliases.normalize(*place)));
-        }
-      }
-
-      locations
-    })
+    .map(|targets| TargetDeps::new(targets, results))
     .collect::<Vec<_>>();
+  debug!("target_deps={target_deps:#?}");
 
   let outputs = target_deps
     .iter()

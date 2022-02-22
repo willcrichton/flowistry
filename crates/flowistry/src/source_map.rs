@@ -416,14 +416,12 @@ where
     let mut containing =
       Self::find_matching(move |mir_span| mir_span.contains(span_data), spans);
 
-    if contained.len() > 0 {
-      let first = contained.next().unwrap();
+    if let Some(first) = contained.next() {
       contained
         .take_while(|other| other.span.size() == first.span.size())
         .chain([first])
         .collect()
-    } else if containing.len() > 0 {
-      let first = containing.next().unwrap();
+    } else if let Some(first) = containing.next() {
       containing
         .take_while(|other| other.span.size() == first.span.size())
         .chain([first])

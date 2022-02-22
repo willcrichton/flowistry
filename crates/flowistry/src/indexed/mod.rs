@@ -249,6 +249,10 @@ impl<T: IndexedValue, S: ToSetMut<T>> IndexSet<T, S> {
   pub fn intersect<S2: ToSet<T>>(&mut self, other: &IndexSet<T, S2>) -> bool {
     self.set.intersect(&*other.set)
   }
+
+  pub fn insert_all(&mut self) {
+    self.set.insert_all();
+  }
 }
 
 impl<T: IndexedValue, S: ToSet<T>> PartialEq for IndexSet<T, S> {
