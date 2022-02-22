@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["focus",""]],"struct":[["FocusAnalysis",""],["FocusOutput",""],["Slice",""]]});
+initSidebarItems({"fn":[["focus",""]],"struct":[["FocusOutput",""],["PlaceInfo",""]]});

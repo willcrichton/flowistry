@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["analysis",""],["decompose",""],["effects",""],["focus",""],["mutations",""],["playground",""],["range",""],["slicing",""]]});
+initSidebarItems({"enum":[["FlowistryError",""]],"fn":[["run",""],["run_with_callbacks",""]],"mod":[["decompose",""],["focus",""],["playground",""],["spans",""]],"trait":[["FlowistryAnalysis",""]],"traitalias":[["JsonEncodable",""]],"type":[["FlowistryResult",""]]});

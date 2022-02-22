@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["decompose",""]],"struct":[["DecomposeAnalysis",""],["DecomposeOutput",""],["PlaceDescriptor",""]]});
+initSidebarItems({"fn":[["decompose",""]],"struct":[["DecomposeOutput",""]]});

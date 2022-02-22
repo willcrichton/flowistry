@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["impls",""]],"struct":[["DefaultDomain",""],["IndexMatrix",""],["IndexSet",""],["MutSet",""],["OwnedSet",""],["RefSet",""]],"trait":[["IndexSetIteratorExt",""],["IndexedDomain",""],["IndexedValue",""],["ToIndex",""],["ToSet",""],["ToSetMut",""]]});
+initSidebarItems({"mod":[["impls",""]],"struct":[["DefaultDomain",""],["IndexMatrix",""],["IndexSet",""],["MutSet",""],["OwnedSet",""],["RefSet",""]],"trait":[["IndexSetIteratorExt",""],["IndexedDomain",""],["IndexedValue",""],["ToIndex",""],["ToSet",""],["ToSetMut",""]],"traitalias":[["RowBounds",""]]});

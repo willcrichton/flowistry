@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["AsciiSpace","Find words by splitting on regions of `' '` characters."]],"trait":[["WordSeparator","Describes where words occur in a line of text."]]});

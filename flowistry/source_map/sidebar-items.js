@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["EnclosingHirSpans",""]],"struct":[["HirSpannedNode",""],["MirSpannedPlace",""],["Spanner",""]]});
+initSidebarItems({"enum":[["EnclosingHirSpans",""]],"fn":[["find_bodies",""],["find_enclosing_bodies",""]],"struct":[["HirSpannedNode",""],["MirSpannedPlace",""],["Spanner",""]]});

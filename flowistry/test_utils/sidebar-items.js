@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["compile",""],["compile_body",""],["make_span",""],["parse_ranges",""]],"type":[["RangeMap",""]]});
+initSidebarItems({"fn":[["bless",""],["color_ranges",""],["compare_ranges",""],["compile",""],["compile_body",""],["compile_body_with_range",""],["make_span",""],["parse_ranges",""],["run_tests",""],["test_command_output",""]],"type":[["RangeMap",""]]});

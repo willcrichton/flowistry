@@ -1,7 +1,9 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/infoflow/analysis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
-                                <input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -254,10 +256,22 @@
 <span id="251">251</span>
 <span id="252">252</span>
 <span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cell::RefCell</span>, <span class="ident">rc::Rc</span>};
 
-<span class="kw">use</span> <span class="ident">log::debug</span>;
-<span class="kw">use</span> <span class="ident">rustc_data_structures::fx::FxHashMap</span> <span class="kw">as</span> <span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
+<span class="kw">use</span> <span class="ident">rustc_data_structures::fx</span>::{<span class="ident">FxHashMap</span> <span class="kw">as</span> <span class="ident">HashMap</span>, <span class="ident">FxHashSet</span> <span class="kw">as</span> <span class="ident">HashSet</span>};
 <span class="kw">use</span> <span class="ident">rustc_hir</span>::{<span class="ident">def_id::DefId</span>, <span class="ident">BodyId</span>};
 <span class="kw">use</span> <span class="ident">rustc_middle</span>::{
   <span class="ident">mir</span>::{<span class="ident">visit::Visitor</span>, <span class="kw-2">*</span>},
@@ -272,8 +286,8 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
   <span class="ident">extensions</span>::{<span class="ident">is_extension_active</span>, <span class="ident">ContextMode</span>, <span class="ident">MutabilityMode</span>},
   <span class="ident">indexed</span>::{
-    <span class="ident">impls</span>::{<span class="ident">LocationDomain</span>, <span class="ident">LocationSet</span>, <span class="ident">PlaceDomain</span>},
-    <span class="ident">IndexMatrix</span>, <span class="ident">IndexSetIteratorExt</span>,
+    <span class="ident">impls</span>::{<span class="ident">LocationDomain</span>, <span class="ident">LocationSet</span>},
+    <span class="ident">IndexMatrix</span>, <span class="ident">IndexedDomain</span>,
   },
   <span class="ident">mir</span>::{
     <span class="ident">aliases::Aliases</span>,
@@ -289,8 +303,7 @@
   <span class="kw">pub</span> <span class="ident">def_id</span>: <span class="ident">DefId</span>,
   <span class="kw">pub</span> <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
   <span class="kw">pub</span> <span class="ident">control_dependencies</span>: <span class="ident">ControlDependencies</span>,
-  <span class="kw">pub</span> <span class="ident">aliases</span>: <span class="ident">Aliases</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="kw">pub</span> <span class="ident">location_domain</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">LocationDomain</span><span class="op">&gt;</span>,
+  <span class="kw">pub</span> <span class="ident">aliases</span>: <span class="ident">Aliases</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
   <span class="kw">crate</span> <span class="ident">recurse_cache</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">BodyId</span>, <span class="ident">FlowResults</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
@@ -299,9 +312,8 @@
     <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">def_id</span>: <span class="ident">DefId</span>,
     <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">aliases</span>: <span class="ident">Aliases</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    <span class="ident">aliases</span>: <span class="ident">Aliases</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">control_dependencies</span>: <span class="ident">ControlDependencies</span>,
-    <span class="ident">location_domain</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">LocationDomain</span><span class="op">&gt;</span>,
   ) -&gt; <span class="self">Self</span> {
     <span class="kw">let</span> <span class="ident">recurse_cache</span> <span class="op">=</span> <span class="ident">RefCell::new</span>(<span class="ident">HashMap::default</span>());
     <span class="ident">FlowAnalysis</span> {
@@ -309,18 +321,13 @@
       <span class="ident">def_id</span>,
       <span class="ident">body</span>,
       <span class="ident">aliases</span>,
-      <span class="ident">location_domain</span>,
       <span class="ident">control_dependencies</span>,
       <span class="ident">recurse_cache</span>,
     }
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">place_domain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">PlaceDomain</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">place_domain</span>
-  }
-
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location_domain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">LocationDomain</span><span class="op">&gt;</span> {
-    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">location_domain</span>
+    <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">location_domain</span>()
   }
 
   <span class="kw">crate</span> <span class="kw">fn</span> <span class="ident">transfer_function</span>(
@@ -332,19 +339,19 @@
     <span class="ident">mutation_status</span>: <span class="ident">MutationStatus</span>,
   ) {
     <span class="macro">debug!</span>(<span class="string">&quot;  Applying mutation to {mutated:?} with inputs {inputs:?}&quot;</span>);
-    <span class="kw">let</span> <span class="ident">place_domain</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">place_domain</span>();
     <span class="kw">let</span> <span class="ident">location_domain</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">location_domain</span>();
 
     <span class="kw">let</span> <span class="ident">all_aliases</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aliases</span>;
-    <span class="kw">let</span> <span class="ident">mutated_aliases</span> <span class="op">=</span> <span class="ident">all_aliases</span>.<span class="ident">aliases</span>.<span class="ident">row_set</span>(<span class="ident">mutated</span>);
+    <span class="kw">let</span> <span class="ident">mutated_aliases</span> <span class="op">=</span> <span class="ident">all_aliases</span>.<span class="ident">aliases</span>(<span class="ident">mutated</span>);
+    <span class="macro">trace!</span>(<span class="string">&quot;    Mutated aliases: {mutated_aliases:?}&quot;</span>);
     <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">mutated_aliases</span>.<span class="ident">is_empty</span>());
 
     <span class="comment">// Clear sub-places of mutated place (if sound to do so)</span>
     <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">mutation_status</span>, <span class="ident">MutationStatus::Definitely</span>) <span class="op">&amp;&amp;</span> <span class="ident">mutated_aliases</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span>
     {
       <span class="kw">let</span> <span class="ident">mutated_direct</span> <span class="op">=</span> <span class="ident">mutated_aliases</span>.<span class="ident">iter</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
-      <span class="kw">for</span> <span class="ident">sub</span> <span class="kw">in</span> <span class="ident">all_aliases</span>.<span class="ident">children</span>.<span class="ident">row</span>(<span class="kw-2">*</span><span class="ident">mutated_direct</span>) {
-        <span class="ident">state</span>.<span class="ident">clear_row</span>(<span class="ident">sub</span>);
+      <span class="kw">for</span> <span class="ident">sub</span> <span class="kw">in</span> <span class="ident">all_aliases</span>.<span class="ident">children</span>(<span class="kw-2">*</span><span class="ident">mutated_direct</span>).<span class="ident">iter</span>() {
+        <span class="ident">state</span>.<span class="ident">clear_row</span>(<span class="ident">all_aliases</span>.<span class="ident">normalize</span>(<span class="kw-2">*</span><span class="ident">sub</span>));
       }
     }
 
@@ -353,8 +360,10 @@
 
     <span class="kw">let</span> <span class="ident">add_deps</span> <span class="op">=</span> <span class="op">|</span><span class="ident">place</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">location_deps</span>: <span class="kw-2">&amp;mut</span> <span class="ident">LocationSet</span><span class="op">|</span> {
       <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="ident">place</span>.<span class="ident">place_and_refs_in_projection</span>(<span class="self">self</span>.<span class="ident">tcx</span>) {
-        <span class="kw">for</span> <span class="ident">alias</span> <span class="kw">in</span> <span class="ident">all_aliases</span>.<span class="ident">aliases</span>.<span class="ident">row</span>(<span class="ident">place</span>) {
-          <span class="ident">location_deps</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">row_set</span>(<span class="ident">alias</span>));
+        <span class="kw">for</span> <span class="ident">alias</span> <span class="kw">in</span> <span class="ident">all_aliases</span>.<span class="ident">aliases</span>(<span class="ident">place</span>).<span class="ident">iter</span>() {
+          <span class="kw">let</span> <span class="ident">deps</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">row_set</span>(<span class="ident">all_aliases</span>.<span class="ident">normalize</span>(<span class="kw-2">*</span><span class="ident">alias</span>));
+          <span class="macro">trace!</span>(<span class="string">&quot;    For alias {alias:?} for input {place:?} adding deps {deps:?}&quot;</span>);
+          <span class="ident">location_deps</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">deps</span>);
         }
       }
     };
@@ -399,10 +408,20 @@
     <span class="kw">if</span> <span class="ident">children</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
       <span class="comment">// In the special case of mutated = aggregate { x: .., y: .. }</span>
       <span class="comment">// then we ensure that deps(mutated.x) != deps(mutated)</span>
-      <span class="kw">for</span> (<span class="ident">child</span>, <span class="ident">deps</span>) <span class="kw">in</span> <span class="ident">children</span> {
-        <span class="ident">state</span>.<span class="ident">union_into_row</span>(<span class="ident">child</span>, <span class="kw-2">&amp;</span><span class="ident">deps</span>);
+
+      <span class="comment">// First, ensure that all children have the current in their deps.</span>
+      <span class="comment">// See test struct_read_constant for where this is needed.</span>
+      <span class="kw">for</span> <span class="ident">child</span> <span class="kw">in</span> <span class="ident">all_aliases</span>.<span class="ident">children</span>(<span class="ident">mutated</span>) {
+        <span class="ident">state</span>.<span class="ident">insert</span>(<span class="ident">all_aliases</span>.<span class="ident">normalize</span>(<span class="ident">child</span>), <span class="ident">location</span>);
       }
-      <span class="ident">state</span>.<span class="ident">union_into_row</span>(<span class="ident">mutated</span>, <span class="kw-2">&amp;</span><span class="ident">input_location_deps</span>);
+
+      <span class="comment">// Then for constructor arguments that were places, add dependencies of those places.</span>
+      <span class="kw">for</span> (<span class="ident">child</span>, <span class="ident">deps</span>) <span class="kw">in</span> <span class="ident">children</span> {
+        <span class="ident">state</span>.<span class="ident">union_into_row</span>(<span class="ident">all_aliases</span>.<span class="ident">normalize</span>(<span class="ident">child</span>), <span class="kw-2">&amp;</span><span class="ident">deps</span>);
+      }
+
+      <span class="comment">// Finally add input_location_deps *JUST* to mutated, not conflicts of mutated.</span>
+      <span class="ident">state</span>.<span class="ident">union_into_row</span>(<span class="ident">all_aliases</span>.<span class="ident">normalize</span>(<span class="ident">mutated</span>), <span class="kw-2">&amp;</span><span class="ident">input_location_deps</span>);
     } <span class="kw">else</span> {
       <span class="comment">// Union dependencies into all conflicting places of the mutated place</span>
       <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mutable_conflicts</span> <span class="op">=</span> <span class="ident">all_aliases</span>.<span class="ident">conflicts</span>(<span class="ident">mutated</span>).<span class="ident">to_owned</span>();
@@ -422,14 +441,15 @@
               <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">ty</span>.<span class="ident">ref_mutability</span>(), <span class="prelude-val">Some</span>(<span class="ident">Mutability::Not</span>))
             })
           })
-          .<span class="ident">collect_indices</span>(<span class="ident">place_domain</span>);
+          .<span class="ident">copied</span>()
+          .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
       };
 
       <span class="macro">debug!</span>(<span class="string">&quot;  Mutated conflicting places: {mutable_conflicts:?}&quot;</span>);
       <span class="macro">debug!</span>(<span class="string">&quot;    with deps {input_location_deps:?}&quot;</span>);
 
-      <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="ident">mutable_conflicts</span>.<span class="ident">iter</span>() {
-        <span class="ident">state</span>.<span class="ident">union_into_row</span>(<span class="ident">place</span>, <span class="kw-2">&amp;</span><span class="ident">input_location_deps</span>);
+      <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="ident">mutable_conflicts</span>.<span class="ident">into_iter</span>() {
+        <span class="ident">state</span>.<span class="ident">union_into_row</span>(<span class="ident">all_aliases</span>.<span class="ident">normalize</span>(<span class="ident">place</span>), <span class="kw-2">&amp;</span><span class="ident">input_location_deps</span>);
       }
     }
   }
@@ -441,12 +461,18 @@
   <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;FlowAnalysis&quot;</span>;
 
   <span class="kw">fn</span> <span class="ident">bottom_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident"><span class="self">Self</span>::Domain</span> {
-    <span class="ident">FlowDomain::new</span>(<span class="self">self</span>.<span class="ident">place_domain</span>(), <span class="self">self</span>.<span class="ident">location_domain</span>())
+    <span class="ident">FlowDomain::new</span>(<span class="self">self</span>.<span class="ident">location_domain</span>())
   }
 
-  <span class="kw">fn</span> <span class="ident">initialize_start_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Domain</span>) {
-    <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">place_domain</span>().<span class="ident">all_args</span>(<span class="ident">body</span>) {
-      <span class="ident">state</span>.<span class="ident">insert</span>(<span class="ident">arg</span>, <span class="self">self</span>.<span class="ident">location_domain</span>().<span class="ident">arg_to_location</span>(<span class="ident">arg</span>));
+  <span class="kw">fn</span> <span class="ident">initialize_start_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Domain</span>) {
+    <span class="kw">for</span> (<span class="ident">arg</span>, <span class="ident">loc</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">location_domain</span>().<span class="ident">all_args</span>() {
+      <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">conflicts</span>(<span class="ident">arg</span>) {
+        <span class="macro">debug!</span>(
+          <span class="string">&quot;arg={arg:?} / place={place:?} / loc={:?}&quot;</span>,
+          <span class="self">self</span>.<span class="ident">location_domain</span>().<span class="ident">value</span>(<span class="ident">loc</span>)
+        );
+        <span class="ident">state</span>.<span class="ident">insert</span>(<span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">normalize</span>(<span class="kw-2">*</span><span class="ident">place</span>), <span class="ident">loc</span>);
+      }
     }
   }
 }
@@ -508,5 +534,5 @@
   }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (bd3cb5256 2022-01-16)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (75d9a0ae2 2022-02-16)" ></div>
 </body></html>

@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["aliases",""],["borrowck_facts",""],["control_dependencies",""],["engine",""],["utils",""]]});
+initSidebarItems({"mod":[["aliases",""],["borrowck_facts",""],["control_dependencies",""],["engine","This module re-implements [`rustc_mir_dataflow::Engine`] for performance reasons."],["utils",""]]});

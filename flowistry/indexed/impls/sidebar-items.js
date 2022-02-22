@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["LocationDomain",""],["LocationIndex",""],["NormalizedPlaces",""],["PlaceDomain",""],["PlaceIndex",""]],"type":[["LocationSet",""],["PlaceSet",""]]});
+initSidebarItems({"struct":[["LocationDomain",""],["LocationIndex",""]],"type":[["LocationSet",""],["PlaceSet",""]]});

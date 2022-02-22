@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["FunctionIdentifier",""]],"fn":[["ranges_from_spans",""]],"struct":[["Range",""]]});

@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["effects",""]],"struct":[["Effect",""],["EffectsOutput",""]]});
