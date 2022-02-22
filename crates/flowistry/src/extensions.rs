@@ -1,3 +1,4 @@
+//! Extra features for evaluating / ablating the precision of Flowistry's algorithm. 
 use std::cell::RefCell;
 
 use fluid_let::fluid_let;

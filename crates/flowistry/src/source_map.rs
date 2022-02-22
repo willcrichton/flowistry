@@ -1,3 +1,5 @@
+//! Mapping source ranges to/from the HIR and MIR.
+
 use either::Either;
 use log::trace;
 use rustc_hir::{

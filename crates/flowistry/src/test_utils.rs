@@ -1,3 +1,5 @@
+//! Running rustc and Flowistry in tests.
+
 use std::{fs, io, panic, path::Path, process::Command};
 
 use anyhow::{anyhow, bail, Context, Result};

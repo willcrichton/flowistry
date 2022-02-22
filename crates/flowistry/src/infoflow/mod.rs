@@ -1,3 +1,5 @@
+//! The core information flow analysis.
+
 use std::cell::RefCell;
 
 use log::debug;
@@ -28,6 +30,13 @@ thread_local! {
     RefCell::new(Vec::new());
 }
 
+/// Computes information flow for a MIR body.
+/// 
+/// The generated data structure essentially is a map from `(Place, Location)` to
+/// `Set<Location>`. For a given place `p` at a location `L`, it says that `p`
+/// is influenced by each location in the set. In static analysis terminology, 
+/// this is a flow-sensitive analysis whose domain is the mapping from places to 
+/// sets of locations.
 pub fn compute_flow<'a, 'tcx>(
   tcx: TyCtxt<'tcx>,
   body_id: BodyId,
