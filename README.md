@@ -4,13 +4,6 @@
 [![crates.io](https://img.shields.io/crates/v/flowistry.svg)](https://crates.io/crates/flowistry)
 
 
-**Table of contents**
-* [Installation]()
-* [Usage]()
-* [Limitations]()
-* [FAQ]()
-
-
 Flowistry is a tool that analyzes the [information flow](https://en.wikipedia.org/wiki/Information_flow_(information_theory)) of Rust programs. Flowistry understands whether it's possible for one piece of code to affect another. Flowistry integrates into the IDE to provide a "focus mode" which helps you focus on the code that's related to your current task. 
 
 For example, this GIF shows the focus mode when reading a function that unions two sets together:
@@ -28,6 +21,23 @@ Flowistry can be helpful when you're reading a function with a lot of code. For 
 <img src="https://user-images.githubusercontent.com/663326/155062527-6b42f64a-3429-4572-860f-7c2e244691d6.gif" height=500 />
 </kbd>
 <br /><br />
+
+**Table of contents**
+* [Installation](#installation)
+* [Usage](#usage)
+    * [1. Startup](#1-startup)
+    * [2. Entering focus mode](#2-entering-focus-mode)
+    * [3. Setting a mark](#3-setting-a-mark)
+    * [4. Selecting the focus region](#4-selecting-the-focus-region)
+* [Limitations](#limitations)
+    * [1. Flowistry does not completely handle interior mutability](#1-flowistry-does-not-completely-handle-interior-mutability)
+    * [2. A focus region may include more code than you expect](#2-a-focus-region-may-include-more-code-than-you-expect)
+    * [3. Not all code is selectable](#3-not-all-code-is-selectable)
+* [FAQ](#faq)
+    * [1. rustup fails on installation](#1-rustup-fails-on-installation)
+    * [2. Why isn't Flowistry part of Rust Analyzer?](#2-why-isnt-flowistry-part-of-rust-analyzer)
+
+
 
 ## Installation 
 
