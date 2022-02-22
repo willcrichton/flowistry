@@ -87,16 +87,22 @@ impl HirSpannedNode<'_> {
 
 struct HirSpanCollector<'a, 'b, 'hir, 'tcx>(&'a mut Spanner<'b, 'hir, 'tcx>);
 
+macro_rules! try_span {
+  ($self:expr, $span:expr) => {
+    match $span.as_local($self.0.tcx) {
+      Some(span) if !$self.0.invalid_span(span) => span,
+      _ => {
+        return;
+      }
+    }
+  };
+}
+
 impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
   fn visit_expr(&mut self, expr: &'hir hir::Expr<'hir>) {
     intravisit::walk_expr(self, expr);
 
-    let span = match expr.span.as_local(self.0.tcx) {
-      Some(span) if !self.0.invalid_span(span) => span,
-      _ => {
-        return;
-      }
-    };
+    let span = try_span!(self, expr.span);
 
     let inner_spans = match expr.kind {
       ExprKind::Loop(_, _, _, header) => {
@@ -139,12 +145,7 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
   fn visit_stmt(&mut self, stmt: &'hir Stmt<'hir>) {
     intravisit::walk_stmt(self, stmt);
 
-    let span = match stmt.span.as_local(self.0.tcx) {
-      Some(span) if !self.0.invalid_span(span) => span,
-      _ => {
-        return;
-      }
-    };
+    let span = try_span!(self, stmt.span);
 
     let mut visitor = ChildExprSpans {
       spans: Vec::new(),
@@ -195,6 +196,7 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
     context: PlaceContext,
     location: mir::Location,
   ) {
+    trace!("place={place:?} context={context:?} location={location:?}");
     // Three cases, shown by example:
     //   fn foo(x: i32) {
     //     let y = x + 1;
@@ -222,18 +224,67 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
       }
     };
 
-    let span = match span.as_local(self.0.tcx) {
-      Some(span) if !self.0.invalid_span(span) => span,
+    let span = try_span!(self, span);
+
+    let spanned_place = MirSpannedPlace {
+      place: *place,
+      location,
+      span: span.data(),
+    };
+    trace!("spanned place: {spanned_place:?}");
+
+    self.0.mir_spans.push(spanned_place);
+  }
+
+  // The visit_statement and visit_terminator cases are a backup. 
+  // Eg in the static_method case, if you have x = Foo::bar(), then
+  // then a slice on Foo::bar() would correspond to no places. The best we 
+  // can do is at least make the slice on x.
+  fn visit_statement(
+    &mut self,
+    statement: &mir::Statement<'tcx>,
+    location: mir::Location,
+  ) {
+    self.super_statement(statement, location);
+
+    if let mir::StatementKind::Assign(box (lhs, _)) = &statement.kind {
+      let span = try_span!(self, statement.source_info.span);
+      let spanned_place = MirSpannedPlace {
+        place: *lhs,
+        location,
+        span: span.data(),
+      };
+      trace!("spanned place (assign): {spanned_place:?}");
+      self.0.mir_spans.push(spanned_place);
+    }
+  }
+
+  fn visit_terminator(
+    &mut self,
+    terminator: &mir::Terminator<'tcx>,
+    location: mir::Location,
+  ) {
+    self.super_terminator(terminator, location);
+
+    let place = match &terminator.kind {
+      mir::TerminatorKind::Call {
+        destination: Some((place, _)),
+        ..
+      } => *place,
+      mir::TerminatorKind::DropAndReplace { place, .. } => *place,
       _ => {
         return;
       }
     };
 
-    self.0.mir_spans.push(MirSpannedPlace {
-      place: *place,
+    let span = try_span!(self, terminator.source_info.span);
+    let spanned_place = MirSpannedPlace {
+      place,
       location,
       span: span.data(),
-    });
+    };
+    trace!("spanned place (terminator): {spanned_place:?}");
+    self.0.mir_spans.push(spanned_place);
   }
 }
 
