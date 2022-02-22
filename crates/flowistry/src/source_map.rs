@@ -19,7 +19,7 @@ use rustc_middle::{
       MutatingUseContext, NonMutatingUseContext, NonUseContext, PlaceContext,
       Visitor as MirVisitor,
     },
-    Body, HasLocalDecls, Terminator, TerminatorKind,
+    Body, HasLocalDecls, TerminatorKind,
   },
   ty::TyCtxt,
 };
