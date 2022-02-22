@@ -24,7 +24,10 @@ use crate::{
   block_timer,
   cached::{Cache, CopyCache},
   extensions::{is_extension_active, PointerMode},
-  indexed::impls::{LocationDomain, PlaceSet},
+  indexed::{
+    impls::{LocationDomain, LocationSet, PlaceSet},
+    IndexMatrix, RefSet,
+  },
   mir::utils::{self, PlaceExt},
 };
 
@@ -140,7 +143,7 @@ pub struct Aliases<'a, 'tcx> {
   normalized_cache: CopyCache<Place<'tcx>, Place<'tcx>>,
   aliases_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
   conflicts_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
-  reachable_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
+  reachable_cache: Cache<(Place<'tcx>, bool), PlaceSet<'tcx>>,
 }
 
 rustc_index::newtype_index! {
@@ -420,22 +423,33 @@ impl Aliases<'a, 'tcx> {
     })
   }
 
-  pub fn reachable_values(&self, place: Place<'tcx>) -> &PlaceSet<'tcx> {
-    self.reachable_cache.get(place, |place| {
+  pub fn reachable_values(&self, place: Place<'tcx>, shallow: bool) -> &PlaceSet<'tcx> {
+    self.reachable_cache.get((place, shallow), |(place, _)| {
       let interior_pointer_places = place
-        .interior_pointers(self.tcx, self.body, self.def_id, false)
+        .interior_pointers(self.tcx, self.body, self.def_id, shallow)
         .into_values()
-        .flat_map(|v| v.into_iter().map(|(place, _)| place));
-
+        .flat_map(|v| v.into_iter().map(|(place, _)| place))
+        .collect::<Vec<_>>();
+      debug!("interior_pointer_places={interior_pointer_places:#?}");
       interior_pointer_places
+        .into_iter()
         .flat_map(|place| self.aliases(self.tcx.mk_place_deref(place)).iter().copied())
         .chain([place])
+        .filter(|place| place.is_direct(self.body))
         .collect()
     })
   }
 
   pub fn location_domain(&self) -> &Rc<LocationDomain> {
     &self.location_domain
+  }
+
+  pub fn deps(
+    &self,
+    state: &'a IndexMatrix<Place<'tcx>, Location>,
+    place: Place<'tcx>,
+  ) -> LocationSet<RefSet<'a, Location>> {
+    state.row_set(self.normalize(place))
   }
 }
 

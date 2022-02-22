@@ -1,4 +1,4 @@
-//! Adapted from Clippy's driver: https://github.com/rust-lang/rust-clippy/blob/fd30241281333d73d504355b2f4d0ecd94f27b0e/src/driver.rs
+//! Adapted from [Clippy's driver](https://github.com/rust-lang/rust-clippy/blob/fd30241281333d73d504355b2f4d0ecd94f27b0e/src/driver.rs)
 
 #![feature(rustc_private)]
 

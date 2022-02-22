@@ -15,7 +15,7 @@ pub fn find_mutations(
   aliases: &Aliases<'_, 'tcx>,
 ) -> Vec<Location> {
   let mut locations = vec![];
-  let reachable_values = aliases.reachable_values(place);
+  let reachable_values = aliases.reachable_values(place, false);
   debug!("reachable values: {reachable_values:?}");
 
   ModularMutationVisitor::new(

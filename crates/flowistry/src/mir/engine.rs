@@ -1,3 +1,16 @@
+//! This module re-implements [`rustc_mir_dataflow::Engine`] for performance reasons.
+//!
+//! The Engine implementation in rustc optimizes for minimizing memory usage
+//! by only materializing results at the start of basic blocks, and recomputing
+//! the analysis when visiting results. However, this strategy involves a lot of
+//! creation and deletion of the [analysis domain][rustc_mir_dataflow::AnalysisDomain].
+//!
+//! The information flow analysis has a large domain of size `O(|places| * |locations|)`.
+//! Profiling showed that a significant portion of analysis time was just the engine
+//! allocating / cloning / dropping the domain, not doing computation. Therefore this
+//! engine improves performance but increases memory usage by up-front materializing
+//! the domain at every [`Location`].
+
 use std::rc::Rc;
 
 use either::Either;
@@ -7,7 +20,7 @@ use rustc_middle::{
   mir::{traversal, Body, Location},
   ty::TyCtxt,
 };
-use rustc_mir_dataflow::*;
+use rustc_mir_dataflow::{Analysis, Direction, JoinSemiLattice, ResultsVisitor};
 
 use crate::indexed::{
   impls::{LocationDomain, LocationIndex},
@@ -68,6 +81,8 @@ pub fn iterate_to_fixpoint<'tcx, A: Analysis<'tcx>>(
 ) -> AnalysisResults<'tcx, A> {
   let bottom_value = analysis.bottom_value(body);
 
+  // `state` materializes the analysis domain for *every* location, which is the crux
+  // of this implementation strategy.
   let num_locs = location_domain.num_real_locations();
   let mut state = IndexVec::from_elem_n(bottom_value, num_locs);
 
