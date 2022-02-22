@@ -236,9 +236,9 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
     self.0.mir_spans.push(spanned_place);
   }
 
-  // The visit_statement and visit_terminator cases are a backup. 
+  // The visit_statement and visit_terminator cases are a backup.
   // Eg in the static_method case, if you have x = Foo::bar(), then
-  // then a slice on Foo::bar() would correspond to no places. The best we 
+  // then a slice on Foo::bar() would correspond to no places. The best we
   // can do is at least make the slice on x.
   fn visit_statement(
     &mut self,
@@ -502,7 +502,15 @@ impl HirVisitor<'tcx> for BodyFinder<'tcx> {
   }
 
   fn visit_nested_body(&mut self, id: BodyId) {
-    let body = self.nested_visit_map().body(id);
+    let hir = self.nested_visit_map();
+
+    // const/static items are considered to have bodies, so we want to exclude
+    // them from our search for functions
+    if !hir.body_owner_kind(hir.body_owner(id)).is_fn_or_closure() {
+      return;
+    }
+
+    let body = hir.body(id);
     self.visit_body(body);
 
     let hir = self.tcx.hir();
