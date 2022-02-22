@@ -20,7 +20,7 @@ interface PlaceInfo {
 interface Focus {
   place_info: PlaceInfo[];
   body_range: Range;
-  arg_range: Range;
+  arg_range?: Range;
 }
 
 class FocusBodyState {
@@ -85,12 +85,11 @@ class FocusBodyState {
           return new vscode.Selection(vsc_range.start, vsc_range.end);
         });
       } else {
-        highlight_slice(
-          editor,
-          [this.focus.body_range, this.focus.arg_range],
-          seeds,
-          slice
-        );
+        let containers = [this.focus.body_range];
+        if (this.focus.arg_range) {
+          containers.push(this.focus.arg_range);
+        }
+        highlight_slice(editor, containers, seeds, slice);
       }
     } else {
       clear_ranges(editor);

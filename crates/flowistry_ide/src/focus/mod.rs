@@ -6,7 +6,7 @@ use flowistry::{
   source_map,
 };
 use itertools::Itertools;
-use rustc_hir::{BodyId, Expr, ExprKind, Node};
+use rustc_hir::BodyId;
 use rustc_macros::Encodable;
 use rustc_middle::ty::TyCtxt;
 
@@ -23,7 +23,7 @@ pub struct PlaceInfo {
 pub struct FocusOutput {
   place_info: Vec<PlaceInfo>,
   body_range: Range,
-  arg_range: Range,
+  arg_range: Option<Range>,
 }
 
 pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
@@ -86,20 +86,16 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
     })
     .collect::<Vec<_>>();
 
-  let owner_id = tcx.hir().body_owner(body_id);
-  let owner_node = tcx.hir().get(owner_id);
-  let arg_span = match (owner_node.fn_sig(), owner_node) {
-    (Some(sig), _) => sig.span,
-    (
-      None,
-      Node::Expr(Expr {
-        kind: ExprKind::Closure(_, _, _, arg_span, _),
-        ..
-      }),
-    ) => *arg_span,
-    _ => panic!("Unknown arg span for owner_node: {owner_node:#?}"),
+  let hir_body = tcx.hir().body(body_id);
+  let arg_span = hir_body
+    .params
+    .iter()
+    .map(|param| param.span)
+    .reduce(|s1, s2| s1.to(s2));
+  let arg_range = match arg_span {
+    Some(sp) => Some(Range::from_span(sp, source_map)?),
+    None => None,
   };
-  let arg_range = Range::from_span(arg_span, source_map)?;
   let body_range = Range::from_span(spanner.body_span, source_map)?;
 
   Ok(FocusOutput {
