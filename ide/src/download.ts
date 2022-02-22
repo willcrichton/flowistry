@@ -7,10 +7,12 @@ import path from "path";
 import * as util from "util";
 
 import { log } from "./logging";
+import { globals } from "./extension";
 
 declare const VERSION: string;
 
 export let download = async () => {
+  globals.status_bar.set_state("loading", "Downloading Flowistry");
   let exec = async (cmd: string) => {
     let exec = util.promisify(cp.exec);
     let { stdout } = await exec(cmd);
@@ -36,4 +38,5 @@ export let download = async () => {
   let buffer = await got.get(release_url).buffer();
   let zip = new AdmZip(buffer);
   zip.extractAllTo(cargo_bin);
+  globals.status_bar.set_state("idle");
 };
