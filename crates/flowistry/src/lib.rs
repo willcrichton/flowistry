@@ -1,5 +1,5 @@
 //! This crate provides a modular information flow analysis for Rust programs,
-//! as described in the paper ["Modular Information Flow Through Ownership"](https://arxiv.org/abs/2111.13662) (Crichton et al. 2022). 
+//! as described in the paper ["Modular Information Flow Through Ownership"](https://arxiv.org/abs/2111.13662) (Crichton et al. 2022).
 //! See [example.rs](https://github.com/willcrichton/flowistry/tree/master/crates/flowistry/examples/example.rs])
 //! for an example of how to use the Flowistry API.
 //!
@@ -15,9 +15,9 @@
 //! the function [`infoflow::compute_flow`] computes the information flow
 //! within that body. Check out those docs for more information on the specific
 //! data structure that is computed.
-//! 
-//! If you are interested in using Flowistry, please reach out directly to 
-//! Will Crichton ([wcrichto@cs.stanford.edu](mailto:wcrichto@cs.stanford.edu)) 
+//!
+//! If you are interested in using Flowistry, please reach out directly to
+//! Will Crichton ([wcrichto@cs.stanford.edu](mailto:wcrichto@cs.stanford.edu))
 //! for questions or support.
 
 #![feature(

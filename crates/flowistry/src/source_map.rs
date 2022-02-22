@@ -1,5 +1,7 @@
 //! Mapping source ranges to/from the HIR and MIR.
 
+use std::rc::Rc;
+
 use either::Either;
 use log::trace;
 use rustc_hir::{
@@ -25,6 +27,7 @@ use rustc_span::{Span, SpanData};
 
 use crate::{
   block_timer,
+  indexed::impls::LocationDomain,
   mir::utils::{self, SpanDataExt, SpanExt},
 };
 
@@ -180,7 +183,7 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
   }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MirSpannedPlace<'tcx> {
   pub place: mir::Place<'tcx>,
   pub span: SpanData,
@@ -350,39 +353,40 @@ where
   pub fn location_to_spans(
     &self,
     location: mir::Location,
+    location_domain: &Rc<LocationDomain>,
     span_type: EnclosingHirSpans,
   ) -> Vec<Span> {
-    // special case for synthetic locations that represent arguments
-    if location.block.as_usize() == self.body.basic_blocks().len() {
-      return vec![];
-    }
+    let (target_span, stmt) = match location_domain.location_to_arg(location) {
+      Some(place) => (self.body.local_decls[place.local].source_info.span, None),
+      None => (
+        self.body.source_info(location).span,
+        Some(self.body.stmt_at(location)),
+      ),
+    };
 
-    let loc_span = match self.body.source_info(location).span.as_local(self.tcx) {
-      Some(span) => span,
-      None => {
+    let target_span = match target_span.as_local(self.tcx) {
+      Some(span) if !self.invalid_span(span) => span,
+      _ => {
         return vec![];
       }
     };
-    if self.invalid_span(loc_span) {
-      return vec![];
-    }
 
     let is_return = matches!(
-      self.body.stmt_at(location),
-      Either::Right(Terminator {
+      stmt,
+      Some(Either::Right(Terminator {
         kind: TerminatorKind::Return
           | TerminatorKind::Resume
           | TerminatorKind::Drop { .. },
         ..
-      })
+      }))
     );
     if is_return {
       return vec![];
     }
 
-    let loc_span_data = loc_span.data();
+    let target_span_data = target_span.data();
     let mut enclosing_hir = Self::find_matching(
-      |span| span.contains(loc_span_data),
+      |span| span.contains(target_span_data),
       self.hir_spans.iter().map(|span| (span.full, span)),
     )
     .collect::<Vec<_>>();
@@ -390,12 +394,12 @@ where
     // Get the spans of the immediately enclosing HIR node
     assert!(
       !enclosing_hir.is_empty(),
-      "Location {location:?} (span {loc_span:?}) had no enclosing HIR nodes"
+      "Location {location:?} (span {target_span:?}) had no enclosing HIR nodes"
     );
     let mut hir_spans = enclosing_hir.remove(0).get_spans(span_type);
 
     // Include the MIR span
-    hir_spans.push(loc_span);
+    hir_spans.push(target_span);
 
     // Add the spans of the first enclosing statement
     if let Some(hir_span) = enclosing_hir
@@ -405,7 +409,7 @@ where
       hir_spans.extend(hir_span.get_spans(span_type));
     }
 
-    if let Either::Right(terminator) = self.body.stmt_at(location) {
+    if let Some(Either::Right(terminator)) = stmt {
       match terminator.kind {
         TerminatorKind::SwitchInt { .. } => {
           // If the location is a switch, then include the closest enclosing if or loop
@@ -441,7 +445,7 @@ where
     trace!(
       "Location {location:?} ({})\n  has loc span:\n  {}\n  and HIR spans:\n  {}",
       utils::location_to_string(location, self.body),
-      format_spans(&[loc_span]),
+      format_spans(&[target_span]),
       format_spans(&hir_spans)
     );
 
@@ -469,7 +473,7 @@ where
     let mut containing =
       Self::find_matching(move |mir_span| mir_span.contains(span_data), spans);
 
-    if let Some(first) = contained.next() {
+    let mut vec = if let Some(first) = contained.next() {
       contained
         .take_while(|other| other.span.size() == first.span.size())
         .chain([first])
@@ -481,7 +485,9 @@ where
         .collect()
     } else {
       Vec::new()
-    }
+    };
+    vec.dedup();
+    vec
   }
 }
 
@@ -714,6 +720,11 @@ mod test {
 }"#;
     let (input, _ranges) = test_utils::parse_ranges(src, [("`(", ")`")]).unwrap();
     test_utils::compile_body(input, move |tcx, body_id, body_with_facts| {
+      let location_domain = LocationDomain::new(
+        &body_with_facts.body,
+        tcx,
+        tcx.hir().body_owner_def_id(body_id).to_def_id(),
+      );
       let source_map = tcx.sess.source_map();
 
       let spanner = Spanner::new(tcx, body_id, &body_with_facts.body);
@@ -763,7 +774,8 @@ mod test {
           block: BasicBlock::from_usize(*i),
           statement_index: *j,
         };
-        let spans = spanner.location_to_spans(loc, EnclosingHirSpans::OuterOnly);
+        let spans =
+          spanner.location_to_spans(loc, &location_domain, EnclosingHirSpans::OuterOnly);
         let desired = outp.iter().collect::<HashSet<_>>();
         let actual = spans
           .into_iter()

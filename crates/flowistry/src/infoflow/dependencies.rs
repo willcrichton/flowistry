@@ -11,7 +11,10 @@ use super::{
 };
 use crate::{
   block_timer,
-  indexed::impls::{LocationSet, PlaceSet},
+  indexed::{
+    impls::{LocationSet, PlaceSet},
+    IndexedDomain,
+  },
   mir::utils::SpanExt,
   source_map::{EnclosingHirSpans, Spanner},
 };
@@ -140,17 +143,12 @@ impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
     block: BasicBlock,
   ) {
     if block == START_BLOCK {
-      self.visit(
-        state,
-        None,
-        self
-          .analysis
-          .location_domain()
-          .all_args()
-          .map(|(place, _)| place)
-          .collect(),
-        false,
-      );
+      let location_domain = self.analysis.location_domain();
+      for (place, idx) in location_domain.all_args() {
+        let mut to_check = HashSet::default();
+        to_check.insert(place);
+        self.visit(state, Some(*location_domain.value(idx)), to_check, false);
+      }
     }
   }
 
@@ -245,13 +243,18 @@ pub fn compute_dependency_spans(
   let tcx = results.analysis.tcx;
   let body = results.analysis.body;
 
+  let location_domain = results.analysis.location_domain();
   let deps = compute_dependencies(results, targets, direction);
 
   deps
     .into_iter()
     .map(|(locations, places)| {
       let location_spans = locations.iter().flat_map(|location| {
-        spanner.location_to_spans(*location, EnclosingHirSpans::OuterOnly)
+        spanner.location_to_spans(
+          *location,
+          location_domain,
+          EnclosingHirSpans::OuterOnly,
+        )
       });
 
       let place_spans = places
