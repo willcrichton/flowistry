@@ -90,7 +90,11 @@ pub fn decompose(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<DecomposeOutput> 
           let spans = Span::merge_overlaps(
             c.into_iter()
               .flat_map(|location| {
-                spanner.location_to_spans(*location, EnclosingHirSpans::OuterOnly)
+                spanner.location_to_spans(
+                  *location,
+                  results.analysis.location_domain(),
+                  EnclosingHirSpans::OuterOnly,
+                )
               })
               .collect::<Vec<_>>(),
           );
