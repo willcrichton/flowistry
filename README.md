@@ -2,7 +2,7 @@
 
 [![tests](https://github.com/willcrichton/flowistry/actions/workflows/tests.yml/badge.svg)](https://github.com/willcrichton/flowistry/actions/workflows/ci.yml)
 [![crates.io](https://img.shields.io/crates/v/flowistry.svg)](https://crates.io/crates/flowistry)
-
+[![docs](https://img.shields.io/badge/docs-built-blue)](https://willcrichton.net/flowistry/flowistry)
 
 Flowistry is a tool that analyzes the [information flow](https://en.wikipedia.org/wiki/Information_flow_(information_theory)) of Rust programs. Flowistry understands whether it's possible for one piece of code to affect another. Flowistry integrates into the IDE to provide a "focus mode" which helps you focus on the code that's related to your current task. 
 
@@ -46,6 +46,8 @@ Flowistry is available as a VSCode plugin. You can install Flowistry from the [V
 * Search for "Flowistry" and then click "Install".
 * Open a Rust workspace and wait for the tool to finish installing.
 
+**Note on platform support:** Flowistry does not yet support Windows (#27) or NixOS (#26). Flowistry cannot provide pre-built binaries for ARM targets like M1 Macs (#25), so Flowistry must be installed from scratch on these targets (this is done for you, but will take a few more minutes than usual).
+
 Alternatively, you can install it from source:
 
 ```
@@ -60,6 +62,7 @@ npm install
 npm run build
 ln -s $(pwd) ~/.vscode/extensions/flowistry
 ```
+
 
 If you are interested in using the underlying analysis, take a look at the documentation for the `flowistry` crate: https://willcrichton.net/flowistry/flowistry/
 
