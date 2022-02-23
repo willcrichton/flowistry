@@ -28,12 +28,21 @@ jobs:
         include:
           - os: ubuntu-20.04
             target: x86_64-unknown-linux-gnu
-          - os: ubuntu-20.04
-            target: aarch64-unknown-linux-gnu
           - os: macos-10.15
             target: x86_64-apple-darwin
-          - os: macos-11
-            target: aarch64-apple-darwin
+
+          ## TODO: rustc_private is inserting incorrect dylib/so paths on ARM
+          ## targets b/c the Github Actions runner is x86, see issue #25.
+          ## Either:
+          ##   * rustc_private cross compilation needs to get fixed
+          ##   * or github actions needs to provide ARM runners
+          ## For what's been tried so far, see:
+          ##   https://rust-lang.zulipchat.com/#narrow/stream/182449-t-compiler.2Fhelp/topic/rustc_private.20cross-compilation
+          # - os: ubuntu-20.04
+          #   target: aarch64-unknown-linux-gnu
+          # - os: macos-11
+          #   target: aarch64-apple-darwin
+
           ## TODO: need to fix windows bugs before building for windows.
           # - os: windows-2019
           #   target: x86_64-pc-windows-msvc
@@ -52,7 +61,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release --target ${{ matrix.target }}
+          args: --release
       - run: rm -f cargo-flowistry.d flowistry-driver.d && zip ${{ matrix.target }}.zip cargo-flowistry* flowistry-driver*
         working-directory: target/release
       - uses: actions/upload-artifact@v2
@@ -69,9 +78,7 @@ jobs:
         with:
           files: |
             x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu.zip
-            aarch64-unknown-linux-gnu/aarch64-unknown-linux-gnu.zip
             x86_64-apple-darwin/x86_64-apple-darwin.zip   
-            aarch64-apple-darwin/aarch64-apple-darwin.zip
 
   publish-extension:
     needs: publish-release
