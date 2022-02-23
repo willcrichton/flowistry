@@ -4,8 +4,15 @@ This crate contains the core analysis used by the [Flowistry](https://github.com
 
 Documentation: [https://willcrichton.net/flowistry/flowistry/](https://willcrichton.net/flowistry/flowistry/)
 
-For details about this analysis, please read our paper ["Modular Information Flow Through Ownership"](COMING_SOON). If you use Flowistry in your research, please cite our paper:
+For details about this analysis, please read our paper ["Modular Information Flow Through Ownership"](https://arxiv.org/abs/2111.13662). If you use Flowistry in your research, please cite our paper:
 
 ```bibtex
-@citation_coming_soon{}
+@misc{crichton2021modular,
+      title={Modular Information Flow Through Ownership}, 
+      author={Will Crichton and Marco Patrignani and Maneesh Agrawala and Pat Hanrahan},
+      year={2021},
+      eprint={2111.13662},
+      archivePrefix={arXiv},
+      primaryClass={cs.PL}
+}
 ```
