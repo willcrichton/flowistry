@@ -37,6 +37,6 @@ export let download = async () => {
   log(`Downloading ${release_url} to ${cargo_bin}`);
   let buffer = await got.get(release_url).buffer();
   let zip = new AdmZip(buffer);
-  zip.extractAllTo(cargo_bin);
+  zip.extractAllTo(cargo_bin, true);
   globals.status_bar.set_state("idle");
 };
