@@ -34,6 +34,7 @@ jobs:
             target: x86_64-apple-darwin
           - os: macos-11
             target: aarch64-apple-darwin
+          ## TODO: need to fix windows bugs before building for windows.
           # - os: windows-2019
           #   target: x86_64-pc-windows-msvc
           # - os: windows-2019
@@ -51,7 +52,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release
+          args: --release --target ${{ matrix.target }}
       - run: rm -f cargo-flowistry.d flowistry-driver.d && zip ${{ matrix.target }}.zip cargo-flowistry* flowistry-driver*
         working-directory: target/release
       - uses: actions/upload-artifact@v2
