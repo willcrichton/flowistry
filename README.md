@@ -1,4 +1,4 @@
-# <img src="https://user-images.githubusercontent.com/663326/134070630-47b95f41-a4a7-4ded-a5cb-9884d1af2468.png" height="25" /> Flowistry: Information Flow in the IDE for Rust
+# <img src="https://user-images.githubusercontent.com/663326/134070630-47b95f41-a4a7-4ded-a5cb-9884d1af2468.png" height="25" /> Flowistry: Information Flow for Rust
 
 [![tests](https://github.com/willcrichton/flowistry/actions/workflows/tests.yml/badge.svg)](https://github.com/willcrichton/flowistry/actions/workflows/ci.yml)
 [![crates.io](https://img.shields.io/crates/v/flowistry.svg)](https://crates.io/crates/flowistry)
@@ -24,29 +24,32 @@ Flowistry can be helpful when you're reading a function with a lot of code. For 
 
 **Table of contents**
 * [Installation](#installation)
+    * [IDE plugin](#ide-plugin)
+    * [Rustc plugin](#rustc-plugin)
 * [Usage](#usage)
-    * [1. Startup](#1-startup)
-    * [2. Entering focus mode](#2-entering-focus-mode)
-    * [3. Setting a mark](#3-setting-a-mark)
-    * [4. Selecting the focus region](#4-selecting-the-focus-region)
+    * [Startup](#startup)
+    * [Entering focus mode](#entering-focus-mode)
+    * [Setting a mark](#setting-a-mark)
+    * [Selecting the focus region](#selecting-the-focus-region)
 * [Limitations](#limitations)
-    * [1. Flowistry does not completely handle interior mutability](#1-flowistry-does-not-completely-handle-interior-mutability)
-    * [2. A focus region may include more code than you expect](#2-a-focus-region-may-include-more-code-than-you-expect)
-    * [3. Not all code is selectable](#3-not-all-code-is-selectable)
+    * [Flowistry does not completely handle interior mutability](#flowistry-does-not-completely-handle-interior-mutability)
+    * [A focus region may include more code than you expect](#a-focus-region-may-include-more-code-than-you-expect)
+    * [Not all code is selectable](#not-all-code-is-selectable)
 * [FAQ](#faq)
-    * [1. rustup fails on installation](#1-rustup-fails-on-installation)
-    * [2. Why isn't Flowistry part of Rust Analyzer?](#2-why-isnt-flowistry-part-of-rust-analyzer)
-
+    * [rustup fails on installation](#rustup-fails-on-installation)
+    * [Why isn't Flowistry part of Rust Analyzer?](#why-isnt-flowistry-part-of-rust-analyzer)
 
 
 ## Installation 
+
+### IDE plugin
 
 Flowistry is available as a VSCode plugin. You can install Flowistry from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=wcrichton.flowistry) or the [Open VSX Registry](https://open-vsx.org/extension/wcrichton/flowistry). In VSCode: 
 * Go to the Extensions pane by clicking this button in the left margin: <img width="30" alt="Screen Shot 2021-09-20 at 9 30 43 AM" src="https://user-images.githubusercontent.com/663326/134039225-68d11dce-be71-4f33-8057-569346ef26bc.png">
 * Search for "Flowistry" and then click "Install".
 * Open a Rust workspace and wait for the tool to finish installing.
 
-**Note on platform support:** Flowistry does not yet support Windows (#27) or NixOS (#26). Flowistry cannot provide pre-built binaries for ARM targets like M1 Macs (#25), so Flowistry must be installed from scratch on these targets (this is done for you, but will take a few more minutes than usual).
+**Note on platform support:** Flowistry does not yet support Windows or NixOS. Flowistry cannot provide pre-built binaries for ARM targets like M1 Macs, so Flowistry must be installed from scratch on these targets (this is done for you, but will take a few more minutes than usual).
 
 Alternatively, you can install it from source:
 
@@ -63,12 +66,17 @@ npm run build
 ln -s $(pwd) ~/.vscode/extensions/flowistry
 ```
 
+### Rustc plugin
 
-If you are interested in using the underlying analysis, take a look at the documentation for the `flowistry` crate: https://willcrichton.net/flowistry/flowistry/
+If you are interested in the underlying analysis, you can use the `flowistry` crate published to crates.io: https://crates.io/crates/flowistry
+
+The documentation is published here: https://willcrichton.net/flowistry/flowistry/
+
+> Note: Docs.rs doesn't support documentation for crates that use `#![feature(rustc_private)]` so we have to host it ourselves.
 
 ## Usage
 
-### 1. Startup
+### Startup
 
 Once you have installed Flowistry, open a Rust workspace in VSCode. You should see this icon in the bottom toolbar:
 
@@ -81,7 +89,7 @@ Flowistry starts up by type-checking your codebase. This may take a few minutes 
 
 > Note: Flowistry type-checking results are cached in the `target/flowistry` directory. If you delete this folder, Flowistry will have to recompute types. Also for a large codebase this directory may take up a fair amount of disk space.
 
-### 2. Entering focus mode
+### Entering focus mode
 
 Once Flowistry has booted up, the loading icon will disappear. Then you can enter focus mode by running the "Toggle focus mode" command. By default the keyboard shortcut is Ctrl+R Ctrl+A (⌘+R ⌘+A on Mac), or you can use the Flowistry context menu:
 
@@ -105,11 +113,11 @@ Flowistry infers what you want to focus on based on your cursor. So if you click
 <img width="900" alt="Screen Shot 2022-02-22 at 12 00 22 PM" src="https://user-images.githubusercontent.com/663326/155209805-75a23ed9-01ba-4100-b8bb-324b516f84cf.png">
 </kbd>
 
-### 3. Setting a mark
+### Setting a mark
 
 Sometimes you want to keep the focus region where it is, and click on other code to inspect it without changing focus. For this purpose, Flowistry has a concept of a "mark". Once you have selected code to focus on, you can run the "Set mark" command (Ctrl+R Ctrl+S / ⌘+R ⌘+S). Then a mark is set at your cursor's current position, and the focus will stay there until you run the "Unset mark" command (Ctrl+R Ctrl+D / ⌘+R ⌘+D).
 
-### 4. Selecting the focus region
+### Selecting the focus region
 
 If you want to modify all the code in the focus region, e.g. to comment it out or copy it, then you can run the "Select focused region" command (Ctrl+R Ctrl+T / ⌘+R ⌘+T). This will add the entire focus region into your editor's selection.
 
@@ -119,7 +127,7 @@ Flowistry is an active research project into the applications of information flo
 
 If you have questions or issues, please [file a Github issue](https://github.com/willcrichton/flowistry/issues), [join our Discord](https://discord.gg/XkcpkQn2Ah), or [DM @wcrichton on Twitter](https://twitter.com/wcrichton).
 
-### 1. Flowistry does not completely handle interior mutability
+### Flowistry does not completely handle interior mutability
 
 When your code has references, Flowistry needs to understand what that reference points-to. Flowistry uses Rust's lifetime information to determine points-to information. However, data structures that use interior mutability such as `Arc<Mutex<T>>` explicitly *do not* share lifetimes between pointers to the same data. For example, in this snippet: 
 
@@ -134,7 +142,7 @@ Flowistry *can* determine that `*x.lock().unwrap() = 1` is a mutation to `x`, bu
 
 We are researching methods to overcome this limitation, but for now just be aware that this is the main case where Flowistry is known to provide an incorrect answer.
 
-### 2. A focus region may include more code than you expect
+### A focus region may include more code than you expect
 
 Flowistry's analysis tries to include all code that *could* have an influence on a focal point. This analysis makes a number of assumptions for both practical and fundamental reasons. For example, in this snippet:
 
@@ -148,7 +156,7 @@ If you focus on `v` on line 3, it will include `v.get_mut(0)` as an operation th
 
 In general, you should use focus mode as a pruning tool. If code is faded out, then you don't have to read it (minus the limitation mentioned above!). If it isn't faded out, then it might be relevant to your task.
 
-### 3. Not all code is selectable
+### Not all code is selectable
 
 Flowistry works by analyzing the [MIR](https://rustc-dev-guide.rust-lang.org/mir/index.html) graph for a given function using the Rust compiler's API. Then the IDE extension lifts the analysis results from the MIR level back to the source level. However, a lot of information about the program is lost in the journey from source code to MIR. 
 
@@ -158,7 +166,7 @@ This is why the IDE extension highlights the focused code in gray, so you can un
 
 ## FAQ
 
-### 1. rustup fails on installation
+### rustup fails on installation
 
 If rustup fails, especially with an error like "could not rename downloaded file", this is probably because Flowistry is running rustup concurrently with another tool (like rust-analyzer). Until [rustup#988](https://github.com/rust-lang/rustup/issues/988) is resolved, there is unfortunately no automated way around this. 
 
@@ -170,6 +178,6 @@ rustup toolchain install nightly-2022-02-17 -c rust-src -c rustc-dev -c llvm-too
 
 Then go back to VSCode and click "Continue" to let Flowistry continue installing.
 
-### 2. Why isn't Flowistry part of Rust Analyzer?
+### Why isn't Flowistry part of Rust Analyzer?
 
 Rust Analyzer does not support [MIR](https://rustc-dev-guide.rust-lang.org/mir/index.html) and the borrow checker, which are essential parts of Flowistry's analysis. That fact is unlikely to change for a [long time](https://rust-lang.zulipchat.com/#narrow/stream/185405-t-compiler.2Frust-analyzer/topic/How.20far.20is.20RA.20from.20MIR.3F), so Flowistry is a standalone tool.
