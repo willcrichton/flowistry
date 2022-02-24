@@ -67,6 +67,28 @@ pub fn compute_flow<'a, 'tcx>(
       // analysis.into_engine(tcx, body).iterate_to_fixpoint()
     };
 
+    if log::log_enabled!(log::Level::Info) {
+      let counts = body
+        .all_locations()
+        .flat_map(|loc| {
+          let state = results.state_at(loc);
+          state
+            .rows()
+            .map(|(_, locations)| locations.len())
+            .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+
+      let nloc = body.all_locations().count();
+      let np = counts.len();
+      let pavg = np as f64 / (nloc as f64);
+      let nl = counts.into_iter().sum::<usize>();
+      let lavg = nl as f64 / (nloc as f64);
+      log::info!(
+        "Over {nloc} locations, total number of place entries: {np} (avg {pavg:.0}/loc), total size of location sets: {nl} (avg {lavg:.0}/loc)",
+      );
+    }
+
     if std::env::var("DUMP_MIR").is_ok()
       && BODY_STACK.with(|body_stack| body_stack.borrow().len() == 1)
     {

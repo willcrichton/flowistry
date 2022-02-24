@@ -1,6 +1,6 @@
-use std::rc::Rc;
+use std::{hash::Hash, rc::Rc, time::Instant};
 
-use log::debug;
+use log::{debug, info};
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::{
   fx::{FxHashMap as HashMap, FxHashSet as HashSet},
@@ -17,7 +17,7 @@ use rustc_middle::{
     visit::{PlaceContext, Visitor},
     *,
   },
-  ty::{Region, RegionKind, RegionVid, Ty, TyCtxt, TyKind},
+  ty::{Region, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeAndMut},
 };
 
 use crate::{
@@ -25,10 +25,11 @@ use crate::{
   cached::{Cache, CopyCache},
   extensions::{is_extension_active, PointerMode},
   indexed::{
-    impls::{LocationDomain, LocationSet, PlaceSet},
+    impls::{LocationDomain, LocationIndex, LocationSet, PlaceSet},
     IndexMatrix, RefSet,
   },
   mir::utils::{self, PlaceExt},
+  timer::elapsed,
 };
 
 #[derive(Default)]
@@ -129,11 +130,13 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
 
 type LoanMap<'tcx> = HashMap<RegionVid, HashSet<Place<'tcx>>>;
 
+pub const UNKNOWN_REGION: RegionVid = RegionVid::MAX;
+
 pub struct Aliases<'a, 'tcx> {
   // Compiler data
-  tcx: TyCtxt<'tcx>,
-  body: &'a Body<'tcx>,
-  def_id: DefId,
+  pub tcx: TyCtxt<'tcx>,
+  pub body: &'a Body<'tcx>,
+  pub def_id: DefId,
   location_domain: Rc<LocationDomain>,
 
   // Core computed data structure
@@ -143,7 +146,7 @@ pub struct Aliases<'a, 'tcx> {
   normalized_cache: CopyCache<Place<'tcx>, Place<'tcx>>,
   aliases_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
   conflicts_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
-  reachable_cache: Cache<(Place<'tcx>, bool), PlaceSet<'tcx>>,
+  reachable_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
 }
 
 rustc_index::newtype_index! {
@@ -157,10 +160,9 @@ impl Aliases<'a, 'tcx> {
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
     body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
-    location_domain: &Rc<LocationDomain>,
   ) -> LoanMap<'tcx> {
+    let start = Instant::now();
     let body = &body_with_facts.body;
-
     let static_region = RegionVid::from_usize(0);
     let subset_base = &body_with_facts.input_facts.subset_base;
     let all_regions = subset_base.iter().copied().flat_map(|(a, b, _)| [a, b]);
@@ -187,8 +189,7 @@ impl Aliases<'a, 'tcx> {
       // for all p1 : &'a T, p2: &'b T: subset('a, 'b).
       let mut region_to_pointers: HashMap<_, Vec<_>> = HashMap::default();
       for local in body.local_decls().indices() {
-        for (k, vs) in
-          Place::from_local(local, tcx).interior_pointers(tcx, body, def_id, false)
+        for (k, vs) in Place::from_local(local, tcx).interior_pointers(tcx, body, def_id)
         {
           region_to_pointers.entry(k).or_default().extend(vs);
         }
@@ -211,7 +212,7 @@ impl Aliases<'a, 'tcx> {
 
     // For all e = &'a x.q in body:
     //   contains('a, p).
-    //   If p = p^[* p']: definite('a, ty(p'), p'^[])
+    //   If p = p^[* p2]: definite('a, ty(p2), p2^[])
     //   Else:            definite('a, ty(p),  p^[]).
     let mut gather_borrows = GatherBorrows::default();
     gather_borrows.visit_body(&body_with_facts.body);
@@ -232,15 +233,43 @@ impl Aliases<'a, 'tcx> {
     }
 
     // For all args p : &'a T where 'a is abstract: contains('a, *p).
-    for (arg, _) in location_domain.all_args() {
-      let ty = arg.ty(body.local_decls(), tcx).ty;
-      if let TyKind::Ref(region_pat!(region), _, _) = ty.kind() {
-        contains
-          .entry(*region)
-          .or_default()
-          .insert(tcx.mk_place_deref(arg));
+    for arg in body.args_iter() {
+      for (region, places) in
+        Place::from_local(arg, tcx).interior_pointers(tcx, body, def_id)
+      {
+        let region_contains = contains.entry(region).or_default();
+        for (place, _) in places {
+          // WARNING / TODO: this is a huge hack (that is conjoined w/ all_args).
+          // Need a way to limit the number of possible pointers for functions with
+          // many pointers in the input. This is almost certainly not sound, but hopefully
+          // it works for most cases.
+          if place.projection.len() <= 2 {
+            region_contains.insert(tcx.mk_place_deref(place));
+          }
+        }
       }
     }
+
+    // For all places p : *T or p : Box<T>: contains('UNK, *p).
+    let unk_contains = contains.entry(UNKNOWN_REGION).or_default();
+    for local in body.local_decls().indices() {
+      for (region, places) in
+        Place::from_local(local, tcx).interior_pointers(tcx, body, def_id)
+      {
+        if region == UNKNOWN_REGION {
+          for (place, _) in places {
+            unk_contains.insert(tcx.mk_place_deref(place));
+          }
+        }
+      }
+    }
+    info!(
+      "Initial places in loan set: {}, total regions {}, definite regions: {}",
+      contains.values().map(|set| set.len()).sum::<usize>(),
+      contains.len(),
+      definite.len()
+    );
+
     debug!("Initial contains: {contains:#?}");
     debug!("Definite: {definite:#?}");
 
@@ -259,6 +288,7 @@ impl Aliases<'a, 'tcx> {
       scc_to_regions[scc].insert(r);
     }
     let scc_order = reverse_post_order(&subset_sccs, subset_sccs.scc(static_region));
+    elapsed("relation construction", start);
 
     // Subset implies containment: p ∈ 'a ∧ 'a ⊆ 'b ⇒ p ∈ 'b
     // i.e. contains('b, p) :- contains('a, p), subset('a, 'b).
@@ -282,28 +312,38 @@ impl Aliases<'a, 'tcx> {
     //
     // Rather than iterating over the entire subset relation, we only do local fixpoints
     // within each strongly-connected component.
-
+    let start = Instant::now();
+    for i in 0 .. num_regions {
+      contains.entry(RegionVid::from_usize(i)).or_default();
+    }
     for scc in scc_order {
       loop {
         let mut changed = false;
         for a in scc_to_regions[scc].iter() {
           for b in subset.iter(a) {
+            if a == b {
+              continue;
+            }
+
+            // SAFETY: a != b
+            let a_contains =
+              unsafe { &*(contains.get(&a).unwrap() as *const PlaceSet<'tcx>) };
+            let b_contains =
+              unsafe { &mut *(contains.get_mut(&b).unwrap() as *mut PlaceSet<'tcx>) };
+
             let cyclic = subset.contains(b, a);
+            for p in a_contains.iter() {
+              let p_ty = p.ty(body.local_decls(), tcx).ty;
+              let p_proj = match definite.get(&b) {
+                Some((ty, proj)) if !cyclic && *ty == p_ty => {
+                  let mut full_proj = p.projection.to_vec();
+                  full_proj.extend(proj);
+                  Place::make(p.local, tcx.intern_place_elems(&full_proj), tcx)
+                }
+                _ => *p,
+              };
 
-            if let Some(places) = contains.get(&a).cloned() {
-              for p in places {
-                let p_ty = p.ty(body.local_decls(), tcx).ty;
-                let p_proj = match definite.get(&b) {
-                  Some((ty, proj)) if !cyclic && *ty == p_ty => {
-                    let mut full_proj = p.projection.to_vec();
-                    full_proj.extend(proj);
-                    Place::make(p.local, tcx.intern_place_elems(&full_proj), tcx)
-                  }
-                  _ => p,
-                };
-
-                changed |= contains.entry(b).or_default().insert(p_proj);
-              }
+              changed |= b_contains.insert(p_proj);
             }
           }
         }
@@ -313,7 +353,12 @@ impl Aliases<'a, 'tcx> {
         }
       }
     }
+    elapsed("fixpoint", start);
 
+    info!(
+      "Final places in loan set: {}",
+      contains.values().map(|set| set.len()).sum::<usize>()
+    );
     contains
   }
 
@@ -325,9 +370,9 @@ impl Aliases<'a, 'tcx> {
     block_timer!("aliases");
     let body = &body_with_facts.body;
 
-    let location_domain = LocationDomain::new(body, tcx, def_id);
+    let location_domain = LocationDomain::new(body);
 
-    let loans = Self::compute_loans(tcx, def_id, body_with_facts, &location_domain);
+    let loans = Self::compute_loans(tcx, def_id, body_with_facts);
     debug!("Loans: {loans:?}");
 
     Aliases {
@@ -365,12 +410,13 @@ impl Aliases<'a, 'tcx> {
       let (ptr, after) = *place.refs_in_projection().last().unwrap();
 
       // ptr : &'region orig_ty
-      let (region, orig_ty) = match ptr.ty(self.body.local_decls(), self.tcx).ty.kind() {
+      let ptr_ty = ptr.ty(self.body.local_decls(), self.tcx).ty;
+      let (region, orig_ty) = match ptr_ty.kind() {
+        _ if ptr_ty.is_box() => (UNKNOWN_REGION, ptr_ty.boxed_ty()),
+        TyKind::RawPtr(TypeAndMut { ty, .. }) => (UNKNOWN_REGION, *ty),
         TyKind::Ref(Region(Interned(RegionKind::ReVar(region), _)), ty, _) => {
-          (*region, ty)
+          (*region, *ty)
         }
-        // ty => unreachable!("{:?} / {:?}", place, ty),
-        // TODO: how to deal with box?
         _ => {
           return aliases;
         }
@@ -387,7 +433,7 @@ impl Aliases<'a, 'tcx> {
         .flatten();
       let region_aliases = region_loans.map(|loan| {
         let loan_ty = loan.ty(self.body.local_decls(), self.tcx).ty;
-        if *orig_ty == loan_ty {
+        if orig_ty == loan_ty {
           let mut projection = loan.projection.to_vec();
           projection.extend(after.iter().copied());
           Place::make(loan.local, &projection, self.tcx)
@@ -423,18 +469,47 @@ impl Aliases<'a, 'tcx> {
     })
   }
 
-  pub fn reachable_values(&self, place: Place<'tcx>, shallow: bool) -> &PlaceSet<'tcx> {
-    self.reachable_cache.get((place, shallow), |(place, _)| {
+  pub fn reachable_values(&self, place: Place<'tcx>) -> &PlaceSet<'tcx> {
+    self.reachable_cache.get(place, |place| {
       let interior_pointer_places = place
-        .interior_pointers(self.tcx, self.body, self.def_id, shallow)
+        .interior_pointers(self.tcx, self.body, self.def_id)
         .into_values()
         .flat_map(|v| v.into_iter().map(|(place, _)| place));
 
       interior_pointer_places
         .flat_map(|place| self.aliases(self.tcx.mk_place_deref(place)).iter().copied())
         .chain([place])
-        .filter(|place| place.is_direct(self.body))
+        .filter(|place| {
+          if let Some((place, _)) = place.refs_in_projection().last() {
+            let ty = place.ty(self.body.local_decls(), self.tcx).ty;
+            if ty.is_box() || ty.is_unsafe_ptr() {
+              return true;
+            }
+          }
+
+          place.is_direct(self.body)
+        })
         .collect()
+    })
+  }
+
+  pub fn all_args(&'a self) -> impl Iterator<Item = (Place<'tcx>, LocationIndex)> + 'a {
+    self.body.args_iter().flat_map(|local| {
+      let location = self.location_domain().arg_to_location(local);
+      let place = Place::from_local(local, self.tcx);
+      let ptrs = place
+        .interior_pointers(self.tcx, self.body, self.def_id)
+        .into_values()
+        .flat_map(|ptrs| {
+          ptrs
+            .into_iter()
+            .filter(|(ptr, _)| ptr.projection.len() <= 2)
+            .map(|(ptr, _)| self.tcx.mk_place_deref(ptr))
+        });
+      ptrs
+        .chain([place])
+        .flat_map(|place| place.interior_places(self.tcx, self.body, self.def_id))
+        .map(move |place| (place, location))
     })
   }
 

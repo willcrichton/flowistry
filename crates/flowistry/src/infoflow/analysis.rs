@@ -195,7 +195,7 @@ impl AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
   }
 
   fn initialize_start_block(&self, _body: &Body<'tcx>, state: &mut Self::Domain) {
-    for (arg, loc) in self.location_domain().all_args() {
+    for (arg, loc) in self.aliases.all_args() {
       for place in self.aliases.conflicts(arg) {
         debug!(
           "arg={arg:?} / place={place:?} / loc={:?}",

@@ -6,8 +6,8 @@ import os from "os";
 import path from "path";
 import * as util from "util";
 
-import { log } from "./logging";
 import { globals } from "./extension";
+import { log } from "./logging";
 
 declare const VERSION: string;
 

@@ -356,8 +356,8 @@ where
     location_domain: &Rc<LocationDomain>,
     span_type: EnclosingHirSpans,
   ) -> Vec<Span> {
-    let (target_span, stmt) = match location_domain.location_to_arg(location) {
-      Some(place) => (self.body.local_decls[place.local].source_info.span, None),
+    let (target_span, stmt) = match location_domain.location_to_local(location) {
+      Some(local) => (self.body.local_decls[local].source_info.span, None),
       None => (
         self.body.source_info(location).span,
         Some(self.body.stmt_at(location)),
@@ -714,11 +714,7 @@ mod test {
 }"#;
     let (input, _ranges) = test_utils::parse_ranges(src, [("`(", ")`")]).unwrap();
     test_utils::compile_body(input, move |tcx, body_id, body_with_facts| {
-      let location_domain = LocationDomain::new(
-        &body_with_facts.body,
-        tcx,
-        tcx.hir().body_owner_def_id(body_id).to_def_id(),
-      );
+      let location_domain = LocationDomain::new(&body_with_facts.body);
       let source_map = tcx.sess.source_map();
 
       let spanner = Spanner::new(tcx, body_id, &body_with_facts.body);
