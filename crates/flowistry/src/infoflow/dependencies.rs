@@ -46,7 +46,7 @@ impl TargetDeps {
       .into_iter()
       .flat_map(|(place, location)| {
         aliases
-          .reachable_values(place, true)
+          .reachable_values(place)
           .iter()
           .map(move |reachable| (*reachable, location))
       })
@@ -144,7 +144,7 @@ impl ResultsVisitor<'mir, 'tcx> for DepVisitor<'_, 'mir, 'tcx> {
   ) {
     if block == START_BLOCK {
       let location_domain = self.analysis.location_domain();
-      for (place, idx) in location_domain.all_args() {
+      for (place, idx) in self.analysis.aliases.all_args() {
         let mut to_check = HashSet::default();
         to_check.insert(place);
         self.visit(state, Some(*location_domain.value(idx)), to_check, false);

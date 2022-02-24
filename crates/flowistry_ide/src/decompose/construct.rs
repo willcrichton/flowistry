@@ -25,7 +25,7 @@ pub fn compute_adjacency_matrix(
 
   let mut mutation_locs = IndexMatrix::new(location_domain);
 
-  for (arg, loc) in location_domain.all_args() {
+  for (arg, loc) in analysis.aliases.all_args() {
     mutation_locs.insert(arg, loc);
   }
 

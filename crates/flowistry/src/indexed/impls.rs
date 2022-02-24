@@ -1,18 +1,11 @@
-use std::{mem, rc::Rc};
+use std::rc::Rc;
 
-use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
+use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_index::vec::IndexVec;
-use rustc_middle::{
-  mir::{BasicBlock, Body, Location, Place},
-  ty::TyCtxt,
-};
-use rustc_span::def_id::DefId;
+use rustc_middle::mir::{BasicBlock, Body, Local, Location, Place};
 
 use super::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, OwnedSet, ToIndex};
-use crate::{
-  mir::utils::{BodyExt, PlaceExt},
-  to_index_impl,
-};
+use crate::{mir::utils::BodyExt, to_index_impl};
 
 rustc_index::newtype_index! {
   pub struct LocationIndex {
@@ -30,94 +23,93 @@ impl IndexedValue for Location {
 pub type LocationSet<S = OwnedSet<Location>> = IndexSet<Location, S>;
 pub struct LocationDomain {
   domain: DefaultDomain<LocationIndex, Location>,
-  arg_to_location: HashMap<Place<'static>, LocationIndex>,
-  location_to_arg: HashMap<LocationIndex, Place<'static>>,
+  arg_block: BasicBlock,
+  real_locations: usize,
+  // arg_to_location: HashMap<Place<'static>, LocationIndex>,
+  // location_to_arg: HashMap<LocationIndex, Place<'static>>,
 }
 
 impl LocationDomain {
-  pub fn new(body: &Body<'tcx>, tcx: TyCtxt<'tcx>, def_id: DefId) -> Rc<Self> {
+  pub fn new(body: &Body<'tcx>) -> Rc<Self> {
     let mut locations = body.all_locations().collect::<Vec<_>>();
 
     let arg_block = BasicBlock::from_usize(body.basic_blocks().len());
 
-    // TODO: the shallow interior_pointers was designed to avoid blowing up
-    // the size of the location domain if there's a ton of reachable pointers
-    // from the arguments, e.g. see
-    //   rust/compiler/rustc_typeck/src/check/op.rs 21361
-    // for a stress test. But not sure if this is sound yet.
-    let mut arg_places = body
-      .args_iter()
-      .flat_map(|local| {
-        let place = Place::from_local(local, tcx);
-        let ptrs = place
-          .interior_pointers(tcx, body, def_id, true)
-          .into_values()
-          .flat_map(|ptrs| ptrs.into_iter().map(|(ptr, _)| tcx.mk_place_deref(ptr)));
-        ptrs
-          .chain([place])
-          .flat_map(|place| place.interior_places(tcx, body, def_id))
-      })
-      .map(|place| unsafe { mem::transmute::<Place<'tcx>, Place<'static>>(place) })
-      .collect::<Vec<_>>();
-    arg_places.dedup();
+    // let mut arg_places = body
+    //   .args_iter()
+    //   .flat_map(|local| {
+    //     let place = Place::from_local(local, tcx);
+    //     let ptrs = place
+    //       .interior_pointers(tcx, body, def_id)
+    //       .into_values()
+    //       .flat_map(|ptrs| ptrs.into_iter().map(|(ptr, _)| tcx.mk_place_deref(ptr)));
+    //     ptrs
+    //       .chain([place])
+    //       .flat_map(|place| place.interior_places(tcx, body, def_id))
+    //   })
+    //   .map(|place| unsafe { mem::transmute::<Place<'tcx>, Place<'static>>(place) })
+    //   .collect::<Vec<_>>();
+    // arg_places.dedup();
 
-    let arg_locations = (0 .. arg_places.len())
-      .map(|i| Location {
-        block: arg_block,
-        statement_index: i,
-      })
-      .collect::<Vec<_>>();
+    // let arg_locations = (0 .. arg_places.len())
+    //   .map(|i| Location {
+    //     block: arg_block,
+    //     statement_index: i,
+    //   })
+    //   .collect::<Vec<_>>();
 
-    log::debug!("Arg places: {arg_places:?}");
-    log::info!(
-      "Location domain size: {} real, {} args",
-      locations.len(),
-      arg_places.len()
-    );
+    let real_locations = locations.len();
 
-    locations.extend(&arg_locations);
+    let arg_locations = (0 .. body.arg_count).map(|i| Location {
+      block: arg_block,
+      statement_index: i + 1,
+    });
+    locations.extend(arg_locations);
 
     let domain = DefaultDomain::new(locations);
 
-    let arg_to_location = arg_places
-      .into_iter()
-      .zip(arg_locations.iter().map(|loc| domain.index(loc)))
-      .collect::<HashMap<_, _>>();
+    // let arg_to_location = arg_places
+    //   .into_iter()
+    //   .zip(arg_locations.iter().map(|loc| domain.index(loc)))
+    //   .collect::<HashMap<_, _>>();
 
-    let location_to_arg = arg_to_location
-      .iter()
-      .map(|(k, v)| (*v, *k))
-      .collect::<HashMap<_, _>>();
+    // let location_to_arg = arg_to_location
+    //   .iter()
+    //   .map(|(k, v)| (*v, *k))
+    //   .collect::<HashMap<_, _>>();
 
     Rc::new(LocationDomain {
       domain,
-      arg_to_location,
-      location_to_arg,
+      arg_block,
+      real_locations
+      // arg_to_location,
+      // location_to_arg,
     })
   }
 
   pub fn num_real_locations(&self) -> usize {
-    self.domain.size() - self.arg_to_location.len()
+    self.real_locations
   }
 
-  pub fn all_args(&'a self) -> impl Iterator<Item = (Place<'tcx>, LocationIndex)> + 'a {
-    self.arg_to_location.iter().map(|(arg, loc)| {
-      let arg = unsafe { mem::transmute::<Place<'tcx>, Place<'static>>(*arg) };
-      (arg, *loc)
-    })
+  // pub fn all_args(&'a self) -> impl Iterator<Item = (Place<'tcx>, LocationIndex)> + 'a {
+  //   self.arg_to_location.iter().map(|(arg, loc)| {
+  //     let arg = unsafe { mem::transmute::<Place<'tcx>, Place<'static>>(*arg) };
+  //     (arg, *loc)
+  //   })
+  // }
+
+  pub fn arg_to_location(&self, local: Local) -> LocationIndex {
+    let location = Location {
+      block: self.arg_block,
+      statement_index: local.as_usize(),
+    };
+    self.index(&location)
   }
 
-  pub fn arg_to_location(&self, arg: Place<'tcx>) -> LocationIndex {
-    let arg = unsafe { mem::transmute::<Place<'tcx>, Place<'static>>(arg) };
-    *self.arg_to_location.get(&arg).unwrap()
-  }
-
-  pub fn location_to_arg(&self, location: impl ToIndex<Location>) -> Option<Place<'tcx>> {
-    let arg = self
-      .location_to_arg
-      .get(&location.to_index(self))
-      .copied()?;
-    Some(unsafe { mem::transmute::<Place<'static>, Place<'tcx>>(arg) })
+  pub fn location_to_local(&self, location: impl ToIndex<Location>) -> Option<Local> {
+    let location = self.value(location.to_index(self));
+    (location.block == self.arg_block)
+      .then(|| Local::from_usize(location.statement_index))
   }
 }
 

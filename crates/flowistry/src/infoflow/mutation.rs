@@ -93,7 +93,7 @@ where
       } => {
         let inputs_for_arg = |arg: Place<'tcx>| {
           arg
-            .interior_pointers(tcx, self.body, self.def_id, false)
+            .interior_pointers(tcx, self.body, self.def_id)
             .into_values()
             .flat_map(|places| {
               places

@@ -24,7 +24,8 @@ use rustc_middle::{
   },
   traits::ObligationCause,
   ty::{
-    self, AdtKind, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeFoldable, TypeVisitor,
+    self, AdtKind, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeAndMut, TypeFoldable,
+    TypeVisitor,
   },
 };
 use rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
@@ -33,7 +34,10 @@ use rustc_target::abi::VariantIdx;
 use rustc_trait_selection::infer::InferCtxtExt;
 use smallvec::SmallVec;
 
-use crate::extensions::{is_extension_active, MutabilityMode};
+use crate::{
+  extensions::{is_extension_active, MutabilityMode},
+  mir::aliases::UNKNOWN_REGION,
+};
 
 pub trait OperandExt<'tcx> {
   fn to_place(&self) -> Option<Place<'tcx>>;
@@ -60,7 +64,7 @@ pub fn arg_mut_ptrs<'tcx>(
     .iter()
     .flat_map(|(i, place)| {
       place
-        .interior_pointers(tcx, body, def_id, false)
+        .interior_pointers(tcx, body, def_id)
         .into_iter()
         .flat_map(|(_, places)| {
           places
@@ -289,7 +293,6 @@ pub trait PlaceExt<'tcx> {
     tcx: TyCtxt<'tcx>,
     body: &Body<'tcx>,
     def_id: DefId,
-    shallow: bool,
   ) -> HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>;
   fn interior_places(
     &self,
@@ -364,7 +367,6 @@ impl PlaceExt<'tcx> for Place<'tcx> {
     tcx: TyCtxt<'tcx>,
     body: &Body<'tcx>,
     def_id: DefId,
-    shallow: bool,
   ) -> HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>> {
     let ty = self.ty(body.local_decls(), tcx).ty;
     let mut region_collector = CollectRegions {
@@ -376,7 +378,9 @@ impl PlaceExt<'tcx> for Place<'tcx> {
       regions: HashMap::default(),
       places: None,
       types: None,
-      stop_at: if shallow {
+      stop_at: if
+      /*shallow*/
+      false {
         StoppingCondition::AfterRefs
       } else {
         StoppingCondition::None
@@ -530,6 +534,7 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
 
     match ty.kind() {
       _ if ty.is_box() => {
+        self.visit_region(self.tcx.mk_region(RegionKind::ReVar(UNKNOWN_REGION)));
         self.place_stack.push(ProjectionElem::Deref);
         self.visit_ty(ty.boxed_ty());
         self.place_stack.pop();
@@ -609,8 +614,14 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
         self.visit_ty(substs.as_closure().tupled_upvars_ty());
       }
 
-      TyKind::RawPtr(_)
-      | TyKind::Projection(_)
+      TyKind::RawPtr(TypeAndMut { ty, .. }) => {
+        self.visit_region(self.tcx.mk_region(RegionKind::ReVar(UNKNOWN_REGION)));
+        self.place_stack.push(ProjectionElem::Deref);
+        self.visit_ty(*ty);
+        self.place_stack.pop();
+      }
+
+      TyKind::Projection(_)
       | TyKind::FnDef(_, _)
       | TyKind::FnPtr(_)
       | TyKind::Opaque(_, _)
