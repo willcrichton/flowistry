@@ -146,7 +146,7 @@ export async function setup(
 
       if (choice === "Show fix") {
         open(
-          "https://github.com/willcrichton/flowistry/blob/master/README.md#1-rustup-fails-on-installation"
+          "https://github.com/willcrichton/flowistry/blob/master/README.md#rustup-fails-on-installation"
         );
         await vscode.window.showInformationMessage(
           'Click "Continue" once you have completed the fix.',

@@ -19,6 +19,7 @@ extern crate rustc_driver;
 extern crate rustc_hir;
 extern crate rustc_interface;
 extern crate rustc_middle;
+extern crate rustc_span;
 
 use std::process::Command;
 
@@ -26,8 +27,9 @@ use flowistry::{
   infoflow::Direction,
   mir::{
     borrowck_facts,
-    utils::{BodyExt, PlaceExt},
+    utils::{BodyExt, PlaceExt, SpanExt},
   },
+  source_map::{EnclosingHirSpans, Spanner},
 };
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_hir::{BodyId, ItemKind};
@@ -35,6 +37,7 @@ use rustc_middle::{
   mir::{Local, Location, Place},
   ty::TyCtxt,
 };
+use rustc_span::Span;
 
 // This is the core analysis. Everything below this function is plumbing to
 // call into rustc's API.
@@ -61,15 +64,31 @@ fn analysis<'tcx>(
   )
   .remove(0);
 
-  // And print out those forward dependencies.
+  // And print out those forward dependencies. Two important notes here:
+  // 1. The locations output by `compute_flow` will include locations
+  //    that do not exist in the body. These locations represent dependencies
+  //    on function arguments.
+  // 2. While each location has an associated span in the body, i.e. via
+  //      body.source_info(location).span
+  //    these spans are pretty limited so we have our own infrastructure for
+  //    mapping MIR back to source. That's the Spanner class and the
+  //    location_to_span method.
   println!("The forward dependencies of targets {targets:?} are:");
+  let spanner = Spanner::new(tcx, body_id, &body_with_facts.body);
   let source_map = tcx.sess.source_map();
   for location in location_deps.iter() {
-    let span = body_with_facts.body.source_info(*location).span;
-    println!(
-      "Location {location:?}: \"{}\"",
-      source_map.span_to_snippet(span).unwrap()
-    );
+    let spans = Span::merge_overlaps(spanner.location_to_spans(
+      *location,
+      results.analysis.location_domain(),
+      EnclosingHirSpans::OuterOnly,
+    ));
+    println!("Location {location:?}:");
+    for span in spans {
+      println!(
+        "{}",
+        textwrap::indent(&source_map.span_to_snippet(span).unwrap(), "    ")
+      );
+    }
   }
 }
 
