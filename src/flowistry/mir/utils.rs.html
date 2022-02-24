@@ -961,6 +961,17 @@
 <span id="956">956</span>
 <span id="957">957</span>
 <span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
   <span class="ident">cmp</span>,
   <span class="ident">collections::hash_map::Entry</span>,
@@ -987,7 +998,8 @@
   },
   <span class="ident">traits::ObligationCause</span>,
   <span class="ident">ty</span>::{
-    <span class="self">self</span>, <span class="ident">AdtKind</span>, <span class="ident">RegionKind</span>, <span class="ident">RegionVid</span>, <span class="ident">Ty</span>, <span class="ident">TyCtxt</span>, <span class="ident">TyKind</span>, <span class="ident">TypeFoldable</span>, <span class="ident">TypeVisitor</span>,
+    <span class="self">self</span>, <span class="ident">AdtKind</span>, <span class="ident">RegionKind</span>, <span class="ident">RegionVid</span>, <span class="ident">Ty</span>, <span class="ident">TyCtxt</span>, <span class="ident">TyKind</span>, <span class="ident">TypeAndMut</span>, <span class="ident">TypeFoldable</span>,
+    <span class="ident">TypeVisitor</span>,
   },
 };
 <span class="kw">use</span> <span class="ident">rustc_mir_dataflow</span>::{<span class="ident">fmt::DebugWithContext</span>, <span class="ident">graphviz</span>, <span class="ident">Analysis</span>, <span class="ident">Results</span>};
@@ -996,7 +1008,10 @@
 <span class="kw">use</span> <span class="ident">rustc_trait_selection::infer::InferCtxtExt</span>;
 <span class="kw">use</span> <span class="ident">smallvec::SmallVec</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::extensions</span>::{<span class="ident">is_extension_active</span>, <span class="ident">MutabilityMode</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+  <span class="ident">extensions</span>::{<span class="ident">is_extension_active</span>, <span class="ident">MutabilityMode</span>},
+  <span class="ident">mir::aliases::UNKNOWN_REGION</span>,
+};
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">OperandExt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
   <span class="kw">fn</span> <span class="ident">to_place</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>;
@@ -1023,7 +1038,7 @@
     .<span class="ident">iter</span>()
     .<span class="ident">flat_map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">place</span>)<span class="op">|</span> {
       <span class="ident">place</span>
-        .<span class="ident">interior_pointers</span>(<span class="ident">tcx</span>, <span class="ident">body</span>, <span class="ident">def_id</span>, <span class="bool-val">false</span>)
+        .<span class="ident">interior_pointers</span>(<span class="ident">tcx</span>, <span class="ident">body</span>, <span class="ident">def_id</span>)
         .<span class="ident">into_iter</span>()
         .<span class="ident">flat_map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">places</span>)<span class="op">|</span> {
           <span class="ident">places</span>
@@ -1252,7 +1267,6 @@
     <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">def_id</span>: <span class="ident">DefId</span>,
-    <span class="ident">shallow</span>: <span class="ident">bool</span>,
   ) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">RegionVid</span>, <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Mutability</span>)<span class="op">&gt;</span><span class="op">&gt;</span>;
   <span class="kw">fn</span> <span class="ident">interior_places</span>(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1327,7 +1341,6 @@
     <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">def_id</span>: <span class="ident">DefId</span>,
-    <span class="ident">shallow</span>: <span class="ident">bool</span>,
   ) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">RegionVid</span>, <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Mutability</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ty</span>(<span class="ident">body</span>.<span class="ident">local_decls</span>(), <span class="ident">tcx</span>).<span class="ident">ty</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">region_collector</span> <span class="op">=</span> <span class="ident">CollectRegions</span> {
@@ -1339,7 +1352,9 @@
       <span class="ident">regions</span>: <span class="ident">HashMap::default</span>(),
       <span class="ident">places</span>: <span class="prelude-val">None</span>,
       <span class="ident">types</span>: <span class="prelude-val">None</span>,
-      <span class="ident">stop_at</span>: <span class="kw">if</span> <span class="ident">shallow</span> {
+      <span class="ident">stop_at</span>: <span class="kw">if</span>
+      <span class="comment">/*shallow*/</span>
+      <span class="bool-val">false</span> {
         <span class="ident">StoppingCondition::AfterRefs</span>
       } <span class="kw">else</span> {
         <span class="ident">StoppingCondition::None</span>
@@ -1493,6 +1508,7 @@
 
     <span class="kw">match</span> <span class="ident">ty</span>.<span class="ident">kind</span>() {
       <span class="kw">_</span> <span class="kw">if</span> <span class="ident">ty</span>.<span class="ident">is_box</span>() =&gt; {
+        <span class="self">self</span>.<span class="ident">visit_region</span>(<span class="self">self</span>.<span class="ident">tcx</span>.<span class="ident">mk_region</span>(<span class="ident">RegionKind::ReVar</span>(<span class="ident">UNKNOWN_REGION</span>)));
         <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">push</span>(<span class="ident">ProjectionElem::Deref</span>);
         <span class="self">self</span>.<span class="ident">visit_ty</span>(<span class="ident">ty</span>.<span class="ident">boxed_ty</span>());
         <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">pop</span>();
@@ -1572,8 +1588,14 @@
         <span class="self">self</span>.<span class="ident">visit_ty</span>(<span class="ident">substs</span>.<span class="ident">as_closure</span>().<span class="ident">tupled_upvars_ty</span>());
       }
 
-      <span class="ident">TyKind::RawPtr</span>(<span class="kw">_</span>)
-      <span class="op">|</span> <span class="ident">TyKind::Projection</span>(<span class="kw">_</span>)
+      <span class="ident">TyKind::RawPtr</span>(<span class="ident">TypeAndMut</span> { <span class="ident">ty</span>, .. }) =&gt; {
+        <span class="self">self</span>.<span class="ident">visit_region</span>(<span class="self">self</span>.<span class="ident">tcx</span>.<span class="ident">mk_region</span>(<span class="ident">RegionKind::ReVar</span>(<span class="ident">UNKNOWN_REGION</span>)));
+        <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">push</span>(<span class="ident">ProjectionElem::Deref</span>);
+        <span class="self">self</span>.<span class="ident">visit_ty</span>(<span class="kw-2">*</span><span class="ident">ty</span>);
+        <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">pop</span>();
+      }
+
+      <span class="ident">TyKind::Projection</span>(<span class="kw">_</span>)
       <span class="op">|</span> <span class="ident">TyKind::FnDef</span>(<span class="kw">_</span>, <span class="kw">_</span>)
       <span class="op">|</span> <span class="ident">TyKind::FnPtr</span>(<span class="kw">_</span>)
       <span class="op">|</span> <span class="ident">TyKind::Opaque</span>(<span class="kw">_</span>, <span class="kw">_</span>)
