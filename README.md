@@ -38,6 +38,7 @@ Flowistry can be helpful when you're reading a function with a lot of code. For 
 * [FAQ](#faq)
     * [rustup fails on installation](#rustup-fails-on-installation)
     * [Why isn't Flowistry part of Rust Analyzer?](#why-isnt-flowistry-part-of-rust-analyzer)
+    * [Why does Flowistry highlight (or not) this code?](#why-does-flowistry-highlight-or-not-this-code)
 
 
 ## Installation 
@@ -181,3 +182,7 @@ Then go back to VSCode and click "Continue" to let Flowistry continue installing
 ### Why isn't Flowistry part of Rust Analyzer?
 
 Rust Analyzer does not support [MIR](https://rustc-dev-guide.rust-lang.org/mir/index.html) and the borrow checker, which are essential parts of Flowistry's analysis. That fact is unlikely to change for a [long time](https://rust-lang.zulipchat.com/#narrow/stream/185405-t-compiler.2Frust-analyzer/topic/How.20far.20is.20RA.20from.20MIR.3F), so Flowistry is a standalone tool.
+
+### Why does Flowistry highlight (or not) this code?
+
+See [Limitations](#limitations) for known issues. If that doesn't explain what you're seeing, please post it in the [unexpected highlights issue](https://github.com/willcrichton/flowistry/issues/36) or ask on [Discord](https://discord.gg/XkcpkQn2Ah).
