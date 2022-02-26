@@ -1,5 +1,21 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/indexed/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\(", right: "\\)", display: false},
+                {left: "$", right: "$", display: false},
+                {left: "\\[", right: "\\]", display: true}
+            ]
+        });
+    });
+</script>
+
+</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
@@ -573,6 +589,23 @@
 <span id="568">568</span>
 <span id="569">569</span>
 <span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
 </pre><pre class="rust"><code><span class="doccomment">//! APIs for efficiently representing values with an fixed-size domain.</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -597,6 +630,11 @@
     <span class="ident">DefaultDomain</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Index</span>, <span class="self">Self</span><span class="op">&gt;</span>;
 }
 
+<span class="doccomment">/// Converts an element to the index representing that element.</span>
+<span class="doccomment">/// </span>
+<span class="doccomment">/// Useful for enabling a more flexible API where either an element or its </span>
+<span class="doccomment">/// index can be given as input. By convention, `ToIndex` should be implemented</span>
+<span class="doccomment">/// for an index, see [`to_index_impl`].</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ToIndex</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IndexedValue</span><span class="op">&gt;</span> {
   <span class="kw">fn</span> <span class="ident">to_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">domain</span>: <span class="kw-2">&amp;</span><span class="ident">T::Domain</span>) -&gt; <span class="ident">T::Index</span>;
 }
@@ -613,6 +651,7 @@
   }
 }
 
+<span class="doccomment">/// Implements [`ToIndex`] for the index of an indexed type.</span>
 <span class="comment">// Can&#39;t make this a blanket impl b/c it conflicts with the blanket impl above :(</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">to_index_impl</span> {
@@ -628,6 +667,9 @@
   };
 }
 
+<span class="doccomment">/// Represents a fixed size domain of elements where each element has an index.</span>
+<span class="doccomment">/// </span>
+<span class="doccomment">/// Enables the bidirectional mapping from element to index and vice-versa.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">IndexedDomain</span> {
   <span class="kw">type</span> <span class="ident">Value</span>: <span class="ident">IndexedValue</span>;
   <span class="kw">type</span> <span class="ident">Index</span>: <span class="ident">Idx</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span> <span class="kw">as</span> <span class="ident">IndexedValue</span><span class="op">&gt;</span><span class="ident">::Index</span>;
@@ -693,7 +735,7 @@
   }
 }
 
-<span class="kw">type</span> <span class="ident">IndexSetImpl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">BitSet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">IndexSetImpl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">BitSet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OwnedSet</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IndexedValue</span><span class="op">&gt;</span>(<span class="ident">IndexSetImpl</span><span class="op">&lt;</span><span class="ident">T::Index</span><span class="op">&gt;</span>);
@@ -743,6 +785,14 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Deref</span><span class="op">&lt;</span><span class="ident">Target</span> <span class="op">=</span> <span class="ident">IndexSetImpl</span><span class="op">&lt;</span><span class="ident">T::Index</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">T</span>: <span class="ident">IndexedValue</span><span class="op">&gt;</span> <span class="ident">ToSet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">S</span> {}
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">DerefMut</span><span class="op">&lt;</span><span class="ident">Target</span> <span class="op">=</span> <span class="ident">IndexSetImpl</span><span class="op">&lt;</span><span class="ident">T::Index</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">T</span>: <span class="ident">IndexedValue</span><span class="op">&gt;</span> <span class="ident">ToSetMut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">S</span> {}
 
+<span class="doccomment">/// High-level wrapper around rustc&#39;s bitset (specifically [`IndexSetImpl`]).</span>
+<span class="doccomment">/// </span>
+<span class="doccomment">/// This data structure ties a bitset to its [`IndexedDomain`], enabling inputs to be</span>
+<span class="doccomment">/// represented either as values or the index of that value in the domain (see [`ToIndex`]).</span>
+<span class="doccomment">/// </span>
+<span class="doccomment">/// To deal with references to bitsets, e.g. as returned by [`IndexMatrix::row_set`],</span>
+<span class="doccomment">/// `IndexSet` has an additional type parameter for whether it contains an [`OwnedSet`]</span>
+<span class="doccomment">/// or a [`RefSet`] / [`MutSet`].</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IndexedValue</span>, <span class="ident">S</span> <span class="op">=</span> <span class="ident">OwnedSet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
   <span class="ident">set</span>: <span class="ident">S</span>,
   <span class="ident">domain</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">T::Domain</span><span class="op">&gt;</span>,
