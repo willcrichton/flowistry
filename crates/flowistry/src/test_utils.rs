@@ -278,16 +278,7 @@ fn parse_range_map(
         k,
         vs.into_iter()
           .map(|(byte_start, byte_end)| {
-            let char_start = src[.. byte_start].graphemes(true).count();
-            let char_end =
-              char_start + src[byte_start .. byte_end].graphemes(true).count();
-            Range {
-              byte_start,
-              byte_end,
-              char_start,
-              char_end,
-              filename: "dummy.rs".to_string(),
-            }
+            Range::from_byte_range(byte_start, byte_end, &clean, "dummy.rs".into())
           })
           .collect::<Vec<_>>(),
       )
@@ -346,12 +337,11 @@ pub fn test_command_output(
 
         match expected {
           Some(expected_path) => {
-            let expected_file = fs::read(expected_path);
+            let expected_file = fs::read_to_string(expected_path);
             match expected_file {
               Ok(file) => {
-                let output = String::from_utf8(file).unwrap();
                 let (_output_clean, output_ranges) =
-                  parse_range_map(&output, vec![("`[", "]`")]).unwrap();
+                  parse_range_map(&file, vec![("`[", "]`")]).unwrap();
 
                 let expected = match output_ranges.get("`[") {
                   Some(ranges) => ranges.clone().into_iter().collect::<HashSet<_>>(),
