@@ -18,7 +18,20 @@
 //!
 //! If you are interested in using Flowistry, please reach out directly to
 //! Will Crichton ([wcrichto@cs.stanford.edu](mailto:wcrichto@cs.stanford.edu))
-//! for questions or support.
+//! for questions or support. If you use Flowistry in your research, then please cite
+//! our paper:
+//! 
+//! ```bibtex
+//! @misc{crichton2021modular,
+//!   title={Modular Information Flow Through Ownership}, 
+//!   author={Will Crichton and Marco Patrignani and Maneesh Agrawala and Pat Hanrahan},
+//!   year={2021},
+//!   eprint={2111.13662},
+//!   archivePrefix={arXiv},
+//!   primaryClass={cs.PL}
+//! }
+//! ```
+
 
 #![feature(
   rustc_private,             // for rustc internals
