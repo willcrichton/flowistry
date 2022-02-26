@@ -25,8 +25,10 @@ impl rustc_driver::Callbacks for Callbacks {
       let source_map = compiler.session().source_map();
       let files = source_map.files();
       let source_file = Range {
-        start: 0,
-        end: 0,
+        byte_start: 0,
+        byte_end: 0,
+        char_start: 0,
+        char_end: 0,
         filename: self.filename.clone(),
       }
       .source_file(&files)

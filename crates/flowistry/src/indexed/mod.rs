@@ -23,8 +23,8 @@ pub trait IndexedValue: Eq + Hash + Clone + fmt::Debug {
 }
 
 /// Converts an element to the index representing that element.
-/// 
-/// Useful for enabling a more flexible API where either an element or its 
+///
+/// Useful for enabling a more flexible API where either an element or its
 /// index can be given as input. By convention, `ToIndex` should be implemented
 /// for an index, see [`to_index_impl`].
 pub trait ToIndex<T: IndexedValue> {
@@ -60,7 +60,7 @@ macro_rules! to_index_impl {
 }
 
 /// Represents a fixed size domain of elements where each element has an index.
-/// 
+///
 /// Enables the bidirectional mapping from element to index and vice-versa.
 pub trait IndexedDomain {
   type Value: IndexedValue;
@@ -178,10 +178,10 @@ impl<S: Deref<Target = IndexSetImpl<T::Index>>, T: IndexedValue> ToSet<T> for S 
 impl<S: DerefMut<Target = IndexSetImpl<T::Index>>, T: IndexedValue> ToSetMut<T> for S {}
 
 /// High-level wrapper around rustc's bitset (specifically [`IndexSetImpl`]).
-/// 
+///
 /// This data structure ties a bitset to its [`IndexedDomain`], enabling inputs to be
 /// represented either as values or the index of that value in the domain (see [`ToIndex`]).
-/// 
+///
 /// To deal with references to bitsets, e.g. as returned by [`IndexMatrix::row_set`],
 /// `IndexSet` has an additional type parameter for whether it contains an [`OwnedSet`]
 /// or a [`RefSet`] / [`MutSet`].

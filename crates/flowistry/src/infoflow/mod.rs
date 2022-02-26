@@ -24,11 +24,11 @@ pub mod mutation;
 mod recursive;
 
 /// The return type of the information flow analysis.
-/// 
-/// The information flow analysis is flow-sensitive and field-sensitive, meaning the 
-/// information flow is tracked at each MIR instruction, and for each memory location (place) 
+///
+/// The information flow analysis is flow-sensitive and field-sensitive, meaning the
+/// information flow is tracked at each MIR instruction, and for each memory location (place)
 /// that could be influenced. The flow-sensitivity is encoded in the [`AnalysisResults`](engine::AnalysisResults) wrapper,
-/// which contains a [`FlowDomain`] for each [`Location`](rustc_middle::mir::Location) (accessed via [`state_at`](engine::AnalysisResults::state_at)). 
+/// which contains a [`FlowDomain`] for each [`Location`](rustc_middle::mir::Location) (accessed via [`state_at`](engine::AnalysisResults::state_at)).
 /// See [`FlowDomain`] for more on the actual information flow representation.
 pub type FlowResults<'a, 'tcx> = engine::AnalysisResults<'tcx, FlowAnalysis<'a, 'tcx>>;
 
@@ -38,7 +38,7 @@ thread_local! {
 }
 
 /// Computes information flow for a MIR body.
-/// 
+///
 /// See [`FlowResults`] for an explanation of the return value.
 pub fn compute_flow<'a, 'tcx>(
   tcx: TyCtxt<'tcx>,

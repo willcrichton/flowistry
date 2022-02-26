@@ -57,7 +57,13 @@ fn main() {
     }
     ("preload", _) => {
       let mut cmd = Command::new(cargo_path);
-      cmd.args(&["check", "--all", "--target-dir", TARGET_DIR]);
+      cmd.args(&[
+        "check",
+        "--all",
+        "--all-features",
+        "--target-dir",
+        TARGET_DIR,
+      ]);
       let exit_status = cmd.status().expect("could not run cargo");
       exit(exit_status.code().unwrap_or(-1));
     }
@@ -149,7 +155,14 @@ fn main() {
   let mut cmd = Command::new(cargo_path);
   cmd
     .env("RUSTC_WORKSPACE_WRAPPER", flowistry_rustc_path)
-    .args(&["rustc", "--profile", "check", "--target-dir", TARGET_DIR]);
+    .args(&[
+      "rustc",
+      "--profile",
+      "check",
+      "--all-features",
+      "--target-dir",
+      TARGET_DIR,
+    ]);
 
   let bench = matches.is_present("BENCH");
   cmd.arg(if bench { "-v" } else { "-q" });

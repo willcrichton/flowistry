@@ -101,7 +101,7 @@ export const get_command_selections = async (test_command: TestCommand): Promise
     const output_data: CommandOutput = JSON.parse(raw_output_data).fields[0];
 
     const unique_ranges = _.uniqWith(output_data.ranges, _.isEqual);
-    const sorted_ranges = _.sortBy(unique_ranges, (range) => [range.start]);
+    const sorted_ranges = _.sortBy(unique_ranges, (range) => [range.char_start]);
     const vscode_ranges = sorted_ranges.map((range) => to_vsc_range(range, vscode.window.activeTextEditor?.document!));
     const merged_ranges = merge_ranges(vscode_ranges);
     const expected_selections = merged_ranges.map((range) => new vscode.Selection(range.start, range.end));

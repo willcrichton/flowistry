@@ -3,8 +3,8 @@ import _ from "lodash";
 import vscode from "vscode";
 
 export interface Range {
-  start: number;
-  end: number;
+  char_start: number;
+  char_end: number;
   filename: string;
 }
 
@@ -12,7 +12,10 @@ export let to_vsc_range = (
   range: Range,
   doc: vscode.TextDocument
 ): vscode.Range =>
-  new vscode.Range(doc.positionAt(range.start), doc.positionAt(range.end));
+  new vscode.Range(
+    doc.positionAt(range.char_start),
+    doc.positionAt(range.char_end)
+  );
 
 type Interval = [number, number];
 
@@ -37,7 +40,7 @@ export class RangeTree<T> {
   }
 
   range_to_interval(range: Range): Interval {
-    return [range.start, range.end];
+    return [range.char_start, range.char_end];
   }
 
   selection_to_interval(
@@ -67,7 +70,11 @@ export class RangeTree<T> {
     };
 
     result.forEach(([interval, value]) => {
-      let range = { start: interval[0], end: interval[1], filename: "" };
+      let range = {
+        char_start: interval[0],
+        char_end: interval[1],
+        filename: "",
+      };
       if (is_contained(interval, query)) {
         final.contained.push({ range, value });
       } else if (is_contained(query, interval)) {
@@ -79,7 +86,10 @@ export class RangeTree<T> {
 
     ["contained", "containing", "overlapping"].forEach((k) => {
       let final_ = final as any;
-      final_[k] = _.sortBy(final_[k], ({ range }) => range.end - range.start);
+      final_[k] = _.sortBy(
+        final_[k],
+        ({ range }) => range.char_end - range.char_start
+      );
     });
 
     return final;

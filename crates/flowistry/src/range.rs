@@ -15,6 +15,7 @@ use rustc_span::{
   source_map::{monotonic::MonotonicVec, SourceMap},
   BytePos, FileName, RealFileName, SourceFile, Span,
 };
+use unicode_segmentation::UnicodeSegmentation;
 
 pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
   struct Finder<'tcx> {
@@ -67,21 +68,11 @@ pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
 
 #[derive(Encodable, Debug, Clone, Hash, PartialEq, Eq, Default)]
 pub struct Range {
-  pub start: usize,
-  pub end: usize,
+  pub char_start: usize,
+  pub char_end: usize,
+  pub byte_start: usize,
+  pub byte_end: usize,
   pub filename: String,
-}
-
-impl Range {
-  pub fn substr(&self, s: &str) -> String {
-    String::from_utf8(
-      s.bytes()
-        .skip(self.start)
-        .take(self.end - self.start)
-        .collect::<Vec<_>>(),
-    )
-    .unwrap()
-  }
 }
 
 pub fn ranges_from_spans(
@@ -94,6 +85,32 @@ pub fn ranges_from_spans(
 }
 
 impl Range {
+  pub fn substr(&self, s: &str) -> String {
+    s[self.byte_start .. self.byte_end].to_string()
+  }
+
+  pub fn from_char_range(
+    char_start: usize,
+    char_end: usize,
+    filename: String,
+  ) -> Result<Self> {
+    let src = String::from_utf8(std::fs::read(&filename)?)?;
+    let mut iter = src.graphemes(true);
+    let byte_start = (&mut iter).take(char_start).map(|s| s.len()).sum::<usize>();
+    let byte_end = byte_start
+      + iter
+        .take(char_end - char_start)
+        .map(|s| s.len())
+        .sum::<usize>();
+    Ok(Range {
+      char_start,
+      char_end,
+      byte_start,
+      byte_end,
+      filename,
+    })
+  }
+
   pub fn from_span(span: Span, source_map: &SourceMap) -> Result<Self> {
     let file = source_map.lookup_source_file(span.lo());
     let filename = match &file.name {
@@ -103,10 +120,23 @@ impl Range {
       filename => bail!("Range::from_span doesn't support {filename:?}"),
     };
 
-    let offset = file.start_pos;
+    source_map.ensure_source_file_source_present(file.clone());
+    let src = file.src.as_ref().unwrap();
+
+    let byte_start = source_map.lookup_byte_offset(span.lo()).pos.0 as usize;
+    let byte_end = source_map.lookup_byte_offset(span.hi()).pos.0 as usize;
+
+    let prefix = &src[0 .. byte_start];
+    let contents = &src[byte_start .. byte_end];
+
+    let char_start = prefix.graphemes(true).count();
+    let char_end = char_start + contents.graphemes(true).count();
+
     Ok(Range {
-      start: (span.lo() - offset).0 as usize,
-      end: (span.hi() - offset).0 as usize,
+      char_start,
+      char_end,
+      byte_start,
+      byte_end,
       filename,
     })
   }
@@ -121,7 +151,10 @@ impl Range {
       .find(|file| match &file.name {
         // rustc seems to store relative paths to files in the workspace, so if filename is absolute,
         // we can compare them using Path::ends_with
-        FileName::Real(RealFileName::LocalPath(other)) => filename.ends_with(other),
+        FileName::Real(RealFileName::LocalPath(other)) => {
+          // log::debug!("{filename:?} {other:?} {:?}", filename.ends_with(other));
+          filename.ends_with(other)
+        }
         _ => false,
       })
       .map(|f| &**f)
@@ -154,8 +187,8 @@ impl ToSpan for Range {
     let offset = source_file.start_pos;
 
     Ok(Span::with_root_ctxt(
-      offset + BytePos(self.start as u32),
-      offset + BytePos(self.end as u32),
+      offset + BytePos(self.byte_start as u32),
+      offset + BytePos(self.byte_end as u32),
     ))
   }
 }
