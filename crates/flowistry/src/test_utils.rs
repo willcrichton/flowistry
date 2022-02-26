@@ -10,6 +10,7 @@ use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir::{BodyId, ItemKind};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::{source_map::FileLoader, BytePos, Span, SyntaxContext};
+use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
@@ -201,11 +202,16 @@ pub fn color_ranges(prog: &str, all_ranges: Vec<(&str, &HashSet<Range>)>) -> Str
       ranges.iter().flat_map(|range| {
         let contained = all_ranges.iter().any(|(_, ranges)| {
           ranges.iter().any(|other| {
-            range != other && other.start <= range.end && range.end < other.end
+            range != other
+              && other.byte_start <= range.byte_end
+              && range.byte_end < other.byte_end
           })
         });
         let end_marker = if contained { "]" } else { "\x1B[0m]" };
-        [("[\x1B[31m", range.start), (end_marker, range.end)]
+        [
+          ("[\x1B[31m", range.byte_start),
+          (end_marker, range.byte_end),
+        ]
       })
     })
     .collect::<Vec<_>>();
@@ -242,7 +248,7 @@ pub fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &s
 pub fn bless(path: &Path, contents: String, actual: HashSet<Range>) -> Result<()> {
   let mut delims = actual
     .into_iter()
-    .flat_map(|range| [("`[", range.start), ("]`", range.end)])
+    .flat_map(|range| [("`[", range.byte_start), ("]`", range.byte_end)])
     .collect::<Vec<_>>();
   delims.sort_by_key(|(_, i)| *i);
 
@@ -271,10 +277,17 @@ fn parse_range_map(
       (
         k,
         vs.into_iter()
-          .map(|(start, end)| Range {
-            start,
-            end,
-            filename: "dummy.rs".to_string(),
+          .map(|(byte_start, byte_end)| {
+            let char_start = src[.. byte_start].graphemes(true).count();
+            let char_end =
+              char_start + src[byte_start .. byte_end].graphemes(true).count();
+            Range {
+              byte_start,
+              byte_end,
+              char_start,
+              char_end,
+              filename: "dummy.rs".to_string(),
+            }
           })
           .collect::<Vec<_>>(),
       )

@@ -318,6 +318,10 @@ export class FocusMode {
       return null;
     }
 
+    if (editor.document.languageId !== "rust") {
+      return;
+    }
+
     let doc_state = await this.get_doc_state(editor);
     if (doc_state === null) {
       return;
@@ -349,6 +353,10 @@ export class FocusMode {
     async () => {
       let editor = vscode.window.activeTextEditor;
       if (!editor) {
+        return;
+      }
+
+      if (editor.document.languageId !== "rust") {
         return;
       }
 

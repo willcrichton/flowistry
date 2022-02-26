@@ -120,11 +120,12 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
       postprocess(flowistry_ide::spans::spans(args, filename))
     }
     "playground" => {
-      let range = Range {
-        start: arg::<usize>("START"),
-        end: arg::<usize>("END"),
-        filename: arg::<String>("FILE"),
-      };
+      let range = Range::from_char_range(
+        arg::<usize>("START"),
+        arg::<usize>("END"),
+        arg::<String>("FILE"),
+      )
+      .unwrap();
 
       postprocess(flowistry_ide::run(
         flowistry_ide::playground::playground,
@@ -134,11 +135,9 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
     }
     cmd @ ("decompose" | "focus") => {
       let pos = arg::<usize>("POS");
-      let id = FunctionIdentifier::Range(Range {
-        start: pos,
-        end: pos,
-        filename: arg::<String>("FILE"),
-      });
+      let id = FunctionIdentifier::Range(
+        Range::from_char_range(pos, pos, arg::<String>("FILE")).unwrap(),
+      );
       match cmd {
         "decompose" => postprocess(flowistry_ide::run(
           flowistry_ide::decompose::decompose,
