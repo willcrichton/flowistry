@@ -248,17 +248,17 @@ pub fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &s
 pub fn bless(path: &Path, contents: String, actual: HashSet<Range>) -> Result<()> {
   let mut delims = actual
     .into_iter()
-    .flat_map(|range| [("`[", range.byte_start), ("]`", range.byte_end)])
+    .flat_map(|range| [("`[", range.char_start), ("]`", range.char_end)])
     .collect::<Vec<_>>();
   delims.sort_by_key(|(_, i)| *i);
 
   let mut output = String::new();
-  for (i, ch) in contents.chars().enumerate() {
+  for (i, g) in contents.graphemes(true).enumerate() {
     while delims.len() > 0 && delims[0].1 == i {
       let (delim, _) = delims.remove(0);
       output.push_str(delim);
     }
-    output.push(ch);
+    output.push_str(g);
   }
 
   fs::write(path.with_extension("txt.expected"), output)?;
