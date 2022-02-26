@@ -451,6 +451,9 @@
 <span id="430">430</span>
 <span id="431">431</span>
 <span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Running rustc and Flowistry in tests.</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fs</span>, <span class="ident">io</span>, <span class="ident">panic</span>, <span class="ident">path::Path</span>, <span class="ident">process::Command</span>};
@@ -463,6 +466,7 @@
 <span class="kw">use</span> <span class="ident">rustc_hir</span>::{<span class="ident">BodyId</span>, <span class="ident">ItemKind</span>};
 <span class="kw">use</span> <span class="ident">rustc_middle::ty::TyCtxt</span>;
 <span class="kw">use</span> <span class="ident">rustc_span</span>::{<span class="ident">source_map::FileLoader</span>, <span class="ident">BytePos</span>, <span class="ident">Span</span>, <span class="ident">SyntaxContext</span>};
+<span class="kw">use</span> <span class="ident">unicode_segmentation::UnicodeSegmentation</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
   <span class="ident">extensions</span>::{<span class="ident">ContextMode</span>, <span class="ident">EvalMode</span>, <span class="ident">MutabilityMode</span>, <span class="ident">PointerMode</span>, <span class="ident">EVAL_MODE</span>},
@@ -654,11 +658,16 @@
       <span class="ident">ranges</span>.<span class="ident">iter</span>().<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">range</span><span class="op">|</span> {
         <span class="kw">let</span> <span class="ident">contained</span> <span class="op">=</span> <span class="ident">all_ranges</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">ranges</span>)<span class="op">|</span> {
           <span class="ident">ranges</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">other</span><span class="op">|</span> {
-            <span class="ident">range</span> <span class="op">!</span><span class="op">=</span> <span class="ident">other</span> <span class="op">&amp;&amp;</span> <span class="ident">other</span>.<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">range</span>.<span class="ident">end</span> <span class="op">&amp;&amp;</span> <span class="ident">range</span>.<span class="ident">end</span> <span class="op">&lt;</span> <span class="ident">other</span>.<span class="ident">end</span>
+            <span class="ident">range</span> <span class="op">!</span><span class="op">=</span> <span class="ident">other</span>
+              <span class="op">&amp;&amp;</span> <span class="ident">other</span>.<span class="ident">byte_start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">range</span>.<span class="ident">byte_end</span>
+              <span class="op">&amp;&amp;</span> <span class="ident">range</span>.<span class="ident">byte_end</span> <span class="op">&lt;</span> <span class="ident">other</span>.<span class="ident">byte_end</span>
           })
         });
         <span class="kw">let</span> <span class="ident">end_marker</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">contained</span> { <span class="string">&quot;]&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;\x1B[0m]&quot;</span> };
-        [(<span class="string">&quot;[\x1B[31m&quot;</span>, <span class="ident">range</span>.<span class="ident">start</span>), (<span class="ident">end_marker</span>, <span class="ident">range</span>.<span class="ident">end</span>)]
+        [
+          (<span class="string">&quot;[\x1B[31m&quot;</span>, <span class="ident">range</span>.<span class="ident">byte_start</span>),
+          (<span class="ident">end_marker</span>, <span class="ident">range</span>.<span class="ident">byte_end</span>),
+        ]
       })
     })
     .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
@@ -695,17 +704,17 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bless</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">contents</span>: <span class="ident">String</span>, <span class="ident">actual</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Range</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
   <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">delims</span> <span class="op">=</span> <span class="ident">actual</span>
     .<span class="ident">into_iter</span>()
-    .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">range</span><span class="op">|</span> [(<span class="string">&quot;`[&quot;</span>, <span class="ident">range</span>.<span class="ident">start</span>), (<span class="string">&quot;]`&quot;</span>, <span class="ident">range</span>.<span class="ident">end</span>)])
+    .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">range</span><span class="op">|</span> [(<span class="string">&quot;`[&quot;</span>, <span class="ident">range</span>.<span class="ident">char_start</span>), (<span class="string">&quot;]`&quot;</span>, <span class="ident">range</span>.<span class="ident">char_end</span>)])
     .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
   <span class="ident">delims</span>.<span class="ident">sort_by_key</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">i</span>)<span class="op">|</span> <span class="kw-2">*</span><span class="ident">i</span>);
 
   <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">String::new</span>();
-  <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="ident">contents</span>.<span class="ident">chars</span>().<span class="ident">enumerate</span>() {
+  <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">g</span>) <span class="kw">in</span> <span class="ident">contents</span>.<span class="ident">graphemes</span>(<span class="bool-val">true</span>).<span class="ident">enumerate</span>() {
     <span class="kw">while</span> <span class="ident">delims</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">delims</span>[<span class="number">0</span>].<span class="number">1</span> <span class="op">==</span> <span class="ident">i</span> {
       <span class="kw">let</span> (<span class="ident">delim</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">delims</span>.<span class="ident">remove</span>(<span class="number">0</span>);
       <span class="ident">output</span>.<span class="ident">push_str</span>(<span class="ident">delim</span>);
     }
-    <span class="ident">output</span>.<span class="ident">push</span>(<span class="ident">ch</span>);
+    <span class="ident">output</span>.<span class="ident">push_str</span>(<span class="ident">g</span>);
   }
 
   <span class="ident">fs::write</span>(<span class="ident">path</span>.<span class="ident">with_extension</span>(<span class="string">&quot;txt.expected&quot;</span>), <span class="ident">output</span>)<span class="question-mark">?</span>;
@@ -724,10 +733,8 @@
       (
         <span class="ident">k</span>,
         <span class="ident">vs</span>.<span class="ident">into_iter</span>()
-          .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">start</span>, <span class="ident">end</span>)<span class="op">|</span> <span class="ident">Range</span> {
-            <span class="ident">start</span>,
-            <span class="ident">end</span>,
-            <span class="ident">filename</span>: <span class="string">&quot;dummy.rs&quot;</span>.<span class="ident">to_string</span>(),
+          .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">byte_start</span>, <span class="ident">byte_end</span>)<span class="op">|</span> {
+            <span class="ident">Range::from_byte_range</span>(<span class="ident">byte_start</span>, <span class="ident">byte_end</span>, <span class="kw-2">&amp;</span><span class="ident">clean</span>, <span class="string">&quot;dummy.rs&quot;</span>.<span class="ident">into</span>())
           })
           .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
       )
@@ -786,12 +793,11 @@
 
         <span class="kw">match</span> <span class="ident">expected</span> {
           <span class="prelude-val">Some</span>(<span class="ident">expected_path</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">expected_file</span> <span class="op">=</span> <span class="ident">fs::read</span>(<span class="ident">expected_path</span>);
+            <span class="kw">let</span> <span class="ident">expected_file</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="ident">expected_path</span>);
             <span class="kw">match</span> <span class="ident">expected_file</span> {
               <span class="prelude-val">Ok</span>(<span class="ident">file</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">String::from_utf8</span>(<span class="ident">file</span>).<span class="ident">unwrap</span>();
                 <span class="kw">let</span> (<span class="ident">_output_clean</span>, <span class="ident">output_ranges</span>) <span class="op">=</span>
-                  <span class="ident">parse_range_map</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="macro">vec!</span>[(<span class="string">&quot;`[&quot;</span>, <span class="string">&quot;]`&quot;</span>)]).<span class="ident">unwrap</span>();
+                  <span class="ident">parse_range_map</span>(<span class="kw-2">&amp;</span><span class="ident">file</span>, <span class="macro">vec!</span>[(<span class="string">&quot;`[&quot;</span>, <span class="string">&quot;]`&quot;</span>)]).<span class="ident">unwrap</span>();
 
                 <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">output_ranges</span>.<span class="ident">get</span>(<span class="string">&quot;`[&quot;</span>) {
                   <span class="prelude-val">Some</span>(<span class="ident">ranges</span>) =&gt; <span class="ident">ranges</span>.<span class="ident">clone</span>().<span class="ident">into_iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),

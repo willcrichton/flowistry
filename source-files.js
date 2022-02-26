@@ -53,6 +53,7 @@ sourcesIndex["serde_json"] = {"name":"","dirs":[{"name":"features_check","files"
 sourcesIndex["syn"] = {"name":"","dirs":[{"name":"gen","files":["clone.rs","gen_helper.rs"]}],"files":["attr.rs","await.rs","bigint.rs","buffer.rs","custom_keyword.rs","custom_punctuation.rs","data.rs","derive.rs","discouraged.rs","error.rs","export.rs","expr.rs","ext.rs","file.rs","generics.rs","group.rs","ident.rs","item.rs","lib.rs","lifetime.rs","lit.rs","lookahead.rs","mac.rs","macros.rs","op.rs","parse.rs","parse_macro_input.rs","parse_quote.rs","pat.rs","path.rs","print.rs","punctuated.rs","reserved.rs","sealed.rs","span.rs","spanned.rs","stmt.rs","thread.rs","token.rs","ty.rs","verbatim.rs","whitespace.rs"]};
 sourcesIndex["termcolor"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["textwrap"] = {"name":"","files":["core.rs","indentation.rs","lib.rs","word_separators.rs","word_splitters.rs","wrap_algorithms.rs"]};
+sourcesIndex["unicode_segmentation"] = {"name":"","files":["grapheme.rs","lib.rs","sentence.rs","tables.rs","word.rs"]};
 sourcesIndex["unicode_width"] = {"name":"","files":["lib.rs","tables.rs"]};
 sourcesIndex["unicode_xid"] = {"name":"","files":["lib.rs","tables.rs"]};
 sourcesIndex["utf8_width"] = {"name":"","files":["lib.rs"]};
