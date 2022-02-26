@@ -276,11 +276,7 @@ export class FocusMode {
   private get_doc_state = async (
     editor: vscode.TextEditor
   ): Promise<FocusDocumentState | null> => {
-    if (
-      this.mode === "idle" ||
-      this.mode === "unsaved" ||
-      this.mode === "loading"
-    ) {
+    if (this.mode !== "active") {
       return null;
     }
 
