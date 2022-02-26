@@ -26,6 +26,12 @@ use crate::{
   },
 };
 
+/// Represents the information flow at a given instruction. 
+/// 
+/// Places are mapped to sets of locations which could influence the value of that place.
+/// This data structure is analogous to $\Theta$ in the formalism, where $p$ is a [`Place`]
+/// and $\kappa$ is a [`LocationSet`]. If $p \mapsto \kappa \in \Theta$, you can access $\kappa$ 
+/// with `domain.row_set(p)`.
 pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, Location>;
 
 pub struct FlowAnalysis<'a, 'tcx> {

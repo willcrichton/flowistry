@@ -22,6 +22,11 @@ pub trait IndexedValue: Eq + Hash + Clone + fmt::Debug {
     DefaultDomain<Self::Index, Self>;
 }
 
+/// Converts an element to the index representing that element.
+/// 
+/// Useful for enabling a more flexible API where either an element or its 
+/// index can be given as input. By convention, `ToIndex` should be implemented
+/// for an index, see [`to_index_impl`].
 pub trait ToIndex<T: IndexedValue> {
   fn to_index(&self, domain: &T::Domain) -> T::Index;
 }
@@ -38,6 +43,7 @@ impl<T: IndexedValue> ToIndex<T> for &T {
   }
 }
 
+/// Implements [`ToIndex`] for the index of an indexed type.
 // Can't make this a blanket impl b/c it conflicts with the blanket impl above :(
 #[macro_export]
 macro_rules! to_index_impl {
@@ -53,6 +59,9 @@ macro_rules! to_index_impl {
   };
 }
 
+/// Represents a fixed size domain of elements where each element has an index.
+/// 
+/// Enables the bidirectional mapping from element to index and vice-versa.
 pub trait IndexedDomain {
   type Value: IndexedValue;
   type Index: Idx = <Self::Value as IndexedValue>::Index;
@@ -118,7 +127,7 @@ impl<I: Idx, T: IndexedValue> IndexedDomain for DefaultDomain<I, T> {
   }
 }
 
-type IndexSetImpl<T> = BitSet<T>;
+pub type IndexSetImpl<T> = BitSet<T>;
 
 #[derive(Clone)]
 pub struct OwnedSet<T: IndexedValue>(IndexSetImpl<T::Index>);
@@ -168,6 +177,14 @@ pub trait ToSetMut<T: IndexedValue>: DerefMut<Target = IndexSetImpl<T::Index>> {
 impl<S: Deref<Target = IndexSetImpl<T::Index>>, T: IndexedValue> ToSet<T> for S {}
 impl<S: DerefMut<Target = IndexSetImpl<T::Index>>, T: IndexedValue> ToSetMut<T> for S {}
 
+/// High-level wrapper around rustc's bitset (specifically [`IndexSetImpl`]).
+/// 
+/// This data structure ties a bitset to its [`IndexedDomain`], enabling inputs to be
+/// represented either as values or the index of that value in the domain (see [`ToIndex`]).
+/// 
+/// To deal with references to bitsets, e.g. as returned by [`IndexMatrix::row_set`],
+/// `IndexSet` has an additional type parameter for whether it contains an [`OwnedSet`]
+/// or a [`RefSet`] / [`MutSet`].
 pub struct IndexSet<T: IndexedValue, S = OwnedSet<T>> {
   set: S,
   domain: Rc<T::Domain>,
