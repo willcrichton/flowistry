@@ -111,6 +111,23 @@ impl Range {
     })
   }
 
+  pub fn from_byte_range(
+    byte_start: usize,
+    byte_end: usize,
+    src: &str,
+    filename: String,
+  ) -> Self {
+    let char_start = src[.. byte_start].graphemes(true).count();
+    let char_end = char_start + src[byte_start .. byte_end].graphemes(true).count();
+    Range {
+      byte_start,
+      byte_end,
+      char_start,
+      char_end,
+      filename,
+    }
+  }
+
   pub fn from_span(span: Span, source_map: &SourceMap) -> Result<Self> {
     let file = source_map.lookup_source_file(span.lo());
     let filename = match &file.name {
@@ -126,19 +143,7 @@ impl Range {
     let byte_start = source_map.lookup_byte_offset(span.lo()).pos.0 as usize;
     let byte_end = source_map.lookup_byte_offset(span.hi()).pos.0 as usize;
 
-    let prefix = &src[0 .. byte_start];
-    let contents = &src[byte_start .. byte_end];
-
-    let char_start = prefix.graphemes(true).count();
-    let char_end = char_start + contents.graphemes(true).count();
-
-    Ok(Range {
-      char_start,
-      char_end,
-      byte_start,
-      byte_end,
-      filename,
-    })
+    Ok(Self::from_byte_range(byte_start, byte_end, src, filename))
   }
 
   pub fn source_file<'a>(
