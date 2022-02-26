@@ -111,14 +111,10 @@ jobs:
   publish-docs:
     needs: test
     runs-on: ubuntu-20.04
-    env:
-      RUSTDOCFLAGS: --html-in-header scripts/katex-header.html
     steps:
       - uses: actions/checkout@v1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: doc
-          args: --lib
+      - run: cargo doc --lib
+      - run: RUSTDOCFLAGS="--html-in-header scripts/katex-header.html" cargo doc --lib --no-deps
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
