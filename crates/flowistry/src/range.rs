@@ -150,15 +150,14 @@ impl Range {
     &self,
     files: &'a MappedReadGuard<'_, MonotonicVec<Lrc<SourceFile>>>,
   ) -> Result<&'a SourceFile> {
-    let filename = Path::new(&self.filename);
+    let filename = Path::new(&self.filename).canonicalize()?;
     files
       .iter()
       .find(|file| match &file.name {
         // rustc seems to store relative paths to files in the workspace, so if filename is absolute,
         // we can compare them using Path::ends_with
         FileName::Real(RealFileName::LocalPath(other)) => {
-          // log::debug!("{filename:?} {other:?} {:?}", filename.ends_with(other));
-          filename.ends_with(other)
+          filename.ends_with(other.canonicalize().unwrap())
         }
         _ => false,
       })
