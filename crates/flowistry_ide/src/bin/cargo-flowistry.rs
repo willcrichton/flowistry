@@ -119,7 +119,7 @@ fn main() {
   log::debug!("Command: {cmd}");
   args.push(("COMMAND", cmd));
 
-  let file_path = PathBuf::from(file_name);
+  let file_path = PathBuf::from(file_name).canonicalize().unwrap();
   let metadata = cargo_metadata::MetadataCommand::new()
     .no_deps()
     .other_options(["--all-features".to_string(), "--offline".to_string()])
@@ -145,7 +145,10 @@ fn main() {
       let targets = pkg
         .targets
         .iter()
-        .filter(|target| file_path.starts_with(target.src_path.parent().unwrap()))
+        .filter(|target| {
+          let src_path = target.src_path.canonicalize().unwrap();
+          file_path.starts_with(src_path.parent().unwrap())
+        })
         .collect::<Vec<_>>();
 
       // If there are multiple targets that match a given directory, e.g. `examples/whatever.rs`, then
@@ -176,7 +179,7 @@ fn main() {
     ]);
 
   let bench = matches.is_present("BENCH");
-  cmd.arg(if bench { "-q" } else { "-v" });
+  cmd.arg(if bench { "-v" } else { "-q" });
 
   // Add compile filter to specify the target corresponding to the given file
   cmd.arg("-p").arg(&pkg.name);
