@@ -122,7 +122,7 @@ fn main() {
   let file_path = PathBuf::from(file_name);
   let metadata = cargo_metadata::MetadataCommand::new()
     .no_deps()
-    .other_options(["--offline".to_string()])
+    .other_options(["--all-features".to_string(), "--offline".to_string()])
     .exec()
     .unwrap();
 
@@ -138,14 +138,25 @@ fn main() {
     })
     .collect::<Vec<_>>();
 
+  // Find the package and target that corresponds to a given file path
   let (pkg, target) = workspace_members
     .iter()
     .filter_map(|pkg| {
-      let target = pkg
+      let targets = pkg
         .targets
         .iter()
         .filter(|target| file_path.starts_with(target.src_path.parent().unwrap()))
-        .max_by_key(|target| target.src_path.components().count())?;
+        .collect::<Vec<_>>();
+
+      // If there are multiple targets that match a given directory, e.g. `examples/whatever.rs`, then
+      // find the target whose name matches the file stem
+      let target = (match targets.len() {
+        0 => None,
+        1 => Some(targets[0]),
+        _ => targets
+          .into_iter()
+          .find(|target| target.name == file_path.file_stem().unwrap().to_string_lossy()),
+      })?;
 
       Some((pkg, target))
     })
@@ -165,10 +176,9 @@ fn main() {
     ]);
 
   let bench = matches.is_present("BENCH");
-  cmd.arg(if bench { "-v" } else { "-q" });
+  cmd.arg(if bench { "-q" } else { "-v" });
 
   // Add compile filter to specify the target corresponding to the given file
-  log::debug!("Package: {}", pkg.name);
   cmd.arg("-p").arg(&pkg.name);
   let kind = &target.kind[0];
   if kind != "proc-macro" {
@@ -180,6 +190,12 @@ fn main() {
       cmd.arg(&target.name);
     }
   };
+  log::debug!(
+    "Package: {}, target kind {}, target name {}",
+    pkg.name,
+    kind,
+    target.name
+  );
 
   // RNG is necessary to avoid caching
   let n = thread_rng().gen::<u64>();
