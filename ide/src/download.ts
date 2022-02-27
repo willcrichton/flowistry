@@ -1,13 +1,14 @@
 import AdmZip from "adm-zip";
 import * as cp from "child_process";
+import { promises as fs } from "fs";
 import got from "got";
 import _ from "lodash";
-import os from "os";
 import path from "path";
 import * as util from "util";
 
 import { globals } from "./extension";
 import { log } from "./logging";
+import { cargo_bin } from "./setup";
 
 declare const VERSION: string;
 
@@ -31,12 +32,16 @@ export let download = async () => {
   let release_name = `${target}.zip`;
   let release_url = `${release_base_url}/${release_name}`;
 
-  let cargo_home = process.env.CARGO_HOME || path.join(os.homedir(), ".cargo");
-  let cargo_bin = path.join(cargo_home, "bin");
-
-  log(`Downloading ${release_url} to ${cargo_bin}`);
+  let dir = cargo_bin();
+  log(`Downloading ${release_url} to ${dir}`);
   let buffer = await got.get(release_url).buffer();
   let zip = new AdmZip(buffer);
-  zip.extractAllTo(cargo_bin, true);
+  zip.extractAllTo(dir, true);
+
+  // Ensure downloaded binaries are executable
+  let suffix = process.platform == "win32" ? ".exe" : "";
+  await fs.chmod(path.join(dir, "cargo-flowistry" + suffix), "755");
+  await fs.chmod(path.join(dir, "flowistry-driver" + suffix), "755");
+
   globals.status_bar.set_state("idle");
 };

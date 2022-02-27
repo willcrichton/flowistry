@@ -1,6 +1,8 @@
 import * as cp from "child_process";
 import _ from "lodash";
 import open from "open";
+import os from "os";
+import path from "path";
 import { Readable } from "stream";
 import * as vscode from "vscode";
 
@@ -50,11 +52,14 @@ export const get_flowistry_opts = async (cwd: string) => {
 
   const library_path = LIBRARY_PATHS[process.platform] || "LD_LIBRARY_PATH";
 
+  const PATH = cargo_bin() + ";" + process.env.PATH;
+
   return {
     cwd,
     [library_path]: target_libdir,
     SYSROOT: sysroot,
     RUST_BACKTRACE: "1",
+    PATH,
   };
 };
 
@@ -108,6 +113,11 @@ export type CallFlowistry = <T>(
   _no_output?: boolean
 ) => Promise<FlowistryResult<T>>;
 
+export let cargo_bin = () => {
+  let cargo_home = process.env.CARGO_HOME || path.join(os.homedir(), ".cargo");
+  return path.join(cargo_home, "bin");
+};
+
 export async function setup(
   context: vscode.ExtensionContext
 ): Promise<CallFlowistry | null> {
@@ -134,7 +144,7 @@ export async function setup(
 
   if (version !== VERSION) {
     let components = TOOLCHAIN.components.map((c) => `-c ${c}`).join(" ");
-    let rustup_cmd = `rustup toolchain install ${TOOLCHAIN.channel} ${components}`;
+    let rustup_cmd = `rustup toolchain install ${TOOLCHAIN.channel} --profile minimal ${components}`;
     try {
       await exec_notify(rustup_cmd, "Installing nightly Rust...");
     } catch (e: any) {
