@@ -165,13 +165,23 @@ impl Aliases<'a, 'tcx> {
     let body = &body_with_facts.body;
     let static_region = RegionVid::from_usize(0);
     let subset_base = &body_with_facts.input_facts.subset_base;
-    let all_regions = subset_base.iter().copied().flat_map(|(a, b, _)| [a, b]);
-    let num_regions = all_regions
-      .clone()
+
+    let all_pointers = body
+      .local_decls()
+      .indices()
+      .flat_map(|local| {
+        Place::from_local(local, tcx).interior_pointers(tcx, body, def_id)
+      })
+      .collect::<Vec<_>>();
+    let max_region = all_pointers
+      .iter()
+      .map(|(region, _)| *region)
+      .chain(subset_base.iter().flat_map(|(r1, r2, _)| [*r1, *r2]))
+      .filter(|r| *r != UNKNOWN_REGION)
       .max()
-      .unwrap_or(static_region)
-      .as_usize()
-      + 1;
+      .unwrap_or(static_region);
+    let num_regions = max_region.as_usize() + 1;
+    let all_regions = (0 .. num_regions).map(|r| RegionVid::from_usize(r));
 
     let mut subset = SparseBitMatrix::new(num_regions);
 
@@ -181,17 +191,19 @@ impl Aliases<'a, 'tcx> {
     }
 
     // subset('static, 'a).
-    for a in all_regions {
+    for a in all_regions.clone() {
       subset.insert(static_region, a);
     }
 
     if is_extension_active(|mode| mode.pointer_mode == PointerMode::Conservative) {
       // for all p1 : &'a T, p2: &'b T: subset('a, 'b).
       let mut region_to_pointers: HashMap<_, Vec<_>> = HashMap::default();
-      for local in body.local_decls().indices() {
-        for (k, vs) in Place::from_local(local, tcx).interior_pointers(tcx, body, def_id)
-        {
-          region_to_pointers.entry(k).or_default().extend(vs);
+      for (region, places) in &all_pointers {
+        if *region != UNKNOWN_REGION {
+          region_to_pointers
+            .entry(*region)
+            .or_default()
+            .extend(places);
         }
       }
 
@@ -219,17 +231,17 @@ impl Aliases<'a, 'tcx> {
     for (region, _, place) in gather_borrows.borrows {
       contains.entry(region).or_default().insert(place);
 
-      let (ty, projection) = match place.refs_in_projection().last() {
-        Some((ptr, proj)) => (
-          ptr.ty(body.local_decls(), tcx).ty.peel_refs(),
-          proj.to_vec(),
-        ),
+      let def = match place.refs_in_projection().first() {
+        Some((ptr, proj)) => {
+          let ptr_ty = ptr.ty(body.local_decls(), tcx).ty;
+          (ptr_ty.builtin_deref(true).unwrap().ty, proj.to_vec())
+        }
         None => (
           body.local_decls()[place.local].ty,
           place.projection.to_vec(),
         ),
       };
-      definite.insert(region, (ty, projection));
+      definite.insert(region, def);
     }
 
     // For all args p : &'a T where 'a is abstract: contains('a, *p).
@@ -252,17 +264,14 @@ impl Aliases<'a, 'tcx> {
 
     // For all places p : *T or p : Box<T>: contains('UNK, *p).
     let unk_contains = contains.entry(UNKNOWN_REGION).or_default();
-    for local in body.local_decls().indices() {
-      for (region, places) in
-        Place::from_local(local, tcx).interior_pointers(tcx, body, def_id)
-      {
-        if region == UNKNOWN_REGION {
-          for (place, _) in places {
-            unk_contains.insert(tcx.mk_place_deref(place));
-          }
+    for (region, places) in &all_pointers {
+      if *region == UNKNOWN_REGION {
+        for (place, _) in places {
+          unk_contains.insert(tcx.mk_place_deref(*place));
         }
       }
     }
+
     info!(
       "Initial places in loan set: {}, total regions {}, definite regions: {}",
       contains.values().map(|set| set.len()).sum::<usize>(),
@@ -282,8 +291,7 @@ impl Aliases<'a, 'tcx> {
     let subset_sccs = Sccs::<RegionVid, RegionSccIndex>::new(&subset_graph);
     let mut scc_to_regions =
       IndexVec::from_elem_n(HybridBitSet::new_empty(num_regions), subset_sccs.num_sccs());
-    for i in 0 .. num_regions {
-      let r = RegionVid::from_usize(i);
+    for r in all_regions.clone() {
       let scc = subset_sccs.scc(r);
       scc_to_regions[scc].insert(r);
     }
@@ -292,6 +300,10 @@ impl Aliases<'a, 'tcx> {
 
     // Subset implies containment: p ∈ 'a ∧ 'a ⊆ 'b ⇒ p ∈ 'b
     // i.e. contains('b, p) :- contains('a, p), subset('a, 'b).
+    //
+    // contains('b, p2^[p]) :-
+    //   contains('a, p), subset('a, 'b),
+    //   definite('b, T, p2^[]), !subset('b, 'a), p : T.
     //
     // If 'a is from a borrow expression &'a proj[*p'], then we add proj to all inherited aliases.
     // See interprocedural_field_independence for an example where this matters.
@@ -313,8 +325,8 @@ impl Aliases<'a, 'tcx> {
     // Rather than iterating over the entire subset relation, we only do local fixpoints
     // within each strongly-connected component.
     let start = Instant::now();
-    for i in 0 .. num_regions {
-      contains.entry(RegionVid::from_usize(i)).or_default();
+    for r in all_regions {
+      contains.entry(r).or_default();
     }
     for scc in scc_order {
       loop {
