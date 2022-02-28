@@ -113,12 +113,14 @@ impl FlowAnalysis<'_, 'tcx> {
       return false;
     }
 
-    info!("Recursing into {}", tcx.def_path_debug_str(*def_id));
     let body_with_facts = get_body_with_borrowck_facts(tcx, def_id.expect_local());
     let mut recurse_cache = self.recurse_cache.borrow_mut();
     let flow = recurse_cache
       .entry(body_id)
-      .or_insert_with(|| super::compute_flow(tcx, body_id, body_with_facts));
+      .or_insert_with(|| {
+        info!("Recursing into {}", tcx.def_path_debug_str(*def_id));
+        super::compute_flow(tcx, body_id, body_with_facts)
+      });
     let body = &body_with_facts.body;
 
     let mut return_state = FlowDomain::new(flow.analysis.location_domain());
@@ -136,9 +138,7 @@ impl FlowAnalysis<'_, 'tcx> {
       }
     };
 
-    let translate_child_to_parent = |child: Place<'tcx>,
-                                     mutated: bool|
-     -> Option<Place<'tcx>> {
+    let translate_child_to_parent = |child: Place<'tcx>, mutated: bool| -> Option<Place<'tcx>> {
       if child.local == RETURN_PLACE && child.projection.len() == 0 {
         if child.ty(body.local_decls(), tcx).ty.is_unit() {
           return None;
@@ -165,9 +165,20 @@ impl FlowAnalysis<'_, 'tcx> {
         .map(|(_, place)| place)?;
 
       let mut projection = parent_toplevel_arg.projection.to_vec();
-      projection.extend_from_slice(child.projection);
-      let parent_arg_projected = Place::make(parent_toplevel_arg.local, &projection, tcx);
+      let mut ty = parent_toplevel_arg.ty(self.body.local_decls(), tcx);
+      let parent_param_env = tcx.param_env(self.def_id);
+      log::debug!("Adding child {child:?} to parent {parent_toplevel_arg:?}");
+      for elem in child.projection.iter() {
+        ty = ty.projection_ty_core(tcx, parent_param_env, &elem, |_, field, _| ty.field_ty(tcx, field));
+        let elem = match elem {
+          ProjectionElem::Field(field, _) => ProjectionElem::Field(field, ty.ty),
+          elem => elem
+        };
+        projection.push(elem);
+      }
 
+
+      let parent_arg_projected = Place::make(parent_toplevel_arg.local, &projection, tcx);
       Some(parent_arg_projected)
     };
 
