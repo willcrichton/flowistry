@@ -11,7 +11,7 @@ where
   In: Hash + Eq + Clone,
   Out: Unpin,
 {
-  pub fn get<'a, 'b>(&'a self, key: In, compute: impl FnOnce(In) -> Out) -> &'a Out {
+  pub fn get<'a>(&'a self, key: In, compute: impl FnOnce(In) -> Out) -> &'a Out {
     if !self.0.borrow().contains_key(&key) {
       let out = Pin::new(Box::new(compute(key.clone())));
       self.0.borrow_mut().insert(key.clone(), out);

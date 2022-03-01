@@ -115,12 +115,10 @@ impl FlowAnalysis<'_, 'tcx> {
 
     let body_with_facts = get_body_with_borrowck_facts(tcx, def_id.expect_local());
     let mut recurse_cache = self.recurse_cache.borrow_mut();
-    let flow = recurse_cache
-      .entry(body_id)
-      .or_insert_with(|| {
-        info!("Recursing into {}", tcx.def_path_debug_str(*def_id));
-        super::compute_flow(tcx, body_id, body_with_facts)
-      });
+    let flow = recurse_cache.entry(body_id).or_insert_with(|| {
+      info!("Recursing into {}", tcx.def_path_debug_str(*def_id));
+      super::compute_flow(tcx, body_id, body_with_facts)
+    });
     let body = &body_with_facts.body;
 
     let mut return_state = FlowDomain::new(flow.analysis.location_domain());
