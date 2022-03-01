@@ -138,7 +138,9 @@ impl FlowAnalysis<'_, 'tcx> {
       }
     };
 
-    let translate_child_to_parent = |child: Place<'tcx>, mutated: bool| -> Option<Place<'tcx>> {
+    let translate_child_to_parent = |child: Place<'tcx>,
+                                     mutated: bool|
+     -> Option<Place<'tcx>> {
       if child.local == RETURN_PLACE && child.projection.len() == 0 {
         if child.ty(body.local_decls(), tcx).ty.is_unit() {
           return None;
@@ -169,14 +171,15 @@ impl FlowAnalysis<'_, 'tcx> {
       let parent_param_env = tcx.param_env(self.def_id);
       log::debug!("Adding child {child:?} to parent {parent_toplevel_arg:?}");
       for elem in child.projection.iter() {
-        ty = ty.projection_ty_core(tcx, parent_param_env, &elem, |_, field, _| ty.field_ty(tcx, field));
+        ty = ty.projection_ty_core(tcx, parent_param_env, &elem, |_, field, _| {
+          ty.field_ty(tcx, field)
+        });
         let elem = match elem {
           ProjectionElem::Field(field, _) => ProjectionElem::Field(field, ty.ty),
-          elem => elem
+          elem => elem,
         };
         projection.push(elem);
       }
-
 
       let parent_arg_projected = Place::make(parent_toplevel_arg.local, &projection, tcx);
       Some(parent_arg_projected)
