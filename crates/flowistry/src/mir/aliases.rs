@@ -328,10 +328,11 @@ impl Aliases<'a, 'tcx> {
     for r in all_regions {
       contains.entry(r).or_default();
     }
-    for scc in scc_order {
+    for scc_idx in scc_order {
       loop {
         let mut changed = false;
-        for a in scc_to_regions[scc].iter() {
+        let scc = &scc_to_regions[scc_idx];
+        for a in scc.iter() {
           for b in subset.iter(a) {
             if a == b {
               continue;
@@ -343,19 +344,27 @@ impl Aliases<'a, 'tcx> {
             let b_contains =
               unsafe { &mut *(contains.get_mut(&b).unwrap() as *mut PlaceSet<'tcx>) };
 
-            let cyclic = subset.contains(b, a);
-            for p in a_contains.iter() {
-              let p_ty = p.ty(body.local_decls(), tcx).ty;
-              let p_proj = match definite.get(&b) {
-                Some((ty, proj)) if !cyclic && *ty == p_ty => {
-                  let mut full_proj = p.projection.to_vec();
-                  full_proj.extend(proj);
-                  Place::make(p.local, tcx.intern_place_elems(&full_proj), tcx)
-                }
-                _ => *p,
-              };
+            let cyclic = scc.contains(b);
+            match definite.get(&b) {
+              Some((ty, proj)) if !cyclic => {
+                for p in a_contains.iter() {
+                  let p_ty = p.ty(body.local_decls(), tcx).ty;
+                  let p_proj = if *ty == p_ty {
+                    let mut full_proj = p.projection.to_vec();
+                    full_proj.extend(proj);
+                    Place::make(p.local, tcx.intern_place_elems(&full_proj), tcx)
+                  } else {
+                    *p
+                  };
 
-              changed |= b_contains.insert(p_proj);
+                  changed |= b_contains.insert(p_proj);
+                }
+              }
+              _ => {
+                let orig_len = b_contains.len();
+                b_contains.extend(a_contains);
+                changed |= b_contains.len() != orig_len;
+              }
             }
           }
         }
