@@ -181,7 +181,7 @@ impl Aliases<'a, 'tcx> {
       .max()
       .unwrap_or(static_region);
     let num_regions = max_region.as_usize() + 1;
-    let all_regions = (0 .. num_regions).map(|r| RegionVid::from_usize(r));
+    let all_regions = (0 .. num_regions).map(RegionVid::from_usize);
 
     let mut subset = SparseBitMatrix::new(num_regions);
 

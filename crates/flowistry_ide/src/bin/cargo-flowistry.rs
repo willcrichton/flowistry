@@ -151,14 +151,26 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-      // If there are multiple targets that match a given directory, e.g. `examples/whatever.rs`, then
-      // find the target whose name matches the file stem
       let target = (match targets.len() {
         0 => None,
         1 => Some(targets[0]),
-        _ => targets
-          .into_iter()
-          .find(|target| target.name == file_path.file_stem().unwrap().to_string_lossy()),
+        _ => {
+          // If there are multiple targets that match a given directory, e.g. `examples/whatever.rs`, then
+          // find the target whose name matches the file stem
+          let stem = file_path.file_stem().unwrap().to_string_lossy();
+          let name_matches_stem = targets
+            .clone()
+            .into_iter()
+            .find(|target| target.name == stem);
+
+          // Otherwise we're in a special case, e.g. "main.rs" corresponds to the bin target.
+          name_matches_stem.or_else(|| {
+            let kind = (if stem == "main" { "bin" } else { "lib" }).to_string();
+            targets
+              .into_iter()
+              .find(|target| target.kind.contains(&kind))
+          })
+        }
       })?;
 
       Some((pkg, target))
