@@ -11,11 +11,14 @@ where
   In: Hash + Eq + Clone,
   Out: Unpin,
 {
-  pub fn get(&'a self, key: In, compute: impl FnOnce(In) -> Out) -> &'a Out {
-    let mut cache = self.0.borrow_mut();
-    let entry = cache
-      .entry(key.clone())
-      .or_insert_with(move || Pin::new(Box::new(compute(key))));
+  pub fn get<'a, 'b>(&'a self, key: In, compute: impl FnOnce(In) -> Out) -> &'a Out {
+    if !self.0.borrow().contains_key(&key) {
+      let out = Pin::new(Box::new(compute(key.clone())));
+      self.0.borrow_mut().insert(key.clone(), out);
+    }
+
+    let cache = self.0.borrow();
+    let entry = cache.get(&key).unwrap();
 
     // SAFETY: because the entry is pinned, it cannot move and this pointer will
     // only be invalidated if Cache is dropped. The returned reference has a lifetime
