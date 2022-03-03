@@ -35,6 +35,7 @@ Flowistry can be helpful when you're reading a function with a lot of code. For 
     * [Flowistry does not completely handle interior mutability](#flowistry-does-not-completely-handle-interior-mutability)
     * [A focus region may include more code than you expect](#a-focus-region-may-include-more-code-than-you-expect)
     * [Not all code is selectable](#not-all-code-is-selectable)
+    * [Nested functions cannot be analyzed together (including closures and async)](#nested-functions-cannot-be-analyzed-together-including-closures-and-async)
 * [FAQ](#faq)
     * [rustup fails on installation](#rustup-fails-on-installation)
     * [Why isn't Flowistry part of Rust Analyzer?](#why-isnt-flowistry-part-of-rust-analyzer)
@@ -164,6 +165,10 @@ Flowistry works by analyzing the [MIR](https://rustc-dev-guide.rust-lang.org/mir
 For example, if the source contains an expression `foo.whomp.bar().baz()`, it's possible that a temporary variable is only generated for the expression `foo.whomp.bar()`. So if the user selects `foo`, Flowistry may not be able to determine that this corresponds to the MIR [place](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Place.html) that represents `foo`.
 
 This is why the IDE extension highlights the focused code in gray, so you can understand what your cursor's selection actually maps to.
+
+### Nested functions cannot be analyzed together (including closures and async)
+
+Flowistry analyzes a single function at a time. If a function contains other functions, e.g. `fn` definitions, or closures, or implicitly via async, then Flowistry will only show you focus regions within the smallest function body containing your cursor. This is usually well defined for function definitions and closures, but may be confusing for async since that depends on how rustc decides to carve up your async function. 
 
 ## FAQ
 
