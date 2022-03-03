@@ -797,6 +797,9 @@
 <span id="776">776</span>
 <span id="777">777</span>
 <span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Mapping source ranges to/from the HIR and MIR.</span>
 
 <span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
@@ -1178,11 +1181,14 @@
     .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
     <span class="macro">trace!</span>(<span class="string">&quot;enclosing_hir={enclosing_hir:#?}&quot;</span>);
 
+    <span class="kw">if</span> <span class="ident">enclosing_hir</span>.<span class="ident">is_empty</span>() {
+      <span class="macro">log::warn!</span>(
+        <span class="string">&quot;Location {location:?} (span {target_span:?}) had no enclosing HIR nodes&quot;</span>
+      );
+      <span class="kw">return</span> <span class="macro">vec!</span>[];
+    }
+
     <span class="comment">// Get the spans of the immediately enclosing HIR node</span>
-    <span class="macro">assert!</span>(
-      <span class="op">!</span><span class="ident">enclosing_hir</span>.<span class="ident">is_empty</span>(),
-      <span class="string">&quot;Location {location:?} (span {target_span:?}) had no enclosing HIR nodes&quot;</span>
-    );
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hir_spans</span> <span class="op">=</span> <span class="ident">enclosing_hir</span>.<span class="ident">remove</span>(<span class="number">0</span>).<span class="ident">get_spans</span>(<span class="ident">span_type</span>);
 
     <span class="comment">// Include the MIR span</span>
