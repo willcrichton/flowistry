@@ -379,11 +379,14 @@ where
     .collect::<Vec<_>>();
     trace!("enclosing_hir={enclosing_hir:#?}");
 
+    if enclosing_hir.is_empty() {
+      log::warn!(
+        "Location {location:?} (span {target_span:?}) had no enclosing HIR nodes"
+      );
+      return vec![];
+    }
+
     // Get the spans of the immediately enclosing HIR node
-    assert!(
-      !enclosing_hir.is_empty(),
-      "Location {location:?} (span {target_span:?}) had no enclosing HIR nodes"
-    );
     let mut hir_spans = enclosing_hir.remove(0).get_spans(span_type);
 
     // Include the MIR span
