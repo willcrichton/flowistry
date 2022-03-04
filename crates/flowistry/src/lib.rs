@@ -78,5 +78,6 @@ pub mod infoflow;
 pub mod mir;
 pub mod range;
 pub mod source_map;
+#[cfg(test)]
 pub mod test_utils;
 pub mod timer;

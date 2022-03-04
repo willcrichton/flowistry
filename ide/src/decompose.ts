@@ -92,7 +92,12 @@ export let decompose = async () => {
 
   // show_chunks(decomp.chunks);
 
-  show_chunks(decomp.chunks[Math.ceil(decomp.chunks.length / 2)][1]);
+  let init = Math.min(
+    decomp.chunks.length - 1,
+    Math.ceil(decomp.chunks.length / 2)
+  );
+  console.log(decomp.chunks, init);
+  show_chunks(decomp.chunks[init][1]);
 
   panel.webview.onDidReceiveMessage((i) => {
     show_chunks((decomp as Decomposition).chunks[i][1]);

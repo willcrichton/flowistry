@@ -377,7 +377,7 @@ where
       self.hir_spans.iter().map(|span| (span.full, span)),
     )
     .collect::<Vec<_>>();
-    trace!("enclosing_hir={enclosing_hir:#?}");
+    // trace!("enclosing_hir={enclosing_hir:?}");
 
     if enclosing_hir.is_empty() {
       log::warn!(
