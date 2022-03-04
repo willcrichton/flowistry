@@ -1,3 +1,5 @@
+#![allow(warnings)]
+
 use std::path::Path;
 
 use anyhow::Result;
@@ -37,11 +39,31 @@ pub fn decompose(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<DecomposeOutput> 
 
   let graph = construct::build(body, tcx, def_id.to_def_id(), results);
 
-  let resolutions = [0.01, 0.1, 0.25, 0.5, 1.];
-  let communities_idxs = resolutions
-    .par_iter()
-    .map(|r| (*r, algo::naive_greedy_modularity_communities(&graph, *r)))
+  let toplevel = algo::connected_components(&graph);
+  let cut = toplevel
+    .into_iter()
+    .flat_map(|component| {
+      let subgraph = algo::subgraph(&graph, &component);
+      match algo::find_cut(&subgraph) {
+        Some(more_components) => more_components
+          .into_iter()
+          .map(|v| {
+            v.into_iter()
+              .map(|n| *subgraph.node_weight(n).unwrap())
+              .collect()
+          })
+          .collect(),
+        None => vec![component],
+      }
+    })
     .collect::<Vec<_>>();
+  let communities_idxs = vec![(0., cut)];
+
+  // let resolutions = [0.1, 0.3, 0.6, 1., 2.];
+  // let communities_idxs = resolutions
+  //   .par_iter()
+  //   .map(|r| (*r, algo::naive_greedy_modularity_communities(&graph, *r)))
+  //   .collect::<Vec<_>>();
 
   let fn_path = tcx.def_path_str(def_id.to_def_id());
   let fn_name = fn_path.split("::").last().unwrap();

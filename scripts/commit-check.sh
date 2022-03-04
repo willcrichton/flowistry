@@ -2,7 +2,7 @@
 set -e
 
 cargo fmt
-cargo clippy --workspace
+cargo clippy --workspace --all-features
 
 pushd ide
 npm run fmt

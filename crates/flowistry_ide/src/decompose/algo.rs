@@ -30,21 +30,100 @@ where
   }
 }
 
-#[allow(dead_code)]
+pub fn find_cut<N, E, Ix>(g: &DiGraph<N, E, Ix>) -> Option<Vec<Vec<NodeIndex<Ix>>>>
+where
+  Ix: IndexType,
+  N: Clone + std::fmt::Debug,
+  E: Clone,
+{
+  let mut g = g.clone();
+  let mut deleted = HashSet::default();
+  let order = petgraph::algo::toposort(&g, None).unwrap();
+  let k = order.len();
+  let mut ranks = order
+    .into_iter()
+    .enumerate()
+    .map(|(i, n)| {
+      let rank = if i > k / 2 { k - i } else { i };
+      (n, k - rank)
+    })
+    .collect::<HashMap<_, _>>();
+  let threshold = k / 6;
+
+  while g.edge_count() > 0 {
+    let to_delete = g
+      .node_indices()
+      .max_by_key(|n| {
+        (
+          g.successors(*n).count() + g.predecessors(*n).count(),
+          ranks[n],
+        )
+      })
+      .unwrap();
+
+    deleted.insert(to_delete);
+    let edges = g
+      .edges_directed(to_delete, EdgeDirection::Outgoing)
+      .chain(g.edges_directed(to_delete, EdgeDirection::Incoming))
+      .map(|e| e.id())
+      .collect::<HashSet<_>>();
+    g.retain_edges(|_, e| !edges.contains(&e));
+
+    let mut components = connected_components(&g);
+    components.retain(|c| c.len() > 1 || !deleted.contains(&c[0]));
+    let (mut large, small): (Vec<_>, Vec<_>) =
+      components.into_iter().partition(|v| v.len() >= threshold);
+    if large.len() > 1 {
+      large.push(small.into_iter().flatten().chain(deleted).collect());
+      return Some(large);
+    }
+    // let sizes = components.iter().map(|v| v.len()).collect::<Vec<_>>();
+    // println!(
+    //   "removed {:?}, new components: {:?}, avg size: {:.1}",
+    //   g.node_weight(to_delete).unwrap(),
+    //   sizes,
+    //   (sizes.iter().sum::<usize>() as f64) / (sizes.len() as f64)
+    // );
+  }
+
+  None
+}
+
+pub fn subgraph<N, E, Ix>(
+  g: &DiGraph<N, E, Ix>,
+  nodes: &[NodeIndex<Ix>],
+) -> DiGraph<NodeIndex<Ix>, (), Ix>
+where
+  Ix: IndexType,
+{
+  let mut g2 = DiGraph::default();
+  let node_map = nodes
+    .iter()
+    .map(|n| (*n, g2.add_node(*n)))
+    .collect::<HashMap<_, _>>();
+  for n in node_map.keys() {
+    for n2 in g.successors(*n) {
+      g2.add_edge(node_map[n], node_map[&n2], ());
+    }
+  }
+  g2
+}
+
 pub fn connected_components<N, E, Ix>(g: &DiGraph<N, E, Ix>) -> Vec<Vec<NodeIndex<Ix>>>
 where
   Ix: IndexType,
 {
-  let mut vertex_sets = UnionFind::<NodeIndex<Ix>>::new(g.node_bound());
+  let mut vertex_sets = UnionFind::<NodeIndex<Ix>>::new(g.node_count());
   for edge in g.edge_references() {
     vertex_sets.union(edge.source(), edge.target());
   }
 
-  g.node_indices()
-    .group_by(|n| vertex_sets.find(*n))
+  let pairs = vertex_sets
+    .into_labeling()
     .into_iter()
-    .map(|(_, group)| group.collect())
-    .collect()
+    .zip(g.node_indices());
+
+  pairs.into_group_map().into_values().collect()
 }
 
 // Implementation copied almost verbatim from NetworkX:

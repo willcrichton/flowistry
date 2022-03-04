@@ -42,6 +42,7 @@ extern crate rustc_mir_dataflow;
 extern crate rustc_serialize;
 extern crate rustc_span;
 
+#[cfg(decompose)]
 pub mod decompose;
 pub mod focus;
 pub mod playground;

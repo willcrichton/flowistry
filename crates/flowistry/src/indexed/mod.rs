@@ -323,7 +323,13 @@ impl<T: IndexedValue + fmt::Debug, S: ToSet<T>> fmt::Debug for IndexSet<T, S> {
 struct Escape<T>(T);
 impl<T: fmt::Debug> fmt::Display for Escape<T> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{}", html_escape::encode_text(&format!("{:?}", self.0)))
+    cfg_if::cfg_if! {
+      if #[cfg(feature = "debug")] {
+        write!(f, "{}", html_escape::encode_text(&format!("{:?}", self.0)))
+      } else {
+        write!(f, "{:?}", self.0)
+      }
+    }
   }
 }
 

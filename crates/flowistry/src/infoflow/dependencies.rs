@@ -249,27 +249,42 @@ pub fn compute_dependency_spans(
   deps
     .into_iter()
     .map(|(locations, places)| {
-      let location_spans = locations.iter().flat_map(|location| {
-        spanner.location_to_spans(
-          *location,
-          location_domain,
-          EnclosingHirSpans::OuterOnly,
-        )
-      });
+      let mut location_spans = locations
+        .iter()
+        .flat_map(|location| {
+          spanner.location_to_spans(
+            *location,
+            location_domain,
+            EnclosingHirSpans::OuterOnly,
+          )
+        })
+        .collect::<Vec<_>>();
 
       let place_spans = places
         .iter()
         .filter_map(|place| {
-          body.local_decls()[place.local]
-            .source_info
-            .span
-            .as_local(tcx)
+          let decl = &body.local_decls()[place.local];
+          // We only include spans of places that are user-defined.
+          // Other spans may include more code than we expect, e.g. the span
+          // of the place representing the output of a match expression is the entire
+          // match expression. See match_branch for an example where this matters.
+          if decl.is_user_variable() || place.local == RETURN_PLACE {
+            decl.source_info.span.as_local(tcx)
+          } else {
+            None
+          }
         })
-        .filter(|span| !spanner.invalid_span(*span));
+        .filter(|span| !spanner.invalid_span(*span))
+        .collect::<Vec<_>>();
 
-      let all_spans = location_spans.chain(place_spans).collect::<Vec<_>>();
-      trace!("Before merging: {all_spans:?}");
-      Span::merge_overlaps(all_spans)
+      trace!("Location spans: {location_spans:?}");
+      trace!("Place spans: {place_spans:?}");
+
+      location_spans.extend(place_spans);
+      trace!("Before merging: {location_spans:?}");
+      let merged_spans = Span::merge_overlaps(location_spans);
+      trace!("After merging: {merged_spans:?}");
+      merged_spans
     })
     .collect::<Vec<_>>()
 }

@@ -1,3 +1,5 @@
+#![allow(warnings)]
+
 use either::Either;
 use flowistry::{
   indexed::{impls::PlaceSet, IndexMatrix, IndexedDomain},
@@ -22,81 +24,15 @@ pub fn compute_adjacency_matrix(
 ) -> IndexMatrix<Location, Location> {
   let analysis = &results.analysis;
   let location_domain = analysis.location_domain();
+  let mut adj_mtx = IndexMatrix::new(location_domain);
 
-  let mut mutation_locs = IndexMatrix::new(location_domain);
-
-  for (arg, loc) in analysis.aliases.all_args() {
-    mutation_locs.insert(arg, loc);
-  }
-
-  ModularMutationVisitor::new(tcx, body, def_id, |mutated, _, location, _| {
-    for p in analysis.aliases.conflicts(mutated).iter() {
-      mutation_locs.insert(*p, location);
+  ModularMutationVisitor::new(tcx, body, def_id, |_, inputs, location, _| {
+    let state = results.state_at(location);
+    for (place, _) in inputs {
+      adj_mtx.union_into_row(location, &state.row_set(*place));
     }
   })
   .visit_body(body);
-
-  log::debug!("mutation_locs: {mutation_locs:#?}");
-
-  let inputs_at = |location: Location| -> PlaceSet {
-    let mut inputs = PlaceSet::default();
-
-    let mut visitor = PlaceCollector {
-      tcx,
-      places: Vec::new(),
-    };
-    match body.stmt_at(location) {
-      Either::Left(stmt) => match &stmt.kind {
-        StatementKind::Assign(box (_, rvalue)) => {
-          visitor.visit_rvalue(rvalue, location);
-        }
-        _ => {}
-      },
-      Either::Right(terminator) => {
-        visitor.visit_terminator(terminator, location);
-      }
-    };
-
-    for (input, _) in visitor.places {
-      for place in input.place_and_refs_in_projection(tcx) {
-        inputs.extend(analysis.aliases.conflicts(place));
-      }
-    }
-
-    inputs
-  };
-
-  let mut adj_mtx = IndexMatrix::new(location_domain);
-  for location in traversal::reverse_postorder(body)
-    .flat_map(|(block, _)| body.locations_in_block(block))
-    .filter(|location| match body.stmt_at(*location) {
-      Either::Left(_) => true,
-      Either::Right(terminator) => !matches!(
-        terminator.kind,
-        TerminatorKind::DropAndReplace { .. }
-          | TerminatorKind::Drop { .. }
-          | TerminatorKind::Goto { .. }
-          | TerminatorKind::Return
-          | TerminatorKind::Resume
-      ),
-    })
-  {
-    let inputs = inputs_at(location);
-    let infoflow = results.state_at(location);
-    for input in inputs {
-      let mut deps = infoflow.row_set(input).to_owned();
-      deps.intersect(&mutation_locs.row_set(input));
-      adj_mtx.union_into_row(location, &deps);
-    }
-
-    if let Some(control_deps) = analysis.control_dependencies.dependent_on(location.block)
-    {
-      for block in control_deps.iter() {
-        adj_mtx.insert(location, body.terminator_loc(block));
-      }
-    }
-  }
-  log::debug!("adj_mtx {adj_mtx:#?}");
 
   adj_mtx
 }

@@ -139,11 +139,19 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
         Range::from_char_range(pos, pos, arg::<String>("FILE")).unwrap(),
       );
       match cmd {
-        "decompose" => postprocess(flowistry_ide::run(
-          flowistry_ide::decompose::decompose,
-          id,
-          args,
-        )),
+        "decompose" => {
+          cfg_if::cfg_if! {
+            if #[cfg(feature = "decompose")] {
+              postprocess(flowistry_ide::run(
+                flowistry_ide::decompose::decompose,
+                id,
+                args,
+              ))
+            } else {
+              panic!("Flowistry must be built with the decompose feature")
+            }
+          }
+        }
         "focus" => postprocess(flowistry_ide::run(flowistry_ide::focus::focus, id, args)),
         _ => unreachable!(),
       }
