@@ -248,10 +248,12 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
                   _ => false,
                 })
                 .collect::<SmallVec<_>>();
-              assert!(
-                locations.len() > 0,
-                "FakeRead of {place:?} has no assignments"
-              );
+
+              if locations.len() == 0 {
+                log::warn!("FakeRead of {place:?} has no assignments");
+                return;                
+              }
+
               locations
             }
           },
