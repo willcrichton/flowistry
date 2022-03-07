@@ -139,7 +139,7 @@ fn main() {
     .collect::<Vec<_>>();
 
   // Find the package and target that corresponds to a given file path
-  let (pkg, target) = workspace_members
+  let mut matching = workspace_members
     .iter()
     .filter_map(|pkg| {
       let targets = pkg
@@ -175,8 +175,12 @@ fn main() {
 
       Some((pkg, target))
     })
-    .next()
-    .unwrap_or_else(|| panic!("Could not find target for path: {file_name}"));
+    .collect::<Vec<_>>();
+  let (pkg, target) = match matching.len() {
+    0 => panic!("Could not find target for path: {file_name}"),
+    1 => matching.remove(0),
+    _ => panic!("Too many matching targets: {matching:?}"),
+  };
 
   let mut cmd = Command::new(cargo_path);
   cmd
@@ -194,7 +198,7 @@ fn main() {
   cmd.arg(if bench { "-v" } else { "-q" });
 
   // Add compile filter to specify the target corresponding to the given file
-  cmd.arg("-p").arg(&pkg.name);
+  cmd.arg("-p").arg(format!("{}:{}", pkg.name, pkg.version));
   let kind = &target.kind[0];
   if kind != "proc-macro" {
     cmd.arg(format!("--{kind}"));
