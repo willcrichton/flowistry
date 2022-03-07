@@ -11,7 +11,7 @@ license = "MIT"
 rustc_private = true
 
 [features]
-test = []
+test = ["textwrap", "lazy_static"]
 debug = ["html-escape"]
 
 [dependencies]
@@ -19,15 +19,17 @@ anyhow = "1"
 log = "0.4"
 fluid-let = "1.0"
 cfg-if = "1.0"
-html-escape = {version = "0.2", optional = true}
 unicode-segmentation = "1.9"
 
+# For local debugging
+html-escape = {version = "0.2", optional = true}
+
+# For test_utils
+textwrap = {version = "0.14", default-features = false, optional = true}
+lazy_static = {version = "1.4", optional = true}
+
 [dev-dependencies]
+# Hack based on https://github.com/rust-lang/cargo/issues/2911
+flowistry = { path = ".", features = ["test"] }
 env_logger = {version = "0.9", default-features = false}
 test-log = "0.2"
-textwrap = {version = "0.14", default-features = false}
-lazy_static = "1.4"
-
-[[test]]
-name = "slicing"
-required-features = ["test"]
