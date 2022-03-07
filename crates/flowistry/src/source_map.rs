@@ -19,16 +19,17 @@ use rustc_middle::{
       MutatingUseContext, NonMutatingUseContext, NonUseContext, PlaceContext,
       Visitor as MirVisitor,
     },
-    Body, HasLocalDecls, TerminatorKind,
+    Body, HasLocalDecls, Statement, StatementKind, Terminator, TerminatorKind,
   },
   ty::TyCtxt,
 };
 use rustc_span::{Span, SpanData};
+use smallvec::{smallvec, SmallVec};
 
 use crate::{
   block_timer,
-  indexed::impls::LocationDomain,
-  mir::utils::{self, SpanDataExt, SpanExt},
+  indexed::impls::{arg_location, LocationDomain},
+  mir::utils::{self, BodyExt, SpanDataExt, SpanExt},
 };
 
 // Collect all the spans for children beneath the visited node.
@@ -187,7 +188,7 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
 pub struct MirSpannedPlace<'tcx> {
   pub place: mir::Place<'tcx>,
   pub span: SpanData,
-  pub location: mir::Location,
+  pub locations: SmallVec<[mir::Location; 1]>,
 }
 
 struct MirSpanCollector<'a, 'b, 'hir, 'tcx>(&'a mut Spanner<'b, 'hir, 'tcx>);
@@ -210,17 +211,61 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
     // * "x + 1" -- MIR will generate a temporary to assign x into, whose
     //   span is given to "x". That corresponds to MutatingUseContext::Store
     // * "y" -- this corresponds to NonMutatingUseContext::Inspect
-    let span = match context {
-      PlaceContext::MutatingUse(MutatingUseContext::Store)
-      | PlaceContext::NonMutatingUse(NonMutatingUseContext::Inspect) => {
-        let source_info = self.0.body.source_info(location);
-        source_info.span
+    let body = &self.0.body;
+    let (span, locations) = match context {
+      PlaceContext::MutatingUse(MutatingUseContext::Store) => {
+        let source_info = body.source_info(location);
+        (source_info.span, smallvec![location])
+      }
+      PlaceContext::NonMutatingUse(NonMutatingUseContext::Inspect) => {
+        let source_info = body.source_info(location);
+        // For a statement like `let y = x + 1`, if the user selects `y`, 
+        // then the only location that contains the source-map for `y` is a `FakeRead`.
+        // However, for slicing we want to give the location that actually sets `y`.
+        // So we search through the body to find the locations that assign to `y`.
+        let locations = match body.stmt_at(location) {
+          Either::Left(Statement {
+            kind: StatementKind::FakeRead(..),
+            ..
+          }) => match arg_location(*place, body) {
+            Some(arg_location) => smallvec![arg_location],
+            None => {
+              let locations = body
+                .all_locations()
+                .filter(|location| match body.stmt_at(*location) {
+                  Either::Left(Statement {
+                    kind: StatementKind::Assign(box (lhs, _)),
+                    ..
+                  })
+                  | Either::Right(Terminator {
+                    kind:
+                      TerminatorKind::Call {
+                        destination: Some((lhs, _)),
+                        ..
+                      },
+                    ..
+                  }) => lhs == place,
+                  _ => false,
+                })
+                .collect::<SmallVec<_>>();
+              assert!(
+                locations.len() > 0,
+                "FakeRead of {place:?} has no assignments"
+              );
+              locations
+            }
+          },
+          _ => {
+            return;
+          }
+        };
+        (source_info.span, locations)
       }
       PlaceContext::NonUse(NonUseContext::VarDebugInfo)
-        if self.0.body.args_iter().any(|local| local == place.local) =>
+        if body.args_iter().any(|local| local == place.local) =>
       {
-        let source_info = self.0.body.local_decls()[place.local].source_info;
-        source_info.span
+        let source_info = body.local_decls()[place.local].source_info;
+        (source_info.span, smallvec![location])
       }
       _ => {
         return;
@@ -231,7 +276,7 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
 
     let spanned_place = MirSpannedPlace {
       place: *place,
-      location,
+      locations,
       span: span.data(),
     };
     trace!("spanned place: {spanned_place:?}");
@@ -254,7 +299,7 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
       let span = try_span!(self, statement.source_info.span);
       let spanned_place = MirSpannedPlace {
         place: *lhs,
-        location,
+        locations: smallvec![location],
         span: span.data(),
       };
       trace!("spanned place (assign): {spanned_place:?}");
@@ -283,7 +328,7 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
     let span = try_span!(self, terminator.source_info.span);
     let spanned_place = MirSpannedPlace {
       place,
-      location,
+      locations: smallvec![location],
       span: span.data(),
     };
     trace!("spanned place (terminator): {spanned_place:?}");

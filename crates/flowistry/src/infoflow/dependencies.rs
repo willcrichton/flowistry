@@ -54,7 +54,12 @@ impl TargetDeps {
     debug!("expanded_targets={expanded_targets:#180?}");
 
     for (place, location) in expanded_targets {
-      let state = results.state_at(location);
+      let state_location = if location_domain.location_to_local(location).is_some() {
+        Location::START
+      } else {
+        location
+      };
+      let state = results.state_at(state_location);
       backward.union(&aliases.deps(state, place));
 
       let mut forward = LocationSet::new(location_domain);
@@ -64,6 +69,7 @@ impl TargetDeps {
         trace!("place={place:?}, conflict={conflict:?}, deps={deps:?}");
         forward.intersect(&deps);
       }
+      forward.insert(location);
       all_forward.push(forward);
     }
 

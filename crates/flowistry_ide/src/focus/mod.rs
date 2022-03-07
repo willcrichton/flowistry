@@ -38,9 +38,19 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
   let grouped_spans = spanner
     .mir_spans
     .iter()
-    .map(|mir_span| (mir_span.span, (mir_span.place, mir_span.location)))
+    .map(|mir_span| {
+      (
+        mir_span.span,
+        mir_span
+          .locations
+          .iter()
+          .map(|location| (mir_span.place, *location))
+          .collect::<Vec<_>>(),
+      )
+    })
     .into_group_map()
     .into_iter()
+    .map(|(k, vs)| (k, vs.concat()))
     .collect::<Vec<_>>();
   let targets = grouped_spans
     .iter()

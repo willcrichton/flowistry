@@ -16,7 +16,13 @@ fn slice(dir: &str, direction: Direction) {
       let places = spanner.span_to_places(target);
       let targets = places
         .iter()
-        .map(|mir_span| vec![(mir_span.place, mir_span.location)])
+        .map(|mir_span| {
+          mir_span
+            .locations
+            .iter()
+            .map(|location| (mir_span.place, *location))
+            .collect::<Vec<_>>()
+        })
         .collect();
       log::debug!("targets={targets:#?}");
 

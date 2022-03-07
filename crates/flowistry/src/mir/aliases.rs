@@ -229,7 +229,9 @@ impl Aliases<'a, 'tcx> {
     let mut gather_borrows = GatherBorrows::default();
     gather_borrows.visit_body(&body_with_facts.body);
     for (region, _, place) in gather_borrows.borrows {
-      contains.entry(region).or_default().insert(place);
+      if place.is_direct(body) {
+        contains.entry(region).or_default().insert(place);
+      }
 
       let def = match place.refs_in_projection().first() {
         Some((ptr, proj)) => {
