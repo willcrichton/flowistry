@@ -201,6 +201,17 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
     location: mir::Location,
   ) {
     trace!("place={place:?} context={context:?} location={location:?}");
+
+    // MIR will sometimes include places assigned to unit, e.g.
+    //   if true { let x = 1; } else { let x = 2; }
+    // then the entire block will have a place with unit value.
+    // To avoid letting that block be selectable, we ignore values with unit type.
+    // This is a hack, but not sure if there's a better way?
+    let body = &self.0.body;
+    if place.ty(body.local_decls(), self.0.tcx).ty.is_unit() {
+      return;
+    }
+
     // Three cases, shown by example:
     //   fn foo(x: i32) {
     //     let y = x + 1;
@@ -211,7 +222,6 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
     // * "x + 1" -- MIR will generate a temporary to assign x into, whose
     //   span is given to "x". That corresponds to MutatingUseContext::Store
     // * "y" -- this corresponds to NonMutatingUseContext::Inspect
-    let body = &self.0.body;
     let (span, locations) = match context {
       PlaceContext::MutatingUse(MutatingUseContext::Store) => {
         let source_info = body.source_info(location);
@@ -219,7 +229,7 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
       }
       PlaceContext::NonMutatingUse(NonMutatingUseContext::Inspect) => {
         let source_info = body.source_info(location);
-        // For a statement like `let y = x + 1`, if the user selects `y`, 
+        // For a statement like `let y = x + 1`, if the user selects `y`,
         // then the only location that contains the source-map for `y` is a `FakeRead`.
         // However, for slicing we want to give the location that actually sets `y`.
         // So we search through the body to find the locations that assign to `y`.
@@ -251,7 +261,7 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
 
               if locations.len() == 0 {
                 log::warn!("FakeRead of {place:?} has no assignments");
-                return;                
+                return;
               }
 
               locations
@@ -267,6 +277,10 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
         if body.args_iter().any(|local| local == place.local) =>
       {
         let source_info = body.local_decls()[place.local].source_info;
+        let location = match arg_location(*place, body) {
+          Some(arg_location) => arg_location,
+          None => location,
+        };
         (source_info.span, smallvec![location])
       }
       _ => {
@@ -298,6 +312,10 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
     self.super_statement(statement, location);
 
     if let mir::StatementKind::Assign(box (lhs, _)) = &statement.kind {
+      if lhs.ty(self.0.body.local_decls(), self.0.tcx).ty.is_unit() {
+        return;
+      }
+
       let span = try_span!(self, statement.source_info.span);
       let spanned_place = MirSpannedPlace {
         place: *lhs,
