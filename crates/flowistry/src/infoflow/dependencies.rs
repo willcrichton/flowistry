@@ -51,12 +51,12 @@ impl TargetDeps {
         };
         let state = results.state_at(state_location);
         // backward.union(&aliases.deps(state, place));
-
-        // TODO: this is really slow b/c of aliases.deps calling conflict.normalize(..).
+        
         let mut forward = LocationSet::new(location_domain);
         forward.insert_all();
-        for conflict in aliases.children(place) {
-          let deps = aliases.deps(state, conflict);
+        for conflict in aliases.children(aliases.normalize(place)) {
+          // conflict should already be normalized because the input to aliases.children is normalized
+          let deps = state.row_set(conflict);
           trace!("place={place:?}, conflict={conflict:?}, deps={deps:?}");
           forward.intersect(&deps);
         }
