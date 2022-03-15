@@ -95,12 +95,20 @@ impl FlowAnalysis<'a, 'tcx> {
     input_location_deps.insert(location);
 
     let add_deps = |place: Place<'tcx>, location_deps: &mut LocationSet| {
-      for place in place.place_and_refs_in_projection(self.tcx) {
-        for alias in all_aliases.aliases(place).iter() {
-          let deps = state.row_set(all_aliases.normalize(*alias));
-          trace!("    For alias {alias:?} for input {place:?} adding deps {deps:?}");
-          location_deps.union(&deps);
-        }
+      let reachable_values = all_aliases.reachable_values(place, Mutability::Not);
+      let provenance =
+        place
+          .refs_in_projection()
+          .into_iter()
+          .flat_map(|(place_ref, _)| {
+            all_aliases
+              .aliases(Place::from_ref(place_ref, self.tcx))
+              .iter()
+          });
+      for relevant in reachable_values.iter().chain(provenance) {
+        let deps = state.row_set(all_aliases.normalize(*relevant));
+        trace!("    For relevant {relevant:?} for input {place:?} adding deps {deps:?}");
+        location_deps.union(&deps);
       }
     };
 
@@ -221,9 +229,7 @@ impl Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
     location: Location,
   ) {
     ModularMutationVisitor::new(
-      self.tcx,
-      self.body,
-      self.def_id,
+      &self.aliases,
       |mutated: Place<'tcx>,
        inputs: &[(Place<'tcx>, Option<PlaceElem<'tcx>>)],
        location: Location,
@@ -248,9 +254,7 @@ impl Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
     }
 
     ModularMutationVisitor::new(
-      self.tcx,
-      self.body,
-      self.def_id,
+      &self.aliases,
       |mutated: Place<'tcx>,
        inputs: &[(Place<'tcx>, Option<PlaceElem<'tcx>>)],
        location: Location,

@@ -57,7 +57,7 @@ fn analysis<'tcx>(
   let targets = vec![vec![(arg, Location::START)]];
 
   // Then use Flowistry to compute the locations and places influenced by the target.
-  let (location_deps, _place_deps) = flowistry::infoflow::compute_dependencies(
+  let location_deps = flowistry::infoflow::compute_dependencies(
     &results,
     targets.clone(),
     Direction::Forward,

@@ -17,22 +17,19 @@ use rustc_span::def_id::DefId;
 use super::algo::GraphExt;
 
 pub fn compute_adjacency_matrix(
-  body: &Body<'tcx>,
-  tcx: TyCtxt<'tcx>,
-  def_id: DefId,
   results: &FlowResults<'_, 'tcx>,
 ) -> IndexMatrix<Location, Location> {
   let analysis = &results.analysis;
   let location_domain = analysis.location_domain();
   let mut adj_mtx = IndexMatrix::new(location_domain);
 
-  ModularMutationVisitor::new(tcx, body, def_id, |_, inputs, location, _| {
+  ModularMutationVisitor::new(&results.analysis.aliases, |_, inputs, location, _| {
     let state = results.state_at(location);
     for (place, _) in inputs {
       adj_mtx.union_into_row(location, &state.row_set(*place));
     }
   })
-  .visit_body(body);
+  .visit_body(results.analysis.body);
 
   adj_mtx
 }
@@ -91,6 +88,6 @@ pub fn build(
   def_id: DefId,
   results: &FlowResults<'_, 'tcx>,
 ) -> LocGraph {
-  let adj_mtx = compute_adjacency_matrix(body, tcx, def_id, results);
+  let adj_mtx = compute_adjacency_matrix(results);
   compute_graph(adj_mtx, results)
 }
