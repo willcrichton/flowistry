@@ -125,6 +125,16 @@
 <span id="104">104</span>
 <span id="105">105</span>
 <span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">anyhow::Result</span>;
 <span class="kw">use</span> <span class="ident">flowistry</span>::{
   <span class="ident">infoflow</span>::{<span class="self">self</span>, <span class="ident">Direction</span>},
@@ -165,9 +175,19 @@
   <span class="kw">let</span> <span class="ident">grouped_spans</span> <span class="op">=</span> <span class="ident">spanner</span>
     .<span class="ident">mir_spans</span>
     .<span class="ident">iter</span>()
-    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">mir_span</span><span class="op">|</span> (<span class="ident">mir_span</span>.<span class="ident">span</span>, (<span class="ident">mir_span</span>.<span class="ident">place</span>, <span class="ident">mir_span</span>.<span class="ident">location</span>)))
+    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">mir_span</span><span class="op">|</span> {
+      (
+        <span class="ident">mir_span</span>.<span class="ident">span</span>,
+        <span class="ident">mir_span</span>
+          .<span class="ident">locations</span>
+          .<span class="ident">iter</span>()
+          .<span class="ident">map</span>(<span class="op">|</span><span class="ident">location</span><span class="op">|</span> (<span class="ident">mir_span</span>.<span class="ident">place</span>, <span class="kw-2">*</span><span class="ident">location</span>))
+          .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+      )
+    })
     .<span class="ident">into_group_map</span>()
     .<span class="ident">into_iter</span>()
+    .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">vs</span>)<span class="op">|</span> (<span class="ident">k</span>, <span class="ident">vs</span>.<span class="ident">concat</span>()))
     .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
   <span class="kw">let</span> <span class="ident">targets</span> <span class="op">=</span> <span class="ident">grouped_spans</span>
     .<span class="ident">iter</span>()

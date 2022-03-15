@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["greedy_matching","[Generic] Compute a matching using a greedy heuristic."],["maximum_matching","[Generic] Compute the maximum matching using Gabow’s algorithm."]],"struct":[["MatchedEdges",""],["MatchedNodes",""],["Matching","Computed matching of the graph."]]});

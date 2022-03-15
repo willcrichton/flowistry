@@ -47,50 +47,30 @@
 <span id="26">26</span>
 <span id="27">27</span>
 <span id="28">28</span>
-<span id="29">29</span>
-<span id="30">30</span>
-<span id="31">31</span>
-<span id="32">32</span>
-<span id="33">33</span>
-<span id="34">34</span>
-<span id="35">35</span>
-<span id="36">36</span>
-<span id="37">37</span>
-<span id="38">38</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">flowistry</span>::{<span class="ident">infoflow::mutation::ModularMutationVisitor</span>, <span class="ident">mir::aliases::Aliases</span>};
 <span class="kw">use</span> <span class="ident">log::debug</span>;
-<span class="kw">use</span> <span class="ident">rustc_hir::def_id::DefId</span>;
-<span class="kw">use</span> <span class="ident">rustc_middle</span>::{
-  <span class="ident">mir</span>::{<span class="ident">visit::Visitor</span>, <span class="ident">Body</span>, <span class="ident">Location</span>, <span class="ident">Place</span>},
-  <span class="ident">ty::TyCtxt</span>,
-};
+<span class="kw">use</span> <span class="ident">rustc_hir::Mutability</span>;
+<span class="kw">use</span> <span class="ident">rustc_middle::mir</span>::{<span class="ident">visit::Visitor</span>, <span class="ident">Body</span>, <span class="ident">Location</span>, <span class="ident">Place</span>};
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_mutations</span>(
-  <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
   <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="ident">def_id</span>: <span class="ident">DefId</span>,
   <span class="ident">place</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
   <span class="ident">aliases</span>: <span class="kw-2">&amp;</span><span class="ident">Aliases</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Location</span><span class="op">&gt;</span> {
   <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">locations</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-  <span class="kw">let</span> <span class="ident">reachable_values</span> <span class="op">=</span> <span class="ident">aliases</span>.<span class="ident">reachable_values</span>(<span class="ident">place</span>);
+  <span class="kw">let</span> <span class="ident">reachable_values</span> <span class="op">=</span> <span class="ident">aliases</span>.<span class="ident">reachable_values</span>(<span class="ident">place</span>, <span class="ident">Mutability::Mut</span>);
   <span class="macro">debug!</span>(<span class="string">&quot;reachable values: {reachable_values:?}&quot;</span>);
 
-  <span class="ident">ModularMutationVisitor::new</span>(
-    <span class="ident">tcx</span>,
-    <span class="ident">body</span>,
-    <span class="ident">def_id</span>,
-    <span class="op">|</span><span class="ident">mutated_place</span>, <span class="kw">_</span>, <span class="ident">mutated_location</span>, <span class="kw">_</span><span class="op">|</span> {
-      <span class="macro">debug!</span>(<span class="string">&quot;checking mutated location {mutated_location:?}&quot;</span>);
+  <span class="ident">ModularMutationVisitor::new</span>(<span class="ident">aliases</span>, <span class="op">|</span><span class="ident">mutated_place</span>, <span class="kw">_</span>, <span class="ident">mutated_location</span>, <span class="kw">_</span><span class="op">|</span> {
+    <span class="macro">debug!</span>(<span class="string">&quot;checking mutated location {mutated_location:?}&quot;</span>);
 
-      <span class="kw">let</span> <span class="ident">place_conflicts</span> <span class="op">=</span> <span class="ident">aliases</span>.<span class="ident">conflicts</span>(<span class="ident">mutated_place</span>).<span class="ident">to_owned</span>();
-      <span class="kw">if</span> <span class="ident">place_conflicts</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">reachable_values</span>.<span class="ident">contains</span>(<span class="ident">v</span>)) {
-        <span class="macro">debug!</span>(<span class="string">&quot;  found conflicts: {place_conflicts:?}&quot;</span>);
-        <span class="ident">locations</span>.<span class="ident">push</span>(<span class="ident">mutated_location</span>);
-      }
-    },
-  )
+    <span class="kw">let</span> <span class="ident">place_conflicts</span> <span class="op">=</span> <span class="ident">aliases</span>.<span class="ident">conflicts</span>(<span class="ident">mutated_place</span>).<span class="ident">to_owned</span>();
+    <span class="kw">if</span> <span class="ident">place_conflicts</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">reachable_values</span>.<span class="ident">contains</span>(<span class="ident">v</span>)) {
+      <span class="macro">debug!</span>(<span class="string">&quot;  found conflicts: {place_conflicts:?}&quot;</span>);
+      <span class="ident">locations</span>.<span class="ident">push</span>(<span class="ident">mutated_location</span>);
+    }
+  })
   .<span class="ident">visit_body</span>(<span class="ident">body</span>);
 
   <span class="kw">return</span> <span class="ident">locations</span>;

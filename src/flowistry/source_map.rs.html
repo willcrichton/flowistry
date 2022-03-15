@@ -800,6 +800,81 @@
 <span id="779">779</span>
 <span id="780">780</span>
 <span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Mapping source ranges to/from the HIR and MIR.</span>
 
 <span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
@@ -821,16 +896,18 @@
       <span class="ident">MutatingUseContext</span>, <span class="ident">NonMutatingUseContext</span>, <span class="ident">NonUseContext</span>, <span class="ident">PlaceContext</span>,
       <span class="ident">Visitor</span> <span class="kw">as</span> <span class="ident">MirVisitor</span>,
     },
-    <span class="ident">Body</span>, <span class="ident">HasLocalDecls</span>, <span class="ident">TerminatorKind</span>,
+    <span class="ident">Body</span>, <span class="ident">FakeReadCause</span>, <span class="ident">HasLocalDecls</span>, <span class="ident">Statement</span>, <span class="ident">StatementKind</span>, <span class="ident">Terminator</span>,
+    <span class="ident">TerminatorKind</span>,
   },
   <span class="ident">ty::TyCtxt</span>,
 };
 <span class="kw">use</span> <span class="ident">rustc_span</span>::{<span class="ident">Span</span>, <span class="ident">SpanData</span>};
+<span class="kw">use</span> <span class="ident">smallvec</span>::{<span class="ident">smallvec</span>, <span class="ident">SmallVec</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
   <span class="ident">block_timer</span>,
-  <span class="ident">indexed::impls::LocationDomain</span>,
-  <span class="ident">mir::utils</span>::{<span class="self">self</span>, <span class="ident">SpanDataExt</span>, <span class="ident">SpanExt</span>},
+  <span class="ident">indexed::impls</span>::{<span class="ident">arg_location</span>, <span class="ident">LocationDomain</span>},
+  <span class="ident">mir::utils</span>::{<span class="self">self</span>, <span class="ident">BodyExt</span>, <span class="ident">SpanDataExt</span>, <span class="ident">SpanExt</span>},
 };
 
 <span class="comment">// Collect all the spans for children beneath the visited node.</span>
@@ -989,7 +1066,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirSpannedPlace</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
   <span class="kw">pub</span> <span class="ident">place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
   <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">SpanData</span>,
-  <span class="kw">pub</span> <span class="ident">location</span>: <span class="ident">mir::Location</span>,
+  <span class="kw">pub</span> <span class="ident">locations</span>: <span class="ident">SmallVec</span><span class="op">&lt;</span>[<span class="ident">mir::Location</span>; <span class="number">1</span>]<span class="op">&gt;</span>,
 }
 
 <span class="kw">struct</span> <span class="ident">MirSpanCollector</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Spanner</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>);
@@ -1002,6 +1079,17 @@
     <span class="ident">location</span>: <span class="ident">mir::Location</span>,
   ) {
     <span class="macro">trace!</span>(<span class="string">&quot;place={place:?} context={context:?} location={location:?}&quot;</span>);
+
+    <span class="comment">// MIR will sometimes include places assigned to unit, e.g.</span>
+    <span class="comment">//   if true { let x = 1; } else { let x = 2; }</span>
+    <span class="comment">// then the entire block will have a place with unit value.</span>
+    <span class="comment">// To avoid letting that block be selectable, we ignore values with unit type.</span>
+    <span class="comment">// This is a hack, but not sure if there&#39;s a better way?</span>
+    <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.<span class="ident">body</span>;
+    <span class="kw">if</span> <span class="ident">place</span>.<span class="ident">ty</span>(<span class="ident">body</span>.<span class="ident">local_decls</span>(), <span class="self">self</span>.<span class="number">0</span>.<span class="ident">tcx</span>).<span class="ident">ty</span>.<span class="ident">is_unit</span>() {
+      <span class="kw">return</span>;
+    }
+
     <span class="comment">// Three cases, shown by example:</span>
     <span class="comment">//   fn foo(x: i32) {</span>
     <span class="comment">//     let y = x + 1;</span>
@@ -1012,17 +1100,51 @@
     <span class="comment">// * &quot;x + 1&quot; -- MIR will generate a temporary to assign x into, whose</span>
     <span class="comment">//   span is given to &quot;x&quot;. That corresponds to MutatingUseContext::Store</span>
     <span class="comment">// * &quot;y&quot; -- this corresponds to NonMutatingUseContext::Inspect</span>
-    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">context</span> {
-      <span class="ident">PlaceContext::MutatingUse</span>(<span class="ident">MutatingUseContext::Store</span>)
-      <span class="op">|</span> <span class="ident">PlaceContext::NonMutatingUse</span>(<span class="ident">NonMutatingUseContext::Inspect</span>) =&gt; {
-        <span class="kw">let</span> <span class="ident">source_info</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">body</span>.<span class="ident">source_info</span>(<span class="ident">location</span>);
-        <span class="ident">source_info</span>.<span class="ident">span</span>
+    <span class="kw">let</span> (<span class="ident">span</span>, <span class="ident">locations</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">context</span> {
+      <span class="ident">PlaceContext::MutatingUse</span>(<span class="ident">MutatingUseContext::Store</span>) =&gt; {
+        <span class="kw">let</span> <span class="ident">source_info</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">source_info</span>(<span class="ident">location</span>);
+        (<span class="ident">source_info</span>.<span class="ident">span</span>, <span class="macro">smallvec!</span>[<span class="ident">location</span>])
+      }
+      <span class="ident">PlaceContext::NonMutatingUse</span>(<span class="ident">NonMutatingUseContext::Inspect</span>) =&gt; {
+        <span class="kw">let</span> <span class="ident">source_info</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">source_info</span>(<span class="ident">location</span>);
+        <span class="comment">// For a statement like `let y = x + 1`, if the user selects `y`,</span>
+        <span class="comment">// then the only location that contains the source-map for `y` is a `FakeRead`.</span>
+        <span class="comment">// However, for slicing we want to give the location that actually sets `y`.</span>
+        <span class="comment">// So we search through the body to find the locations that assign to `y`.</span>
+        <span class="kw">let</span> <span class="ident">locations</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">body</span>.<span class="ident">stmt_at</span>(<span class="ident">location</span>) {
+          <span class="ident">Either::Left</span>(<span class="ident">Statement</span> {
+            <span class="ident">kind</span>:
+              <span class="ident">StatementKind::FakeRead</span>(<span class="kw">box</span> (
+                <span class="ident">FakeReadCause::ForLet</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">FakeReadCause::ForMatchedPlace</span>(<span class="kw">_</span>),
+                <span class="kw">_</span>,
+              )),
+            ..
+          }) =&gt; <span class="kw">match</span> <span class="ident">arg_location</span>(<span class="kw-2">*</span><span class="ident">place</span>, <span class="ident">body</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">arg_location</span>) =&gt; <span class="macro">smallvec!</span>[<span class="ident">arg_location</span>],
+            <span class="prelude-val">None</span> =&gt; {
+              <span class="kw">let</span> <span class="ident">locations</span> <span class="op">=</span> <span class="ident">assigning_locations</span>(<span class="ident">body</span>, <span class="kw-2">*</span><span class="ident">place</span>);
+              <span class="kw">if</span> <span class="ident">locations</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
+                <span class="macro">log::warn!</span>(<span class="string">&quot;FakeRead of {place:?} has no assignments&quot;</span>);
+                <span class="kw">return</span>;
+              }
+              <span class="ident">locations</span>
+            }
+          },
+          <span class="kw">_</span> =&gt; {
+            <span class="kw">return</span>;
+          }
+        };
+        (<span class="ident">source_info</span>.<span class="ident">span</span>, <span class="ident">locations</span>)
       }
       <span class="ident">PlaceContext::NonUse</span>(<span class="ident">NonUseContext::VarDebugInfo</span>)
-        <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">body</span>.<span class="ident">args_iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">local</span><span class="op">|</span> <span class="ident">local</span> <span class="op">==</span> <span class="ident">place</span>.<span class="ident">local</span>) =&gt;
+        <span class="kw">if</span> <span class="ident">body</span>.<span class="ident">args_iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">local</span><span class="op">|</span> <span class="ident">local</span> <span class="op">==</span> <span class="ident">place</span>.<span class="ident">local</span>) =&gt;
       {
-        <span class="kw">let</span> <span class="ident">source_info</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">body</span>.<span class="ident">local_decls</span>()[<span class="ident">place</span>.<span class="ident">local</span>].<span class="ident">source_info</span>;
-        <span class="ident">source_info</span>.<span class="ident">span</span>
+        <span class="kw">let</span> <span class="ident">source_info</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">local_decls</span>()[<span class="ident">place</span>.<span class="ident">local</span>].<span class="ident">source_info</span>;
+        <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">arg_location</span>(<span class="kw-2">*</span><span class="ident">place</span>, <span class="ident">body</span>) {
+          <span class="prelude-val">Some</span>(<span class="ident">arg_location</span>) =&gt; <span class="ident">arg_location</span>,
+          <span class="prelude-val">None</span> =&gt; <span class="ident">location</span>,
+        };
+        (<span class="ident">source_info</span>.<span class="ident">span</span>, <span class="macro">smallvec!</span>[<span class="ident">location</span>])
       }
       <span class="kw">_</span> =&gt; {
         <span class="kw">return</span>;
@@ -1033,7 +1155,7 @@
 
     <span class="kw">let</span> <span class="ident">spanned_place</span> <span class="op">=</span> <span class="ident">MirSpannedPlace</span> {
       <span class="ident">place</span>: <span class="kw-2">*</span><span class="ident">place</span>,
-      <span class="ident">location</span>,
+      <span class="ident">locations</span>,
       <span class="ident">span</span>: <span class="ident">span</span>.<span class="ident">data</span>(),
     };
     <span class="macro">trace!</span>(<span class="string">&quot;spanned place: {spanned_place:?}&quot;</span>);
@@ -1053,10 +1175,14 @@
     <span class="self">self</span>.<span class="ident">super_statement</span>(<span class="ident">statement</span>, <span class="ident">location</span>);
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">mir::StatementKind::Assign</span>(<span class="kw">box</span> (<span class="ident">lhs</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">statement</span>.<span class="ident">kind</span> {
+      <span class="kw">if</span> <span class="ident">lhs</span>.<span class="ident">ty</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">body</span>.<span class="ident">local_decls</span>(), <span class="self">self</span>.<span class="number">0</span>.<span class="ident">tcx</span>).<span class="ident">ty</span>.<span class="ident">is_unit</span>() {
+        <span class="kw">return</span>;
+      }
+
       <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="macro">try_span!</span>(<span class="self">self</span>, <span class="ident">statement</span>.<span class="ident">source_info</span>.<span class="ident">span</span>);
       <span class="kw">let</span> <span class="ident">spanned_place</span> <span class="op">=</span> <span class="ident">MirSpannedPlace</span> {
         <span class="ident">place</span>: <span class="kw-2">*</span><span class="ident">lhs</span>,
-        <span class="ident">location</span>,
+        <span class="ident">locations</span>: <span class="macro">smallvec!</span>[<span class="ident">location</span>],
         <span class="ident">span</span>: <span class="ident">span</span>.<span class="ident">data</span>(),
       };
       <span class="macro">trace!</span>(<span class="string">&quot;spanned place (assign): {spanned_place:?}&quot;</span>);
@@ -1085,12 +1211,36 @@
     <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="macro">try_span!</span>(<span class="self">self</span>, <span class="ident">terminator</span>.<span class="ident">source_info</span>.<span class="ident">span</span>);
     <span class="kw">let</span> <span class="ident">spanned_place</span> <span class="op">=</span> <span class="ident">MirSpannedPlace</span> {
       <span class="ident">place</span>,
-      <span class="ident">location</span>,
+      <span class="ident">locations</span>: <span class="macro">smallvec!</span>[<span class="ident">location</span>],
       <span class="ident">span</span>: <span class="ident">span</span>.<span class="ident">data</span>(),
     };
     <span class="macro">trace!</span>(<span class="string">&quot;spanned place (terminator): {spanned_place:?}&quot;</span>);
     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">mir_spans</span>.<span class="ident">push</span>(<span class="ident">spanned_place</span>);
   }
+}
+
+<span class="kw">fn</span> <span class="ident">assigning_locations</span>(
+  <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+  <span class="ident">place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+) -&gt; <span class="ident">SmallVec</span><span class="op">&lt;</span>[<span class="ident">mir::Location</span>; <span class="number">1</span>]<span class="op">&gt;</span> {
+  <span class="ident">body</span>
+    .<span class="ident">all_locations</span>()
+    .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">location</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">body</span>.<span class="ident">stmt_at</span>(<span class="kw-2">*</span><span class="ident">location</span>) {
+      <span class="ident">Either::Left</span>(<span class="ident">Statement</span> {
+        <span class="ident">kind</span>: <span class="ident">StatementKind::Assign</span>(<span class="kw">box</span> (<span class="ident">lhs</span>, <span class="kw">_</span>)),
+        ..
+      })
+      <span class="op">|</span> <span class="ident">Either::Right</span>(<span class="ident">Terminator</span> {
+        <span class="ident">kind</span>:
+          <span class="ident">TerminatorKind::Call</span> {
+            <span class="ident">destination</span>: <span class="prelude-val">Some</span>((<span class="ident">lhs</span>, <span class="kw">_</span>)),
+            ..
+          },
+        ..
+      }) =&gt; <span class="kw-2">*</span><span class="ident">lhs</span> <span class="op">==</span> <span class="ident">place</span>,
+      <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+    })
+    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">SmallVec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Spanner</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
@@ -1179,7 +1329,7 @@
       <span class="self">self</span>.<span class="ident">hir_spans</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">span</span><span class="op">|</span> (<span class="ident">span</span>.<span class="ident">full</span>, <span class="ident">span</span>)),
     )
     .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="macro">trace!</span>(<span class="string">&quot;enclosing_hir={enclosing_hir:#?}&quot;</span>);
+    <span class="comment">// trace!(&quot;enclosing_hir={enclosing_hir:?}&quot;);</span>
 
     <span class="kw">if</span> <span class="ident">enclosing_hir</span>.<span class="ident">is_empty</span>() {
       <span class="macro">log::warn!</span>(

@@ -290,6 +290,10 @@
 <span id="269">269</span>
 <span id="270">270</span>
 <span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cell::RefCell</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
@@ -387,12 +391,20 @@
     <span class="ident">input_location_deps</span>.<span class="ident">insert</span>(<span class="ident">location</span>);
 
     <span class="kw">let</span> <span class="ident">add_deps</span> <span class="op">=</span> <span class="op">|</span><span class="ident">place</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">location_deps</span>: <span class="kw-2">&amp;mut</span> <span class="ident">LocationSet</span><span class="op">|</span> {
-      <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="ident">place</span>.<span class="ident">place_and_refs_in_projection</span>(<span class="self">self</span>.<span class="ident">tcx</span>) {
-        <span class="kw">for</span> <span class="ident">alias</span> <span class="kw">in</span> <span class="ident">all_aliases</span>.<span class="ident">aliases</span>(<span class="ident">place</span>).<span class="ident">iter</span>() {
-          <span class="kw">let</span> <span class="ident">deps</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">row_set</span>(<span class="ident">all_aliases</span>.<span class="ident">normalize</span>(<span class="kw-2">*</span><span class="ident">alias</span>));
-          <span class="macro">trace!</span>(<span class="string">&quot;    For alias {alias:?} for input {place:?} adding deps {deps:?}&quot;</span>);
-          <span class="ident">location_deps</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">deps</span>);
-        }
+      <span class="kw">let</span> <span class="ident">reachable_values</span> <span class="op">=</span> <span class="ident">all_aliases</span>.<span class="ident">reachable_values</span>(<span class="ident">place</span>, <span class="ident">Mutability::Not</span>);
+      <span class="kw">let</span> <span class="ident">provenance</span> <span class="op">=</span>
+        <span class="ident">place</span>
+          .<span class="ident">refs_in_projection</span>()
+          .<span class="ident">into_iter</span>()
+          .<span class="ident">flat_map</span>(<span class="op">|</span>(<span class="ident">place_ref</span>, <span class="kw">_</span>)<span class="op">|</span> {
+            <span class="ident">all_aliases</span>
+              .<span class="ident">aliases</span>(<span class="ident">Place::from_ref</span>(<span class="ident">place_ref</span>, <span class="self">self</span>.<span class="ident">tcx</span>))
+              .<span class="ident">iter</span>()
+          });
+      <span class="kw">for</span> <span class="ident">relevant</span> <span class="kw">in</span> <span class="ident">reachable_values</span>.<span class="ident">iter</span>().<span class="ident">chain</span>(<span class="ident">provenance</span>) {
+        <span class="kw">let</span> <span class="ident">deps</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">row_set</span>(<span class="ident">all_aliases</span>.<span class="ident">normalize</span>(<span class="kw-2">*</span><span class="ident">relevant</span>));
+        <span class="macro">trace!</span>(<span class="string">&quot;    For relevant {relevant:?} for input {place:?} adding deps {deps:?}&quot;</span>);
+        <span class="ident">location_deps</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">deps</span>);
       }
     };
 
@@ -513,9 +525,7 @@
     <span class="ident">location</span>: <span class="ident">Location</span>,
   ) {
     <span class="ident">ModularMutationVisitor::new</span>(
-      <span class="self">self</span>.<span class="ident">tcx</span>,
-      <span class="self">self</span>.<span class="ident">body</span>,
-      <span class="self">self</span>.<span class="ident">def_id</span>,
+      <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aliases</span>,
       <span class="op">|</span><span class="ident">mutated</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
        <span class="ident">inputs</span>: <span class="kw-2">&amp;</span>[(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>)],
        <span class="ident">location</span>: <span class="ident">Location</span>,
@@ -540,9 +550,7 @@
     }
 
     <span class="ident">ModularMutationVisitor::new</span>(
-      <span class="self">self</span>.<span class="ident">tcx</span>,
-      <span class="self">self</span>.<span class="ident">body</span>,
-      <span class="self">self</span>.<span class="ident">def_id</span>,
+      <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aliases</span>,
       <span class="op">|</span><span class="ident">mutated</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
        <span class="ident">inputs</span>: <span class="kw-2">&amp;</span>[(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>)],
        <span class="ident">location</span>: <span class="ident">Location</span>,

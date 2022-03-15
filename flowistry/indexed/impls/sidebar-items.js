@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["LocationDomain",""],["LocationIndex",""]],"type":[["LocationSet",""],["PlaceSet",""]]});
+initSidebarItems({"fn":[["arg_location",""]],"struct":[["LocationDomain",""],["LocationIndex",""]],"type":[["LocationSet",""],["PlaceSet",""]]});
