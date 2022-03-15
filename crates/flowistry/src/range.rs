@@ -1,9 +1,12 @@
 //! Data structure for sharing [spans][Span] outside rustc.
 
-use std::{default::Default, path::Path};
+use std::{cell::RefCell, default::Default, fs, path::Path};
 
 use anyhow::{bail, Context, Result};
-use rustc_data_structures::sync::{Lrc, MappedReadGuard};
+use rustc_data_structures::{
+  fx::FxHashMap as HashMap,
+  sync::{Lrc, MappedReadGuard},
+};
 use rustc_hir::{
   intravisit::{self, Visitor},
   itemlikevisit::ItemLikeVisitor,
@@ -16,6 +19,46 @@ use rustc_span::{
   BytePos, FileName, RealFileName, SourceFile, Span,
 };
 use unicode_segmentation::UnicodeSegmentation;
+
+pub struct GraphemeIndices {
+  indices: Vec<usize>,
+}
+
+impl GraphemeIndices {
+  pub fn new(s: &str) -> Self {
+    let mut indices = Vec::new();
+    let mut idx = 0;
+    for g in s.graphemes(true) {
+      indices.push(idx);
+      idx += g.as_bytes().len();
+    }
+    GraphemeIndices { indices }
+  }
+
+  pub fn from_path(path: impl AsRef<Path>) -> Result<Self> {
+    let bytes = fs::read(path)?;
+    let s = std::str::from_utf8(&bytes)?;
+    Ok(Self::new(s))
+  }
+
+  pub fn byte_to_char(&self, byte: usize) -> usize {
+    self
+      .indices
+      .iter()
+      .enumerate()
+      .find(|(_, b)| byte == **b)
+      .unwrap()
+      .0
+  }
+
+  pub fn char_to_byte(&self, char: usize) -> usize {
+    self.indices[char]
+  }
+}
+
+thread_local! {
+  static GRAPHEME_INDICES: RefCell<HashMap<String, GraphemeIndices>> = RefCell::new(HashMap::default());
+}
 
 pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
   struct Finder<'tcx> {
@@ -83,7 +126,6 @@ pub fn ranges_from_spans(
     .map(|span| Range::from_span(span, source_map))
     .collect()
 }
-
 impl Range {
   pub fn substr(&self, s: &str) -> String {
     s[self.byte_start .. self.byte_end].to_string()
@@ -92,39 +134,34 @@ impl Range {
   pub fn from_char_range(
     char_start: usize,
     char_end: usize,
-    filename: String,
-  ) -> Result<Self> {
-    let src = String::from_utf8(std::fs::read(&filename)?)?;
-    let mut iter = src.graphemes(true);
-    let byte_start = (&mut iter).take(char_start).map(|s| s.len()).sum::<usize>();
-    let byte_end = byte_start
-      + iter
-        .take(char_end - char_start)
-        .map(|s| s.len())
-        .sum::<usize>();
-    Ok(Range {
+    filename: &str,
+    file: &GraphemeIndices,
+  ) -> Self {
+    let byte_start = file.char_to_byte(char_start);
+    let byte_end = file.char_to_byte(char_end);
+    Range {
       char_start,
       char_end,
       byte_start,
       byte_end,
-      filename,
-    })
+      filename: filename.to_string(),
+    }
   }
 
   pub fn from_byte_range(
     byte_start: usize,
     byte_end: usize,
-    src: &str,
-    filename: String,
+    filename: &str,
+    file: &GraphemeIndices,
   ) -> Self {
-    let char_start = src[.. byte_start].graphemes(true).count();
-    let char_end = char_start + src[byte_start .. byte_end].graphemes(true).count();
+    let char_start = file.byte_to_char(byte_start);
+    let char_end = file.byte_to_char(byte_end);
     Range {
       byte_start,
       byte_end,
       char_start,
       char_end,
-      filename,
+      filename: filename.to_string(),
     }
   }
 
@@ -143,7 +180,15 @@ impl Range {
     let byte_start = source_map.lookup_byte_offset(span.lo()).pos.0 as usize;
     let byte_end = source_map.lookup_byte_offset(span.hi()).pos.0 as usize;
 
-    Ok(Self::from_byte_range(byte_start, byte_end, src, filename))
+    GRAPHEME_INDICES.with(|grapheme_indices| {
+      let mut grapheme_indices = grapheme_indices.borrow_mut();
+      let indices = grapheme_indices
+        .entry(filename.clone())
+        .or_insert_with(|| GraphemeIndices::new(src));
+      Ok(Self::from_byte_range(
+        byte_start, byte_end, &filename, indices,
+      ))
+    })
   }
 
   pub fn source_file<'a>(
