@@ -1,13 +1,10 @@
-use std::iter;
-
 use log::debug;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{
-  mir::{visit::Visitor, *},
-  ty::TyCtxt,
-};
+use rustc_middle::mir::{visit::Visitor, *};
 
-use crate::mir::utils::{self, OperandExt, PlaceCollector, PlaceExt};
+use crate::mir::{
+  aliases::Aliases,
+  utils::{self, OperandExt, PlaceCollector},
+};
 
 pub enum MutationStatus {
   Definitely,
@@ -27,9 +24,7 @@ where
   ),
 {
   f: F,
-  tcx: TyCtxt<'tcx>,
-  body: &'a Body<'tcx>,
-  def_id: DefId,
+  aliases: &'a Aliases<'a, 'tcx>,
 }
 
 impl<'a, 'tcx, F> ModularMutationVisitor<'a, 'tcx, F>
@@ -41,13 +36,8 @@ where
     MutationStatus,
   ),
 {
-  pub fn new(tcx: TyCtxt<'tcx>, body: &'a Body<'tcx>, def_id: DefId, f: F) -> Self {
-    ModularMutationVisitor {
-      tcx,
-      body,
-      def_id,
-      f,
-    }
+  pub fn new(aliases: &'a Aliases<'a, 'tcx>, f: F) -> Self {
+    ModularMutationVisitor { aliases, f }
   }
 }
 
@@ -69,7 +59,7 @@ where
     debug!("Checking {location:?}: {place:?} = {rvalue:?}");
     let mut collector = PlaceCollector {
       places: Vec::new(),
-      tcx: self.tcx,
+      tcx: self.aliases.tcx,
     };
     collector.visit_rvalue(rvalue, location);
     (self.f)(
@@ -82,7 +72,7 @@ where
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
     debug!("Checking {location:?}: {:?}", terminator.kind);
-    let tcx = self.tcx;
+    let tcx = self.aliases.tcx;
 
     match &terminator.kind {
       TerminatorKind::Call {
@@ -91,36 +81,30 @@ where
         destination,
         ..
       } => {
-        let inputs_for_arg = |arg: Place<'tcx>| {
-          arg
-            .interior_pointers(tcx, self.body, self.def_id)
-            .into_values()
-            .flat_map(|places| {
-              places
-                .into_iter()
-                .map(|(place, _)| tcx.mk_place_deref(place))
-            })
-            .chain(iter::once(arg))
-        };
-
-        let arg_places = utils::arg_places(args);
+        let arg_places = utils::arg_places(args)
+          .into_iter()
+          .map(|(_, place)| place)
+          .collect::<Vec<_>>();
         let arg_inputs = arg_places
           .iter()
-          .flat_map(|(_, arg)| inputs_for_arg(*arg))
-          .map(|place| (place, None))
+          .map(|place| (*place, None))
           .collect::<Vec<_>>();
 
         if let Some((dst_place, _)) = destination {
-          let ret_is_unit = dst_place.ty(self.body.local_decls(), tcx).ty.is_unit();
+          let ret_is_unit = dst_place
+            .ty(self.aliases.body.local_decls(), tcx)
+            .ty
+            .is_unit();
           let empty = vec![];
           let inputs = if ret_is_unit { &empty } else { &arg_inputs };
 
           (self.f)(*dst_place, inputs, location, MutationStatus::Definitely);
         }
 
-        for (_, mut_ptr) in utils::arg_mut_ptrs(&arg_places, tcx, self.body, self.def_id)
-        {
-          (self.f)(mut_ptr, &arg_inputs, location, MutationStatus::Possibly);
+        for arg in arg_places {
+          for arg_mut in self.aliases.reachable_values(arg, Mutability::Mut) {
+            (self.f)(*arg_mut, &arg_inputs, location, MutationStatus::Possibly);
+          }
         }
       }
 

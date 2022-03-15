@@ -19,7 +19,8 @@ use rustc_middle::{
       MutatingUseContext, NonMutatingUseContext, NonUseContext, PlaceContext,
       Visitor as MirVisitor,
     },
-    Body, HasLocalDecls, Statement, StatementKind, Terminator, TerminatorKind,
+    Body, FakeReadCause, HasLocalDecls, Statement, StatementKind, Terminator,
+    TerminatorKind,
   },
   ty::TyCtxt,
 };
@@ -235,35 +236,20 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
         // So we search through the body to find the locations that assign to `y`.
         let locations = match body.stmt_at(location) {
           Either::Left(Statement {
-            kind: StatementKind::FakeRead(..),
+            kind:
+              StatementKind::FakeRead(box (
+                FakeReadCause::ForLet(_) | FakeReadCause::ForMatchedPlace(_),
+                _,
+              )),
             ..
           }) => match arg_location(*place, body) {
             Some(arg_location) => smallvec![arg_location],
             None => {
-              let locations = body
-                .all_locations()
-                .filter(|location| match body.stmt_at(*location) {
-                  Either::Left(Statement {
-                    kind: StatementKind::Assign(box (lhs, _)),
-                    ..
-                  })
-                  | Either::Right(Terminator {
-                    kind:
-                      TerminatorKind::Call {
-                        destination: Some((lhs, _)),
-                        ..
-                      },
-                    ..
-                  }) => lhs == place,
-                  _ => false,
-                })
-                .collect::<SmallVec<_>>();
-
+              let locations = assigning_locations(body, *place);
               if locations.len() == 0 {
                 log::warn!("FakeRead of {place:?} has no assignments");
                 return;
               }
-
               locations
             }
           },
@@ -354,6 +340,30 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
     trace!("spanned place (terminator): {spanned_place:?}");
     self.0.mir_spans.push(spanned_place);
   }
+}
+
+fn assigning_locations(
+  body: &Body<'tcx>,
+  place: mir::Place<'tcx>,
+) -> SmallVec<[mir::Location; 1]> {
+  body
+    .all_locations()
+    .filter(|location| match body.stmt_at(*location) {
+      Either::Left(Statement {
+        kind: StatementKind::Assign(box (lhs, _)),
+        ..
+      })
+      | Either::Right(Terminator {
+        kind:
+          TerminatorKind::Call {
+            destination: Some((lhs, _)),
+            ..
+          },
+        ..
+      }) => *lhs == place,
+      _ => false,
+    })
+    .collect::<SmallVec<_>>()
 }
 
 pub struct Spanner<'a, 'hir, 'tcx> {

@@ -23,7 +23,7 @@ use rustc_middle::{
 use crate::{
   block_timer,
   cached::{Cache, CopyCache},
-  extensions::{is_extension_active, PointerMode},
+  extensions::{is_extension_active, MutabilityMode, PointerMode},
   indexed::{
     impls::{LocationDomain, LocationIndex, LocationSet, PlaceSet},
     IndexMatrix, RefSet,
@@ -146,7 +146,7 @@ pub struct Aliases<'a, 'tcx> {
   normalized_cache: CopyCache<Place<'tcx>, Place<'tcx>>,
   aliases_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
   conflicts_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
-  reachable_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
+  reachable_cache: Cache<(Place<'tcx>, Mutability), PlaceSet<'tcx>>,
 }
 
 rustc_index::newtype_index! {
@@ -492,16 +492,35 @@ impl Aliases<'a, 'tcx> {
     })
   }
 
-  pub fn reachable_values(&self, place: Place<'tcx>) -> &PlaceSet<'tcx> {
-    self.reachable_cache.get(place, |place| {
+  pub fn reachable_values(
+    &self,
+    place: Place<'tcx>,
+    mutability: Mutability,
+  ) -> &PlaceSet<'tcx> {
+    self.reachable_cache.get((place, mutability), |_| {
       let interior_pointer_places = place
         .interior_pointers(self.tcx, self.body, self.def_id)
         .into_values()
-        .flat_map(|v| v.into_iter().map(|(place, _)| place));
+        .flat_map(|v| {
+          v.into_iter().filter_map(|(place, place_mutability)| {
+            match (
+              is_extension_active(|mode| {
+                mode.mutability_mode == MutabilityMode::IgnoreMut
+              }),
+              mutability,
+              place_mutability,
+            ) {
+              (true, _, _)
+              | (_, Mutability::Not, _)
+              | (_, Mutability::Mut, Mutability::Mut) => Some(place),
+              _ => None,
+            }
+          })
+        });
 
       interior_pointer_places
         .flat_map(|place| self.aliases(self.tcx.mk_place_deref(place)).iter().copied())
-        .chain([place])
+        .chain(self.aliases(place).iter().copied())
         .filter(|place| {
           if let Some((place, _)) = place.refs_in_projection().last() {
             let ty = place.ty(self.body.local_decls(), self.tcx).ty;
