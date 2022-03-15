@@ -18,7 +18,7 @@ use std::{
 
 use flowistry::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
-  range::{FunctionIdentifier, Range},
+  range::{FunctionIdentifier, GraphemeIndices, Range},
 };
 use flowistry_ide::{FlowistryError, FlowistryResult, JsonEncodable};
 use fluid_let::fluid_set;
@@ -120,12 +120,14 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
       postprocess(flowistry_ide::spans::spans(args, filename))
     }
     "playground" => {
+      let filename = arg::<String>("FILE");
+      let indices = GraphemeIndices::from_path(&filename).unwrap();
       let range = Range::from_char_range(
         arg::<usize>("START"),
         arg::<usize>("END"),
-        arg::<String>("FILE"),
-      )
-      .unwrap();
+        &filename,
+        &indices,
+      );
 
       postprocess(flowistry_ide::run(
         flowistry_ide::playground::playground,
@@ -134,10 +136,11 @@ fn run_flowistry(args: &[String]) -> RustcResult<()> {
       ))
     }
     cmd @ ("decompose" | "focus") => {
+      let filename = arg::<String>("FILE");
+      let indices = GraphemeIndices::from_path(&filename).unwrap();
       let pos = arg::<usize>("POS");
-      let id = FunctionIdentifier::Range(
-        Range::from_char_range(pos, pos, arg::<String>("FILE")).unwrap(),
-      );
+      let id =
+        FunctionIdentifier::Range(Range::from_char_range(pos, pos, &filename, &indices));
       match cmd {
         "decompose" => {
           cfg_if::cfg_if! {

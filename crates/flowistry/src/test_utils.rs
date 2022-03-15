@@ -16,7 +16,7 @@ use crate::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
   infoflow::{self},
   mir::{borrowck_facts, utils::BodyExt},
-  range::{Range, ToSpan},
+  range::{GraphemeIndices, Range, ToSpan},
   source_map::{find_enclosing_bodies, Spanner},
 };
 
@@ -271,6 +271,7 @@ fn parse_range_map(
   delims: Vec<(&'static str, &'static str)>,
 ) -> Result<(String, HashMap<&'static str, Vec<Range>>)> {
   let (clean, parsed_ranges) = parse_ranges(src, delims)?;
+  let indices = GraphemeIndices::new(&clean);
   let map = parsed_ranges
     .into_iter()
     .map(|(k, vs)| {
@@ -278,7 +279,7 @@ fn parse_range_map(
         k,
         vs.into_iter()
           .map(|(byte_start, byte_end)| {
-            Range::from_byte_range(byte_start, byte_end, &clean, "dummy.rs".into())
+            Range::from_byte_range(byte_start, byte_end, "dummy.rs".into(), &indices)
           })
           .collect::<Vec<_>>(),
       )

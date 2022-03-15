@@ -51,7 +51,7 @@ impl TargetDeps {
         };
         let state = results.state_at(state_location);
         // backward.union(&aliases.deps(state, place));
-        
+
         let mut forward = LocationSet::new(location_domain);
         forward.insert_all();
         for conflict in aliases.children(aliases.normalize(place)) {
