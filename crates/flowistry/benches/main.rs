@@ -105,7 +105,8 @@ fn criterion_benchmark(c: &mut Criterion) {
   ];
   let curr_dir = std::env::current_dir().unwrap();
   let test_dir = curr_dir.join("benches/tests");
-  let bench_crate_pattern = curr_dir.join("../../target/release/deps/*libbench_utils*.so");
+  let bench_crate_pattern =
+    curr_dir.join("../../target/release/deps/*libbench_utils*.so");
 
   let print_sysroot = Command::new("rustc")
     .args(&["--print", "sysroot"])
@@ -115,12 +116,11 @@ fn criterion_benchmark(c: &mut Criterion) {
   let sysroot = String::from_utf8(print_sysroot).unwrap().trim().to_owned();
 
   // Find bench_utils .so file
-  let shared_object =
-    glob(bench_crate_pattern.to_str().unwrap())
-      .unwrap()
-      .nth(0)
-      .unwrap()
-      .unwrap();
+  let shared_object = glob(bench_crate_pattern.to_str().unwrap())
+    .unwrap()
+    .nth(0)
+    .unwrap()
+    .unwrap();
 
   for test in tests {
     for stress_ty in ["min", "max"] {
@@ -147,7 +147,7 @@ fn criterion_benchmark(c: &mut Criterion) {
             criterion::BenchmarkGroup<'static, criterion::measurement::WallTime>,
           >(c.benchmark_group(&test_name)))
         };
-  
+
         let mut callbacks = Callbacks {
           ty: analysis_ty,
           group,
