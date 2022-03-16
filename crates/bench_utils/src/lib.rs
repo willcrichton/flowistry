@@ -24,7 +24,7 @@ pub fn generate_locations(input: TokenStream) -> TokenStream {
   .into()
 }
 
-/// Repeatedly borrows the same variable to create many places and many lifetimes.
+/// Repeatedly borrows the same variable to create many places, locations, and lifetimes.
 #[proc_macro]
 pub fn generate_unique_lifetimes(input: TokenStream) -> TokenStream {
   let ArrayAssign {
@@ -71,8 +71,8 @@ pub fn generate_flow(input: TokenStream) -> TokenStream {
     let mut #var_name = #var_val;
 
     #(
-      let #idents = #var_name + #var_val;
-      #var_name += #idents;
+      let #idents = #var_name;
+      #var_name = #idents;
     )*
   }
   .into()
