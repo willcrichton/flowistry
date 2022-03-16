@@ -279,7 +279,7 @@ fn parse_range_map(
         k,
         vs.into_iter()
           .map(|(byte_start, byte_end)| {
-            Range::from_byte_range(byte_start, byte_end, "dummy.rs".into(), &indices)
+            Range::from_byte_range(byte_start, byte_end, "dummy.rs", &indices)
           })
           .collect::<Vec<_>>(),
       )

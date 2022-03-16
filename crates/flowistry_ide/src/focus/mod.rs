@@ -22,8 +22,7 @@ pub struct PlaceInfo {
 #[derive(Debug, Encodable)]
 pub struct FocusOutput {
   place_info: Vec<PlaceInfo>,
-  body_range: Range,
-  arg_range: Option<Range>,
+  containers: Vec<Range>,
 }
 
 pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
@@ -52,6 +51,7 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
     .into_iter()
     .map(|(k, vs)| (k, vs.concat()))
     .collect::<Vec<_>>();
+
   let targets = grouped_spans
     .iter()
     .map(|(_, target)| target.clone())
@@ -96,21 +96,22 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
     })
     .collect::<Vec<_>>();
 
+  let body_range = Range::from_span(spanner.body_span, source_map)?;
+  let ret_range = Range::from_span(spanner.ret_span, source_map)?;
+  let mut containers = vec![body_range, ret_range];
+
   let hir_body = tcx.hir().body(body_id);
   let arg_span = hir_body
     .params
     .iter()
     .map(|param| param.span)
     .reduce(|s1, s2| s1.to(s2));
-  let arg_range = match arg_span {
-    Some(sp) => Some(Range::from_span(sp, source_map)?),
-    None => None,
-  };
-  let body_range = Range::from_span(spanner.body_span, source_map)?;
+  if let Some(sp) = arg_span {
+    containers.push(Range::from_span(sp, source_map)?);
+  }
 
   Ok(FocusOutput {
     place_info: slices,
-    body_range,
-    arg_range,
+    containers,
   })
 }

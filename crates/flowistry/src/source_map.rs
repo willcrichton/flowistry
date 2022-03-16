@@ -19,8 +19,8 @@ use rustc_middle::{
       MutatingUseContext, NonMutatingUseContext, NonUseContext, PlaceContext,
       Visitor as MirVisitor,
     },
-    Body, FakeReadCause, HasLocalDecls, Statement, StatementKind, Terminator,
-    TerminatorKind,
+    Body, FakeReadCause, HasLocalDecls, Place, Statement, StatementKind, Terminator,
+    TerminatorKind, RETURN_PLACE,
   },
   ty::TyCtxt,
 };
@@ -30,7 +30,7 @@ use smallvec::{smallvec, SmallVec};
 use crate::{
   block_timer,
   indexed::impls::{arg_location, LocationDomain},
-  mir::utils::{self, BodyExt, SpanDataExt, SpanExt},
+  mir::utils::{self, BodyExt, PlaceExt, SpanDataExt, SpanExt},
 };
 
 // Collect all the spans for children beneath the visited node.
@@ -195,6 +195,19 @@ pub struct MirSpannedPlace<'tcx> {
 struct MirSpanCollector<'a, 'b, 'hir, 'tcx>(&'a mut Spanner<'b, 'hir, 'tcx>);
 
 impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
+  fn visit_body(&mut self, body: &Body<'tcx>) {
+    self.super_body(body);
+
+    // Add the return type as a spanned place representing all return locations
+    let span = body.local_decls()[RETURN_PLACE].source_info.span.data();
+    let locations = body.all_returns().collect::<SmallVec<_>>();
+    self.0.mir_spans.push(MirSpannedPlace {
+      span,
+      locations,
+      place: Place::from_local(RETURN_PLACE, self.0.tcx),
+    })
+  }
+
   fn visit_place(
     &mut self,
     place: &mir::Place<'tcx>,
@@ -371,6 +384,7 @@ pub struct Spanner<'a, 'hir, 'tcx> {
   pub mir_spans: Vec<MirSpannedPlace<'tcx>>,
   pub body_span: Span,
   pub item_span: Span,
+  pub ret_span: Span,
   tcx: TyCtxt<'tcx>,
   body: &'a mir::Body<'tcx>,
 }
@@ -384,12 +398,14 @@ where
     let hir_body = hir.body(body_id);
     let owner = hir.body_owner(body_id);
     let item_span = hir.span_with_body(owner);
+    let ret_span = hir.fn_decl_by_hir_id(owner).unwrap().output.span();
 
     let mut spanner = Spanner {
       hir_spans: Vec::new(),
       mir_spans: Vec::new(),
       body_span: hir_body.value.span,
       item_span,
+      ret_span,
       tcx,
       body,
     };
@@ -504,6 +520,16 @@ where
           })
         )
       });
+    }
+
+    if let Some(Either::Left(mir::Statement {
+      kind: StatementKind::Assign(box (lhs, _)),
+      ..
+    })) = stmt
+    {
+      if lhs.local == RETURN_PLACE {
+        hir_spans.push(self.ret_span);
+      }
     }
 
     let format_spans = |spans: &[Span]| -> String {
