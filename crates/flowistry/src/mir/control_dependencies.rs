@@ -1,105 +1,91 @@
-use std::fmt;
+use std::{fmt, iter, slice};
 
-use rustc_data_structures::graph::{
-  self, dominators, iterate, vec_graph::VecGraph, WithSuccessors,
+use rustc_data_structures::{
+  fx::FxHashMap as HashMap,
+  graph::{vec_graph::VecGraph, *},
 };
-use rustc_index::{
-  bit_set::{BitSet, HybridBitSet, SparseBitMatrix},
-  vec::IndexVec,
-};
+use rustc_index::bit_set::{BitSet, HybridBitSet, SparseBitMatrix};
 use rustc_middle::mir::*;
 
+use super::utils::BodyExt;
+
 #[derive(Clone)]
-pub struct BodyReversed<'tcx> {
-  body: Body<'tcx>,
-  exit_node: BasicBlock,
-  exit_set: BitSet<BasicBlock>,
+pub struct BodyReversed<'a, 'tcx> {
+  body: &'a Body<'tcx>,
+  ret: BasicBlock,
   unreachable: BitSet<BasicBlock>,
 }
 
-pub fn compute_post_dominators(
-  body: Body,
-) -> (dominators::Dominators<BasicBlock>, BodyReversed) {
+pub fn compute_immediate_post_dominators(
+  body: &Body,
+  ret: BasicBlock,
+) -> HashMap<BasicBlock, BasicBlock> {
   let nblocks = body.basic_blocks().len();
-  let exit_node = BasicBlock::from_usize(nblocks);
-
-  let mut exit_set = BitSet::new_empty(nblocks);
-  for (bb_index, bb_data) in body.basic_blocks().iter_enumerated() {
-    if matches!(bb_data.terminator().kind, TerminatorKind::Return) {
-      exit_set.insert(bb_index);
-    }
-  }
-
   let mut graph = BodyReversed {
     body,
-    exit_node,
-    exit_set,
+    ret,
     unreachable: BitSet::new_empty(nblocks),
   };
 
-  let reachable = iterate::post_order_from(&graph, graph.exit_node);
+  let reachable = iterate::post_order_from(&graph, ret);
   graph.unreachable.insert_all();
-  for n in reachable {
-    if n != graph.exit_node {
-      graph.unreachable.remove(n);
-    }
+  for n in &reachable {
+    graph.unreachable.remove(*n);
   }
 
-  (dominators::dominators(graph.clone()), graph)
+  let dominators = dominators::dominators(graph);
+  reachable
+    .into_iter()
+    .map(|n| (n, dominators.immediate_dominator(n)))
+    .collect()
 }
 
-impl graph::DirectedGraph for BodyReversed<'_> {
+impl DirectedGraph for BodyReversed<'_, '_> {
   type Node = BasicBlock;
 }
 
-impl graph::WithNumNodes for BodyReversed<'_> {
-  fn num_nodes(&self) -> usize {
-    // +1 for exit node
-    self.body.basic_blocks().len() + 1
-  }
-}
-
-impl graph::WithStartNode for BodyReversed<'_> {
+impl WithStartNode for BodyReversed<'_, '_> {
   fn start_node(&self) -> Self::Node {
-    self.exit_node
+    self.ret
   }
 }
 
-impl graph::WithSuccessors for BodyReversed<'_> {
-  fn successors(&self, node: Self::Node) -> <Self as graph::GraphSuccessors<'_>>::Iter {
-    if node == self.exit_node {
-      Box::new(self.exit_set.iter())
-    } else {
-      Box::new(self.body.predecessors()[node].iter().copied())
-    }
+impl WithNumNodes for BodyReversed<'_, '_> {
+  fn num_nodes(&self) -> usize {
+    self.body.basic_blocks().len()
   }
 }
 
-impl graph::GraphSuccessors<'graph> for BodyReversed<'_> {
+impl GraphSuccessors<'graph> for BodyReversed<'_, '_> {
   type Item = BasicBlock;
   type Iter = Box<dyn Iterator<Item = BasicBlock> + 'graph>;
 }
 
-impl graph::GraphPredecessors<'graph> for BodyReversed<'_> {
+impl WithSuccessors for BodyReversed<'_, '_> {
+  fn successors(&self, node: Self::Node) -> <Self as GraphSuccessors<'_>>::Iter {
+    Box::new(
+      self.body.predecessors()[node]
+        .iter()
+        .filter(|bb| !self.unreachable.contains(**bb))
+        .copied(),
+    )
+  }
+}
+
+impl GraphPredecessors<'graph> for BodyReversed<'_, '_> {
   type Item = BasicBlock;
   type Iter = Box<dyn Iterator<Item = BasicBlock> + 'graph>;
 }
 
-impl graph::WithPredecessors for BodyReversed<'_> {
-  fn predecessors(
-    &self,
-    node: Self::Node,
-  ) -> <Self as graph::GraphPredecessors<'_>>::Iter {
-    assert!(node != self.exit_node);
-
-    let exit_pred = self.exit_set.contains(node).then(|| self.exit_node);
-    let preds = self.body.basic_blocks()[node]
-      .terminator()
-      .successors()
-      .filter(|bb| !self.unreachable.contains(**bb))
-      .copied();
-
-    Box::new(exit_pred.into_iter().chain(preds))
+impl WithPredecessors for BodyReversed<'_, '_> {
+  fn predecessors(&self, node: Self::Node) -> <Self as GraphPredecessors<'_>>::Iter {
+    Box::new(
+      self.body.basic_blocks()[node]
+        .terminator()
+        .successors()
+        .filter(|bb| !self.unreachable.contains(**bb))
+        .copied(),
+    )
   }
 }
 
@@ -130,62 +116,65 @@ impl fmt::Debug for ControlDependencies {
 }
 
 impl ControlDependencies {
+  /// Compute control dependencies for body.
+  ///
+  /// This computes union of the control dependencies for each return in the body.
+  pub fn build(body: &Body) -> Self {
+    ControlDependencies(
+      body
+        .all_returns()
+        .map(|loc| ControlDependencies::build_for_return(body, loc.block))
+        .reduce(|mut deps1, deps2| {
+          for block in deps2.rows() {
+            if let Some(set) = deps2.row(block) {
+              deps1.union_row(block, set);
+            }
+          }
+          deps1
+        })
+        .unwrap(),
+    )
+  }
+
   /// Compute control dependencies from post-dominator frontier.
   ///
   /// Frontier algorithm from "An Efficient Method of Computing Single Static Assignment Form", Cytron et al. 89
-  pub fn build(body: Body) -> Self {
-    let (post_dominators, body_reversed) = compute_post_dominators(body);
-    let body = &body_reversed.body;
+  fn build_for_return(
+    body: &Body,
+    ret: BasicBlock,
+  ) -> SparseBitMatrix<BasicBlock, BasicBlock> {
+    let idom = compute_immediate_post_dominators(body, ret);
+    log::debug!("idom={idom:?}");
 
-    let idom = |x| {
-      post_dominators
-        .is_reachable(x)
-        .then(|| post_dominators.immediate_dominator(x))
-    };
     let edges = body
       .basic_blocks()
       .indices()
-      .filter_map(|bb| idom(bb).map(|dom| (dom, bb)))
+      .filter_map(|bb| Some((*idom.get(&bb)?, bb)))
       .collect::<Vec<_>>();
     let n = body.basic_blocks().len();
-    let dominator_tree = VecGraph::new(n + 1, edges);
-    let traversal = iterate::post_order_from(&dominator_tree, body_reversed.exit_node);
+    let dominator_tree = VecGraph::new(n, edges);
+
+    let traversal = iterate::post_order_from(&dominator_tree, ret);
 
     // Only use size = n b/c exit node shouldn't ever have a dominance frontier
-    let mut df = IndexVec::from_elem_n(HybridBitSet::new_empty(n), n);
+    let mut df = SparseBitMatrix::new(n);
     for x in traversal {
-      let local = body_reversed.successors(x);
+      let local = body.predecessors()[x].iter().copied();
       let up = dominator_tree
         .successors(x)
         .iter()
-        .flat_map(|z| df[*z].iter());
+        .flat_map(|z| df.row(*z).into_iter().flat_map(|set| set.iter()));
       let frontier = local
         .chain(up)
-        .filter(|y| idom(*y).map(|yd| yd != x).unwrap_or(false))
+        .filter(|y| idom.get(y).map(|yd| *yd != x).unwrap_or(false))
         .collect::<Vec<_>>();
 
       for y in frontier {
-        df[x].insert(y);
+        df.insert(x, y);
       }
     }
 
-    let mut cd = SparseBitMatrix::new(n);
-    for (y, xs) in df.into_iter_enumerated() {
-      for x in xs.iter() {
-        cd.insert(x, y);
-      }
-    }
-
-    let mut cd_transpose = SparseBitMatrix::new(n);
-    for row in cd.rows() {
-      if let Some(cols) = cd.row(row) {
-        for col in cols.iter() {
-          cd_transpose.insert(col, row);
-        }
-      }
-    }
-
-    ControlDependencies(cd_transpose)
+    df
   }
 
   pub fn dependent_on(&self, block: BasicBlock) -> Option<&HybridBitSet<BasicBlock>> {
@@ -214,7 +203,7 @@ mod test {
     }"#;
     test_utils::compile_body(input, move |tcx, _, body_with_facts| {
       let body = &body_with_facts.body;
-      let control_deps = ControlDependencies::build(body.clone());
+      let control_deps = ControlDependencies::build(body);
 
       let mut snippet_to_loc: HashMap<_, Vec<_>> = HashMap::default();
       for loc in body.all_locations() {

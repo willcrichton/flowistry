@@ -257,6 +257,14 @@ pub fn location_to_string(location: Location, body: &Body<'_>) -> String {
 pub struct SimplifyMir;
 impl MirPass<'tcx> for SimplifyMir {
   fn run_pass(&self, _tcx: TyCtxt<'tcx>, body: &mut Body<'tcx>) {
+    let return_blocks = body
+      .all_returns()
+      .filter_map(|loc| {
+        let bb = &body.basic_blocks()[loc.block];
+        (bb.statements.len() == 0).then(|| loc.block)
+      })
+      .collect::<HashSet<_>>();
+
     for block in body.basic_blocks_mut() {
       block.statements.retain(|stmt| {
         !matches!(
@@ -273,6 +281,11 @@ impl MirPass<'tcx> for SimplifyMir {
         TerminatorKind::FalseUnwind { real_target, .. } => TerminatorKind::Goto {
           target: real_target,
         },
+        // Ensures that control dependencies can determine the independence of differnet
+        // return paths
+        TerminatorKind::Goto { target } if return_blocks.contains(&target) => {
+          TerminatorKind::Return
+        }
         _ => continue,
       }
     }
