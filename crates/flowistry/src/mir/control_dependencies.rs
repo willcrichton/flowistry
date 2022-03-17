@@ -1,4 +1,4 @@
-use std::{fmt, iter, slice};
+use std::fmt;
 
 use rustc_data_structures::{
   fx::FxHashMap as HashMap,
