@@ -1,7 +1,7 @@
 import _ from "lodash";
 import * as vscode from "vscode";
 
-import { clear_ranges, highlight_slice } from "./decorations";
+import { clear_ranges, emphasize_ranges, highlight_slice } from "./decorations";
 import { FlowistryResult, hide_error, is_ok, ok, show_error } from "./errors";
 import { globals } from "./extension";
 import { Range, RangeTree, to_vsc_range } from "./range";
@@ -52,7 +52,7 @@ class FocusBodyState {
   private find_slice_at_selection = (
     editor: vscode.TextEditor,
     doc: vscode.TextDocument
-  ): { seeds: Range[]; slice: Range[] } => {
+  ): { seeds: Range[]; slice: Range[]; mutations: Range[] } => {
     let query = this.places.selection_to_interval(
       doc,
       this.mark || editor.selection
@@ -69,13 +69,14 @@ class FocusBodyState {
     let seeds = sliced.map(({ range }) => range);
     seeds = _.uniqWith(seeds, _.isEqual);
     let slice = sliced.map(({ value }) => value.slice).flat();
+    let mutations = sliced.map(({ value }) => value.mutations).flat();
 
-    return { seeds, slice };
+    return { seeds, slice, mutations };
   };
 
   render = async (editor: vscode.TextEditor, select = false) => {
     let doc = editor.document;
-    let { seeds, slice } = this.find_slice_at_selection(editor, doc);
+    let { seeds, slice, mutations } = this.find_slice_at_selection(editor, doc);
 
     if (seeds.length > 0) {
       if (select) {
@@ -85,6 +86,7 @@ class FocusBodyState {
         });
       } else {
         highlight_slice(editor, this.focus.containers, seeds, slice);
+        // emphasize_ranges(editor, mutations);
       }
     } else {
       clear_ranges(editor);
