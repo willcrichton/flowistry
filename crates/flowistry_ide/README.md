@@ -43,7 +43,7 @@ Note that this example shows how slices are *transitive*: `start` influences `el
 
 ### 3. Function effects
 
-A function's effects are either inputs that it mutates, or values that it returns. The function effects panel helps identify lines of code that either mutate arguments or that could return values. Selecting an effect then shows the backward slice of that effect. 
+A function's effects are either inputs that it mutates, or values that it returns. The function effects panel helps identify lines of code that either mutate arguments or that could return values. Selecting an effect then shows the backward slice of that effect.
 
 ![demo mp4](https://user-images.githubusercontent.com/663326/133518170-cfc0e12b-6be3-4180-a661-418d3ccb5d2b.gif)
 
@@ -54,7 +54,7 @@ Like before, lines that are outside of a given slice are grayed out. But for thi
 
 ## Installation
 
-You can install Flowistry from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=wcrichton.flowistry) or the [Open VSX Registry](https://open-vsx.org/extension/wcrichton/flowistry). In VSCode: 
+You can install Flowistry from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=wcrichton.flowistry) or the [Open VSX Registry](https://open-vsx.org/extension/wcrichton/flowistry). In VSCode:
 * Go to the Extensions pane by clicking this button in the left margin: <img width="30" alt="Screen Shot 2021-09-20 at 9 30 43 AM" src="https://user-images.githubusercontent.com/663326/134039225-68d11dce-be71-4f33-8057-569346ef26bc.png">
 * Search for "Flowistry" and then click "Install".
 * Open a Rust workspace and wait for the tool to finish installing.
@@ -79,7 +79,7 @@ ln -s $(pwd) ~/.vscode/extensions/flowistry
 
 Flowistry has five commands:
 * **Flowistry: Backward Highlight**: given a selected variable, this command highlights the backward slice of the variable.
-* **Flowistry: Backward Select**: same as above, but this puts the slice in your selection rather than highlighting it. 
+* **Flowistry: Backward Select**: same as above, but this puts the slice in your selection rather than highlighting it.
 * **Flowistry: Forward Highlight** and **Flowistry: Forward Select**: same as above, but for forward slices than backward slices.
 * **Flowistry: Effects**: given your cursor is within a particular function, this command opens the effects panel for that function.
 
@@ -103,7 +103,7 @@ Flowistry does not support all of Rust's features. Specifically:
 
 ### rustup fails on installation
 
-If rustup fails, especially with an error like "could not rename downloaded file", this is probably because Flowistry is running rustup concurrently with another tool (like rust-analyzer). Until [rustup#988](https://github.com/rust-lang/rustup/issues/988) is resolved, there is unfortunately no automated way around this. 
+If rustup fails, especially with an error like "could not rename downloaded file", this is probably because Flowistry is running rustup concurrently with another tool (like rust-analyzer). Until [rustup#988](https://github.com/rust-lang/rustup/issues/988) is resolved, there is unfortunately no automated way around this.
 
 To solve the issue, go to the command line and run:
 

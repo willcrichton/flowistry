@@ -107,7 +107,7 @@ impl rustc_driver::Callbacks for Callbacks {
     queries.global_ctxt().unwrap().take().enter(|tcx| {
       let hir = tcx.hir();
 
-      // Get the first body body we can find
+      // Get the first body we can find
       let body_id = hir
         .items()
         .filter_map(|item| match item.kind {
