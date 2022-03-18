@@ -8,7 +8,7 @@ For details about this analysis, please read our paper ["Modular Information Flo
 
 ```bibtex
 @misc{crichton2021modular,
-      title={Modular Information Flow Through Ownership}, 
+      title={Modular Information Flow Through Ownership},
       author={Will Crichton and Marco Patrignani and Maneesh Agrawala and Pat Hanrahan},
       year={2021},
       eprint={2111.13662},
