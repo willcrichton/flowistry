@@ -4,7 +4,7 @@
 [![crates.io](https://img.shields.io/crates/v/flowistry.svg)](https://crates.io/crates/flowistry)
 [![docs](https://img.shields.io/badge/docs-built-blue)](https://willcrichton.net/flowistry/flowistry)
 
-Flowistry is a tool that analyzes the [information flow](https://en.wikipedia.org/wiki/Information_flow_(information_theory)) of Rust programs. Flowistry understands whether it's possible for one piece of code to affect another. Flowistry integrates into the IDE to provide a "focus mode" which helps you focus on the code that's related to your current task. 
+Flowistry is a tool that analyzes the [information flow](https://en.wikipedia.org/wiki/Information_flow_(information_theory)) of Rust programs. Flowistry understands whether it's possible for one piece of code to affect another. Flowistry integrates into the IDE to provide a "focus mode" which helps you focus on the code that's related to your current task.
 
 For example, this GIF shows the focus mode when reading a function that unions two sets together:
 
@@ -13,7 +13,7 @@ For example, this GIF shows the focus mode when reading a function that unions t
  </kbd>
  <br /><br />
 
-When the user clicks a given variable or expression, Flowistry fades out all code that *does not influence* that code, and *is not influenced by* that code. For example, `orig_len` is not influenced by the for-loop, while `set.len()` is. 
+When the user clicks a given variable or expression, Flowistry fades out all code that *does not influence* that code, and *is not influenced by* that code. For example, `orig_len` is not influenced by the for-loop, while `set.len()` is.
 
 Flowistry can be helpful when you're reading a function with a lot of code. For example, this GIF shows a real function in the Rust compiler. If you want to understand the role of a specific argument to the function, then Flowistry can filter out most of the code as irrelevant:
 
@@ -42,11 +42,11 @@ Flowistry can be helpful when you're reading a function with a lot of code. For 
     * [Why does Flowistry highlight (or not) this code?](#why-does-flowistry-highlight-or-not-this-code)
 
 
-## Installation 
+## Installation
 
 ### IDE plugin
 
-Flowistry is available as a VSCode plugin. You can install Flowistry from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=wcrichton.flowistry) or the [Open VSX Registry](https://open-vsx.org/extension/wcrichton/flowistry). In VSCode: 
+Flowistry is available as a VSCode plugin. You can install Flowistry from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=wcrichton.flowistry) or the [Open VSX Registry](https://open-vsx.org/extension/wcrichton/flowistry). In VSCode:
 * Go to the Extensions pane by clicking this button in the left margin: <img width="30" alt="Screen Shot 2021-09-20 at 9 30 43 AM" src="https://user-images.githubusercontent.com/663326/134039225-68d11dce-be71-4f33-8057-569346ef26bc.png">
 * Search for "Flowistry" and then click "Install".
 * Open a Rust workspace and wait for the tool to finish installing.
@@ -106,7 +106,7 @@ In focus mode, Flowistry will automatically compute the information flow within 
 <img width="120" alt="Screen Shot 2022-02-22 at 11 55 36 AM" src="https://user-images.githubusercontent.com/663326/155208955-1f47ab0c-f3ae-4028-82b3-6f67e6fc0db7.png">
 </kbd>
  <br /><br />
- 
+
 > Note: Flowistry can be a bit slow for larger functions. It may take up to 15 seconds to finish the analysis.
 
 Flowistry infers what you want to focus on based on your cursor. So if you click on a variable, you should see the focus region of that variable. Flowistry will highlight the focused code in gray, and then fade out code outside the focus region. For example, because the user's cursor is on `view_projection`, that variable is highlighted in gray, and its focus region is shown.
@@ -131,7 +131,7 @@ If you have questions or issues, please [file a Github issue](https://github.com
 
 ### Flowistry does not completely handle interior mutability
 
-When your code has references, Flowistry needs to understand what that reference points-to. Flowistry uses Rust's lifetime information to determine points-to information. However, data structures that use interior mutability such as `Arc<Mutex<T>>` explicitly *do not* share lifetimes between pointers to the same data. For example, in this snippet: 
+When your code has references, Flowistry needs to understand what that reference points-to. Flowistry uses Rust's lifetime information to determine points-to information. However, data structures that use interior mutability such as `Arc<Mutex<T>>` explicitly *do not* share lifetimes between pointers to the same data. For example, in this snippet:
 
 ```rust
 let x = Arc::new(Mutex::new(0));
@@ -140,7 +140,7 @@ let y = x.clone();
 println!("{}", y.lock().unwrap());
 ```
 
-Flowistry *can* determine that `*x.lock().unwrap() = 1` is a mutation to `x`, but is *can not* determine that it is a mutation to `y`. So if you focus on `y`, the assignment to 1 would be faded out, even though it is relevant to the value of `y`.
+Flowistry *can* determine that `*x.lock().unwrap() = 1` is a mutation to `x`, but it *can not* determine that it is a mutation to `y`. So if you focus on `y`, the assignment to 1 would be faded out, even though it is relevant to the value of `y`.
 
 We are researching methods to overcome this limitation, but for now just be aware that this is the main case where Flowistry is known to provide an incorrect answer.
 
@@ -160,7 +160,7 @@ In general, you should use focus mode as a pruning tool. If code is faded out, t
 
 ### Not all code is selectable
 
-Flowistry works by analyzing the [MIR](https://rustc-dev-guide.rust-lang.org/mir/index.html) graph for a given function using the Rust compiler's API. Then the IDE extension lifts the analysis results from the MIR level back to the source level. However, a lot of information about the program is lost in the journey from source code to MIR. 
+Flowistry works by analyzing the [MIR](https://rustc-dev-guide.rust-lang.org/mir/index.html) graph for a given function using the Rust compiler's API. Then the IDE extension lifts the analysis results from the MIR level back to the source level. However, a lot of information about the program is lost in the journey from source code to MIR.
 
 For example, if the source contains an expression `foo.whomp.bar().baz()`, it's possible that a temporary variable is only generated for the expression `foo.whomp.bar()`. So if the user selects `foo`, Flowistry may not be able to determine that this corresponds to the MIR [place](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Place.html) that represents `foo`.
 
@@ -168,13 +168,13 @@ This is why the IDE extension highlights the focused code in gray, so you can un
 
 ### Nested functions cannot be analyzed together (including closures and async)
 
-Flowistry analyzes a single function at a time. If a function contains other functions, e.g. `fn` definitions, or closures, or implicitly via async, then Flowistry will only show you focus regions within the smallest function body containing your cursor. This is usually well defined for function definitions and closures, but may be confusing for async since that depends on how rustc decides to carve up your async function. 
+Flowistry analyzes a single function at a time. If a function contains other functions, e.g. `fn` definitions, or closures, or implicitly via async, then Flowistry will only show you focus regions within the smallest function body containing your cursor. This is usually well defined for function definitions and closures, but may be confusing for async since that depends on how rustc decides to carve up your async function.
 
 ## FAQ
 
 ### rustup fails on installation
 
-If rustup fails, especially with an error like "could not rename downloaded file", this is probably because Flowistry is running rustup concurrently with another tool (like rust-analyzer). Until [rustup#988](https://github.com/rust-lang/rustup/issues/988) is resolved, there is unfortunately no automated way around this. 
+If rustup fails, especially with an error like "could not rename downloaded file", this is probably because Flowistry is running rustup concurrently with another tool (like rust-analyzer). Until [rustup#988](https://github.com/rust-lang/rustup/issues/988) is resolved, there is unfortunately no automated way around this.
 
 To solve the issue, go to the command line and run:
 
