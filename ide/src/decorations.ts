@@ -7,6 +7,10 @@ export let highlight_type = vscode.window.createTextEditorDecorationType({
   backgroundColor: new vscode.ThemeColor("editor.symbolHighlightBackground"),
 });
 
+export let emphasis_type = vscode.window.createTextEditorDecorationType({
+  textDecoration: "wavy underline lime",
+});
+
 export let hide_type = vscode.window.createTextEditorDecorationType({
   opacity: "0.4",
 });
@@ -62,6 +66,10 @@ export let highlight_slice = (
   highlight_ranges(hide_ranges, editor, hide_type);
 };
 
+export let emphasize_ranges = (editor: vscode.TextEditor, ranges: Range[]) => {
+  highlight_ranges(ranges, editor, emphasis_type);
+};
+
 export function highlight_ranges(
   ranges: Range[],
   editor: vscode.TextEditor,
@@ -74,7 +82,7 @@ export function highlight_ranges(
 }
 
 export let clear_ranges = (editor: vscode.TextEditor) => {
-  [highlight_type, hide_type, select_type].forEach((type) => {
+  [highlight_type, hide_type, select_type, emphasis_type].forEach((type) => {
     editor.setDecorations(type, []);
   });
 };

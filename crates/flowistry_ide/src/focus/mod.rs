@@ -30,6 +30,7 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
   let body_with_facts = get_body_with_borrowck_facts(tcx, def_id);
   let body = &body_with_facts.body;
   let results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
+  let location_domain = results.analysis.location_domain();
 
   let source_map = tcx.sess.source_map();
   let spanner = source_map::Spanner::new(tcx, body_id, body);
@@ -60,10 +61,12 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
   let relevant =
     infoflow::compute_dependency_spans(results, targets, Direction::Both, &spanner);
 
+  let mutations = find_mutations::find_mutations(body, &results.analysis.aliases);
+
   let slices = grouped_spans
     .iter()
     .zip(relevant)
-    .filter_map(|((mir_span, _targets), relevant)| {
+    .filter_map(|((mir_span, targets), relevant)| {
       log::debug!("Slice for {mir_span:?} is {relevant:#?}");
       let range = Range::from_span(mir_span.span(), source_map).ok()?;
 
@@ -72,26 +75,29 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
         .filter_map(|span| Range::from_span(span, source_map).ok())
         .collect::<Vec<_>>();
 
-      // TODO: restore this code once find_mutations is integrated
-      // let mutations = find_mutations::find_mutations(
-      //   tcx,
-      //   body,
-      //   def_id.to_def_id(),
-      //   mir_span.place,
-      //   &results.analysis.aliases,
-      // );
-      // let mutations = mutations
-      //   .into_iter()
-      //   .flat_map(|location| {
-      //     spanner.location_to_spans(location, source_map::EnclosingHirSpans::OuterOnly)
-      //   })
-      //   .filter_map(|span| Range::from_span(span, source_map).ok())
-      //   .collect::<Vec<_>>();
+      let mutations = targets
+        .iter()
+        .flat_map(|(target, _)| {
+          mutations
+            .row_set(*target)
+            .iter()
+            .copied()
+            .collect::<Vec<_>>()
+        })
+        .flat_map(|location| {
+          spanner.location_to_spans(
+            location,
+            location_domain,
+            source_map::EnclosingHirSpans::OuterOnly,
+          )
+        })
+        .filter_map(|span| Range::from_span(span, source_map).ok())
+        .collect::<Vec<_>>();
 
       Some(PlaceInfo {
         range,
         slice,
-        mutations: Vec::new(),
+        mutations,
       })
     })
     .collect::<Vec<_>>();

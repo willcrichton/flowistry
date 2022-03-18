@@ -237,7 +237,10 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
     //   span is given to "x". That corresponds to MutatingUseContext::Store
     // * "y" -- this corresponds to NonMutatingUseContext::Inspect
     let (span, locations) = match context {
-      PlaceContext::MutatingUse(MutatingUseContext::Store) => {
+      PlaceContext::MutatingUse(MutatingUseContext::Store)
+      | PlaceContext::NonMutatingUse(
+        NonMutatingUseContext::Copy | NonMutatingUseContext::Move,
+      ) => {
         let source_info = body.source_info(location);
         (source_info.span, smallvec![location])
       }
