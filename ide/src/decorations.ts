@@ -8,11 +8,15 @@ export let highlight_type = vscode.window.createTextEditorDecorationType({
 });
 
 export let emphasis_type = vscode.window.createTextEditorDecorationType({
-  textDecoration: "wavy underline lime",
+  backgroundColor: "rgba(0, 0, 0, 0.07)",
+});
+
+export let slice_type = vscode.window.createTextEditorDecorationType({
+  opacity: "1.0",
 });
 
 export let hide_type = vscode.window.createTextEditorDecorationType({
-  opacity: "0.4",
+  opacity: "0.2",
 });
 
 export let select_type = vscode.window.createTextEditorDecorationType({
@@ -57,17 +61,16 @@ export let highlight_slice = (
   editor: vscode.TextEditor,
   containers: Range[],
   seeds: Range[],
-  slice: Range[]
+  slice: Range[],
+  mutations: Range[]
 ) => {
   highlight_ranges(seeds, editor, select_type);
   let hide_ranges = containers
     .map((container) => invert_ranges(container, slice))
     .flat();
   highlight_ranges(hide_ranges, editor, hide_type);
-};
-
-export let emphasize_ranges = (editor: vscode.TextEditor, ranges: Range[]) => {
-  highlight_ranges(ranges, editor, emphasis_type);
+  highlight_ranges(slice, editor, slice_type);
+  highlight_ranges(mutations, editor, emphasis_type);
 };
 
 export function highlight_ranges(
@@ -82,7 +85,9 @@ export function highlight_ranges(
 }
 
 export let clear_ranges = (editor: vscode.TextEditor) => {
-  [highlight_type, hide_type, select_type, emphasis_type].forEach((type) => {
-    editor.setDecorations(type, []);
-  });
+  [highlight_type, hide_type, select_type, slice_type, emphasis_type].forEach(
+    (type) => {
+      editor.setDecorations(type, []);
+    }
+  );
 };

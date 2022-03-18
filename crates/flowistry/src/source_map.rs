@@ -72,6 +72,7 @@ impl HirVisitor<'hir> for ChildExprSpans<'_> {
 pub enum EnclosingHirSpans {
   OuterOnly,
   Full,
+  None,
 }
 
 #[derive(Clone, Debug)]
@@ -86,6 +87,7 @@ impl HirSpannedNode<'_> {
     match span_type {
       EnclosingHirSpans::OuterOnly => self.outer.clone(),
       EnclosingHirSpans::Full => vec![self.full.span()],
+      EnclosingHirSpans::None => Vec::new(),
     }
   }
 }

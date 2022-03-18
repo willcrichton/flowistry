@@ -1,7 +1,7 @@
 import _ from "lodash";
 import * as vscode from "vscode";
 
-import { clear_ranges, emphasize_ranges, highlight_slice } from "./decorations";
+import { clear_ranges, highlight_slice } from "./decorations";
 import { FlowistryResult, hide_error, is_ok, ok, show_error } from "./errors";
 import { globals } from "./extension";
 import { Range, RangeTree, to_vsc_range } from "./range";
@@ -85,8 +85,7 @@ class FocusBodyState {
           return new vscode.Selection(vsc_range.start, vsc_range.end);
         });
       } else {
-        highlight_slice(editor, this.focus.containers, seeds, slice);
-        // emphasize_ranges(editor, mutations);
+        highlight_slice(editor, this.focus.containers, seeds, slice, mutations);
       }
     } else {
       clear_ranges(editor);
