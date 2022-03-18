@@ -1,8 +1,6 @@
 use flowistry::{
   indexed::IndexMatrix, infoflow::mutation::ModularMutationVisitor, mir::aliases::Aliases,
 };
-use log::debug;
-use rustc_hir::Mutability;
 use rustc_middle::mir::{visit::Visitor, Body, Location, Place};
 
 pub fn find_mutations(
@@ -13,7 +11,7 @@ pub fn find_mutations(
 
   ModularMutationVisitor::new(aliases, |mutated, inputs, location, _| {
     for (input, _) in inputs {
-      for conflict in aliases.conflicts(input) {
+      for conflict in aliases.conflicts(*input) {
         mutations.insert(*conflict, location);
       }
     }

@@ -9,6 +9,7 @@ use itertools::Itertools;
 use rustc_hir::BodyId;
 use rustc_macros::Encodable;
 use rustc_middle::ty::TyCtxt;
+use rustc_span::Span;
 
 mod find_mutations;
 
@@ -70,11 +71,6 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
       log::debug!("Slice for {mir_span:?} is {relevant:#?}");
       let range = Range::from_span(mir_span.span(), source_map).ok()?;
 
-      let slice = relevant
-        .into_iter()
-        .filter_map(|span| Range::from_span(span, source_map).ok())
-        .collect::<Vec<_>>();
-
       let mutations = targets
         .iter()
         .flat_map(|(target, _)| {
@@ -88,16 +84,29 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
           spanner.location_to_spans(
             location,
             location_domain,
-            source_map::EnclosingHirSpans::OuterOnly,
+            source_map::EnclosingHirSpans::None,
           )
         })
-        .filter_map(|span| Range::from_span(span, source_map).ok())
         .collect::<Vec<_>>();
+
+      let slice = relevant;
+      // let slice = Span::merge_overlaps(
+      //   relevant
+      //     .iter()
+      //     .flat_map(|span| span.subtract(mutations.clone()))
+      //     .collect::<Vec<_>>(),
+      // );
+
+      let to_ranges = |v: Vec<Span>| {
+        v.into_iter()
+          .filter_map(|span| Range::from_span(span, source_map).ok())
+          .collect::<Vec<_>>()
+      };
 
       Some(PlaceInfo {
         range,
-        slice,
-        mutations,
+        slice: to_ranges(slice),
+        mutations: to_ranges(mutations),
       })
     })
     .collect::<Vec<_>>();
