@@ -1,8 +1,9 @@
 use flowistry::{
   indexed::IndexMatrix, infoflow::mutation::ModularMutationVisitor, mir::aliases::Aliases,
 };
-use rustc_middle::mir::{visit::Visitor, Body, Location, Place};
+use rustc_middle::mir::{visit::Visitor, Body, Location, Mutability, Place};
 
+// TODO: change the name, this isn't just mutations. More like "find_direct_flows"
 pub fn find_mutations(
   body: &Body<'tcx>,
   aliases: &Aliases<'_, 'tcx>,
@@ -10,14 +11,19 @@ pub fn find_mutations(
   let mut mutations = IndexMatrix::new(aliases.location_domain());
 
   ModularMutationVisitor::new(aliases, |mutated, inputs, location, _| {
-    for (input, _) in inputs {
-      for conflict in aliases.conflicts(*input) {
-        mutations.insert(*conflict, location);
+    let mut add = |place: Place<'tcx>, mutability: Mutability| {
+      for reachable in aliases.reachable_values(place, mutability) {
+        for conflict in aliases.conflicts(*reachable) {
+          mutations.insert(*conflict, location);
+        }
       }
+    };
+
+    for (input, _) in inputs {
+      add(*input, Mutability::Not);
     }
-    for conflict in aliases.conflicts(mutated) {
-      mutations.insert(*conflict, location);
-    }
+
+    add(mutated, Mutability::Mut);
   })
   .visit_body(body);
 

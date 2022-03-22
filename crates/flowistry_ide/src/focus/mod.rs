@@ -8,7 +8,7 @@ use flowistry::{
 use itertools::Itertools;
 use rustc_hir::BodyId;
 use rustc_macros::Encodable;
-use rustc_middle::ty::TyCtxt;
+use rustc_middle::{mir::Mutability, ty::TyCtxt};
 use rustc_span::Span;
 
 mod find_mutations;
@@ -71,13 +71,23 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
       log::debug!("Slice for {mir_span:?} is {relevant:#?}");
       let range = Range::from_span(mir_span.span(), source_map).ok()?;
 
+      // TODO: refactor this bit
       let mutations = targets
         .iter()
         .flat_map(|(target, _)| {
-          mutations
-            .row_set(*target)
+          let aliases = results
+            .analysis
+            .aliases
+            .reachable_values(*target, Mutability::Not);
+          aliases
             .iter()
-            .copied()
+            .flat_map(|target_alias| {
+              mutations
+                .row_set(*target_alias)
+                .iter()
+                .copied()
+                .collect::<Vec<_>>()
+            })
             .collect::<Vec<_>>()
         })
         .flat_map(|location| {
@@ -87,15 +97,10 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
             source_map::EnclosingHirSpans::None,
           )
         })
+        .filter(|span| relevant.iter().any(|slice_span| slice_span.contains(*span)))
         .collect::<Vec<_>>();
 
       let slice = relevant;
-      // let slice = Span::merge_overlaps(
-      //   relevant
-      //     .iter()
-      //     .flat_map(|span| span.subtract(mutations.clone()))
-      //     .collect::<Vec<_>>(),
-      // );
 
       let to_ranges = |v: Vec<Span>| {
         v.into_iter()
