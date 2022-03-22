@@ -136,6 +136,26 @@
 <span id="115">115</span>
 <span id="116">116</span>
 <span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">anyhow::Result</span>;
 <span class="kw">use</span> <span class="ident">flowistry</span>::{
   <span class="ident">infoflow</span>::{<span class="self">self</span>, <span class="ident">Direction</span>},
@@ -146,7 +166,8 @@
 <span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
 <span class="kw">use</span> <span class="ident">rustc_hir::BodyId</span>;
 <span class="kw">use</span> <span class="ident">rustc_macros::Encodable</span>;
-<span class="kw">use</span> <span class="ident">rustc_middle::ty::TyCtxt</span>;
+<span class="kw">use</span> <span class="ident">rustc_middle</span>::{<span class="ident">mir::Mutability</span>, <span class="ident">ty::TyCtxt</span>};
+<span class="kw">use</span> <span class="ident">rustc_span::Span</span>;
 
 <span class="kw">mod</span> <span class="ident">find_mutations</span>;
 
@@ -168,6 +189,7 @@
   <span class="kw">let</span> <span class="ident">body_with_facts</span> <span class="op">=</span> <span class="ident">get_body_with_borrowck_facts</span>(<span class="ident">tcx</span>, <span class="ident">def_id</span>);
   <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">body_with_facts</span>.<span class="ident">body</span>;
   <span class="kw">let</span> <span class="ident">results</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">infoflow::compute_flow</span>(<span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body_with_facts</span>);
+  <span class="kw">let</span> <span class="ident">location_domain</span> <span class="op">=</span> <span class="ident">results</span>.<span class="ident">analysis</span>.<span class="ident">location_domain</span>();
 
   <span class="kw">let</span> <span class="ident">source_map</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>();
   <span class="kw">let</span> <span class="ident">spanner</span> <span class="op">=</span> <span class="ident">source_map::Spanner::new</span>(<span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body</span>);
@@ -198,38 +220,56 @@
   <span class="kw">let</span> <span class="ident">relevant</span> <span class="op">=</span>
     <span class="ident">infoflow::compute_dependency_spans</span>(<span class="ident">results</span>, <span class="ident">targets</span>, <span class="ident">Direction::Both</span>, <span class="kw-2">&amp;</span><span class="ident">spanner</span>);
 
+  <span class="kw">let</span> <span class="ident">mutations</span> <span class="op">=</span> <span class="ident">find_mutations::find_mutations</span>(<span class="ident">body</span>, <span class="kw-2">&amp;</span><span class="ident">results</span>.<span class="ident">analysis</span>.<span class="ident">aliases</span>);
+
   <span class="kw">let</span> <span class="ident">slices</span> <span class="op">=</span> <span class="ident">grouped_spans</span>
     .<span class="ident">iter</span>()
     .<span class="ident">zip</span>(<span class="ident">relevant</span>)
-    .<span class="ident">filter_map</span>(<span class="op">|</span>((<span class="ident">mir_span</span>, <span class="ident">_targets</span>), <span class="ident">relevant</span>)<span class="op">|</span> {
+    .<span class="ident">filter_map</span>(<span class="op">|</span>((<span class="ident">mir_span</span>, <span class="ident">targets</span>), <span class="ident">relevant</span>)<span class="op">|</span> {
       <span class="macro">log::debug!</span>(<span class="string">&quot;Slice for {mir_span:?} is {relevant:#?}&quot;</span>);
       <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">Range::from_span</span>(<span class="ident">mir_span</span>.<span class="ident">span</span>(), <span class="ident">source_map</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
 
-      <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">relevant</span>
-        .<span class="ident">into_iter</span>()
-        .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="ident">Range::from_span</span>(<span class="ident">span</span>, <span class="ident">source_map</span>).<span class="ident">ok</span>())
+      <span class="comment">// TODO: refactor this bit</span>
+      <span class="kw">let</span> <span class="ident">mutations</span> <span class="op">=</span> <span class="ident">targets</span>
+        .<span class="ident">iter</span>()
+        .<span class="ident">flat_map</span>(<span class="op">|</span>(<span class="ident">target</span>, <span class="kw">_</span>)<span class="op">|</span> {
+          <span class="kw">let</span> <span class="ident">aliases</span> <span class="op">=</span> <span class="ident">results</span>
+            .<span class="ident">analysis</span>
+            .<span class="ident">aliases</span>
+            .<span class="ident">reachable_values</span>(<span class="kw-2">*</span><span class="ident">target</span>, <span class="ident">Mutability::Not</span>);
+          <span class="ident">aliases</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">target_alias</span><span class="op">|</span> {
+              <span class="ident">mutations</span>
+                .<span class="ident">row_set</span>(<span class="kw-2">*</span><span class="ident">target_alias</span>)
+                .<span class="ident">iter</span>()
+                .<span class="ident">copied</span>()
+                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+            })
+            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+        })
+        .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">location</span><span class="op">|</span> {
+          <span class="ident">spanner</span>.<span class="ident">location_to_spans</span>(
+            <span class="ident">location</span>,
+            <span class="ident">location_domain</span>,
+            <span class="ident">source_map::EnclosingHirSpans::None</span>,
+          )
+        })
+        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="ident">relevant</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">slice_span</span><span class="op">|</span> <span class="ident">slice_span</span>.<span class="ident">contains</span>(<span class="kw-2">*</span><span class="ident">span</span>)))
         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
-      <span class="comment">// TODO: restore this code once find_mutations is integrated</span>
-      <span class="comment">// let mutations = find_mutations::find_mutations(</span>
-      <span class="comment">//   tcx,</span>
-      <span class="comment">//   body,</span>
-      <span class="comment">//   def_id.to_def_id(),</span>
-      <span class="comment">//   mir_span.place,</span>
-      <span class="comment">//   &amp;results.analysis.aliases,</span>
-      <span class="comment">// );</span>
-      <span class="comment">// let mutations = mutations</span>
-      <span class="comment">//   .into_iter()</span>
-      <span class="comment">//   .flat_map(|location| {</span>
-      <span class="comment">//     spanner.location_to_spans(location, source_map::EnclosingHirSpans::OuterOnly)</span>
-      <span class="comment">//   })</span>
-      <span class="comment">//   .filter_map(|span| Range::from_span(span, source_map).ok())</span>
-      <span class="comment">//   .collect::&lt;Vec&lt;_&gt;&gt;();</span>
+      <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">relevant</span>;
+
+      <span class="kw">let</span> <span class="ident">to_ranges</span> <span class="op">=</span> <span class="op">|</span><span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span><span class="op">|</span> {
+        <span class="ident">v</span>.<span class="ident">into_iter</span>()
+          .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="ident">Range::from_span</span>(<span class="ident">span</span>, <span class="ident">source_map</span>).<span class="ident">ok</span>())
+          .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+      };
 
       <span class="prelude-val">Some</span>(<span class="ident">PlaceInfo</span> {
         <span class="ident">range</span>,
-        <span class="ident">slice</span>,
-        <span class="ident">mutations</span>: <span class="ident">Vec::new</span>(),
+        <span class="ident">slice</span>: <span class="ident">to_ranges</span>(<span class="ident">slice</span>),
+        <span class="ident">mutations</span>: <span class="ident">to_ranges</span>(<span class="ident">mutations</span>),
       })
     })
     .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();

@@ -901,6 +901,11 @@
 <span id="880">880</span>
 <span id="881">881</span>
 <span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Mapping source ranges to/from the HIR and MIR.</span>
 
 <span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
@@ -975,6 +980,7 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EnclosingHirSpans</span> {
   <span class="ident">OuterOnly</span>,
   <span class="ident">Full</span>,
+  <span class="prelude-val">None</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
@@ -989,6 +995,7 @@
     <span class="kw">match</span> <span class="ident">span_type</span> {
       <span class="ident">EnclosingHirSpans::OuterOnly</span> =&gt; <span class="self">self</span>.<span class="ident">outer</span>.<span class="ident">clone</span>(),
       <span class="ident">EnclosingHirSpans::Full</span> =&gt; <span class="macro">vec!</span>[<span class="self">self</span>.<span class="ident">full</span>.<span class="ident">span</span>()],
+      <span class="ident">EnclosingHirSpans::None</span> =&gt; <span class="ident">Vec::new</span>(),
     }
   }
 }
@@ -1140,7 +1147,10 @@
     <span class="comment">//   span is given to &quot;x&quot;. That corresponds to MutatingUseContext::Store</span>
     <span class="comment">// * &quot;y&quot; -- this corresponds to NonMutatingUseContext::Inspect</span>
     <span class="kw">let</span> (<span class="ident">span</span>, <span class="ident">locations</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">context</span> {
-      <span class="ident">PlaceContext::MutatingUse</span>(<span class="ident">MutatingUseContext::Store</span>) =&gt; {
+      <span class="ident">PlaceContext::MutatingUse</span>(<span class="ident">MutatingUseContext::Store</span>)
+      <span class="op">|</span> <span class="ident">PlaceContext::NonMutatingUse</span>(
+        <span class="ident">NonMutatingUseContext::Copy</span> <span class="op">|</span> <span class="ident">NonMutatingUseContext::Move</span>,
+      ) =&gt; {
         <span class="kw">let</span> <span class="ident">source_info</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">source_info</span>(<span class="ident">location</span>);
         (<span class="ident">source_info</span>.<span class="ident">span</span>, <span class="macro">smallvec!</span>[<span class="ident">location</span>])
       }
