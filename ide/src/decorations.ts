@@ -8,7 +8,12 @@ export let highlight_type = vscode.window.createTextEditorDecorationType({
 });
 
 export let emphasis_type = vscode.window.createTextEditorDecorationType({
-  backgroundColor: "rgba(0, 0, 0, 0.07)",
+  dark: {
+    backgroundColor: "rgba(255, 255, 255, 0.07)",
+  },
+  light: {
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
+  },
 });
 
 export let slice_type = vscode.window.createTextEditorDecorationType({
@@ -16,11 +21,16 @@ export let slice_type = vscode.window.createTextEditorDecorationType({
 });
 
 export let hide_type = vscode.window.createTextEditorDecorationType({
-  opacity: "0.2",
+  opacity: "0.3",
 });
 
 export let select_type = vscode.window.createTextEditorDecorationType({
-  backgroundColor: new vscode.ThemeColor("editor.wordHighlightBackground"),
+  dark: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+  },
+  light: {
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
+  },
 });
 
 export let invert_ranges = (container: Range, pieces: Range[]): Range[] => {
