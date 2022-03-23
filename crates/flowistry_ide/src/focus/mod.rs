@@ -1,23 +1,24 @@
 use anyhow::Result;
 use flowistry::{
   infoflow::{self, Direction},
-  mir::borrowck_facts::get_body_with_borrowck_facts,
+  mir::{borrowck_facts::get_body_with_borrowck_facts, utils::SpanExt},
   range::Range,
   source_map,
 };
 use itertools::Itertools;
 use rustc_hir::BodyId;
 use rustc_macros::Encodable;
-use rustc_middle::{mir::Mutability, ty::TyCtxt};
-use rustc_span::Span;
+use rustc_middle::{ty::TyCtxt};
+use rustc_span::{Span};
 
-mod find_mutations;
+mod direct_influence;
 
 #[derive(Debug, Encodable)]
 pub struct PlaceInfo {
   range: Range,
+  ranges: Vec<Range>,
   slice: Vec<Range>,
-  mutations: Vec<Range>,
+  direct_influence: Vec<Range>,
 }
 
 #[derive(Debug, Encodable)]
@@ -62,34 +63,17 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
   let relevant =
     infoflow::compute_dependency_spans(results, targets, Direction::Both, &spanner);
 
-  let mutations = find_mutations::find_mutations(body, &results.analysis.aliases);
+  let direct = direct_influence::DirectInfluence::build(body, &results.analysis.aliases);
 
   let slices = grouped_spans
     .iter()
     .zip(relevant)
     .filter_map(|((mir_span, targets), relevant)| {
       log::debug!("Slice for {mir_span:?} is {relevant:#?}");
-      let range = Range::from_span(mir_span.span(), source_map).ok()?;
 
-      // TODO: refactor this bit
-      let mutations = targets
+      let direct_influence = targets
         .iter()
-        .flat_map(|(target, _)| {
-          let aliases = results
-            .analysis
-            .aliases
-            .reachable_values(*target, Mutability::Not);
-          aliases
-            .iter()
-            .flat_map(|target_alias| {
-              mutations
-                .row_set(*target_alias)
-                .iter()
-                .copied()
-                .collect::<Vec<_>>()
-            })
-            .collect::<Vec<_>>()
-        })
+        .flat_map(|(target, _)| direct.lookup(*target))
         .flat_map(|location| {
           spanner.location_to_spans(
             location,
@@ -104,14 +88,17 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
 
       let to_ranges = |v: Vec<Span>| {
         v.into_iter()
+          .filter_map(|span| span.trim_leading_whitespace(source_map))
+          .flatten()
           .filter_map(|span| Range::from_span(span, source_map).ok())
           .collect::<Vec<_>>()
       };
 
       Some(PlaceInfo {
-        range,
+        range: Range::from_span(mir_span.span(), source_map).ok()?,
+        ranges: to_ranges(vec![mir_span.span()]),
         slice: to_ranges(slice),
-        mutations: to_ranges(mutations),
+        direct_influence: to_ranges(direct_influence),
       })
     })
     .collect::<Vec<_>>();

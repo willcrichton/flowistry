@@ -29,7 +29,9 @@ use rustc_middle::{
   },
 };
 use rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
-use rustc_span::{Pos, Span, SpanData, Symbol, SyntaxContext};
+use rustc_span::{
+  source_map::SourceMap, BytePos, Pos, Span, SpanData, Symbol, SyntaxContext,
+};
 use rustc_target::abi::VariantIdx;
 use rustc_trait_selection::infer::InferCtxtExt;
 use smallvec::SmallVec;
@@ -788,6 +790,7 @@ pub trait SpanExt {
   fn merge_overlaps(spans: Vec<Span>) -> Vec<Span>;
   fn to_string(&self, tcx: TyCtxt<'_>) -> String;
   fn size(&self) -> u32;
+  fn trim_leading_whitespace(&self, source_map: &SourceMap) -> Option<Vec<Span>>;
 }
 
 impl SpanExt for Span {
@@ -899,6 +902,23 @@ impl SpanExt for Span {
 
   fn size(&self) -> u32 {
     self.hi().0 - self.lo().0
+  }
+
+  fn trim_leading_whitespace(&self, source_map: &SourceMap) -> Option<Vec<Span>> {
+    let snippet = source_map.span_to_snippet(*self).ok()?;
+    let mut spans = Vec::new();
+    let mut start = self.lo();
+    for line in snippet.split('\n') {
+      let offset = line
+        .chars()
+        .take_while(|c| c.is_whitespace())
+        .map(|c| c.len_utf8())
+        .sum::<usize>();
+      let end = (start + BytePos(line.len() as u32)).min(self.hi());
+      spans.push(self.with_lo(start + BytePos(offset as u32)).with_hi(end));
+      start = end + BytePos(1);
+    }
+    Some(spans)
   }
 }
 
