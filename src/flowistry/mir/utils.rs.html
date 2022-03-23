@@ -1021,6 +1021,10 @@
 <span id="1000">1000</span>
 <span id="1001">1001</span>
 <span id="1002">1002</span>
+<span id="1003">1003</span>
+<span id="1004">1004</span>
+<span id="1005">1005</span>
+<span id="1006">1006</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
   <span class="ident">cmp</span>,
   <span class="ident">collections::hash_map::Entry</span>,
@@ -1273,9 +1277,13 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location_to_string</span>(<span class="ident">location</span>: <span class="ident">Location</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span> {
-  <span class="kw">match</span> <span class="ident">body</span>.<span class="ident">stmt_at</span>(<span class="ident">location</span>) {
-    <span class="ident">Either::Left</span>(<span class="ident">stmt</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">stmt</span>.<span class="ident">kind</span>),
-    <span class="ident">Either::Right</span>(<span class="ident">terminator</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">terminator</span>.<span class="ident">kind</span>),
+  <span class="kw">if</span> <span class="ident">location</span>.<span class="ident">block</span>.<span class="ident">as_usize</span>() <span class="op">==</span> <span class="ident">body</span>.<span class="ident">basic_blocks</span>().<span class="ident">len</span>() {
+    <span class="macro">format!</span>(<span class="string">&quot;_{}&quot;</span>, <span class="ident">location</span>.<span class="ident">statement_index</span>)
+  } <span class="kw">else</span> {
+    <span class="kw">match</span> <span class="ident">body</span>.<span class="ident">stmt_at</span>(<span class="ident">location</span>) {
+      <span class="ident">Either::Left</span>(<span class="ident">stmt</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">stmt</span>.<span class="ident">kind</span>),
+      <span class="ident">Either::Right</span>(<span class="ident">terminator</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">terminator</span>.<span class="ident">kind</span>),
+    }
   }
 }
 

@@ -66,12 +66,10 @@
 <span id="45">45</span>
 <span id="46">46</span>
 <span id="47">47</span>
-<span id="48">48</span>
-<span id="49">49</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">flowistry</span>::{
   <span class="ident">indexed::IndexMatrix</span>, <span class="ident">infoflow::mutation::ModularMutationVisitor</span>, <span class="ident">mir::aliases::Aliases</span>,
 };
-<span class="kw">use</span> <span class="ident">rustc_middle::mir</span>::{<span class="ident">visit::Visitor</span>, <span class="ident">Body</span>, <span class="ident">Location</span>, <span class="ident">Mutability</span>, <span class="ident">Place</span>};
+<span class="kw">use</span> <span class="ident">rustc_middle::mir</span>::{<span class="ident">visit::Visitor</span>, <span class="ident">Body</span>, <span class="ident">Location</span>, <span class="ident">Place</span>};
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DirectInfluence</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
   <span class="ident">aliases</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Aliases</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
@@ -83,19 +81,17 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">influence</span> <span class="op">=</span> <span class="ident">IndexMatrix::new</span>(<span class="ident">aliases</span>.<span class="ident">location_domain</span>());
 
     <span class="ident">ModularMutationVisitor::new</span>(<span class="ident">aliases</span>, <span class="op">|</span><span class="ident">mutated</span>, <span class="ident">inputs</span>, <span class="ident">location</span>, <span class="kw">_</span><span class="op">|</span> {
-      <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">add</span> <span class="op">=</span> <span class="op">|</span><span class="ident">place</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">mutability</span>: <span class="ident">Mutability</span><span class="op">|</span> {
-        <span class="kw">for</span> <span class="ident">reachable</span> <span class="kw">in</span> <span class="ident">aliases</span>.<span class="ident">reachable_values</span>(<span class="ident">place</span>, <span class="ident">mutability</span>) {
-          <span class="kw">for</span> <span class="ident">conflict</span> <span class="kw">in</span> <span class="ident">aliases</span>.<span class="ident">conflicts</span>(<span class="kw-2">*</span><span class="ident">reachable</span>) {
-            <span class="ident">influence</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">conflict</span>, <span class="ident">location</span>);
-          }
+      <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">add</span> <span class="op">=</span> <span class="op">|</span><span class="ident">place</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">|</span> {
+        <span class="kw">for</span> <span class="ident">alias</span> <span class="kw">in</span> <span class="ident">aliases</span>.<span class="ident">aliases</span>(<span class="ident">place</span>) {
+          <span class="ident">influence</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">alias</span>, <span class="ident">location</span>);
         }
       };
 
       <span class="kw">for</span> (<span class="ident">input</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="ident">inputs</span> {
-        <span class="ident">add</span>(<span class="kw-2">*</span><span class="ident">input</span>, <span class="ident">Mutability::Not</span>);
+        <span class="ident">add</span>(<span class="kw-2">*</span><span class="ident">input</span>);
       }
 
-      <span class="ident">add</span>(<span class="ident">mutated</span>, <span class="ident">Mutability::Mut</span>);
+      <span class="ident">add</span>(<span class="ident">mutated</span>);
     })
     .<span class="ident">visit_body</span>(<span class="ident">body</span>);
 
@@ -103,8 +99,8 @@
   }
 
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">target</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Location</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">reachable</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">reachable_values</span>(<span class="ident">target</span>, <span class="ident">Mutability::Not</span>);
-    <span class="ident">reachable</span>
+    <span class="kw">let</span> <span class="ident">aliases</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">aliases</span>(<span class="ident">target</span>);
+    <span class="ident">aliases</span>
       .<span class="ident">iter</span>()
       .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">target_alias</span><span class="op">|</span> {
         <span class="self">self</span>

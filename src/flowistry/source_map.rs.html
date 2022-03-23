@@ -906,11 +906,45 @@
 <span id="885">885</span>
 <span id="886">886</span>
 <span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Mapping source ranges to/from the HIR and MIR.</span>
 
 <span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
 
 <span class="kw">use</span> <span class="ident">either::Either</span>;
+<span class="kw">use</span> <span class="ident">hir::LoopSource</span>;
 <span class="kw">use</span> <span class="ident">log::trace</span>;
 <span class="kw">use</span> <span class="ident">rustc_hir</span>::{
   <span class="self">self</span> <span class="kw">as</span> <span class="ident">hir</span>,
@@ -932,7 +966,7 @@
   },
   <span class="ident">ty::TyCtxt</span>,
 };
-<span class="kw">use</span> <span class="ident">rustc_span</span>::{<span class="ident">Span</span>, <span class="ident">SpanData</span>};
+<span class="kw">use</span> <span class="ident">rustc_span</span>::{<span class="ident">BytePos</span>, <span class="ident">Span</span>, <span class="ident">SpanData</span>};
 <span class="kw">use</span> <span class="ident">smallvec</span>::{<span class="ident">smallvec</span>, <span class="ident">SmallVec</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -956,6 +990,10 @@
       <span class="ident">ExprKind::Block</span>(..) =&gt; {
         <span class="ident">intravisit::walk_expr</span>(<span class="self">self</span>, <span class="ident">ex</span>);
       }
+      <span class="comment">// The HIR span for a for-loop desugared to a match is *smaller*</span>
+      <span class="comment">// than the span of its children. So we have to explicitly recurse</span>
+      <span class="comment">// into the match arm instead of just taking the span for the match.</span>
+      <span class="comment">// See `forloop_some_relevant` for where this matters.</span>
       <span class="ident">ExprKind::Match</span>(<span class="kw">_</span>, <span class="ident">arms</span>, <span class="ident">MatchSource::ForLoopDesugar</span>) =&gt; {
         <span class="kw">for</span> <span class="ident">arm</span> <span class="kw">in</span> <span class="ident">arms</span> {
           <span class="ident">intravisit::walk_arm</span>(<span class="self">self</span>, <span class="ident">arm</span>);
@@ -967,6 +1005,12 @@
         }
       }
     }
+  }
+
+  <span class="kw">fn</span> <span class="ident">visit_arm</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arm</span>: <span class="kw-2">&amp;</span><span class="ident">hir::Arm</span>) {
+    <span class="comment">// We want the arm condition to be included in the outer span for the match,</span>
+    <span class="comment">// so we only visit the arm body here.</span>
+    <span class="self">self</span>.<span class="ident">visit_expr</span>(<span class="ident">arm</span>.<span class="ident">body</span>);
   }
 
   <span class="kw">fn</span> <span class="ident">visit_stmt</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">stmt</span>: <span class="kw-2">&amp;</span><span class="ident">hir::Stmt</span>) {
@@ -1020,9 +1064,14 @@
     <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="macro">try_span!</span>(<span class="self">self</span>, <span class="ident">expr</span>.<span class="ident">span</span>);
 
     <span class="kw">let</span> <span class="ident">inner_spans</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">expr</span>.<span class="ident">kind</span> {
-      <span class="ident">ExprKind::Loop</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">header</span>) =&gt; {
-        <span class="macro">vec!</span>[<span class="ident">expr</span>.<span class="ident">span</span>.<span class="ident">trim_start</span>(<span class="ident">header</span>).<span class="ident">unwrap_or</span>(<span class="ident">expr</span>.<span class="ident">span</span>)]
-      }
+      <span class="ident">ExprKind::Loop</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">loop_source</span>, <span class="ident">header</span>) =&gt; <span class="kw">match</span> <span class="ident">loop_source</span> {
+        <span class="ident">LoopSource::ForLoop</span> <span class="op">|</span> <span class="ident">LoopSource::While</span> =&gt; {
+          <span class="macro">vec!</span>[<span class="ident">expr</span>.<span class="ident">span</span>.<span class="ident">trim_start</span>(<span class="ident">header</span>).<span class="ident">unwrap_or</span>(<span class="ident">expr</span>.<span class="ident">span</span>)]
+        }
+        <span class="ident">LoopSource::Loop</span> =&gt; {
+          <span class="macro">vec!</span>[<span class="ident">expr</span>.<span class="ident">span</span>.<span class="ident">with_lo</span>(<span class="ident">expr</span>.<span class="ident">span</span>.<span class="ident">lo</span>() <span class="op">+</span> <span class="ident">BytePos</span>(<span class="number">4</span>))]
+        }
+      },
       <span class="ident">ExprKind::Break</span>(..) =&gt; {
         <span class="kw">return</span>;
       }
@@ -1036,7 +1085,13 @@
       }
     };
 
-    <span class="kw">let</span> <span class="ident">outer_spans</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">subtract</span>(<span class="ident">inner_spans</span>.<span class="ident">clone</span>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">outer_spans</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">subtract</span>(<span class="ident">inner_spans</span>.<span class="ident">clone</span>());
+
+    <span class="comment">// In an expression `match e { .. }` the span of `e` is only stored in a `FakeRead`,</span>
+    <span class="comment">// so we have to ensure that the span of the HIR match includes the matched expression.</span>
+    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ExprKind::Match</span>(<span class="ident">matched</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">expr</span>.<span class="ident">kind</span> {
+      <span class="ident">outer_spans</span>.<span class="ident">push</span>(<span class="ident">matched</span>.<span class="ident">span</span>);
+    }
 
     <span class="macro">trace!</span>(
       <span class="string">&quot;Expr:\n{}\nhas span: {:?}\nand inner spans: {:?}\nand outer spans: {:?}&quot;</span>,
@@ -1423,12 +1478,23 @@
       ..
     })) <span class="op">=</span> <span class="ident">stmt</span>
     {
-      <span class="comment">// If the location is a switch, then include the closest enclosing if or loop</span>
+      <span class="comment">// If the location is a switch, then include the closest enclosing if or match</span>
       <span class="macro">add_first_where!</span>(<span class="op">|</span><span class="ident">node</span><span class="op">|</span> {
         <span class="macro">matches!</span>(
           <span class="ident">node</span>.<span class="ident">node</span>,
           <span class="ident">Node::Expr</span>(<span class="ident">hir::Expr</span> {
-            <span class="ident">kind</span>: <span class="ident">ExprKind::If</span>(..) <span class="op">|</span> <span class="ident">ExprKind::Loop</span>(..),
+            <span class="ident">kind</span>: <span class="ident">ExprKind::If</span>(..) <span class="op">|</span> <span class="ident">ExprKind::Match</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">MatchSource::Normal</span>),
+            ..
+          })
+        )
+      });
+
+      <span class="comment">// Also include enclosing loops</span>
+      <span class="macro">add_first_where!</span>(<span class="op">|</span><span class="ident">node</span><span class="op">|</span> {
+        <span class="macro">matches!</span>(
+          <span class="ident">node</span>.<span class="ident">node</span>,
+          <span class="ident">Node::Expr</span>(<span class="ident">hir::Expr</span> {
+            <span class="ident">kind</span>: <span class="ident">ExprKind::Loop</span>(..),
             ..
           })
         )
