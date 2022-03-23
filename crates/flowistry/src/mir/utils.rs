@@ -250,9 +250,13 @@ where
 }
 
 pub fn location_to_string(location: Location, body: &Body<'_>) -> String {
-  match body.stmt_at(location) {
-    Either::Left(stmt) => format!("{:?}", stmt.kind),
-    Either::Right(terminator) => format!("{:?}", terminator.kind),
+  if location.block.as_usize() == body.basic_blocks().len() {
+    format!("_{}", location.statement_index)
+  } else {
+    match body.stmt_at(location) {
+      Either::Left(stmt) => format!("{:?}", stmt.kind),
+      Either::Right(terminator) => format!("{:?}", terminator.kind),
+    }
   }
 }
 

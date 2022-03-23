@@ -202,6 +202,7 @@ pub fn compute_dependency_spans(
 
   let location_domain = results.analysis.location_domain();
   let all_deps = compute_dependencies(results, targets, direction);
+  debug!("all_deps={all_deps:?}");
 
   all_deps
     .into_iter()
