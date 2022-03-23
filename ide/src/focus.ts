@@ -13,8 +13,9 @@ interface Spans {
 
 interface PlaceInfo {
   range: Range;
+  ranges: Range[];
   slice: Range[];
-  mutations: Range[];
+  direct_influence: Range[];
 }
 
 interface Focus {
@@ -52,7 +53,7 @@ class FocusBodyState {
   private find_slice_at_selection = (
     editor: vscode.TextEditor,
     doc: vscode.TextDocument
-  ): { seeds: Range[]; slice: Range[]; mutations: Range[] } => {
+  ): { seeds: Range[]; slice: Range[]; direct_influence: Range[] } => {
     let query = this.places.selection_to_interval(
       doc,
       this.mark || editor.selection
@@ -66,17 +67,22 @@ class FocusBodyState {
       sliced = result.overlapping.concat(first_containing);
     }
 
-    let seeds = sliced.map(({ range }) => range);
+    let seeds = sliced.map(({ value }) => value.ranges).flat();
     seeds = _.uniqWith(seeds, _.isEqual);
     let slice = sliced.map(({ value }) => value.slice).flat();
-    let mutations = sliced.map(({ value }) => value.mutations).flat();
+    let direct_influence = sliced
+      .map(({ value }) => value.direct_influence)
+      .flat();
 
-    return { seeds, slice, mutations };
+    return { seeds, slice, direct_influence };
   };
 
   render = async (editor: vscode.TextEditor, select = false) => {
     let doc = editor.document;
-    let { seeds, slice, mutations } = this.find_slice_at_selection(editor, doc);
+    let { seeds, slice, direct_influence } = this.find_slice_at_selection(
+      editor,
+      doc
+    );
 
     if (seeds.length > 0) {
       if (select) {
@@ -85,7 +91,13 @@ class FocusBodyState {
           return new vscode.Selection(vsc_range.start, vsc_range.end);
         });
       } else {
-        highlight_slice(editor, this.focus.containers, seeds, slice, mutations);
+        highlight_slice(
+          editor,
+          this.focus.containers,
+          seeds,
+          slice,
+          direct_influence
+        );
       }
     } else {
       clear_ranges(editor);

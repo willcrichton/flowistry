@@ -72,7 +72,7 @@ export let highlight_slice = (
   containers: Range[],
   seeds: Range[],
   slice: Range[],
-  mutations: Range[]
+  direct_influence: Range[]
 ) => {
   highlight_ranges(seeds, editor, select_type);
   let hide_ranges = containers
@@ -80,7 +80,7 @@ export let highlight_slice = (
     .flat();
   highlight_ranges(hide_ranges, editor, hide_type);
   highlight_ranges(slice, editor, slice_type);
-  highlight_ranges(mutations, editor, emphasis_type);
+  highlight_ranges(direct_influence, editor, emphasis_type);
 };
 
 export function highlight_ranges(
