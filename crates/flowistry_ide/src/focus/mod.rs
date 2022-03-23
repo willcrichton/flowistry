@@ -8,8 +8,8 @@ use flowistry::{
 use itertools::Itertools;
 use rustc_hir::BodyId;
 use rustc_macros::Encodable;
-use rustc_middle::{ty::TyCtxt};
-use rustc_span::{Span};
+use rustc_middle::ty::TyCtxt;
+use rustc_span::Span;
 
 mod direct_influence;
 

@@ -3,6 +3,7 @@
 use std::rc::Rc;
 
 use either::Either;
+use hir::LoopSource;
 use log::trace;
 use rustc_hir::{
   self as hir,
@@ -24,7 +25,7 @@ use rustc_middle::{
   },
   ty::TyCtxt,
 };
-use rustc_span::{Span, SpanData};
+use rustc_span::{BytePos, Span, SpanData};
 use smallvec::{smallvec, SmallVec};
 
 use crate::{
@@ -48,6 +49,10 @@ impl HirVisitor<'hir> for ChildExprSpans<'_> {
       ExprKind::Block(..) => {
         intravisit::walk_expr(self, ex);
       }
+      // The HIR span for a for-loop desugared to a match is *smaller*
+      // than the span of its children. So we have to explicitly recurse
+      // into the match arm instead of just taking the span for the match.
+      // See `forloop_some_relevant` for where this matters.
       ExprKind::Match(_, arms, MatchSource::ForLoopDesugar) => {
         for arm in arms {
           intravisit::walk_arm(self, arm);
@@ -59,6 +64,12 @@ impl HirVisitor<'hir> for ChildExprSpans<'_> {
         }
       }
     }
+  }
+
+  fn visit_arm(&mut self, arm: &hir::Arm) {
+    // We want the arm condition to be included in the outer span for the match,
+    // so we only visit the arm body here.
+    self.visit_expr(arm.body);
   }
 
   fn visit_stmt(&mut self, stmt: &hir::Stmt) {
@@ -112,9 +123,14 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
     let span = try_span!(self, expr.span);
 
     let inner_spans = match expr.kind {
-      ExprKind::Loop(_, _, _, header) => {
-        vec![expr.span.trim_start(header).unwrap_or(expr.span)]
-      }
+      ExprKind::Loop(_, _, loop_source, header) => match loop_source {
+        LoopSource::ForLoop | LoopSource::While => {
+          vec![expr.span.trim_start(header).unwrap_or(expr.span)]
+        }
+        LoopSource::Loop => {
+          vec![expr.span.with_lo(expr.span.lo() + BytePos(4))]
+        }
+      },
       ExprKind::Break(..) => {
         return;
       }
@@ -128,7 +144,13 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
       }
     };
 
-    let outer_spans = span.subtract(inner_spans.clone());
+    let mut outer_spans = span.subtract(inner_spans.clone());
+
+    // In an expression `match e { .. }` the span of `e` is only stored in a `FakeRead`,
+    // so we have to ensure that the span of the HIR match includes the matched expression.
+    if let ExprKind::Match(matched, _, _) = expr.kind {
+      outer_spans.push(matched.span);
+    }
 
     trace!(
       "Expr:\n{}\nhas span: {:?}\nand inner spans: {:?}\nand outer spans: {:?}",
@@ -515,12 +537,23 @@ where
       ..
     })) = stmt
     {
-      // If the location is a switch, then include the closest enclosing if or loop
+      // If the location is a switch, then include the closest enclosing if or match
       add_first_where!(|node| {
         matches!(
           node.node,
           Node::Expr(hir::Expr {
-            kind: ExprKind::If(..) | ExprKind::Loop(..),
+            kind: ExprKind::If(..) | ExprKind::Match(_, _, MatchSource::Normal),
+            ..
+          })
+        )
+      });
+
+      // Also include enclosing loops
+      add_first_where!(|node| {
+        matches!(
+          node.node,
+          Node::Expr(hir::Expr {
+            kind: ExprKind::Loop(..),
             ..
           })
         )
