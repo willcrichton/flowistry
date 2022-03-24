@@ -52,9 +52,9 @@ class ErrorProvider implements vscode.TextDocumentContentProvider {
 }
 
 export class ErrorPane {
-  showing: boolean = false;
   tdcp: ErrorProvider;
   doc: vscode.TextDocument;
+  editor?: vscode.TextEditor;
 
   constructor(tdcp: ErrorProvider, doc: vscode.TextDocument) {
     this.tdcp = tdcp;
@@ -72,9 +72,8 @@ export class ErrorPane {
   show = async (error: string) => {
     this.tdcp.contents = error;
     this.tdcp.eventEmitter.fire(this.tdcp.uri);
-    if (!this.showing) {
-      this.showing = true;
-      await vscode.window.showTextDocument(this.doc, {
+    if (!this.editor) {
+      this.editor = await vscode.window.showTextDocument(this.doc, {
         viewColumn: vscode.ViewColumn.Beside,
         preserveFocus: true,
       });
@@ -82,15 +81,15 @@ export class ErrorPane {
   };
 
   hide = async () => {
-    if (this.showing) {
-      this.showing = false;
-      // TODO: can't figure out how to close the text editor...
-      // goddamnit vscode
-
-      // await vscode.window.showTextDocument(this.doc);
-      // await vscode.commands.executeCommand(
-      //   "workbench.action.closeActiveEditor"
-      // );
+    if (this.editor) {
+      // TODO: TextEditor.hide is deprecated, but I could not figure out an
+      // alternative way to hide the error panel. The docs say to use
+      // workbench.action.closeActiveEditor, but that requires the error panel
+      // to be the active editor. I couldn't find a method to make the error panel
+      // active before calling closeActiveEditor, since showTextDocument always creates
+      // a new editor and doesn't bring up the existing one.
+      this.editor!.hide();
+      this.editor = undefined;
     }
   };
 }
