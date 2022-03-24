@@ -88,7 +88,7 @@ export class ErrorPane {
       // to be the active editor. I couldn't find a method to make the error panel
       // active before calling closeActiveEditor, since showTextDocument always creates
       // a new editor and doesn't bring up the existing one.
-      this.editor!.hide();
+      this.editor.hide();
       this.editor = undefined;
     }
   };
