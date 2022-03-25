@@ -43,11 +43,8 @@ jobs:
           # - os: macos-11
           #   target: aarch64-apple-darwin
 
-          ## TODO: need to fix windows bugs before building for windows.
-          # - os: windows-2019
-          #   target: x86_64-pc-windows-msvc
-          # - os: windows-2019
-          #   target: aarch64-pc-windows-msvc
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v1
@@ -78,7 +75,8 @@ jobs:
         with:
           files: |
             x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu.zip
-            x86_64-apple-darwin/x86_64-apple-darwin.zip   
+            x86_64-apple-darwin/x86_64-apple-darwin.zip
+            x86_64-pc-windows-msvc/x86_64-pc-windows-msvc.zip
 
   publish-extension:
     needs: publish-release
@@ -97,16 +95,12 @@ jobs:
       - run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
       - uses: actions-rs/cargo@v1
         with:
-          command: publish
-          args: -p flowistry
-      # Sleep is b/c flowistry_ide won't publish until flowistry
-      # has registered on crates.io which takes a second. 
-      # TODO: is there a better way to wait?
-      - run: sleep 60; cp README.md crates/flowistry_ide/
+          command: install
+          args: cargo-workspaces
       - uses: actions-rs/cargo@v1
         with:
-          command: publish
-          args: -p flowistry_ide --allow-dirty
+          command: ws
+          args: publish --from-git --yes
 
   publish-docs:
     needs: test
