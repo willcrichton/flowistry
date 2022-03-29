@@ -15,16 +15,16 @@ mod direct_influence;
 
 #[derive(Debug, Encodable)]
 pub struct PlaceInfo {
-  range: Range,
-  ranges: Vec<Range>,
-  slice: Vec<Range>,
-  direct_influence: Vec<Range>,
+  pub range: Range,
+  pub ranges: Vec<Range>,
+  pub slice: Vec<Range>,
+  pub direct_influence: Vec<Range>,
 }
 
 #[derive(Debug, Encodable)]
 pub struct FocusOutput {
-  place_info: Vec<PlaceInfo>,
-  containers: Vec<Range>,
+  pub place_info: Vec<PlaceInfo>,
+  pub containers: Vec<Range>,
 }
 
 pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
