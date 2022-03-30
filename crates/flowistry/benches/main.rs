@@ -103,10 +103,10 @@ fn criterion_benchmark(c: &mut Criterion) {
     ("Places", "places.rs"),
     ("Same Lifetime", "lifetimes_same.rs"),
   ];
-  let curr_dir = std::env::current_dir().unwrap();
-  let test_dir = curr_dir.join("benches/tests");
-  let bench_crate_pattern =
-    curr_dir.join("../../target/release/deps/*libbench_utils*.so");
+  let current_exe = std::env::current_exe().unwrap();
+  let curr_dir = current_exe.parent().unwrap();
+  let test_dir = curr_dir.join("../../../crates/flowistry/benches/tests");
+  let bench_crate_pattern = curr_dir.join("*libbench_utils*.so");
 
   let print_sysroot = Command::new("rustc")
     .args(&["--print", "sysroot"])
@@ -122,7 +122,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     .unwrap()
     .unwrap();
 
-  for test in tests {
+  let mut run_bench = |test: (&str, &str)| {
     for stress_ty in ["min", "max"] {
       let test_name = format!("{} ({})", test.0, stress_ty);
 
@@ -160,6 +160,19 @@ fn criterion_benchmark(c: &mut Criterion) {
         .unwrap();
       }
     }
+  };
+
+  if let Ok(test_file) = std::env::var("FLOWISTRY_BENCH_TEST") {
+    let test = tests
+      .clone()
+      .into_iter()
+      .find(|t| t.1 == test_file)
+      .unwrap();
+    return run_bench(test);
+  }
+
+  for test in tests {
+    run_bench(test);
   }
 }
 
