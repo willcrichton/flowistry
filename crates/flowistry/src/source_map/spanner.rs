@@ -8,12 +8,9 @@ use log::trace;
 use rustc_hir::{
   self as hir,
   intravisit::{self, Visitor as HirVisitor},
-  itemlikevisit::ItemLikeVisitor,
-  BodyId, Expr, ExprKind, ForeignItem, ImplItem, Item, MatchSource, Node, Param, Stmt,
-  TraitItem,
+  BodyId, Expr, ExprKind, MatchSource, Node, Param, Stmt,
 };
 use rustc_middle::{
-  hir::nested_filter::OnlyBodies,
   mir::{
     self,
     visit::{
@@ -25,11 +22,11 @@ use rustc_middle::{
   },
   ty::TyCtxt,
 };
-use rustc_span::{BytePos, Span, SpanData};
+use rustc_span::{source_map::Spanned, BytePos, Span, SpanData};
 use smallvec::{smallvec, SmallVec};
 
+use super::span_tree::SpanTree;
 use crate::{
-  block_timer,
   indexed::impls::{arg_location, LocationDomain},
   mir::utils::{self, BodyExt, PlaceExt, SpanDataExt, SpanExt},
 };
@@ -114,6 +111,10 @@ macro_rules! try_span {
       }
     }
   };
+}
+
+fn expr_to_string(ex: &Expr) -> String {
+  rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| s.print_expr(ex))
 }
 
 impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
@@ -408,7 +409,9 @@ fn assigning_locations(
 
 pub struct Spanner<'a, 'hir, 'tcx> {
   pub hir_spans: Vec<HirSpannedNode<'hir>>,
+  hir_span_tree: SpanTree<HirSpannedNode<'hir>>,
   pub mir_spans: Vec<MirSpannedPlace<'tcx>>,
+  mir_span_tree: SpanTree<MirSpannedPlace<'tcx>>,
   pub body_span: Span,
   pub item_span: Span,
   pub ret_span: Span,
@@ -430,6 +433,8 @@ where
     let mut spanner = Spanner {
       hir_spans: Vec::new(),
       mir_spans: Vec::new(),
+      hir_span_tree: SpanTree::new([]),
+      mir_span_tree: SpanTree::new([]),
       body_span: hir_body.value.span,
       item_span,
       ret_span,
@@ -448,6 +453,17 @@ where
     let mut mir_collector = MirSpanCollector(&mut spanner);
     mir_collector.visit_body(body);
 
+    spanner.hir_span_tree =
+      SpanTree::new(spanner.hir_spans.drain(..).map(|node| Spanned {
+        span: node.full.span(),
+        node,
+      }));
+    spanner.mir_span_tree =
+      SpanTree::new(spanner.mir_spans.drain(..).map(|node| Spanned {
+        span: node.span.span(),
+        node,
+      }));
+
     spanner
   }
 
@@ -459,9 +475,11 @@ where
 
   pub fn find_matching<T>(
     predicate: impl Fn(SpanData) -> bool,
-    spans: impl Iterator<Item = (SpanData, T)>,
-  ) -> impl ExactSizeIterator<Item = T> {
+    query: SpanData,
+    spans: &'b SpanTree<T>,
+  ) -> impl ExactSizeIterator<Item = &'b T> + 'b {
     let mut matching = spans
+      .overlapping(query)
       .filter(|(span, _)| predicate(*span))
       .collect::<Vec<_>>();
     matching.sort_by_key(|(span, _)| span.size());
@@ -492,7 +510,8 @@ where
     let target_span_data = target_span.data();
     let mut enclosing_hir = Self::find_matching(
       |span| span.contains(target_span_data),
-      self.hir_spans.iter().map(|span| (span.full, span)),
+      target_span_data,
+      &self.hir_span_tree,
     )
     .collect::<Vec<_>>();
     // trace!("enclosing_hir={enclosing_hir:?}");
@@ -599,109 +618,37 @@ where
     //
     // At least, we can conservatively include the containing span "z.0" and slice on that.
 
-    let spans = self
-      .mir_spans
-      .iter()
-      .map(|mir_span| (mir_span.span, mir_span));
     let span_data = span.data();
-    let mut contained =
-      Self::find_matching(move |mir_span| span_data.contains(mir_span), spans.clone());
-    let mut containing =
-      Self::find_matching(move |mir_span| mir_span.contains(span_data), spans);
 
+    let mut contained = Self::find_matching(
+      move |mir_span| span_data.contains(mir_span),
+      span_data,
+      &self.mir_span_tree,
+    );
     let mut vec = if let Some(first) = contained.next() {
       contained
         .take_while(|other| other.span.size() == first.span.size())
         .chain([first])
         .collect()
-    } else if let Some(first) = containing.next() {
-      containing
-        .take_while(|other| other.span.size() == first.span.size())
-        .chain([first])
-        .collect()
     } else {
-      Vec::new()
+      let mut containing = Self::find_matching(
+        move |mir_span| mir_span.contains(span_data),
+        span_data,
+        &self.mir_span_tree,
+      );
+      if let Some(first) = containing.next() {
+        containing
+          .take_while(|other| other.span.size() == first.span.size())
+          .chain([first])
+          .collect()
+      } else {
+        Vec::new()
+      }
     };
+
     vec.dedup();
     vec
   }
-}
-
-fn expr_to_string(ex: &Expr) -> String {
-  rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| s.print_expr(ex))
-}
-
-struct BodyFinder<'tcx> {
-  tcx: TyCtxt<'tcx>,
-  bodies: Vec<(Span, BodyId)>,
-}
-
-impl HirVisitor<'tcx> for BodyFinder<'tcx> {
-  type NestedFilter = OnlyBodies;
-
-  fn nested_visit_map(&mut self) -> Self::Map {
-    self.tcx.hir()
-  }
-
-  fn visit_nested_body(&mut self, id: BodyId) {
-    let hir = self.nested_visit_map();
-
-    // const/static items are considered to have bodies, so we want to exclude
-    // them from our search for functions
-    if !hir.body_owner_kind(hir.body_owner(id)).is_fn_or_closure() {
-      return;
-    }
-
-    let body = hir.body(id);
-    self.visit_body(body);
-
-    let hir = self.tcx.hir();
-    let span = hir.span_with_body(hir.body_owner(id));
-    trace!(
-      "Searching body for {:?} with span {span:?} (local {:?})",
-      self
-        .tcx
-        .def_path_debug_str(hir.body_owner_def_id(id).to_def_id()),
-      span.as_local(self.tcx)
-    );
-
-    if !span.from_expansion() {
-      self.bodies.push((span, id));
-    }
-  }
-}
-
-impl ItemLikeVisitor<'tcx> for BodyFinder<'tcx> {
-  fn visit_item(&mut self, item: &'tcx Item<'tcx>) {
-    intravisit::walk_item(self, item);
-  }
-
-  fn visit_impl_item(&mut self, impl_item: &'tcx ImplItem<'tcx>) {
-    intravisit::walk_impl_item(self, impl_item);
-  }
-
-  fn visit_trait_item(&mut self, _trait_item: &'tcx TraitItem<'tcx>) {}
-  fn visit_foreign_item(&mut self, _foreign_item: &'tcx ForeignItem<'tcx>) {}
-}
-
-pub fn find_bodies(tcx: TyCtxt<'tcx>) -> Vec<(Span, BodyId)> {
-  block_timer!("find_bodies");
-  let mut finder = BodyFinder {
-    tcx,
-    bodies: Vec::new(),
-  };
-  tcx.hir().visit_all_item_likes(&mut finder);
-  finder.bodies
-}
-
-pub fn find_enclosing_bodies(
-  tcx: TyCtxt<'tcx>,
-  sp: Span,
-) -> impl Iterator<Item = BodyId> {
-  let mut bodies = find_bodies(tcx);
-  bodies.retain(|(other, _)| other.contains(sp));
-  bodies.sort_by_key(|(span, _)| span.size());
-  bodies.into_iter().map(|(_, id)| id)
 }
 
 #[cfg(test)]
@@ -793,7 +740,8 @@ mod test {
       for (input_span, desired) in spans.into_iter().zip(expected) {
         let mut enclosing = Spanner::find_matching(
           |span| span.contains(input_span.data()),
-          spanner.hir_spans.iter().map(|span| (span.full, span)),
+          input_span.data(),
+          &spanner.hir_span_tree,
         )
         .collect::<Vec<_>>();
         let desired_set = desired.into_iter().copied().collect::<HashSet<_>>();

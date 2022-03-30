@@ -19,8 +19,7 @@ use anyhow::Context;
 use flowistry::{
   extensions::{EvalMode, EVAL_MODE},
   mir::borrowck_facts,
-  range::ToSpan,
-  source_map,
+  source_map::{self, ToSpan},
   timer::elapsed,
 };
 use fluid_let::fluid_set;

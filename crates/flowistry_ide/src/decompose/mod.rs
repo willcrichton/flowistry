@@ -9,8 +9,7 @@ use flowistry::{
     borrowck_facts::get_body_with_borrowck_facts,
     utils::{run_dot, SpanExt},
   },
-  range::Range,
-  source_map::{self, EnclosingHirSpans},
+  source_map::{self, EnclosingHirSpans, Range},
 };
 use petgraph::dot::{Config as DotConfig, Dot};
 use rayon::prelude::*;

@@ -124,15 +124,17 @@ impl ControlDependencies {
       body
         .all_returns()
         .map(|loc| ControlDependencies::build_for_return(body, loc.block))
-        .reduce(|mut deps1, deps2| {
-          for block in deps2.rows() {
-            if let Some(set) = deps2.row(block) {
-              deps1.union_row(block, set);
+        .fold(
+          SparseBitMatrix::new(body.basic_blocks().len()),
+          |mut deps1, deps2| {
+            for block in deps2.rows() {
+              if let Some(set) = deps2.row(block) {
+                deps1.union_row(block, set);
+              }
             }
-          }
-          deps1
-        })
-        .unwrap(),
+            deps1
+          },
+        ),
     )
   }
 

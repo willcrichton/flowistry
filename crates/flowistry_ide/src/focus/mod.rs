@@ -2,8 +2,7 @@ use anyhow::Result;
 use flowistry::{
   infoflow::{self, Direction},
   mir::{borrowck_facts::get_body_with_borrowck_facts, utils::SpanExt},
-  range::Range,
-  source_map,
+  source_map::{self, Range},
 };
 use itertools::Itertools;
 use rustc_hir::BodyId;
