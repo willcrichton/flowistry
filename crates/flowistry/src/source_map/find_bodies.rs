@@ -40,7 +40,7 @@ impl HirVisitor<'tcx> for BodyFinder<'tcx> {
       self
         .tcx
         .def_path_debug_str(hir.body_owner_def_id(id).to_def_id()),
-      span.as_local(self.tcx)
+      span.as_local(body.value.span)
     );
 
     if !span.from_expansion() {

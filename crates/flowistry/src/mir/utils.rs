@@ -442,7 +442,7 @@ impl PlaceExt<'tcx> for Place<'tcx> {
           VarDebugInfoContents::Place(place) if place.local == self.local => info
             .source_info
             .span
-            .as_local(tcx)
+            .as_local(body.span)
             .map(|_| info.name.to_string()),
           _ => None,
         })
@@ -788,7 +788,7 @@ impl BodyExt<'tcx> for Body<'tcx> {
 
 pub trait SpanExt {
   fn subtract(&self, child_spans: Vec<Span>) -> Vec<Span>;
-  fn as_local(&self, tcx: TyCtxt<'tcx>) -> Option<Span>;
+  fn as_local(&self, outer_span: Span) -> Option<Span>;
   fn overlaps_inclusive(&self, other: Span) -> bool;
   fn trim_end(&self, other: Span) -> Option<Span>;
   fn merge_overlaps(spans: Vec<Span>) -> Vec<Span>;
@@ -842,16 +842,15 @@ impl SpanExt for Span {
     outer_spans
   }
 
-  fn as_local(&self, tcx: TyCtxt<'_>) -> Option<Span> {
+  fn as_local(&self, outer_span: Span) -> Option<Span> {
     // Before we call source_callsite, we check and see if the span is already local.
     // This is important b/c in print!("{}", y) if the user selects `y`, the source_callsite
     // of that span is the entire macro.
-    let is_local = |sp| tcx.sess.source_map().is_local_span(sp);
-    if is_local(*self) {
+    if outer_span.contains(*self) {
       return Some(*self);
     } else {
       let sp = self.source_callsite();
-      if is_local(sp) {
+      if outer_span.contains(sp) {
         return Some(sp);
       }
     }
