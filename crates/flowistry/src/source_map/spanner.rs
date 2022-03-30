@@ -224,10 +224,11 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
     self.super_body(body);
 
     // Add the return type as a spanned place representing all return locations
-    let span = body.local_decls()[RETURN_PLACE].source_info.span.data();
+    let span = body.local_decls()[RETURN_PLACE].source_info.span;
+    let span = try_span!(self, span);
     let locations = body.all_returns().collect::<SmallVec<_>>();
     self.0.mir_spans.push(MirSpannedPlace {
-      span,
+      span: span.data(),
       locations,
       place: Place::from_local(RETURN_PLACE, self.0.tcx),
     })
@@ -796,7 +797,7 @@ mod test {
   } else {
     3
   };
-  let z = &mut x; 
+  let z = &mut x;
   *z = 4;
   let q = x
     .leading_ones()
