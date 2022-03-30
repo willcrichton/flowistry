@@ -49,11 +49,16 @@ impl GraphemeIndices {
   }
 
   pub fn byte_to_char(&self, byte: usize) -> usize {
-    self.byte_to_char[&byte]
+    *self.byte_to_char.get(&byte).unwrap_or_else(|| {
+      panic!(
+        "Could not find byte {byte:?} in bytes {:?}",
+        self.char_to_byte
+      )
+    })
   }
 
-  pub fn char_to_byte(&self, char: usize) -> usize {
-    self.char_to_byte[char]
+  pub fn char_to_byte(&self, chr: usize) -> usize {
+    self.char_to_byte[chr]
   }
 }
 
@@ -168,8 +173,16 @@ impl Range {
       filename => bail!("Range::from_span doesn't support {filename:?}"),
     };
 
-    source_map.ensure_source_file_source_present(file.clone());
-    let src = file.src.as_ref().unwrap();
+    assert!(
+      source_map.ensure_source_file_source_present(file.clone()),
+      "Could not load source for file: {:?}",
+      file.name
+    );
+    let external = file.external_src.borrow();
+    let src = file
+      .src
+      .as_ref()
+      .unwrap_or_else(|| external.get_source().as_ref().unwrap());
 
     let byte_start = source_map.lookup_byte_offset(span.lo()).pos.0 as usize;
     let byte_end = source_map.lookup_byte_offset(span.hi()).pos.0 as usize;
@@ -187,6 +200,9 @@ impl Range {
     SOURCE_FILES.with(|source_files| {
       let filename = source_files.get(self.filename.clone(), |filename| {
         let filename = Path::new(&filename);
+        let filename = filename
+          .canonicalize()
+          .unwrap_or_else(|_| filename.to_path_buf());
         files
           .iter()
           .map(|file| &file.name)
