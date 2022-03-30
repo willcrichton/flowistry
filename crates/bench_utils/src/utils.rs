@@ -2,7 +2,8 @@ use std::str::FromStr;
 
 use if_chain::if_chain;
 use proc_macro::TokenStream;
-use quote::ToTokens;
+use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
+use quote::{quote, ToTokens};
 
 pub fn parse_expr<T: FromStr>(expr: syn::Expr) -> T {
   expr.to_token_stream().to_string().parse().ok().unwrap()
@@ -74,4 +75,66 @@ pub fn parse_struct_assign(input: TokenStream) -> StructAssign {
   }
 
   panic!();
+}
+
+/// Represents a "level" of the nested struct
+#[derive(Clone)]
+pub struct TreeLevel {
+  ident: Ident,
+  pub def: TokenStream2,
+  instance_ident: Ident,
+  pub instantiation: TokenStream2,
+}
+
+impl TreeLevel {
+  pub fn new(
+    level: usize,
+    fields: Vec<Ident>,
+    child_level: Option<&TreeLevel>,
+    field_val: &syn::Expr,
+    field_ty: &syn::Type,
+  ) -> TreeLevel {
+    let ident = Ident::new(&format!("struct_{}", level), Span::call_site());
+    let instance_ident = Ident::new(&format!("struct_{}_inst", level), Span::call_site());
+    let type_ident =
+      Ident::new(&field_ty.to_token_stream().to_string(), Span::call_site());
+
+    // If a child level exists, fields of the current level should
+    // have the type of the child struct (if not, fall back to primitive)
+    let field_ty = if let Some(child) = child_level.clone() {
+      &child.ident
+    } else {
+      &type_ident
+    };
+
+    let def = quote! {
+      #[derive(Clone)]
+      struct #ident {
+        #(#fields: #field_ty,)*
+      }
+    };
+
+    let instantiation = if let Some(child) = child_level {
+      let field_val = &child.instance_ident;
+
+      quote! {
+        let #instance_ident = #ident {
+          #(#fields: #field_val.clone(),)*
+        };
+      }
+    } else {
+      quote! {
+        let #instance_ident = #ident {
+          #(#fields: #field_val,)*
+        };
+      }
+    };
+
+    TreeLevel {
+      ident,
+      def,
+      instance_ident,
+      instantiation,
+    }
+  }
 }

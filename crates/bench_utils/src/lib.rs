@@ -3,7 +3,9 @@ mod utils;
 use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span};
 use quote::quote;
-use utils::{parse_arr_assign, parse_struct_assign, ArrayAssign, StructAssign};
+use utils::{
+  parse_arr_assign, parse_struct_assign, ArrayAssign, StructAssign, TreeLevel,
+};
 
 /// Repeatedly assigns to a variable to increase the number of locations
 /// while keeping the number of places constant.
@@ -140,6 +142,47 @@ pub fn generate_same_lifetime(input: TokenStream) -> TokenStream {
     let #var_name = #struct_name {
       #(#fields: &#field_val,)*
     };
+  }
+  .into()
+}
+
+/// Creates a struct with deeply-nested fields
+#[proc_macro]
+pub fn generate_nested_struct(input: TokenStream) -> TokenStream {
+  let StructAssign {
+    field_val,
+    field_ty,
+    num_fields,
+    ..
+  } = parse_struct_assign(input);
+
+  let mut fields = vec![];
+  for num in 1 ..= num_fields {
+    fields.push(Ident::new(
+      format!("field_{num}").as_str(),
+      Span::call_site(),
+    ));
+  }
+
+  // Create and instantiate structs for each "level" of the nested struct
+  let mut levels = vec![];
+  for level_num in (0 ..= num_fields).rev() {
+    let level = TreeLevel::new(
+      level_num,
+      fields.clone(),
+      levels.last(),
+      &field_val,
+      &field_ty,
+    );
+    levels.push(level);
+  }
+
+  let defs = levels.iter().map(|level| level.def.clone());
+  let instants = levels.iter().map(|level| level.instantiation.clone());
+  quote! {
+    #(#defs)*
+
+    #(#instants)*
   }
   .into()
 }
