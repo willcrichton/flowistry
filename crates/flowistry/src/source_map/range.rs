@@ -165,6 +165,7 @@ impl Range {
   }
 
   pub fn from_span(span: Span, source_map: &SourceMap) -> Result<Self> {
+    log::trace!("Converting to range: {span:?}");
     let file = source_map.lookup_source_file(span.lo());
     let filename = match &file.name {
       FileName::Real(RealFileName::LocalPath(filename)) => {

@@ -34,11 +34,11 @@ use crate::{
 // Collect all the spans for children beneath the visited node.
 // For example, when visiting "if true { 1 } else { 2 }" then we
 // should collect: "true" "1" "2"
-struct ChildExprSpans<'tcx> {
+struct ChildExprSpans {
   spans: Vec<Span>,
-  tcx: TyCtxt<'tcx>,
+  item_span: Span,
 }
-impl HirVisitor<'hir> for ChildExprSpans<'_> {
+impl HirVisitor<'hir> for ChildExprSpans {
   fn visit_expr(&mut self, ex: &hir::Expr) {
     match ex.kind {
       // Don't take the span for the whole block, since we want to leave
@@ -56,7 +56,7 @@ impl HirVisitor<'hir> for ChildExprSpans<'_> {
         }
       }
       _ => {
-        if let Some(span) = ex.span.as_local(self.tcx) {
+        if let Some(span) = ex.span.as_local(self.item_span) {
           self.spans.push(span);
         }
       }
@@ -70,7 +70,7 @@ impl HirVisitor<'hir> for ChildExprSpans<'_> {
   }
 
   fn visit_stmt(&mut self, stmt: &hir::Stmt) {
-    if let Some(span) = stmt.span.as_local(self.tcx) {
+    if let Some(span) = stmt.span.as_local(self.item_span) {
       self.spans.push(span);
     }
   }
@@ -104,7 +104,7 @@ struct HirSpanCollector<'a, 'b, 'hir, 'tcx>(&'a mut Spanner<'b, 'hir, 'tcx>);
 
 macro_rules! try_span {
   ($self:expr, $span:expr) => {
-    match $span.as_local($self.0.tcx) {
+    match $span.as_local($self.0.item_span) {
       Some(span) if !$self.0.invalid_span(span) => span,
       _ => {
         return;
@@ -138,7 +138,7 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
       _ => {
         let mut visitor = ChildExprSpans {
           spans: Vec::new(),
-          tcx: self.0.tcx,
+          item_span: self.0.item_span,
         };
         intravisit::walk_expr(&mut visitor, expr);
         visitor.spans
@@ -179,7 +179,7 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
 
     let mut visitor = ChildExprSpans {
       spans: Vec::new(),
-      tcx: self.0.tcx,
+      item_span: self.0.item_span,
     };
     intravisit::walk_stmt(&mut visitor, stmt);
     let outer_spans = span.subtract(visitor.spans);
@@ -194,7 +194,7 @@ impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
   fn visit_param(&mut self, param: &'hir Param<'hir>) {
     intravisit::walk_param(self, param);
 
-    let span = match param.span.as_local(self.0.tcx) {
+    let span = match param.span.as_local(self.0.item_span) {
       Some(span) if !self.0.invalid_span(span) => span,
       _ => {
         return;
@@ -501,7 +501,7 @@ where
       ),
     };
 
-    let target_span = match target_span.as_local(self.tcx) {
+    let target_span = match target_span.as_local(self.item_span) {
       Some(span) if !self.invalid_span(span) => span,
       _ => {
         return vec![];
