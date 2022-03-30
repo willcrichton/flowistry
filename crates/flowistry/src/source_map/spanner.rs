@@ -408,10 +408,10 @@ fn assigning_locations(
 }
 
 pub struct Spanner<'a, 'hir, 'tcx> {
-  pub hir_spans: Vec<HirSpannedNode<'hir>>,
-  hir_span_tree: SpanTree<HirSpannedNode<'hir>>,
-  pub mir_spans: Vec<MirSpannedPlace<'tcx>>,
-  mir_span_tree: SpanTree<MirSpannedPlace<'tcx>>,
+  hir_spans: Vec<HirSpannedNode<'hir>>,
+  pub hir_span_tree: SpanTree<HirSpannedNode<'hir>>,
+  mir_spans: Vec<MirSpannedPlace<'tcx>>,
+  pub mir_span_tree: SpanTree<MirSpannedPlace<'tcx>>,
   pub body_span: Span,
   pub item_span: Span,
   pub ret_span: Span,
