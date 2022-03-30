@@ -42,12 +42,8 @@ fn analysis<'tcx>(
       let arg = Place::make(local, &[], tcx);
       targets.push(vec![(arg, Location::START)]);
     }
-    
-    flowistry::infoflow::compute_dependencies(
-      &results,
-      targets,
-      Direction::Forward,
-    );
+
+    flowistry::infoflow::compute_dependencies(&results, targets, Direction::Forward);
   }
 }
 
@@ -106,6 +102,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     ("Infoflow", "infoflow.rs"),
     ("Places", "places.rs"),
     ("Same Lifetime", "lifetimes_same.rs"),
+    ("Nested Structs", "nested_struct.rs"),
   ];
   let current_exe = std::env::current_exe().unwrap();
   let curr_dir = current_exe.parent().unwrap();
