@@ -37,7 +37,7 @@ pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
   let spanner = source_map::Spanner::new(tcx, body_id, body);
 
   let grouped_spans = spanner
-    .mir_spans
+    .mir_span_tree
     .iter()
     .map(|mir_span| {
       (
