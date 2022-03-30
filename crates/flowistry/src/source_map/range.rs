@@ -1,12 +1,9 @@
 //! Data structure for sharing [spans][Span] outside rustc.
 
-use std::{cell::RefCell, default::Default, fs, path::Path};
+use std::{default::Default, fs, path::Path};
 
 use anyhow::{bail, Context, Result};
-use rustc_data_structures::{
-  fx::FxHashMap as HashMap,
-  sync::{Lrc, MappedReadGuard},
-};
+use rustc_data_structures::{fx::FxHashMap as HashMap, sync::Lrc};
 use rustc_hir::{
   intravisit::{self, Visitor},
   itemlikevisit::ItemLikeVisitor,
@@ -15,24 +12,34 @@ use rustc_hir::{
 use rustc_macros::Encodable;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::{
-  source_map::{monotonic::MonotonicVec, SourceMap},
-  BytePos, FileName, RealFileName, SourceFile, Span,
+  source_map::SourceMap, BytePos, FileName, RealFileName, SourceFile, Span,
 };
 use unicode_segmentation::UnicodeSegmentation;
 
+use crate::cached::Cache;
+
 pub struct GraphemeIndices {
-  indices: Vec<usize>,
+  byte_to_char: HashMap<usize, usize>,
+  char_to_byte: Vec<usize>,
 }
 
 impl GraphemeIndices {
   pub fn new(s: &str) -> Self {
-    let mut indices = Vec::new();
+    let mut char_to_byte = Vec::new();
     let mut idx = 0;
     for g in s.graphemes(true) {
-      indices.push(idx);
+      char_to_byte.push(idx);
       idx += g.as_bytes().len();
     }
-    GraphemeIndices { indices }
+    let byte_to_char = char_to_byte
+      .iter()
+      .enumerate()
+      .map(|(idx, byte)| (*byte, idx))
+      .collect::<HashMap<_, _>>();
+    GraphemeIndices {
+      byte_to_char,
+      char_to_byte,
+    }
   }
 
   pub fn from_path(path: impl AsRef<Path>) -> Result<Self> {
@@ -42,25 +49,20 @@ impl GraphemeIndices {
   }
 
   pub fn byte_to_char(&self, byte: usize) -> usize {
-    self
-      .indices
-      .iter()
-      .enumerate()
-      .find(|(_, b)| byte == **b)
-      .unwrap()
-      .0
+    self.byte_to_char[&byte]
   }
 
   pub fn char_to_byte(&self, char: usize) -> usize {
-    self.indices[char]
+    self.char_to_byte[char]
   }
 }
 
 thread_local! {
-  static GRAPHEME_INDICES: RefCell<HashMap<String, GraphemeIndices>> = RefCell::new(HashMap::default());
+  static GRAPHEME_INDICES: Cache<String, GraphemeIndices> = Cache::default();
+  static SOURCE_FILES: Cache<String, Option<FileName>> = Cache::default();
 }
 
-pub fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
+fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
   struct Finder<'tcx> {
     tcx: TyCtxt<'tcx>,
     qpath: String,
@@ -118,14 +120,6 @@ pub struct Range {
   pub filename: String,
 }
 
-pub fn ranges_from_spans(
-  spans: impl Iterator<Item = Span>,
-  source_map: &SourceMap,
-) -> Result<Vec<Range>> {
-  spans
-    .map(|span| Range::from_span(span, source_map))
-    .collect()
-}
 impl Range {
   pub fn substr(&self, s: &str) -> String {
     s[self.byte_start .. self.byte_end].to_string()
@@ -181,39 +175,34 @@ impl Range {
     let byte_end = source_map.lookup_byte_offset(span.hi()).pos.0 as usize;
 
     GRAPHEME_INDICES.with(|grapheme_indices| {
-      let mut grapheme_indices = grapheme_indices.borrow_mut();
-      let indices = grapheme_indices
-        .entry(filename.clone())
-        .or_insert_with(|| GraphemeIndices::new(src));
+      let indices = grapheme_indices.get(filename.clone(), |_| GraphemeIndices::new(src));
       Ok(Self::from_byte_range(
         byte_start, byte_end, &filename, indices,
       ))
     })
   }
 
-  pub fn source_file<'a>(
-    &self,
-    files: &'a MappedReadGuard<'_, MonotonicVec<Lrc<SourceFile>>>,
-  ) -> Result<&'a SourceFile> {
-    let filename = Path::new(&self.filename);
-    let filename = filename
-      .canonicalize()
-      .unwrap_or_else(|_| filename.to_path_buf());
-
-    files
-      .iter()
-      .find(|file| match &file.name {
-        // rustc seems to store relative paths to files in the workspace, so if filename is absolute,
-        // we can compare them using Path::ends_with
-        FileName::Real(RealFileName::LocalPath(other)) => {
-          let canonical = other.canonicalize();
-          let other = canonical.as_ref().unwrap_or(other);
-          filename.ends_with(other)
-        }
-        _ => false,
-      })
-      .map(|f| &**f)
-      .with_context(|| {
+  pub fn source_file<'a>(&self, source_map: &'a SourceMap) -> Result<Lrc<SourceFile>> {
+    let files = source_map.files();
+    SOURCE_FILES.with(|source_files| {
+      let filename = source_files.get(self.filename.clone(), |filename| {
+        let filename = Path::new(&filename);
+        files
+          .iter()
+          .map(|file| &file.name)
+          .find(|name| match &name {
+            // rustc seems to store relative paths to files in the workspace, so if filename is absolute,
+            // we can compare them using Path::ends_with
+            FileName::Real(RealFileName::LocalPath(other)) => {
+              let canonical = other.canonicalize();
+              let other = canonical.as_ref().unwrap_or(other);
+              filename.ends_with(other)
+            }
+            _ => false,
+          })
+          .cloned()
+      });
+      let filename = filename.as_ref().with_context(|| {
         format!(
           "Could not find SourceFile for path: {}. Available SourceFiles were: [{}]",
           self.filename,
@@ -227,7 +216,10 @@ impl Range {
             .collect::<Vec<_>>()
             .join(", ")
         )
-      })
+      })?;
+
+      Ok(source_map.get_source_file(filename).unwrap())
+    })
   }
 }
 
@@ -237,8 +229,8 @@ pub trait ToSpan: Send + Sync {
 
 impl ToSpan for Range {
   fn to_span(&self, tcx: TyCtxt<'tcx>) -> Result<Span> {
-    let files = tcx.sess.source_map().files();
-    let source_file = self.source_file(&files)?;
+    let source_map = tcx.sess.source_map();
+    let source_file = self.source_file(source_map)?;
     let offset = source_file.start_pos;
 
     Ok(Span::with_root_ctxt(

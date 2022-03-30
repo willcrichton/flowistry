@@ -16,8 +16,7 @@ use crate::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
   infoflow::{self},
   mir::{borrowck_facts, utils::BodyExt},
-  range::{GraphemeIndices, Range, ToSpan},
-  source_map::{find_enclosing_bodies, Spanner},
+  source_map::{find_enclosing_bodies, Spanner, GraphemeIndices, Range, ToSpan},
 };
 
 struct StringLoader(String);

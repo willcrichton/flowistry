@@ -47,7 +47,8 @@
   clippy::single_match,
   clippy::needless_lifetimes,
   clippy::needless_return,
-  clippy::len_zero
+  clippy::len_zero,
+  clippy::len_without_is_empty
 )]
 
 extern crate either;
@@ -76,7 +77,6 @@ pub mod extensions;
 pub mod indexed;
 pub mod infoflow;
 pub mod mir;
-pub mod range;
 pub mod source_map;
 #[cfg(feature = "test")]
 pub mod test_utils;

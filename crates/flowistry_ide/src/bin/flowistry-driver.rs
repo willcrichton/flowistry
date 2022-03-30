@@ -18,7 +18,7 @@ use std::{
 
 use flowistry::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
-  range::{FunctionIdentifier, GraphemeIndices, Range},
+  source_map::{FunctionIdentifier, GraphemeIndices, Range},
 };
 use flowistry_ide::{FlowistryError, FlowistryResult, JsonEncodable};
 use fluid_let::fluid_set;

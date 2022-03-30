@@ -1,4 +1,4 @@
-use flowistry::{range::Range, source_map::find_bodies};
+use flowistry::source_map::{find_bodies, Range};
 use rustc_macros::Encodable;
 
 use crate::FlowistryResult;
@@ -23,7 +23,6 @@ impl rustc_driver::Callbacks for Callbacks {
       let spans = find_bodies(tcx).into_iter().map(|(span, _)| span);
 
       let source_map = compiler.session().source_map();
-      let files = source_map.files();
       let source_file = Range {
         byte_start: 0,
         byte_end: 0,
@@ -31,7 +30,7 @@ impl rustc_driver::Callbacks for Callbacks {
         char_end: 0,
         filename: self.filename.clone(),
       }
-      .source_file(&files)
+      .source_file(source_map)
       .unwrap();
 
       let spans = spans
