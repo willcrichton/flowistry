@@ -17,7 +17,7 @@ use glob::glob;
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_hir::{BodyId, ItemKind};
 use rustc_middle::{
-  mir::{Local, Location, Place},
+  mir::{Location, Place},
   ty::TyCtxt,
 };
 
@@ -36,12 +36,16 @@ fn analysis<'tcx>(
   let results = flowistry::infoflow::compute_flow(tcx, body_id, body_with_facts);
 
   if ty == AnalysisType::FlowAndDeps {
-    let arg = Place::make(Local::from_usize(0), &[], tcx);
-    let targets = vec![vec![(arg, Location::START)]];
+    let mut targets = vec![];
 
+    for local in body_with_facts.body.local_decls.indices() {
+      let arg = Place::make(local, &[], tcx);
+      targets.push(vec![(arg, Location::START)]);
+    }
+    
     flowistry::infoflow::compute_dependencies(
       &results,
-      targets.clone(),
+      targets,
       Direction::Forward,
     );
   }
