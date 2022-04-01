@@ -16,9 +16,7 @@ pub struct ArrayAssign {
 }
 
 /// Parses the expression:
-/// <pre>
-/// <b>var_name</b>: [_; <b>num_locations</b>] = <b>var_val</b>
-/// </pre>
+/// `var_name: [_; num_locations] = var_val`
 pub fn parse_arr_assign(input: TokenStream) -> ArrayAssign {
   let expr: syn::ExprAssign = syn::parse(input).unwrap();
 
@@ -46,9 +44,7 @@ pub struct StructAssign {
 }
 
 /// Parses the expression:
-/// <pre>
-/// <b>var_name</b>: <b>struct_name</b><[<b>field_ty</b>; <b>num_fields</b>]> = <b>field_val</b>
-/// </pre>
+/// `var_name: struct_name<[field_ty; num_fields]> = field_val`
 pub fn parse_struct_assign(input: TokenStream) -> StructAssign {
   let expr: syn::ExprAssign = syn::parse(input).unwrap();
 
