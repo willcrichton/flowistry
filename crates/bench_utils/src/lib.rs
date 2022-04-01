@@ -51,13 +51,8 @@ pub fn generate_unique_lifetimes(input: TokenStream) -> TokenStream {
     num_locations,
   } = parse_arr_assign(input);
 
-  let mut idents = vec![];
-  for num in 1 ..= num_locations {
-    idents.push(Ident::new(
-      format!("borrow_{num}").as_str(),
-      Span::call_site(),
-    ));
-  }
+  let idents = (1 ..= num_locations)
+    .map(|num| Ident::new(format!("borrow_{num}").as_str(), Span::call_site()));
 
   quote! {
     let #var_name = #var_val;
@@ -90,13 +85,8 @@ pub fn generate_flow(input: TokenStream) -> TokenStream {
     num_locations,
   } = parse_arr_assign(input);
 
-  let mut idents = vec![];
-  for num in 1 ..= num_locations {
-    idents.push(Ident::new(
-      format!("temp_{num}").as_str(),
-      Span::call_site(),
-    ));
-  }
+  let idents = (1 ..= num_locations)
+    .map(|num| Ident::new(format!("temp_{num}").as_str(), Span::call_site()));
 
   quote! {
     let mut #var_name = #var_val;
@@ -126,13 +116,9 @@ pub fn generate_places(input: TokenStream) -> TokenStream {
     num_fields,
   } = parse_struct_assign(input);
 
-  let mut fields = vec![];
-  for num in 1 ..= num_fields {
-    fields.push(Ident::new(
-      format!("field_{num}").as_str(),
-      Span::call_site(),
-    ));
-  }
+  let fields = (1 ..= num_fields)
+    .map(|num| Ident::new(format!("field_{num}").as_str(), Span::call_site()))
+    .collect::<Vec<_>>();
 
   quote! {
     struct #struct_name {
@@ -165,13 +151,9 @@ pub fn generate_same_lifetime(input: TokenStream) -> TokenStream {
     num_fields,
   } = parse_struct_assign(input);
 
-  let mut fields = vec![];
-  for num in 1 ..= num_fields {
-    fields.push(Ident::new(
-      format!("field_{num}").as_str(),
-      Span::call_site(),
-    ));
-  }
+  let fields = (1 ..= num_fields)
+    .map(|num| Ident::new(format!("field_{num}").as_str(), Span::call_site()))
+    .collect::<Vec<_>>();
 
   quote! {
     struct #struct_name<#lt_ident> {
@@ -215,13 +197,9 @@ pub fn generate_nested_struct(input: TokenStream) -> TokenStream {
     ..
   } = parse_struct_assign(input);
 
-  let mut fields = vec![];
-  for num in 1 ..= num_fields {
-    fields.push(Ident::new(
-      format!("field_{num}").as_str(),
-      Span::call_site(),
-    ));
-  }
+  let fields = (1 ..= num_fields)
+    .map(|num| Ident::new(format!("field_{num}").as_str(), Span::call_site()))
+    .collect::<Vec<_>>();
 
   // Create and instantiate structs for each "level" of the nested struct
   let mut levels = vec![];
