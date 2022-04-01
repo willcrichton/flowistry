@@ -97,7 +97,7 @@ impl TreeLevel {
 
     // If a child level exists, fields of the current level should
     // have the type of the child struct (if not, fall back to primitive)
-    let field_ty = if let Some(child) = child_level.clone() {
+    let field_ty = if let Some(child) = child_level {
       &child.ident
     } else {
       &type_ident
@@ -110,19 +110,22 @@ impl TreeLevel {
       }
     };
 
-    let instantiation = if let Some(child) = child_level {
-      let field_val = &child.instance_ident;
+    let instantiation = match child_level {
+      Some(child) => {
+        let field_val = &child.instance_ident;
 
-      quote! {
-        let #instance_ident = #ident {
-          #(#fields: #field_val.clone(),)*
-        };
+        quote! {
+          let #instance_ident = #ident {
+            #(#fields: #field_val.clone(),)*
+          };
+        }
       }
-    } else {
-      quote! {
-        let #instance_ident = #ident {
-          #(#fields: #field_val,)*
-        };
+      None => {
+        quote! {
+          let #instance_ident = #ident {
+            #(#fields: #field_val,)*
+          };
+        }
       }
     };
 
