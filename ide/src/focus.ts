@@ -1,6 +1,6 @@
 import _ from "lodash";
-import * as vscode from "vscode";
 import path from "path";
+import * as vscode from "vscode";
 
 import { clear_ranges, highlight_slice } from "./decorations";
 import { FlowistryResult, hide_error, is_ok, ok, show_error } from "./errors";
@@ -236,7 +236,7 @@ class FocusDocumentState {
 let valid_document = (doc: vscode.TextDocument): boolean => {
   let rootPath = vscode.workspace.workspaceFolders![0].uri.fsPath;
   let rootToDoc = path.relative(rootPath, doc.fileName);
-  return doc.languageId === "rust" && !rootToDoc.startsWith('..');
+  return doc.languageId === "rust" && !rootToDoc.startsWith("..");
 };
 
 /**
