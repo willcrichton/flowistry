@@ -1,5 +1,6 @@
 import _ from "lodash";
 import * as vscode from "vscode";
+import path from "path";
 
 import { clear_ranges, highlight_slice } from "./decorations";
 import { FlowistryResult, hide_error, is_ok, ok, show_error } from "./errors";
@@ -232,6 +233,12 @@ class FocusDocumentState {
   };
 }
 
+let valid_document = (doc: vscode.TextDocument): boolean => {
+  let rootPath = vscode.workspace.workspaceFolders![0].uri.fsPath;
+  let rootToDoc = path.relative(rootPath, doc.fileName);
+  return doc.languageId === "rust" && !rootToDoc.startsWith('..');
+};
+
 /**
  * TODO(will): explain the new state machine
  *
@@ -255,7 +262,7 @@ export class FocusMode {
         let editor = vscode.window.activeTextEditor!;
         let doc = editor.document;
 
-        if (editor.document.languageId !== "rust") {
+        if (!valid_document(editor.document)) {
           return;
         }
 
@@ -274,7 +281,7 @@ export class FocusMode {
     this.doc_save_callback = vscode.workspace.onDidSaveTextDocument(() => {
       let editor = vscode.window.activeTextEditor!;
 
-      if (editor.document.languageId !== "rust") {
+      if (!valid_document(editor.document)) {
         return;
       }
 
@@ -340,7 +347,7 @@ export class FocusMode {
       return null;
     }
 
-    if (editor.document.languageId !== "rust") {
+    if (!valid_document(editor.document)) {
       return;
     }
 
@@ -383,7 +390,7 @@ export class FocusMode {
         return;
       }
 
-      if (editor.document.languageId !== "rust") {
+      if (!valid_document(editor.document)) {
         return;
       }
 

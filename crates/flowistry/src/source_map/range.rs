@@ -35,6 +35,7 @@ impl GraphemeIndices {
       .iter()
       .enumerate()
       .map(|(idx, byte)| (*byte, idx))
+      .chain([(char_to_byte.last().unwrap_or(&0) + 1, char_to_byte.len())])
       .collect::<HashMap<_, _>>();
     GraphemeIndices {
       byte_to_char,
