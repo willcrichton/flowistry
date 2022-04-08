@@ -8,7 +8,9 @@ extern crate rustc_middle;
 
 use std::process::Command;
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{
+  criterion_group, criterion_main, measurement::WallTime, BenchmarkGroup, Criterion,
+};
 use flowistry::{
   infoflow::Direction,
   mir::{borrowck_facts, utils::PlaceExt},
@@ -36,14 +38,17 @@ fn analysis<'tcx>(
   let results = flowistry::infoflow::compute_flow(tcx, body_id, body_with_facts);
 
   if ty == AnalysisType::FlowAndDeps {
-    let mut targets = vec![];
+    let targets = body_with_facts
+      .body
+      .local_decls
+      .indices()
+      .map(|local| {
+        let arg = Place::make(local, &[], tcx);
+        vec![(arg, Location::START)]
+      })
+      .collect::<Vec<_>>();
 
-    for local in body_with_facts.body.local_decls.indices() {
-      let arg = Place::make(local, &[], tcx);
-      targets.push(vec![(arg, Location::START)]);
-    }
-
-    flowistry::infoflow::compute_dependencies(&results, targets, Direction::Forward);
+    flowistry::infoflow::compute_dependencies(&results, targets, Direction::Both);
   }
 }
 
@@ -51,11 +56,22 @@ struct UnsafeBenchGroup(
   criterion::BenchmarkGroup<'static, criterion::measurement::WallTime>,
 );
 
+impl UnsafeBenchGroup {
+  fn new(bench_group: BenchmarkGroup<WallTime>) -> Self {
+    unsafe {
+      UnsafeBenchGroup(std::mem::transmute::<
+        criterion::BenchmarkGroup<'_, criterion::measurement::WallTime>,
+        criterion::BenchmarkGroup<'static, criterion::measurement::WallTime>,
+      >(bench_group))
+    }
+  }
+}
+
+// SAFETY: Rustc requires that Callbacks implements Send in case the compiler is
+// run with multiple threads (which we don't do)
 unsafe impl Send for UnsafeBenchGroup {}
-unsafe impl Sync for UnsafeBenchGroup {}
 
 struct Callbacks {
-  ty: AnalysisType,
   group: UnsafeBenchGroup,
 }
 impl rustc_driver::Callbacks for Callbacks {
@@ -82,21 +98,23 @@ impl rustc_driver::Callbacks for Callbacks {
       let def_id = hir.body_owner_def_id(body_id);
       let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
 
-      let bench_id = match self.ty {
-        AnalysisType::FlowOnly => "Flow",
-        AnalysisType::FlowAndDeps => "Flow + Deps",
-      };
+      for analysis_ty in [AnalysisType::FlowOnly, AnalysisType::FlowAndDeps] {
+        let bench_id = match analysis_ty {
+          AnalysisType::FlowOnly => "Flow",
+          AnalysisType::FlowAndDeps => "Flow + Deps",
+        };
 
-      self.group.0.bench_function(bench_id, |b| {
-        b.iter(|| analysis(tcx, body_id, body_with_facts, self.ty))
-      });
+        self.group.0.bench_function(bench_id, |b| {
+          b.iter(|| analysis(tcx, body_id, body_with_facts, analysis_ty))
+        });
+      }
     });
     rustc_driver::Compilation::Stop
   }
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-  let tests = vec![
+  const TESTS: &[(&str, &str)] = &[
     ("Locations", "locations.rs"),
     ("Unique Lifetimes", "lifetimes_unique.rs"),
     ("Infoflow", "infoflow.rs"),
@@ -104,9 +122,13 @@ fn criterion_benchmark(c: &mut Criterion) {
     ("Same Lifetime", "lifetimes_same.rs"),
     ("Nested Structs", "nested_struct.rs"),
   ];
+
+  // The current binary should be in target/<profile>/deps/
   let current_exe = std::env::current_exe().unwrap();
   let curr_dir = current_exe.parent().unwrap();
   let test_dir = curr_dir.join("../../../crates/flowistry/benches/tests");
+
+  // The shared object for the bench_utils crate should also be in deps/
   let bench_crate_pattern = curr_dir.join("*libbench_utils*.so");
 
   let print_sysroot = Command::new("rustc")
@@ -124,6 +146,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     .unwrap();
 
   let mut run_bench = |test: (&str, &str)| {
+    // Stress types correspond to bench files within ./tests/
     for stress_ty in ["min", "max"] {
       let test_name = format!("{} ({})", test.0, stress_ty);
 
@@ -141,39 +164,28 @@ fn criterion_benchmark(c: &mut Criterion) {
 
       args.extend(["--sysroot".into(), sysroot.clone()]);
 
-      for analysis_ty in [AnalysisType::FlowOnly, AnalysisType::FlowAndDeps] {
-        let group = unsafe {
-          UnsafeBenchGroup(std::mem::transmute::<
-            criterion::BenchmarkGroup<'_, criterion::measurement::WallTime>,
-            criterion::BenchmarkGroup<'static, criterion::measurement::WallTime>,
-          >(c.benchmark_group(&test_name)))
-        };
+      let group = UnsafeBenchGroup::new(c.benchmark_group(&test_name));
 
-        let mut callbacks = Callbacks {
-          ty: analysis_ty,
-          group,
-        };
-        rustc_driver::catch_fatal_errors(|| {
-          rustc_driver::RunCompiler::new(&args, &mut callbacks)
-            .run()
-            .unwrap()
-        })
-        .unwrap();
-      }
+      let mut callbacks = Callbacks { group };
+      rustc_driver::catch_fatal_errors(|| {
+        rustc_driver::RunCompiler::new(&args, &mut callbacks)
+          .run()
+          .unwrap()
+      })
+      .unwrap();
     }
   };
 
-  if let Ok(test_file) = std::env::var("FLOWISTRY_BENCH_TEST") {
-    let test = tests
-      .clone()
-      .into_iter()
-      .find(|t| t.1 == test_file)
-      .unwrap();
-    return run_bench(test);
-  }
-
-  for test in tests {
-    run_bench(test);
+  match std::env::var("FLOWISTRY_BENCH_TEST") {
+    Ok(test_file) => {
+      let test = TESTS.into_iter().find(|t| t.1 == test_file).unwrap();
+      return run_bench(*test);
+    }
+    _ => {
+      for test in TESTS {
+        run_bench(*test);
+      }
+    }
   }
 }
 
