@@ -11,6 +11,7 @@ use utils::{
 /// Repeatedly assigns to a variable to increase the number of locations
 /// while keeping the number of places constant. For example:
 /// ```rust
+/// use bench_utils::generate_locations;
 /// generate_locations!(foo: [i32; 10] = 1);
 /// ```
 /// generates a program which assigns `foo = 1` 10 times.
@@ -34,6 +35,7 @@ pub fn generate_locations(input: TokenStream) -> TokenStream {
 /// Repeatedly borrows the same variable to create many places, locations, and lifetimes.
 /// For example:
 /// ```rust
+/// use bench_utils::generate_unique_lifetimes;
 /// generate_unique_lifetimes!(foo: [i32; 10] = 1);
 /// ```
 /// generates a program which creates 10 "borrow" variables, each assigned to `&foo`:
@@ -41,7 +43,7 @@ pub fn generate_locations(input: TokenStream) -> TokenStream {
 /// let foo = 1;
 /// let borrow_1 = &foo;
 /// let borrow_2 = &foo;
-/// ...
+/// // ...
 /// ```
 #[proc_macro]
 pub fn generate_unique_lifetimes(input: TokenStream) -> TokenStream {
@@ -66,6 +68,7 @@ pub fn generate_unique_lifetimes(input: TokenStream) -> TokenStream {
 /// to assign back to the "main" variable, generating infoflow between each temporary.
 /// For example:
 /// ```rust
+/// use bench_utils::generate_flow;
 /// generate_flow!(foo: [i32; 10] = 1);
 /// ```
 /// generates
@@ -75,7 +78,7 @@ pub fn generate_unique_lifetimes(input: TokenStream) -> TokenStream {
 /// foo = temp_1;
 /// let temp_2 = foo;
 /// foo = temp_2;
-/// ...
+/// // ...
 /// ```
 #[proc_macro]
 pub fn generate_flow(input: TokenStream) -> TokenStream {
@@ -102,6 +105,7 @@ pub fn generate_flow(input: TokenStream) -> TokenStream {
 /// Creates a struct with many fields, generating many places while
 /// keeping the number of locations constant. For example:
 /// ```rust
+/// use bench_utils::generate_places;
 /// generate_places!(foo: PlaceStruct<[i32; 3]> = 1);
 /// ```
 /// generates a struct called `PlaceStruct` with 3 `i32` fields and assigns
@@ -135,6 +139,7 @@ pub fn generate_places(input: TokenStream) -> TokenStream {
 /// Creates a struct with many fields, each having the type `&'a <type>`,
 /// creating many places with one lifetime. For example:
 /// ```rust
+/// use bench_utils::generate_same_lifetime;
 /// generate_same_lifetime!(foo: LifetimesStruct<[i32; 3]> = 1);
 /// ```
 /// generates a `LifetimesStruct<'a>` struct with 3 `&'a i32` fields and assigns
@@ -169,21 +174,22 @@ pub fn generate_same_lifetime(input: TokenStream) -> TokenStream {
 
 /// Creates a struct with deeply-nested fields. For example:
 /// ```rust
+/// use bench_utils::generate_nested_struct;
 /// generate_nested_struct!(foo: NestedStruct<[i32; 3]> = 1);
 /// ```
 /// generates 3 structs for each "level" of the nesting, with 3 fields each:
 /// ```rust
 /// struct struct_1 {
 ///   field_1: i32,
-///   ...
+///   // ...
 /// }
 /// struct struct_2 {
 ///   field_1: struct_1,
-///   ...
+///   // ...
 /// }
 /// struct struct_3 {
 ///   field_1: struct_2,
-///   ...
+///   // ...
 /// }
 /// ```
 /// the macro then instantiates each level of the tree, resulting in a final struct
