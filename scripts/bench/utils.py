@@ -1,7 +1,16 @@
 import subprocess as sp
 import json
+import toml
+import pathlib
 
-TOOLCHAIN = 'nightly-2022-02-17'
+def get_toolchain():
+    curr_dir = pathlib.Path(__file__).parent.resolve()
+    project_dir = curr_dir.parent.parent
+    toml_data = toml.load(project_dir / 'rust-toolchain.toml')
+
+    return toml_data['toolchain']['channel']
+
+TOOLCHAIN = get_toolchain()
 
 def get_cargo_cmd(cmd: str, driver_pattern: str, parse_env_vars = False):
     sysroot = sp.check_output(f'$(rustup which --toolchain {TOOLCHAIN} rustc) --print sysroot', shell=True).decode('utf-8').strip()
