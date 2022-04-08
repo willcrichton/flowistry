@@ -2,6 +2,18 @@ import subprocess as sp
 import json
 import toml
 import pathlib
+import platform
+
+PLATFORM_VARS = {
+    'Darwin': {
+        'library_path': 'DYLD_LIBRARY_PATH',
+        'tracing_command': "xcrun xctrace record --template 'Time Profiler' --launch --"
+    },
+    'Linux': {
+        'library_path': 'LD_LIBRARY_PATH',
+        'tracing_command': 'perf record'
+    }
+}[platform.system()]
 
 def get_toolchain():
     curr_dir = pathlib.Path(__file__).parent.resolve()
@@ -20,7 +32,7 @@ def get_cargo_cmd(cmd: str, driver_pattern: str, parse_env_vars = False):
     lines = p.stderr.decode('utf-8').splitlines()
     env_vars = [
         ['SYSROOT', sysroot],
-        ['DYLD_LIBRARY_PATH', sysroot + '/lib']
+        [PLATFORM_VARS['library_path'], sysroot + '/lib']
     ]
 
     if parse_env_vars:
