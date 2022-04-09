@@ -5,9 +5,9 @@ extern crate rustc_driver;
 extern crate rustc_hir;
 extern crate rustc_interface;
 extern crate rustc_middle;
-
 use std::process::Command;
 
+use anyhow::{Context, Result};
 use criterion::{
   criterion_group, criterion_main, measurement::WallTime, BenchmarkGroup, Criterion,
 };
@@ -123,70 +123,78 @@ fn criterion_benchmark(c: &mut Criterion) {
     ("Nested Structs", "nested_struct.rs"),
   ];
 
-  // The current binary should be in target/<profile>/deps/
-  let current_exe = std::env::current_exe().unwrap();
-  let curr_dir = current_exe.parent().unwrap();
-  let test_dir = curr_dir.join("../../../crates/flowistry/benches/tests");
+  (|| -> Result<()> {
+    // The current binary should be in target/<profile>/deps/
+    let current_exe = std::env::current_exe().unwrap();
+    let curr_dir = current_exe.parent().unwrap();
+    let test_dir = curr_dir.join("../../../crates/flowistry/benches/tests");
 
-  // The shared object for the bench_utils crate should also be in deps/
-  let bench_crate_pattern = curr_dir.join("*libbench_utils*.so");
+    // The shared object for the bench_utils crate should also be in deps/
+    let bench_crate_pattern = curr_dir.join("*libbench_utils*.so");
 
-  let print_sysroot = Command::new("rustc")
-    .args(&["--print", "sysroot"])
-    .output()
-    .unwrap()
-    .stdout;
-  let sysroot = String::from_utf8(print_sysroot).unwrap().trim().to_owned();
+    let print_sysroot = Command::new("rustc")
+      .args(&["--print", "sysroot"])
+      .output()
+      .context("Failed to print rustc sysroot")?
+      .stdout;
+    let sysroot = String::from_utf8(print_sysroot).unwrap().trim().to_owned();
 
-  // Find bench_utils .so file
-  let shared_object = glob(bench_crate_pattern.to_str().unwrap())
-    .unwrap()
-    .nth(0)
-    .unwrap()
-    .unwrap();
-
-  let mut run_bench = |test: (&str, &str)| {
-    // Stress types correspond to bench files within ./tests/
-    for stress_ty in ["min", "max"] {
-      let test_name = format!("{} ({})", test.0, stress_ty);
-
-      let mut args: Vec<String> = vec!["".into()];
-
-      // Add test file to compiler args
-      let test_file = std::path::Path::new(stress_ty).join(test.1);
-      args.extend([test_dir.join(test_file).to_str().unwrap().into()]);
-
-      // Add bench utils .so as extern
-      args.extend([
-        "--extern".into(),
-        format!("bench_utils={}", shared_object.to_str().unwrap()),
-      ]);
-
-      args.extend(["--sysroot".into(), sysroot.clone()]);
-
-      let group = UnsafeBenchGroup::new(c.benchmark_group(&test_name));
-
-      let mut callbacks = Callbacks { group };
-      rustc_driver::catch_fatal_errors(|| {
-        rustc_driver::RunCompiler::new(&args, &mut callbacks)
-          .run()
-          .unwrap()
-      })
+    // Find bench_utils .so file
+    let shared_object = glob(bench_crate_pattern.to_str().unwrap())
+      .unwrap()
+      .nth(0)
+      .unwrap()
       .unwrap();
-    }
-  };
 
-  match std::env::var("FLOWISTRY_BENCH_TEST") {
-    Ok(test_file) => {
-      let test = TESTS.into_iter().find(|t| t.1 == test_file).unwrap();
-      return run_bench(*test);
-    }
-    _ => {
-      for test in TESTS {
+    let mut run_bench = |test: (&str, &str)| {
+      // Stress types correspond to bench files within ./tests/
+      for stress_ty in ["min", "max"] {
+        let test_name = format!("{} ({})", test.0, stress_ty);
+
+        let mut args: Vec<String> = vec!["".into()];
+
+        // Add test file to compiler args
+        let test_file = std::path::Path::new(stress_ty).join(test.1);
+        args.extend([test_dir.join(test_file).to_str().unwrap().into()]);
+
+        // Add bench utils .so as extern
+        args.extend([
+          "--extern".into(),
+          format!("bench_utils={}", shared_object.to_str().unwrap()),
+        ]);
+
+        args.extend(["--sysroot".into(), sysroot.clone()]);
+
+        let group = UnsafeBenchGroup::new(c.benchmark_group(&test_name));
+
+        let mut callbacks = Callbacks { group };
+        rustc_driver::catch_fatal_errors(|| {
+          rustc_driver::RunCompiler::new(&args, &mut callbacks)
+            .run()
+            .unwrap()
+        })
+        .unwrap();
+      }
+    };
+
+    match std::env::var("FLOWISTRY_BENCH_TEST") {
+      Ok(test_file) => {
+        let test = TESTS
+          .into_iter()
+          .find(|t| t.1 == test_file)
+          .context(format!("Failed to find test file {test_file}"))?;
         run_bench(*test);
       }
+      _ => {
+        for test in TESTS {
+          run_bench(*test);
+        }
+      }
     }
-  }
+
+    Ok(())
+  })()
+  .unwrap()
 }
 
 criterion_group!(benches, criterion_benchmark);
