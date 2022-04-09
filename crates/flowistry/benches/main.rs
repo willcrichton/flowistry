@@ -125,8 +125,11 @@ fn criterion_benchmark(c: &mut Criterion) {
 
   (|| -> Result<()> {
     // The current binary should be in target/<profile>/deps/
-    let current_exe = std::env::current_exe().unwrap();
-    let curr_dir = current_exe.parent().unwrap();
+    let current_exe =
+      std::env::current_exe().context("Failed to find current executable")?;
+    let curr_dir = current_exe
+      .parent()
+      .context("Failed to find path to current exe parent")?;
     let test_dir = curr_dir.join("../../../crates/flowistry/benches/tests");
 
     // The shared object for the bench_utils crate should also be in deps/
@@ -137,14 +140,12 @@ fn criterion_benchmark(c: &mut Criterion) {
       .output()
       .context("Failed to print rustc sysroot")?
       .stdout;
-    let sysroot = String::from_utf8(print_sysroot).unwrap().trim().to_owned();
+    let sysroot = String::from_utf8(print_sysroot)?.trim().to_owned();
 
     // Find bench_utils .so file
-    let shared_object = glob(bench_crate_pattern.to_str().unwrap())
-      .unwrap()
+    let shared_object = glob(bench_crate_pattern.to_str().unwrap())?
       .nth(0)
-      .unwrap()
-      .unwrap();
+      .context("Failed to find bench_utils shared object")??;
 
     let mut run_bench = |test: (&str, &str)| {
       // Stress types correspond to bench files within ./tests/
@@ -182,7 +183,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let test = TESTS
           .into_iter()
           .find(|t| t.1 == test_file)
-          .context(format!("Failed to find test file {test_file}"))?;
+          .with_context(|| format!("Failed to find test file '{test_file}'"))?;
         run_bench(*test);
       }
       _ => {
