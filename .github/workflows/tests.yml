@@ -31,3 +31,16 @@ jobs:
         working-directory: ide
       - run: xvfb-run -a npm test
         working-directory: ide
+  
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: cargo bench --bench main -- --output-format bencher | tee crates/flowistry/benches/output.txt
+      - uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: 'cargo'
+          output-file-path: crates/flowistry/benches/output.txt
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+          comment-always: true
