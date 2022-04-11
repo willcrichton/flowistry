@@ -1024,7 +1024,6 @@
 <span id="1003">1003</span>
 <span id="1004">1004</span>
 <span id="1005">1005</span>
-<span id="1006">1006</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
   <span class="ident">cmp</span>,
   <span class="ident">collections::hash_map::Entry</span>,
@@ -1469,7 +1468,7 @@
           <span class="ident">VarDebugInfoContents::Place</span>(<span class="ident">place</span>) <span class="kw">if</span> <span class="ident">place</span>.<span class="ident">local</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">local</span> =&gt; <span class="ident">info</span>
             .<span class="ident">source_info</span>
             .<span class="ident">span</span>
-            .<span class="ident">as_local</span>(<span class="ident">tcx</span>)
+            .<span class="ident">as_local</span>(<span class="ident">body</span>.<span class="ident">span</span>)
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">info</span>.<span class="ident">name</span>.<span class="ident">to_string</span>()),
           <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         })
@@ -1815,7 +1814,7 @@
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SpanExt</span> {
   <span class="kw">fn</span> <span class="ident">subtract</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">child_spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>;
-  <span class="kw">fn</span> <span class="ident">as_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>;
+  <span class="kw">fn</span> <span class="ident">as_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">outer_span</span>: <span class="ident">Span</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>;
   <span class="kw">fn</span> <span class="ident">overlaps_inclusive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) -&gt; <span class="ident">bool</span>;
   <span class="kw">fn</span> <span class="ident">trim_end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>;
   <span class="kw">fn</span> <span class="ident">merge_overlaps</span>(<span class="ident">spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>;
@@ -1869,16 +1868,15 @@
     <span class="ident">outer_spans</span>
   }
 
-  <span class="kw">fn</span> <span class="ident">as_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
+  <span class="kw">fn</span> <span class="ident">as_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">outer_span</span>: <span class="ident">Span</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
     <span class="comment">// Before we call source_callsite, we check and see if the span is already local.</span>
     <span class="comment">// This is important b/c in print!(&quot;{}&quot;, y) if the user selects `y`, the source_callsite</span>
     <span class="comment">// of that span is the entire macro.</span>
-    <span class="kw">let</span> <span class="ident">is_local</span> <span class="op">=</span> <span class="op">|</span><span class="ident">sp</span><span class="op">|</span> <span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>().<span class="ident">is_local_span</span>(<span class="ident">sp</span>);
-    <span class="kw">if</span> <span class="ident">is_local</span>(<span class="kw-2">*</span><span class="self">self</span>) {
+    <span class="kw">if</span> <span class="ident">outer_span</span>.<span class="ident">contains</span>(<span class="kw-2">*</span><span class="self">self</span>) {
       <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span>);
     } <span class="kw">else</span> {
       <span class="kw">let</span> <span class="ident">sp</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">source_callsite</span>();
-      <span class="kw">if</span> <span class="ident">is_local</span>(<span class="ident">sp</span>) {
+      <span class="kw">if</span> <span class="ident">outer_span</span>.<span class="ident">contains</span>(<span class="ident">sp</span>) {
         <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">sp</span>);
       }
     }

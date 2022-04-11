@@ -295,6 +295,8 @@
 <span id="274">274</span>
 <span id="275">275</span>
 <span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt</span>;
 
 <span class="kw">use</span> <span class="ident">rustc_data_structures</span>::{
@@ -421,15 +423,17 @@
       <span class="ident">body</span>
         .<span class="ident">all_returns</span>()
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">loc</span><span class="op">|</span> <span class="ident">ControlDependencies::build_for_return</span>(<span class="ident">body</span>, <span class="ident">loc</span>.<span class="ident">block</span>))
-        .<span class="ident">reduce</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">deps1</span>, <span class="ident">deps2</span><span class="op">|</span> {
-          <span class="kw">for</span> <span class="ident">block</span> <span class="kw">in</span> <span class="ident">deps2</span>.<span class="ident">rows</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">set</span>) <span class="op">=</span> <span class="ident">deps2</span>.<span class="ident">row</span>(<span class="ident">block</span>) {
-              <span class="ident">deps1</span>.<span class="ident">union_row</span>(<span class="ident">block</span>, <span class="ident">set</span>);
+        .<span class="ident">fold</span>(
+          <span class="ident">SparseBitMatrix::new</span>(<span class="ident">body</span>.<span class="ident">basic_blocks</span>().<span class="ident">len</span>()),
+          <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">deps1</span>, <span class="ident">deps2</span><span class="op">|</span> {
+            <span class="kw">for</span> <span class="ident">block</span> <span class="kw">in</span> <span class="ident">deps2</span>.<span class="ident">rows</span>() {
+              <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">set</span>) <span class="op">=</span> <span class="ident">deps2</span>.<span class="ident">row</span>(<span class="ident">block</span>) {
+                <span class="ident">deps1</span>.<span class="ident">union_row</span>(<span class="ident">block</span>, <span class="ident">set</span>);
+              }
             }
-          }
-          <span class="ident">deps1</span>
-        })
-        .<span class="ident">unwrap</span>(),
+            <span class="ident">deps1</span>
+          },
+        ),
     )
   }
 

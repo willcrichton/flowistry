@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["FunctionIdentifier",""]],"fn":[["qpath_to_span",""],["ranges_from_spans",""]],"struct":[["GraphemeIndices",""],["Range",""]],"trait":[["ToSpan",""]]});
