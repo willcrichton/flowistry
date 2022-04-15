@@ -1,25 +1,58 @@
 //! Extra features for evaluating / ablating the precision of Flowistry's algorithm.
-use std::cell::RefCell;
+use std::{cell::RefCell, str::FromStr};
 
 use fluid_let::fluid_let;
-use rustc_macros::Encodable;
+use rustc_macros::{Decodable, Encodable};
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Encodable, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Decodable, Encodable, Hash)]
 pub enum MutabilityMode {
   DistinguishMut,
   IgnoreMut,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Encodable, Hash)]
+impl FromStr for MutabilityMode {
+  type Err = String;
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    match s {
+      "DistinguishMut" => Ok(Self::DistinguishMut),
+      "IgnoreMut" => Ok(Self::IgnoreMut),
+      _ => Err(format!("Could not parse: {s}")),
+    }
+  }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Decodable, Encodable, Hash)]
 pub enum ContextMode {
   SigOnly,
   Recurse,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Encodable, Hash)]
+impl FromStr for ContextMode {
+  type Err = String;
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    match s {
+      "SigOnly" => Ok(Self::SigOnly),
+      "Recurse" => Ok(Self::Recurse),
+      _ => Err(format!("Could not parse: {s}")),
+    }
+  }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Decodable, Encodable, Hash)]
 pub enum PointerMode {
   Precise,
   Conservative,
+}
+
+impl FromStr for PointerMode {
+  type Err = String;
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    match s {
+      "Precise" => Ok(Self::Precise),
+      "Conservative" => Ok(Self::Conservative),
+      _ => Err(format!("Could not parse: {s}")),
+    }
+  }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Encodable, Hash)]
