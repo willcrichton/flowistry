@@ -3,8 +3,12 @@
 
 use std::io::Write;
 
-use anyhow::{Context, Result};
-use flowistry::{indexed::impls::PlaceSet, infoflow::FlowResults, mir::utils::BodyExt};
+use anyhow::Result;
+use flowistry::{
+  indexed::impls::PlaceSet,
+  infoflow::FlowResults,
+  mir::utils::{BodyExt, PlaceExt, SpanExt},
+};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::{def::Res, def_id::DefId, BodyId};
 use rustc_infer::traits::EvaluationResult;
@@ -41,14 +45,27 @@ fn implements_trait(
 pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
   let tcx = results.analysis.tcx;
   let body = results.analysis.body;
-  let _def_id = tcx.hir().body_owner_def_id(*body_id).to_def_id();
+  let def_id = tcx.hir().body_owner_def_id(*body_id).to_def_id();
 
-  let ifc_crate = tcx
+  log::debug!(
+    "Crates: {:?}",
+    tcx
+      .crates(())
+      .iter()
+      .map(|krate| tcx.crate_name(*krate))
+      .collect::<Vec<_>>()
+  );
+  let ifc_crate = match tcx
     .crates(())
     .iter()
-    .copied()
-    .find(|krate| tcx.crate_name(*krate).as_str() == "flowistry_ifc_traits")
-    .context("Could not find flowistry_ifc_traits crate")?;
+    .find(|krate| tcx.crate_name(**krate).as_str() == "flowistry_ifc_traits")
+  {
+    Some(c) => *c,
+    None => {
+      return Ok(());
+    }
+  };
+
   let ifc_mod = DefId {
     krate: ifc_crate,
     index: rustc_hir::def_id::CRATE_DEF_INDEX,
@@ -62,16 +79,24 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
     })
     .collect::<HashMap<_, _>>();
 
-  let find_implements = |_trait_def_id| -> PlaceSet {
-    // place_domain
-    //   .as_vec()
-    //   .iter()
-    //   .filter(|place| {
-    //     let ty = place.ty(body.local_decls(), tcx).ty;
-    //     implements_trait(tcx, tcx.param_env(def_id), ty, trait_def_id)
-    //   })
-    // .collect_indices(place_domain)
-    todo!()
+  let all_places = body
+    .local_decls()
+    .indices()
+    .flat_map(|local| {
+      let place = Place::from_local(local, tcx);
+      place.interior_places(tcx, body, def_id)
+    })
+    .collect::<PlaceSet>();
+
+  let find_implements = |trait_def_id| -> PlaceSet {
+    all_places
+      .iter()
+      .copied()
+      .filter(|place| {
+        let ty = place.ty(body.local_decls(), tcx).ty;
+        implements_trait(tcx, tcx.param_env(def_id), ty, trait_def_id)
+      })
+      .collect()
   };
   let secure_places = find_implements(ifc_items["Secure"]);
   let insecure_places = find_implements(ifc_items["Insecure"]);
@@ -109,20 +134,29 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
     _ => unimplemented!(),
   };
   for (src, dst) in errors {
-    let src_span = decls[src.local].source_info.span;
-    let dst_span = decls[dst.local].source_info.span;
+    let body_span = tcx.hir().span_with_body(body_id.hir_id);
+    let src_span = decls[src.local].source_info.span.as_local(body_span);
+    let dst_span = decls[dst.local].source_info.span.as_local(body_span);
 
-    let fmt_span = |span| {
-      let lines = source_map.span_to_lines(span).unwrap();
-      let first = lines.lines.first().unwrap();
-      let last = lines.lines.last().unwrap();
-      format!(
-        "{}:{}-{}:{}",
-        first.line_index + 1,
-        first.start_col.0,
-        last.line_index + 1,
-        last.end_col.0
-      )
+    let span_range = |span| match span {
+      Some(span) => {
+        let lines = source_map.span_to_lines(span).unwrap();
+        let first = lines.lines.first().unwrap();
+        let last = lines.lines.last().unwrap();
+        format!(
+          "{}:{}-{}:{}",
+          first.line_index + 1,
+          first.start_col.0,
+          last.line_index + 1,
+          last.end_col.0
+        )
+      }
+      None => "<in macro expansion>".to_owned(),
+    };
+
+    let span_contents = |span| match span {
+      Some(span) => source_map.span_to_snippet(span).unwrap(),
+      None => "<in macro expansion>".to_owned(),
     };
 
     stdout.set_color(&red_spec)?;
@@ -134,47 +168,29 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
         .file_name()
         .unwrap()
         .to_string_lossy(),
-      src_span = fmt_span(src_span.source_callsite())
+      src_span = span_range(src_span)
     )?;
 
     stdout.set_color(&black_spec)?;
     writeln!(
       stdout,
       "  {src_snippet}",
-      src_snippet = source_map.span_to_snippet(src_span).unwrap()
+      src_snippet = span_contents(src_span)
     )?;
 
     stdout.set_color(&red_spec)?;
     writeln!(
       stdout,
       "to data at {dst_span}:",
-      dst_span = fmt_span(dst_span.source_callsite())
+      dst_span = span_range(dst_span)
     )?;
 
     stdout.set_color(&black_spec)?;
     writeln!(
       stdout,
-      "  {dst_snippet}",
-      dst_snippet = if dst_span.from_expansion() {
-        "<in macro expansion>".to_string()
-      } else {
-        source_map.span_to_snippet(dst_span).unwrap()
-      },
+      "  {dst_snippet}\n",
+      dst_snippet = span_contents(dst_span)
     )?;
-
-    // stdout.set_color(&red_spec)?;
-    // writeln!(
-    //   &mut stdout,
-    //   "at the instruction {instr_span}:",
-    //   instr_span = fmt_span(instr_span.source_callsite())
-    // )?;
-
-    // stdout.set_color(&black_spec)?;
-    // writeln!(
-    //   &mut stdout,
-    //   "  {instr_snippet}",
-    //   instr_snippet = source_map.span_to_snippet(instr_span).unwrap(),
-    // )?;
   }
 
   Ok(())

@@ -16,6 +16,33 @@ mod analysis;
 use flowistry::{infoflow, mir::borrowck_facts};
 use rustc_hir::{itemlikevisit::ItemLikeVisitor, ImplItemKind, ItemKind};
 use rustc_middle::ty::TyCtxt;
+use rustc_plugin::{RustcPlugin, RustcPluginArgs};
+
+pub struct IfcPlugin;
+
+impl RustcPlugin for IfcPlugin {
+  type Args = ();
+
+  fn bin_name() -> String {
+    "ifc-driver".to_owned()
+  }
+
+  fn args(&self) -> RustcPluginArgs<Self::Args> {
+    RustcPluginArgs {
+      args: (),
+      file: None,
+      flags: None,
+    }
+  }
+
+  fn run(
+    self,
+    compiler_args: Vec<String>,
+    _plugin_args: Self::Args,
+  ) -> rustc_interface::interface::Result<()> {
+    rustc_driver::RunCompiler::new(&compiler_args, &mut Callbacks).run()
+  }
+}
 
 pub struct Visitor<'tcx> {
   tcx: TyCtxt<'tcx>,

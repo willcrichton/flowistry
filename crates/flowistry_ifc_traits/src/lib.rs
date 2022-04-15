@@ -1,7 +1,11 @@
+use std::fmt;
+
 pub trait Secure {}
 pub trait Insecure {}
 
 impl<T: Secure> Secure for &T {}
+
+impl<'a> Insecure for fmt::Arguments<'a> {}
 
 pub struct InsecureString(pub String);
 impl Insecure for InsecureString {}
