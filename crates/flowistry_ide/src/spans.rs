@@ -1,7 +1,7 @@
 use flowistry::source_map::{find_bodies, Range};
 use rustc_macros::Encodable;
 
-use crate::FlowistryResult;
+use crate::plugin::FlowistryResult;
 
 #[derive(Encodable)]
 pub struct SpansOutput {
@@ -51,6 +51,6 @@ pub fn spans(args: &[String], filename: String) -> FlowistryResult<SpansOutput> 
     filename,
     output: None,
   };
-  crate::run_with_callbacks(args, &mut callbacks)?;
+  crate::plugin::run_with_callbacks(args, &mut callbacks)?;
   Ok(callbacks.output.unwrap())
 }
