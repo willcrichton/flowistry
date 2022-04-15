@@ -13,11 +13,14 @@ extern crate rustc_traits;
 
 mod analysis;
 
+use std::io::Write;
+
+use analysis::IssueFound;
 use flowistry::{infoflow, mir::borrowck_facts};
 use rustc_hir::{itemlikevisit::ItemLikeVisitor, ImplItemKind, ItemKind};
 use rustc_middle::ty::TyCtxt;
 use rustc_plugin::{RustcPlugin, RustcPluginArgs};
-
+use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 pub struct IfcPlugin;
 
 impl RustcPlugin for IfcPlugin {
@@ -46,6 +49,7 @@ impl RustcPlugin for IfcPlugin {
 
 pub struct Visitor<'tcx> {
   tcx: TyCtxt<'tcx>,
+  issue_found: IssueFound,
 }
 
 impl Visitor<'tcx> {
@@ -54,7 +58,9 @@ impl Visitor<'tcx> {
     let local_def_id = tcx.hir().body_owner_def_id(*body_id);
     let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, local_def_id);
     let flow = &infoflow::compute_flow(tcx, *body_id, body_with_facts);
-    analysis::analyze(body_id, flow).unwrap();
+    if let IssueFound::Yes = analysis::analyze(body_id, flow).unwrap() {
+      self.issue_found = IssueFound::Yes;
+    }
   }
 }
 
@@ -88,8 +94,19 @@ impl rustc_driver::Callbacks for Callbacks {
     queries: &'tcx rustc_interface::Queries<'tcx>,
   ) -> rustc_driver::Compilation {
     queries.global_ctxt().unwrap().take().enter(|tcx| {
-      let mut visitor = Visitor { tcx };
+      let mut visitor = Visitor {
+        tcx,
+        issue_found: IssueFound::No,
+      };
       tcx.hir().visit_all_item_likes(&mut visitor);
+
+      if let IssueFound::No = visitor.issue_found {
+        let mut stdout = StandardStream::stderr(ColorChoice::Auto);
+        let mut green_spec = ColorSpec::new();
+        green_spec.set_fg(Some(Color::Green));
+        stdout.set_color(&green_spec).unwrap();
+        writeln!(stdout, "No security issues found!",).unwrap();
+      }
     });
 
     rustc_driver::Compilation::Stop
