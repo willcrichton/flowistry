@@ -42,7 +42,12 @@ fn implements_trait(
   })
 }
 
-pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
+pub enum IssueFound {
+  Yes,
+  No,
+}
+
+pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<IssueFound> {
   let tcx = results.analysis.tcx;
   let body = results.analysis.body;
   let def_id = tcx.hir().body_owner_def_id(*body_id).to_def_id();
@@ -62,7 +67,7 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
   {
     Some(c) => *c,
     None => {
-      return Ok(());
+      return Ok(IssueFound::No);
     }
   };
 
@@ -133,6 +138,7 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
     FileName::Real(f) => f,
     _ => unimplemented!(),
   };
+  let has_errors = !errors.is_empty();
   for (src, dst) in errors {
     let body_span = tcx.hir().span_with_body(body_id.hir_id);
     let src_span = decls[src.local].source_info.span.as_local(body_span);
@@ -193,5 +199,9 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<()> {
     )?;
   }
 
-  Ok(())
+  Ok(if has_errors {
+    IssueFound::Yes
+  } else {
+    IssueFound::No
+  })
 }
