@@ -187,14 +187,21 @@ pub fn cli_main<T: RustcPlugin>(plugin: T) {
     );
   }
 
-  let args = json::encode(&args.args).unwrap();
-  cmd.env(PLUGIN_ARGS, args);
+  let args_str = json::encode(&args.args).unwrap();
+  cmd.env(PLUGIN_ARGS, args_str);
 
   // HACK: if running flowistry on the rustc codebase, this env var needs to exist
   // for the code to compile
   if workspace_members.iter().any(|pkg| pkg.name == "rustc-main") {
     cmd.env("CFG_RELEASE", "");
   }
+
+  cmd.arg("--");
+  if let Some(flags) = args.flags {
+    cmd.args(flags);
+  }
+
+  cmd.env("RUSTFLAGS", "-Awarnings");
 
   let exit_status = cmd
     .spawn()
