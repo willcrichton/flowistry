@@ -1,7 +1,7 @@
 //! A framework for running up custom cargo commands that use rustc_private.
 //!
 //! Most of this file is either directly copy/pasted, or otherwise generalized
-//! from the Clippy source code: https://github.com/rust-lang/rust-clippy
+//! from the Clippy driver: https://github.com/rust-lang/rust-clippy/tree/master/src
 
 #![feature(rustc_private, trait_alias)]
 
@@ -94,8 +94,6 @@ pub fn cli_main<T: RustcPlugin>(plugin: T) {
   }
 
   cmd.env("RUSTC_WORKSPACE_WRAPPER", path).args(&[
-    "rustc",
-    "--profile",
     "check",
     "-q",
     "--target-dir",
@@ -185,6 +183,8 @@ pub fn cli_main<T: RustcPlugin>(plugin: T) {
       kind,
       target.name
     );
+  } else {
+    cmd.arg("--all");
   }
 
   let args_str = json::encode(&args.args).unwrap();
@@ -280,19 +280,21 @@ pub fn driver_main<T: RustcPlugin>(plugin: T) {
     }
 
     // this conditional check for the --sysroot flag is there so users can call
-    // `clippy_driver` directly
-    // without having to pass --sysroot or anything
+    // the driver directly without having to pass --sysroot or anything
     let mut args: Vec<String> = orig_args.clone();
     if !have_sys_root_arg {
       args.extend(vec!["--sysroot".into(), sys_root]);
     };
 
+    let primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
     let normal_rustc = args.iter().any(|arg| arg.starts_with("--print"));
-    if normal_rustc {
-      rustc_driver::RunCompiler::new(&args, &mut DefaultCallbacks).run()
-    } else {
+    let run_plugin = primary_package && !normal_rustc;
+
+    if run_plugin {
       let plugin_args = json::decode::<T::Args>(&env::var(PLUGIN_ARGS).unwrap());
       plugin.run(args, plugin_args)
+    } else {
+      rustc_driver::RunCompiler::new(&args, &mut DefaultCallbacks).run()
     }
   }))
 }
