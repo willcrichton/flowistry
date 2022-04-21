@@ -96,9 +96,12 @@ impl RustcPlugin for FlowistryPlugin {
     match &args.command {
       Preload => {
         let mut cmd = Command::new(cargo_path);
+        // Note: this command must share certain parameters with rustc_plugin so Cargo will not recompute
+        // dependencies when actually running the driver, e.g. RUSTFLAGS.
         cmd
           .args(&["check", "--all", "--all-features", "--target-dir"])
-          .arg(target_dir);
+          .arg(target_dir)
+          .env("RUSTFLAGS", "-Awarnings");
         let exit_status = cmd.status().expect("could not run cargo");
         exit(exit_status.code().unwrap_or(-1));
       }

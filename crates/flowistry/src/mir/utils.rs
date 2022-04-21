@@ -24,8 +24,7 @@ use rustc_middle::{
   },
   traits::ObligationCause,
   ty::{
-    self, AdtKind, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeAndMut, TypeFoldable,
-    TypeVisitor,
+    self, AdtKind, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeAndMut, TypeVisitor,
   },
 };
 use rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
@@ -564,7 +563,7 @@ impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
           self
             .place_stack
             .push(ProjectionElem::Field(Field::from_usize(i), field));
-          field.super_visit_with(self);
+          self.visit_ty(field);
           self.place_stack.pop();
         }
       }

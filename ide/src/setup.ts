@@ -17,14 +17,12 @@ declare const TOOLCHAIN: {
   components: string[];
 };
 
-// rustc_serialize-compatible types
+// serde-compatible types
 interface Ok<T> {
-  variant: "Ok";
-  fields: [T];
+  Ok: T;
 }
 interface Err {
-  variant: "Err";
-  fields: [string];
+  Err: string;
 }
 type Result<T> = Ok<T> | Err;
 
@@ -135,7 +133,8 @@ export async function setup(
   try {
     let output = await exec_notify(
       `${cargo} flowistry -V`,
-      "Waiting for Flowistry..."
+      "Waiting for Flowistry...",
+      { cwd: workspace_root }
     );
     version = output.split(" ")[1];
   } catch (e) {
@@ -219,16 +218,16 @@ export async function setup(
     }
 
     let output_typed: Result<T> = JSON.parse(output);
-    if (output_typed.variant === "Err") {
+    if ("Err" in output_typed) {
       return {
         type: "analysis-error",
-        error: output_typed.fields[0],
+        error: output_typed.Err,
+      };
+    } else {
+      return {
+        type: "output",
+        value: output_typed.Ok,
       };
     }
-
-    return {
-      type: "output",
-      value: output_typed.fields[0],
-    };
   };
 }
