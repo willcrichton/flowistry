@@ -38,7 +38,7 @@ struct ChildExprSpans {
   spans: Vec<Span>,
   item_span: Span,
 }
-impl HirVisitor<'hir> for ChildExprSpans {
+impl<'hir> HirVisitor<'hir> for ChildExprSpans {
   fn visit_expr(&mut self, ex: &hir::Expr) {
     match ex.kind {
       // Don't take the span for the whole block, since we want to leave
@@ -117,7 +117,7 @@ fn expr_to_string(ex: &Expr) -> String {
   rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| s.print_expr(ex))
 }
 
-impl HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
+impl<'hir> HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
   fn visit_expr(&mut self, expr: &'hir hir::Expr<'hir>) {
     intravisit::walk_expr(self, expr);
 
@@ -219,7 +219,7 @@ pub struct MirSpannedPlace<'tcx> {
 
 struct MirSpanCollector<'a, 'b, 'hir, 'tcx>(&'a mut Spanner<'b, 'hir, 'tcx>);
 
-impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
+impl<'tcx> MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
   fn visit_body(&mut self, body: &Body<'tcx>) {
     self.super_body(body);
 
@@ -384,7 +384,7 @@ impl MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
   }
 }
 
-fn assigning_locations(
+fn assigning_locations<'tcx>(
   body: &Body<'tcx>,
   place: mir::Place<'tcx>,
 ) -> SmallVec<[mir::Location; 1]> {
@@ -420,7 +420,7 @@ pub struct Spanner<'a, 'hir, 'tcx> {
   body: &'a mir::Body<'tcx>,
 }
 
-impl Spanner<'a, 'hir, 'tcx>
+impl<'a, 'hir, 'tcx> Spanner<'a, 'hir, 'tcx>
 where
   'tcx: 'hir,
 {
@@ -474,7 +474,7 @@ where
       || span.source_equal(self.item_span)
   }
 
-  pub fn find_matching<T>(
+  pub fn find_matching<'b, T>(
     predicate: impl Fn(SpanData) -> bool,
     query: SpanData,
     spans: &'b SpanTree<T>,

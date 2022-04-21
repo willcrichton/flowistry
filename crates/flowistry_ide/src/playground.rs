@@ -3,15 +3,15 @@ use flowistry::mir::{borrowck_facts::get_body_with_borrowck_facts, utils::BodyEx
 use log::debug;
 use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_hir::BodyId;
-use rustc_macros::Encodable;
 use rustc_middle::ty::TyCtxt;
+use serde::Serialize;
 
-#[derive(Debug, Clone, Encodable, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct PlaygroundOutput {
   outlives: HashSet<(String, String)>,
 }
 
-pub fn playground(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<PlaygroundOutput> {
+pub fn playground(tcx: TyCtxt, body_id: BodyId) -> Result<PlaygroundOutput> {
   let def_id = tcx.hir().body_owner_def_id(body_id);
   let body_with_facts = get_body_with_borrowck_facts(tcx, def_id);
   let body = &body_with_facts.body;

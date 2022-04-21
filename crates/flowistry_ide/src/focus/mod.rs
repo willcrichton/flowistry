@@ -6,13 +6,13 @@ use flowistry::{
 };
 use itertools::Itertools;
 use rustc_hir::BodyId;
-use rustc_macros::Encodable;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
+use serde::Serialize;
 
 mod direct_influence;
 
-#[derive(Debug, Encodable)]
+#[derive(Debug, Serialize)]
 pub struct PlaceInfo {
   pub range: Range,
   pub ranges: Vec<Range>,
@@ -20,13 +20,13 @@ pub struct PlaceInfo {
   pub direct_influence: Vec<Range>,
 }
 
-#[derive(Debug, Encodable)]
+#[derive(Debug, Serialize)]
 pub struct FocusOutput {
   pub place_info: Vec<PlaceInfo>,
   pub containers: Vec<Range>,
 }
 
-pub fn focus(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<FocusOutput> {
+pub fn focus(tcx: TyCtxt, body_id: BodyId) -> Result<FocusOutput> {
   let def_id = tcx.hir().body_owner_def_id(body_id);
   let body_with_facts = get_body_with_borrowck_facts(tcx, def_id);
   let body = &body_with_facts.body;

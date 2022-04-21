@@ -8,7 +8,7 @@ pub struct DirectInfluence<'a, 'tcx> {
   influence: IndexMatrix<Place<'tcx>, Location>,
 }
 
-impl DirectInfluence<'a, 'tcx> {
+impl<'a, 'tcx> DirectInfluence<'a, 'tcx> {
   pub fn build(body: &Body<'tcx>, aliases: &'a Aliases<'a, 'tcx>) -> Self {
     let mut influence = IndexMatrix::new(aliases.location_domain());
 

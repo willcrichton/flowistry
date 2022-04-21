@@ -17,14 +17,13 @@ use fluid_let::fluid_set;
 use log::{debug, info};
 use rustc_hir::BodyId;
 use rustc_interface::interface::Result as RustcResult;
-use rustc_macros::{Decodable, Encodable};
 use rustc_middle::ty::TyCtxt;
-use rustc_plugin::{JsonEncodable, RustcPlugin, RustcPluginArgs, Utf8Path};
-use rustc_serialize::json;
+use rustc_plugin::{RustcPlugin, RustcPluginArgs, Utf8Path};
+use serde::{Deserialize, Serialize};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-#[derive(Parser, Encodable, Decodable)]
+#[derive(Parser, Serialize, Deserialize)]
 #[clap(version = VERSION)]
 pub struct FlowistryPluginArgs {
   #[clap(long)]
@@ -41,7 +40,7 @@ pub struct FlowistryPluginArgs {
   command: FlowistryCommand,
 }
 
-#[derive(Subcommand, Encodable, Decodable)]
+#[derive(Subcommand, Serialize, Deserialize)]
 enum FlowistryCommand {
   Spans {
     file: String,
@@ -181,18 +180,18 @@ impl RustcPlugin for FlowistryPlugin {
   }
 }
 
-fn postprocess<T: JsonEncodable>(result: FlowistryResult<T>) -> RustcResult<()> {
+fn postprocess<T: Serialize>(result: FlowistryResult<T>) -> RustcResult<()> {
   let result = match result {
     Ok(output) => Ok(output),
     Err(e) => match e {
       FlowistryError::BuildError => {
-        return Err(rustc_errors::ErrorReported);
+        return Err(rustc_errors::ErrorGuaranteed::unchecked_claim_error_was_emitted());
       }
       FlowistryError::AnalysisError(msg) => Err(msg),
     },
   };
 
-  println!("{}", json::encode(&result).unwrap());
+  println!("{}", serde_json::to_string(&result).unwrap());
 
   Ok(())
 }
@@ -245,8 +244,8 @@ pub enum FlowistryError {
 pub type FlowistryResult<T> = Result<T, FlowistryError>;
 
 pub trait FlowistryAnalysis: Sized + Send + Sync {
-  type Output: JsonEncodable + Send + Sync;
-  fn analyze(&mut self, tcx: TyCtxt<'tcx>, id: BodyId) -> anyhow::Result<Self::Output>;
+  type Output: Serialize + Send + Sync;
+  fn analyze(&mut self, tcx: TyCtxt, id: BodyId) -> anyhow::Result<Self::Output>;
 }
 
 // Implement FlowistryAnalysis for all functions with a type signature that matches
@@ -254,10 +253,10 @@ pub trait FlowistryAnalysis: Sized + Send + Sync {
 impl<F, O> FlowistryAnalysis for F
 where
   F: for<'tcx> Fn<(TyCtxt<'tcx>, BodyId), Output = anyhow::Result<O>> + Send + Sync,
-  O: JsonEncodable + Send + Sync,
+  O: Serialize + Send + Sync,
 {
   type Output = O;
-  fn analyze(&mut self, tcx: TyCtxt<'tcx>, id: BodyId) -> anyhow::Result<Self::Output> {
+  fn analyze(&mut self, tcx: TyCtxt, id: BodyId) -> anyhow::Result<Self::Output> {
     (self)(tcx, id)
   }
 }

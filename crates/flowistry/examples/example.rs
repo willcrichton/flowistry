@@ -110,7 +110,7 @@ impl rustc_driver::Callbacks for Callbacks {
       // Get the first body we can find
       let body_id = hir
         .items()
-        .filter_map(|item| match item.kind {
+        .filter_map(|id| match hir.item(id).kind {
           ItemKind::Fn(_, _, body) => Some(body),
           _ => None,
         })

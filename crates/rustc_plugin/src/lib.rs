@@ -7,7 +7,6 @@
 
 extern crate rustc_driver;
 extern crate rustc_interface;
-extern crate rustc_serialize;
 
 use std::{
   env,
@@ -17,8 +16,8 @@ use std::{
 };
 
 pub use cargo_metadata::camino::Utf8Path;
-use rustc_serialize::{json, Decodable, Encodable};
 use rustc_tools_util::VersionInfo;
+use serde::{de::DeserializeOwned, Serialize};
 
 /// If a command-line option matches `find_arg`, then apply the predicate `pred` on its value. If
 /// true, then return it. The parameter is assumed to be either `--arg=value` or `--arg value`.
@@ -56,9 +55,6 @@ fn toolchain_path(home: Option<String>, toolchain: Option<String>) -> Option<Pat
 struct DefaultCallbacks;
 impl rustc_driver::Callbacks for DefaultCallbacks {}
 
-pub trait JsonEncodable = for<'a> Encodable<json::Encoder<'a>>;
-pub trait JsonDecodable = Decodable<json::Decoder>;
-
 pub struct RustcPluginArgs<Args> {
   pub args: Args,
   pub flags: Option<Vec<String>>,
@@ -66,7 +62,7 @@ pub struct RustcPluginArgs<Args> {
 }
 
 pub trait RustcPlugin: Sized {
-  type Args: JsonEncodable + JsonDecodable;
+  type Args: Serialize + DeserializeOwned;
 
   fn bin_name() -> String;
 
@@ -185,7 +181,7 @@ pub fn cli_main<T: RustcPlugin>(plugin: T) {
     cmd.arg("--all");
   }
 
-  let args_str = json::encode(&args.args).unwrap();
+  let args_str = serde_json::to_string(&args.args).unwrap();
   cmd.env(PLUGIN_ARGS, args_str);
 
   // HACK: if running flowistry on the rustc codebase, this env var needs to exist
@@ -289,7 +285,8 @@ pub fn driver_main<T: RustcPlugin>(plugin: T) {
     let run_plugin = primary_package && !normal_rustc;
 
     if run_plugin {
-      let plugin_args = json::decode::<T::Args>(&env::var(PLUGIN_ARGS).unwrap());
+      let plugin_args: T::Args =
+        serde_json::from_str(&env::var(PLUGIN_ARGS).unwrap()).unwrap();
       plugin.run(args, plugin_args)
     } else {
       rustc_driver::RunCompiler::new(&args, &mut DefaultCallbacks).run()

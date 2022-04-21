@@ -56,7 +56,7 @@ impl WithNumNodes for BodyReversed<'_, '_> {
   }
 }
 
-impl GraphSuccessors<'graph> for BodyReversed<'_, '_> {
+impl<'graph> GraphSuccessors<'graph> for BodyReversed<'_, '_> {
   type Item = BasicBlock;
   type Iter = Box<dyn Iterator<Item = BasicBlock> + 'graph>;
 }
@@ -72,7 +72,7 @@ impl WithSuccessors for BodyReversed<'_, '_> {
   }
 }
 
-impl GraphPredecessors<'graph> for BodyReversed<'_, '_> {
+impl<'graph> GraphPredecessors<'graph> for BodyReversed<'_, '_> {
   type Item = BasicBlock;
   type Iter = Box<dyn Iterator<Item = BasicBlock> + 'graph>;
 }

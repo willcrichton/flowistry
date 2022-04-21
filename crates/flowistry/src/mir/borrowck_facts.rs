@@ -52,7 +52,7 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tc
   original_mir_borrowck(tcx, def_id)
 }
 
-pub fn get_body_with_borrowck_facts(
+pub fn get_body_with_borrowck_facts<'tcx>(
   tcx: TyCtxt<'tcx>,
   def_id: LocalDefId,
 ) -> &'tcx BodyWithBorrowckFacts<'tcx> {

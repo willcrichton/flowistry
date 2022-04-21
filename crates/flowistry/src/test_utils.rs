@@ -64,10 +64,10 @@ pub fn compile_body(
   callback: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &BodyWithBorrowckFacts<'tcx>) + Send,
 ) {
   compile(input, |tcx| {
-    let body_id = tcx
-      .hir()
+    let hir = tcx.hir();
+    let body_id = hir
       .items()
-      .filter_map(|item| match item.kind {
+      .filter_map(|id| match hir.item(id).kind {
         ItemKind::Fn(_, _, body) => Some(body),
         _ => None,
       })

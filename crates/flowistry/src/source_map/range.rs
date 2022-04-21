@@ -9,11 +9,11 @@ use rustc_hir::{
   itemlikevisit::ItemLikeVisitor,
   BodyId,
 };
-use rustc_macros::Encodable;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::{
   source_map::SourceMap, BytePos, FileName, RealFileName, SourceFile, Span,
 };
+use serde::Serialize;
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::cached::Cache;
@@ -75,7 +75,7 @@ fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
     span: Option<Span>,
   }
 
-  impl Visitor<'tcx> for Finder<'tcx> {
+  impl<'tcx> Visitor<'tcx> for Finder<'tcx> {
     fn visit_nested_body(&mut self, id: BodyId) {
       intravisit::walk_body(self, self.tcx.hir().body(id));
 
@@ -90,7 +90,7 @@ fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
     }
   }
 
-  impl ItemLikeVisitor<'hir> for Finder<'tcx>
+  impl<'hir, 'tcx> ItemLikeVisitor<'hir> for Finder<'tcx>
   where
     'hir: 'tcx,
   {
@@ -117,7 +117,7 @@ fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
     .with_context(|| format!("No function with qpath {}", finder.qpath))
 }
 
-#[derive(Encodable, Debug, Clone, Hash, PartialEq, Eq, Default)]
+#[derive(Serialize, Debug, Clone, Hash, PartialEq, Eq, Default)]
 pub struct Range {
   pub char_start: usize,
   pub char_end: usize,
@@ -242,11 +242,11 @@ impl Range {
 }
 
 pub trait ToSpan: Send + Sync {
-  fn to_span(&self, tcx: TyCtxt<'tcx>) -> Result<Span>;
+  fn to_span(&self, tcx: TyCtxt) -> Result<Span>;
 }
 
 impl ToSpan for Range {
-  fn to_span(&self, tcx: TyCtxt<'tcx>) -> Result<Span> {
+  fn to_span(&self, tcx: TyCtxt) -> Result<Span> {
     let source_map = tcx.sess.source_map();
     let source_file = self.source_file(source_map)?;
     let offset = source_file.start_pos;
@@ -264,7 +264,7 @@ pub enum FunctionIdentifier {
 }
 
 impl ToSpan for FunctionIdentifier {
-  fn to_span(&self, tcx: TyCtxt<'tcx>) -> Result<Span> {
+  fn to_span(&self, tcx: TyCtxt) -> Result<Span> {
     match self {
       FunctionIdentifier::Qpath(qpath) => qpath_to_span(tcx, qpath.clone()),
       FunctionIdentifier::Range(range) => range.to_span(tcx),

@@ -1,4 +1,4 @@
-#![feature(rustc_private, in_band_lifetimes)]
+#![feature(rustc_private)]
 
 extern crate rustc_data_structures;
 extern crate rustc_driver;
@@ -52,7 +52,7 @@ pub struct Visitor<'tcx> {
   issue_found: IssueFound,
 }
 
-impl Visitor<'tcx> {
+impl Visitor<'_> {
   fn analyze(&mut self, body_id: &rustc_hir::BodyId) {
     let tcx = self.tcx;
     let local_def_id = tcx.hir().body_owner_def_id(*body_id);
@@ -64,7 +64,7 @@ impl Visitor<'tcx> {
   }
 }
 
-impl ItemLikeVisitor<'tcx> for Visitor<'tcx> {
+impl<'tcx> ItemLikeVisitor<'tcx> for Visitor<'tcx> {
   fn visit_item(&mut self, item: &'tcx rustc_hir::Item<'tcx>) {
     if let ItemKind::Fn(_, _, body_id) = &item.kind {
       self.analyze(body_id);

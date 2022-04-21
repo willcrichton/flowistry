@@ -15,7 +15,7 @@ use crate::{
   },
 };
 
-impl FlowAnalysis<'_, 'tcx> {
+impl<'tcx> FlowAnalysis<'_, 'tcx> {
   crate fn recurse_into_call(
     &self,
     state: &mut FlowDomain<'tcx>,
@@ -80,7 +80,7 @@ impl FlowAnalysis<'_, 'tcx> {
     };
 
     let unsafety = tcx.unsafety_check_result(def_id.expect_local());
-    if !unsafety.unsafe_blocks.is_empty() {
+    if !unsafety.used_unsafe_blocks.is_empty() {
       debug!("  Func contains unsafe blocks");
       return false;
     }

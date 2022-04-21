@@ -43,7 +43,7 @@ macro_rules! region_pat {
   };
 }
 
-impl Visitor<'tcx> for GatherBorrows<'tcx> {
+impl<'tcx> Visitor<'tcx> for GatherBorrows<'tcx> {
   fn visit_assign(
     &mut self,
     _place: &Place<'tcx>,
@@ -63,7 +63,7 @@ struct FindPlaces<'a, 'tcx> {
   places: Vec<Place<'tcx>>,
 }
 
-impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
+impl<'tcx> Visitor<'tcx> for FindPlaces<'_, 'tcx> {
   // this is needed for eval? not sure why locals wouldn't show up in the body as places,
   // maybe optimized out or something
   fn visit_local_decl(&mut self, local: Local, _local_decl: &LocalDecl<'tcx>) {
@@ -97,7 +97,7 @@ impl Visitor<'tcx> for FindPlaces<'_, 'tcx> {
       rvalue
     {
       let adt_def = self.tcx.adt_def(*def_id);
-      let variant = &adt_def.variants[*idx];
+      let variant = adt_def.variant(*idx);
       let places = variant.fields.iter().enumerate().map(|(i, field)| {
         let mut projection = place.projection.to_vec();
         projection.push(ProjectionElem::Field(
@@ -155,7 +155,7 @@ rustc_index::newtype_index! {
   }
 }
 
-impl Aliases<'a, 'tcx> {
+impl<'a, 'tcx> Aliases<'a, 'tcx> {
   fn compute_loans(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,

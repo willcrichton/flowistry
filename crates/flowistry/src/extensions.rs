@@ -2,9 +2,9 @@
 use std::{cell::RefCell, str::FromStr};
 
 use fluid_let::fluid_let;
-use rustc_macros::{Decodable, Encodable};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Decodable, Encodable, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Hash)]
 pub enum MutabilityMode {
   DistinguishMut,
   IgnoreMut,
@@ -21,7 +21,7 @@ impl FromStr for MutabilityMode {
   }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Decodable, Encodable, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Hash)]
 pub enum ContextMode {
   SigOnly,
   Recurse,
@@ -38,7 +38,7 @@ impl FromStr for ContextMode {
   }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Decodable, Encodable, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Hash)]
 pub enum PointerMode {
   Precise,
   Conservative,
@@ -55,7 +55,7 @@ impl FromStr for PointerMode {
   }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Encodable, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Hash)]
 pub struct EvalMode {
   pub mutability_mode: MutabilityMode,
   pub context_mode: ContextMode,

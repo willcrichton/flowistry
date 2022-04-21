@@ -14,7 +14,7 @@ struct BodyFinder<'tcx> {
   bodies: Vec<(Span, BodyId)>,
 }
 
-impl HirVisitor<'tcx> for BodyFinder<'tcx> {
+impl<'tcx> HirVisitor<'tcx> for BodyFinder<'tcx> {
   type NestedFilter = OnlyBodies;
 
   fn nested_visit_map(&mut self) -> Self::Map {
@@ -26,7 +26,10 @@ impl HirVisitor<'tcx> for BodyFinder<'tcx> {
 
     // const/static items are considered to have bodies, so we want to exclude
     // them from our search for functions
-    if !hir.body_owner_kind(hir.body_owner(id)).is_fn_or_closure() {
+    if !hir
+      .body_owner_kind(hir.body_owner_def_id(id))
+      .is_fn_or_closure()
+    {
       return;
     }
 
@@ -49,7 +52,7 @@ impl HirVisitor<'tcx> for BodyFinder<'tcx> {
   }
 }
 
-impl ItemLikeVisitor<'tcx> for BodyFinder<'tcx> {
+impl<'tcx> ItemLikeVisitor<'tcx> for BodyFinder<'tcx> {
   fn visit_item(&mut self, item: &'tcx Item<'tcx>) {
     intravisit::walk_item(self, item);
   }
@@ -62,7 +65,7 @@ impl ItemLikeVisitor<'tcx> for BodyFinder<'tcx> {
   fn visit_foreign_item(&mut self, _foreign_item: &'tcx ForeignItem<'tcx>) {}
 }
 
-pub fn find_bodies(tcx: TyCtxt<'tcx>) -> Vec<(Span, BodyId)> {
+pub fn find_bodies(tcx: TyCtxt) -> Vec<(Span, BodyId)> {
   block_timer!("find_bodies");
   let mut finder = BodyFinder {
     tcx,
@@ -72,10 +75,7 @@ pub fn find_bodies(tcx: TyCtxt<'tcx>) -> Vec<(Span, BodyId)> {
   finder.bodies
 }
 
-pub fn find_enclosing_bodies(
-  tcx: TyCtxt<'tcx>,
-  sp: Span,
-) -> impl Iterator<Item = BodyId> {
+pub fn find_enclosing_bodies(tcx: TyCtxt, sp: Span) -> impl Iterator<Item = BodyId> {
   let mut bodies = find_bodies(tcx);
   bodies.retain(|(other, _)| other.contains(sp));
   bodies.sort_by_key(|(span, _)| span.size());

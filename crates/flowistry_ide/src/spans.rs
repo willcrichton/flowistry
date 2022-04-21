@@ -1,9 +1,9 @@
 use flowistry::source_map::{find_bodies, Range};
-use rustc_macros::Encodable;
+use serde::Serialize;
 
 use crate::plugin::FlowistryResult;
 
-#[derive(Encodable)]
+#[derive(Serialize)]
 pub struct SpansOutput {
   spans: Vec<Range>,
 }

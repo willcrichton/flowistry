@@ -27,7 +27,7 @@ struct TargetDeps {
 }
 
 impl TargetDeps {
-  pub fn new(
+  pub fn new<'tcx>(
     targets: &[(Place<'tcx>, Location)],
     results: &FlowResults<'_, 'tcx>,
   ) -> Self {
@@ -74,7 +74,7 @@ impl TargetDeps {
   }
 }
 
-pub fn compute_dependencies(
+pub fn compute_dependencies<'tcx>(
   results: &FlowResults<'_, 'tcx>,
   all_targets: Vec<Vec<(Place<'tcx>, Location)>>,
   direction: Direction,
@@ -191,7 +191,7 @@ pub fn compute_dependencies(
   outputs.into_inner()
 }
 
-pub fn compute_dependency_spans(
+pub fn compute_dependency_spans<'tcx>(
   results: &FlowResults<'_, 'tcx>,
   targets: Vec<Vec<(Place<'tcx>, Location)>>,
   direction: Direction,

@@ -21,7 +21,7 @@ use rustc_span::FileName;
 use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
-fn implements_trait(
+fn implements_trait<'tcx>(
   tcx: TyCtxt<'tcx>,
   param_env: ParamEnv<'tcx>,
   ty: Ty<'tcx>,
