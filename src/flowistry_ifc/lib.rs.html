@@ -19,15 +19,15 @@
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../flowistry_ifc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../flowistry_ifc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1"> 1</span>
-<span id="2"> 2</span>
-<span id="3"> 3</span>
-<span id="4"> 4</span>
-<span id="5"> 5</span>
-<span id="6"> 6</span>
-<span id="7"> 7</span>
-<span id="8"> 8</span>
-<span id="9"> 9</span>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../flowistry_ifc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
 <span id="10">10</span>
 <span id="11">11</span>
 <span id="12">12</span>
@@ -89,7 +89,51 @@
 <span id="68">68</span>
 <span id="69">69</span>
 <span id="70">70</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">feature</span>(<span class="ident">rustc_private</span>, <span class="ident">in_band_lifetimes</span>)]</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">feature</span>(<span class="ident">rustc_private</span>)]</span>
 
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">rustc_data_structures</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">rustc_driver</span>;
@@ -104,25 +148,58 @@
 
 <span class="kw">mod</span> <span class="ident">analysis</span>;
 
+<span class="kw">use</span> <span class="ident">std::io::Write</span>;
+
+<span class="kw">use</span> <span class="ident">analysis::IssueFound</span>;
 <span class="kw">use</span> <span class="ident">flowistry</span>::{<span class="ident">infoflow</span>, <span class="ident">mir::borrowck_facts</span>};
 <span class="kw">use</span> <span class="ident">rustc_hir</span>::{<span class="ident">itemlikevisit::ItemLikeVisitor</span>, <span class="ident">ImplItemKind</span>, <span class="ident">ItemKind</span>};
 <span class="kw">use</span> <span class="ident">rustc_middle::ty::TyCtxt</span>;
+<span class="kw">use</span> <span class="ident">rustc_plugin</span>::{<span class="ident">RustcPlugin</span>, <span class="ident">RustcPluginArgs</span>};
+<span class="kw">use</span> <span class="ident">termcolor</span>::{<span class="ident">Color</span>, <span class="ident">ColorChoice</span>, <span class="ident">ColorSpec</span>, <span class="ident">StandardStream</span>, <span class="ident">WriteColor</span>};
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IfcPlugin</span>;
+
+<span class="kw">impl</span> <span class="ident">RustcPlugin</span> <span class="kw">for</span> <span class="ident">IfcPlugin</span> {
+  <span class="kw">type</span> <span class="ident">Args</span> <span class="op">=</span> ();
+
+  <span class="kw">fn</span> <span class="ident">bin_name</span>() -&gt; <span class="ident">String</span> {
+    <span class="string">&quot;ifc-driver&quot;</span>.<span class="ident">to_owned</span>()
+  }
+
+  <span class="kw">fn</span> <span class="ident">args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_target_dir</span>: <span class="kw-2">&amp;</span><span class="ident">rustc_plugin::Utf8Path</span>) -&gt; <span class="ident">RustcPluginArgs</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Args</span><span class="op">&gt;</span> {
+    <span class="ident">RustcPluginArgs</span> {
+      <span class="ident">args</span>: (),
+      <span class="ident">file</span>: <span class="prelude-val">None</span>,
+      <span class="ident">flags</span>: <span class="prelude-val">None</span>,
+    }
+  }
+
+  <span class="kw">fn</span> <span class="ident">run</span>(
+    <span class="self">self</span>,
+    <span class="ident">compiler_args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="ident">_plugin_args</span>: <span class="ident"><span class="self">Self</span>::Args</span>,
+  ) -&gt; <span class="ident">rustc_interface::interface::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="ident">rustc_driver::RunCompiler::new</span>(<span class="kw-2">&amp;</span><span class="ident">compiler_args</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Callbacks</span>).<span class="ident">run</span>()
+  }
+}
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
   <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+  <span class="ident">issue_found</span>: <span class="ident">IssueFound</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
   <span class="kw">fn</span> <span class="ident">analyze</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">body_id</span>: <span class="kw-2">&amp;</span><span class="ident">rustc_hir::BodyId</span>) {
     <span class="kw">let</span> <span class="ident">tcx</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcx</span>;
     <span class="kw">let</span> <span class="ident">local_def_id</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">body_owner_def_id</span>(<span class="kw-2">*</span><span class="ident">body_id</span>);
     <span class="kw">let</span> <span class="ident">body_with_facts</span> <span class="op">=</span> <span class="ident">borrowck_facts::get_body_with_borrowck_facts</span>(<span class="ident">tcx</span>, <span class="ident">local_def_id</span>);
     <span class="kw">let</span> <span class="ident">flow</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">infoflow::compute_flow</span>(<span class="ident">tcx</span>, <span class="kw-2">*</span><span class="ident">body_id</span>, <span class="ident">body_with_facts</span>);
-    <span class="ident">analysis::analyze</span>(<span class="ident">body_id</span>, <span class="ident">flow</span>).<span class="ident">unwrap</span>();
+    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">IssueFound::Yes</span> <span class="op">=</span> <span class="ident">analysis::analyze</span>(<span class="ident">body_id</span>, <span class="ident">flow</span>).<span class="ident">unwrap</span>() {
+      <span class="self">self</span>.<span class="ident">issue_found</span> <span class="op">=</span> <span class="ident">IssueFound::Yes</span>;
+    }
   }
 }
 
-<span class="kw">impl</span> <span class="ident">ItemLikeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">ItemLikeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
   <span class="kw">fn</span> <span class="ident">visit_item</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">rustc_hir::Item</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) {
     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ItemKind::Fn</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">body_id</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">item</span>.<span class="ident">kind</span> {
       <span class="self">self</span>.<span class="ident">analyze</span>(<span class="ident">body_id</span>);
@@ -152,13 +229,24 @@
     <span class="ident">queries</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">rustc_interface::Queries</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
   ) -&gt; <span class="ident">rustc_driver::Compilation</span> {
     <span class="ident">queries</span>.<span class="ident">global_ctxt</span>().<span class="ident">unwrap</span>().<span class="ident">take</span>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">tcx</span><span class="op">|</span> {
-      <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <span class="ident">Visitor</span> { <span class="ident">tcx</span> };
+      <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <span class="ident">Visitor</span> {
+        <span class="ident">tcx</span>,
+        <span class="ident">issue_found</span>: <span class="ident">IssueFound::No</span>,
+      };
       <span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">visit_all_item_likes</span>(<span class="kw-2">&amp;mut</span> <span class="ident">visitor</span>);
+
+      <span class="kw">if</span> <span class="kw">let</span> <span class="ident">IssueFound::No</span> <span class="op">=</span> <span class="ident">visitor</span>.<span class="ident">issue_found</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stdout</span> <span class="op">=</span> <span class="ident">StandardStream::stderr</span>(<span class="ident">ColorChoice::Auto</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">green_spec</span> <span class="op">=</span> <span class="ident">ColorSpec::new</span>();
+        <span class="ident">green_spec</span>.<span class="ident">set_fg</span>(<span class="prelude-val">Some</span>(<span class="ident">Color::Green</span>));
+        <span class="ident">stdout</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="ident">green_spec</span>).<span class="ident">unwrap</span>();
+        <span class="macro">writeln!</span>(<span class="ident">stdout</span>, <span class="string">&quot;No security issues found!&quot;</span>,).<span class="ident">unwrap</span>();
+      }
     });
 
     <span class="ident">rustc_driver::Compilation::Stop</span>
   }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="flowistry_ifc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (75d9a0ae2 2022-02-16)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="flowistry_ifc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4ca19e09d 2022-04-19)" ></div>
 </body></html>

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["get_channel",""],["get_commit_date",""],["get_commit_hash",""]],"macro":[["get_version_info",""]],"struct":[["VersionInfo",""]]});

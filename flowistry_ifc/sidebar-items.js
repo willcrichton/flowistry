@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Callbacks",""],["Visitor",""]]});
+initSidebarItems({"struct":[["Callbacks",""],["IfcPlugin",""],["Visitor",""]]});

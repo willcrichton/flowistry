@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["FlowistryError",""]],"fn":[["run",""],["run_with_callbacks",""]],"mod":[["focus",""],["playground",""],["spans",""]],"trait":[["FlowistryAnalysis",""]],"traitalias":[["JsonEncodable",""]],"type":[["FlowistryResult",""]]});
+initSidebarItems({"struct":[["FlowistryPlugin",""]]});
