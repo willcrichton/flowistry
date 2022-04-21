@@ -16,10 +16,9 @@ use std::{
   process::{exit, Command},
 };
 
+pub use cargo_metadata::camino::Utf8Path;
 use rustc_serialize::{json, Decodable, Encodable};
 use rustc_tools_util::VersionInfo;
-
-const TARGET_DIR: &str = "target/flowistry";
 
 /// If a command-line option matches `find_arg`, then apply the predicate `pred` on its value. If
 /// true, then return it. The parameter is assumed to be either `--arg=value` or `--arg value`.
@@ -71,7 +70,7 @@ pub trait RustcPlugin: Sized {
 
   fn bin_name() -> String;
 
-  fn args(&self) -> RustcPluginArgs<Self::Args>;
+  fn args(&self, target_dir: &Utf8Path) -> RustcPluginArgs<Self::Args>;
 
   fn run(
     self,
@@ -83,6 +82,15 @@ pub trait RustcPlugin: Sized {
 const PLUGIN_ARGS: &str = "PLUGIN_ARGS";
 
 pub fn cli_main<T: RustcPlugin>(plugin: T) {
+  let metadata = cargo_metadata::MetadataCommand::new()
+    .no_deps()
+    .other_options(["--all-features".to_string(), "--offline".to_string()])
+    .exec()
+    .unwrap();
+  let target_dir = metadata.target_directory.join("plugin");
+
+  let args = plugin.args(&target_dir);
+
   let mut cmd = Command::new("cargo");
 
   let mut path = env::current_exe()
@@ -93,20 +101,10 @@ pub fn cli_main<T: RustcPlugin>(plugin: T) {
     path.set_extension("exe");
   }
 
-  cmd.env("RUSTC_WORKSPACE_WRAPPER", path).args(&[
-    "check",
-    "-q",
-    "--target-dir",
-    TARGET_DIR,
-  ]);
-
-  let args = plugin.args();
-
-  let metadata = cargo_metadata::MetadataCommand::new()
-    .no_deps()
-    .other_options(["--all-features".to_string(), "--offline".to_string()])
-    .exec()
-    .unwrap();
+  cmd
+    .env("RUSTC_WORKSPACE_WRAPPER", path)
+    .args(&["check", "-q", "--target-dir"])
+    .arg(target_dir);
 
   let workspace_members = metadata
     .workspace_members
