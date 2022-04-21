@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.1.8/src/build/command.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.1.10/src/build/command.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -4739,12 +4739,23 @@
 <span id="4732">4732</span>
 <span id="4733">4733</span>
 <span id="4734">4734</span>
+<span id="4735">4735</span>
+<span id="4736">4736</span>
+<span id="4737">4737</span>
+<span id="4738">4738</span>
+<span id="4739">4739</span>
+<span id="4740">4740</span>
+<span id="4741">4741</span>
+<span id="4742">4742</span>
+<span id="4743">4743</span>
+<span id="4744">4744</span>
+<span id="4745">4745</span>
+<span id="4746">4746</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
 
 <span class="comment">// Std</span>
 <span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">std::env</span>;
-<span class="kw">use</span> <span class="ident">std::ffi::OsStr</span>;
 <span class="kw">use</span> <span class="ident">std::ffi::OsString</span>;
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 <span class="kw">use</span> <span class="ident">std::io</span>;
@@ -4752,7 +4763,6 @@
 <span class="kw">use</span> <span class="ident">std::path::Path</span>;
 
 <span class="comment">// Third Party</span>
-<span class="kw">use</span> <span class="ident">os_str_bytes::RawOsStr</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;yaml&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">yaml_rust::Yaml</span>;
 
@@ -4764,7 +4774,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::Result</span> <span class="kw">as</span> <span class="ident">ClapResult</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mkeymap::MKeyMap</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::output</span>::{<span class="ident">fmt::Colorizer</span>, <span class="ident">Help</span>, <span class="ident">HelpWriter</span>, <span class="ident">Usage</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parse</span>::{<span class="ident">ArgMatcher</span>, <span class="ident">ArgMatches</span>, <span class="ident">Input</span>, <span class="ident">Parser</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parse</span>::{<span class="ident">ArgMatcher</span>, <span class="ident">ArgMatches</span>, <span class="ident">Parser</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::ChildGraph</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util</span>::{<span class="ident">color::ColorChoice</span>, <span class="ident">Id</span>, <span class="ident">Key</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Error</span>, <span class="ident">INTERNAL_ERROR_MSG</span>};
@@ -4799,7 +4809,7 @@
 <span class="doccomment">///     .version(&quot;1.0.2&quot;)</span>
 <span class="doccomment">///     .about(&quot;Explains in brief what the program does&quot;)</span>
 <span class="doccomment">///     .arg(</span>
-<span class="doccomment">///         Arg::new(&quot;in_file&quot;).index(1)</span>
+<span class="doccomment">///         Arg::new(&quot;in_file&quot;)</span>
 <span class="doccomment">///     )</span>
 <span class="doccomment">///     .after_help(&quot;Longer explanation to appear after the options when \</span>
 <span class="doccomment">///                  displaying the help information from --help or -h&quot;)</span>
@@ -4842,7 +4852,7 @@
     <span class="ident">g_settings</span>: <span class="ident">AppFlags</span>,
     <span class="ident">args</span>: <span class="ident">MKeyMap</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>,
     <span class="ident">subcommands</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">replacers</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">OsStr</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span>]<span class="op">&gt;</span>,
+    <span class="ident">replacers</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span>]<span class="op">&gt;</span>,
     <span class="ident">groups</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ArgGroup</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">current_help_heading</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">current_disp_ord</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
@@ -4943,7 +4953,7 @@
     <span class="doccomment">/// Command::new(&quot;myprog&quot;)</span>
     <span class="doccomment">///     .args(&amp;[</span>
     <span class="doccomment">///         arg!(&quot;[debug] -d &#39;turns on debugging info&#39;&quot;),</span>
-    <span class="doccomment">///         Arg::new(&quot;input&quot;).index(1).help(&quot;the input file to use&quot;)</span>
+    <span class="doccomment">///         Arg::new(&quot;input&quot;).help(&quot;the input file to use&quot;)</span>
     <span class="doccomment">///     ])</span>
     <span class="doccomment">/// # ;</span>
     <span class="doccomment">/// ```</span>
@@ -4964,7 +4974,7 @@
         <span class="self">self</span>
     }
 
-    <span class="doccomment">/// Allows one to mutate an [`Arg`] after it&#39;s been added to an [`Command`].</span>
+    <span class="doccomment">/// Allows one to mutate an [`Arg`] after it&#39;s been added to a [`Command`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This can be useful for modifying the auto-generated help or version arguments.</span>
     <span class="doccomment">///</span>
@@ -5119,7 +5129,7 @@
     <span class="doccomment">/// # Command::new(&quot;myprog&quot;)</span>
     <span class="doccomment">/// .subcommands( vec![</span>
     <span class="doccomment">///        Command::new(&quot;config&quot;).about(&quot;Controls configuration functionality&quot;)</span>
-    <span class="doccomment">///                                 .arg(Arg::new(&quot;config_file&quot;).index(1)),</span>
+    <span class="doccomment">///                                 .arg(Arg::new(&quot;config_file&quot;)),</span>
     <span class="doccomment">///        Command::new(&quot;debug&quot;).about(&quot;Controls debug functionality&quot;)])</span>
     <span class="doccomment">/// # ;</span>
     <span class="doccomment">/// ```</span>
@@ -5374,11 +5384,12 @@
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
         <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> <span class="ident">Input::from</span>(<span class="ident">itr</span>.<span class="ident">into_iter</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw_args</span> <span class="op">=</span> <span class="ident">clap_lex::RawArgs::new</span>(<span class="ident">itr</span>.<span class="ident">into_iter</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">raw_args</span>.<span class="ident">cursor</span>();
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-multicall&quot;</span>)]</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">settings</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings::Multicall</span>) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">argv0</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="ident">it</span>.<span class="ident">next</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">argv0</span>) <span class="op">=</span> <span class="ident">raw_args</span>.<span class="ident">next_os</span>(<span class="kw-2">&amp;mut</span> <span class="ident">cursor</span>) {
                 <span class="kw">let</span> <span class="ident">argv0</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">argv0</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="ident">argv0</span>.<span class="ident">file_stem</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">f</span>.<span class="ident">to_str</span>()) {
                     <span class="comment">// Stop borrowing command so we can get another mut ref to it.</span>
@@ -5389,11 +5400,11 @@
                     );
 
                     <span class="macro">debug!</span>(<span class="string">&quot;App::try_get_matches_from_mut: Reinserting command into arguments so subcommand parser matches it&quot;</span>);
-                    <span class="ident">it</span>.<span class="ident">insert</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">command</span>]);
+                    <span class="ident">raw_args</span>.<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="ident">cursor</span>, <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">command</span>]);
                     <span class="macro">debug!</span>(<span class="string">&quot;App::try_get_matches_from_mut: Clearing name and bin_name so that displayed command name starts with applet name&quot;</span>);
                     <span class="self">self</span>.<span class="ident">name</span>.<span class="ident">clear</span>();
                     <span class="self">self</span>.<span class="ident">bin_name</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">_do_parse</span>(<span class="kw-2">&amp;mut</span> <span class="ident">it</span>);
+                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">_do_parse</span>(<span class="kw-2">&amp;mut</span> <span class="ident">raw_args</span>, <span class="ident">cursor</span>);
                 }
             }
         };
@@ -5406,7 +5417,7 @@
         <span class="comment">// to display</span>
         <span class="comment">// the full path when displaying help messages and such</span>
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">settings</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings::NoBinaryName</span>) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">name</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="ident">it</span>.<span class="ident">next</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">raw_args</span>.<span class="ident">next_os</span>(<span class="kw-2">&amp;mut</span> <span class="ident">cursor</span>) {
                 <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="ident">name</span>);
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="ident">p</span>.<span class="ident">file_name</span>() {
@@ -5419,7 +5430,7 @@
             }
         }
 
-        <span class="self">self</span>.<span class="ident">_do_parse</span>(<span class="kw-2">&amp;mut</span> <span class="ident">it</span>)
+        <span class="self">self</span>.<span class="ident">_do_parse</span>(<span class="kw-2">&amp;mut</span> <span class="ident">raw_args</span>, <span class="ident">cursor</span>)
     }
 
     <span class="doccomment">/// Prints the short help message (`-h`) to [`io::stdout()`].</span>
@@ -6685,7 +6696,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-replace&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span>]) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">replacers</span>.<span class="ident">insert</span>(<span class="ident">OsStr::new</span>(<span class="ident">name</span>), <span class="ident">target</span>);
+        <span class="self">self</span>.<span class="ident">replacers</span>.<span class="ident">insert</span>(<span class="ident">name</span>, <span class="ident">target</span>);
         <span class="self">self</span>
     }
 
@@ -7088,7 +7099,6 @@
     <span class="doccomment">///         .aliases(&amp;[&quot;do-stuff&quot;, &quot;do-tests&quot;, &quot;tests&quot;]))</span>
     <span class="doccomment">///         .arg(Arg::new(&quot;input&quot;)</span>
     <span class="doccomment">///             .help(&quot;the file to add&quot;)</span>
-    <span class="doccomment">///             .index(1)</span>
     <span class="doccomment">///             .required(false))</span>
     <span class="doccomment">///     .get_matches_from(vec![&quot;myprog&quot;, &quot;do-tests&quot;]);</span>
     <span class="doccomment">/// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));</span>
@@ -7115,7 +7125,6 @@
     <span class="doccomment">///         .short_flag_aliases(&amp;[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]))</span>
     <span class="doccomment">///         .arg(Arg::new(&quot;input&quot;)</span>
     <span class="doccomment">///             .help(&quot;the file to add&quot;)</span>
-    <span class="doccomment">///             .index(1)</span>
     <span class="doccomment">///             .required(false))</span>
     <span class="doccomment">///     .get_matches_from(vec![&quot;myprog&quot;, &quot;-a&quot;]);</span>
     <span class="doccomment">/// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));</span>
@@ -7144,7 +7153,6 @@
     <span class="doccomment">///                 .long_flag_aliases(&amp;[&quot;testing&quot;, &quot;testall&quot;, &quot;test_all&quot;]))</span>
     <span class="doccomment">///                 .arg(Arg::new(&quot;input&quot;)</span>
     <span class="doccomment">///                             .help(&quot;the file to add&quot;)</span>
-    <span class="doccomment">///                             .index(1)</span>
     <span class="doccomment">///                             .required(false))</span>
     <span class="doccomment">///             .get_matches_from(vec![&quot;myprog&quot;, &quot;--testing&quot;]);</span>
     <span class="doccomment">/// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));</span>
@@ -8676,7 +8684,7 @@
         <span class="self">self</span>.<span class="ident">max_w</span>
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_replacement</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]<span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_replacement</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">replacers</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">copied</span>()
     }
 
@@ -8698,7 +8706,11 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">_do_parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">it</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Input</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span><span class="ident">ArgMatches</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">_do_parse</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">raw_args</span>: <span class="kw-2">&amp;mut</span> <span class="ident">clap_lex::RawArgs</span>,
+        <span class="ident">args_cursor</span>: <span class="ident">clap_lex::ArgCursor</span>,
+    ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span><span class="ident">ArgMatches</span><span class="op">&gt;</span> {
         <span class="macro">debug!</span>(<span class="string">&quot;App::_do_parse&quot;</span>);
 
         <span class="comment">// If there are global arguments, or settings we need to propagate them down to subcommands</span>
@@ -8709,7 +8721,7 @@
 
         <span class="comment">// do the real parsing</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">Parser::new</span>(<span class="self">self</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">get_matches_with</span>(<span class="kw-2">&amp;mut</span> <span class="ident">matcher</span>, <span class="ident">it</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">get_matches_with</span>(<span class="kw-2">&amp;mut</span> <span class="ident">matcher</span>, <span class="ident">raw_args</span>, <span class="ident">args_cursor</span>) {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings::IgnoreErrors</span>) {
                 <span class="macro">debug!</span>(<span class="string">&quot;App::_do_parse: ignoring error: {}&quot;</span>, <span class="ident">error</span>);
             } <span class="kw">else</span> {
@@ -8725,9 +8737,17 @@
         <span class="prelude-val">Ok</span>(<span class="ident">matcher</span>.<span class="ident">into_inner</span>())
     }
 
-    <span class="comment">// used in clap_complete (https://github.com/clap-rs/clap_complete)</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.1.10&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Command::build`&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_build_all</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <span class="self">self</span>.<span class="ident">build</span>();
+    }
+
+    <span class="doccomment">/// Prepare for introspecting on all included [`Command`]s</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Call this on the top-level [`Command`] when done building and before reading state for</span>
+    <span class="doccomment">/// cases like completions, custom help output, etc.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">_build</span>();
         <span class="kw">for</span> <span class="ident">subcmd</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">get_subcommands_mut</span>() {
             <span class="ident">subcmd</span>.<span class="ident">_build</span>();
@@ -8788,9 +8808,13 @@
         <span class="prelude-val">Some</span>(<span class="ident">sc</span>)
     }
 
-    <span class="comment">// used in clap_complete (https://github.com/clap-rs/clap_complete)</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.1.10&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Command::build`&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_build</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <span class="self">self</span>.<span class="ident">_build_self</span>()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">_build_self</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="macro">debug!</span>(<span class="string">&quot;App::_build&quot;</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">settings</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings::Built</span>) {
             <span class="comment">// Make sure all the globally set flags apply to us as well</span>
@@ -9395,7 +9419,7 @@ To change `help`s short, call `cmd.arg(Arg::new(\&quot;help\&quot;)...)`.&quot;<
     }
 
     <span class="doccomment">/// Find a flag subcommand name by long flag or an alias</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">find_long_subcmd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">long</span>: <span class="kw-2">&amp;</span><span class="ident">RawOsStr</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">find_long_subcmd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">long</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">get_subcommands</span>()
             .<span class="ident">find</span>(<span class="op">|</span><span class="ident">sc</span><span class="op">|</span> <span class="ident">sc</span>.<span class="ident">long_flag_aliases_to</span>(<span class="ident">long</span>))
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">sc</span><span class="op">|</span> <span class="ident">sc</span>.<span class="ident">get_name</span>())
