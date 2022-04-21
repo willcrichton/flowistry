@@ -30,7 +30,7 @@ impl RustcPlugin for IfcPlugin {
     "ifc-driver".to_owned()
   }
 
-  fn args(&self) -> RustcPluginArgs<Self::Args> {
+  fn args(&self, _target_dir: &rustc_plugin::Utf8Path) -> RustcPluginArgs<Self::Args> {
     RustcPluginArgs {
       args: (),
       file: None,

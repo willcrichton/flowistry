@@ -19,11 +19,10 @@ use rustc_hir::BodyId;
 use rustc_interface::interface::Result as RustcResult;
 use rustc_macros::{Decodable, Encodable};
 use rustc_middle::ty::TyCtxt;
-use rustc_plugin::{JsonEncodable, RustcPlugin, RustcPluginArgs};
+use rustc_plugin::{JsonEncodable, RustcPlugin, RustcPluginArgs, Utf8Path};
 use rustc_serialize::json;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-const TARGET_DIR: &str = "target/flowistry";
 
 #[derive(Parser, Encodable, Decodable)]
 #[clap(version = VERSION)]
@@ -89,7 +88,7 @@ impl RustcPlugin for FlowistryPlugin {
     "flowistry-driver".into()
   }
 
-  fn args(&self) -> RustcPluginArgs<FlowistryPluginArgs> {
+  fn args(&self, target_dir: &Utf8Path) -> RustcPluginArgs<FlowistryPluginArgs> {
     let args = FlowistryPluginArgs::parse_from(env::args().skip(1));
 
     let cargo_path = env::var("CARGO_PATH").unwrap_or_else(|_| "cargo".to_string());
@@ -98,13 +97,9 @@ impl RustcPlugin for FlowistryPlugin {
     match &args.command {
       Preload => {
         let mut cmd = Command::new(cargo_path);
-        cmd.args(&[
-          "check",
-          "--all",
-          "--all-features",
-          "--target-dir",
-          TARGET_DIR,
-        ]);
+        cmd
+          .args(&["check", "--all", "--all-features", "--target-dir"])
+          .arg(target_dir);
         let exit_status = cmd.status().expect("could not run cargo");
         exit(exit_status.code().unwrap_or(-1));
       }
