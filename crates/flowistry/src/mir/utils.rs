@@ -45,7 +45,7 @@ pub trait OperandExt<'tcx> {
   fn to_place(&self) -> Option<Place<'tcx>>;
 }
 
-impl OperandExt<'tcx> for Operand<'tcx> {
+impl<'tcx> OperandExt<'tcx> for Operand<'tcx> {
   fn to_place(&self) -> Option<Place<'tcx>> {
     match self {
       Operand::Copy(place) | Operand::Move(place) => Some(*place),
@@ -120,7 +120,7 @@ impl PlaceRelation {
     *self != PlaceRelation::Disjoint
   }
 
-  pub fn of(part_place: Place<'tcx>, whole_place: Place<'tcx>) -> Self {
+  pub fn of<'tcx>(part_place: Place<'tcx>, whole_place: Place<'tcx>) -> Self {
     let locals_match = part_place.local == whole_place.local;
     if !locals_match {
       return PlaceRelation::Disjoint;
@@ -174,7 +174,7 @@ pub struct PlaceCollector<'tcx> {
   pub places: Vec<(Place<'tcx>, Option<PlaceElem<'tcx>>)>,
 }
 
-impl Visitor<'tcx> for PlaceCollector<'tcx> {
+impl<'tcx> Visitor<'tcx> for PlaceCollector<'tcx> {
   fn visit_place(
     &mut self,
     place: &Place<'tcx>,
@@ -191,7 +191,7 @@ impl Visitor<'tcx> for PlaceCollector<'tcx> {
         // we want to remember which places correspond to which fields so the infoflow
         // analysis can be field-sensitive for constructors.
         let adt_def = self.tcx.adt_def(*def_id);
-        let variant = &adt_def.variants[*idx];
+        let variant = adt_def.variant(*idx);
         let places = variant
           .fields
           .iter()
@@ -261,7 +261,7 @@ pub fn location_to_string(location: Location, body: &Body<'_>) -> String {
 }
 
 pub struct SimplifyMir;
-impl MirPass<'tcx> for SimplifyMir {
+impl<'tcx> MirPass<'tcx> for SimplifyMir {
   fn run_pass(&self, _tcx: TyCtxt<'tcx>, body: &mut Body<'tcx>) {
     let return_blocks = body
       .all_returns()
@@ -323,7 +323,7 @@ pub trait PlaceExt<'tcx> {
   fn normalize(&self, tcx: TyCtxt<'tcx>, def_id: DefId) -> Place<'tcx>;
 }
 
-impl PlaceExt<'tcx> for Place<'tcx> {
+impl<'tcx> PlaceExt<'tcx> for Place<'tcx> {
   fn make(local: Local, projection: &[PlaceElem<'tcx>], tcx: TyCtxt<'tcx>) -> Self {
     Place {
       local,
@@ -538,7 +538,7 @@ struct CollectRegions<'tcx> {
   stop_at: StoppingCondition,
 }
 
-impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
+impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
   fn visit_ty(&mut self, ty: Ty<'tcx>) -> ControlFlow<Self::BreakTy> {
     if self.ty_stack.iter().any(|visited_ty| ty == *visited_ty) {
       return ControlFlow::Continue(());
@@ -561,10 +561,9 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
 
       TyKind::Tuple(fields) => {
         for (i, field) in fields.iter().enumerate() {
-          self.place_stack.push(ProjectionElem::Field(
-            Field::from_usize(i),
-            field.expect_ty(),
-          ));
+          self
+            .place_stack
+            .push(ProjectionElem::Field(Field::from_usize(i), field));
           field.super_visit_with(self);
           self.place_stack.pop();
         }
@@ -589,10 +588,10 @@ impl TypeVisitor<'tcx> for CollectRegions<'tcx> {
           // unsafe, so ignore
         }
         ty::AdtKind::Enum => {
-          for (i, variant) in adt_def.variants.iter().enumerate() {
+          for (i, variant) in adt_def.variants().iter().enumerate() {
             let variant_index = VariantIdx::from_usize(i);
             let cast = PlaceElem::Downcast(
-              Some(adt_def.variants[variant_index].ident(self.tcx).name),
+              Some(adt_def.variant(variant_index).ident(self.tcx).name),
               variant_index,
             );
             self.place_stack.push(cast);
@@ -725,11 +724,8 @@ pub trait BodyExt<'tcx> {
   fn to_string(&self, tcx: TyCtxt<'tcx>) -> Result<String>;
 }
 
-impl BodyExt<'tcx> for Body<'tcx> {
-  type AllReturnsIter<'a>
-  where
-    Self: 'a,
-  = impl Iterator<Item = Location>;
+impl<'tcx> BodyExt<'tcx> for Body<'tcx> {
+  type AllReturnsIter<'a> = impl Iterator<Item = Location>   where Self: 'a;
   fn all_returns(&self) -> Self::AllReturnsIter<'_> {
     self
       .basic_blocks()
@@ -743,10 +739,7 @@ impl BodyExt<'tcx> for Body<'tcx> {
       })
   }
 
-  type AllLocationsIter<'a>
-  where
-    Self: 'a,
-  = impl Iterator<Item = Location>;
+  type AllLocationsIter<'a> = impl Iterator<Item = Location>   where Self: 'a;
   fn all_locations(&self) -> Self::AllLocationsIter<'_> {
     self
       .basic_blocks()

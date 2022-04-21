@@ -43,7 +43,7 @@ pub struct FlowAnalysis<'a, 'tcx> {
   crate recurse_cache: RefCell<HashMap<BodyId, FlowResults<'a, 'tcx>>>,
 }
 
-impl FlowAnalysis<'a, 'tcx> {
+impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
   pub fn new(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
@@ -199,7 +199,7 @@ impl FlowAnalysis<'a, 'tcx> {
   }
 }
 
-impl AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
+impl<'a, 'tcx> AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
   type Domain = FlowDomain<'tcx>;
   type Direction = Forward;
   const NAME: &'static str = "FlowAnalysis";
@@ -221,7 +221,7 @@ impl AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
   }
 }
 
-impl Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
+impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
   fn apply_statement_effect(
     &self,
     state: &mut Self::Domain,

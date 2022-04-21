@@ -40,7 +40,7 @@ where
   In: Hash + Eq + Clone,
   Out: Copy,
 {
-  pub fn get(&'a self, key: In, compute: impl FnOnce(In) -> Out) -> Out {
+  pub fn get<'a>(&'a self, key: In, compute: impl FnOnce(In) -> Out) -> Out {
     let mut cache = self.0.borrow_mut();
     *cache
       .entry(key.clone())

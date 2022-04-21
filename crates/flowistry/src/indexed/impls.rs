@@ -30,7 +30,7 @@ pub struct LocationDomain {
   real_locations: usize,
 }
 
-pub fn arg_location(place: Place<'tcx>, body: &Body<'tcx>) -> Option<Location> {
+pub fn arg_location<'tcx>(place: Place<'tcx>, body: &Body<'tcx>) -> Option<Location> {
   place.is_arg(body).then(|| {
     let arg_block = BasicBlock::from_usize(body.basic_blocks().len());
     Location {
@@ -41,7 +41,7 @@ pub fn arg_location(place: Place<'tcx>, body: &Body<'tcx>) -> Option<Location> {
 }
 
 impl LocationDomain {
-  pub fn new(body: &Body<'tcx>) -> Rc<Self> {
+  pub fn new(body: &Body) -> Rc<Self> {
     let mut locations = body.all_locations().collect::<Vec<_>>();
 
     let arg_block = BasicBlock::from_usize(body.basic_blocks().len());

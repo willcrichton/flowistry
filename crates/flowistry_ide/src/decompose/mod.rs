@@ -15,19 +15,19 @@ use petgraph::dot::{Config as DotConfig, Dot};
 use rayon::prelude::*;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::BodyId;
-use rustc_macros::Encodable;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
+use serde::Serialize;
 
 mod algo;
 mod construct;
 
-#[derive(Debug, Clone, Encodable, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct DecomposeOutput {
   chunks: Vec<(f64, Vec<Vec<Range>>)>,
 }
 
-pub fn decompose(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Result<DecomposeOutput> {
+pub fn decompose(tcx: TyCtxt, body_id: BodyId) -> Result<DecomposeOutput> {
   let def_id = tcx.hir().body_owner_def_id(body_id);
   let body_with_facts = get_body_with_borrowck_facts(tcx, def_id);
   let body = &body_with_facts.body;

@@ -1,10 +1,4 @@
-#![feature(
-  rustc_private,
-  in_band_lifetimes,
-  unboxed_closures,
-  box_patterns,
-  trait_alias
-)]
+#![feature(rustc_private, unboxed_closures, box_patterns, trait_alias)]
 #![allow(
   clippy::single_match,
   clippy::needless_lifetimes,

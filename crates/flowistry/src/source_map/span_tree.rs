@@ -23,11 +23,11 @@ impl<T> SpanTree<T> {
     self.len
   }
 
-  pub fn iter(&'a self) -> impl Iterator<Item = &'a T> + 'a {
+  pub fn iter<'a>(&'a self) -> impl Iterator<Item = &'a T> + 'a {
     self.tree.iter().map(|el| &el.value.1)
   }
 
-  pub fn overlapping(
+  pub fn overlapping<'a>(
     &'a self,
     query: SpanData,
   ) -> impl Iterator<Item = &'a (SpanData, T)> + 'a {

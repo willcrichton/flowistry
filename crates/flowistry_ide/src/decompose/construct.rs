@@ -17,7 +17,7 @@ use rustc_span::def_id::DefId;
 use super::algo::GraphExt;
 
 pub fn compute_adjacency_matrix(
-  results: &FlowResults<'_, 'tcx>,
+  results: &FlowResults,
 ) -> IndexMatrix<Location, Location> {
   let analysis = &results.analysis;
   let location_domain = analysis.location_domain();
@@ -38,7 +38,7 @@ type LocGraph = DiGraph<Vec<Location>, ()>;
 
 fn compute_graph(
   adj_mtx: IndexMatrix<Location, Location>,
-  results: &FlowResults<'_, 'tcx>,
+  results: &FlowResults,
 ) -> LocGraph {
   let mut g = DiGraph::<Location, ()>::default();
   let location_domain = results.analysis.location_domain();
@@ -82,7 +82,7 @@ fn compute_graph(
   g
 }
 
-pub fn build(
+pub fn build<'tcx>(
   body: &Body<'tcx>,
   tcx: TyCtxt<'tcx>,
   def_id: DefId,
