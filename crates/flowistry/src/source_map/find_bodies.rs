@@ -61,7 +61,10 @@ impl<'tcx> ItemLikeVisitor<'tcx> for BodyFinder<'tcx> {
     intravisit::walk_impl_item(self, impl_item);
   }
 
-  fn visit_trait_item(&mut self, _trait_item: &'tcx TraitItem<'tcx>) {}
+  fn visit_trait_item(&mut self, trait_item: &'tcx TraitItem<'tcx>) {
+    intravisit::walk_trait_item(self, trait_item);
+  }
+
   fn visit_foreign_item(&mut self, _foreign_item: &'tcx ForeignItem<'tcx>) {}
 }
 
