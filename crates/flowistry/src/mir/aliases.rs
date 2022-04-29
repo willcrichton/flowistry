@@ -26,8 +26,9 @@ use crate::{
   extensions::{is_extension_active, MutabilityMode, PointerMode},
   indexed::{
     impls::{LocationDomain, LocationIndex, LocationSet, PlaceSet},
-    IndexMatrix, RefSet,
+    RefSet,
   },
+  infoflow::FlowDomain,
   mir::utils::{self, PlaceExt},
   timer::elapsed,
 };
@@ -561,7 +562,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
 
   pub fn deps(
     &self,
-    state: &'a IndexMatrix<Place<'tcx>, Location>,
+    state: &'a FlowDomain,
     place: Place<'tcx>,
   ) -> LocationSet<RefSet<'a, Location>> {
     state.row_set(self.normalize(place))

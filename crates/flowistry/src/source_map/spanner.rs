@@ -17,8 +17,8 @@ use rustc_middle::{
       MutatingUseContext, NonMutatingUseContext, NonUseContext, PlaceContext,
       Visitor as MirVisitor,
     },
-    Body, FakeReadCause, HasLocalDecls, Place, Statement, StatementKind, Terminator,
-    TerminatorKind, RETURN_PLACE,
+    Body, FakeReadCause, HasLocalDecls, Place, Rvalue, Statement, StatementKind,
+    Terminator, TerminatorKind, RETURN_PLACE,
   },
   ty::TyCtxt,
 };
@@ -581,12 +581,24 @@ where
     }
 
     if let Some(Either::Left(mir::Statement {
-      kind: StatementKind::Assign(box (lhs, _)),
+      kind: StatementKind::Assign(box (lhs, rhs)),
       ..
     })) = stmt
     {
       if lhs.local == RETURN_PLACE {
         hir_spans.push(self.ret_span);
+      }
+
+      // for if-let statements, the span of the rhs only exists in a FakeRead,
+      // so we special-case get that when the discriminant is relevant
+      if let Rvalue::Discriminant(_) = rhs {     
+        if location.statement_index > 0 {   
+          let block = &self.body.basic_blocks()[location.block];
+          let stmt = &block.statements[location.statement_index - 1];
+          if let StatementKind::FakeRead(box (FakeReadCause::ForMatchedPlace(_), _)) = &stmt.kind {
+            hir_spans.push(stmt.source_info.span);
+          }
+        }
       }
     }
 
