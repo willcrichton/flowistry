@@ -83,8 +83,7 @@ impl WithPredecessors for BodyReversed<'_, '_> {
       self.body.basic_blocks()[node]
         .terminator()
         .successors()
-        .filter(|bb| !self.unreachable.contains(**bb))
-        .copied(),
+        .filter(|bb| !self.unreachable.contains(*bb)),
     )
   }
 }
