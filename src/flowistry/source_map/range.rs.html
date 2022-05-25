@@ -19,7 +19,9 @@
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
+                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -275,23 +277,6 @@
 <span id="254">254</span>
 <span id="255">255</span>
 <span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Data structure for sharing [spans][Span] outside rustc.</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">default::Default</span>, <span class="ident">fs</span>, <span class="ident">path::Path</span>};
@@ -300,7 +285,6 @@
 <span class="kw">use</span> <span class="ident">rustc_data_structures</span>::{<span class="ident">fx::FxHashMap</span> <span class="kw">as</span> <span class="ident">HashMap</span>, <span class="ident">sync::Lrc</span>};
 <span class="kw">use</span> <span class="ident">rustc_hir</span>::{
   <span class="ident">intravisit</span>::{<span class="self">self</span>, <span class="ident">Visitor</span>},
-  <span class="ident">itemlikevisit::ItemLikeVisitor</span>,
   <span class="ident">BodyId</span>,
 };
 <span class="kw">use</span> <span class="ident">rustc_middle::ty::TyCtxt</span>;
@@ -384,28 +368,12 @@
     }
   }
 
-  <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">ItemLikeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Finder</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
-  <span class="kw">where</span>
-    <span class="lifetime">&#39;hir</span>: <span class="lifetime">&#39;tcx</span>,
-  {
-    <span class="kw">fn</span> <span class="ident">visit_item</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;hir</span> <span class="ident">rustc_hir::Item</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span>) {
-      <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::visit_item</span>(<span class="self">self</span>, <span class="ident">item</span>);
-    }
-
-    <span class="kw">fn</span> <span class="ident">visit_impl_item</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">impl_item</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;hir</span> <span class="ident">rustc_hir::ImplItem</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span>) {
-      <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::visit_impl_item</span>(<span class="self">self</span>, <span class="ident">impl_item</span>);
-    }
-
-    <span class="kw">fn</span> <span class="ident">visit_trait_item</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_trait_item</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;hir</span> <span class="ident">rustc_hir::TraitItem</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span>) {}
-    <span class="kw">fn</span> <span class="ident">visit_foreign_item</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_foreign_item</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;hir</span> <span class="ident">rustc_hir::ForeignItem</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span>) {}
-  }
-
   <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">finder</span> <span class="op">=</span> <span class="ident">Finder</span> {
     <span class="ident">tcx</span>,
     <span class="ident">qpath</span>,
     <span class="ident">span</span>: <span class="prelude-val">None</span>,
   };
-  <span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">visit_all_item_likes</span>(<span class="kw-2">&amp;mut</span> <span class="ident">finder</span>);
+  <span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">deep_visit_all_item_likes</span>(<span class="kw-2">&amp;mut</span> <span class="ident">finder</span>);
   <span class="ident">finder</span>
     .<span class="ident">span</span>
     .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;No function with qpath {}&quot;</span>, <span class="ident">finder</span>.<span class="ident">qpath</span>))
@@ -566,5 +534,5 @@
   }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4ca19e09d 2022-04-19)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
 </body></html>

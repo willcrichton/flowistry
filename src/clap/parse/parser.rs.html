@@ -1,11 +1,13 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.1.10/src/parse/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.1.18/src/parse/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
         </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
+                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1560,68 +1562,9 @@
 <span id="1553">1553</span>
 <span id="1554">1554</span>
 <span id="1555">1555</span>
-<span id="1556">1556</span>
-<span id="1557">1557</span>
-<span id="1558">1558</span>
-<span id="1559">1559</span>
-<span id="1560">1560</span>
-<span id="1561">1561</span>
-<span id="1562">1562</span>
-<span id="1563">1563</span>
-<span id="1564">1564</span>
-<span id="1565">1565</span>
-<span id="1566">1566</span>
-<span id="1567">1567</span>
-<span id="1568">1568</span>
-<span id="1569">1569</span>
-<span id="1570">1570</span>
-<span id="1571">1571</span>
-<span id="1572">1572</span>
-<span id="1573">1573</span>
-<span id="1574">1574</span>
-<span id="1575">1575</span>
-<span id="1576">1576</span>
-<span id="1577">1577</span>
-<span id="1578">1578</span>
-<span id="1579">1579</span>
-<span id="1580">1580</span>
-<span id="1581">1581</span>
-<span id="1582">1582</span>
-<span id="1583">1583</span>
-<span id="1584">1584</span>
-<span id="1585">1585</span>
-<span id="1586">1586</span>
-<span id="1587">1587</span>
-<span id="1588">1588</span>
-<span id="1589">1589</span>
-<span id="1590">1590</span>
-<span id="1591">1591</span>
-<span id="1592">1592</span>
-<span id="1593">1593</span>
-<span id="1594">1594</span>
-<span id="1595">1595</span>
-<span id="1596">1596</span>
-<span id="1597">1597</span>
-<span id="1598">1598</span>
-<span id="1599">1599</span>
-<span id="1600">1600</span>
-<span id="1601">1601</span>
-<span id="1602">1602</span>
-<span id="1603">1603</span>
-<span id="1604">1604</span>
-<span id="1605">1605</span>
-<span id="1606">1606</span>
-<span id="1607">1607</span>
-<span id="1608">1608</span>
-<span id="1609">1609</span>
-<span id="1610">1610</span>
-<span id="1611">1611</span>
-<span id="1612">1612</span>
-<span id="1613">1613</span>
-<span id="1614">1614</span>
 </pre><pre class="rust"><code><span class="comment">// Std</span>
 <span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">cell</span>::{<span class="ident">Cell</span>, <span class="ident">RefCell</span>},
+    <span class="ident">cell::Cell</span>,
     <span class="ident">ffi</span>::{<span class="ident">OsStr</span>, <span class="ident">OsString</span>},
 };
 
@@ -1629,21 +1572,21 @@
 <span class="kw">use</span> <span class="ident">clap_lex::RawOsStr</span>;
 
 <span class="comment">// Internal</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::build::AppSettings</span> <span class="kw">as</span> <span class="ident">AS</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::build</span>::{<span class="ident">Arg</span>, <span class="ident">Command</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::Error</span> <span class="kw">as</span> <span class="ident">ClapError</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::Result</span> <span class="kw">as</span> <span class="ident">ClapResult</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mkeymap::KeyType</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::output</span>::{<span class="ident">fmt::Colorizer</span>, <span class="ident">Help</span>, <span class="ident">HelpWriter</span>, <span class="ident">Usage</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::output::fmt::Stream</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::output</span>::{<span class="ident">fmt::Colorizer</span>, <span class="ident">Usage</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parse::features::suggestions</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parse</span>::{<span class="ident">ArgMatcher</span>, <span class="ident">SubCommand</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parse</span>::{<span class="ident">Validator</span>, <span class="ident">ValueSource</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util</span>::{<span class="ident">color::ColorChoice</span>, <span class="ident">Id</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">build::AppSettings</span> <span class="kw">as</span> <span class="ident">AS</span>, <span class="ident">PossibleValue</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::Id</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">INTERNAL_ERROR_MSG</span>, <span class="ident">INVALID_UTF8</span>};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span>, <span class="lifetime">&#39;cmd</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd</span> <span class="kw-2">mut</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">overridden</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Id</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd</span> <span class="kw-2">mut</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>,
     <span class="ident">seen</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Id</span><span class="op">&gt;</span>,
     <span class="ident">cur_idx</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Index of the previous flag subcommand in a group of flags.</span>
@@ -1658,22 +1601,11 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd</span> <span class="kw-2">mut</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Parser</span> {
             <span class="ident">cmd</span>,
-            <span class="ident">overridden</span>: <span class="ident">Default::default</span>(),
             <span class="ident">seen</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">cur_idx</span>: <span class="ident">Cell::new</span>(<span class="number">0</span>),
             <span class="ident">flag_subcmd_at</span>: <span class="prelude-val">None</span>,
             <span class="ident">flag_subcmd_skip</span>: <span class="number">0</span>,
         }
-    }
-
-    <span class="comment">// Should we color the help?</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">color_help</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ColorChoice</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>)]</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">is_disable_colored_help_set</span>() {
-            <span class="kw">return</span> <span class="ident">ColorChoice::Never</span>;
-        }
-
-        <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">get_color</span>()
     }
 }
 
@@ -1822,7 +1754,17 @@
                     }
                 }
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">long_arg</span>, <span class="ident">long_value</span>)) <span class="op">=</span> <span class="ident">arg_os</span>.<span class="ident">to_long</span>() {
+                <span class="kw">if</span> <span class="ident">arg_os</span>.<span class="ident">is_escape</span>() {
+                    <span class="kw">if</span> <span class="macro">matches!</span>(<span class="kw-2">&amp;</span><span class="ident">parse_state</span>, <span class="ident">ParseState::Opt</span>(<span class="ident">opt</span>) <span class="op">|</span> <span class="ident">ParseState::Pos</span>(<span class="ident">opt</span>) <span class="kw">if</span>
+                        <span class="self">self</span>.<span class="ident">cmd</span>[<span class="ident">opt</span>].<span class="ident">is_allow_hyphen_values_set</span>())
+                    {
+                        <span class="comment">// ParseResult::MaybeHyphenValue, do nothing</span>
+                    } <span class="kw">else</span> {
+                        <span class="macro">debug!</span>(<span class="string">&quot;Parser::get_matches_with: setting TrailingVals=true&quot;</span>);
+                        <span class="ident">trailing_values</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                        <span class="kw">continue</span>;
+                    }
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">long_arg</span>, <span class="ident">long_value</span>)) <span class="op">=</span> <span class="ident">arg_os</span>.<span class="ident">to_long</span>() {
                     <span class="kw">let</span> <span class="ident">parse_result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_long_arg</span>(
                         <span class="ident">matcher</span>,
                         <span class="ident">long_arg</span>,
@@ -1837,9 +1779,7 @@
                     );
                     <span class="kw">match</span> <span class="ident">parse_result</span> {
                         <span class="ident">ParseResult::NoArg</span> =&gt; {
-                            <span class="macro">debug!</span>(<span class="string">&quot;Parser::get_matches_with: setting TrailingVals=true&quot;</span>);
-                            <span class="ident">trailing_values</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                            <span class="kw">continue</span>;
+                            <span class="macro">unreachable!</span>(<span class="string">&quot;`to_long` always has the flag specified&quot;</span>)
                         }
                         <span class="ident">ParseResult::ValuesDone</span> =&gt; {
                             <span class="ident">parse_state</span> <span class="op">=</span> <span class="ident">ParseState::ValuesDone</span>;
@@ -1880,7 +1820,7 @@
                             ))
                         }
                         <span class="ident">ParseResult::HelpFlag</span> =&gt; {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">help_err</span>(<span class="bool-val">true</span>));
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">help_err</span>(<span class="bool-val">true</span>, <span class="ident">Stream::Stdout</span>));
                         }
                         <span class="ident">ParseResult::VersionFlag</span> =&gt; {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">version_err</span>(<span class="bool-val">true</span>));
@@ -1963,7 +1903,7 @@
                             ));
                         }
                         <span class="ident">ParseResult::HelpFlag</span> =&gt; {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">help_err</span>(<span class="bool-val">false</span>));
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">help_err</span>(<span class="bool-val">false</span>, <span class="ident">Stream::Stdout</span>));
                         }
                         <span class="ident">ParseResult::VersionFlag</span> =&gt; {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">version_err</span>(<span class="bool-val">false</span>));
@@ -2052,26 +1992,34 @@
 
                 <span class="comment">// Collect the external subcommand args</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sc_m</span> <span class="op">=</span> <span class="ident">ArgMatcher::new</span>(<span class="self">self</span>.<span class="ident">cmd</span>);
+                <span class="kw">let</span> <span class="ident">allow_invalid_utf8</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">cmd</span>
+                    .<span class="ident">is_allow_invalid_utf8_for_external_subcommands_set</span>();
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-v4&quot;</span>)]</span>
+                {
+                    <span class="ident">sc_m</span>.<span class="ident">inc_occurrence_of_external</span>(<span class="ident">allow_invalid_utf8</span>);
+                }
 
                 <span class="kw">for</span> <span class="ident">v</span> <span class="kw">in</span> <span class="ident">raw_args</span>.<span class="ident">remaining</span>(<span class="kw-2">&amp;mut</span> <span class="ident">args_cursor</span>) {
-                    <span class="kw">let</span> <span class="ident">allow_invalid_utf8</span> <span class="op">=</span> <span class="self">self</span>
-                        .<span class="ident">cmd</span>
-                        .<span class="ident">is_allow_invalid_utf8_for_external_subcommands_set</span>();
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">allow_invalid_utf8</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span>.<span class="ident">to_str</span>().<span class="ident">is_none</span>() {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ClapError::invalid_utf8</span>(
                             <span class="self">self</span>.<span class="ident">cmd</span>,
                             <span class="ident">Usage::new</span>(<span class="self">self</span>.<span class="ident">cmd</span>).<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span>[]),
                         ));
                     }
+                    <span class="kw">let</span> <span class="ident">external_id</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Id::empty_hash</span>();
                     <span class="ident">sc_m</span>.<span class="ident">add_val_to</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">Id::empty_hash</span>(),
+                        <span class="ident">external_id</span>,
                         <span class="ident">v</span>.<span class="ident">to_os_string</span>(),
                         <span class="ident">ValueSource::CommandLine</span>,
                         <span class="bool-val">false</span>,
                     );
-                    <span class="ident">sc_m</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">Id::empty_hash</span>())
-                        .<span class="ident">expect</span>(<span class="string">&quot;just inserted&quot;</span>)
-                        .<span class="ident">invalid_utf8_allowed</span>(<span class="ident">allow_invalid_utf8</span>);
+                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-v4&quot;</span>))]</span>
+                    {
+                        <span class="ident">sc_m</span>.<span class="ident">get_mut</span>(<span class="ident">external_id</span>)
+                            .<span class="ident">expect</span>(<span class="string">&quot;just inserted&quot;</span>)
+                            .<span class="ident">invalid_utf8_allowed</span>(<span class="ident">allow_invalid_utf8</span>);
+                    }
                 }
 
                 <span class="ident">matcher</span>.<span class="ident">subcommand</span>(<span class="ident">SubCommand</span> {
@@ -2080,7 +2028,10 @@
                     <span class="ident">matches</span>: <span class="ident">sc_m</span>.<span class="ident">into_inner</span>(),
                 });
 
-                <span class="kw">return</span> <span class="ident">Validator::new</span>(<span class="self">self</span>).<span class="ident">validate</span>(<span class="ident">parse_state</span>, <span class="ident">matcher</span>, <span class="ident">trailing_values</span>);
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;env&quot;</span>)]</span>
+                <span class="self">self</span>.<span class="ident">add_env</span>(<span class="ident">matcher</span>, <span class="ident">trailing_values</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">add_defaults</span>(<span class="ident">matcher</span>, <span class="ident">trailing_values</span>);
+                <span class="kw">return</span> <span class="ident">Validator::new</span>(<span class="self">self</span>.<span class="ident">cmd</span>).<span class="ident">validate</span>(<span class="ident">parse_state</span>, <span class="ident">matcher</span>);
             } <span class="kw">else</span> {
                 <span class="comment">// Start error processing</span>
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">match_arg_error</span>(<span class="kw-2">&amp;</span><span class="ident">arg_os</span>, <span class="ident">valid_arg_found</span>, <span class="ident">trailing_values</span>));
@@ -2097,7 +2048,10 @@
             <span class="self">self</span>.<span class="ident">parse_subcommand</span>(<span class="kw-2">&amp;</span><span class="ident">sc_name</span>, <span class="ident">matcher</span>, <span class="ident">raw_args</span>, <span class="ident">args_cursor</span>, <span class="ident">keep_state</span>)<span class="question-mark">?</span>;
         }
 
-        <span class="ident">Validator::new</span>(<span class="self">self</span>).<span class="ident">validate</span>(<span class="ident">parse_state</span>, <span class="ident">matcher</span>, <span class="ident">trailing_values</span>)
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;env&quot;</span>)]</span>
+        <span class="self">self</span>.<span class="ident">add_env</span>(<span class="ident">matcher</span>, <span class="ident">trailing_values</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">add_defaults</span>(<span class="ident">matcher</span>, <span class="ident">trailing_values</span>);
+        <span class="ident">Validator::new</span>(<span class="self">self</span>.<span class="ident">cmd</span>).<span class="ident">validate</span>(<span class="ident">parse_state</span>, <span class="ident">matcher</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">match_arg_error</span>(
@@ -2147,10 +2101,7 @@
             <span class="kw">return</span> <span class="ident">ClapError::unrecognized_subcommand</span>(
                 <span class="self">self</span>.<span class="ident">cmd</span>,
                 <span class="ident">arg_os</span>.<span class="ident">display</span>().<span class="ident">to_string</span>(),
-                <span class="self">self</span>.<span class="ident">cmd</span>
-                    .<span class="ident">get_bin_name</span>()
-                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">get_name</span>())
-                    .<span class="ident">to_owned</span>(),
+                <span class="ident">Usage::new</span>(<span class="self">self</span>.<span class="ident">cmd</span>).<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span>[]),
             );
         }
         <span class="ident">ClapError::unknown_argument</span>(
@@ -2231,44 +2182,29 @@
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span><span class="ident">ParseResult</span><span class="op">&gt;</span> {
         <span class="macro">debug!</span>(<span class="string">&quot;Parser::parse_help_subcommand&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bin_name</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">cmd</span>
-            .<span class="ident">get_bin_name</span>()
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">get_name</span>())
-            .<span class="ident">to_owned</span>();
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sc</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sc</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cmd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">sc</span> <span class="op">=</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sc</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">cmd</span>;
 
             <span class="kw">for</span> <span class="ident">cmd</span> <span class="kw">in</span> <span class="ident">cmds</span> {
-                <span class="ident">sc</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">sc</span>.<span class="ident">find_subcommand</span>(<span class="ident">cmd</span>) {
-                    <span class="ident">c</span>
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">sc</span>.<span class="ident">find_subcommand</span>(<span class="kw-2">&amp;</span><span class="ident">cmd</span>.<span class="ident">to_string_lossy</span>()) {
-                    <span class="ident">c</span>
+                <span class="ident">sc</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sc_name</span>) <span class="op">=</span>
+                    <span class="ident">sc</span>.<span class="ident">find_subcommand</span>(<span class="ident">cmd</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">sc</span><span class="op">|</span> <span class="ident">sc</span>.<span class="ident">get_name</span>().<span class="ident">to_owned</span>())
+                {
+                    <span class="ident">sc</span>.<span class="ident">_build_subcommand</span>(<span class="kw-2">&amp;</span><span class="ident">sc_name</span>).<span class="ident">unwrap</span>()
                 } <span class="kw">else</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ClapError::unrecognized_subcommand</span>(
-                        <span class="self">self</span>.<span class="ident">cmd</span>,
+                        <span class="ident">sc</span>,
                         <span class="ident">cmd</span>.<span class="ident">to_string_lossy</span>().<span class="ident">into_owned</span>(),
-                        <span class="self">self</span>.<span class="ident">cmd</span>
-                            .<span class="ident">get_bin_name</span>()
-                            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">get_name</span>())
-                            .<span class="ident">to_owned</span>(),
+                        <span class="ident">Usage::new</span>(<span class="ident">sc</span>).<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span>[]),
                     ));
-                }
-                .<span class="ident">clone</span>();
-
-                <span class="ident">sc</span>.<span class="ident">_build_self</span>();
-                <span class="ident">bin_name</span>.<span class="ident">push</span>(<span class="string">&#39; &#39;</span>);
-                <span class="ident">bin_name</span>.<span class="ident">push_str</span>(<span class="ident">sc</span>.<span class="ident">get_name</span>());
+                };
             }
 
             <span class="ident">sc</span>
         };
-        <span class="ident">sc</span> <span class="op">=</span> <span class="ident">sc</span>.<span class="ident">bin_name</span>(<span class="ident">bin_name</span>);
+        <span class="kw">let</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">Parser::new</span>(<span class="ident">sc</span>);
 
-        <span class="kw">let</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">Parser::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">sc</span>);
-
-        <span class="prelude-val">Err</span>(<span class="ident">parser</span>.<span class="ident">help_err</span>(<span class="bool-val">true</span>))
+        <span class="prelude-val">Err</span>(<span class="ident">parser</span>.<span class="ident">help_err</span>(<span class="bool-val">true</span>, <span class="ident">Stream::Stdout</span>))
     }
 
     <span class="kw">fn</span> <span class="ident">is_new_arg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">next</span>: <span class="kw-2">&amp;</span><span class="ident">clap_lex::ParsedArg</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">current_positional</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span>) -&gt; <span class="ident">bool</span> {
@@ -2286,14 +2222,6 @@
         {
             <span class="comment">// If allow hyphen, this isn&#39;t a new arg.</span>
             <span class="macro">debug!</span>(<span class="string">&quot;Parser::is_new_arg: Allow hyphen&quot;</span>);
-            <span class="bool-val">false</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">is_escape</span>() {
-            <span class="comment">// Ensure we don&#39;t assuming escapes are long args</span>
-            <span class="macro">debug!</span>(<span class="string">&quot;Parser::is_new_arg: -- found&quot;</span>);
-            <span class="bool-val">false</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">is_stdio</span>() {
-            <span class="comment">// Ensure we don&#39;t assume stdio is a short arg</span>
-            <span class="macro">debug!</span>(<span class="string">&quot;Parser::is_new_arg: - found&quot;</span>);
             <span class="bool-val">false</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">is_long</span>() {
             <span class="comment">// If this is a long flag, this is a new arg.</span>
@@ -2426,28 +2354,6 @@
 
         <span class="macro">debug!</span>(<span class="string">&quot;Neither&quot;</span>);
         <span class="prelude-val">None</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">use_long_help</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">debug!</span>(<span class="string">&quot;Parser::use_long_help&quot;</span>);
-        <span class="comment">// In this case, both must be checked. This allows the retention of</span>
-        <span class="comment">// original formatting, but also ensures that the actual -h or --help</span>
-        <span class="comment">// specified by the user is sent through. If hide_short_help is not included,</span>
-        <span class="comment">// then items specified with hidden_short_help will also be hidden.</span>
-        <span class="kw">let</span> <span class="ident">should_long</span> <span class="op">=</span> <span class="op">|</span><span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">|</span> {
-            <span class="ident">v</span>.<span class="ident">long_help</span>.<span class="ident">is_some</span>()
-                <span class="op">|</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">is_hide_long_help_set</span>()
-                <span class="op">|</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">is_hide_short_help_set</span>()
-                <span class="op">|</span><span class="op">|</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-v4&quot;</span>)
-                    <span class="op">&amp;&amp;</span> <span class="ident">v</span>.<span class="ident">possible_vals</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="ident">PossibleValue::should_show_help</span>)
-        };
-
-        <span class="comment">// Subcommands aren&#39;t checked because we prefer short help for them, deferring to</span>
-        <span class="comment">// `cmd subcmd --help` for more.</span>
-        <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">get_long_about</span>().<span class="ident">is_some</span>()
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">get_before_long_help</span>().<span class="ident">is_some</span>()
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">get_after_long_help</span>().<span class="ident">is_some</span>()
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">get_arguments</span>().<span class="ident">any</span>(<span class="ident">should_long</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">parse_long_arg</span>(
@@ -2869,7 +2775,6 @@
         <span class="kw">for</span> <span class="ident">override_id</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">overrides</span> {
             <span class="macro">debug!</span>(<span class="string">&quot;Parser::remove_overrides:iter:{:?}: removing&quot;</span>, <span class="ident">override_id</span>);
             <span class="ident">matcher</span>.<span class="ident">remove</span>(<span class="ident">override_id</span>);
-            <span class="self">self</span>.<span class="ident">overridden</span>.<span class="ident">borrow_mut</span>().<span class="ident">push</span>(<span class="ident">override_id</span>.<span class="ident">clone</span>());
         }
 
         <span class="comment">// Override anything that can override us</span>
@@ -2884,7 +2789,6 @@
         <span class="kw">for</span> <span class="ident">overrider_id</span> <span class="kw">in</span> <span class="ident">transitive</span> {
             <span class="macro">debug!</span>(<span class="string">&quot;Parser::remove_overrides:iter:{:?}: removing&quot;</span>, <span class="ident">overrider_id</span>);
             <span class="ident">matcher</span>.<span class="ident">remove</span>(<span class="ident">overrider_id</span>);
-            <span class="self">self</span>.<span class="ident">overridden</span>.<span class="ident">borrow_mut</span>().<span class="ident">push</span>(<span class="ident">overrider_id</span>.<span class="ident">clone</span>());
         }
     }
 
@@ -3064,7 +2968,7 @@
                 <span class="comment">// Early return on `HelpFlag` or `VersionFlag`.</span>
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">check_for_help_and_version_str</span>(<span class="kw-2">&amp;</span><span class="ident">val</span>) {
                     <span class="prelude-val">Some</span>(<span class="ident">ParseResult::HelpFlag</span>) =&gt; {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">help_err</span>(<span class="bool-val">true</span>));
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">help_err</span>(<span class="bool-val">true</span>, <span class="ident">Stream::Stdout</span>));
                     }
                     <span class="prelude-val">Some</span>(<span class="ident">ParseResult::VersionFlag</span>) =&gt; {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">version_err</span>(<span class="bool-val">true</span>));
@@ -3136,11 +3040,7 @@
         <span class="kw">let</span> <span class="ident">required</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">required_graph</span>();
         <span class="kw">let</span> <span class="ident">used</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Id</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">matcher</span>
             .<span class="ident">arg_names</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> {
-                <span class="self">self</span>.<span class="ident">cmd</span>
-                    .<span class="ident">find</span>(<span class="ident">n</span>)
-                    .<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="op">!</span>(<span class="ident">required</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">id</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">is_hide_set</span>()))
-            })
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">find</span>(<span class="ident">n</span>).<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="op">!</span><span class="ident">a</span>.<span class="ident">is_hide_set</span>()))
             .<span class="ident">cloned</span>()
             .<span class="ident">collect</span>();
 
@@ -3154,26 +3054,10 @@
         )
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">write_help_err</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span><span class="ident">Colorizer</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">Usage::new</span>(<span class="self">self</span>.<span class="ident">cmd</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Colorizer::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">color_help</span>());
-        <span class="ident">Help::new</span>(<span class="ident">HelpWriter::Buffer</span>(<span class="kw-2">&amp;mut</span> <span class="ident">c</span>), <span class="self">self</span>.<span class="ident">cmd</span>, <span class="kw-2">&amp;</span><span class="ident">usage</span>, <span class="bool-val">false</span>).<span class="ident">write_help</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">c</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">help_err</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">use_long</span>: <span class="ident">bool</span>) -&gt; <span class="ident">ClapError</span> {
-        <span class="macro">debug!</span>(
-            <span class="string">&quot;Parser::help_err: use_long={:?}&quot;</span>,
-            <span class="ident">use_long</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">use_long_help</span>()
-        );
-
-        <span class="ident">use_long</span> <span class="op">=</span> <span class="ident">use_long</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">use_long_help</span>();
-        <span class="kw">let</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">Usage::new</span>(<span class="self">self</span>.<span class="ident">cmd</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Colorizer::new</span>(<span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">color_help</span>());
-
-        <span class="kw">match</span> <span class="ident">Help::new</span>(<span class="ident">HelpWriter::Buffer</span>(<span class="kw-2">&amp;mut</span> <span class="ident">c</span>), <span class="self">self</span>.<span class="ident">cmd</span>, <span class="kw-2">&amp;</span><span class="ident">usage</span>, <span class="ident">use_long</span>).<span class="ident">write_help</span>() {
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">into</span>(),
-            <span class="kw">_</span> =&gt; <span class="ident">ClapError::display_help</span>(<span class="self">self</span>.<span class="ident">cmd</span>, <span class="ident">c</span>),
+    <span class="kw">fn</span> <span class="ident">help_err</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">use_long</span>: <span class="ident">bool</span>, <span class="ident">stream</span>: <span class="ident">Stream</span>) -&gt; <span class="ident">ClapError</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">write_help_err</span>(<span class="ident">use_long</span>, <span class="ident">stream</span>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">c</span>) =&gt; <span class="ident">ClapError::display_help</span>(<span class="self">self</span>.<span class="ident">cmd</span>, <span class="ident">c</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>,
         }
     }
 
@@ -3181,7 +3065,7 @@
         <span class="macro">debug!</span>(<span class="string">&quot;Parser::version_err&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">_render_version</span>(<span class="ident">use_long</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Colorizer::new</span>(<span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">color_help</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Colorizer::new</span>(<span class="ident">Stream::Stdout</span>, <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">color_help</span>());
         <span class="ident">c</span>.<span class="ident">none</span>(<span class="ident">msg</span>);
         <span class="ident">ClapError::display_version</span>(<span class="self">self</span>.<span class="ident">cmd</span>, <span class="ident">c</span>)
     }
@@ -3234,5 +3118,5 @@
     <span class="ident">VersionFlag</span>,
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4ca19e09d 2022-04-19)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
 </body></html>
