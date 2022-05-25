@@ -1,9 +1,5 @@
 use log::trace;
-use rustc_hir::{
-  intravisit::{self, Visitor as HirVisitor},
-  itemlikevisit::ItemLikeVisitor,
-  BodyId, ForeignItem, ImplItem, Item, TraitItem,
-};
+use rustc_hir::{intravisit::Visitor, BodyId};
 use rustc_middle::{hir::nested_filter::OnlyBodies, ty::TyCtxt};
 use rustc_span::Span;
 
@@ -14,7 +10,7 @@ struct BodyFinder<'tcx> {
   bodies: Vec<(Span, BodyId)>,
 }
 
-impl<'tcx> HirVisitor<'tcx> for BodyFinder<'tcx> {
+impl<'tcx> Visitor<'tcx> for BodyFinder<'tcx> {
   type NestedFilter = OnlyBodies;
 
   fn nested_visit_map(&mut self) -> Self::Map {
@@ -52,29 +48,13 @@ impl<'tcx> HirVisitor<'tcx> for BodyFinder<'tcx> {
   }
 }
 
-impl<'tcx> ItemLikeVisitor<'tcx> for BodyFinder<'tcx> {
-  fn visit_item(&mut self, item: &'tcx Item<'tcx>) {
-    intravisit::walk_item(self, item);
-  }
-
-  fn visit_impl_item(&mut self, impl_item: &'tcx ImplItem<'tcx>) {
-    intravisit::walk_impl_item(self, impl_item);
-  }
-
-  fn visit_trait_item(&mut self, trait_item: &'tcx TraitItem<'tcx>) {
-    intravisit::walk_trait_item(self, trait_item);
-  }
-
-  fn visit_foreign_item(&mut self, _foreign_item: &'tcx ForeignItem<'tcx>) {}
-}
-
 pub fn find_bodies(tcx: TyCtxt) -> Vec<(Span, BodyId)> {
   block_timer!("find_bodies");
   let mut finder = BodyFinder {
     tcx,
     bodies: Vec::new(),
   };
-  tcx.hir().visit_all_item_likes(&mut finder);
+  tcx.hir().deep_visit_all_item_likes(&mut finder);
   finder.bodies
 }
 

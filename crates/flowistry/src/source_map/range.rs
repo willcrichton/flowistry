@@ -6,7 +6,6 @@ use anyhow::{bail, Context, Result};
 use rustc_data_structures::{fx::FxHashMap as HashMap, sync::Lrc};
 use rustc_hir::{
   intravisit::{self, Visitor},
-  itemlikevisit::ItemLikeVisitor,
   BodyId,
 };
 use rustc_middle::ty::TyCtxt;
@@ -90,28 +89,12 @@ fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
     }
   }
 
-  impl<'hir, 'tcx> ItemLikeVisitor<'hir> for Finder<'tcx>
-  where
-    'hir: 'tcx,
-  {
-    fn visit_item(&mut self, item: &'hir rustc_hir::Item<'hir>) {
-      <Self as Visitor<'tcx>>::visit_item(self, item);
-    }
-
-    fn visit_impl_item(&mut self, impl_item: &'hir rustc_hir::ImplItem<'hir>) {
-      <Self as Visitor<'tcx>>::visit_impl_item(self, impl_item);
-    }
-
-    fn visit_trait_item(&mut self, _trait_item: &'hir rustc_hir::TraitItem<'hir>) {}
-    fn visit_foreign_item(&mut self, _foreign_item: &'hir rustc_hir::ForeignItem<'hir>) {}
-  }
-
   let mut finder = Finder {
     tcx,
     qpath,
     span: None,
   };
-  tcx.hir().visit_all_item_likes(&mut finder);
+  tcx.hir().deep_visit_all_item_likes(&mut finder);
   finder
     .span
     .with_context(|| format!("No function with qpath {}", finder.qpath))

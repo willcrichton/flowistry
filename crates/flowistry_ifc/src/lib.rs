@@ -17,8 +17,11 @@ use std::io::Write;
 
 use analysis::IssueFound;
 use flowistry::{infoflow, mir::borrowck_facts};
-use rustc_hir::{itemlikevisit::ItemLikeVisitor, ImplItemKind, ItemKind};
-use rustc_middle::ty::TyCtxt;
+use rustc_hir::{
+  intravisit::{self, Visitor},
+  BodyId,
+};
+use rustc_middle::{hir::nested_filter::OnlyBodies, ty::TyCtxt};
 use rustc_plugin::{RustcPlugin, RustcPluginArgs};
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 pub struct IfcPlugin;
@@ -47,39 +50,29 @@ impl RustcPlugin for IfcPlugin {
   }
 }
 
-pub struct Visitor<'tcx> {
+pub struct IfcVisitor<'tcx> {
   tcx: TyCtxt<'tcx>,
   issue_found: IssueFound,
 }
 
-impl Visitor<'_> {
-  fn analyze(&mut self, body_id: &rustc_hir::BodyId) {
+impl<'tcx> Visitor<'tcx> for IfcVisitor<'tcx> {
+  type NestedFilter = OnlyBodies;
+
+  fn nested_visit_map(&mut self) -> Self::Map {
+    self.tcx.hir()
+  }
+
+  fn visit_nested_body(&mut self, body_id: BodyId) {
+    intravisit::walk_body(self, self.tcx.hir().body(body_id));
+
     let tcx = self.tcx;
-    let local_def_id = tcx.hir().body_owner_def_id(*body_id);
+    let local_def_id = tcx.hir().body_owner_def_id(body_id);
     let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, local_def_id);
-    let flow = &infoflow::compute_flow(tcx, *body_id, body_with_facts);
-    if let IssueFound::Yes = analysis::analyze(body_id, flow).unwrap() {
+    let flow = &infoflow::compute_flow(tcx, body_id, body_with_facts);
+    if let IssueFound::Yes = analysis::analyze(&body_id, flow).unwrap() {
       self.issue_found = IssueFound::Yes;
     }
   }
-}
-
-impl<'tcx> ItemLikeVisitor<'tcx> for Visitor<'tcx> {
-  fn visit_item(&mut self, item: &'tcx rustc_hir::Item<'tcx>) {
-    if let ItemKind::Fn(_, _, body_id) = &item.kind {
-      self.analyze(body_id);
-    }
-  }
-
-  fn visit_impl_item(&mut self, impl_item: &'tcx rustc_hir::ImplItem<'tcx>) {
-    if let ImplItemKind::Fn(_, body_id) = &impl_item.kind {
-      self.analyze(body_id);
-    }
-  }
-
-  fn visit_trait_item(&mut self, _trait_item: &'tcx rustc_hir::TraitItem<'tcx>) {}
-
-  fn visit_foreign_item(&mut self, _foreign_item: &'tcx rustc_hir::ForeignItem<'tcx>) {}
 }
 
 pub struct Callbacks;
@@ -94,11 +87,11 @@ impl rustc_driver::Callbacks for Callbacks {
     queries: &'tcx rustc_interface::Queries<'tcx>,
   ) -> rustc_driver::Compilation {
     queries.global_ctxt().unwrap().take().enter(|tcx| {
-      let mut visitor = Visitor {
+      let mut visitor = IfcVisitor {
         tcx,
         issue_found: IssueFound::No,
       };
-      tcx.hir().visit_all_item_likes(&mut visitor);
+      tcx.hir().deep_visit_all_item_likes(&mut visitor);
 
       if let IssueFound::No = visitor.issue_found {
         let mut stdout = StandardStream::stderr(ColorChoice::Auto);
