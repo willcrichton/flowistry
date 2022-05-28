@@ -26,7 +26,7 @@ use rustc_middle::{
 use crate::{
   block_timer,
   cached::{Cache, CopyCache},
-  extensions::{is_extension_active, PointerMode},
+  extensions::{is_extension_active, MutabilityMode, PointerMode},
   indexed::{
     impls::{LocationDomain, LocationIndex, LocationSet, PlaceSet},
     IndexMatrix, RefSet,
@@ -644,9 +644,14 @@ impl<'tcx> TypeVisitor<'tcx> for LoanCollector<'_, 'tcx> {
     };
     if let Some(loans) = self.aliases.loans.get(&region) {
       let under_immut_ref = self.stack.iter().any(|m| *m == Mutability::Not);
+      let ignore_mut =
+        is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
       self
         .loans
         .extend(loans.iter().filter_map(|(place, mutability)| {
+          if ignore_mut {
+            return Some(place);
+          }
           let loan_mutability = if under_immut_ref {
             Mutability::Not
           } else {
