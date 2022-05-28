@@ -539,20 +539,21 @@ struct CollectRegions<'tcx> {
 
 impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
   fn visit_ty(&mut self, ty: Ty<'tcx>) -> ControlFlow<Self::BreakTy> {
+    let tcx = self.tcx;
     if self.ty_stack.iter().any(|visited_ty| ty == *visited_ty) {
       return ControlFlow::Continue(());
     }
 
     trace!(
       "exploring {:?} with {ty:?}",
-      Place::make(self.local, &self.place_stack, self.tcx)
+      Place::make(self.local, &self.place_stack, tcx)
     );
 
     self.ty_stack.push(ty);
 
     match ty.kind() {
       _ if ty.is_box() => {
-        self.visit_region(self.tcx.mk_region(RegionKind::ReVar(UNKNOWN_REGION)));
+        self.visit_region(tcx.mk_region(RegionKind::ReVar(UNKNOWN_REGION)));
         self.place_stack.push(ProjectionElem::Deref);
         self.visit_ty(ty.boxed_ty());
         self.place_stack.pop();
@@ -571,11 +572,11 @@ impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
       TyKind::Adt(adt_def, subst) => match adt_def.adt_kind() {
         ty::AdtKind::Struct => {
           for (i, field) in adt_def.all_fields().enumerate() {
-            if !field.vis.is_accessible_from(self.def_id, self.tcx) {
+            if !field.vis.is_accessible_from(self.def_id, tcx) {
               continue;
             }
 
-            let ty = field.ty(self.tcx, subst);
+            let ty = field.ty(tcx, subst);
             self
               .place_stack
               .push(ProjectionElem::Field(Field::from_usize(i), ty));
@@ -590,12 +591,12 @@ impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
           for (i, variant) in adt_def.variants().iter().enumerate() {
             let variant_index = VariantIdx::from_usize(i);
             let cast = PlaceElem::Downcast(
-              Some(adt_def.variant(variant_index).ident(self.tcx).name),
+              Some(adt_def.variant(variant_index).ident(tcx).name),
               variant_index,
             );
             self.place_stack.push(cast);
             for (j, field) in variant.fields.iter().enumerate() {
-              let ty = field.ty(self.tcx, subst);
+              let ty = field.ty(tcx, subst);
               let field = ProjectionElem::Field(Field::from_usize(j), ty);
               self.place_stack.push(field);
               self.visit_ty(ty);
@@ -632,7 +633,7 @@ impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
       }
 
       TyKind::RawPtr(TypeAndMut { ty, .. }) => {
-        self.visit_region(self.tcx.mk_region(RegionKind::ReVar(UNKNOWN_REGION)));
+        self.visit_region(tcx.mk_region(RegionKind::ReVar(UNKNOWN_REGION)));
         self.place_stack.push(ProjectionElem::Deref);
         self.visit_ty(*ty);
         self.place_stack.pop();
@@ -654,8 +655,37 @@ impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
       }
     };
 
+    // let inherent_impls = tcx.inherent_impls(self.def_id);
+    // let traits = tcx.infer_ctxt().enter(|infcx| {
+    //   let param_env = tcx.param_env(self.def_id);
+    //   self
+    //     .tcx
+    //     .all_traits()
+    //     .filter(|trait_def_id| {
+    //       let result = infcx.type_implements_trait(*trait_def_id, ty, params, param_env);
+    //       matches!(
+    //         result,
+    //         EvaluationResult::EvaluatedToOk
+    //           | EvaluationResult::EvaluatedToOkModuloRegions
+    //       )
+    //     })
+    //     .collect::<Vec<_>>()
+    // });
+
+    // let fns = inherent_impls.iter().chain(&traits).flat_map(|def_id| {
+    //   let items = tcx.associated_items(def_id).in_definition_order();
+    //   items.filter_map(|item| match item.kind {
+    //     AssocKind::Fn => Some(tcx.fn_sig(item.def_id)),
+    //     _ => None,
+    //   })
+    // });
+
+    // // for f in fns {
+    // //   f.
+    // // }
+
     if let Some(places) = self.places.as_mut() {
-      places.insert(Place::make(self.local, &self.place_stack, self.tcx));
+      places.insert(Place::make(self.local, &self.place_stack, tcx));
     }
 
     if let Some(types) = self.types.as_mut() {
@@ -927,56 +957,15 @@ impl SpanDataExt for SpanData {
   }
 }
 
-// #[derive(Debug)]
-// struct Loop {
-//   header: Location,
-//   body: LocationSet,
-// }
+pub trait MutabilityExt {
+  fn more_permissive_than(self, other: Self) -> bool;
+}
 
-// fn find_loops(
-//   body: &Body,
-//   location_domain: &Rc<LocationDomain>,
-// ) -> (Vec<Loop>, LocationSet) {
-//   let mut loops = vec![];
-//   for node in body.basic_blocks().indices() {
-//     for successor in body.successors(node) {
-//       if body.dominators().is_dominated_by(node, successor) {
-//         let mut loop_body = HashSet::default();
-//         loop_body.insert(successor);
-
-//         let mut stack = vec![node];
-//         while !stack.is_empty() {
-//           let n = stack.pop().unwrap();
-//           loop_body.insert(n);
-//           stack.extend(
-//             body.predecessors()[n]
-//               .iter()
-//               .filter(|p| **p != successor && !loop_body.contains(p))
-//               .copied(),
-//           );
-//         }
-
-//         loops.push(Loop {
-//           header: successor.start_location(),
-//           body: loop_body
-//             .into_iter()
-//             .map(|block| body.locations_in_block(block))
-//             .flatten()
-//             .collect_indices(location_domain.clone()),
-//         });
-//       }
-//     }
-//   }
-
-//   let mut outer = body
-//     .all_locations()
-//     .collect_indices(location_domain.clone());
-//   for l in &loops {
-//     outer.subtract(&l.body);
-//   }
-
-//   (loops, outer)
-// }
+impl MutabilityExt for Mutability {
+  fn more_permissive_than(self, other: Self) -> bool {
+    !matches!((self, other), (Mutability::Not, Mutability::Mut))
+  }
+}
 
 #[cfg(test)]
 mod test {

@@ -1,4 +1,4 @@
-use std::{hash::Hash, rc::Rc, time::Instant};
+use std::{hash::Hash, ops::ControlFlow, rc::Rc, time::Instant};
 
 use log::{debug, info};
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
@@ -17,18 +17,21 @@ use rustc_middle::{
     visit::{PlaceContext, Visitor},
     *,
   },
-  ty::{Region, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeAndMut},
+  ty::{
+    Region, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeAndMut, TypeFoldable,
+    TypeVisitor,
+  },
 };
 
 use crate::{
   block_timer,
   cached::{Cache, CopyCache},
-  extensions::{is_extension_active, MutabilityMode, PointerMode},
+  extensions::{is_extension_active, PointerMode},
   indexed::{
     impls::{LocationDomain, LocationIndex, LocationSet, PlaceSet},
     IndexMatrix, RefSet,
   },
-  mir::utils::{self, PlaceExt},
+  mir::utils::{self, MutabilityExt, PlaceExt},
   timer::elapsed,
 };
 
@@ -128,7 +131,8 @@ impl<'tcx> Visitor<'tcx> for FindPlaces<'_, 'tcx> {
   }
 }
 
-type LoanMap<'tcx> = HashMap<RegionVid, HashSet<Place<'tcx>>>;
+type LoanSet<'tcx> = HashSet<(Place<'tcx>, Mutability)>;
+type LoanMap<'tcx> = HashMap<RegionVid, LoanSet<'tcx>>;
 
 pub const UNKNOWN_REGION: RegionVid = RegionVid::MAX;
 
@@ -228,9 +232,12 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     //   Else:            definite('a, ty(p),  p^[]).
     let mut gather_borrows = GatherBorrows::default();
     gather_borrows.visit_body(&body_with_facts.body);
-    for (region, _, place) in gather_borrows.borrows {
+    for (region, kind, place) in gather_borrows.borrows {
       if place.is_direct(body) {
-        contains.entry(region).or_default().insert(place);
+        contains
+          .entry(region)
+          .or_default()
+          .insert((place, kind.to_mutbl_lossy()));
       }
 
       let def = match place.refs_in_projection().first() {
@@ -246,30 +253,30 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
       definite.insert(region, def);
     }
 
-    // For all args p : &'a T where 'a is abstract: contains('a, *p).
+    // For all args p : &'a ω T where 'a is abstract: contains('a, *p, ω).
     for arg in body.args_iter() {
       for (region, places) in
         Place::from_local(arg, tcx).interior_pointers(tcx, body, def_id)
       {
         let region_contains = contains.entry(region).or_default();
-        for (place, _) in places {
+        for (place, mutability) in places {
           // WARNING / TODO: this is a huge hack (that is conjoined w/ all_args).
           // Need a way to limit the number of possible pointers for functions with
           // many pointers in the input. This is almost certainly not sound, but hopefully
           // it works for most cases.
           if place.projection.len() <= 2 {
-            region_contains.insert(tcx.mk_place_deref(place));
+            region_contains.insert((tcx.mk_place_deref(place), mutability));
           }
         }
       }
     }
 
-    // For all places p : *T or p : Box<T>: contains('UNK, *p).
+    // For all places p : *T or p : Box<T>: contains('UNK, *p, mut).
     let unk_contains = contains.entry(UNKNOWN_REGION).or_default();
     for (region, places) in &all_pointers {
       if *region == UNKNOWN_REGION {
         for (place, _) in places {
-          unk_contains.insert(tcx.mk_place_deref(*place));
+          unk_contains.insert((tcx.mk_place_deref(*place), Mutability::Mut));
         }
       }
     }
@@ -300,11 +307,11 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     let scc_order = reverse_post_order(&subset_sccs, subset_sccs.scc(static_region));
     elapsed("relation construction", start);
 
-    // Subset implies containment: p ∈ 'a ∧ 'a ⊆ 'b ⇒ p ∈ 'b
-    // i.e. contains('b, p) :- contains('a, p), subset('a, 'b).
+    // Subset implies containment: l ∈ 'a ∧ 'a ⊆ 'b ⇒ l ∈ 'b
+    // i.e. contains('b, l) :- contains('a, l), subset('a, 'b).
     //
-    // contains('b, p2^[p]) :-
-    //   contains('a, p), subset('a, 'b),
+    // contains('b, p2^[p], ω) :-
+    //   contains('a, p, ω), subset('a, 'b),
     //   definite('b, T, p2^[]), !subset('b, 'a), p : T.
     //
     // If 'a is from a borrow expression &'a proj[*p'], then we add proj to all inherited aliases.
@@ -342,14 +349,14 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
 
             // SAFETY: a != b
             let a_contains =
-              unsafe { &*(contains.get(&a).unwrap() as *const PlaceSet<'tcx>) };
+              unsafe { &*(contains.get(&a).unwrap() as *const LoanSet<'tcx>) };
             let b_contains =
-              unsafe { &mut *(contains.get_mut(&b).unwrap() as *mut PlaceSet<'tcx>) };
+              unsafe { &mut *(contains.get_mut(&b).unwrap() as *mut LoanSet<'tcx>) };
 
             let cyclic = scc.contains(b);
             match definite.get(&b) {
               Some((ty, proj)) if !cyclic => {
-                for p in a_contains.iter() {
+                for (p, mutability) in a_contains.iter() {
                   let p_ty = p.ty(body.local_decls(), tcx).ty;
                   let p_proj = if *ty == p_ty {
                     let mut full_proj = p.projection.to_vec();
@@ -359,7 +366,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
                     *p
                   };
 
-                  changed |= b_contains.insert(p_proj);
+                  changed |= b_contains.insert((p_proj, *mutability));
                 }
               }
               _ => {
@@ -454,7 +461,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
         .map(|loans| loans.iter())
         .into_iter()
         .flatten();
-      let region_aliases = region_loans.map(|loan| {
+      let region_aliases = region_loans.map(|(loan, _)| {
         let loan_ty = loan.ty(self.body.local_decls(), self.tcx).ty;
         if orig_ty == loan_ty {
           let mut projection = loan.projection.to_vec();
@@ -492,35 +499,30 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     })
   }
 
+  fn collect_loans(&self, ty: Ty<'tcx>, mutability: Mutability) -> PlaceSet<'tcx> {
+    let mut collector = LoanCollector {
+      aliases: self,
+      unknown_region: self.tcx.mk_region(RegionKind::ReVar(UNKNOWN_REGION)),
+      target_mutability: mutability,
+      stack: vec![],
+      loans: PlaceSet::default(),
+    };
+    collector.visit_ty(ty);
+    collector.loans
+  }
+
   pub fn reachable_values(
     &self,
     place: Place<'tcx>,
     mutability: Mutability,
   ) -> &PlaceSet<'tcx> {
     self.reachable_cache.get((place, mutability), |_| {
-      let interior_pointer_places = place
-        .interior_pointers(self.tcx, self.body, self.def_id)
-        .into_values()
-        .flat_map(|v| {
-          v.into_iter().filter_map(|(place, place_mutability)| {
-            match (
-              is_extension_active(|mode| {
-                mode.mutability_mode == MutabilityMode::IgnoreMut
-              }),
-              mutability,
-              place_mutability,
-            ) {
-              (true, _, _)
-              | (_, Mutability::Not, _)
-              | (_, Mutability::Mut, Mutability::Mut) => Some(place),
-              _ => None,
-            }
-          })
-        });
-
-      interior_pointer_places
-        .flat_map(|place| self.aliases(self.tcx.mk_place_deref(place)).iter().copied())
-        .chain(self.aliases(place).iter().copied())
+      let ty = place.ty(self.body.local_decls(), self.tcx).ty;
+      let loans = self.collect_loans(ty, mutability);
+      loans
+        .into_iter()
+        .chain([place])
+        .flat_map(|place| self.aliases(place).iter().copied())
         .filter(|place| {
           if let Some((place, _)) = place.refs_in_projection().last() {
             let ty = place.ty(self.body.local_decls(), self.tcx).ty;
@@ -528,7 +530,6 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
               return true;
             }
           }
-
           place.is_direct(self.body)
         })
         .collect()
@@ -599,6 +600,66 @@ pub fn generate_conservative_constraints<'tcx>(
         .collect::<Vec<_>>()
     })
     .collect::<Vec<_>>()
+}
+
+// TODO: this visitor shares some structure with the PlaceCollector in mir utils.
+// Can we consolidate these?
+struct LoanCollector<'a, 'tcx> {
+  aliases: &'a Aliases<'a, 'tcx>,
+  unknown_region: Region<'tcx>,
+  target_mutability: Mutability,
+  stack: Vec<Mutability>,
+  loans: PlaceSet<'tcx>,
+}
+
+impl<'tcx> TypeVisitor<'tcx> for LoanCollector<'_, 'tcx> {
+  type BreakTy = ();
+
+  fn visit_ty(&mut self, ty: Ty<'tcx>) -> ControlFlow<Self::BreakTy> {
+    match ty.kind() {
+      TyKind::Ref(_, _, mutability) => {
+        self.stack.push(*mutability);
+        ty.super_visit_with(self);
+        self.stack.pop();
+        return ControlFlow::Break(());
+      }
+      _ if ty.is_box() || ty.is_unsafe_ptr() => {
+        self.visit_region(self.unknown_region);
+      }
+      _ => {}
+    };
+
+    ty.super_visit_with(self);
+    ControlFlow::Continue(())
+  }
+
+  fn visit_region(&mut self, region: Region<'tcx>) -> ControlFlow<Self::BreakTy> {
+    let region = match region.kind() {
+      RegionKind::ReVar(region) => region,
+      RegionKind::ReStatic => RegionVid::from_usize(0),
+      RegionKind::ReErased => {
+        return ControlFlow::Continue(());
+      }
+      _ => unreachable!("{region:?}"),
+    };
+    if let Some(loans) = self.aliases.loans.get(&region) {
+      let under_immut_ref = self.stack.iter().any(|m| *m == Mutability::Not);
+      self
+        .loans
+        .extend(loans.iter().filter_map(|(place, mutability)| {
+          let loan_mutability = if under_immut_ref {
+            Mutability::Not
+          } else {
+            *mutability
+          };
+          loan_mutability
+            .more_permissive_than(self.target_mutability)
+            .then(|| place)
+        }))
+    }
+
+    ControlFlow::Continue(())
+  }
 }
 
 #[cfg(test)]
