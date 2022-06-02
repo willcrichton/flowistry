@@ -74,12 +74,14 @@ fn analysis<'tcx>(
   //    mapping MIR back to source. That's the Spanner class and the
   //    location_to_span method.
   println!("The forward dependencies of targets {targets:?} are:");
-  let spanner = Spanner::new(tcx, body_id, &body_with_facts.body);
+  let body = &body_with_facts.body;
+  let spanner = Spanner::new(tcx, body_id, body);
   let source_map = tcx.sess.source_map();
   for location in location_deps.iter() {
     let spans = Span::merge_overlaps(spanner.location_to_spans(
       *location,
       results.analysis.location_domain(),
+      body,
       EnclosingHirSpans::OuterOnly,
     ));
     println!("Location {location:?}:");

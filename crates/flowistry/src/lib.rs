@@ -71,7 +71,7 @@ extern crate rustc_target;
 extern crate rustc_trait_selection;
 extern crate smallvec;
 
-mod cached;
+pub mod cached;
 pub mod extensions;
 pub mod indexed;
 pub mod infoflow;

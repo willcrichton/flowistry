@@ -292,7 +292,7 @@ pub fn test_command_output(
   expected: Option<&Path>,
   output_fn: impl for<'a, 'hir, 'tcx> Fn(
       infoflow::FlowResults<'a, 'tcx>,
-      Spanner<'a, 'hir, 'tcx>,
+      Spanner<'hir, 'tcx>,
       Span,
     ) -> Vec<Span>
     + Send

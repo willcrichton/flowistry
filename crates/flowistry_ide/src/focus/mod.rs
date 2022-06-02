@@ -77,6 +77,7 @@ pub fn focus(tcx: TyCtxt, body_id: BodyId) -> Result<FocusOutput> {
           spanner.location_to_spans(
             location,
             location_domain,
+            body,
             source_map::EnclosingHirSpans::None,
           )
         })
