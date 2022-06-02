@@ -1007,17 +1007,6 @@
 <span id="984">984</span>
 <span id="985">985</span>
 <span id="986">986</span>
-<span id="987">987</span>
-<span id="988">988</span>
-<span id="989">989</span>
-<span id="990">990</span>
-<span id="991">991</span>
-<span id="992">992</span>
-<span id="993">993</span>
-<span id="994">994</span>
-<span id="995">995</span>
-<span id="996">996</span>
-<span id="997">997</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
   <span class="ident">cmp</span>,
   <span class="ident">collections::hash_map::Entry</span>,
@@ -1559,20 +1548,21 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">TypeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CollectRegions</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
   <span class="kw">fn</span> <span class="ident">visit_ty</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BreakTy</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">tcx</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcx</span>;
     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ty_stack</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">visited_ty</span><span class="op">|</span> <span class="ident">ty</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">visited_ty</span>) {
       <span class="kw">return</span> <span class="ident">ControlFlow::Continue</span>(());
     }
 
     <span class="macro">trace!</span>(
       <span class="string">&quot;exploring {:?} with {ty:?}&quot;</span>,
-      <span class="ident">Place::make</span>(<span class="self">self</span>.<span class="ident">local</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">place_stack</span>, <span class="self">self</span>.<span class="ident">tcx</span>)
+      <span class="ident">Place::make</span>(<span class="self">self</span>.<span class="ident">local</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">place_stack</span>, <span class="ident">tcx</span>)
     );
 
     <span class="self">self</span>.<span class="ident">ty_stack</span>.<span class="ident">push</span>(<span class="ident">ty</span>);
 
     <span class="kw">match</span> <span class="ident">ty</span>.<span class="ident">kind</span>() {
       <span class="kw">_</span> <span class="kw">if</span> <span class="ident">ty</span>.<span class="ident">is_box</span>() =&gt; {
-        <span class="self">self</span>.<span class="ident">visit_region</span>(<span class="self">self</span>.<span class="ident">tcx</span>.<span class="ident">mk_region</span>(<span class="ident">RegionKind::ReVar</span>(<span class="ident">UNKNOWN_REGION</span>)));
+        <span class="self">self</span>.<span class="ident">visit_region</span>(<span class="ident">tcx</span>.<span class="ident">mk_region</span>(<span class="ident">RegionKind::ReVar</span>(<span class="ident">UNKNOWN_REGION</span>)));
         <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">push</span>(<span class="ident">ProjectionElem::Deref</span>);
         <span class="self">self</span>.<span class="ident">visit_ty</span>(<span class="ident">ty</span>.<span class="ident">boxed_ty</span>());
         <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">pop</span>();
@@ -1591,11 +1581,11 @@
       <span class="ident">TyKind::Adt</span>(<span class="ident">adt_def</span>, <span class="ident">subst</span>) =&gt; <span class="kw">match</span> <span class="ident">adt_def</span>.<span class="ident">adt_kind</span>() {
         <span class="ident">ty::AdtKind::Struct</span> =&gt; {
           <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">field</span>) <span class="kw">in</span> <span class="ident">adt_def</span>.<span class="ident">all_fields</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">field</span>.<span class="ident">vis</span>.<span class="ident">is_accessible_from</span>(<span class="self">self</span>.<span class="ident">def_id</span>, <span class="self">self</span>.<span class="ident">tcx</span>) {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">field</span>.<span class="ident">vis</span>.<span class="ident">is_accessible_from</span>(<span class="self">self</span>.<span class="ident">def_id</span>, <span class="ident">tcx</span>) {
               <span class="kw">continue</span>;
             }
 
-            <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">ty</span>(<span class="self">self</span>.<span class="ident">tcx</span>, <span class="ident">subst</span>);
+            <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">ty</span>(<span class="ident">tcx</span>, <span class="ident">subst</span>);
             <span class="self">self</span>
               .<span class="ident">place_stack</span>
               .<span class="ident">push</span>(<span class="ident">ProjectionElem::Field</span>(<span class="ident">Field::from_usize</span>(<span class="ident">i</span>), <span class="ident">ty</span>));
@@ -1610,12 +1600,12 @@
           <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">variant</span>) <span class="kw">in</span> <span class="ident">adt_def</span>.<span class="ident">variants</span>().<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="kw">let</span> <span class="ident">variant_index</span> <span class="op">=</span> <span class="ident">VariantIdx::from_usize</span>(<span class="ident">i</span>);
             <span class="kw">let</span> <span class="ident">cast</span> <span class="op">=</span> <span class="ident">PlaceElem::Downcast</span>(
-              <span class="prelude-val">Some</span>(<span class="ident">adt_def</span>.<span class="ident">variant</span>(<span class="ident">variant_index</span>).<span class="ident">ident</span>(<span class="self">self</span>.<span class="ident">tcx</span>).<span class="ident">name</span>),
+              <span class="prelude-val">Some</span>(<span class="ident">adt_def</span>.<span class="ident">variant</span>(<span class="ident">variant_index</span>).<span class="ident">ident</span>(<span class="ident">tcx</span>).<span class="ident">name</span>),
               <span class="ident">variant_index</span>,
             );
             <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">push</span>(<span class="ident">cast</span>);
             <span class="kw">for</span> (<span class="ident">j</span>, <span class="ident">field</span>) <span class="kw">in</span> <span class="ident">variant</span>.<span class="ident">fields</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-              <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">ty</span>(<span class="self">self</span>.<span class="ident">tcx</span>, <span class="ident">subst</span>);
+              <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">ty</span>(<span class="ident">tcx</span>, <span class="ident">subst</span>);
               <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">ProjectionElem::Field</span>(<span class="ident">Field::from_usize</span>(<span class="ident">j</span>), <span class="ident">ty</span>);
               <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">push</span>(<span class="ident">field</span>);
               <span class="self">self</span>.<span class="ident">visit_ty</span>(<span class="ident">ty</span>);
@@ -1652,7 +1642,7 @@
       }
 
       <span class="ident">TyKind::RawPtr</span>(<span class="ident">TypeAndMut</span> { <span class="ident">ty</span>, .. }) =&gt; {
-        <span class="self">self</span>.<span class="ident">visit_region</span>(<span class="self">self</span>.<span class="ident">tcx</span>.<span class="ident">mk_region</span>(<span class="ident">RegionKind::ReVar</span>(<span class="ident">UNKNOWN_REGION</span>)));
+        <span class="self">self</span>.<span class="ident">visit_region</span>(<span class="ident">tcx</span>.<span class="ident">mk_region</span>(<span class="ident">RegionKind::ReVar</span>(<span class="ident">UNKNOWN_REGION</span>)));
         <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">push</span>(<span class="ident">ProjectionElem::Deref</span>);
         <span class="self">self</span>.<span class="ident">visit_ty</span>(<span class="kw-2">*</span><span class="ident">ty</span>);
         <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">pop</span>();
@@ -1674,8 +1664,37 @@
       }
     };
 
+    <span class="comment">// let inherent_impls = tcx.inherent_impls(self.def_id);</span>
+    <span class="comment">// let traits = tcx.infer_ctxt().enter(|infcx| {</span>
+    <span class="comment">//   let param_env = tcx.param_env(self.def_id);</span>
+    <span class="comment">//   self</span>
+    <span class="comment">//     .tcx</span>
+    <span class="comment">//     .all_traits()</span>
+    <span class="comment">//     .filter(|trait_def_id| {</span>
+    <span class="comment">//       let result = infcx.type_implements_trait(*trait_def_id, ty, params, param_env);</span>
+    <span class="comment">//       matches!(</span>
+    <span class="comment">//         result,</span>
+    <span class="comment">//         EvaluationResult::EvaluatedToOk</span>
+    <span class="comment">//           | EvaluationResult::EvaluatedToOkModuloRegions</span>
+    <span class="comment">//       )</span>
+    <span class="comment">//     })</span>
+    <span class="comment">//     .collect::&lt;Vec&lt;_&gt;&gt;()</span>
+    <span class="comment">// });</span>
+
+    <span class="comment">// let fns = inherent_impls.iter().chain(&amp;traits).flat_map(|def_id| {</span>
+    <span class="comment">//   let items = tcx.associated_items(def_id).in_definition_order();</span>
+    <span class="comment">//   items.filter_map(|item| match item.kind {</span>
+    <span class="comment">//     AssocKind::Fn =&gt; Some(tcx.fn_sig(item.def_id)),</span>
+    <span class="comment">//     _ =&gt; None,</span>
+    <span class="comment">//   })</span>
+    <span class="comment">// });</span>
+
+    <span class="comment">// // for f in fns {</span>
+    <span class="comment">// //   f.</span>
+    <span class="comment">// // }</span>
+
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">places</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">places</span>.<span class="ident">as_mut</span>() {
-      <span class="ident">places</span>.<span class="ident">insert</span>(<span class="ident">Place::make</span>(<span class="self">self</span>.<span class="ident">local</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">place_stack</span>, <span class="self">self</span>.<span class="ident">tcx</span>));
+      <span class="ident">places</span>.<span class="ident">insert</span>(<span class="ident">Place::make</span>(<span class="self">self</span>.<span class="ident">local</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">place_stack</span>, <span class="ident">tcx</span>));
     }
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">types</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">types</span>.<span class="ident">as_mut</span>() {
@@ -1947,56 +1966,15 @@
   }
 }
 
-<span class="comment">// #[derive(Debug)]</span>
-<span class="comment">// struct Loop {</span>
-<span class="comment">//   header: Location,</span>
-<span class="comment">//   body: LocationSet,</span>
-<span class="comment">// }</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">MutabilityExt</span> {
+  <span class="kw">fn</span> <span class="ident">more_permissive_than</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="ident">bool</span>;
+}
 
-<span class="comment">// fn find_loops(</span>
-<span class="comment">//   body: &amp;Body,</span>
-<span class="comment">//   location_domain: &amp;Rc&lt;LocationDomain&gt;,</span>
-<span class="comment">// ) -&gt; (Vec&lt;Loop&gt;, LocationSet) {</span>
-<span class="comment">//   let mut loops = vec![];</span>
-<span class="comment">//   for node in body.basic_blocks().indices() {</span>
-<span class="comment">//     for successor in body.successors(node) {</span>
-<span class="comment">//       if body.dominators().is_dominated_by(node, successor) {</span>
-<span class="comment">//         let mut loop_body = HashSet::default();</span>
-<span class="comment">//         loop_body.insert(successor);</span>
-
-<span class="comment">//         let mut stack = vec![node];</span>
-<span class="comment">//         while !stack.is_empty() {</span>
-<span class="comment">//           let n = stack.pop().unwrap();</span>
-<span class="comment">//           loop_body.insert(n);</span>
-<span class="comment">//           stack.extend(</span>
-<span class="comment">//             body.predecessors()[n]</span>
-<span class="comment">//               .iter()</span>
-<span class="comment">//               .filter(|p| **p != successor &amp;&amp; !loop_body.contains(p))</span>
-<span class="comment">//               .copied(),</span>
-<span class="comment">//           );</span>
-<span class="comment">//         }</span>
-
-<span class="comment">//         loops.push(Loop {</span>
-<span class="comment">//           header: successor.start_location(),</span>
-<span class="comment">//           body: loop_body</span>
-<span class="comment">//             .into_iter()</span>
-<span class="comment">//             .map(|block| body.locations_in_block(block))</span>
-<span class="comment">//             .flatten()</span>
-<span class="comment">//             .collect_indices(location_domain.clone()),</span>
-<span class="comment">//         });</span>
-<span class="comment">//       }</span>
-<span class="comment">//     }</span>
-<span class="comment">//   }</span>
-
-<span class="comment">//   let mut outer = body</span>
-<span class="comment">//     .all_locations()</span>
-<span class="comment">//     .collect_indices(location_domain.clone());</span>
-<span class="comment">//   for l in &amp;loops {</span>
-<span class="comment">//     outer.subtract(&amp;l.body);</span>
-<span class="comment">//   }</span>
-
-<span class="comment">//   (loops, outer)</span>
-<span class="comment">// }</span>
+<span class="kw">impl</span> <span class="ident">MutabilityExt</span> <span class="kw">for</span> <span class="ident">Mutability</span> {
+  <span class="kw">fn</span> <span class="ident">more_permissive_than</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
+    <span class="op">!</span><span class="macro">matches!</span>((<span class="self">self</span>, <span class="ident">other</span>), (<span class="ident">Mutability::Not</span>, <span class="ident">Mutability::Mut</span>))
+  }
+}
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
