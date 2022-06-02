@@ -3,428 +3,44 @@
 use std::rc::Rc;
 
 use either::Either;
-use hir::LoopSource;
 use log::trace;
 use rustc_hir::{
-  self as hir,
-  intravisit::{self, Visitor as HirVisitor},
-  BodyId, Expr, ExprKind, MatchSource, Node, Param, Stmt,
+  self as hir, intravisit::Visitor as HirVisitor, BodyId, ExprKind, MatchSource, Node,
 };
 use rustc_middle::{
   mir::{
-    self,
-    visit::{
-      MutatingUseContext, NonMutatingUseContext, NonUseContext, PlaceContext,
-      Visitor as MirVisitor,
-    },
-    Body, FakeReadCause, HasLocalDecls, Place, Statement, StatementKind, Terminator,
-    TerminatorKind, RETURN_PLACE,
+    self, visit::Visitor as MirVisitor, Body, StatementKind, TerminatorKind, RETURN_PLACE,
   },
   ty::TyCtxt,
 };
-use rustc_span::{source_map::Spanned, BytePos, Span, SpanData};
-use smallvec::{smallvec, SmallVec};
+use rustc_span::{source_map::Spanned, Span, SpanData};
 
-use super::span_tree::SpanTree;
+use super::{
+  hir_span::{EnclosingHirSpans, HirSpanCollector, HirSpannedNode},
+  mir_span::{MirSpanCollector, MirSpannedPlace},
+  span_tree::SpanTree,
+};
 use crate::{
-  indexed::impls::{arg_location, LocationDomain},
-  mir::utils::{self, BodyExt, PlaceExt, SpanDataExt, SpanExt},
+  indexed::impls::LocationDomain,
+  mir::utils::{self, SpanDataExt, SpanExt},
 };
 
-// Collect all the spans for children beneath the visited node.
-// For example, when visiting "if true { 1 } else { 2 }" then we
-// should collect: "true" "1" "2"
-struct ChildExprSpans {
-  spans: Vec<Span>,
-  item_span: Span,
-}
-impl<'hir> HirVisitor<'hir> for ChildExprSpans {
-  fn visit_expr(&mut self, ex: &hir::Expr) {
-    match ex.kind {
-      // Don't take the span for the whole block, since we want to leave
-      // curly braces to be associated with the outer statement
-      ExprKind::Block(..) => {
-        intravisit::walk_expr(self, ex);
-      }
-      // The HIR span for a for-loop desugared to a match is *smaller*
-      // than the span of its children. So we have to explicitly recurse
-      // into the match arm instead of just taking the span for the match.
-      // See `forloop_some_relevant` for where this matters.
-      ExprKind::Match(_, arms, MatchSource::ForLoopDesugar) => {
-        for arm in arms {
-          intravisit::walk_arm(self, arm);
-        }
-      }
-      _ => {
-        if let Some(span) = ex.span.as_local(self.item_span) {
-          self.spans.push(span);
-        }
-      }
-    }
-  }
-
-  fn visit_arm(&mut self, arm: &hir::Arm) {
-    // We want the arm condition to be included in the outer span for the match,
-    // so we only visit the arm body here.
-    self.visit_expr(arm.body);
-  }
-
-  fn visit_stmt(&mut self, stmt: &hir::Stmt) {
-    if let Some(span) = stmt.span.as_local(self.item_span) {
-      self.spans.push(span);
-    }
-  }
-}
-
-#[derive(Clone, Copy)]
-pub enum EnclosingHirSpans {
-  OuterOnly,
-  Full,
-  None,
-}
-
-#[derive(Clone, Debug)]
-pub struct HirSpannedNode<'hir> {
-  full: SpanData,
-  outer: Vec<Span>,
-  node: hir::Node<'hir>,
-}
-
-impl HirSpannedNode<'_> {
-  fn get_spans(&self, span_type: EnclosingHirSpans) -> Vec<Span> {
-    match span_type {
-      EnclosingHirSpans::OuterOnly => self.outer.clone(),
-      EnclosingHirSpans::Full => vec![self.full.span()],
-      EnclosingHirSpans::None => Vec::new(),
-    }
-  }
-}
-
-struct HirSpanCollector<'a, 'b, 'hir, 'tcx>(&'a mut Spanner<'b, 'hir, 'tcx>);
-
-macro_rules! try_span {
-  ($self:expr, $span:expr) => {
-    match $span.as_local($self.0.item_span) {
-      Some(span) if !$self.0.invalid_span(span) => span,
-      _ => {
-        return;
-      }
-    }
-  };
-}
-
-fn expr_to_string(ex: &Expr) -> String {
-  rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| s.print_expr(ex))
-}
-
-impl<'hir> HirVisitor<'hir> for HirSpanCollector<'_, '_, 'hir, '_> {
-  fn visit_expr(&mut self, expr: &'hir hir::Expr<'hir>) {
-    intravisit::walk_expr(self, expr);
-
-    let span = try_span!(self, expr.span);
-
-    let inner_spans = match expr.kind {
-      ExprKind::Loop(_, _, loop_source, header) => match loop_source {
-        LoopSource::ForLoop | LoopSource::While => {
-          vec![expr.span.trim_start(header).unwrap_or(expr.span)]
-        }
-        LoopSource::Loop => {
-          vec![expr.span.with_lo(expr.span.lo() + BytePos(4))]
-        }
-      },
-      ExprKind::Break(..) => {
-        return;
-      }
-      _ => {
-        let mut visitor = ChildExprSpans {
-          spans: Vec::new(),
-          item_span: self.0.item_span,
-        };
-        intravisit::walk_expr(&mut visitor, expr);
-        visitor.spans
-      }
-    };
-
-    let mut outer_spans = span.subtract(inner_spans.clone());
-
-    // In an expression `match e { .. }` the span of `e` is only stored in a `FakeRead`,
-    // so we have to ensure that the span of the HIR match includes the matched expression.
-    if let ExprKind::Match(matched, _, _) = expr.kind {
-      outer_spans.push(matched.span);
-    }
-
-    trace!(
-      "Expr:\n{}\nhas span: {:?}\nand inner spans: {:?}\nand outer spans: {:?}",
-      expr_to_string(expr),
-      span,
-      inner_spans,
-      outer_spans
-    );
-
-    if outer_spans.is_empty() {
-      return;
-    }
-
-    self.0.hir_spans.push(HirSpannedNode {
-      full: span.data(),
-      outer: outer_spans,
-      node: Node::Expr(expr),
-    });
-  }
-
-  fn visit_stmt(&mut self, stmt: &'hir Stmt<'hir>) {
-    intravisit::walk_stmt(self, stmt);
-
-    let span = try_span!(self, stmt.span);
-
-    let mut visitor = ChildExprSpans {
-      spans: Vec::new(),
-      item_span: self.0.item_span,
-    };
-    intravisit::walk_stmt(&mut visitor, stmt);
-    let outer_spans = span.subtract(visitor.spans);
-
-    self.0.hir_spans.push(HirSpannedNode {
-      full: span.data(),
-      outer: outer_spans,
-      node: Node::Stmt(stmt),
-    });
-  }
-
-  fn visit_param(&mut self, param: &'hir Param<'hir>) {
-    intravisit::walk_param(self, param);
-
-    let span = match param.span.as_local(self.0.item_span) {
-      Some(span) if !self.0.invalid_span(span) => span,
-      _ => {
-        return;
-      }
-    };
-
-    // TODO: more precise outer spans
-    self.0.hir_spans.push(HirSpannedNode {
-      full: span.data(),
-      outer: vec![span],
-      node: Node::Param(param),
-    });
-  }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct MirSpannedPlace<'tcx> {
-  pub place: mir::Place<'tcx>,
-  pub span: SpanData,
-  pub locations: SmallVec<[mir::Location; 1]>,
-}
-
-struct MirSpanCollector<'a, 'b, 'hir, 'tcx>(&'a mut Spanner<'b, 'hir, 'tcx>);
-
-impl<'tcx> MirVisitor<'tcx> for MirSpanCollector<'_, '_, '_, 'tcx> {
-  fn visit_body(&mut self, body: &Body<'tcx>) {
-    self.super_body(body);
-
-    // Add the return type as a spanned place representing all return locations
-    let span = body.local_decls()[RETURN_PLACE].source_info.span;
-    let span = try_span!(self, span);
-    let locations = body.all_returns().collect::<SmallVec<_>>();
-    self.0.mir_spans.push(MirSpannedPlace {
-      span: span.data(),
-      locations,
-      place: Place::from_local(RETURN_PLACE, self.0.tcx),
-    })
-  }
-
-  fn visit_place(
-    &mut self,
-    place: &mir::Place<'tcx>,
-    context: PlaceContext,
-    location: mir::Location,
-  ) {
-    trace!("place={place:?} context={context:?} location={location:?}");
-
-    // MIR will sometimes include places assigned to unit, e.g.
-    //   if true { let x = 1; } else { let x = 2; }
-    // then the entire block will have a place with unit value.
-    // To avoid letting that block be selectable, we ignore values with unit type.
-    // This is a hack, but not sure if there's a better way?
-    let body = &self.0.body;
-    if place.ty(body.local_decls(), self.0.tcx).ty.is_unit() {
-      return;
-    }
-
-    // Three cases, shown by example:
-    //   fn foo(x: i32) {
-    //     let y = x + 1;
-    //   }
-    // If the user selects...
-    // * "x: i32" -- this span is contained in the LocalDecls for _1,
-    //   which is represented by NonUseContext::VarDebugInfo
-    // * "x + 1" -- MIR will generate a temporary to assign x into, whose
-    //   span is given to "x". That corresponds to MutatingUseContext::Store
-    // * "y" -- this corresponds to NonMutatingUseContext::Inspect
-    let (span, locations) = match context {
-      PlaceContext::MutatingUse(MutatingUseContext::Store)
-      | PlaceContext::NonMutatingUse(
-        NonMutatingUseContext::Copy | NonMutatingUseContext::Move,
-      ) => {
-        let source_info = body.source_info(location);
-        (source_info.span, smallvec![location])
-      }
-      PlaceContext::NonMutatingUse(NonMutatingUseContext::Inspect) => {
-        let source_info = body.source_info(location);
-        // For a statement like `let y = x + 1`, if the user selects `y`,
-        // then the only location that contains the source-map for `y` is a `FakeRead`.
-        // However, for slicing we want to give the location that actually sets `y`.
-        // So we search through the body to find the locations that assign to `y`.
-        let locations = match body.stmt_at(location) {
-          Either::Left(Statement {
-            kind:
-              StatementKind::FakeRead(box (
-                FakeReadCause::ForLet(_) | FakeReadCause::ForMatchedPlace(_),
-                _,
-              )),
-            ..
-          }) => match arg_location(*place, body) {
-            Some(arg_location) => smallvec![arg_location],
-            None => {
-              let locations = assigning_locations(body, *place);
-              if locations.len() == 0 {
-                log::warn!("FakeRead of {place:?} has no assignments");
-                return;
-              }
-              locations
-            }
-          },
-          _ => {
-            return;
-          }
-        };
-        (source_info.span, locations)
-      }
-      PlaceContext::NonUse(NonUseContext::VarDebugInfo)
-        if body.args_iter().any(|local| local == place.local) =>
-      {
-        let source_info = body.local_decls()[place.local].source_info;
-        let location = match arg_location(*place, body) {
-          Some(arg_location) => arg_location,
-          None => location,
-        };
-        (source_info.span, smallvec![location])
-      }
-      _ => {
-        return;
-      }
-    };
-
-    let span = try_span!(self, span);
-
-    let spanned_place = MirSpannedPlace {
-      place: *place,
-      locations,
-      span: span.data(),
-    };
-    trace!("spanned place: {spanned_place:?}");
-
-    self.0.mir_spans.push(spanned_place);
-  }
-
-  // The visit_statement and visit_terminator cases are a backup.
-  // Eg in the static_method case, if you have x = Foo::bar(), then
-  // then a slice on Foo::bar() would correspond to no places. The best we
-  // can do is at least make the slice on x.
-  fn visit_statement(
-    &mut self,
-    statement: &mir::Statement<'tcx>,
-    location: mir::Location,
-  ) {
-    self.super_statement(statement, location);
-
-    if let mir::StatementKind::Assign(box (lhs, _)) = &statement.kind {
-      if lhs.ty(self.0.body.local_decls(), self.0.tcx).ty.is_unit() {
-        return;
-      }
-
-      let span = try_span!(self, statement.source_info.span);
-      let spanned_place = MirSpannedPlace {
-        place: *lhs,
-        locations: smallvec![location],
-        span: span.data(),
-      };
-      trace!("spanned place (assign): {spanned_place:?}");
-      self.0.mir_spans.push(spanned_place);
-    }
-  }
-
-  fn visit_terminator(
-    &mut self,
-    terminator: &mir::Terminator<'tcx>,
-    location: mir::Location,
-  ) {
-    self.super_terminator(terminator, location);
-
-    let place = match &terminator.kind {
-      mir::TerminatorKind::Call {
-        destination: Some((place, _)),
-        ..
-      } => *place,
-      mir::TerminatorKind::DropAndReplace { place, .. } => *place,
-      _ => {
-        return;
-      }
-    };
-
-    let span = try_span!(self, terminator.source_info.span);
-    let spanned_place = MirSpannedPlace {
-      place,
-      locations: smallvec![location],
-      span: span.data(),
-    };
-    trace!("spanned place (terminator): {spanned_place:?}");
-    self.0.mir_spans.push(spanned_place);
-  }
-}
-
-fn assigning_locations<'tcx>(
-  body: &Body<'tcx>,
-  place: mir::Place<'tcx>,
-) -> SmallVec<[mir::Location; 1]> {
-  body
-    .all_locations()
-    .filter(|location| match body.stmt_at(*location) {
-      Either::Left(Statement {
-        kind: StatementKind::Assign(box (lhs, _)),
-        ..
-      })
-      | Either::Right(Terminator {
-        kind:
-          TerminatorKind::Call {
-            destination: Some((lhs, _)),
-            ..
-          },
-        ..
-      }) => *lhs == place,
-      _ => false,
-    })
-    .collect::<SmallVec<_>>()
-}
-
-pub struct Spanner<'a, 'hir, 'tcx> {
-  hir_spans: Vec<HirSpannedNode<'hir>>,
+pub struct Spanner<'hir, 'tcx> {
+  pub tcx: TyCtxt<'tcx>,
+  pub(super) hir_spans: Vec<HirSpannedNode<'hir>>,
   pub hir_span_tree: SpanTree<HirSpannedNode<'hir>>,
-  mir_spans: Vec<MirSpannedPlace<'tcx>>,
+  pub(super) mir_spans: Vec<MirSpannedPlace<'tcx>>,
   pub mir_span_tree: SpanTree<MirSpannedPlace<'tcx>>,
   pub body_span: Span,
   pub item_span: Span,
   pub ret_span: Span,
-  tcx: TyCtxt<'tcx>,
-  body: &'a mir::Body<'tcx>,
 }
 
-impl<'a, 'hir, 'tcx> Spanner<'a, 'hir, 'tcx>
+impl<'hir, 'tcx> Spanner<'hir, 'tcx>
 where
   'tcx: 'hir,
 {
-  pub fn new(tcx: TyCtxt<'tcx>, body_id: BodyId, body: &'a Body<'tcx>) -> Self {
+  pub fn new(tcx: TyCtxt<'tcx>, body_id: BodyId, body: &Body<'tcx>) -> Self {
     let hir = tcx.hir();
     let hir_body = hir.body(body_id);
     let owner = hir.body_owner(body_id);
@@ -440,7 +56,6 @@ where
       item_span,
       ret_span,
       tcx,
-      body,
     };
     trace!(
       "Body span: {:?}, item span: {:?}",
@@ -451,7 +66,7 @@ where
     let mut hir_collector = HirSpanCollector(&mut spanner);
     hir_collector.visit_body(hir_body);
 
-    let mut mir_collector = MirSpanCollector(&mut spanner);
+    let mut mir_collector = MirSpanCollector(&mut spanner, body);
     mir_collector.visit_body(body);
 
     spanner.hir_span_tree =
@@ -491,13 +106,14 @@ where
     &self,
     location: mir::Location,
     location_domain: &Rc<LocationDomain>,
+    body: &Body,
     span_type: EnclosingHirSpans,
   ) -> Vec<Span> {
     let (target_span, stmt) = match location_domain.location_to_local(location) {
-      Some(local) => (self.body.local_decls[local].source_info.span, None),
+      Some(local) => (body.local_decls[local].source_info.span, None),
       None => (
-        self.body.source_info(location).span,
-        Some(self.body.stmt_at(location)),
+        body.source_info(location).span,
+        Some(body.stmt_at(location)),
       ),
     };
 
@@ -600,7 +216,7 @@ where
 
     trace!(
       "Location {location:?} ({})\n  has loc span:\n  {}\n  and HIR spans:\n  {}",
-      utils::location_to_string(location, self.body),
+      utils::location_to_string(location, body),
       format_spans(&[target_span]),
       format_spans(&hir_spans)
     );
@@ -805,10 +421,11 @@ mod test {
 }"#;
     let (input, _ranges) = test_utils::parse_ranges(src, [("`(", ")`")]).unwrap();
     test_utils::compile_body(input, move |tcx, body_id, body_with_facts| {
-      let location_domain = LocationDomain::new(&body_with_facts.body);
+      let body = &body_with_facts.body;
+      let location_domain = LocationDomain::new(body);
       let source_map = tcx.sess.source_map();
 
-      let spanner = Spanner::new(tcx, body_id, &body_with_facts.body);
+      let spanner = Spanner::new(tcx, body_id, body);
 
       // These locations are just selected by inspecting the actual body, so this test might break
       // if the compiler is updated. Run with RUST_LOG=debug to see the body.
@@ -855,8 +472,12 @@ mod test {
           block: BasicBlock::from_usize(*i),
           statement_index: *j,
         };
-        let spans =
-          spanner.location_to_spans(loc, &location_domain, EnclosingHirSpans::OuterOnly);
+        let spans = spanner.location_to_spans(
+          loc,
+          &location_domain,
+          body,
+          EnclosingHirSpans::OuterOnly,
+        );
         let desired = outp.iter().collect::<HashSet<_>>();
         let actual = spans
           .into_iter()

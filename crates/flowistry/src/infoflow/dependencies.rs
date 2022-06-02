@@ -197,8 +197,7 @@ pub fn compute_dependency_spans<'tcx>(
   direction: Direction,
   spanner: &Spanner,
 ) -> Vec<Vec<Span>> {
-  let _tcx = results.analysis.tcx;
-  let _body = results.analysis.body;
+  let body = results.analysis.body;
 
   let location_domain = results.analysis.location_domain();
   let all_deps = compute_dependencies(results, targets, direction);
@@ -213,6 +212,7 @@ pub fn compute_dependency_spans<'tcx>(
           spanner.location_to_spans(
             *location,
             location_domain,
+            body,
             EnclosingHirSpans::OuterOnly,
           )
         })
