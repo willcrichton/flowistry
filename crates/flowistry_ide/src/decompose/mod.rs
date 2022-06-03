@@ -114,6 +114,7 @@ pub fn decompose(tcx: TyCtxt, body_id: BodyId) -> Result<DecomposeOutput> {
                 spanner.location_to_spans(
                   *location,
                   results.analysis.location_domain(),
+                  body,
                   EnclosingHirSpans::OuterOnly,
                 )
               })

@@ -103,6 +103,12 @@ where
 
         for arg in arg_places {
           for arg_mut in self.aliases.reachable_values(arg, Mutability::Mut) {
+            // The argument itself can never be modified in a caller-visible way,
+            // because it's either getting moved or copied.
+            if arg == *arg_mut {
+              continue;
+            }
+
             (self.f)(*arg_mut, &arg_inputs, location, MutationStatus::Possibly);
           }
         }
