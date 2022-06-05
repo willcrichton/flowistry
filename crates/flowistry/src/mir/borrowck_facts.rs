@@ -1,4 +1,4 @@
-use rustc_borrowck::consumers::BodyWithBorrowckFacts;
+use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_hir::def_id::LocalDefId;
 use rustc_middle::{
   mir::MirPass,
@@ -52,6 +52,17 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tc
   original_mir_borrowck(tcx, def_id)
 }
 
+/// Gets the MIR body and [Polonius](https://github.com/rust-lang/polonius)-generated
+/// [borrowck facts](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_borrowck/struct.BodyWithBorrowckFacts.html)
+/// for a given [`LocalDefId`].
+///
+/// For this function to work, you MUST add [`override_queries`] to the
+/// [`rustc_interface::Config`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_interface/interface/struct.Config.html)
+/// inside of your [`rustc_driver::Callbacks`]. For example, see
+/// See [example.rs](https://github.com/willcrichton/flowistry/tree/master/crates/flowistry/examples/example.rs).
+///
+/// Note that as of May 2022, Polonius can be *very* slow for large functions.
+/// It may take up to 30 seconds to analyze a single body with a large CFG.
 pub fn get_body_with_borrowck_facts<'tcx>(
   tcx: TyCtxt<'tcx>,
   def_id: LocalDefId,
