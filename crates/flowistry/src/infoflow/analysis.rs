@@ -26,12 +26,33 @@ use crate::{
   },
 };
 
-/// Represents the information flow at a given instruction.
+/// Represents the information flows at a given instruction. See [`FlowResults`] for a high-level explanation of this datatype.
 ///
-/// Places are mapped to sets of locations which could influence the value of that place.
-/// This data structure is analogous to $\Theta$ in the formalism, where $p$ is a [`Place`]
-/// and $\kappa$ is a [`LocationSet`]. If $p \mapsto \kappa \in \Theta$, you can access $\kappa$
-/// with `domain.row_set(p)`.
+/// `FlowDomain` represents $\Theta$ that maps from places $p$ to dependencies $\kappa$. To efficiently represent $\kappa$, a set of locations,
+/// we use the bit-set data structures in [`rustc_index::bit_set`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/index.html).
+/// However instead of using those datatypes directly, we provide several abstractions in the [`indexed`](crate::indexed)
+/// module that have a more ergonomic interface and more efficient implementation than their `bit_set` counterparts.
+///
+/// The [`IndexMatrix`] maps from a [`Place`] to a [`LocationSet`] via the [`IndexMatrix::row_set`] method. The [`LocationSet`] is an
+/// [`IndexSet`](crate::indexed::IndexSet) of locations, which wraps a
+/// [`rustc_index::bit_set::HybridBitSet`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/enum.HybridBitSet.html) and
+/// has roughly the same API. The main difference is that `HybridBitSet` operates only on values that implement the
+/// [`rustc_index::vec::Idx`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/vec/trait.Idx.html) trait (usually created via
+/// the [`rustc_index::newtype_index`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/macro.newtype_index.html) macro). The `indexed`
+/// module has a concept of [`IndexedDomain`] to represent the mapping from a set of values to the indexes those values --- [`LocationDomain`]
+/// is the implementation for locations.
+///
+///
+/// # Hack alert: synthetic locations
+/// This API uses a hacky trick to represent the dependencies of function arguments. For instance, if `_1` is an argument,
+/// `_1` is not defined at a location, but rather simply exists at the execution of `Location::START`. Therefore we invent "synthetic" locations
+/// help distinguish when places depend on a given argument. For an argument place `_n`, it has a synthetic location with
+/// [`Location::block`] set to `body.basic_blocks().len()` and [`Location::statement_index`] set to `n`.
+///
+/// This hack matters because if you get a `Location` out of a `LocationSet` taken from a `FlowDomain`, then it might
+/// not correspond to an actual MIR instruction. For example, if you call [`Body::stmt_at`] on a synthetic location then **it will panic.**
+/// If you want to check whether a location is synthetic, you can use the `LocationDomain::location_to_local` function. And one day, I will
+/// hopefully get around to making this all less hacky.
 pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, Location>;
 
 pub struct FlowAnalysis<'a, 'tcx> {

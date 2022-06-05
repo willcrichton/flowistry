@@ -3,7 +3,7 @@
 use std::cell::RefCell;
 
 use log::debug;
-use rustc_borrowck::consumers::BodyWithBorrowckFacts;
+use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
 
@@ -23,13 +23,39 @@ mod dependencies;
 pub mod mutation;
 mod recursive;
 
-/// The return type of the information flow analysis.
+/// The output of the information flow analysis.
 ///
-/// The information flow analysis is flow-sensitive and field-sensitive, meaning the
-/// information flow is tracked at each MIR instruction, and for each memory location (place)
-/// that could be influenced. The flow-sensitivity is encoded in the [`AnalysisResults`](engine::AnalysisResults) wrapper,
-/// which contains a [`FlowDomain`] for each [`Location`](rustc_middle::mir::Location) (accessed via [`state_at`](engine::AnalysisResults::state_at)).
-/// See [`FlowDomain`] for more on the actual information flow representation.
+/// Using the metavariables in [the paper](https://arxiv.org/abs/2111.13662): for each
+/// [`Location`](rustc_middle::mir::Location) $\ell$ in a [`Body`](rustc_middle::mir::Body) $f$,
+/// this type contains a [`FlowDomain`] $\Theta$ that maps from a [`Place`](rustc_middle::mir::Place) $p$
+/// to [`LocationSet`](crate::indexed::impls::LocationSet) $\kappa$. The domain of $\Theta$
+/// is all places that have been defined up to $\ell$. For each place, $\Theta(p)$ contains the set of locations
+/// that could influence the value of that place (the place's dependencies).
+///
+/// For example, to get the dependencies of the first argument at the first instruction, that would be:
+/// ```
+/// # #![feature(rustc_private)]
+/// # extern crate rustc_middle;
+/// # use rustc_middle::{ty::TyCtxt, mir::{Place, Location, Local}};
+/// # use flowistry::{infoflow::FlowResults, mir::utils::PlaceExt};
+/// fn example<'tcx>(tcx: TyCtxt<'tcx>, results: &FlowResults<'_, 'tcx>) {
+///   let loc = Location::START;
+///   let theta = results.state_at(loc);
+///   let p = Place::make(Local::from_usize(1), &[], tcx);
+///   let deps = theta.row_set(p);
+///   for dep in deps.iter() {
+///     println!("{p:?} depends on {dep:?} at location {loc:?}");
+///   }
+/// }
+/// ```
+///
+/// To access a [`FlowDomain`] for a given location, use the method [`AnalysisResults::state_at`](engine::AnalysisResults::state_at).
+/// See [`FlowDomain`] for more on how to access the location set for a given place.
+///
+/// Note: this analysis uses rustc's [dataflow analysis framework](https://rustc-dev-guide.rust-lang.org/mir/dataflow.html),
+/// i.e. [`rustc_mir_dataflow`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/index.html).
+/// However, for performance purposes, several constructs were reimplemented within Flowistry, such as [`AnalysisResults`](engine::AnalysisResults)
+/// which replaces [`rustc_mir_dataflow::Results`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Results.html).
 pub type FlowResults<'a, 'tcx> = engine::AnalysisResults<'tcx, FlowAnalysis<'a, 'tcx>>;
 
 thread_local! {
@@ -39,7 +65,11 @@ thread_local! {
 
 /// Computes information flow for a MIR body.
 ///
-/// See [`FlowResults`] for an explanation of the return value.
+/// To get a `BodyWithBorrowckFacts`, you can use the
+/// [`get_body_with_borrowck_facts`](crate::mir::borrowck_facts::get_body_with_borrowck_facts)
+/// function. See its docs for details.
+///
+/// See [`FlowResults`] for an explanation of how to use the return value.
 pub fn compute_flow<'a, 'tcx>(
   tcx: TyCtxt<'tcx>,
   body_id: BodyId,

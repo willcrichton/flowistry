@@ -394,10 +394,14 @@ where
   }
 }
 
+/// A mapping from `R` to `IndexSet<C>`.
+///
+/// Similar to [`SparseBitMatrix`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/struct.SparseBitMatrix.html),
+/// but optimized for Flowistry.
 pub struct IndexMatrix<R, C: IndexedValue> {
   matrix: HashMap<R, IndexSetImpl<C::Index>>,
   empty_set: IndexSetImpl<C::Index>,
-  pub col_domain: Rc<C::Domain>,
+  col_domain: Rc<C::Domain>,
 }
 
 pub trait RowBounds = Hash + PartialEq + Eq + Copy;
@@ -476,6 +480,10 @@ impl<R: RowBounds, C: IndexedValue> IndexMatrix<R, C> {
 
   pub fn clear_row(&mut self, row: R) {
     self.matrix.remove(&row);
+  }
+
+  pub fn col_domain(&self) -> &Rc<C::Domain> {
+    &self.col_domain
   }
 }
 

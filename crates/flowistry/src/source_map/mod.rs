@@ -1,3 +1,5 @@
+//! Mapping MIR instructions to source code.
+
 mod find_bodies;
 mod hir_span;
 mod mir_span;

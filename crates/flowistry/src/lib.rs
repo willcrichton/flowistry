@@ -1,5 +1,5 @@
-//! This crate provides a modular information flow analysis for Rust programs,
-//! as described in the paper ["Modular Information Flow Through Ownership"](https://arxiv.org/abs/2111.13662) (Crichton et al. 2022).
+//! This crate provides the Flowistry API, a modular information flow analysis for Rust programs.
+//! The theory and evaluation of Flowistry is described in the paper ["Modular Information Flow Through Ownership"](https://arxiv.org/abs/2111.13662) (Crichton et al. 2022).
 //! See [example.rs](https://github.com/willcrichton/flowistry/tree/master/crates/flowistry/examples/example.rs)
 //! for an example of how to use the Flowistry API.
 //!
@@ -17,18 +17,19 @@
 //! data structure that is computed.
 //!
 //! If you are interested in using Flowistry, please reach out directly to
-//! Will Crichton ([wcrichto@cs.stanford.edu](mailto:wcrichto@cs.stanford.edu))
-//! for questions or support. If you use Flowistry in your research, then please cite
-//! our paper:
+//! Will Crichton ([wcrichto@cs.stanford.edu](mailto:wcrichto@cs.stanford.edu)) or [join
+//! our Discord](https://discord.gg/XkcpkQn2Ah). If you use Flowistry in your research,
+//! then please cite our paper:
 //!
-//! ```bibtex
-//! @misc{crichton2021modular,
-//!   title={Modular Information Flow Through Ownership},
-//!   author={Will Crichton and Marco Patrignani and Maneesh Agrawala and Pat Hanrahan},
-//!   year={2021},
-//!   eprint={2111.13662},
-//!   archivePrefix={arXiv},
-//!   primaryClass={cs.PL}
+//! ```bib
+//! @inproceedings{crichton2022,
+//!   author = {Crichton, Will and Patrignani, Marco and Agrawala, Maneesh and Hanrahan, Pat},
+//!   title = {Modular Information Flow through Ownership}, year = {2022},
+//!   isbn = {9781450392655}, publisher = {Association for Computing Machinery},
+//!   address = {New York, NY, USA}, url = {https://doi.org/10.1145/3519939.3523445},
+//!   booktitle = {Proceedings of the 43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation},
+//!   pages = {1–14}, numpages = {14}, keywords = {information flow, rust, ownership types},
+//!   location = {San Diego, CA, USA}, series = {PLDI 2022}, doi = {10.1145/3519939.3523445},
 //! }
 //! ```
 
