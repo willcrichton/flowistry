@@ -1,10 +1,10 @@
 //! This crate provides the Flowistry API, a modular information flow analysis for Rust programs.
-//! The theory and evaluation of Flowistry is described in the paper ["Modular Information Flow Through Ownership"](https://arxiv.org/abs/2111.13662) (Crichton et al. 2022).
+//! The theory and evaluation of Flowistry is described in the paper ["Modular Information Flow through Ownership"](https://arxiv.org/abs/2111.13662) (Crichton et al. 2022).
 //! See [example.rs](https://github.com/willcrichton/flowistry/tree/master/crates/flowistry/examples/example.rs)
 //! for an example of how to use the Flowistry API.
 //!
 //! [Information flow](https://en.wikipedia.org/wiki/Information_flow_(information_theory))
-//! describes whether one instruction or variable can affect another during a
+//! is whether one instruction or variable can affect another during a
 //! program's execution. Information flow can be used to analyze whether secure values
 //! can leak to insecure places (["information flow control"](https://www.cse.chalmers.se/~andrei/mod11.pdf)),
 //! and to analyze which parts of a program are relevant to a given variable (["program slicing"](https://en.wikipedia.org/wiki/Program_slicing)).

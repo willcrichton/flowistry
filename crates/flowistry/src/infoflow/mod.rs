@@ -1,4 +1,7 @@
-//! The core information flow analysis.
+//! The core information flow analysis. 
+//! 
+//! The main function is [`compute_flow`]. See [`FlowResults`] and [`FlowDomain`] for an explanation 
+//! of what it returns.
 
 use std::cell::RefCell;
 
@@ -37,14 +40,14 @@ mod recursive;
 /// # #![feature(rustc_private)]
 /// # extern crate rustc_middle;
 /// # use rustc_middle::{ty::TyCtxt, mir::{Place, Location, Local}};
-/// # use flowistry::{infoflow::FlowResults, mir::utils::PlaceExt};
+/// # use flowistry::{infoflow::{FlowDomain, FlowResults}, mir::utils::PlaceExt, indexed::impls::LocationSet};
 /// fn example<'tcx>(tcx: TyCtxt<'tcx>, results: &FlowResults<'_, 'tcx>) {
-///   let loc = Location::START;
-///   let theta = results.state_at(loc);
-///   let p = Place::make(Local::from_usize(1), &[], tcx);
-///   let deps = theta.row_set(p);
-///   for dep in deps.iter() {
-///     println!("{p:?} depends on {dep:?} at location {loc:?}");
+///   let ℓ: Location       = Location::START;
+///   let Θ: &FlowDomain    = results.state_at(ℓ);
+///   let p: Place          = Place::make(Local::from_usize(1), &[], tcx);
+///   let κ: LocationSet<_> = Θ.row_set(p);
+///   for ℓ2 in κ.iter() {
+///     println!("at location {ℓ:?}, place {p:?} depends on location {ℓ2:?}");
 ///   }
 /// }
 /// ```
@@ -54,6 +57,9 @@ mod recursive;
 ///
 /// Note: this analysis uses rustc's [dataflow analysis framework](https://rustc-dev-guide.rust-lang.org/mir/dataflow.html),
 /// i.e. [`rustc_mir_dataflow`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/index.html).
+/// You will see several types and traits from that crate here, such as 
+/// [`Analysis`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.Analysis.html) and
+/// [`AnalysisDomain`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.AnalysisDomain.html).
 /// However, for performance purposes, several constructs were reimplemented within Flowistry, such as [`AnalysisResults`](engine::AnalysisResults)
 /// which replaces [`rustc_mir_dataflow::Results`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Results.html).
 pub type FlowResults<'a, 'tcx> = engine::AnalysisResults<'tcx, FlowAnalysis<'a, 'tcx>>;
