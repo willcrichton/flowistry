@@ -1,3 +1,5 @@
+//! Alias analysis to determine the points-to set of a reference.
+
 use std::{hash::Hash, ops::ControlFlow, rc::Rc, time::Instant};
 
 use log::{debug, info};

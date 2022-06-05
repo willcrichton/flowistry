@@ -1,4 +1,31 @@
-//! APIs for efficiently representing values with an fixed-size domain.
+//! APIs for efficiently representing values with an fixed-size domain via bit-sets.
+//! 
+//! This module is an abstraction over the [`rustc_index::bit_set`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/index.html)
+//! data structures. Its main purpose is to simplify the translation between indexes and the values they represent.
+//! 
+//! # Indexed values
+//! In Flowistry, some types can only take on a specific range of values at a given time.
+//! For example, a MIR body has a fixed set of [`Location`](rustc_middle::mir::Location)s.
+//! Therefore if we want to encode a set of locations (e.g. for the [`FlowDomain`](crate::infoflow::FlowDomain)),
+//! then we can assign each `Location` a numeric index and use a compact bit-set instead of, say,
+//! a hash set. Concretely, this means:
+//! 1. Defining a type `LocationIndex` that implements the [`Idx`](rustc_index::vec::Idx) trait.
+//! 2. Creating a mapping ("domain") from `Location`s to `LocationIndex`.
+//! 3. Constructing a `LocationSet` out of a [`BitSet`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/struct.BitSet.html)`<LocationIndex>`.
+//! 
+//! Abstractly, for an arbitrary type `T`, we perform each step with the following constructs:
+//! 1. Indexes are defined with the  [`rustc_index::newtype_index`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/macro.newtype_index.html) macro.
+//! 2. The domain of `T` is a data structure implementing the [`IndexedDomain`] trait, such as [`DefaultDomain`].
+//!    The trait [`IndexedValue`] is implemented for `T` which defines an associated type
+//!    `T::Domain: IndexedDomain`.
+//! 3. Then the user can construct an [`IndexSet`]`<T>` by providing an instance of `&Rc<T::Domain>`.
+//! 
+//! You can explicitly translate a `T` to a `T::Index` via [`IndexedDomain::index`], and vice-versa
+//! with [`IndexedDomain::value`]. But this translation is often done for you. For example, most
+//! `IndexSet` methods use the [`ToIndex`] trait to take as input `impl ToIndex<T>`, and both `T`
+//! and `T::Index` implement `ToIndex`. So you can call [`IndexSet::insert`] with a plain `T`, and
+//! because `IndexSet` holds a pointer to its `IndexedDomain`, it automatically converts the `T`
+//! to `T::Index`.
 
 use std::{
   fmt,

@@ -1,3 +1,5 @@
+//! A potpourri of utilities for working with the MIR, primarily exposed as extension traits.
+
 use std::{
   cmp,
   collections::hash_map::Entry,

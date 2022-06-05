@@ -1,9 +1,9 @@
-//! This module re-implements [`rustc_mir_dataflow::Engine`] for performance reasons.
+//! This module re-implements [`rustc_mir_dataflow::Engine`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Engine.html) for performance reasons.
 //!
 //! The Engine implementation in rustc optimizes for minimizing memory usage
 //! by only materializing results at the start of basic blocks, and recomputing
 //! the analysis when visiting results. However, this strategy involves a lot of
-//! creation and deletion of the [analysis domain][rustc_mir_dataflow::AnalysisDomain].
+//! creation and deletion of the [analysis domain](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.AnalysisDomain.html).
 //!
 //! The information flow analysis has a large domain of size `O(|places| * |locations|)`.
 //! Profiling showed that a significant portion of analysis time was just the engine
@@ -27,6 +27,8 @@ use crate::indexed::{
   IndexedDomain,
 };
 
+/// An alternative implementation of 
+/// [`rustc_mir_dataflow::Results`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Results.html).
 pub struct AnalysisResults<'tcx, A: Analysis<'tcx>> {
   pub analysis: A,
   location_domain: Rc<LocationDomain>,
@@ -68,11 +70,16 @@ impl<'tcx, A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
     }
   }
 
+  /// Gets the computed [`AnalysisDomain`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.AnalysisDomain.html)
+  /// at a given [`Location`].
   pub fn state_at(&self, location: Location) -> &A::Domain {
     &self.state[self.location_domain.index(&location)]
   }
 }
 
+/// Runs a given [`Analysis`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.Analysis.html) to a fixpoint over the given [`Body`].
+/// 
+/// A reimplementation of [`rustc_mir_dataflow::framework::engine::iterate_to_fixpoint`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/framework/engine/struct.Engine.html#method.iterate_to_fixpoint).
 pub fn iterate_to_fixpoint<'tcx, A: Analysis<'tcx>>(
   _tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,

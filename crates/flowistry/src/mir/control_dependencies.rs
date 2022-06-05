@@ -1,3 +1,11 @@
+//! An algorithm to compute control-dependencies between MIR blocks.
+//! 
+//! In a function $f$, a block $Y$ is control-dependent on a block $X$ if the execution of $Y$ 
+//! is conditional on $X$, e.g. if $X$ is a conditional branch and $Y$ is one of the branches.
+//! 
+//! See Section 3.1 of "The Program Dependence Graph and Its Use in Optimization" (Ferrante et al. 1987)
+//! for more on how to define and analyze control-dependence.
+
 use std::fmt;
 
 use rustc_data_structures::{
@@ -9,14 +17,13 @@ use rustc_middle::mir::*;
 
 use super::utils::BodyExt;
 
-#[derive(Clone)]
-pub struct BodyReversed<'a, 'tcx> {
+struct BodyReversed<'a, 'tcx> {
   body: &'a Body<'tcx>,
   ret: BasicBlock,
   unreachable: BitSet<BasicBlock>,
 }
 
-pub fn compute_immediate_post_dominators(
+fn compute_immediate_post_dominators(
   body: &Body,
   ret: BasicBlock,
 ) -> HashMap<BasicBlock, BasicBlock> {
@@ -178,6 +185,7 @@ impl ControlDependencies {
     df
   }
 
+  /// Returns the set of all blocks that are control-dependent on the given `block`.
   pub fn dependent_on(&self, block: BasicBlock) -> Option<&HybridBitSet<BasicBlock>> {
     self.0.row(block)
   }

@@ -22,7 +22,6 @@ pub enum Direction {
 
 #[derive(Debug, Clone)]
 struct TargetDeps {
-  // backward: LocationSet,
   all_forward: Vec<LocationSet>,
 }
 
@@ -74,6 +73,15 @@ impl TargetDeps {
   }
 }
 
+/// Computes the dependencies of a place $p$ at a location $\ell$ in a given
+/// direction.
+/// 
+/// * If the direction is backward, then the dependencies are locations that influence $p$.
+/// * If the direction is forward, then the dependencies are locations that are influenced by $p$.
+/// 
+/// For efficiency reasons, this function actually takes a list of list of places at locations.
+/// For example, if `all_targets = [[x@L1, y@L2], [z@L3]]` then the result would be
+/// `[deps(x@L1) ∪ deps(y@L2), deps(z@L3)]`.
 pub fn compute_dependencies<'tcx>(
   results: &FlowResults<'_, 'tcx>,
   all_targets: Vec<Vec<(Place<'tcx>, Location)>>,
@@ -191,6 +199,8 @@ pub fn compute_dependencies<'tcx>(
   outputs.into_inner()
 }
 
+/// Wraps [`compute_dependencies`] by translating each [`Location`] to a corresponding
+/// source [`Span`] for the location.
 pub fn compute_dependency_spans<'tcx>(
   results: &FlowResults<'_, 'tcx>,
   targets: Vec<Vec<(Place<'tcx>, Location)>>,

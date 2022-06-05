@@ -1,3 +1,5 @@
+//! Polonius integration to extract borrowck facts from rustc.
+
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_hir::def_id::LocalDefId;
 use rustc_middle::{
