@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["compute_immediate_post_dominators",""]],"struct":[["BodyReversed",""],["ControlDependencies",""]]});
+initSidebarItems({"struct":[["ControlDependencies",""]]});

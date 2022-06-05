@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["get_body_with_borrowck_facts",""],["override_queries",""]]});
+initSidebarItems({"fn":[["get_body_with_borrowck_facts","Gets the MIR body and Polonius-generated borrowck facts for a given [`LocalDefId`]."],["override_queries",""]]});

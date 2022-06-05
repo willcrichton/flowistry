@@ -159,12 +159,19 @@
 <span id="136">136</span>
 <span id="137">137</span>
 <span id="138">138</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module re-implements [`rustc_mir_dataflow::Engine`] for performance reasons.</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module re-implements [`rustc_mir_dataflow::Engine`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Engine.html) for performance reasons.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The Engine implementation in rustc optimizes for minimizing memory usage</span>
 <span class="doccomment">//! by only materializing results at the start of basic blocks, and recomputing</span>
 <span class="doccomment">//! the analysis when visiting results. However, this strategy involves a lot of</span>
-<span class="doccomment">//! creation and deletion of the [analysis domain][rustc_mir_dataflow::AnalysisDomain].</span>
+<span class="doccomment">//! creation and deletion of the [analysis domain](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.AnalysisDomain.html).</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The information flow analysis has a large domain of size `O(|places| * |locations|)`.</span>
 <span class="doccomment">//! Profiling showed that a significant portion of analysis time was just the engine</span>
@@ -188,6 +195,8 @@
   <span class="ident">IndexedDomain</span>,
 };
 
+<span class="doccomment">/// An alternative implementation of </span>
+<span class="doccomment">/// [`rustc_mir_dataflow::Results`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Results.html).</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AnalysisResults</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">A</span>: <span class="ident">Analysis</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
   <span class="kw">pub</span> <span class="ident">analysis</span>: <span class="ident">A</span>,
   <span class="ident">location_domain</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">LocationDomain</span><span class="op">&gt;</span>,
@@ -229,11 +238,16 @@
     }
   }
 
+  <span class="doccomment">/// Gets the computed [`AnalysisDomain`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.AnalysisDomain.html)</span>
+  <span class="doccomment">/// at a given [`Location`].</span>
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">location</span>: <span class="ident">Location</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">A::Domain</span> {
     <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>[<span class="self">self</span>.<span class="ident">location_domain</span>.<span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="ident">location</span>)]
   }
 }
 
+<span class="doccomment">/// Runs a given [`Analysis`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.Analysis.html) to a fixpoint over the given [`Body`].</span>
+<span class="doccomment">/// </span>
+<span class="doccomment">/// A reimplementation of [`rustc_mir_dataflow::framework::engine::iterate_to_fixpoint`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/framework/engine/struct.Engine.html#method.iterate_to_fixpoint).</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterate_to_fixpoint</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">A</span>: <span class="ident">Analysis</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>(
   <span class="ident">_tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
   <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,

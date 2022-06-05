@@ -614,7 +614,69 @@
 <span id="591">591</span>
 <span id="592">592</span>
 <span id="593">593</span>
-</pre><pre class="rust"><code><span class="doccomment">//! APIs for efficiently representing values with an fixed-size domain.</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+</pre><pre class="rust"><code><span class="doccomment">//! APIs for efficiently representing values with an fixed-size domain via bit-sets.</span>
+<span class="doccomment">//! </span>
+<span class="doccomment">//! This module is an abstraction over the [`rustc_index::bit_set`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/index.html)</span>
+<span class="doccomment">//! data structures. Its main purpose is to simplify the translation between indexes and the values they represent.</span>
+<span class="doccomment">//! </span>
+<span class="doccomment">//! # Indexed values</span>
+<span class="doccomment">//! In Flowistry, some types can only take on a specific range of values at a given time.</span>
+<span class="doccomment">//! For example, a MIR body has a fixed set of [`Location`](rustc_middle::mir::Location)s.</span>
+<span class="doccomment">//! Therefore if we want to encode a set of locations (e.g. for the [`FlowDomain`](crate::infoflow::FlowDomain)),</span>
+<span class="doccomment">//! then we can assign each `Location` a numeric index and use a compact bit-set instead of, say,</span>
+<span class="doccomment">//! a hash set. Concretely, this means:</span>
+<span class="doccomment">//! 1. Defining a type `LocationIndex` that implements the [`Idx`](rustc_index::vec::Idx) trait.</span>
+<span class="doccomment">//! 2. Creating a mapping (&quot;domain&quot;) from `Location`s to `LocationIndex`.</span>
+<span class="doccomment">//! 3. Constructing a `LocationSet` out of a [`BitSet`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/struct.BitSet.html)`&lt;LocationIndex&gt;`.</span>
+<span class="doccomment">//! </span>
+<span class="doccomment">//! Abstractly, for an arbitrary type `T`, we perform each step with the following constructs:</span>
+<span class="doccomment">//! 1. Indexes are defined with the  [`rustc_index::newtype_index`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/macro.newtype_index.html) macro.</span>
+<span class="doccomment">//! 2. The domain of `T` is a data structure implementing the [`IndexedDomain`] trait, such as [`DefaultDomain`].</span>
+<span class="doccomment">//!    The trait [`IndexedValue`] is implemented for `T` which defines an associated type</span>
+<span class="doccomment">//!    `T::Domain: IndexedDomain`.</span>
+<span class="doccomment">//! 3. Then the user can construct an [`IndexSet`]`&lt;T&gt;` by providing an instance of `&amp;Rc&lt;T::Domain&gt;`.</span>
+<span class="doccomment">//! </span>
+<span class="doccomment">//! You can explicitly translate a `T` to a `T::Index` via [`IndexedDomain::index`], and vice-versa</span>
+<span class="doccomment">//! with [`IndexedDomain::value`]. But this translation is often done for you. For example, most</span>
+<span class="doccomment">//! `IndexSet` methods use the [`ToIndex`] trait to take as input `impl ToIndex&lt;T&gt;`, and both `T`</span>
+<span class="doccomment">//! and `T::Index` implement `ToIndex`. So you can call [`IndexSet::insert`] with a plain `T`, and</span>
+<span class="doccomment">//! because `IndexSet` holds a pointer to its `IndexedDomain`, it automatically converts the `T`</span>
+<span class="doccomment">//! to `T::Index`.</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::{
   <span class="ident">fmt</span>,
@@ -1010,10 +1072,14 @@
   }
 }
 
+<span class="doccomment">/// A mapping from `R` to `IndexSet&lt;C&gt;`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Similar to [`SparseBitMatrix`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/struct.SparseBitMatrix.html),</span>
+<span class="doccomment">/// but optimized for Flowistry.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IndexMatrix</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">C</span>: <span class="ident">IndexedValue</span><span class="op">&gt;</span> {
   <span class="ident">matrix</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IndexSetImpl</span><span class="op">&lt;</span><span class="ident">C::Index</span><span class="op">&gt;</span><span class="op">&gt;</span>,
   <span class="ident">empty_set</span>: <span class="ident">IndexSetImpl</span><span class="op">&lt;</span><span class="ident">C::Index</span><span class="op">&gt;</span>,
-  <span class="kw">pub</span> <span class="ident">col_domain</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">C::Domain</span><span class="op">&gt;</span>,
+  <span class="ident">col_domain</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">C::Domain</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">RowBounds</span> <span class="op">=</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Copy</span>;
@@ -1092,6 +1158,10 @@
 
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_row</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">row</span>: <span class="ident">R</span>) {
     <span class="self">self</span>.<span class="ident">matrix</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">row</span>);
+  }
+
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">col_domain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">C::Domain</span><span class="op">&gt;</span> {
+    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">col_domain</span>
   }
 }
 

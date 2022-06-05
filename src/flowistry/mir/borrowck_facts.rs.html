@@ -90,7 +90,22 @@
 <span id="67">67</span>
 <span id="68">68</span>
 <span id="69">69</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">rustc_borrowck::consumers::BodyWithBorrowckFacts</span>;
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Polonius integration to extract borrowck facts from rustc.</span>
+
+<span class="kw">use</span> <span class="ident">rustc_borrowck::BodyWithBorrowckFacts</span>;
 <span class="kw">use</span> <span class="ident">rustc_hir::def_id::LocalDefId</span>;
 <span class="kw">use</span> <span class="ident">rustc_middle</span>::{
   <span class="ident">mir::MirPass</span>,
@@ -144,6 +159,17 @@
   <span class="ident">original_mir_borrowck</span>(<span class="ident">tcx</span>, <span class="ident">def_id</span>)
 }
 
+<span class="doccomment">/// Gets the MIR body and [Polonius](https://github.com/rust-lang/polonius)-generated</span>
+<span class="doccomment">/// [borrowck facts](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_borrowck/struct.BodyWithBorrowckFacts.html)</span>
+<span class="doccomment">/// for a given [`LocalDefId`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// For this function to work, you MUST add [`override_queries`] to the</span>
+<span class="doccomment">/// [`rustc_interface::Config`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_interface/interface/struct.Config.html)</span>
+<span class="doccomment">/// inside of your [`rustc_driver::Callbacks`]. For example, see</span>
+<span class="doccomment">/// See [example.rs](https://github.com/willcrichton/flowistry/tree/master/crates/flowistry/examples/example.rs).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note that as of May 2022, Polonius can be *very* slow for large functions.</span>
+<span class="doccomment">/// It may take up to 30 seconds to analyze a single body with a large CFG.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_body_with_borrowck_facts</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
   <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
   <span class="ident">def_id</span>: <span class="ident">LocalDefId</span>,

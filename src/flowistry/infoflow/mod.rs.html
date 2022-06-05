@@ -127,12 +127,51 @@
 <span id="104">104</span>
 <span id="105">105</span>
 <span id="106">106</span>
-</pre><pre class="rust"><code><span class="doccomment">//! The core information flow analysis.</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+</pre><pre class="rust"><code><span class="doccomment">//! The core information flow analysis. </span>
+<span class="doccomment">//! </span>
+<span class="doccomment">//! The main function is [`compute_flow`]. See [`FlowResults`] and [`FlowDomain`] for an explanation </span>
+<span class="doccomment">//! of what it returns.</span>
 
 <span class="kw">use</span> <span class="ident">std::cell::RefCell</span>;
 
 <span class="kw">use</span> <span class="ident">log::debug</span>;
-<span class="kw">use</span> <span class="ident">rustc_borrowck::consumers::BodyWithBorrowckFacts</span>;
+<span class="kw">use</span> <span class="ident">rustc_borrowck::BodyWithBorrowckFacts</span>;
 <span class="kw">use</span> <span class="ident">rustc_hir::BodyId</span>;
 <span class="kw">use</span> <span class="ident">rustc_middle::ty::TyCtxt</span>;
 
@@ -152,13 +191,42 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">mutation</span>;
 <span class="kw">mod</span> <span class="ident">recursive</span>;
 
-<span class="doccomment">/// The return type of the information flow analysis.</span>
+<span class="doccomment">/// The output of the information flow analysis.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// The information flow analysis is flow-sensitive and field-sensitive, meaning the</span>
-<span class="doccomment">/// information flow is tracked at each MIR instruction, and for each memory location (place)</span>
-<span class="doccomment">/// that could be influenced. The flow-sensitivity is encoded in the [`AnalysisResults`](engine::AnalysisResults) wrapper,</span>
-<span class="doccomment">/// which contains a [`FlowDomain`] for each [`Location`](rustc_middle::mir::Location) (accessed via [`state_at`](engine::AnalysisResults::state_at)).</span>
-<span class="doccomment">/// See [`FlowDomain`] for more on the actual information flow representation.</span>
+<span class="doccomment">/// Using the metavariables in [the paper](https://arxiv.org/abs/2111.13662): for each</span>
+<span class="doccomment">/// [`Location`](rustc_middle::mir::Location) $\ell$ in a [`Body`](rustc_middle::mir::Body) $f$,</span>
+<span class="doccomment">/// this type contains a [`FlowDomain`] $\Theta$ that maps from a [`Place`](rustc_middle::mir::Place) $p$</span>
+<span class="doccomment">/// to [`LocationSet`](crate::indexed::impls::LocationSet) $\kappa$. The domain of $\Theta$</span>
+<span class="doccomment">/// is all places that have been defined up to $\ell$. For each place, $\Theta(p)$ contains the set of locations</span>
+<span class="doccomment">/// that could influence the value of that place (the place&#39;s dependencies).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// For example, to get the dependencies of the first argument at the first instruction, that would be:</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// # #![feature(rustc_private)]</span>
+<span class="doccomment">/// # extern crate rustc_middle;</span>
+<span class="doccomment">/// # use rustc_middle::{ty::TyCtxt, mir::{Place, Location, Local}};</span>
+<span class="doccomment">/// # use flowistry::{infoflow::{FlowDomain, FlowResults}, mir::utils::PlaceExt, indexed::impls::LocationSet};</span>
+<span class="doccomment">/// fn example&lt;&#39;tcx&gt;(tcx: TyCtxt&lt;&#39;tcx&gt;, results: &amp;FlowResults&lt;&#39;_, &#39;tcx&gt;) {</span>
+<span class="doccomment">///   let ℓ: Location       = Location::START;</span>
+<span class="doccomment">///   let Θ: &amp;FlowDomain    = results.state_at(ℓ);</span>
+<span class="doccomment">///   let p: Place          = Place::make(Local::from_usize(1), &amp;[], tcx);</span>
+<span class="doccomment">///   let κ: LocationSet&lt;_&gt; = Θ.row_set(p);</span>
+<span class="doccomment">///   for ℓ2 in κ.iter() {</span>
+<span class="doccomment">///     println!(&quot;at location {ℓ:?}, place {p:?} depends on location {ℓ2:?}&quot;);</span>
+<span class="doccomment">///   }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// To access a [`FlowDomain`] for a given location, use the method [`AnalysisResults::state_at`](engine::AnalysisResults::state_at).</span>
+<span class="doccomment">/// See [`FlowDomain`] for more on how to access the location set for a given place.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note: this analysis uses rustc&#39;s [dataflow analysis framework](https://rustc-dev-guide.rust-lang.org/mir/dataflow.html),</span>
+<span class="doccomment">/// i.e. [`rustc_mir_dataflow`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/index.html).</span>
+<span class="doccomment">/// You will see several types and traits from that crate here, such as </span>
+<span class="doccomment">/// [`Analysis`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.Analysis.html) and</span>
+<span class="doccomment">/// [`AnalysisDomain`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.AnalysisDomain.html).</span>
+<span class="doccomment">/// However, for performance purposes, several constructs were reimplemented within Flowistry, such as [`AnalysisResults`](engine::AnalysisResults)</span>
+<span class="doccomment">/// which replaces [`rustc_mir_dataflow::Results`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Results.html).</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">FlowResults</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">engine::AnalysisResults</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">FlowAnalysis</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
 <span class="macro">thread_local!</span> {
@@ -168,7 +236,11 @@
 
 <span class="doccomment">/// Computes information flow for a MIR body.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See [`FlowResults`] for an explanation of the return value.</span>
+<span class="doccomment">/// To get a `BodyWithBorrowckFacts`, you can use the</span>
+<span class="doccomment">/// [`get_body_with_borrowck_facts`](crate::mir::borrowck_facts::get_body_with_borrowck_facts)</span>
+<span class="doccomment">/// function. See its docs for details.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See [`FlowResults`] for an explanation of how to use the return value.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compute_flow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
   <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
   <span class="ident">body_id</span>: <span class="ident">BodyId</span>,
