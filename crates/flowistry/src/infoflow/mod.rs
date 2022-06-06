@@ -1,6 +1,6 @@
-//! The core information flow analysis. 
-//! 
-//! The main function is [`compute_flow`]. See [`FlowResults`] and [`FlowDomain`] for an explanation 
+//! The core information flow analysis.
+//!
+//! The main function is [`compute_flow`]. See [`FlowResults`] and [`FlowDomain`] for an explanation
 //! of what it returns.
 
 use std::cell::RefCell;
@@ -57,7 +57,7 @@ mod recursive;
 ///
 /// Note: this analysis uses rustc's [dataflow analysis framework](https://rustc-dev-guide.rust-lang.org/mir/dataflow.html),
 /// i.e. [`rustc_mir_dataflow`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/index.html).
-/// You will see several types and traits from that crate here, such as 
+/// You will see several types and traits from that crate here, such as
 /// [`Analysis`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.Analysis.html) and
 /// [`AnalysisDomain`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.AnalysisDomain.html).
 /// However, for performance purposes, several constructs were reimplemented within Flowistry, such as [`AnalysisResults`](engine::AnalysisResults)
