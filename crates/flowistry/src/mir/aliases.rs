@@ -639,7 +639,9 @@ impl<'tcx> TypeVisitor<'tcx> for LoanCollector<'_, 'tcx> {
     let region = match region.kind() {
       RegionKind::ReVar(region) => region,
       RegionKind::ReStatic => RegionVid::from_usize(0),
-      RegionKind::ReErased => {
+      // TODO: do we need to handle bound regions?
+      // e.g. shows up with closures, for<'a> ...
+      RegionKind::ReErased | RegionKind::ReLateBound(_, _) => {
         return ControlFlow::Continue(());
       }
       _ => unreachable!("{region:?}"),

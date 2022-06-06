@@ -703,7 +703,7 @@ impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
     let region = match region.kind() {
       RegionKind::ReVar(region) => region,
       RegionKind::ReStatic => RegionVid::from_usize(0),
-      RegionKind::ReErased => {
+      RegionKind::ReErased | RegionKind::ReLateBound(_, _) => {
         return ControlFlow::Continue(());
       }
       _ => unreachable!("{:?}: {:?}", self.ty_stack.first().unwrap(), region),

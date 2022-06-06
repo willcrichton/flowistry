@@ -27,7 +27,7 @@ use crate::indexed::{
   IndexedDomain,
 };
 
-/// An alternative implementation of 
+/// An alternative implementation of
 /// [`rustc_mir_dataflow::Results`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Results.html).
 pub struct AnalysisResults<'tcx, A: Analysis<'tcx>> {
   pub analysis: A,
@@ -78,7 +78,7 @@ impl<'tcx, A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
 }
 
 /// Runs a given [`Analysis`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.Analysis.html) to a fixpoint over the given [`Body`].
-/// 
+///
 /// A reimplementation of [`rustc_mir_dataflow::framework::engine::iterate_to_fixpoint`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/framework/engine/struct.Engine.html#method.iterate_to_fixpoint).
 pub fn iterate_to_fixpoint<'tcx, A: Analysis<'tcx>>(
   _tcx: TyCtxt<'tcx>,

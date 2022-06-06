@@ -1,8 +1,8 @@
 //! An algorithm to compute control-dependencies between MIR blocks.
-//! 
-//! In a function $f$, a block $Y$ is control-dependent on a block $X$ if the execution of $Y$ 
+//!
+//! In a function $f$, a block $Y$ is control-dependent on a block $X$ if the execution of $Y$
 //! is conditional on $X$, e.g. if $X$ is a conditional branch and $Y$ is one of the branches.
-//! 
+//!
 //! See Section 3.1 of "The Program Dependence Graph and Its Use in Optimization" (Ferrante et al. 1987)
 //! for more on how to define and analyze control-dependence.
 

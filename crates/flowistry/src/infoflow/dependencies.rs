@@ -75,10 +75,10 @@ impl TargetDeps {
 
 /// Computes the dependencies of a place $p$ at a location $\ell$ in a given
 /// direction.
-/// 
+///
 /// * If the direction is backward, then the dependencies are locations that influence $p$.
 /// * If the direction is forward, then the dependencies are locations that are influenced by $p$.
-/// 
+///
 /// For efficiency reasons, this function actually takes a list of list of places at locations.
 /// For example, if `all_targets = [[x@L1, y@L2], [z@L3]]` then the result would be
 /// `[deps(x@L1) ∪ deps(y@L2), deps(z@L3)]`.
