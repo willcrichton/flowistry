@@ -32,15 +32,15 @@ const LIBRARY_PATHS: Partial<Record<NodeJS.Platform, string>> = {
   win32: "LIB",
 };
 
-export const flowistry_cmd = `cargo +${TOOLCHAIN.channel} flowistry`;
-
 export const get_flowistry_opts = async (cwd: string) => {
   const rustc_path = await exec_notify(
-    `rustup which --toolchain ${TOOLCHAIN.channel} rustc`,
+    "rustup",
+    ["which", "--toolchain", TOOLCHAIN.channel, "rustc"],
     "Waiting for rustc..."
   );
   const target_info = await exec_notify(
-    `${rustc_path} --print target-libdir --print sysroot`,
+    rustc_path,
+    ["--print", "target-libdir", "--print", "sysroot"],
     "Waiting for rustc..."
   );
 
@@ -63,6 +63,7 @@ export const get_flowistry_opts = async (cwd: string) => {
 
 export let exec_notify = async (
   cmd: string,
+  args: string[],
   title: string,
   opts?: any
 ): Promise<string> => {
@@ -70,7 +71,7 @@ export let exec_notify = async (
 
   // See issue #4
   let shell: boolean | string = process.env.SHELL || true;
-  let proc = cp.spawn(cmd, {
+  let proc = cp.spawn(cmd, args, {
     shell,
     ...opts,
   });
@@ -116,6 +117,12 @@ export let cargo_bin = () => {
   return path.join(cargo_home, "bin");
 };
 
+export let cargo_command = (): [string, string[]] => {
+  let cargo = "cargo";
+  let toolchain = `+${TOOLCHAIN.channel}`;
+  return [cargo, [toolchain]];
+};
+
 export async function setup(
   context: vscode.ExtensionContext
 ): Promise<CallFlowistry | null> {
@@ -127,12 +134,13 @@ export async function setup(
   let workspace_root = folders[0].uri.fsPath;
   log("Workspace root", workspace_root);
 
-  let cargo = `cargo +${TOOLCHAIN.channel}`;
+  let [cargo, cargo_args] = cargo_command();
 
   let version;
   try {
     let output = await exec_notify(
-      `${cargo} flowistry -V`,
+      cargo,
+      [...cargo_args, "flowistry", "-V"],
       "Waiting for Flowistry...",
       { cwd: workspace_root }
     );
@@ -143,9 +151,19 @@ export async function setup(
 
   if (version !== VERSION) {
     let components = TOOLCHAIN.components.map((c) => `-c ${c}`).join(" ");
-    let rustup_cmd = `rustup toolchain install ${TOOLCHAIN.channel} --profile minimal ${components}`;
     try {
-      await exec_notify(rustup_cmd, "Installing nightly Rust...");
+      await exec_notify(
+        "rustup",
+        [
+          "toolchain",
+          "install",
+          TOOLCHAIN.channel,
+          "--profile",
+          "minimal",
+          components,
+        ],
+        "Installing nightly Rust..."
+      );
     } catch (e: any) {
       let choice = await vscode.window.showErrorMessage(
         'Flowistry failed to install because rustup failed. Click "Show fix" to resolve, or click "Dismiss to attempt installation later.',
@@ -171,9 +189,16 @@ export async function setup(
     } catch (e: any) {
       log("Install script failed with error:", e.toString());
 
-      let cargo_cmd = `${cargo} install flowistry_ide --version ${VERSION} --force`;
       await exec_notify(
-        cargo_cmd,
+        cargo,
+        [
+          ...cargo_args,
+          "install",
+          "flowistry_ide",
+          "--version",
+          VERSION,
+          "--force",
+        ],
         "Flowistry binaries not available, instead installing Flowistry crate from source... (this may take a minute)"
       );
     }
@@ -187,8 +212,6 @@ export async function setup(
 
   let flowistry_opts = await get_flowistry_opts(workspace_root);
   return async <T>(args: string, no_output: boolean = false) => {
-    let cmd = `${flowistry_cmd} ${args}`;
-
     let output;
     try {
       let editor = vscode.window.activeTextEditor;
@@ -197,7 +220,8 @@ export async function setup(
       }
 
       output = await exec_notify(
-        cmd,
+        cargo,
+        [...cargo_args, "flowistry", ...args],
         "Waiting for Flowistry...",
         flowistry_opts
       );
