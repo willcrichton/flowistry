@@ -69,12 +69,7 @@ export let exec_notify = async (
 ): Promise<string> => {
   log("Running command: ", [cmd, ...args].join(" "));
 
-  // See issue #4
-  let shell: boolean | string = process.env.SHELL || true;
-  let proc = cp.spawn(cmd, args, {
-    shell,
-    ...opts,
-  });
+  let proc = cp.spawn(cmd, args, opts);
 
   let read_stream = (stream: Readable): (() => string) => {
     let buffer: string[] = [];
