@@ -47,7 +47,11 @@ export let decompose = async () => {
   let doc = active_editor.document;
   let selection = active_editor.selection;
 
-  let cmd = `decompose ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
+  let cmd = [
+    "decompose",
+    doc.fileName,
+    doc.offsetAt(selection.anchor).toString(),
+  ];
   let decomp_res = await globals.call_flowistry<Decomposition>(cmd);
   if (!is_ok(decomp_res)) {
     return show_error(decomp_res);

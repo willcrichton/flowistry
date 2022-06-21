@@ -41,7 +41,11 @@ class FocusBodyState {
     doc: vscode.TextDocument,
     selection: vscode.Selection
   ): Promise<FlowistryResult<FocusBodyState>> => {
-    let cmd = `focus ${doc.fileName} ${doc.offsetAt(selection.anchor)}`;
+    let cmd = [
+      "focus",
+      doc.fileName,
+      doc.offsetAt(selection.anchor).toString(),
+    ];
     let focus_res = await globals.call_flowistry<Focus>(cmd);
 
     if (!is_ok(focus_res)) {
@@ -136,7 +140,7 @@ class FocusDocumentState {
   static load = async (
     editor: vscode.TextEditor
   ): Promise<FlowistryResult<FocusDocumentState>> => {
-    let cmd = `spans ${editor.document.fileName}`;
+    let cmd = ["spans", editor.document.fileName];
     let spans = await globals.call_flowistry<Spans>(cmd);
     if (!is_ok(spans)) {
       return spans;
