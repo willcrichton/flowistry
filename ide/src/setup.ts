@@ -67,7 +67,7 @@ export let exec_notify = async (
   title: string,
   opts?: any
 ): Promise<string> => {
-  log("Running command: ", cmd);
+  log("Running command: ", [cmd, ...args].join(" "));
 
   // See issue #4
   let shell: boolean | string = process.env.SHELL || true;
@@ -108,7 +108,7 @@ export let exec_notify = async (
 };
 
 export type CallFlowistry = <T>(
-  _args: string,
+  _args: string[],
   _no_output?: boolean
 ) => Promise<FlowistryResult<T>>;
 
@@ -211,7 +211,7 @@ export async function setup(
   }
 
   let flowistry_opts = await get_flowistry_opts(workspace_root);
-  return async <T>(args: string, no_output: boolean = false) => {
+  return async <T>(args: string[], no_output: boolean = false) => {
     let output;
     try {
       let editor = vscode.window.activeTextEditor;
