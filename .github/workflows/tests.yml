@@ -2,7 +2,7 @@ name: Tests
 
 on:
   push:
-    branches: 
+    branches:
       - "**"
     tags-ignore:
       - "v*"
@@ -15,7 +15,7 @@ jobs:
       # This allows requests to the proxy by disabling certificate validation
       NODE_TLS_REJECT_UNAUTHORIZED: 0
 
-    steps: 
+    steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/cargo@v1
         with:
@@ -27,11 +27,11 @@ jobs:
           command: test
       - run: npm ci
         working-directory: ide
-      - run: xvfb-run -a npm test -- install --zip=../target/debug/x86_64-unknown-linux-gnu.zip
-        working-directory: ide
-      - run: xvfb-run -a npm test
-        working-directory: ide
-  
+      # - run: xvfb-run -a npm test -- install --zip=../target/debug/x86_64-unknown-linux-gnu.zip
+      #   working-directory: ide
+      # - run: xvfb-run -a npm test
+      #   working-directory: ide
+
   bench:
     runs-on: ubuntu-latest
     steps:
