@@ -145,7 +145,7 @@ export async function setup(
   }
 
   if (version !== VERSION) {
-    let components = TOOLCHAIN.components.map((c) => ['-c', c]).flat();
+    let components = TOOLCHAIN.components.map((c) => ["-c", c]).flat();
     try {
       await exec_notify(
         "rustup",
@@ -155,7 +155,7 @@ export async function setup(
           TOOLCHAIN.channel,
           "--profile",
           "minimal",
-          ...components
+          ...components,
         ],
         "Installing nightly Rust..."
       );
