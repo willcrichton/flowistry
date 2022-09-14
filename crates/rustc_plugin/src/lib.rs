@@ -105,7 +105,7 @@ pub fn cli_main<T: RustcPlugin>(plugin: T) {
 
   cmd
     .env("RUSTC_WORKSPACE_WRAPPER", path)
-    .args(&["check", "-q", "--target-dir"])
+    .args(&["check", "-v", "--target-dir"])
     .arg(target_dir);
 
   let workspace_members = metadata
@@ -214,8 +214,6 @@ pub fn cli_main<T: RustcPlugin>(plugin: T) {
   if let Some(flags) = args.flags {
     cmd.args(flags);
   }
-
-  cmd.env("RUSTFLAGS", "-Awarnings");
 
   let exit_status = cmd
     .spawn()
