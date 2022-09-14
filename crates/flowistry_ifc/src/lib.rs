@@ -91,7 +91,7 @@ impl rustc_driver::Callbacks for Callbacks {
         tcx,
         issue_found: IssueFound::No,
       };
-      tcx.hir().deep_visit_all_item_likes(&mut visitor);
+      tcx.hir().visit_all_item_likes_in_crate(&mut visitor);
 
       if let IssueFound::No = visitor.issue_found {
         let mut stdout = StandardStream::stderr(ColorChoice::Auto);

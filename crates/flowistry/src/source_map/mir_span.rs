@@ -185,10 +185,7 @@ impl<'tcx> MirVisitor<'tcx> for MirSpanCollector<'_, '_, 'tcx> {
     self.super_terminator(terminator, location);
 
     let place = match &terminator.kind {
-      mir::TerminatorKind::Call {
-        destination: Some((place, _)),
-        ..
-      } => *place,
+      mir::TerminatorKind::Call { destination, .. } => *destination,
       mir::TerminatorKind::DropAndReplace { place, .. } => *place,
       _ => {
         return;
@@ -218,11 +215,9 @@ fn assigning_locations<'tcx>(
         ..
       })
       | Either::Right(Terminator {
-        kind:
-          TerminatorKind::Call {
-            destination: Some((lhs, _)),
-            ..
-          },
+        kind: TerminatorKind::Call {
+          destination: lhs, ..
+        },
         ..
       }) => *lhs == place,
       _ => false,

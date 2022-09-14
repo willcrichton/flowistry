@@ -105,7 +105,7 @@ pub fn cli_main<T: RustcPlugin>(plugin: T) {
 
   cmd
     .env("RUSTC_WORKSPACE_WRAPPER", path)
-    .args(&["check", "-v", "--target-dir"])
+    .args(["check", "-v", "--target-dir"])
     .arg(target_dir);
 
   let workspace_members = metadata

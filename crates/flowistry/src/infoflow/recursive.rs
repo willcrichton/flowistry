@@ -16,7 +16,7 @@ use crate::{
 };
 
 impl<'tcx> FlowAnalysis<'_, 'tcx> {
-  crate fn recurse_into_call(
+  pub(crate) fn recurse_into_call(
     &self,
     state: &mut FlowDomain<'tcx>,
     call: &TerminatorKind<'tcx>,
@@ -124,7 +124,7 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
     let mut return_state = FlowDomain::new(flow.analysis.location_domain());
     {
       let return_locs = body
-        .basic_blocks()
+        .basic_blocks
         .iter_enumerated()
         .filter_map(|(bb, data)| match data.terminator().kind {
           TerminatorKind::Return => Some(body.terminator_loc(bb)),
@@ -144,9 +144,7 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
           return None;
         }
 
-        if let Some((dst, _)) = destination {
-          return Some(*dst);
-        }
+        return Some(*destination);
       }
 
       if !child.is_arg(body) || (mutated && !child.is_indirect()) {

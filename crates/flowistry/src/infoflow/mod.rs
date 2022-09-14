@@ -86,7 +86,7 @@ pub fn compute_flow<'a, 'tcx>(
     debug!(
       "{}",
       rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| s
-        .print_expr(&tcx.hir().body(body_id).value))
+        .print_expr(tcx.hir().body(body_id).value))
     );
     debug!("{}", body_with_facts.body.to_string(tcx).unwrap());
 

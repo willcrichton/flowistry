@@ -61,7 +61,7 @@ pub struct FlowAnalysis<'a, 'tcx> {
   pub body: &'a Body<'tcx>,
   pub control_dependencies: ControlDependencies,
   pub aliases: Aliases<'a, 'tcx>,
-  crate recurse_cache: RefCell<HashMap<BodyId, FlowResults<'a, 'tcx>>>,
+  pub(crate) recurse_cache: RefCell<HashMap<BodyId, FlowResults<'a, 'tcx>>>,
 }
 
 impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
@@ -87,7 +87,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     self.aliases.location_domain()
   }
 
-  crate fn transfer_function(
+  pub(crate) fn transfer_function(
     &self,
     state: &mut FlowDomain<'tcx>,
     mutated: Place<'tcx>,
@@ -162,7 +162,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
       input_location_deps.insert(body.terminator_loc(block));
 
       // Include dependencies of the switch's operand
-      let terminator = body.basic_blocks()[block].terminator();
+      let terminator = body.basic_blocks[block].terminator();
       if let TerminatorKind::SwitchInt { discr, .. } = &terminator.kind {
         if let Some(discr_place) = discr.to_place() {
           add_deps(discr_place, &mut input_location_deps);

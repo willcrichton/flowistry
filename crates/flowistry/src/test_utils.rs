@@ -32,7 +32,7 @@ impl FileLoader for StringLoader {
 lazy_static::lazy_static! {
   static ref SYSROOT: String = String::from_utf8(
     Command::new("rustc")
-      .args(&["--print", "sysroot"])
+      .args(["--print", "sysroot"])
       .output()
       .unwrap()
       .stdout

@@ -97,7 +97,7 @@ pub fn iterate_to_fixpoint<'tcx, A: Analysis<'tcx>>(
     .initialize_start_block(body, &mut state[location_domain.index(&Location::START)]);
 
   let mut dirty_queue: WorkQueue<LocationIndex> = WorkQueue::with_none(num_locs);
-  if A::Direction::is_forward() {
+  if A::Direction::IS_FORWARD {
     for (block, data) in traversal::reverse_postorder(body) {
       for statement_index in 0 ..= data.statements.len() {
         dirty_queue.insert(location_domain.index(&Location {
@@ -118,6 +118,7 @@ pub fn iterate_to_fixpoint<'tcx, A: Analysis<'tcx>>(
       Either::Right(terminator) => {
         analysis.apply_terminator_effect(&mut state[loc_index], terminator, location);
         body
+          .basic_blocks
           .successors(location.block)
           .map(|block| Location {
             block,
