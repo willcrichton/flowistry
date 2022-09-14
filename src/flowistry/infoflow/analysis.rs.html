@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/infoflow/analysis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/infoflow/analysis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -15,13 +14,7 @@
     });
 </script>
 
-</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -317,302 +310,301 @@
 <span id="294">294</span>
 <span id="295">295</span>
 <span id="296">296</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cell::RefCell</span>, <span class="ident">rc::Rc</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::{cell::RefCell, rc::Rc};
 
-<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
-<span class="kw">use</span> <span class="ident">rustc_data_structures::fx</span>::{<span class="ident">FxHashMap</span> <span class="kw">as</span> <span class="ident">HashMap</span>, <span class="ident">FxHashSet</span> <span class="kw">as</span> <span class="ident">HashSet</span>};
-<span class="kw">use</span> <span class="ident">rustc_hir</span>::{<span class="ident">def_id::DefId</span>, <span class="ident">BodyId</span>};
-<span class="kw">use</span> <span class="ident">rustc_middle</span>::{
-  <span class="ident">mir</span>::{<span class="ident">visit::Visitor</span>, <span class="kw-2">*</span>},
-  <span class="ident">ty::TyCtxt</span>,
+<span class="kw">use </span>log::{debug, trace};
+<span class="kw">use </span>rustc_data_structures::fx::{FxHashMap <span class="kw">as </span>HashMap, FxHashSet <span class="kw">as </span>HashSet};
+<span class="kw">use </span>rustc_hir::{def_id::DefId, BodyId};
+<span class="kw">use </span>rustc_middle::{
+  mir::{visit::Visitor, <span class="kw-2">*</span>},
+  ty::TyCtxt,
 };
-<span class="kw">use</span> <span class="ident">rustc_mir_dataflow</span>::{<span class="ident">Analysis</span>, <span class="ident">AnalysisDomain</span>, <span class="ident">Forward</span>};
+<span class="kw">use </span>rustc_mir_dataflow::{Analysis, AnalysisDomain, Forward};
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-  <span class="ident">mutation</span>::{<span class="ident">ModularMutationVisitor</span>, <span class="ident">MutationStatus</span>},
-  <span class="ident">FlowResults</span>,
+<span class="kw">use super</span>::{
+  mutation::{ModularMutationVisitor, MutationStatus},
+  FlowResults,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{
-  <span class="ident">extensions</span>::{<span class="ident">is_extension_active</span>, <span class="ident">ContextMode</span>, <span class="ident">MutabilityMode</span>},
-  <span class="ident">indexed</span>::{
-    <span class="ident">impls</span>::{<span class="ident">LocationDomain</span>, <span class="ident">LocationSet</span>},
-    <span class="ident">IndexMatrix</span>, <span class="ident">IndexedDomain</span>,
+<span class="kw">use crate</span>::{
+  extensions::{is_extension_active, ContextMode, MutabilityMode},
+  indexed::{
+    impls::{LocationDomain, LocationSet},
+    IndexMatrix, IndexedDomain,
   },
-  <span class="ident">mir</span>::{
-    <span class="ident">aliases::Aliases</span>,
-    <span class="ident">control_dependencies::ControlDependencies</span>,
-    <span class="ident">utils</span>::{<span class="ident">OperandExt</span>, <span class="ident">PlaceExt</span>},
+  mir::{
+    aliases::Aliases,
+    control_dependencies::ControlDependencies,
+    utils::{OperandExt, PlaceExt},
   },
 };
 
-<span class="doccomment">/// Represents the information flows at a given instruction. See [`FlowResults`] for a high-level explanation of this datatype.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `FlowDomain` represents $\Theta$ that maps from places $p$ to dependencies $\kappa$. To efficiently represent $\kappa$, a set of locations,</span>
-<span class="doccomment">/// we use the bit-set data structures in [`rustc_index::bit_set`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/index.html).</span>
-<span class="doccomment">/// However instead of using those datatypes directly, we provide several abstractions in the [`indexed`](crate::indexed)</span>
-<span class="doccomment">/// module that have a more ergonomic interface and more efficient implementation than their `bit_set` counterparts.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The [`IndexMatrix`] maps from a [`Place`] to a [`LocationSet`] via the [`IndexMatrix::row_set`] method. The [`LocationSet`] is an</span>
-<span class="doccomment">/// [`IndexSet`](crate::indexed::IndexSet) of locations, which wraps a</span>
-<span class="doccomment">/// [`rustc_index::bit_set::HybridBitSet`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/enum.HybridBitSet.html) and</span>
-<span class="doccomment">/// has roughly the same API. The main difference is that `HybridBitSet` operates only on values that implement the</span>
-<span class="doccomment">/// [`rustc_index::vec::Idx`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/vec/trait.Idx.html) trait (usually created via</span>
-<span class="doccomment">/// the [`rustc_index::newtype_index`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/macro.newtype_index.html) macro). The `indexed`</span>
-<span class="doccomment">/// module has a concept of [`IndexedDomain`] to represent the mapping from a set of values to the indexes those values --- [`LocationDomain`]</span>
-<span class="doccomment">/// is the implementation for locations.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Hack alert: synthetic locations</span>
-<span class="doccomment">/// This API uses a hacky trick to represent the dependencies of function arguments. For instance, if `_1` is an argument,</span>
-<span class="doccomment">/// `_1` is not defined at a location, but rather simply exists at the execution of `Location::START`. Therefore we invent &quot;synthetic&quot; locations</span>
-<span class="doccomment">/// help distinguish when places depend on a given argument. For an argument place `_n`, it has a synthetic location with</span>
-<span class="doccomment">/// [`Location::block`] set to `body.basic_blocks().len()` and [`Location::statement_index`] set to `n`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This hack matters because if you get a `Location` out of a `LocationSet` taken from a `FlowDomain`, then it might</span>
-<span class="doccomment">/// not correspond to an actual MIR instruction. For example, if you call [`Body::stmt_at`] on a synthetic location then **it will panic.**</span>
-<span class="doccomment">/// If you want to check whether a location is synthetic, you can use the `LocationDomain::location_to_local` function. And one day, I will</span>
-<span class="doccomment">/// hopefully get around to making this all less hacky.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">FlowDomain</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">IndexMatrix</span><span class="op">&lt;</span><span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Location</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Represents the information flows at a given instruction. See [`FlowResults`] for a high-level explanation of this datatype.
+///
+/// `FlowDomain` represents $\Theta$ that maps from places $p$ to dependencies $\kappa$. To efficiently represent $\kappa$, a set of locations,
+/// we use the bit-set data structures in [`rustc_index::bit_set`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/index.html).
+/// However instead of using those datatypes directly, we provide several abstractions in the [`indexed`](crate::indexed)
+/// module that have a more ergonomic interface and more efficient implementation than their `bit_set` counterparts.
+///
+/// The [`IndexMatrix`] maps from a [`Place`] to a [`LocationSet`] via the [`IndexMatrix::row_set`] method. The [`LocationSet`] is an
+/// [`IndexSet`](crate::indexed::IndexSet) of locations, which wraps a
+/// [`rustc_index::bit_set::HybridBitSet`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/enum.HybridBitSet.html) and
+/// has roughly the same API. The main difference is that `HybridBitSet` operates only on values that implement the
+/// [`rustc_index::vec::Idx`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/vec/trait.Idx.html) trait (usually created via
+/// the [`rustc_index::newtype_index`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/macro.newtype_index.html) macro). The `indexed`
+/// module has a concept of [`IndexedDomain`] to represent the mapping from a set of values to the indexes those values --- [`LocationDomain`]
+/// is the implementation for locations.
+///
+///
+/// # Hack alert: synthetic locations
+/// This API uses a hacky trick to represent the dependencies of function arguments. For instance, if `_1` is an argument,
+/// `_1` is not defined at a location, but rather simply exists at the execution of `Location::START`. Therefore we invent &quot;synthetic&quot; locations
+/// help distinguish when places depend on a given argument. For an argument place `_n`, it has a synthetic location with
+/// [`Location::block`] set to `body.basic_blocks().len()` and [`Location::statement_index`] set to `n`.
+///
+/// This hack matters because if you get a `Location` out of a `LocationSet` taken from a `FlowDomain`, then it might
+/// not correspond to an actual MIR instruction. For example, if you call [`Body::stmt_at`] on a synthetic location then **it will panic.**
+/// If you want to check whether a location is synthetic, you can use the `LocationDomain::location_to_local` function. And one day, I will
+/// hopefully get around to making this all less hacky.
+</span><span class="kw">pub type </span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt; = IndexMatrix&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, Location&gt;;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FlowAnalysis</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">pub</span> <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="kw">pub</span> <span class="ident">def_id</span>: <span class="ident">DefId</span>,
-  <span class="kw">pub</span> <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="kw">pub</span> <span class="ident">control_dependencies</span>: <span class="ident">ControlDependencies</span>,
-  <span class="kw">pub</span> <span class="ident">aliases</span>: <span class="ident">Aliases</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="kw">crate</span> <span class="ident">recurse_cache</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">BodyId</span>, <span class="ident">FlowResults</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>FlowAnalysis&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">pub </span>tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  <span class="kw">pub </span>def_id: DefId,
+  <span class="kw">pub </span>body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  <span class="kw">pub </span>control_dependencies: ControlDependencies,
+  <span class="kw">pub </span>aliases: Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
+  <span class="kw">pub</span>(<span class="kw">crate</span>) recurse_cache: RefCell&lt;HashMap&lt;BodyId, FlowResults&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">FlowAnalysis</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-    <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">def_id</span>: <span class="ident">DefId</span>,
-    <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">aliases</span>: <span class="ident">Aliases</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">control_dependencies</span>: <span class="ident">ControlDependencies</span>,
-  ) -&gt; <span class="self">Self</span> {
-    <span class="kw">let</span> <span class="ident">recurse_cache</span> <span class="op">=</span> <span class="ident">RefCell::new</span>(<span class="ident">HashMap::default</span>());
-    <span class="ident">FlowAnalysis</span> {
-      <span class="ident">tcx</span>,
-      <span class="ident">def_id</span>,
-      <span class="ident">body</span>,
-      <span class="ident">aliases</span>,
-      <span class="ident">control_dependencies</span>,
-      <span class="ident">recurse_cache</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; FlowAnalysis&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">pub fn </span>new(
+    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    def_id: DefId,
+    body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    aliases: Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
+    control_dependencies: ControlDependencies,
+  ) -&gt; <span class="self">Self </span>{
+    <span class="kw">let </span>recurse_cache = RefCell::new(HashMap::default());
+    FlowAnalysis {
+      tcx,
+      def_id,
+      body,
+      aliases,
+      control_dependencies,
+      recurse_cache,
     }
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location_domain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">LocationDomain</span><span class="op">&gt;</span> {
-    <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">location_domain</span>()
+  <span class="kw">pub fn </span>location_domain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Rc&lt;LocationDomain&gt; {
+    <span class="self">self</span>.aliases.location_domain()
   }
 
-  <span class="kw">crate</span> <span class="kw">fn</span> <span class="ident">transfer_function</span>(
+  <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_function(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FlowDomain</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">mutated</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">inputs</span>: <span class="kw-2">&amp;</span>[(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>)],
-    <span class="ident">location</span>: <span class="ident">Location</span>,
-    <span class="ident">mutation_status</span>: <span class="ident">MutationStatus</span>,
+    state: <span class="kw-2">&amp;mut </span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    mutated: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    inputs: <span class="kw-2">&amp;</span>[(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;)],
+    location: Location,
+    mutation_status: MutationStatus,
   ) {
     <span class="macro">debug!</span>(<span class="string">&quot;  Applying mutation to {mutated:?} with inputs {inputs:?}&quot;</span>);
-    <span class="kw">let</span> <span class="ident">location_domain</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">location_domain</span>();
+    <span class="kw">let </span>location_domain = <span class="self">self</span>.location_domain();
 
-    <span class="kw">let</span> <span class="ident">all_aliases</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aliases</span>;
-    <span class="kw">let</span> <span class="ident">mutated_aliases</span> <span class="op">=</span> <span class="ident">all_aliases</span>.<span class="ident">aliases</span>(<span class="ident">mutated</span>);
+    <span class="kw">let </span>all_aliases = <span class="kw-2">&amp;</span><span class="self">self</span>.aliases;
+    <span class="kw">let </span>mutated_aliases = all_aliases.aliases(mutated);
     <span class="macro">trace!</span>(<span class="string">&quot;    Mutated aliases: {mutated_aliases:?}&quot;</span>);
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">mutated_aliases</span>.<span class="ident">is_empty</span>());
+    <span class="macro">assert!</span>(!mutated_aliases.is_empty());
 
-    <span class="comment">// Clear sub-places of mutated place (if sound to do so)</span>
-    <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">mutation_status</span>, <span class="ident">MutationStatus::Definitely</span>) <span class="op">&amp;&amp;</span> <span class="ident">mutated_aliases</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span>
-    {
-      <span class="kw">let</span> <span class="ident">mutated_direct</span> <span class="op">=</span> <span class="ident">mutated_aliases</span>.<span class="ident">iter</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
-      <span class="kw">for</span> <span class="ident">sub</span> <span class="kw">in</span> <span class="ident">all_aliases</span>.<span class="ident">children</span>(<span class="kw-2">*</span><span class="ident">mutated_direct</span>).<span class="ident">iter</span>() {
-        <span class="ident">state</span>.<span class="ident">clear_row</span>(<span class="ident">all_aliases</span>.<span class="ident">normalize</span>(<span class="kw-2">*</span><span class="ident">sub</span>));
+    <span class="comment">// Clear sub-places of mutated place (if sound to do so)
+    </span><span class="kw">if </span><span class="macro">matches!</span>(mutation_status, MutationStatus::Definitely) &amp;&amp; mutated_aliases.len() == <span class="number">1
+    </span>{
+      <span class="kw">let </span>mutated_direct = mutated_aliases.iter().next().unwrap();
+      <span class="kw">for </span>sub <span class="kw">in </span>all_aliases.children(<span class="kw-2">*</span>mutated_direct).iter() {
+        state.clear_row(all_aliases.normalize(<span class="kw-2">*</span>sub));
       }
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input_location_deps</span> <span class="op">=</span> <span class="ident">LocationSet::new</span>(<span class="ident">location_domain</span>);
-    <span class="ident">input_location_deps</span>.<span class="ident">insert</span>(<span class="ident">location</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>input_location_deps = LocationSet::new(location_domain);
+    input_location_deps.insert(location);
 
-    <span class="kw">let</span> <span class="ident">add_deps</span> <span class="op">=</span> <span class="op">|</span><span class="ident">place</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">location_deps</span>: <span class="kw-2">&amp;mut</span> <span class="ident">LocationSet</span><span class="op">|</span> {
-      <span class="kw">let</span> <span class="ident">reachable_values</span> <span class="op">=</span> <span class="ident">all_aliases</span>.<span class="ident">reachable_values</span>(<span class="ident">place</span>, <span class="ident">Mutability::Not</span>);
-      <span class="kw">let</span> <span class="ident">provenance</span> <span class="op">=</span>
-        <span class="ident">place</span>
-          .<span class="ident">refs_in_projection</span>()
-          .<span class="ident">into_iter</span>()
-          .<span class="ident">flat_map</span>(<span class="op">|</span>(<span class="ident">place_ref</span>, <span class="kw">_</span>)<span class="op">|</span> {
-            <span class="ident">all_aliases</span>
-              .<span class="ident">aliases</span>(<span class="ident">Place::from_ref</span>(<span class="ident">place_ref</span>, <span class="self">self</span>.<span class="ident">tcx</span>))
-              .<span class="ident">iter</span>()
+    <span class="kw">let </span>add_deps = |place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, location_deps: <span class="kw-2">&amp;mut </span>LocationSet| {
+      <span class="kw">let </span>reachable_values = all_aliases.reachable_values(place, Mutability::Not);
+      <span class="kw">let </span>provenance =
+        place
+          .refs_in_projection()
+          .into_iter()
+          .flat_map(|(place_ref, <span class="kw">_</span>)| {
+            all_aliases
+              .aliases(Place::from_ref(place_ref, <span class="self">self</span>.tcx))
+              .iter()
           });
-      <span class="kw">for</span> <span class="ident">relevant</span> <span class="kw">in</span> <span class="ident">reachable_values</span>.<span class="ident">iter</span>().<span class="ident">chain</span>(<span class="ident">provenance</span>) {
-        <span class="kw">let</span> <span class="ident">deps</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">row_set</span>(<span class="ident">all_aliases</span>.<span class="ident">normalize</span>(<span class="kw-2">*</span><span class="ident">relevant</span>));
+      <span class="kw">for </span>relevant <span class="kw">in </span>reachable_values.iter().chain(provenance) {
+        <span class="kw">let </span>deps = state.row_set(all_aliases.normalize(<span class="kw-2">*</span>relevant));
         <span class="macro">trace!</span>(<span class="string">&quot;    For relevant {relevant:?} for input {place:?} adding deps {deps:?}&quot;</span>);
-        <span class="ident">location_deps</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">deps</span>);
+        location_deps.union(<span class="kw-2">&amp;</span>deps);
       }
     };
 
-    <span class="comment">// Add deps of mutated to include provenance of mutated pointers</span>
-    <span class="ident">add_deps</span>(<span class="ident">mutated</span>, <span class="kw-2">&amp;mut</span> <span class="ident">input_location_deps</span>);
+    <span class="comment">// Add deps of mutated to include provenance of mutated pointers
+    </span>add_deps(mutated, <span class="kw-2">&amp;mut </span>input_location_deps);
 
-    <span class="comment">// Add deps of all inputs</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">for</span> (<span class="ident">place</span>, <span class="ident">elem</span>) <span class="kw">in</span> <span class="ident">inputs</span>.<span class="ident">iter</span>() {
-      <span class="ident">add_deps</span>(<span class="kw-2">*</span><span class="ident">place</span>, <span class="kw-2">&amp;mut</span> <span class="ident">input_location_deps</span>);
+    <span class="comment">// Add deps of all inputs
+    </span><span class="kw">let </span><span class="kw-2">mut </span>children = Vec::new();
+    <span class="kw">for </span>(place, elem) <span class="kw">in </span>inputs.iter() {
+      add_deps(<span class="kw-2">*</span>place, <span class="kw-2">&amp;mut </span>input_location_deps);
 
-      <span class="comment">// If the input is associated to a specific projection of the mutated</span>
-      <span class="comment">// place, then save that input&#39;s dependencies with the projection</span>
-      <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">elem</span>) <span class="op">=</span> <span class="ident">elem</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">projection</span> <span class="op">=</span> <span class="ident">mutated</span>.<span class="ident">projection</span>.<span class="ident">to_vec</span>();
-        <span class="ident">projection</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">elem</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">child_deps</span> <span class="op">=</span> <span class="ident">LocationSet::new</span>(<span class="ident">location_domain</span>);
-        <span class="ident">add_deps</span>(<span class="kw-2">*</span><span class="ident">place</span>, <span class="kw-2">&amp;mut</span> <span class="ident">child_deps</span>);
-        <span class="ident">children</span>.<span class="ident">push</span>((
-          <span class="ident">Place::make</span>(<span class="ident">mutated</span>.<span class="ident">local</span>, <span class="kw-2">&amp;</span><span class="ident">projection</span>, <span class="self">self</span>.<span class="ident">tcx</span>),
-          <span class="ident">child_deps</span>,
+      <span class="comment">// If the input is associated to a specific projection of the mutated
+      // place, then save that input&#39;s dependencies with the projection
+      </span><span class="kw">if let </span><span class="prelude-val">Some</span>(elem) = elem {
+        <span class="kw">let </span><span class="kw-2">mut </span>projection = mutated.projection.to_vec();
+        projection.push(<span class="kw-2">*</span>elem);
+        <span class="kw">let </span><span class="kw-2">mut </span>child_deps = LocationSet::new(location_domain);
+        add_deps(<span class="kw-2">*</span>place, <span class="kw-2">&amp;mut </span>child_deps);
+        children.push((
+          Place::make(mutated.local, <span class="kw-2">&amp;</span>projection, <span class="self">self</span>.tcx),
+          child_deps,
         ));
       }
     }
 
-    <span class="comment">// Add control dependencies</span>
-    <span class="kw">let</span> <span class="ident">controlled_by</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">control_dependencies</span>.<span class="ident">dependent_on</span>(<span class="ident">location</span>.<span class="ident">block</span>);
-    <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>;
-    <span class="kw">for</span> <span class="ident">block</span> <span class="kw">in</span> <span class="ident">controlled_by</span>.<span class="ident">into_iter</span>().<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">set</span><span class="op">|</span> <span class="ident">set</span>.<span class="ident">iter</span>()) {
-      <span class="ident">input_location_deps</span>.<span class="ident">insert</span>(<span class="ident">body</span>.<span class="ident">terminator_loc</span>(<span class="ident">block</span>));
+    <span class="comment">// Add control dependencies
+    </span><span class="kw">let </span>controlled_by = <span class="self">self</span>.control_dependencies.dependent_on(location.block);
+    <span class="kw">let </span>body = <span class="self">self</span>.body;
+    <span class="kw">for </span>block <span class="kw">in </span>controlled_by.into_iter().flat_map(|set| set.iter()) {
+      input_location_deps.insert(body.terminator_loc(block));
 
-      <span class="comment">// Include dependencies of the switch&#39;s operand</span>
-      <span class="kw">let</span> <span class="ident">terminator</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">basic_blocks</span>()[<span class="ident">block</span>].<span class="ident">terminator</span>();
-      <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TerminatorKind::SwitchInt</span> { <span class="ident">discr</span>, .. } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">terminator</span>.<span class="ident">kind</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">discr_place</span>) <span class="op">=</span> <span class="ident">discr</span>.<span class="ident">to_place</span>() {
-          <span class="ident">add_deps</span>(<span class="ident">discr_place</span>, <span class="kw-2">&amp;mut</span> <span class="ident">input_location_deps</span>);
+      <span class="comment">// Include dependencies of the switch&#39;s operand
+      </span><span class="kw">let </span>terminator = body.basic_blocks[block].terminator();
+      <span class="kw">if let </span>TerminatorKind::SwitchInt { discr, .. } = <span class="kw-2">&amp;</span>terminator.kind {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(discr_place) = discr.to_place() {
+          add_deps(discr_place, <span class="kw-2">&amp;mut </span>input_location_deps);
         }
       }
     }
 
-    <span class="kw">if</span> <span class="ident">children</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
-      <span class="comment">// In the special case of mutated = aggregate { x: .., y: .. }</span>
-      <span class="comment">// then we ensure that deps(mutated.x) != deps(mutated)</span>
+    <span class="kw">if </span>children.len() &gt; <span class="number">0 </span>{
+      <span class="comment">// In the special case of mutated = aggregate { x: .., y: .. }
+      // then we ensure that deps(mutated.x) != deps(mutated)
 
-      <span class="comment">// First, ensure that all children have the current in their deps.</span>
-      <span class="comment">// See test struct_read_constant for where this is needed.</span>
-      <span class="kw">for</span> <span class="ident">child</span> <span class="kw">in</span> <span class="ident">all_aliases</span>.<span class="ident">children</span>(<span class="ident">mutated</span>) {
-        <span class="ident">state</span>.<span class="ident">insert</span>(<span class="ident">all_aliases</span>.<span class="ident">normalize</span>(<span class="ident">child</span>), <span class="ident">location</span>);
+      // First, ensure that all children have the current in their deps.
+      // See test struct_read_constant for where this is needed.
+      </span><span class="kw">for </span>child <span class="kw">in </span>all_aliases.children(mutated) {
+        state.insert(all_aliases.normalize(child), location);
       }
 
-      <span class="comment">// Then for constructor arguments that were places, add dependencies of those places.</span>
-      <span class="kw">for</span> (<span class="ident">child</span>, <span class="ident">deps</span>) <span class="kw">in</span> <span class="ident">children</span> {
-        <span class="ident">state</span>.<span class="ident">union_into_row</span>(<span class="ident">all_aliases</span>.<span class="ident">normalize</span>(<span class="ident">child</span>), <span class="kw-2">&amp;</span><span class="ident">deps</span>);
+      <span class="comment">// Then for constructor arguments that were places, add dependencies of those places.
+      </span><span class="kw">for </span>(child, deps) <span class="kw">in </span>children {
+        state.union_into_row(all_aliases.normalize(child), <span class="kw-2">&amp;</span>deps);
       }
 
-      <span class="comment">// Finally add input_location_deps *JUST* to mutated, not conflicts of mutated.</span>
-      <span class="ident">state</span>.<span class="ident">union_into_row</span>(<span class="ident">all_aliases</span>.<span class="ident">normalize</span>(<span class="ident">mutated</span>), <span class="kw-2">&amp;</span><span class="ident">input_location_deps</span>);
-    } <span class="kw">else</span> {
-      <span class="comment">// Union dependencies into all conflicting places of the mutated place</span>
-      <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mutable_conflicts</span> <span class="op">=</span> <span class="ident">all_aliases</span>.<span class="ident">conflicts</span>(<span class="ident">mutated</span>).<span class="ident">to_owned</span>();
+      <span class="comment">// Finally add input_location_deps *JUST* to mutated, not conflicts of mutated.
+      </span>state.union_into_row(all_aliases.normalize(mutated), <span class="kw-2">&amp;</span>input_location_deps);
+    } <span class="kw">else </span>{
+      <span class="comment">// Union dependencies into all conflicting places of the mutated place
+      </span><span class="kw">let </span><span class="kw-2">mut </span>mutable_conflicts = all_aliases.conflicts(mutated).to_owned();
 
-      <span class="comment">// Remove any conflicts that aren&#39;t actually mutable, e.g. if x : &amp;T ends up</span>
-      <span class="comment">// as an alias of y: &amp;mut T. See test function_lifetime_alias_mut for an example.</span>
-      <span class="kw">let</span> <span class="ident">ignore_mut</span> <span class="op">=</span>
-        <span class="ident">is_extension_active</span>(<span class="op">|</span><span class="ident">mode</span><span class="op">|</span> <span class="ident">mode</span>.<span class="ident">mutability_mode</span> <span class="op">==</span> <span class="ident">MutabilityMode::IgnoreMut</span>);
-      <span class="kw">if</span> <span class="op">!</span><span class="ident">ignore_mut</span> {
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>;
-        <span class="kw">let</span> <span class="ident">tcx</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcx</span>;
-        <span class="ident">mutable_conflicts</span> <span class="op">=</span> <span class="ident">mutable_conflicts</span>
-          .<span class="ident">iter</span>()
-          .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> {
-            <span class="ident">place</span>.<span class="ident">iter_projections</span>().<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">sub_place</span>, <span class="kw">_</span>)<span class="op">|</span> {
-              <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">sub_place</span>.<span class="ident">ty</span>(<span class="ident">body</span>.<span class="ident">local_decls</span>(), <span class="ident">tcx</span>).<span class="ident">ty</span>;
-              <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">ty</span>.<span class="ident">ref_mutability</span>(), <span class="prelude-val">Some</span>(<span class="ident">Mutability::Not</span>))
+      <span class="comment">// Remove any conflicts that aren&#39;t actually mutable, e.g. if x : &amp;T ends up
+      // as an alias of y: &amp;mut T. See test function_lifetime_alias_mut for an example.
+      </span><span class="kw">let </span>ignore_mut =
+        is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
+      <span class="kw">if </span>!ignore_mut {
+        <span class="kw">let </span>body = <span class="self">self</span>.body;
+        <span class="kw">let </span>tcx = <span class="self">self</span>.tcx;
+        mutable_conflicts = mutable_conflicts
+          .iter()
+          .filter(|place| {
+            place.iter_projections().all(|(sub_place, <span class="kw">_</span>)| {
+              <span class="kw">let </span>ty = sub_place.ty(body.local_decls(), tcx).ty;
+              !<span class="macro">matches!</span>(ty.ref_mutability(), <span class="prelude-val">Some</span>(Mutability::Not))
             })
           })
-          .<span class="ident">copied</span>()
-          .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+          .copied()
+          .collect::&lt;HashSet&lt;<span class="kw">_</span>&gt;&gt;();
       };
 
       <span class="macro">debug!</span>(<span class="string">&quot;  Mutated conflicting places: {mutable_conflicts:?}&quot;</span>);
       <span class="macro">debug!</span>(<span class="string">&quot;    with deps {input_location_deps:?}&quot;</span>);
 
-      <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="ident">mutable_conflicts</span>.<span class="ident">into_iter</span>() {
-        <span class="ident">state</span>.<span class="ident">union_into_row</span>(<span class="ident">all_aliases</span>.<span class="ident">normalize</span>(<span class="ident">place</span>), <span class="kw-2">&amp;</span><span class="ident">input_location_deps</span>);
+      <span class="kw">for </span>place <span class="kw">in </span>mutable_conflicts.into_iter() {
+        state.union_into_row(all_aliases.normalize(place), <span class="kw-2">&amp;</span>input_location_deps);
       }
     }
   }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">AnalysisDomain</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FlowAnalysis</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">type</span> <span class="ident">Domain</span> <span class="op">=</span> <span class="ident">FlowDomain</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>;
-  <span class="kw">type</span> <span class="ident">Direction</span> <span class="op">=</span> <span class="ident">Forward</span>;
-  <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;FlowAnalysis&quot;</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; AnalysisDomain&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>FlowAnalysis&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">type </span>Domain = FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt;;
+  <span class="kw">type </span>Direction = Forward;
+  <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;FlowAnalysis&quot;</span>;
 
-  <span class="kw">fn</span> <span class="ident">bottom_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident"><span class="self">Self</span>::Domain</span> {
-    <span class="ident">FlowDomain::new</span>(<span class="self">self</span>.<span class="ident">location_domain</span>())
+  <span class="kw">fn </span>bottom_value(<span class="kw-2">&amp;</span><span class="self">self</span>, _body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self</span>::Domain {
+    FlowDomain::new(<span class="self">self</span>.location_domain())
   }
 
-  <span class="kw">fn</span> <span class="ident">initialize_start_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Domain</span>) {
-    <span class="kw">for</span> (<span class="ident">arg</span>, <span class="ident">loc</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">all_args</span>() {
-      <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">conflicts</span>(<span class="ident">arg</span>) {
+  <span class="kw">fn </span>initialize_start_block(<span class="kw-2">&amp;</span><span class="self">self</span>, _body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Domain) {
+    <span class="kw">for </span>(arg, loc) <span class="kw">in </span><span class="self">self</span>.aliases.all_args() {
+      <span class="kw">for </span>place <span class="kw">in </span><span class="self">self</span>.aliases.conflicts(arg) {
         <span class="macro">debug!</span>(
           <span class="string">&quot;arg={arg:?} / place={place:?} / loc={:?}&quot;</span>,
-          <span class="self">self</span>.<span class="ident">location_domain</span>().<span class="ident">value</span>(<span class="ident">loc</span>)
+          <span class="self">self</span>.location_domain().value(loc)
         );
-        <span class="ident">state</span>.<span class="ident">insert</span>(<span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">normalize</span>(<span class="kw-2">*</span><span class="ident">place</span>), <span class="ident">loc</span>);
+        state.insert(<span class="self">self</span>.aliases.normalize(<span class="kw-2">*</span>place), loc);
       }
     }
   }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">Analysis</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FlowAnalysis</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">fn</span> <span class="ident">apply_statement_effect</span>(
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; Analysis&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>FlowAnalysis&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">fn </span>apply_statement_effect(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Domain</span>,
-    <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">location</span>: <span class="ident">Location</span>,
+    state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Domain,
+    statement: <span class="kw-2">&amp;</span>Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    location: Location,
   ) {
-    <span class="ident">ModularMutationVisitor::new</span>(
-      <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aliases</span>,
-      <span class="op">|</span><span class="ident">mutated</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-       <span class="ident">inputs</span>: <span class="kw-2">&amp;</span>[(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>)],
-       <span class="ident">location</span>: <span class="ident">Location</span>,
-       <span class="ident">mutation_status</span>: <span class="ident">MutationStatus</span><span class="op">|</span> {
-        <span class="self">self</span>.<span class="ident">transfer_function</span>(<span class="ident">state</span>, <span class="ident">mutated</span>, <span class="ident">inputs</span>, <span class="ident">location</span>, <span class="ident">mutation_status</span>)
+    ModularMutationVisitor::new(
+      <span class="kw-2">&amp;</span><span class="self">self</span>.aliases,
+      |mutated: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+       inputs: <span class="kw-2">&amp;</span>[(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;)],
+       location: Location,
+       mutation_status: MutationStatus| {
+        <span class="self">self</span>.transfer_function(state, mutated, inputs, location, mutation_status)
       },
     )
-    .<span class="ident">visit_statement</span>(<span class="ident">statement</span>, <span class="ident">location</span>);
+    .visit_statement(statement, location);
   }
 
-  <span class="kw">fn</span> <span class="ident">apply_terminator_effect</span>(
+  <span class="kw">fn </span>apply_terminator_effect(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Domain</span>,
-    <span class="ident">terminator</span>: <span class="kw-2">&amp;</span><span class="ident">Terminator</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">location</span>: <span class="ident">Location</span>,
+    state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Domain,
+    terminator: <span class="kw-2">&amp;</span>Terminator&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    location: Location,
   ) {
-    <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">terminator</span>.<span class="ident">kind</span>, <span class="ident">TerminatorKind::Call</span> { .. })
-      <span class="op">&amp;&amp;</span> <span class="ident">is_extension_active</span>(<span class="op">|</span><span class="ident">mode</span><span class="op">|</span> <span class="ident">mode</span>.<span class="ident">context_mode</span> <span class="op">==</span> <span class="ident">ContextMode::Recurse</span>)
-      <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">recurse_into_call</span>(<span class="ident">state</span>, <span class="kw-2">&amp;</span><span class="ident">terminator</span>.<span class="ident">kind</span>, <span class="ident">location</span>)
+    <span class="kw">if </span><span class="macro">matches!</span>(terminator.kind, TerminatorKind::Call { .. })
+      &amp;&amp; is_extension_active(|mode| mode.context_mode == ContextMode::Recurse)
+      &amp;&amp; <span class="self">self</span>.recurse_into_call(state, <span class="kw-2">&amp;</span>terminator.kind, location)
     {
       <span class="kw">return</span>;
     }
 
-    <span class="ident">ModularMutationVisitor::new</span>(
-      <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aliases</span>,
-      <span class="op">|</span><span class="ident">mutated</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-       <span class="ident">inputs</span>: <span class="kw-2">&amp;</span>[(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>)],
-       <span class="ident">location</span>: <span class="ident">Location</span>,
-       <span class="ident">mutation_status</span>: <span class="ident">MutationStatus</span><span class="op">|</span> {
-        <span class="self">self</span>.<span class="ident">transfer_function</span>(<span class="ident">state</span>, <span class="ident">mutated</span>, <span class="ident">inputs</span>, <span class="ident">location</span>, <span class="ident">mutation_status</span>)
+    ModularMutationVisitor::new(
+      <span class="kw-2">&amp;</span><span class="self">self</span>.aliases,
+      |mutated: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+       inputs: <span class="kw-2">&amp;</span>[(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;)],
+       location: Location,
+       mutation_status: MutationStatus| {
+        <span class="self">self</span>.transfer_function(state, mutated, inputs, location, mutation_status)
       },
     )
-    .<span class="ident">visit_terminator</span>(<span class="ident">terminator</span>, <span class="ident">location</span>);
+    .visit_terminator(terminator, location);
   }
 
-  <span class="kw">fn</span> <span class="ident">apply_call_return_effect</span>(
+  <span class="kw">fn </span>apply_call_return_effect(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    <span class="ident">_state</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Domain</span>,
-    <span class="ident">_block</span>: <span class="ident">BasicBlock</span>,
-    <span class="ident">_return_places</span>: <span class="ident">rustc_mir_dataflow::CallReturnPlaces</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    _state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Domain,
+    _block: BasicBlock,
+    _return_places: rustc_mir_dataflow::CallReturnPlaces&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt;,
   ) {
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

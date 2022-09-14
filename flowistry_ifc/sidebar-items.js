@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Callbacks",""],["IfcPlugin",""],["IfcVisitor",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["Callbacks",""],["IfcPlugin",""],["IfcVisitor",""]]};

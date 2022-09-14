@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["elapsed",""]],"struct":[["BlockTimer",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["elapsed",""]],"struct":[["BlockTimer",""]]};

@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.98/src/tt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.99/src/tt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -112,113 +105,112 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">proc_macro2</span>::{<span class="ident">Delimiter</span>, <span class="ident">TokenStream</span>, <span class="ident">TokenTree</span>};
-<span class="kw">use</span> <span class="ident">std::hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>proc_macro2::{Delimiter, TokenStream, TokenTree};
+<span class="kw">use </span>std::hash::{Hash, Hasher};
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TokenTreeHelper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">TokenTree</span>);
+<span class="kw">pub struct </span>TokenTreeHelper&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TokenTree);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">TokenTreeHelper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">use</span> <span class="ident">proc_macro2::Spacing</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialEq <span class="kw">for </span>TokenTreeHelper&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="kw">use </span>proc_macro2::Spacing;
 
-        <span class="kw">match</span> (<span class="self">self</span>.<span class="number">0</span>, <span class="ident">other</span>.<span class="number">0</span>) {
-            (<span class="ident">TokenTree::Group</span>(<span class="ident">g1</span>), <span class="ident">TokenTree::Group</span>(<span class="ident">g2</span>)) =&gt; {
-                <span class="kw">match</span> (<span class="ident">g1</span>.<span class="ident">delimiter</span>(), <span class="ident">g2</span>.<span class="ident">delimiter</span>()) {
-                    (<span class="ident">Delimiter::Parenthesis</span>, <span class="ident">Delimiter::Parenthesis</span>)
-                    <span class="op">|</span> (<span class="ident">Delimiter::Brace</span>, <span class="ident">Delimiter::Brace</span>)
-                    <span class="op">|</span> (<span class="ident">Delimiter::Bracket</span>, <span class="ident">Delimiter::Bracket</span>)
-                    <span class="op">|</span> (<span class="ident">Delimiter::None</span>, <span class="ident">Delimiter::None</span>) =&gt; {}
-                    <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
+        <span class="kw">match </span>(<span class="self">self</span>.<span class="number">0</span>, other.<span class="number">0</span>) {
+            (TokenTree::Group(g1), TokenTree::Group(g2)) =&gt; {
+                <span class="kw">match </span>(g1.delimiter(), g2.delimiter()) {
+                    (Delimiter::Parenthesis, Delimiter::Parenthesis)
+                    | (Delimiter::Brace, Delimiter::Brace)
+                    | (Delimiter::Bracket, Delimiter::Bracket)
+                    | (Delimiter::None, Delimiter::None) =&gt; {}
+                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="bool-val">false</span>,
                 }
 
-                <span class="kw">let</span> <span class="ident">s1</span> <span class="op">=</span> <span class="ident">g1</span>.<span class="ident">stream</span>().<span class="ident">into_iter</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s2</span> <span class="op">=</span> <span class="ident">g2</span>.<span class="ident">stream</span>().<span class="ident">into_iter</span>();
+                <span class="kw">let </span>s1 = g1.stream().into_iter();
+                <span class="kw">let </span><span class="kw-2">mut </span>s2 = g2.stream().into_iter();
 
-                <span class="kw">for</span> <span class="ident">item1</span> <span class="kw">in</span> <span class="ident">s1</span> {
-                    <span class="kw">let</span> <span class="ident">item2</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">s2</span>.<span class="ident">next</span>() {
-                        <span class="prelude-val">Some</span>(<span class="ident">item</span>) =&gt; <span class="ident">item</span>,
-                        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
+                <span class="kw">for </span>item1 <span class="kw">in </span>s1 {
+                    <span class="kw">let </span>item2 = <span class="kw">match </span>s2.next() {
+                        <span class="prelude-val">Some</span>(item) =&gt; item,
+                        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="bool-val">false</span>,
                     };
-                    <span class="kw">if</span> <span class="ident">TokenTreeHelper</span>(<span class="kw-2">&amp;</span><span class="ident">item1</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">TokenTreeHelper</span>(<span class="kw-2">&amp;</span><span class="ident">item2</span>) {
-                        <span class="kw">return</span> <span class="bool-val">false</span>;
+                    <span class="kw">if </span>TokenTreeHelper(<span class="kw-2">&amp;</span>item1) != TokenTreeHelper(<span class="kw-2">&amp;</span>item2) {
+                        <span class="kw">return </span><span class="bool-val">false</span>;
                     }
                 }
-                <span class="ident">s2</span>.<span class="ident">next</span>().<span class="ident">is_none</span>()
+                s2.next().is_none()
             }
-            (<span class="ident">TokenTree::Punct</span>(<span class="ident">o1</span>), <span class="ident">TokenTree::Punct</span>(<span class="ident">o2</span>)) =&gt; {
-                <span class="ident">o1</span>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="ident">o2</span>.<span class="ident">as_char</span>()
-                    <span class="op">&amp;&amp;</span> <span class="kw">match</span> (<span class="ident">o1</span>.<span class="ident">spacing</span>(), <span class="ident">o2</span>.<span class="ident">spacing</span>()) {
-                        (<span class="ident">Spacing::Alone</span>, <span class="ident">Spacing::Alone</span>) <span class="op">|</span> (<span class="ident">Spacing::Joint</span>, <span class="ident">Spacing::Joint</span>) =&gt; <span class="bool-val">true</span>,
-                        <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+            (TokenTree::Punct(o1), TokenTree::Punct(o2)) =&gt; {
+                o1.as_char() == o2.as_char()
+                    &amp;&amp; <span class="kw">match </span>(o1.spacing(), o2.spacing()) {
+                        (Spacing::Alone, Spacing::Alone) | (Spacing::Joint, Spacing::Joint) =&gt; <span class="bool-val">true</span>,
+                        <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
                     }
             }
-            (<span class="ident">TokenTree::Literal</span>(<span class="ident">l1</span>), <span class="ident">TokenTree::Literal</span>(<span class="ident">l2</span>)) =&gt; <span class="ident">l1</span>.<span class="ident">to_string</span>() <span class="op">==</span> <span class="ident">l2</span>.<span class="ident">to_string</span>(),
-            (<span class="ident">TokenTree::Ident</span>(<span class="ident">s1</span>), <span class="ident">TokenTree::Ident</span>(<span class="ident">s2</span>)) =&gt; <span class="ident">s1</span> <span class="op">==</span> <span class="ident">s2</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+            (TokenTree::Literal(l1), TokenTree::Literal(l2)) =&gt; l1.to_string() == l2.to_string(),
+            (TokenTree::Ident(s1), TokenTree::Ident(s2)) =&gt; s1 == s2,
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TokenTreeHelper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">h</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <span class="kw">use</span> <span class="ident">proc_macro2::Spacing</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Hash <span class="kw">for </span>TokenTreeHelper&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, h: <span class="kw-2">&amp;mut </span>H) {
+        <span class="kw">use </span>proc_macro2::Spacing;
 
-        <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span> {
-            <span class="ident">TokenTree::Group</span>(<span class="ident">g</span>) =&gt; {
-                <span class="number">0u8</span>.<span class="ident">hash</span>(<span class="ident">h</span>);
-                <span class="kw">match</span> <span class="ident">g</span>.<span class="ident">delimiter</span>() {
-                    <span class="ident">Delimiter::Parenthesis</span> =&gt; <span class="number">0u8</span>.<span class="ident">hash</span>(<span class="ident">h</span>),
-                    <span class="ident">Delimiter::Brace</span> =&gt; <span class="number">1u8</span>.<span class="ident">hash</span>(<span class="ident">h</span>),
-                    <span class="ident">Delimiter::Bracket</span> =&gt; <span class="number">2u8</span>.<span class="ident">hash</span>(<span class="ident">h</span>),
-                    <span class="ident">Delimiter::None</span> =&gt; <span class="number">3u8</span>.<span class="ident">hash</span>(<span class="ident">h</span>),
+        <span class="kw">match </span><span class="self">self</span>.<span class="number">0 </span>{
+            TokenTree::Group(g) =&gt; {
+                <span class="number">0u8</span>.hash(h);
+                <span class="kw">match </span>g.delimiter() {
+                    Delimiter::Parenthesis =&gt; <span class="number">0u8</span>.hash(h),
+                    Delimiter::Brace =&gt; <span class="number">1u8</span>.hash(h),
+                    Delimiter::Bracket =&gt; <span class="number">2u8</span>.hash(h),
+                    Delimiter::None =&gt; <span class="number">3u8</span>.hash(h),
                 }
 
-                <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">g</span>.<span class="ident">stream</span>() {
-                    <span class="ident">TokenTreeHelper</span>(<span class="kw-2">&amp;</span><span class="ident">item</span>).<span class="ident">hash</span>(<span class="ident">h</span>);
+                <span class="kw">for </span>item <span class="kw">in </span>g.stream() {
+                    TokenTreeHelper(<span class="kw-2">&amp;</span>item).hash(h);
                 }
-                <span class="number">0xffu8</span>.<span class="ident">hash</span>(<span class="ident">h</span>); <span class="comment">// terminator w/ a variant we don&#39;t normally hash</span>
-            }
-            <span class="ident">TokenTree::Punct</span>(<span class="ident">op</span>) =&gt; {
-                <span class="number">1u8</span>.<span class="ident">hash</span>(<span class="ident">h</span>);
-                <span class="ident">op</span>.<span class="ident">as_char</span>().<span class="ident">hash</span>(<span class="ident">h</span>);
-                <span class="kw">match</span> <span class="ident">op</span>.<span class="ident">spacing</span>() {
-                    <span class="ident">Spacing::Alone</span> =&gt; <span class="number">0u8</span>.<span class="ident">hash</span>(<span class="ident">h</span>),
-                    <span class="ident">Spacing::Joint</span> =&gt; <span class="number">1u8</span>.<span class="ident">hash</span>(<span class="ident">h</span>),
+                <span class="number">0xffu8</span>.hash(h); <span class="comment">// terminator w/ a variant we don&#39;t normally hash
+            </span>}
+            TokenTree::Punct(op) =&gt; {
+                <span class="number">1u8</span>.hash(h);
+                op.as_char().hash(h);
+                <span class="kw">match </span>op.spacing() {
+                    Spacing::Alone =&gt; <span class="number">0u8</span>.hash(h),
+                    Spacing::Joint =&gt; <span class="number">1u8</span>.hash(h),
                 }
             }
-            <span class="ident">TokenTree::Literal</span>(<span class="ident">lit</span>) =&gt; (<span class="number">2u8</span>, <span class="ident">lit</span>.<span class="ident">to_string</span>()).<span class="ident">hash</span>(<span class="ident">h</span>),
-            <span class="ident">TokenTree::Ident</span>(<span class="ident">word</span>) =&gt; (<span class="number">3u8</span>, <span class="ident">word</span>).<span class="ident">hash</span>(<span class="ident">h</span>),
+            TokenTree::Literal(lit) =&gt; (<span class="number">2u8</span>, lit.to_string()).hash(h),
+            TokenTree::Ident(word) =&gt; (<span class="number">3u8</span>, word).hash(h),
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TokenStreamHelper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">TokenStream</span>);
+<span class="kw">pub struct </span>TokenStreamHelper&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TokenStream);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">TokenStreamHelper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into_iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">other</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into_iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="kw">if</span> <span class="ident">left</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">right</span>.<span class="ident">len</span>() {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialEq <span class="kw">for </span>TokenStreamHelper&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="kw">let </span>left = <span class="self">self</span>.<span class="number">0</span>.clone().into_iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="kw">let </span>right = other.<span class="number">0</span>.clone().into_iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="kw">if </span>left.len() != right.len() {
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
-        <span class="kw">for</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="kw">in</span> <span class="ident">left</span>.<span class="ident">into_iter</span>().<span class="ident">zip</span>(<span class="ident">right</span>) {
-            <span class="kw">if</span> <span class="ident">TokenTreeHelper</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">TokenTreeHelper</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>) {
-                <span class="kw">return</span> <span class="bool-val">false</span>;
+        <span class="kw">for </span>(a, b) <span class="kw">in </span>left.into_iter().zip(right) {
+            <span class="kw">if </span>TokenTreeHelper(<span class="kw-2">&amp;</span>a) != TokenTreeHelper(<span class="kw-2">&amp;</span>b) {
+                <span class="kw">return </span><span class="bool-val">false</span>;
             }
         }
-        <span class="bool-val">true</span>
-    }
+        <span class="bool-val">true
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TokenStreamHelper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <span class="kw">let</span> <span class="ident">tts</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into_iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="ident">tts</span>.<span class="ident">len</span>().<span class="ident">hash</span>(<span class="ident">state</span>);
-        <span class="kw">for</span> <span class="ident">tt</span> <span class="kw">in</span> <span class="ident">tts</span> {
-            <span class="ident">TokenTreeHelper</span>(<span class="kw-2">&amp;</span><span class="ident">tt</span>).<span class="ident">hash</span>(<span class="ident">state</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Hash <span class="kw">for </span>TokenStreamHelper&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <span class="kw">let </span>tts = <span class="self">self</span>.<span class="number">0</span>.clone().into_iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        tts.len().hash(state);
+        <span class="kw">for </span>tt <span class="kw">in </span>tts {
+            TokenTreeHelper(<span class="kw-2">&amp;</span>tt).hash(state);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

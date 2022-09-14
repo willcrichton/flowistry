@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.18/src/buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -137,138 +130,137 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::cmp</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>;
-<span class="kw">use</span> <span class="ident">std::ptr</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::cmp;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::ptr;
 
-<span class="doccomment">/// The default buffer capacity that we use for the stream buffer.</span>
-<span class="kw">const</span> <span class="ident">DEFAULT_BUFFER_CAPACITY</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">8</span> <span class="op">*</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">10</span>); <span class="comment">// 8 KB</span>
+<span class="doccomment">/// The default buffer capacity that we use for the stream buffer.
+</span><span class="kw">const </span>DEFAULT_BUFFER_CAPACITY: usize = <span class="number">8 </span>* (<span class="number">1 </span>&lt;&lt; <span class="number">10</span>); <span class="comment">// 8 KB
 
-<span class="doccomment">/// A fairly simple roll buffer for supporting stream searches.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This buffer acts as a temporary place to store a fixed amount of data when</span>
-<span class="doccomment">/// reading from a stream. Its central purpose is to allow &quot;rolling&quot; some</span>
-<span class="doccomment">/// suffix of the data to the beginning of the buffer before refilling it with</span>
-<span class="doccomment">/// more data from the stream. For example, let&#39;s say we are trying to match</span>
-<span class="doccomment">/// &quot;foobar&quot; on a stream. When we report the match, we&#39;d like to not only</span>
-<span class="doccomment">/// report the correct offsets at which the match occurs, but also the matching</span>
-<span class="doccomment">/// bytes themselves. So let&#39;s say our stream is a file with the following</span>
-<span class="doccomment">/// contents: `test test foobar test test`. Now assume that we happen to read</span>
-<span class="doccomment">/// the aforementioned file in two chunks: `test test foo` and `bar test test`.</span>
-<span class="doccomment">/// Naively, it would not be possible to report a single contiguous `foobar`</span>
-<span class="doccomment">/// match, but this roll buffer allows us to do that. Namely, after the second</span>
-<span class="doccomment">/// read, the contents of the buffer should be `st foobar test test`, where the</span>
-<span class="doccomment">/// search should ultimately resume immediately after `foo`. (The prefix `st `</span>
-<span class="doccomment">/// is included because the roll buffer saves N bytes at the end of the buffer,</span>
-<span class="doccomment">/// where N is the maximum possible length of a match.)</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A lot of the logic for dealing with this is unfortunately split out between</span>
-<span class="doccomment">/// this roll buffer and the `StreamChunkIter`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Buffer</span> {
-    <span class="doccomment">/// The raw buffer contents. This has a fixed size and never increases.</span>
-    <span class="ident">buf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The minimum size of the buffer, which is equivalent to the maximum</span>
-    <span class="doccomment">/// possible length of a match. This corresponds to the amount that we</span>
-    <span class="doccomment">/// roll</span>
-    <span class="ident">min</span>: <span class="ident">usize</span>,
-    <span class="doccomment">/// The end of the contents of this buffer.</span>
-    <span class="ident">end</span>: <span class="ident">usize</span>,
+</span><span class="doccomment">/// A fairly simple roll buffer for supporting stream searches.
+///
+/// This buffer acts as a temporary place to store a fixed amount of data when
+/// reading from a stream. Its central purpose is to allow &quot;rolling&quot; some
+/// suffix of the data to the beginning of the buffer before refilling it with
+/// more data from the stream. For example, let&#39;s say we are trying to match
+/// &quot;foobar&quot; on a stream. When we report the match, we&#39;d like to not only
+/// report the correct offsets at which the match occurs, but also the matching
+/// bytes themselves. So let&#39;s say our stream is a file with the following
+/// contents: `test test foobar test test`. Now assume that we happen to read
+/// the aforementioned file in two chunks: `test test foo` and `bar test test`.
+/// Naively, it would not be possible to report a single contiguous `foobar`
+/// match, but this roll buffer allows us to do that. Namely, after the second
+/// read, the contents of the buffer should be `st foobar test test`, where the
+/// search should ultimately resume immediately after `foo`. (The prefix `st `
+/// is included because the roll buffer saves N bytes at the end of the buffer,
+/// where N is the maximum possible length of a match.)
+///
+/// A lot of the logic for dealing with this is unfortunately split out between
+/// this roll buffer and the `StreamChunkIter`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Buffer {
+    <span class="doccomment">/// The raw buffer contents. This has a fixed size and never increases.
+    </span>buf: Vec&lt;u8&gt;,
+    <span class="doccomment">/// The minimum size of the buffer, which is equivalent to the maximum
+    /// possible length of a match. This corresponds to the amount that we
+    /// roll
+    </span>min: usize,
+    <span class="doccomment">/// The end of the contents of this buffer.
+    </span>end: usize,
 }
 
-<span class="kw">impl</span> <span class="ident">Buffer</span> {
-    <span class="doccomment">/// Create a new buffer for stream searching. The minimum buffer length</span>
-    <span class="doccomment">/// given should be the size of the maximum possible match length.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">min_buffer_len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Buffer</span> {
-        <span class="kw">let</span> <span class="ident">min</span> <span class="op">=</span> <span class="ident">cmp::max</span>(<span class="number">1</span>, <span class="ident">min_buffer_len</span>);
-        <span class="comment">// The minimum buffer amount is also the amount that we roll our</span>
-        <span class="comment">// buffer in order to support incremental searching. To this end,</span>
-        <span class="comment">// our actual capacity needs to be at least 1 byte bigger than our</span>
-        <span class="comment">// minimum amount, otherwise we won&#39;t have any overlap. In actuality,</span>
-        <span class="comment">// we want our buffer to be a bit bigger than that for performance</span>
-        <span class="comment">// reasons, so we set a lower bound of `8 * min`.</span>
-        <span class="comment">//</span>
-        <span class="comment">// TODO: It would be good to find a way to test the streaming</span>
-        <span class="comment">// implementation with the minimal buffer size. For now, we just</span>
-        <span class="comment">// uncomment out the next line and comment out the subsequent line.</span>
-        <span class="comment">// let capacity = 1 + min;</span>
-        <span class="kw">let</span> <span class="ident">capacity</span> <span class="op">=</span> <span class="ident">cmp::max</span>(<span class="ident">min</span> <span class="op">*</span> <span class="number">8</span>, <span class="ident">DEFAULT_BUFFER_CAPACITY</span>);
-        <span class="ident">Buffer</span> { <span class="ident">buf</span>: <span class="macro">vec!</span>[<span class="number">0</span>; <span class="ident">capacity</span>], <span class="ident">min</span>, <span class="ident">end</span>: <span class="number">0</span> }
+<span class="kw">impl </span>Buffer {
+    <span class="doccomment">/// Create a new buffer for stream searching. The minimum buffer length
+    /// given should be the size of the maximum possible match length.
+    </span><span class="kw">pub fn </span>new(min_buffer_len: usize) -&gt; Buffer {
+        <span class="kw">let </span>min = cmp::max(<span class="number">1</span>, min_buffer_len);
+        <span class="comment">// The minimum buffer amount is also the amount that we roll our
+        // buffer in order to support incremental searching. To this end,
+        // our actual capacity needs to be at least 1 byte bigger than our
+        // minimum amount, otherwise we won&#39;t have any overlap. In actuality,
+        // we want our buffer to be a bit bigger than that for performance
+        // reasons, so we set a lower bound of `8 * min`.
+        //
+        // TODO: It would be good to find a way to test the streaming
+        // implementation with the minimal buffer size. For now, we just
+        // uncomment out the next line and comment out the subsequent line.
+        // let capacity = 1 + min;
+        </span><span class="kw">let </span>capacity = cmp::max(min * <span class="number">8</span>, DEFAULT_BUFFER_CAPACITY);
+        Buffer { buf: <span class="macro">vec!</span>[<span class="number">0</span>; capacity], min, end: <span class="number">0 </span>}
     }
 
-    <span class="doccomment">/// Return the contents of this buffer.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">buf</span>[..<span class="self">self</span>.<span class="ident">end</span>]
+    <span class="doccomment">/// Return the contents of this buffer.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.buf[..<span class="self">self</span>.end]
     }
 
-    <span class="doccomment">/// Return the minimum size of the buffer. The only way a buffer may be</span>
-    <span class="doccomment">/// smaller than this is if the stream itself contains less than the</span>
-    <span class="doccomment">/// minimum buffer amount.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min_buffer_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">min</span>
+    <span class="doccomment">/// Return the minimum size of the buffer. The only way a buffer may be
+    /// smaller than this is if the stream itself contains less than the
+    /// minimum buffer amount.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>min_buffer_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.min
     }
 
-    <span class="doccomment">/// Return the total length of the contents in the buffer.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">end</span>
+    <span class="doccomment">/// Return the total length of the contents in the buffer.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.end
     }
 
-    <span class="doccomment">/// Return all free capacity in this buffer.</span>
-    <span class="kw">fn</span> <span class="ident">free_buffer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>] {
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">buf</span>[<span class="self">self</span>.<span class="ident">end</span>..]
+    <span class="doccomment">/// Return all free capacity in this buffer.
+    </span><span class="kw">fn </span>free_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[u8] {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.buf[<span class="self">self</span>.end..]
     }
 
-    <span class="doccomment">/// Refill the contents of this buffer by reading as much as possible into</span>
-    <span class="doccomment">/// this buffer&#39;s free capacity. If no more bytes could be read, then this</span>
-    <span class="doccomment">/// returns false. Otherwise, this reads until it has filled the buffer</span>
-    <span class="doccomment">/// past the minimum amount.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">io::Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">rdr</span>: <span class="ident">R</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readany</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">readlen</span> <span class="op">=</span> <span class="ident">rdr</span>.<span class="ident">read</span>(<span class="self">self</span>.<span class="ident">free_buffer</span>())<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">readlen</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">readany</span>);
+    <span class="doccomment">/// Refill the contents of this buffer by reading as much as possible into
+    /// this buffer&#39;s free capacity. If no more bytes could be read, then this
+    /// returns false. Otherwise, this reads until it has filled the buffer
+    /// past the minimum amount.
+    </span><span class="kw">pub fn </span>fill&lt;R: io::Read&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>rdr: R) -&gt; io::Result&lt;bool&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>readany = <span class="bool-val">false</span>;
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>readlen = rdr.read(<span class="self">self</span>.free_buffer())<span class="question-mark">?</span>;
+            <span class="kw">if </span>readlen == <span class="number">0 </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(readany);
             }
-            <span class="ident">readany</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="self">self</span>.<span class="ident">end</span> <span class="op">+</span><span class="op">=</span> <span class="ident">readlen</span>;
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">min</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
+            readany = <span class="bool-val">true</span>;
+            <span class="self">self</span>.end += readlen;
+            <span class="kw">if </span><span class="self">self</span>.len() &gt;= <span class="self">self</span>.min {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
             }
         }
     }
 
-    <span class="doccomment">/// Roll the contents of the buffer so that the suffix of this buffer is</span>
-    <span class="doccomment">/// moved to the front and all other contents are dropped. The size of the</span>
-    <span class="doccomment">/// suffix corresponds precisely to the minimum buffer length.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This should only be called when the entire contents of this buffer have</span>
-    <span class="doccomment">/// been searched.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">roll</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">roll_start</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">end</span>
-            .<span class="ident">checked_sub</span>(<span class="self">self</span>.<span class="ident">min</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;buffer capacity should be bigger than minimum amount&quot;</span>);
-        <span class="kw">let</span> <span class="ident">roll_len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">min</span>;
+    <span class="doccomment">/// Roll the contents of the buffer so that the suffix of this buffer is
+    /// moved to the front and all other contents are dropped. The size of the
+    /// suffix corresponds precisely to the minimum buffer length.
+    ///
+    /// This should only be called when the entire contents of this buffer have
+    /// been searched.
+    </span><span class="kw">pub fn </span>roll(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>roll_start = <span class="self">self
+            </span>.end
+            .checked_sub(<span class="self">self</span>.min)
+            .expect(<span class="string">&quot;buffer capacity should be bigger than minimum amount&quot;</span>);
+        <span class="kw">let </span>roll_len = <span class="self">self</span>.min;
 
-        <span class="macro">assert!</span>(<span class="ident">roll_start</span> <span class="op">+</span> <span class="ident">roll_len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">end</span>);
-        <span class="kw">unsafe</span> {
-            <span class="comment">// SAFETY: A buffer contains Copy data, so there&#39;s no problem</span>
-            <span class="comment">// moving it around. Safety also depends on our indices being in</span>
-            <span class="comment">// bounds, which they always should be, given the assert above.</span>
-            <span class="comment">//</span>
-            <span class="comment">// TODO: Switch to [T]::copy_within once our MSRV is high enough.</span>
-            <span class="ident">ptr::copy</span>(
-                <span class="self">self</span>.<span class="ident">buf</span>[<span class="ident">roll_start</span>..].<span class="ident">as_ptr</span>(),
-                <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>(),
-                <span class="ident">roll_len</span>,
+        <span class="macro">assert!</span>(roll_start + roll_len &lt;= <span class="self">self</span>.end);
+        <span class="kw">unsafe </span>{
+            <span class="comment">// SAFETY: A buffer contains Copy data, so there&#39;s no problem
+            // moving it around. Safety also depends on our indices being in
+            // bounds, which they always should be, given the assert above.
+            //
+            // TODO: Switch to [T]::copy_within once our MSRV is high enough.
+            </span>ptr::copy(
+                <span class="self">self</span>.buf[roll_start..].as_ptr(),
+                <span class="self">self</span>.buf.as_mut_ptr(),
+                roll_len,
             );
         }
-        <span class="self">self</span>.<span class="ident">end</span> <span class="op">=</span> <span class="ident">roll_len</span>;
+        <span class="self">self</span>.end = roll_len;
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

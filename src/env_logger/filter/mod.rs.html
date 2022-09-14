@@ -1,13 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.9.0/src/filter/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../env_logger/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../env_logger/index.html"><div class="logo-container">
-                    <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../env_logger/index.html">
-                        <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.9.0/src/filter/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../env_logger/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../env_logger/index.html"><div class="logo-container">
+                    <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../env_logger/index.html">
+                        <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -875,874 +868,873 @@
 <span id="866">866</span>
 <span id="867">867</span>
 <span id="868">868</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Filtering for log records.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module contains the log filtering used by `env_logger` to match records.</span>
-<span class="doccomment">//! You can use the `Filter` type in your own logger implementation to use the same</span>
-<span class="doccomment">//! filter parsing and matching as `env_logger`. For more details about the format</span>
-<span class="doccomment">//! for directive strings see [Enabling Logging].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Using `env_logger` in your own logger</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! You can use `env_logger`&#39;s filtering functionality with your own logger.</span>
-<span class="doccomment">//! Call [`Builder::parse`] to parse directives from a string when constructing</span>
-<span class="doccomment">//! your logger. Call [`Filter::matches`] to check whether a record should be</span>
-<span class="doccomment">//! logged based on the parsed filters when log records are received.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! extern crate log;</span>
-<span class="doccomment">//! extern crate env_logger;</span>
-<span class="doccomment">//! use env_logger::filter::Filter;</span>
-<span class="doccomment">//! use log::{Log, Metadata, Record};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! struct MyLogger {</span>
-<span class="doccomment">//!     filter: Filter</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! impl MyLogger {</span>
-<span class="doccomment">//!     fn new() -&gt; MyLogger {</span>
-<span class="doccomment">//!         use env_logger::filter::Builder;</span>
-<span class="doccomment">//!         let mut builder = Builder::new();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!         // Parse a directives string from an environment variable</span>
-<span class="doccomment">//!         if let Ok(ref filter) = std::env::var(&quot;MY_LOG_LEVEL&quot;) {</span>
-<span class="doccomment">//!            builder.parse(filter);</span>
-<span class="doccomment">//!         }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!         MyLogger {</span>
-<span class="doccomment">//!             filter: builder.build()</span>
-<span class="doccomment">//!         }</span>
-<span class="doccomment">//!     }</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! impl Log for MyLogger {</span>
-<span class="doccomment">//!     fn enabled(&amp;self, metadata: &amp;Metadata) -&gt; bool {</span>
-<span class="doccomment">//!         self.filter.enabled(metadata)</span>
-<span class="doccomment">//!     }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!     fn log(&amp;self, record: &amp;Record) {</span>
-<span class="doccomment">//!         // Check if the record is matched by the filter</span>
-<span class="doccomment">//!         if self.filter.matches(record) {</span>
-<span class="doccomment">//!             println!(&quot;{:?}&quot;, record);</span>
-<span class="doccomment">//!         }</span>
-<span class="doccomment">//!     }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!     fn flush(&amp;self) {}</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [Enabling Logging]: ../index.html#enabling-logging</span>
-<span class="doccomment">//! [`Builder::parse`]: struct.Builder.html#method.parse</span>
-<span class="doccomment">//! [`Filter::matches`]: struct.Filter.html#method.matches</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Filtering for log records.
+//!
+//! This module contains the log filtering used by `env_logger` to match records.
+//! You can use the `Filter` type in your own logger implementation to use the same
+//! filter parsing and matching as `env_logger`. For more details about the format
+//! for directive strings see [Enabling Logging].
+//!
+//! ## Using `env_logger` in your own logger
+//!
+//! You can use `env_logger`&#39;s filtering functionality with your own logger.
+//! Call [`Builder::parse`] to parse directives from a string when constructing
+//! your logger. Call [`Filter::matches`] to check whether a record should be
+//! logged based on the parsed filters when log records are received.
+//!
+//! ```
+//! extern crate log;
+//! extern crate env_logger;
+//! use env_logger::filter::Filter;
+//! use log::{Log, Metadata, Record};
+//!
+//! struct MyLogger {
+//!     filter: Filter
+//! }
+//!
+//! impl MyLogger {
+//!     fn new() -&gt; MyLogger {
+//!         use env_logger::filter::Builder;
+//!         let mut builder = Builder::new();
+//!
+//!         // Parse a directives string from an environment variable
+//!         if let Ok(ref filter) = std::env::var(&quot;MY_LOG_LEVEL&quot;) {
+//!            builder.parse(filter);
+//!         }
+//!
+//!         MyLogger {
+//!             filter: builder.build()
+//!         }
+//!     }
+//! }
+//!
+//! impl Log for MyLogger {
+//!     fn enabled(&amp;self, metadata: &amp;Metadata) -&gt; bool {
+//!         self.filter.enabled(metadata)
+//!     }
+//!
+//!     fn log(&amp;self, record: &amp;Record) {
+//!         // Check if the record is matched by the filter
+//!         if self.filter.matches(record) {
+//!             println!(&quot;{:?}&quot;, record);
+//!         }
+//!     }
+//!
+//!     fn flush(&amp;self) {}
+//! }
+//! ```
+//!
+//! [Enabling Logging]: ../index.html#enabling-logging
+//! [`Builder::parse`]: struct.Builder.html#method.parse
+//! [`Filter::matches`]: struct.Filter.html#method.matches
 
-<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">Level</span>, <span class="ident">LevelFilter</span>, <span class="ident">Metadata</span>, <span class="ident">Record</span>};
-<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
-<span class="kw">use</span> <span class="ident">std::env</span>;
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
-<span class="kw">use</span> <span class="ident">std::mem</span>;
+</span><span class="kw">use </span>log::{Level, LevelFilter, Metadata, Record};
+<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::env;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::mem;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;regex&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;regex.rs&quot;</span>]</span>
-<span class="kw">mod</span> <span class="ident">inner</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;regex&quot;</span>)]
+#[path = <span class="string">&quot;regex.rs&quot;</span>]
+</span><span class="kw">mod </span>inner;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;regex&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;string.rs&quot;</span>]</span>
-<span class="kw">mod</span> <span class="ident">inner</span>;
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;regex&quot;</span>))]
+#[path = <span class="string">&quot;string.rs&quot;</span>]
+</span><span class="kw">mod </span>inner;
 
-<span class="doccomment">/// A log filter.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This struct can be used to determine whether or not a log record</span>
-<span class="doccomment">/// should be written to the output.</span>
-<span class="doccomment">/// Use the [`Builder`] type to parse and construct a `Filter`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Builder`]: struct.Builder.html</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Filter</span> {
-    <span class="ident">directives</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Directive</span><span class="op">&gt;</span>,
-    <span class="ident">filter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">inner::Filter</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A log filter.
+///
+/// This struct can be used to determine whether or not a log record
+/// should be written to the output.
+/// Use the [`Builder`] type to parse and construct a `Filter`.
+///
+/// [`Builder`]: struct.Builder.html
+</span><span class="kw">pub struct </span>Filter {
+    directives: Vec&lt;Directive&gt;,
+    filter: <span class="prelude-ty">Option</span>&lt;inner::Filter&gt;,
 }
 
-<span class="doccomment">/// A builder for a log filter.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It can be used to parse a set of directives from a string before building</span>
-<span class="doccomment">/// a [`Filter`] instance.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # #[macro_use] extern crate log;</span>
-<span class="doccomment">/// # use std::env;</span>
-<span class="doccomment">/// use env_logger::filter::Builder;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut builder = Builder::new();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Parse a logging filter from an environment variable.</span>
-<span class="doccomment">/// if let Ok(rust_log) = env::var(&quot;RUST_LOG&quot;) {</span>
-<span class="doccomment">///     builder.parse(&amp;rust_log);</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let filter = builder.build();</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Filter`]: struct.Filter.html</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Builder</span> {
-    <span class="ident">directives</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">LevelFilter</span><span class="op">&gt;</span>,
-    <span class="ident">filter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">inner::Filter</span><span class="op">&gt;</span>,
-    <span class="ident">built</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// A builder for a log filter.
+///
+/// It can be used to parse a set of directives from a string before building
+/// a [`Filter`] instance.
+///
+/// ## Example
+///
+/// ```
+/// # #[macro_use] extern crate log;
+/// # use std::env;
+/// use env_logger::filter::Builder;
+///
+/// let mut builder = Builder::new();
+///
+/// // Parse a logging filter from an environment variable.
+/// if let Ok(rust_log) = env::var(&quot;RUST_LOG&quot;) {
+///     builder.parse(&amp;rust_log);
+/// }
+///
+/// let filter = builder.build();
+/// ```
+///
+/// [`Filter`]: struct.Filter.html
+</span><span class="kw">pub struct </span>Builder {
+    directives: HashMap&lt;<span class="prelude-ty">Option</span>&lt;String&gt;, LevelFilter&gt;,
+    filter: <span class="prelude-ty">Option</span>&lt;inner::Filter&gt;,
+    built: bool,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Directive</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="ident">level</span>: <span class="ident">LevelFilter</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>Directive {
+    name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    level: LevelFilter,
 }
 
-<span class="kw">impl</span> <span class="ident">Filter</span> {
-    <span class="doccomment">/// Returns the maximum `LevelFilter` that this filter instance is</span>
-    <span class="doccomment">/// configured to output.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use log::LevelFilter;</span>
-    <span class="doccomment">/// use env_logger::filter::Builder;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut builder = Builder::new();</span>
-    <span class="doccomment">/// builder.filter(Some(&quot;module1&quot;), LevelFilter::Info);</span>
-    <span class="doccomment">/// builder.filter(Some(&quot;module2&quot;), LevelFilter::Error);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let filter = builder.build();</span>
-    <span class="doccomment">/// assert_eq!(filter.filter(), LevelFilter::Info);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LevelFilter</span> {
-        <span class="self">self</span>.<span class="ident">directives</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <span class="ident">d</span>.<span class="ident">level</span>)
-            .<span class="ident">max</span>()
-            .<span class="ident">unwrap_or</span>(<span class="ident">LevelFilter::Off</span>)
+<span class="kw">impl </span>Filter {
+    <span class="doccomment">/// Returns the maximum `LevelFilter` that this filter instance is
+    /// configured to output.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use log::LevelFilter;
+    /// use env_logger::filter::Builder;
+    ///
+    /// let mut builder = Builder::new();
+    /// builder.filter(Some(&quot;module1&quot;), LevelFilter::Info);
+    /// builder.filter(Some(&quot;module2&quot;), LevelFilter::Error);
+    ///
+    /// let filter = builder.build();
+    /// assert_eq!(filter.filter(), LevelFilter::Info);
+    /// ```
+    </span><span class="kw">pub fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LevelFilter {
+        <span class="self">self</span>.directives
+            .iter()
+            .map(|d| d.level)
+            .max()
+            .unwrap_or(LevelFilter::Off)
     }
 
-    <span class="doccomment">/// Checks if this record matches the configured filter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">record</span>: <span class="kw-2">&amp;</span><span class="ident">Record</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">enabled</span>(<span class="ident">record</span>.<span class="ident">metadata</span>()) {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+    <span class="doccomment">/// Checks if this record matches the configured filter.
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; bool {
+        <span class="kw">if </span>!<span class="self">self</span>.enabled(record.metadata()) {
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">filter</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">filter</span>.<span class="ident">as_ref</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">filter</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">record</span>.<span class="ident">args</span>().<span class="ident">to_string</span>()) {
-                <span class="kw">return</span> <span class="bool-val">false</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(filter) = <span class="self">self</span>.filter.as_ref() {
+            <span class="kw">if </span>!filter.is_match(<span class="kw-2">&amp;*</span>record.args().to_string()) {
+                <span class="kw">return </span><span class="bool-val">false</span>;
             }
         }
 
-        <span class="bool-val">true</span>
-    }
+        <span class="bool-val">true
+    </span>}
 
-    <span class="doccomment">/// Determines if a log message with the specified metadata would be logged.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="ident">Metadata</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">level</span> <span class="op">=</span> <span class="ident">metadata</span>.<span class="ident">level</span>();
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">metadata</span>.<span class="ident">target</span>();
+    <span class="doccomment">/// Determines if a log message with the specified metadata would be logged.
+    </span><span class="kw">pub fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata) -&gt; bool {
+        <span class="kw">let </span>level = metadata.level();
+        <span class="kw">let </span>target = metadata.target();
 
-        <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">directives</span>, <span class="ident">level</span>, <span class="ident">target</span>)
+        enabled(<span class="kw-2">&amp;</span><span class="self">self</span>.directives, level, target)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Builder</span> {
-    <span class="doccomment">/// Initializes the filter builder with defaults.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Builder</span> {
-        <span class="ident">Builder</span> {
-            <span class="ident">directives</span>: <span class="ident">HashMap::new</span>(),
-            <span class="ident">filter</span>: <span class="prelude-val">None</span>,
-            <span class="ident">built</span>: <span class="bool-val">false</span>,
+<span class="kw">impl </span>Builder {
+    <span class="doccomment">/// Initializes the filter builder with defaults.
+    </span><span class="kw">pub fn </span>new() -&gt; Builder {
+        Builder {
+            directives: HashMap::new(),
+            filter: <span class="prelude-val">None</span>,
+            built: <span class="bool-val">false</span>,
         }
     }
 
-    <span class="doccomment">/// Initializes the filter builder from an environment.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_env</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Builder</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">Builder::new</span>();
+    <span class="doccomment">/// Initializes the filter builder from an environment.
+    </span><span class="kw">pub fn </span>from_env(env: <span class="kw-2">&amp;</span>str) -&gt; Builder {
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = Builder::new();
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">env::var</span>(<span class="ident">env</span>) {
-            <span class="ident">builder</span>.<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(s) = env::var(env) {
+            builder.parse(<span class="kw-2">&amp;</span>s);
         }
 
-        <span class="ident">builder</span>
+        builder
     }
 
-    <span class="doccomment">/// Adds a directive to the filter for a specific module.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter_module</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">level</span>: <span class="ident">LevelFilter</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">filter</span>(<span class="prelude-val">Some</span>(<span class="ident">module</span>), <span class="ident">level</span>)
+    <span class="doccomment">/// Adds a directive to the filter for a specific module.
+    </span><span class="kw">pub fn </span>filter_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>str, level: LevelFilter) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.filter(<span class="prelude-val">Some</span>(module), level)
     }
 
-    <span class="doccomment">/// Adds a directive to the filter for all modules.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter_level</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">level</span>: <span class="ident">LevelFilter</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">filter</span>(<span class="prelude-val">None</span>, <span class="ident">level</span>)
+    <span class="doccomment">/// Adds a directive to the filter for all modules.
+    </span><span class="kw">pub fn </span>filter_level(<span class="kw-2">&amp;mut </span><span class="self">self</span>, level: LevelFilter) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.filter(<span class="prelude-val">None</span>, level)
     }
 
-    <span class="doccomment">/// Adds a directive to the filter.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The given module (if any) will log at most the specified level provided.</span>
-    <span class="doccomment">/// If no module is provided then the filter will apply to all log messages.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">module</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">level</span>: <span class="ident">LevelFilter</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">directives</span>.<span class="ident">insert</span>(<span class="ident">module</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">to_string</span>()), <span class="ident">level</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Adds a directive to the filter.
+    ///
+    /// The given module (if any) will log at most the specified level provided.
+    /// If no module is provided then the filter will apply to all log messages.
+    </span><span class="kw">pub fn </span>filter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, module: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, level: LevelFilter) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.directives.insert(module.map(|s| s.to_string()), level);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Parses the directives string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See the [Enabling Logging] section for more details.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [Enabling Logging]: ../index.html#enabling-logging</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">filters</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="kw">let</span> (<span class="ident">directives</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="ident">filters</span>);
+    <span class="doccomment">/// Parses the directives string.
+    ///
+    /// See the [Enabling Logging] section for more details.
+    ///
+    /// [Enabling Logging]: ../index.html#enabling-logging
+    </span><span class="kw">pub fn </span>parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>, filters: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="kw">let </span>(directives, filter) = parse_spec(filters);
 
-        <span class="self">self</span>.<span class="ident">filter</span> <span class="op">=</span> <span class="ident">filter</span>;
+        <span class="self">self</span>.filter = filter;
 
-        <span class="kw">for</span> <span class="ident">directive</span> <span class="kw">in</span> <span class="ident">directives</span> {
-            <span class="self">self</span>.<span class="ident">directives</span>.<span class="ident">insert</span>(<span class="ident">directive</span>.<span class="ident">name</span>, <span class="ident">directive</span>.<span class="ident">level</span>);
+        <span class="kw">for </span>directive <span class="kw">in </span>directives {
+            <span class="self">self</span>.directives.insert(directive.name, directive.level);
         }
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Build a log filter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Filter</span> {
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">built</span>, <span class="string">&quot;attempt to re-use consumed builder&quot;</span>);
-        <span class="self">self</span>.<span class="ident">built</span> <span class="op">=</span> <span class="bool-val">true</span>;
+    <span class="doccomment">/// Build a log filter.
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Filter {
+        <span class="macro">assert!</span>(!<span class="self">self</span>.built, <span class="string">&quot;attempt to re-use consumed builder&quot;</span>);
+        <span class="self">self</span>.built = <span class="bool-val">true</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">directives</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">directives</span>.<span class="ident">is_empty</span>() {
-            <span class="comment">// Adds the default filter if none exist</span>
-            <span class="ident">directives</span>.<span class="ident">push</span>(<span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="prelude-val">None</span>,
-                <span class="ident">level</span>: <span class="ident">LevelFilter::Error</span>,
+        <span class="kw">let </span><span class="kw-2">mut </span>directives = Vec::new();
+        <span class="kw">if </span><span class="self">self</span>.directives.is_empty() {
+            <span class="comment">// Adds the default filter if none exist
+            </span>directives.push(Directive {
+                name: <span class="prelude-val">None</span>,
+                level: LevelFilter::Error,
             });
-        } <span class="kw">else</span> {
-            <span class="comment">// Consume map of directives.</span>
-            <span class="kw">let</span> <span class="ident">directives_map</span> <span class="op">=</span> <span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">directives</span>);
-            <span class="ident">directives</span> <span class="op">=</span> <span class="ident">directives_map</span>
-                .<span class="ident">into_iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">name</span>, <span class="ident">level</span>)<span class="op">|</span> <span class="ident">Directive</span> { <span class="ident">name</span>, <span class="ident">level</span> })
-                .<span class="ident">collect</span>();
-            <span class="comment">// Sort the directives by length of their name, this allows a</span>
-            <span class="comment">// little more efficient lookup at runtime.</span>
-            <span class="ident">directives</span>.<span class="ident">sort_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">alen</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">len</span>()).<span class="ident">unwrap_or</span>(<span class="number">0</span>);
-                <span class="kw">let</span> <span class="ident">blen</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">len</span>()).<span class="ident">unwrap_or</span>(<span class="number">0</span>);
-                <span class="ident">alen</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">blen</span>)
+        } <span class="kw">else </span>{
+            <span class="comment">// Consume map of directives.
+            </span><span class="kw">let </span>directives_map = mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.directives);
+            directives = directives_map
+                .into_iter()
+                .map(|(name, level)| Directive { name, level })
+                .collect();
+            <span class="comment">// Sort the directives by length of their name, this allows a
+            // little more efficient lookup at runtime.
+            </span>directives.sort_by(|a, b| {
+                <span class="kw">let </span>alen = a.name.as_ref().map(|a| a.len()).unwrap_or(<span class="number">0</span>);
+                <span class="kw">let </span>blen = b.name.as_ref().map(|b| b.len()).unwrap_or(<span class="number">0</span>);
+                alen.cmp(<span class="kw-2">&amp;</span>blen)
             });
         }
 
-        <span class="ident">Filter</span> {
-            <span class="ident">directives</span>: <span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="ident">directives</span>),
-            <span class="ident">filter</span>: <span class="ident">mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">filter</span>, <span class="prelude-val">None</span>),
+        Filter {
+            directives: mem::take(<span class="kw-2">&amp;mut </span>directives),
+            filter: mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.filter, <span class="prelude-val">None</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Builder</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">Builder::new</span>()
+<span class="kw">impl </span>Default <span class="kw">for </span>Builder {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        Builder::new()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Filter</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Filter&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;filter&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">filter</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;directives&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">directives</span>)
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Filter {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Filter&quot;</span>)
+            .field(<span class="string">&quot;filter&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.filter)
+            .field(<span class="string">&quot;directives&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.directives)
+            .finish()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Builder</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">built</span> {
-            <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Filter&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;built&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>).<span class="ident">finish</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Filter&quot;</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;filter&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">filter</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;directives&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">directives</span>)
-                .<span class="ident">finish</span>()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Builder {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">if </span><span class="self">self</span>.built {
+            f.debug_struct(<span class="string">&quot;Filter&quot;</span>).field(<span class="string">&quot;built&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>).finish()
+        } <span class="kw">else </span>{
+            f.debug_struct(<span class="string">&quot;Filter&quot;</span>)
+                .field(<span class="string">&quot;filter&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.filter)
+                .field(<span class="string">&quot;directives&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.directives)
+                .finish()
         }
     }
 }
 
-<span class="doccomment">/// Parse a logging specification string (e.g: &quot;crate1,crate2::mod3,crate3::x=error/foo&quot;)</span>
-<span class="doccomment">/// and return a vector with log directives.</span>
-<span class="kw">fn</span> <span class="ident">parse_spec</span>(<span class="ident">spec</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; (<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Directive</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">inner::Filter</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dirs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+<span class="doccomment">/// Parse a logging specification string (e.g: &quot;crate1,crate2::mod3,crate3::x=error/foo&quot;)
+/// and return a vector with log directives.
+</span><span class="kw">fn </span>parse_spec(spec: <span class="kw-2">&amp;</span>str) -&gt; (Vec&lt;Directive&gt;, <span class="prelude-ty">Option</span>&lt;inner::Filter&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>dirs = Vec::new();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parts</span> <span class="op">=</span> <span class="ident">spec</span>.<span class="ident">split</span>(<span class="string">&#39;/&#39;</span>);
-    <span class="kw">let</span> <span class="ident">mods</span> <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">next</span>();
-    <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">next</span>();
-    <span class="kw">if</span> <span class="ident">parts</span>.<span class="ident">next</span>().<span class="ident">is_some</span>() {
+    <span class="kw">let </span><span class="kw-2">mut </span>parts = spec.split(<span class="string">&#39;/&#39;</span>);
+    <span class="kw">let </span>mods = parts.next();
+    <span class="kw">let </span>filter = parts.next();
+    <span class="kw">if </span>parts.next().is_some() {
         <span class="macro">eprintln!</span>(
             <span class="string">&quot;warning: invalid logging spec &#39;{}&#39;, \
              ignoring it (too many &#39;/&#39;s)&quot;</span>,
-            <span class="ident">spec</span>
+            spec
         );
-        <span class="kw">return</span> (<span class="ident">dirs</span>, <span class="prelude-val">None</span>);
+        <span class="kw">return </span>(dirs, <span class="prelude-val">None</span>);
     }
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">mods</span> {
-        <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="ident">m</span>.<span class="ident">split</span>(<span class="string">&#39;,&#39;</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">ss</span><span class="op">|</span> <span class="ident">ss</span>.<span class="ident">trim</span>()) {
-            <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">is_empty</span>() {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = mods {
+        <span class="kw">for </span>s <span class="kw">in </span>m.split(<span class="string">&#39;,&#39;</span>).map(|ss| ss.trim()) {
+            <span class="kw">if </span>s.is_empty() {
                 <span class="kw">continue</span>;
             }
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parts</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">split</span>(<span class="string">&#39;=&#39;</span>);
-            <span class="kw">let</span> (<span class="ident">log_level</span>, <span class="ident">name</span>) <span class="op">=</span>
-                <span class="kw">match</span> (<span class="ident">parts</span>.<span class="ident">next</span>(), <span class="ident">parts</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">trim</span>()), <span class="ident">parts</span>.<span class="ident">next</span>()) {
-                    (<span class="prelude-val">Some</span>(<span class="ident">part0</span>), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
-                        <span class="comment">// if the single argument is a log-level string or number,</span>
-                        <span class="comment">// treat that as a global fallback</span>
-                        <span class="kw">match</span> <span class="ident">part0</span>.<span class="ident">parse</span>() {
-                            <span class="prelude-val">Ok</span>(<span class="ident">num</span>) =&gt; (<span class="ident">num</span>, <span class="prelude-val">None</span>),
-                            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; (<span class="ident">LevelFilter::max</span>(), <span class="prelude-val">Some</span>(<span class="ident">part0</span>)),
+            <span class="kw">let </span><span class="kw-2">mut </span>parts = s.split(<span class="string">&#39;=&#39;</span>);
+            <span class="kw">let </span>(log_level, name) =
+                <span class="kw">match </span>(parts.next(), parts.next().map(|s| s.trim()), parts.next()) {
+                    (<span class="prelude-val">Some</span>(part0), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
+                        <span class="comment">// if the single argument is a log-level string or number,
+                        // treat that as a global fallback
+                        </span><span class="kw">match </span>part0.parse() {
+                            <span class="prelude-val">Ok</span>(num) =&gt; (num, <span class="prelude-val">None</span>),
+                            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; (LevelFilter::max(), <span class="prelude-val">Some</span>(part0)),
                         }
                     }
-                    (<span class="prelude-val">Some</span>(<span class="ident">part0</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>), <span class="prelude-val">None</span>) =&gt; (<span class="ident">LevelFilter::max</span>(), <span class="prelude-val">Some</span>(<span class="ident">part0</span>)),
-                    (<span class="prelude-val">Some</span>(<span class="ident">part0</span>), <span class="prelude-val">Some</span>(<span class="ident">part1</span>), <span class="prelude-val">None</span>) =&gt; <span class="kw">match</span> <span class="ident">part1</span>.<span class="ident">parse</span>() {
-                        <span class="prelude-val">Ok</span>(<span class="ident">num</span>) =&gt; (<span class="ident">num</span>, <span class="prelude-val">Some</span>(<span class="ident">part0</span>)),
-                        <span class="kw">_</span> =&gt; {
+                    (<span class="prelude-val">Some</span>(part0), <span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>), <span class="prelude-val">None</span>) =&gt; (LevelFilter::max(), <span class="prelude-val">Some</span>(part0)),
+                    (<span class="prelude-val">Some</span>(part0), <span class="prelude-val">Some</span>(part1), <span class="prelude-val">None</span>) =&gt; <span class="kw">match </span>part1.parse() {
+                        <span class="prelude-val">Ok</span>(num) =&gt; (num, <span class="prelude-val">Some</span>(part0)),
+                        <span class="kw">_ </span>=&gt; {
                             <span class="macro">eprintln!</span>(
                                 <span class="string">&quot;warning: invalid logging spec &#39;{}&#39;, \
                                  ignoring it&quot;</span>,
-                                <span class="ident">part1</span>
+                                part1
                             );
                             <span class="kw">continue</span>;
                         }
                     },
-                    <span class="kw">_</span> =&gt; {
+                    <span class="kw">_ </span>=&gt; {
                         <span class="macro">eprintln!</span>(
                             <span class="string">&quot;warning: invalid logging spec &#39;{}&#39;, \
                              ignoring it&quot;</span>,
-                            <span class="ident">s</span>
+                            s
                         );
                         <span class="kw">continue</span>;
                     }
                 };
-            <span class="ident">dirs</span>.<span class="ident">push</span>(<span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">to_string</span>()),
-                <span class="ident">level</span>: <span class="ident">log_level</span>,
+            dirs.push(Directive {
+                name: name.map(|s| s.to_string()),
+                level: log_level,
             });
         }
     }
 
-    <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">filter</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">filter</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">inner::Filter::new</span>(<span class="ident">filter</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">re</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">re</span>),
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-            <span class="macro">eprintln!</span>(<span class="string">&quot;warning: invalid regex filter - {}&quot;</span>, <span class="ident">e</span>);
-            <span class="prelude-val">None</span>
-        }
+    <span class="kw">let </span>filter = filter.and_then(|filter| <span class="kw">match </span>inner::Filter::new(filter) {
+        <span class="prelude-val">Ok</span>(re) =&gt; <span class="prelude-val">Some</span>(re),
+        <span class="prelude-val">Err</span>(e) =&gt; {
+            <span class="macro">eprintln!</span>(<span class="string">&quot;warning: invalid regex filter - {}&quot;</span>, e);
+            <span class="prelude-val">None
+        </span>}
     });
 
-    (<span class="ident">dirs</span>, <span class="ident">filter</span>)
+    (dirs, filter)
 }
 
-<span class="comment">// Check whether a level and target are enabled by the set of directives.</span>
-<span class="kw">fn</span> <span class="ident">enabled</span>(<span class="ident">directives</span>: <span class="kw-2">&amp;</span>[<span class="ident">Directive</span>], <span class="ident">level</span>: <span class="ident">Level</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
-    <span class="comment">// Search for the longest match, the vector is assumed to be pre-sorted.</span>
-    <span class="kw">for</span> <span class="ident">directive</span> <span class="kw">in</span> <span class="ident">directives</span>.<span class="ident">iter</span>().<span class="ident">rev</span>() {
-        <span class="kw">match</span> <span class="ident">directive</span>.<span class="ident">name</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">name</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">target</span>.<span class="ident">starts_with</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">name</span>) =&gt; {}
-            <span class="prelude-val">Some</span>(..) <span class="op">|</span> <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">level</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">directive</span>.<span class="ident">level</span>,
+<span class="comment">// Check whether a level and target are enabled by the set of directives.
+</span><span class="kw">fn </span>enabled(directives: <span class="kw-2">&amp;</span>[Directive], level: Level, target: <span class="kw-2">&amp;</span>str) -&gt; bool {
+    <span class="comment">// Search for the longest match, the vector is assumed to be pre-sorted.
+    </span><span class="kw">for </span>directive <span class="kw">in </span>directives.iter().rev() {
+        <span class="kw">match </span>directive.name {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>name) <span class="kw">if </span>!target.starts_with(<span class="kw-2">&amp;**</span>name) =&gt; {}
+            <span class="prelude-val">Some</span>(..) | <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>level &lt;= directive.level,
         }
     }
-    <span class="bool-val">false</span>
-}
+    <span class="bool-val">false
+</span>}
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">Level</span>, <span class="ident">LevelFilter</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>log::{Level, LevelFilter};
 
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">enabled</span>, <span class="ident">parse_spec</span>, <span class="ident">Builder</span>, <span class="ident">Directive</span>, <span class="ident">Filter</span>};
+    <span class="kw">use super</span>::{enabled, parse_spec, Builder, Directive, Filter};
 
-    <span class="kw">fn</span> <span class="ident">make_logger_filter</span>(<span class="ident">dirs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Directive</span><span class="op">&gt;</span>) -&gt; <span class="ident">Filter</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">build</span>();
-        <span class="ident">logger</span>.<span class="ident">directives</span> <span class="op">=</span> <span class="ident">dirs</span>;
-        <span class="ident">logger</span>
+    <span class="kw">fn </span>make_logger_filter(dirs: Vec&lt;Directive&gt;) -&gt; Filter {
+        <span class="kw">let </span><span class="kw-2">mut </span>logger = Builder::new().build();
+        logger.directives = dirs;
+        logger
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">filter_info</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">filter</span>(<span class="prelude-val">None</span>, <span class="ident">LevelFilter::Info</span>).<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;crate1&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;crate1&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>filter_info() {
+        <span class="kw">let </span>logger = Builder::new().filter(<span class="prelude-val">None</span>, LevelFilter::Info).build();
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;crate1&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;crate1&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">filter_beginning_longest_match</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>()
-            .<span class="ident">filter</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>), <span class="ident">LevelFilter::Info</span>)
-            .<span class="ident">filter</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;crate2::mod&quot;</span>), <span class="ident">LevelFilter::Debug</span>)
-            .<span class="ident">filter</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>), <span class="ident">LevelFilter::Warn</span>)
-            .<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;crate2::mod1&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;crate2&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>filter_beginning_longest_match() {
+        <span class="kw">let </span>logger = Builder::new()
+            .filter(<span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>), LevelFilter::Info)
+            .filter(<span class="prelude-val">Some</span>(<span class="string">&quot;crate2::mod&quot;</span>), LevelFilter::Debug)
+            .filter(<span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>), LevelFilter::Warn)
+            .build();
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;crate2::mod1&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;crate2&quot;</span>));
     }
 
-    <span class="comment">// Some of our tests are only correct or complete when they cover the full</span>
-    <span class="comment">// universe of variants for log::Level. In the unlikely event that a new</span>
-    <span class="comment">// variant is added in the future, this test will detect the scenario and</span>
-    <span class="comment">// alert us to the need to review and update the tests. In such a</span>
-    <span class="comment">// situation, this test will fail to compile, and the error message will</span>
-    <span class="comment">// look something like this:</span>
-    <span class="comment">//</span>
-    <span class="comment">//     error[E0004]: non-exhaustive patterns: `NewVariant` not covered</span>
-    <span class="comment">//        --&gt; src/filter/mod.rs:413:15</span>
-    <span class="comment">//         |</span>
-    <span class="comment">//     413 |         match level_universe {</span>
-    <span class="comment">//         |               ^^^^^^^^^^^^^^ pattern `NewVariant` not covered</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ensure_tests_cover_level_universe</span>() {
-        <span class="kw">let</span> <span class="ident">level_universe</span>: <span class="ident">Level</span> <span class="op">=</span> <span class="ident">Level::Trace</span>; <span class="comment">// use of trace variant is arbitrary</span>
-        <span class="kw">match</span> <span class="ident">level_universe</span> {
-            <span class="ident">Level::Error</span> <span class="op">|</span> <span class="ident">Level::Warn</span> <span class="op">|</span> <span class="ident">Level::Info</span> <span class="op">|</span> <span class="ident">Level::Debug</span> <span class="op">|</span> <span class="ident">Level::Trace</span> =&gt; (),
+    <span class="comment">// Some of our tests are only correct or complete when they cover the full
+    // universe of variants for log::Level. In the unlikely event that a new
+    // variant is added in the future, this test will detect the scenario and
+    // alert us to the need to review and update the tests. In such a
+    // situation, this test will fail to compile, and the error message will
+    // look something like this:
+    //
+    //     error[E0004]: non-exhaustive patterns: `NewVariant` not covered
+    //        --&gt; src/filter/mod.rs:413:15
+    //         |
+    //     413 |         match level_universe {
+    //         |               ^^^^^^^^^^^^^^ pattern `NewVariant` not covered
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>ensure_tests_cover_level_universe() {
+        <span class="kw">let </span>level_universe: Level = Level::Trace; <span class="comment">// use of trace variant is arbitrary
+        </span><span class="kw">match </span>level_universe {
+            Level::Error | Level::Warn | Level::Info | Level::Debug | Level::Trace =&gt; (),
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_default</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;info,crate1::mod1=warn&quot;</span>).<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;crate1::mod1&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;crate2::mod2&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_default() {
+        <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;info,crate1::mod1=warn&quot;</span>).build();
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;crate1::mod1&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;crate2::mod2&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_default_bare_level_off_lc</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;off&quot;</span>).<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_default_bare_level_off_lc() {
+        <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;off&quot;</span>).build();
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_default_bare_level_off_uc</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;OFF&quot;</span>).<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_default_bare_level_off_uc() {
+        <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;OFF&quot;</span>).build();
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_default_bare_level_error_lc</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;error&quot;</span>).<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_default_bare_level_error_lc() {
+        <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;error&quot;</span>).build();
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_default_bare_level_error_uc</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;ERROR&quot;</span>).<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_default_bare_level_error_uc() {
+        <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;ERROR&quot;</span>).build();
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_default_bare_level_warn_lc</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;warn&quot;</span>).<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_default_bare_level_warn_lc() {
+        <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;warn&quot;</span>).build();
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_default_bare_level_warn_uc</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;WARN&quot;</span>).<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_default_bare_level_warn_uc() {
+        <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;WARN&quot;</span>).build();
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_default_bare_level_info_lc</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;info&quot;</span>).<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_default_bare_level_info_lc() {
+        <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;info&quot;</span>).build();
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_default_bare_level_info_uc</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;INFO&quot;</span>).<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_default_bare_level_info_uc() {
+        <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;INFO&quot;</span>).build();
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_default_bare_level_debug_lc</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;debug&quot;</span>).<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_default_bare_level_debug_lc() {
+        <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;debug&quot;</span>).build();
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_default_bare_level_debug_uc</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;DEBUG&quot;</span>).<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_default_bare_level_debug_uc() {
+        <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;DEBUG&quot;</span>).build();
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_default_bare_level_trace_lc</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;trace&quot;</span>).<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_default_bare_level_trace_lc() {
+        <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;trace&quot;</span>).build();
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_default_bare_level_trace_uc</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;TRACE&quot;</span>).<span class="ident">build</span>();
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_default_bare_level_trace_uc() {
+        <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;TRACE&quot;</span>).build();
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
     }
 
-    <span class="comment">// In practice, the desired log level is typically specified by a token</span>
-    <span class="comment">// that is either all lowercase (e.g., &#39;trace&#39;) or all uppercase (.e.g,</span>
-    <span class="comment">// &#39;TRACE&#39;), but this tests serves as a reminder that</span>
-    <span class="comment">// log::Level::from_str() ignores all case variants.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_default_bare_level_debug_mixed</span>() {
+    <span class="comment">// In practice, the desired log level is typically specified by a token
+    // that is either all lowercase (e.g., &#39;trace&#39;) or all uppercase (.e.g,
+    // &#39;TRACE&#39;), but this tests serves as a reminder that
+    // log::Level::from_str() ignores all case variants.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_default_bare_level_debug_mixed() {
         {
-            <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;Debug&quot;</span>).<span class="ident">build</span>();
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
-        }
-        {
-            <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;debuG&quot;</span>).<span class="ident">build</span>();
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+            <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;Debug&quot;</span>).build();
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
         }
         {
-            <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;deBug&quot;</span>).<span class="ident">build</span>();
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+            <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;debuG&quot;</span>).build();
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
         }
         {
-            <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">Builder::new</span>().<span class="ident">parse</span>(<span class="string">&quot;DeBuG&quot;</span>).<span class="ident">build</span>(); <span class="comment">// LaTeX flavor!</span>
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;&quot;</span>));
-            <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Trace</span>, <span class="string">&quot;&quot;</span>));
+            <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;deBug&quot;</span>).build();
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
+        }
+        {
+            <span class="kw">let </span>logger = Builder::new().parse(<span class="string">&quot;DeBuG&quot;</span>).build(); <span class="comment">// LaTeX flavor!
+            </span><span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;&quot;</span>));
+            <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Trace, <span class="string">&quot;&quot;</span>));
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">match_full_path</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">make_logger_filter</span>(<span class="macro">vec!</span>[
-            <span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">level</span>: <span class="ident">LevelFilter::Info</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>match_full_path() {
+        <span class="kw">let </span>logger = make_logger_filter(<span class="macro">vec!</span>[
+            Directive {
+                name: <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.to_string()),
+                level: LevelFilter::Info,
             },
-            <span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">level</span>: <span class="ident">LevelFilter::Warn</span>,
-            },
-        ]);
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;crate1::mod1&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;crate1::mod1&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;crate2&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;crate2&quot;</span>));
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">no_match</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">make_logger_filter</span>(<span class="macro">vec!</span>[
-            <span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">level</span>: <span class="ident">LevelFilter::Info</span>,
-            },
-            <span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">level</span>: <span class="ident">LevelFilter::Warn</span>,
+            Directive {
+                name: <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.to_string()),
+                level: LevelFilter::Warn,
             },
         ]);
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;crate3&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;crate1::mod1&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;crate1::mod1&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;crate2&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;crate2&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">match_beginning</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">make_logger_filter</span>(<span class="macro">vec!</span>[
-            <span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">level</span>: <span class="ident">LevelFilter::Info</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>no_match() {
+        <span class="kw">let </span>logger = make_logger_filter(<span class="macro">vec!</span>[
+            Directive {
+                name: <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.to_string()),
+                level: LevelFilter::Info,
             },
-            <span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">level</span>: <span class="ident">LevelFilter::Warn</span>,
-            },
-        ]);
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;crate2::mod1&quot;</span>));
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">match_beginning_longest_match</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">make_logger_filter</span>(<span class="macro">vec!</span>[
-            <span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">level</span>: <span class="ident">LevelFilter::Info</span>,
-            },
-            <span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;crate2::mod&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">level</span>: <span class="ident">LevelFilter::Debug</span>,
-            },
-            <span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">level</span>: <span class="ident">LevelFilter::Warn</span>,
+            Directive {
+                name: <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.to_string()),
+                level: LevelFilter::Warn,
             },
         ]);
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;crate2::mod1&quot;</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Debug</span>, <span class="string">&quot;crate2&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;crate3&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">match_default</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">make_logger_filter</span>(<span class="macro">vec!</span>[
-            <span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="prelude-val">None</span>,
-                <span class="ident">level</span>: <span class="ident">LevelFilter::Info</span>,
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>match_beginning() {
+        <span class="kw">let </span>logger = make_logger_filter(<span class="macro">vec!</span>[
+            Directive {
+                name: <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.to_string()),
+                level: LevelFilter::Info,
             },
-            <span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">level</span>: <span class="ident">LevelFilter::Warn</span>,
-            },
-        ]);
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Warn</span>, <span class="string">&quot;crate1::mod1&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;crate2::mod2&quot;</span>));
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">zero_level</span>() {
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">make_logger_filter</span>(<span class="macro">vec!</span>[
-            <span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="prelude-val">None</span>,
-                <span class="ident">level</span>: <span class="ident">LevelFilter::Info</span>,
-            },
-            <span class="ident">Directive</span> {
-                <span class="ident">name</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">level</span>: <span class="ident">LevelFilter::Off</span>,
+            Directive {
+                name: <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.to_string()),
+                level: LevelFilter::Warn,
             },
         ]);
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Error</span>, <span class="string">&quot;crate1::mod1&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="ident">logger</span>.<span class="ident">directives</span>, <span class="ident">Level::Info</span>, <span class="string">&quot;crate2::mod2&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;crate2::mod1&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_valid</span>() {
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;crate1::mod1=error,crate1::mod2,crate2=debug&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">3</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.<span class="ident">to_string</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::Error</span>);
-
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">1</span>].<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod2&quot;</span>.<span class="ident">to_string</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">1</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::max</span>());
-
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">2</span>].<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.<span class="ident">to_string</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">2</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::Debug</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>match_beginning_longest_match() {
+        <span class="kw">let </span>logger = make_logger_filter(<span class="macro">vec!</span>[
+            Directive {
+                name: <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.to_string()),
+                level: LevelFilter::Info,
+            },
+            Directive {
+                name: <span class="prelude-val">Some</span>(<span class="string">&quot;crate2::mod&quot;</span>.to_string()),
+                level: LevelFilter::Debug,
+            },
+            Directive {
+                name: <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.to_string()),
+                level: LevelFilter::Warn,
+            },
+        ]);
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;crate2::mod1&quot;</span>));
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Debug, <span class="string">&quot;crate2&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_invalid_crate</span>() {
-        <span class="comment">// test parse_spec with multiple = in specification</span>
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;crate1::mod1=warn=info,crate2=debug&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.<span class="ident">to_string</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::Debug</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>match_default() {
+        <span class="kw">let </span>logger = make_logger_filter(<span class="macro">vec!</span>[
+            Directive {
+                name: <span class="prelude-val">None</span>,
+                level: LevelFilter::Info,
+            },
+            Directive {
+                name: <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.to_string()),
+                level: LevelFilter::Warn,
+            },
+        ]);
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">&quot;crate1::mod1&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;crate2::mod2&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_invalid_level</span>() {
-        <span class="comment">// test parse_spec with &#39;noNumber&#39; as log level</span>
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;crate1::mod1=noNumber,crate2=debug&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.<span class="ident">to_string</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::Debug</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>zero_level() {
+        <span class="kw">let </span>logger = make_logger_filter(<span class="macro">vec!</span>[
+            Directive {
+                name: <span class="prelude-val">None</span>,
+                level: LevelFilter::Info,
+            },
+            Directive {
+                name: <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.to_string()),
+                level: LevelFilter::Off,
+            },
+        ]);
+        <span class="macro">assert!</span>(!enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Error, <span class="string">&quot;crate1::mod1&quot;</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">&quot;crate2::mod2&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_string_level</span>() {
-        <span class="comment">// test parse_spec with &#39;warn&#39; as log level</span>
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;crate1::mod1=wrong,crate2=warn&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.<span class="ident">to_string</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::Warn</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_valid() {
+        <span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;crate1::mod1=error,crate1::mod2,crate2=debug&quot;</span>);
+        <span class="macro">assert_eq!</span>(dirs.len(), <span class="number">3</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].name, <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].level, LevelFilter::Error);
+
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">1</span>].name, <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod2&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">1</span>].level, LevelFilter::max());
+
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">2</span>].name, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">2</span>].level, LevelFilter::Debug);
+        <span class="macro">assert!</span>(filter.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_empty_level</span>() {
-        <span class="comment">// test parse_spec with &#39;&#39; as log level</span>
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;crate1::mod1=wrong,crate2=&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.<span class="ident">to_string</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::max</span>());
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_invalid_crate() {
+        <span class="comment">// test parse_spec with multiple = in specification
+        </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;crate1::mod1=warn=info,crate2=debug&quot;</span>);
+        <span class="macro">assert_eq!</span>(dirs.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].name, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].level, LevelFilter::Debug);
+        <span class="macro">assert!</span>(filter.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_empty_level_isolated</span>() {
-        <span class="comment">// test parse_spec with &quot;&quot; as log level (and the entire spec str)</span>
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;&quot;</span>); <span class="comment">// should be ignored</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">0</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_invalid_level() {
+        <span class="comment">// test parse_spec with &#39;noNumber&#39; as log level
+        </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;crate1::mod1=noNumber,crate2=debug&quot;</span>);
+        <span class="macro">assert_eq!</span>(dirs.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].name, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].level, LevelFilter::Debug);
+        <span class="macro">assert!</span>(filter.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_blank_level_isolated</span>() {
-        <span class="comment">// test parse_spec with a white-space-only string specified as the log</span>
-        <span class="comment">// level (and the entire spec str)</span>
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;     &quot;</span>); <span class="comment">// should be ignored</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">0</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_string_level() {
+        <span class="comment">// test parse_spec with &#39;warn&#39; as log level
+        </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;crate1::mod1=wrong,crate2=warn&quot;</span>);
+        <span class="macro">assert_eq!</span>(dirs.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].name, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].level, LevelFilter::Warn);
+        <span class="macro">assert!</span>(filter.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_blank_level_isolated_comma_only</span>() {
-        <span class="comment">// The spec should contain zero or more comma-separated string slices,</span>
-        <span class="comment">// so a comma-only string should be interpretted as two empty strings</span>
-        <span class="comment">// (which should both be treated as invalid, so ignored).</span>
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;,&quot;</span>); <span class="comment">// should be ignored</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">0</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_empty_level() {
+        <span class="comment">// test parse_spec with &#39;&#39; as log level
+        </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;crate1::mod1=wrong,crate2=&quot;</span>);
+        <span class="macro">assert_eq!</span>(dirs.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].name, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].level, LevelFilter::max());
+        <span class="macro">assert!</span>(filter.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_blank_level_isolated_comma_blank</span>() {
-        <span class="comment">// The spec should contain zero or more comma-separated string slices,</span>
-        <span class="comment">// so this bogus spec should be interpretted as containing one empty</span>
-        <span class="comment">// string and one blank string. Both should both be treated as</span>
-        <span class="comment">// invalid, so ignored.</span>
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;,     &quot;</span>); <span class="comment">// should be ignored</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">0</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_empty_level_isolated() {
+        <span class="comment">// test parse_spec with &quot;&quot; as log level (and the entire spec str)
+        </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;&quot;</span>); <span class="comment">// should be ignored
+        </span><span class="macro">assert_eq!</span>(dirs.len(), <span class="number">0</span>);
+        <span class="macro">assert!</span>(filter.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_blank_level_isolated_blank_comma</span>() {
-        <span class="comment">// The spec should contain zero or more comma-separated string slices,</span>
-        <span class="comment">// so this bogus spec should be interpretted as containing one blank</span>
-        <span class="comment">// string and one empty string. Both should both be treated as</span>
-        <span class="comment">// invalid, so ignored.</span>
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;     ,&quot;</span>); <span class="comment">// should be ignored</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">0</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_blank_level_isolated() {
+        <span class="comment">// test parse_spec with a white-space-only string specified as the log
+        // level (and the entire spec str)
+        </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;     &quot;</span>); <span class="comment">// should be ignored
+        </span><span class="macro">assert_eq!</span>(dirs.len(), <span class="number">0</span>);
+        <span class="macro">assert!</span>(filter.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_global</span>() {
-        <span class="comment">// test parse_spec with no crate</span>
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;warn,crate2=debug&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">2</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">name</span>, <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::Warn</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">1</span>].<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.<span class="ident">to_string</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">1</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::Debug</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_blank_level_isolated_comma_only() {
+        <span class="comment">// The spec should contain zero or more comma-separated string slices,
+        // so a comma-only string should be interpretted as two empty strings
+        // (which should both be treated as invalid, so ignored).
+        </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;,&quot;</span>); <span class="comment">// should be ignored
+        </span><span class="macro">assert_eq!</span>(dirs.len(), <span class="number">0</span>);
+        <span class="macro">assert!</span>(filter.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_global_bare_warn_lc</span>() {
-        <span class="comment">// test parse_spec with no crate, in isolation, all lowercase</span>
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;warn&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">name</span>, <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::Warn</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_blank_level_isolated_comma_blank() {
+        <span class="comment">// The spec should contain zero or more comma-separated string slices,
+        // so this bogus spec should be interpretted as containing one empty
+        // string and one blank string. Both should both be treated as
+        // invalid, so ignored.
+        </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;,     &quot;</span>); <span class="comment">// should be ignored
+        </span><span class="macro">assert_eq!</span>(dirs.len(), <span class="number">0</span>);
+        <span class="macro">assert!</span>(filter.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_global_bare_warn_uc</span>() {
-        <span class="comment">// test parse_spec with no crate, in isolation, all uppercase</span>
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;WARN&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">name</span>, <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::Warn</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_blank_level_isolated_blank_comma() {
+        <span class="comment">// The spec should contain zero or more comma-separated string slices,
+        // so this bogus spec should be interpretted as containing one blank
+        // string and one empty string. Both should both be treated as
+        // invalid, so ignored.
+        </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;     ,&quot;</span>); <span class="comment">// should be ignored
+        </span><span class="macro">assert_eq!</span>(dirs.len(), <span class="number">0</span>);
+        <span class="macro">assert!</span>(filter.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_global_bare_warn_mixed</span>() {
-        <span class="comment">// test parse_spec with no crate, in isolation, mixed case</span>
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;wArN&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">name</span>, <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::Warn</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_none</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_global() {
+        <span class="comment">// test parse_spec with no crate
+        </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;warn,crate2=debug&quot;</span>);
+        <span class="macro">assert_eq!</span>(dirs.len(), <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].name, <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].level, LevelFilter::Warn);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">1</span>].name, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">1</span>].level, LevelFilter::Debug);
+        <span class="macro">assert!</span>(filter.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_valid_filter</span>() {
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;crate1::mod1=error,crate1::mod2,crate2=debug/abc&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">3</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.<span class="ident">to_string</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::Error</span>);
-
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">1</span>].<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod2&quot;</span>.<span class="ident">to_string</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">1</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::max</span>());
-
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">2</span>].<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.<span class="ident">to_string</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">2</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::Debug</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">filter</span>.<span class="ident">unwrap</span>().<span class="ident">to_string</span>() <span class="op">==</span> <span class="string">&quot;abc&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_global_bare_warn_lc() {
+        <span class="comment">// test parse_spec with no crate, in isolation, all lowercase
+        </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;warn&quot;</span>);
+        <span class="macro">assert_eq!</span>(dirs.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].name, <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].level, LevelFilter::Warn);
+        <span class="macro">assert!</span>(filter.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_invalid_crate_filter</span>() {
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;crate1::mod1=error=warn,crate2=debug/a.c&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.<span class="ident">to_string</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::Debug</span>);
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">filter</span>.<span class="ident">unwrap</span>().<span class="ident">to_string</span>() <span class="op">==</span> <span class="string">&quot;a.c&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_global_bare_warn_uc() {
+        <span class="comment">// test parse_spec with no crate, in isolation, all uppercase
+        </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;WARN&quot;</span>);
+        <span class="macro">assert_eq!</span>(dirs.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].name, <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].level, LevelFilter::Warn);
+        <span class="macro">assert!</span>(filter.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_spec_empty_with_filter</span>() {
-        <span class="kw">let</span> (<span class="ident">dirs</span>, <span class="ident">filter</span>) <span class="op">=</span> <span class="ident">parse_spec</span>(<span class="string">&quot;crate1/a*c&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;crate1&quot;</span>.<span class="ident">to_string</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">dirs</span>[<span class="number">0</span>].<span class="ident">level</span>, <span class="ident">LevelFilter::max</span>());
-        <span class="macro">assert!</span>(<span class="ident">filter</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">filter</span>.<span class="ident">unwrap</span>().<span class="ident">to_string</span>() <span class="op">==</span> <span class="string">&quot;a*c&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_global_bare_warn_mixed() {
+        <span class="comment">// test parse_spec with no crate, in isolation, mixed case
+        </span><span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;wArN&quot;</span>);
+        <span class="macro">assert_eq!</span>(dirs.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].name, <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].level, LevelFilter::Warn);
+        <span class="macro">assert!</span>(filter.is_none());
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_valid_filter() {
+        <span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;crate1::mod1=error,crate1::mod2,crate2=debug/abc&quot;</span>);
+        <span class="macro">assert_eq!</span>(dirs.len(), <span class="number">3</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].name, <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod1&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].level, LevelFilter::Error);
+
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">1</span>].name, <span class="prelude-val">Some</span>(<span class="string">&quot;crate1::mod2&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">1</span>].level, LevelFilter::max());
+
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">2</span>].name, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">2</span>].level, LevelFilter::Debug);
+        <span class="macro">assert!</span>(filter.is_some() &amp;&amp; filter.unwrap().to_string() == <span class="string">&quot;abc&quot;</span>);
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_invalid_crate_filter() {
+        <span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;crate1::mod1=error=warn,crate2=debug/a.c&quot;</span>);
+        <span class="macro">assert_eq!</span>(dirs.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].name, <span class="prelude-val">Some</span>(<span class="string">&quot;crate2&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].level, LevelFilter::Debug);
+        <span class="macro">assert!</span>(filter.is_some() &amp;&amp; filter.unwrap().to_string() == <span class="string">&quot;a.c&quot;</span>);
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_spec_empty_with_filter() {
+        <span class="kw">let </span>(dirs, filter) = parse_spec(<span class="string">&quot;crate1/a*c&quot;</span>);
+        <span class="macro">assert_eq!</span>(dirs.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].name, <span class="prelude-val">Some</span>(<span class="string">&quot;crate1&quot;</span>.to_string()));
+        <span class="macro">assert_eq!</span>(dirs[<span class="number">0</span>].level, LevelFilter::max());
+        <span class="macro">assert!</span>(filter.is_some() &amp;&amp; filter.unwrap().to_string() == <span class="string">&quot;a*c&quot;</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="env_logger" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="env_logger" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

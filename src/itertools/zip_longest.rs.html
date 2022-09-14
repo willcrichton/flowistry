@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.3/src/zip_longest.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>zip_longest.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.4/src/zip_longest.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>zip_longest.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -88,89 +81,88 @@
 <span id="81">81</span>
 <span id="82">82</span>
 <span id="83">83</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::cmp::Ordering</span>::{<span class="ident">Equal</span>, <span class="ident">Greater</span>, <span class="ident">Less</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::size_hint</span>;
-<span class="kw">use</span> <span class="ident">std::iter</span>::{<span class="ident">Fuse</span>, <span class="ident">FusedIterator</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::cmp::Ordering::{Equal, Greater, Less};
+<span class="kw">use </span><span class="kw">super</span>::size_hint;
+<span class="kw">use </span>std::iter::{Fuse, FusedIterator};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::either_or_both::EitherOrBoth</span>;
+<span class="kw">use </span><span class="kw">crate</span>::either_or_both::EitherOrBoth;
 
-<span class="comment">// ZipLongest originally written by SimonSapin,</span>
-<span class="comment">// and dedicated to itertools https://github.com/rust-lang/rust/pull/19283</span>
+<span class="comment">// ZipLongest originally written by SimonSapin,
+// and dedicated to itertools https://github.com/rust-lang/rust/pull/19283
 
-<span class="doccomment">/// An iterator which iterates two other iterators simultaneously</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This iterator is *fused*.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.zip_longest()`](crate::Itertools::zip_longest) for more information.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ZipLongest</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> {
-    <span class="ident">a</span>: <span class="ident">Fuse</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">b</span>: <span class="ident">Fuse</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>,
+</span><span class="doccomment">/// An iterator which iterates two other iterators simultaneously
+///
+/// This iterator is *fused*.
+///
+/// See [`.zip_longest()`](crate::Itertools::zip_longest) for more information.
+</span><span class="attribute">#[derive(Clone, Debug)]
+#[must_use = <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]
+</span><span class="kw">pub struct </span>ZipLongest&lt;T, U&gt; {
+    a: Fuse&lt;T&gt;,
+    b: Fuse&lt;U&gt;,
 }
 
-<span class="doccomment">/// Create a new `ZipLongest` iterator.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">zip_longest</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">T</span>, <span class="ident">b</span>: <span class="ident">U</span>) -&gt; <span class="ident">ZipLongest</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">Iterator</span>,
-          <span class="ident">U</span>: <span class="ident">Iterator</span>
+<span class="doccomment">/// Create a new `ZipLongest` iterator.
+</span><span class="kw">pub fn </span>zip_longest&lt;T, U&gt;(a: T, b: U) -&gt; ZipLongest&lt;T, U&gt;
+    <span class="kw">where </span>T: Iterator,
+          U: Iterator
 {
-    <span class="ident">ZipLongest</span> {
-        <span class="ident">a</span>: <span class="ident">a</span>.<span class="ident">fuse</span>(),
-        <span class="ident">b</span>: <span class="ident">b</span>.<span class="ident">fuse</span>(),
+    ZipLongest {
+        a: a.fuse(),
+        b: b.fuse(),
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">ZipLongest</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">Iterator</span>,
-          <span class="ident">U</span>: <span class="ident">Iterator</span>
+<span class="kw">impl</span>&lt;T, U&gt; Iterator <span class="kw">for </span>ZipLongest&lt;T, U&gt;
+    <span class="kw">where </span>T: Iterator,
+          U: Iterator
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">EitherOrBoth</span><span class="op">&lt;</span><span class="ident">T::Item</span>, <span class="ident">U::Item</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Item = EitherOrBoth&lt;T::Item, U::Item&gt;;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">a</span>.<span class="ident">next</span>(), <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">next</span>()) {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">match </span>(<span class="self">self</span>.a.next(), <span class="self">self</span>.b.next()) {
             (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">None</span>,
-            (<span class="prelude-val">Some</span>(<span class="ident">a</span>), <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">EitherOrBoth::Left</span>(<span class="ident">a</span>)),
-            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">b</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">EitherOrBoth::Right</span>(<span class="ident">b</span>)),
-            (<span class="prelude-val">Some</span>(<span class="ident">a</span>), <span class="prelude-val">Some</span>(<span class="ident">b</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">EitherOrBoth::Both</span>(<span class="ident">a</span>, <span class="ident">b</span>)),
+            (<span class="prelude-val">Some</span>(a), <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Some</span>(EitherOrBoth::Left(a)),
+            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(b)) =&gt; <span class="prelude-val">Some</span>(EitherOrBoth::Right(b)),
+            (<span class="prelude-val">Some</span>(a), <span class="prelude-val">Some</span>(b)) =&gt; <span class="prelude-val">Some</span>(EitherOrBoth::Both(a, b)),
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-        <span class="ident">size_hint::max</span>(<span class="self">self</span>.<span class="ident">a</span>.<span class="ident">size_hint</span>(), <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">size_hint</span>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        size_hint::max(<span class="self">self</span>.a.size_hint(), <span class="self">self</span>.b.size_hint())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">ZipLongest</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">DoubleEndedIterator</span> <span class="op">+</span> <span class="ident">ExactSizeIterator</span>,
-          <span class="ident">U</span>: <span class="ident">DoubleEndedIterator</span> <span class="op">+</span> <span class="ident">ExactSizeIterator</span>
+<span class="kw">impl</span>&lt;T, U&gt; DoubleEndedIterator <span class="kw">for </span>ZipLongest&lt;T, U&gt;
+    <span class="kw">where </span>T: DoubleEndedIterator + ExactSizeIterator,
+          U: DoubleEndedIterator + ExactSizeIterator
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">a</span>.<span class="ident">len</span>().<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">b</span>.<span class="ident">len</span>()) {
-            <span class="ident">Equal</span> =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">a</span>.<span class="ident">next_back</span>(), <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">next_back</span>()) {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">match </span><span class="self">self</span>.a.len().cmp(<span class="kw-2">&amp;</span><span class="self">self</span>.b.len()) {
+            Equal =&gt; <span class="kw">match </span>(<span class="self">self</span>.a.next_back(), <span class="self">self</span>.b.next_back()) {
                 (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">None</span>,
-                (<span class="prelude-val">Some</span>(<span class="ident">a</span>), <span class="prelude-val">Some</span>(<span class="ident">b</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">EitherOrBoth::Both</span>(<span class="ident">a</span>, <span class="ident">b</span>)),
-                <span class="comment">// These can only happen if .len() is inconsistent with .next_back()</span>
-                (<span class="prelude-val">Some</span>(<span class="ident">a</span>), <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">EitherOrBoth::Left</span>(<span class="ident">a</span>)),
-                (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">b</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">EitherOrBoth::Right</span>(<span class="ident">b</span>)),
+                (<span class="prelude-val">Some</span>(a), <span class="prelude-val">Some</span>(b)) =&gt; <span class="prelude-val">Some</span>(EitherOrBoth::Both(a, b)),
+                <span class="comment">// These can only happen if .len() is inconsistent with .next_back()
+                </span>(<span class="prelude-val">Some</span>(a), <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Some</span>(EitherOrBoth::Left(a)),
+                (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(b)) =&gt; <span class="prelude-val">Some</span>(EitherOrBoth::Right(b)),
             },
-            <span class="ident">Greater</span> =&gt; <span class="self">self</span>.<span class="ident">a</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">EitherOrBoth::Left</span>),
-            <span class="ident">Less</span> =&gt; <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">EitherOrBoth::Right</span>),
+            Greater =&gt; <span class="self">self</span>.a.next_back().map(EitherOrBoth::Left),
+            Less =&gt; <span class="self">self</span>.b.next_back().map(EitherOrBoth::Right),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">ZipLongest</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">ExactSizeIterator</span>,
-          <span class="ident">U</span>: <span class="ident">ExactSizeIterator</span>
+<span class="kw">impl</span>&lt;T, U&gt; ExactSizeIterator <span class="kw">for </span>ZipLongest&lt;T, U&gt;
+    <span class="kw">where </span>T: ExactSizeIterator,
+          U: ExactSizeIterator
 {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">ZipLongest</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">Iterator</span>,
-          <span class="ident">U</span>: <span class="ident">Iterator</span>
+<span class="kw">impl</span>&lt;T, U&gt; FusedIterator <span class="kw">for </span>ZipLongest&lt;T, U&gt;
+    <span class="kw">where </span>T: Iterator,
+          U: Iterator
 {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

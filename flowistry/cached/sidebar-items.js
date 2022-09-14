@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Cache",""],["CopyCache",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["Cache",""],["CopyCache",""]]};

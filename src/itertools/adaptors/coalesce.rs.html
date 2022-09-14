@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.3/src/adaptors/coalesce.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>coalesce.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../itertools/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.4/src/adaptors/coalesce.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>coalesce.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../itertools/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -240,245 +233,240 @@
 <span id="233">233</span>
 <span id="234">234</span>
 <span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt</span>;
-<span class="kw">use</span> <span class="ident">std::iter::FusedIterator</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::iter::FusedIterator;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::size_hint</span>;
+<span class="kw">use </span><span class="kw">crate</span>::size_hint;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CoalesceBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="attribute">#[must_use = <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]
+</span><span class="kw">pub struct </span>CoalesceBy&lt;I, F, T&gt;
+<span class="kw">where
+    </span>I: Iterator,
 {
-    <span class="ident">iter</span>: <span class="ident">I</span>,
-    <span class="ident">last</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">f</span>: <span class="ident">F</span>,
+    iter: I,
+    last: <span class="prelude-ty">Option</span>&lt;T&gt;,
+    f: F,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Clone</span>, <span class="ident">F</span>: <span class="ident">Clone</span>, <span class="ident">T</span>: <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">CoalesceBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="kw">impl</span>&lt;I: Clone, F: Clone, T: Clone&gt; Clone <span class="kw">for </span>CoalesceBy&lt;I, F, T&gt;
+<span class="kw">where
+    </span>I: Iterator,
 {
-    <span class="macro">clone_fields!</span>(<span class="ident">last</span>, <span class="ident">iter</span>, <span class="ident">f</span>);
+    <span class="macro">clone_fields!</span>(last, iter, f);
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">CoalesceBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span> <span class="op">+</span> <span class="ident">fmt::Debug</span>,
-    <span class="ident">T</span>: <span class="ident">fmt::Debug</span>,
+<span class="kw">impl</span>&lt;I, F, T&gt; fmt::Debug <span class="kw">for </span>CoalesceBy&lt;I, F, T&gt;
+<span class="kw">where
+    </span>I: Iterator + fmt::Debug,
+    T: fmt::Debug,
 {
-    <span class="macro">debug_fmt_fields!</span>(<span class="ident">CoalesceBy</span>, <span class="ident">iter</span>);
+    <span class="macro">debug_fmt_fields!</span>(CoalesceBy, iter);
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CoalescePredicate</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">coalesce_pair</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">t</span>: <span class="ident">T</span>, <span class="ident">item</span>: <span class="ident">Item</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, (<span class="ident">T</span>, <span class="ident">T</span>)<span class="op">&gt;</span>;
+<span class="kw">pub trait </span>CoalescePredicate&lt;Item, T&gt; {
+    <span class="kw">fn </span>coalesce_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: T, item: Item) -&gt; <span class="prelude-ty">Result</span>&lt;T, (T, T)&gt;;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">CoalesceBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span>,
-    <span class="ident">F</span>: <span class="ident">CoalescePredicate</span><span class="op">&lt;</span><span class="ident">I::Item</span>, <span class="ident">T</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;I, F, T&gt; Iterator <span class="kw">for </span>CoalesceBy&lt;I, F, T&gt;
+<span class="kw">where
+    </span>I: Iterator,
+    F: CoalescePredicate&lt;I::Item, T&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span>;
+    <span class="kw">type </span>Item = T;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="comment">// this fuses the iterator</span>
-        <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">last</span>.<span class="ident">take</span>()<span class="question-mark">?</span>;
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="comment">// this fuses the iterator
+        </span><span class="kw">let </span>last = <span class="self">self</span>.last.take()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">self_last</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">last</span>;
-        <span class="kw">let</span> <span class="ident">self_f</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">f</span>;
+        <span class="kw">let </span>self_last = <span class="kw-2">&amp;mut </span><span class="self">self</span>.last;
+        <span class="kw">let </span>self_f = <span class="kw-2">&amp;mut </span><span class="self">self</span>.f;
         <span class="prelude-val">Some</span>(
-            <span class="self">self</span>.<span class="ident">iter</span>
-                .<span class="ident">try_fold</span>(<span class="ident">last</span>, <span class="op">|</span><span class="ident">last</span>, <span class="ident">next</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">self_f</span>.<span class="ident">coalesce_pair</span>(<span class="ident">last</span>, <span class="ident">next</span>) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">joined</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">joined</span>),
-                    <span class="prelude-val">Err</span>((<span class="ident">last_</span>, <span class="ident">next_</span>)) =&gt; {
-                        <span class="kw-2">*</span><span class="ident">self_last</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">next_</span>);
-                        <span class="prelude-val">Err</span>(<span class="ident">last_</span>)
+            <span class="self">self</span>.iter
+                .try_fold(last, |last, next| <span class="kw">match </span>self_f.coalesce_pair(last, next) {
+                    <span class="prelude-val">Ok</span>(joined) =&gt; <span class="prelude-val">Ok</span>(joined),
+                    <span class="prelude-val">Err</span>((last_, next_)) =&gt; {
+                        <span class="kw-2">*</span>self_last = <span class="prelude-val">Some</span>(next_);
+                        <span class="prelude-val">Err</span>(last_)
                     }
                 })
-                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>),
+                .unwrap_or_else(|x| x),
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> (<span class="ident">low</span>, <span class="ident">hi</span>) <span class="op">=</span> <span class="ident">size_hint::add_scalar</span>(<span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">size_hint</span>(), <span class="self">self</span>.<span class="ident">last</span>.<span class="ident">is_some</span>() <span class="kw">as</span> <span class="ident">usize</span>);
-        ((<span class="ident">low</span> <span class="op">&gt;</span> <span class="number">0</span>) <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">hi</span>)
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">let </span>(low, hi) = size_hint::add_scalar(<span class="self">self</span>.iter.size_hint(), <span class="self">self</span>.last.is_some() <span class="kw">as </span>usize);
+        ((low &gt; <span class="number">0</span>) <span class="kw">as </span>usize, hi)
     }
 
-    <span class="kw">fn</span> <span class="ident">fold</span><span class="op">&lt;</span><span class="ident">Acc</span>, <span class="ident">FnAcc</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">acc</span>: <span class="ident">Acc</span>, <span class="kw-2">mut</span> <span class="ident">fn_acc</span>: <span class="ident">FnAcc</span>) -&gt; <span class="ident">Acc</span>
-    <span class="kw">where</span>
-        <span class="ident">FnAcc</span>: <span class="ident">FnMut</span>(<span class="ident">Acc</span>, <span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">Acc</span>,
+    <span class="kw">fn </span>fold&lt;Acc, FnAcc&gt;(<span class="self">self</span>, acc: Acc, <span class="kw-2">mut </span>fn_acc: FnAcc) -&gt; Acc
+    <span class="kw">where
+        </span>FnAcc: FnMut(Acc, <span class="self">Self</span>::Item) -&gt; Acc,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">last</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">f</span>;
-            <span class="kw">let</span> (<span class="ident">last</span>, <span class="ident">acc</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">fold</span>((<span class="ident">last</span>, <span class="ident">acc</span>), <span class="op">|</span>(<span class="ident">last</span>, <span class="ident">acc</span>), <span class="ident">elt</span><span class="op">|</span> {
-                <span class="kw">match</span> <span class="ident">f</span>.<span class="ident">coalesce_pair</span>(<span class="ident">last</span>, <span class="ident">elt</span>) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">joined</span>) =&gt; (<span class="ident">joined</span>, <span class="ident">acc</span>),
-                    <span class="prelude-val">Err</span>((<span class="ident">last_</span>, <span class="ident">next_</span>)) =&gt; (<span class="ident">next_</span>, <span class="ident">fn_acc</span>(<span class="ident">acc</span>, <span class="ident">last_</span>)),
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(last) = <span class="self">self</span>.last {
+            <span class="kw">let </span><span class="kw-2">mut </span>f = <span class="self">self</span>.f;
+            <span class="kw">let </span>(last, acc) = <span class="self">self</span>.iter.fold((last, acc), |(last, acc), elt| {
+                <span class="kw">match </span>f.coalesce_pair(last, elt) {
+                    <span class="prelude-val">Ok</span>(joined) =&gt; (joined, acc),
+                    <span class="prelude-val">Err</span>((last_, next_)) =&gt; (next_, fn_acc(acc, last_)),
                 }
             });
-            <span class="ident">fn_acc</span>(<span class="ident">acc</span>, <span class="ident">last</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">acc</span>
+            fn_acc(acc, last)
+        } <span class="kw">else </span>{
+            acc
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span>, <span class="ident">F</span>: <span class="ident">CoalescePredicate</span><span class="op">&lt;</span><span class="ident">I::Item</span>, <span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">CoalesceBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;I: Iterator, F: CoalescePredicate&lt;I::Item, T&gt;, T&gt; FusedIterator <span class="kw">for </span>CoalesceBy&lt;I, F, T&gt; {}
 
-<span class="doccomment">/// An iterator adaptor that may join together adjacent elements.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.coalesce()`](crate::Itertools::coalesce) for more information.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Coalesce</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">CoalesceBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span>, <span class="op">&lt;</span><span class="ident">I</span> <span class="kw">as</span> <span class="ident">Iterator</span><span class="op">&gt;</span><span class="ident">::Item</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An iterator adaptor that may join together adjacent elements.
+///
+/// See [`.coalesce()`](crate::Itertools::coalesce) for more information.
+</span><span class="kw">pub type </span>Coalesce&lt;I, F&gt; = CoalesceBy&lt;I, F, &lt;I <span class="kw">as </span>Iterator&gt;::Item&gt;;
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">Item</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">CoalescePredicate</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">F</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">T</span>, <span class="ident">Item</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, (<span class="ident">T</span>, <span class="ident">T</span>)<span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;F, Item, T&gt; CoalescePredicate&lt;Item, T&gt; <span class="kw">for </span>F
+<span class="kw">where
+    </span>F: FnMut(T, Item) -&gt; <span class="prelude-ty">Result</span>&lt;T, (T, T)&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">coalesce_pair</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">t</span>: <span class="ident">T</span>, <span class="ident">item</span>: <span class="ident">Item</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, (<span class="ident">T</span>, <span class="ident">T</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>(<span class="ident">t</span>, <span class="ident">item</span>)
+    <span class="kw">fn </span>coalesce_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: T, item: Item) -&gt; <span class="prelude-ty">Result</span>&lt;T, (T, T)&gt; {
+        <span class="self">self</span>(t, item)
     }
 }
 
-<span class="doccomment">/// Create a new `Coalesce`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">coalesce</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">iter</span>: <span class="ident">I</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Coalesce</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="doccomment">/// Create a new `Coalesce`.
+</span><span class="kw">pub fn </span>coalesce&lt;I, F&gt;(<span class="kw-2">mut </span>iter: I, f: F) -&gt; Coalesce&lt;I, F&gt;
+<span class="kw">where
+    </span>I: Iterator,
 {
-    <span class="ident">Coalesce</span> {
-        <span class="ident">last</span>: <span class="ident">iter</span>.<span class="ident">next</span>(),
-        <span class="ident">iter</span>,
-        <span class="ident">f</span>,
+    Coalesce {
+        last: iter.next(),
+        iter,
+        f,
     }
 }
 
-<span class="doccomment">/// An iterator adaptor that removes repeated duplicates, determining equality using a comparison function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.dedup_by()`](crate::Itertools::dedup_by) or [`.dedup()`](crate::Itertools::dedup) for more information.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">DedupBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Pred</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">CoalesceBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">DedupPred2CoalescePred</span><span class="op">&lt;</span><span class="ident">Pred</span><span class="op">&gt;</span>, <span class="op">&lt;</span><span class="ident">I</span> <span class="kw">as</span> <span class="ident">Iterator</span><span class="op">&gt;</span><span class="ident">::Item</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An iterator adaptor that removes repeated duplicates, determining equality using a comparison function.
+///
+/// See [`.dedup_by()`](crate::Itertools::dedup_by) or [`.dedup()`](crate::Itertools::dedup) for more information.
+</span><span class="kw">pub type </span>DedupBy&lt;I, Pred&gt; = CoalesceBy&lt;I, DedupPred2CoalescePred&lt;Pred&gt;, &lt;I <span class="kw">as </span>Iterator&gt;::Item&gt;;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DedupPred2CoalescePred</span><span class="op">&lt;</span><span class="ident">DP</span><span class="op">&gt;</span>(<span class="ident">DP</span>);
+<span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>DedupPred2CoalescePred&lt;DP&gt;(DP);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">DP</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">DedupPred2CoalescePred</span><span class="op">&lt;</span><span class="ident">DP</span><span class="op">&gt;</span> {
-    <span class="macro">debug_fmt_fields!</span>(<span class="ident">DedupPred2CoalescePred</span>,);
+<span class="kw">impl</span>&lt;DP&gt; fmt::Debug <span class="kw">for </span>DedupPred2CoalescePred&lt;DP&gt; {
+    <span class="macro">debug_fmt_fields!</span>(DedupPred2CoalescePred,);
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DedupPredicate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="comment">// TODO replace by Fn(&amp;T, &amp;T)-&gt;bool once Rust supports it</span>
-    <span class="kw">fn</span> <span class="ident">dedup_pair</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">bool</span>;
+<span class="kw">pub trait </span>DedupPredicate&lt;T&gt; {
+    <span class="comment">// TODO replace by Fn(&amp;T, &amp;T)-&gt;bool once Rust supports it
+    </span><span class="kw">fn </span>dedup_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; bool;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">DP</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">CoalescePredicate</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DedupPred2CoalescePred</span><span class="op">&lt;</span><span class="ident">DP</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">DP</span>: <span class="ident">DedupPredicate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;DP, T&gt; CoalescePredicate&lt;T, T&gt; <span class="kw">for </span>DedupPred2CoalescePred&lt;DP&gt;
+<span class="kw">where
+    </span>DP: DedupPredicate&lt;T&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">coalesce_pair</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">t</span>: <span class="ident">T</span>, <span class="ident">item</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, (<span class="ident">T</span>, <span class="ident">T</span>)<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">dedup_pair</span>(<span class="kw-2">&amp;</span><span class="ident">t</span>, <span class="kw-2">&amp;</span><span class="ident">item</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">t</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>((<span class="ident">t</span>, <span class="ident">item</span>))
+    <span class="kw">fn </span>coalesce_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: T, item: T) -&gt; <span class="prelude-ty">Result</span>&lt;T, (T, T)&gt; {
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.dedup_pair(<span class="kw-2">&amp;</span>t, <span class="kw-2">&amp;</span>item) {
+            <span class="prelude-val">Ok</span>(t)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>((t, item))
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DedupEq</span>;
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>DedupEq;
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialEq</span><span class="op">&gt;</span> <span class="ident">DedupPredicate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DedupEq</span> {
-    <span class="kw">fn</span> <span class="ident">dedup_pair</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>
+<span class="kw">impl</span>&lt;T: PartialEq&gt; DedupPredicate&lt;T&gt; <span class="kw">for </span>DedupEq {
+    <span class="kw">fn </span>dedup_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; bool {
+        a == b
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">bool</span><span class="op">&gt;</span> <span class="ident">DedupPredicate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">F</span> {
-    <span class="kw">fn</span> <span class="ident">dedup_pair</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>(<span class="ident">a</span>, <span class="ident">b</span>)
+<span class="kw">impl</span>&lt;T, F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; bool&gt; DedupPredicate&lt;T&gt; <span class="kw">for </span>F {
+    <span class="kw">fn </span>dedup_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; bool {
+        <span class="self">self</span>(a, b)
     }
 }
 
-<span class="doccomment">/// Create a new `DedupBy`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dedup_by</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Pred</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">iter</span>: <span class="ident">I</span>, <span class="ident">dedup_pred</span>: <span class="ident">Pred</span>) -&gt; <span class="ident">DedupBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Pred</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="doccomment">/// Create a new `DedupBy`.
+</span><span class="kw">pub fn </span>dedup_by&lt;I, Pred&gt;(<span class="kw-2">mut </span>iter: I, dedup_pred: Pred) -&gt; DedupBy&lt;I, Pred&gt;
+<span class="kw">where
+    </span>I: Iterator,
 {
-    <span class="ident">DedupBy</span> {
-        <span class="ident">last</span>: <span class="ident">iter</span>.<span class="ident">next</span>(),
-        <span class="ident">iter</span>,
-        <span class="ident">f</span>: <span class="ident">DedupPred2CoalescePred</span>(<span class="ident">dedup_pred</span>),
+    DedupBy {
+        last: iter.next(),
+        iter,
+        f: DedupPred2CoalescePred(dedup_pred),
     }
 }
 
-<span class="doccomment">/// An iterator adaptor that removes repeated duplicates.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.dedup()`](crate::Itertools::dedup) for more information.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Dedup</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">DedupBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">DedupEq</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An iterator adaptor that removes repeated duplicates.
+///
+/// See [`.dedup()`](crate::Itertools::dedup) for more information.
+</span><span class="kw">pub type </span>Dedup&lt;I&gt; = DedupBy&lt;I, DedupEq&gt;;
 
-<span class="doccomment">/// Create a new `Dedup`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dedup</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="ident">Dedup</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="doccomment">/// Create a new `Dedup`.
+</span><span class="kw">pub fn </span>dedup&lt;I&gt;(iter: I) -&gt; Dedup&lt;I&gt;
+<span class="kw">where
+    </span>I: Iterator,
 {
-    <span class="ident">dedup_by</span>(<span class="ident">iter</span>, <span class="ident">DedupEq</span>)
+    dedup_by(iter, DedupEq)
 }
 
-<span class="doccomment">/// An iterator adaptor that removes repeated duplicates, while keeping a count of how many</span>
-<span class="doccomment">/// repeated elements were present. This will determine equality using a comparison function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.dedup_by_with_count()`](crate::Itertools::dedup_by_with_count) or</span>
-<span class="doccomment">/// [`.dedup_with_count()`](crate::Itertools::dedup_with_count) for more information.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">DedupByWithCount</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Pred</span><span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">CoalesceBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">DedupPredWithCount2CoalescePred</span><span class="op">&lt;</span><span class="ident">Pred</span><span class="op">&gt;</span>, (<span class="ident">usize</span>, <span class="op">&lt;</span><span class="ident">I</span> <span class="kw">as</span> <span class="ident">Iterator</span><span class="op">&gt;</span><span class="ident">::Item</span>)<span class="op">&gt;</span>;
+<span class="doccomment">/// An iterator adaptor that removes repeated duplicates, while keeping a count of how many
+/// repeated elements were present. This will determine equality using a comparison function.
+///
+/// See [`.dedup_by_with_count()`](crate::Itertools::dedup_by_with_count) or
+/// [`.dedup_with_count()`](crate::Itertools::dedup_with_count) for more information.
+</span><span class="kw">pub type </span>DedupByWithCount&lt;I, Pred&gt; =
+    CoalesceBy&lt;I, DedupPredWithCount2CoalescePred&lt;Pred&gt;, (usize, &lt;I <span class="kw">as </span>Iterator&gt;::Item)&gt;;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DedupPredWithCount2CoalescePred</span><span class="op">&lt;</span><span class="ident">DP</span><span class="op">&gt;</span>(<span class="ident">DP</span>);
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>DedupPredWithCount2CoalescePred&lt;DP&gt;(DP);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">DP</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">CoalescePredicate</span><span class="op">&lt;</span><span class="ident">T</span>, (<span class="ident">usize</span>, <span class="ident">T</span>)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DedupPredWithCount2CoalescePred</span><span class="op">&lt;</span><span class="ident">DP</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">DP</span>: <span class="ident">DedupPredicate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;DP, T&gt; CoalescePredicate&lt;T, (usize, T)&gt; <span class="kw">for </span>DedupPredWithCount2CoalescePred&lt;DP&gt;
+<span class="kw">where
+    </span>DP: DedupPredicate&lt;T&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">coalesce_pair</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        (<span class="ident">c</span>, <span class="ident">t</span>): (<span class="ident">usize</span>, <span class="ident">T</span>),
-        <span class="ident">item</span>: <span class="ident">T</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">T</span>), ((<span class="ident">usize</span>, <span class="ident">T</span>), (<span class="ident">usize</span>, <span class="ident">T</span>))<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">dedup_pair</span>(<span class="kw-2">&amp;</span><span class="ident">t</span>, <span class="kw-2">&amp;</span><span class="ident">item</span>) {
-            <span class="prelude-val">Ok</span>((<span class="ident">c</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">t</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(((<span class="ident">c</span>, <span class="ident">t</span>), (<span class="number">1</span>, <span class="ident">item</span>)))
+    <span class="kw">fn </span>coalesce_pair(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        (c, t): (usize, T),
+        item: T,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, T), ((usize, T), (usize, T))&gt; {
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.dedup_pair(<span class="kw-2">&amp;</span>t, <span class="kw-2">&amp;</span>item) {
+            <span class="prelude-val">Ok</span>((c + <span class="number">1</span>, t))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(((c, t), (<span class="number">1</span>, item)))
         }
     }
 }
 
-<span class="doccomment">/// An iterator adaptor that removes repeated duplicates, while keeping a count of how many</span>
-<span class="doccomment">/// repeated elements were present.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.dedup_with_count()`](crate::Itertools::dedup_with_count) for more information.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">DedupWithCount</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">DedupByWithCount</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">DedupEq</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An iterator adaptor that removes repeated duplicates, while keeping a count of how many
+/// repeated elements were present.
+///
+/// See [`.dedup_with_count()`](crate::Itertools::dedup_with_count) for more information.
+</span><span class="kw">pub type </span>DedupWithCount&lt;I&gt; = DedupByWithCount&lt;I, DedupEq&gt;;
 
-<span class="doccomment">/// Create a new `DedupByWithCount`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dedup_by_with_count</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Pred</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">iter</span>: <span class="ident">I</span>, <span class="ident">dedup_pred</span>: <span class="ident">Pred</span>) -&gt; <span class="ident">DedupByWithCount</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Pred</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="doccomment">/// Create a new `DedupByWithCount`.
+</span><span class="kw">pub fn </span>dedup_by_with_count&lt;I, Pred&gt;(<span class="kw-2">mut </span>iter: I, dedup_pred: Pred) -&gt; DedupByWithCount&lt;I, Pred&gt;
+<span class="kw">where
+    </span>I: Iterator,
 {
-    <span class="ident">DedupByWithCount</span> {
-        <span class="ident">last</span>: <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> (<span class="number">1</span>, <span class="ident">v</span>)),
-        <span class="ident">iter</span>,
-        <span class="ident">f</span>: <span class="ident">DedupPredWithCount2CoalescePred</span>(<span class="ident">dedup_pred</span>),
+    DedupByWithCount {
+        last: iter.next().map(|v| (<span class="number">1</span>, v)),
+        iter,
+        f: DedupPredWithCount2CoalescePred(dedup_pred),
     }
 }
 
-<span class="doccomment">/// Create a new `DedupWithCount`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dedup_with_count</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="ident">DedupWithCount</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="doccomment">/// Create a new `DedupWithCount`.
+</span><span class="kw">pub fn </span>dedup_with_count&lt;I&gt;(iter: I) -&gt; DedupWithCount&lt;I&gt;
+<span class="kw">where
+    </span>I: Iterator,
 {
-    <span class="ident">dedup_by_with_count</span>(<span class="ident">iter</span>, <span class="ident">DedupEq</span>)
+    dedup_by_with_count(iter, DedupEq)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

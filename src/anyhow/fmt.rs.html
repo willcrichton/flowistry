@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.58/src/fmt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fmt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../anyhow/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../anyhow/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../anyhow/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/fmt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fmt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../anyhow/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../anyhow/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../anyhow/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -160,65 +153,65 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::chain::Chain</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::ErrorImpl</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ptr::Ref</span>;
-<span class="kw">use</span> <span class="ident">core::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Write</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::chain::Chain;
+<span class="kw">use </span><span class="kw">crate</span>::error::ErrorImpl;
+<span class="kw">use </span><span class="kw">crate</span>::ptr::Ref;
+<span class="kw">use </span>core::fmt::{<span class="self">self</span>, Debug, Write};
 
-<span class="kw">impl</span> <span class="ident">ErrorImpl</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">display</span>(<span class="ident">this</span>: <span class="ident">Ref</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident"><span class="self">Self</span>::error</span>(<span class="ident">this</span>))<span class="question-mark">?</span>;
+<span class="kw">impl </span>ErrorImpl {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>display(this: Ref&lt;<span class="self">Self</span>&gt;, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">Self</span>::error(this))<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
-            <span class="kw">for</span> <span class="ident">cause</span> <span class="kw">in</span> <span class="ident"><span class="self">Self</span>::chain</span>(<span class="ident">this</span>).<span class="ident">skip</span>(<span class="number">1</span>) {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;: {}&quot;</span>, <span class="ident">cause</span>)<span class="question-mark">?</span>;
+        <span class="kw">if </span>f.alternate() {
+            <span class="kw">for </span>cause <span class="kw">in </span><span class="self">Self</span>::chain(this).skip(<span class="number">1</span>) {
+                <span class="macro">write!</span>(f, <span class="string">&quot;: {}&quot;</span>, cause)<span class="question-mark">?</span>;
             }
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">debug</span>(<span class="ident">this</span>: <span class="ident">Ref</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::error</span>(<span class="ident">this</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>debug(this: Ref&lt;<span class="self">Self</span>&gt;, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span>error = <span class="self">Self</span>::error(this);
 
-        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
-            <span class="kw">return</span> <span class="ident">Debug::fmt</span>(<span class="ident">error</span>, <span class="ident">f</span>);
+        <span class="kw">if </span>f.alternate() {
+            <span class="kw">return </span>Debug::fmt(error, f);
         }
 
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">error</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, error)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cause</span>) <span class="op">=</span> <span class="ident">error</span>.<span class="ident">source</span>() {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\n\nCaused by:&quot;</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">multiple</span> <span class="op">=</span> <span class="ident">cause</span>.<span class="ident">source</span>().<span class="ident">is_some</span>();
-            <span class="kw">for</span> (<span class="ident">n</span>, <span class="ident">error</span>) <span class="kw">in</span> <span class="ident">Chain::new</span>(<span class="ident">cause</span>).<span class="ident">enumerate</span>() {
-                <span class="macro">writeln!</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indented</span> <span class="op">=</span> <span class="ident">Indented</span> {
-                    <span class="ident">inner</span>: <span class="ident">f</span>,
-                    <span class="ident">number</span>: <span class="kw">if</span> <span class="ident">multiple</span> { <span class="prelude-val">Some</span>(<span class="ident">n</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> },
-                    <span class="ident">started</span>: <span class="bool-val">false</span>,
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(cause) = error.source() {
+            <span class="macro">write!</span>(f, <span class="string">&quot;\n\nCaused by:&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span>multiple = cause.source().is_some();
+            <span class="kw">for </span>(n, error) <span class="kw">in </span>Chain::new(cause).enumerate() {
+                <span class="macro">writeln!</span>(f)<span class="question-mark">?</span>;
+                <span class="kw">let </span><span class="kw-2">mut </span>indented = Indented {
+                    inner: f,
+                    number: <span class="kw">if </span>multiple { <span class="prelude-val">Some</span>(n) } <span class="kw">else </span>{ <span class="prelude-val">None </span>},
+                    started: <span class="bool-val">false</span>,
                 };
-                <span class="macro">write!</span>(<span class="ident">indented</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">error</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(indented, <span class="string">&quot;{}&quot;</span>, error)<span class="question-mark">?</span>;
             }
         }
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">backtrace</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;backtrace&quot;</span>))]</span>
-        {
-            <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::backtrace::BacktraceStatus</span>;
+        <span class="attribute">#[cfg(any(backtrace, feature = <span class="string">&quot;backtrace&quot;</span>))]
+        </span>{
+            <span class="kw">use </span><span class="kw">crate</span>::backtrace::BacktraceStatus;
 
-            <span class="kw">let</span> <span class="ident">backtrace</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::backtrace</span>(<span class="ident">this</span>);
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BacktraceStatus::Captured</span> <span class="op">=</span> <span class="ident">backtrace</span>.<span class="ident">status</span>() {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">backtrace</span> <span class="op">=</span> <span class="ident">backtrace</span>.<span class="ident">to_string</span>();
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\n\n&quot;</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">backtrace</span>.<span class="ident">starts_with</span>(<span class="string">&quot;stack backtrace:&quot;</span>) {
-                    <span class="comment">// Capitalize to match &quot;Caused by:&quot;</span>
-                    <span class="ident">backtrace</span>.<span class="ident">replace_range</span>(<span class="number">0</span>..<span class="number">1</span>, <span class="string">&quot;S&quot;</span>);
-                } <span class="kw">else</span> {
-                    <span class="comment">// &quot;stack backtrace:&quot; prefix was removed in</span>
-                    <span class="comment">// https://github.com/rust-lang/backtrace-rs/pull/286</span>
-                    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;Stack backtrace:&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span>backtrace = <span class="self">Self</span>::backtrace(this);
+            <span class="kw">if let </span>BacktraceStatus::Captured = backtrace.status() {
+                <span class="kw">let </span><span class="kw-2">mut </span>backtrace = backtrace.to_string();
+                <span class="macro">write!</span>(f, <span class="string">&quot;\n\n&quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">if </span>backtrace.starts_with(<span class="string">&quot;stack backtrace:&quot;</span>) {
+                    <span class="comment">// Capitalize to match &quot;Caused by:&quot;
+                    </span>backtrace.replace_range(<span class="number">0</span>..<span class="number">1</span>, <span class="string">&quot;S&quot;</span>);
+                } <span class="kw">else </span>{
+                    <span class="comment">// &quot;stack backtrace:&quot; prefix was removed in
+                    // https://github.com/rust-lang/backtrace-rs/pull/286
+                    </span><span class="macro">writeln!</span>(f, <span class="string">&quot;Stack backtrace:&quot;</span>)<span class="question-mark">?</span>;
                 }
-                <span class="ident">backtrace</span>.<span class="ident">truncate</span>(<span class="ident">backtrace</span>.<span class="ident">trim_end</span>().<span class="ident">len</span>());
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">backtrace</span>)<span class="question-mark">?</span>;
+                backtrace.truncate(backtrace.trim_end().len());
+                <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, backtrace)<span class="question-mark">?</span>;
             }
         }
 
@@ -226,95 +219,94 @@
     }
 }
 
-<span class="kw">struct</span> <span class="ident">Indented</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">D</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">D</span>,
-    <span class="ident">number</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">started</span>: <span class="ident">bool</span>,
+<span class="kw">struct </span>Indented&lt;<span class="lifetime">&#39;a</span>, D&gt; {
+    inner: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>D,
+    number: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    started: bool,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Write</span> <span class="kw">for</span> <span class="ident">Indented</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Write</span>,
+<span class="kw">impl</span>&lt;T&gt; Write <span class="kw">for </span>Indented&lt;<span class="lifetime">&#39;_</span>, T&gt;
+<span class="kw">where
+    </span>T: Write,
 {
-    <span class="kw">fn</span> <span class="ident">write_str</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">line</span>) <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">split</span>(<span class="string">&#39;\n&#39;</span>).<span class="ident">enumerate</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">started</span> {
-                <span class="self">self</span>.<span class="ident">started</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                <span class="kw">match</span> <span class="self">self</span>.<span class="ident">number</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">number</span>) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">inner</span>, <span class="string">&quot;{: &gt;5}: &quot;</span>, <span class="ident">number</span>)<span class="question-mark">?</span>,
-                    <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">write_str</span>(<span class="string">&quot;    &quot;</span>)<span class="question-mark">?</span>,
+    <span class="kw">fn </span>write_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) -&gt; fmt::Result {
+        <span class="kw">for </span>(i, line) <span class="kw">in </span>s.split(<span class="string">&#39;\n&#39;</span>).enumerate() {
+            <span class="kw">if </span>!<span class="self">self</span>.started {
+                <span class="self">self</span>.started = <span class="bool-val">true</span>;
+                <span class="kw">match </span><span class="self">self</span>.number {
+                    <span class="prelude-val">Some</span>(number) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.inner, <span class="string">&quot;{: &gt;5}: &quot;</span>, number)<span class="question-mark">?</span>,
+                    <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.inner.write_str(<span class="string">&quot;    &quot;</span>)<span class="question-mark">?</span>,
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">write_char</span>(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">number</span>.<span class="ident">is_some</span>() {
-                    <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">write_str</span>(<span class="string">&quot;       &quot;</span>)<span class="question-mark">?</span>;
-                } <span class="kw">else</span> {
-                    <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">write_str</span>(<span class="string">&quot;    &quot;</span>)<span class="question-mark">?</span>;
+            } <span class="kw">else if </span>i &gt; <span class="number">0 </span>{
+                <span class="self">self</span>.inner.write_char(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
+                <span class="kw">if </span><span class="self">self</span>.number.is_some() {
+                    <span class="self">self</span>.inner.write_str(<span class="string">&quot;       &quot;</span>)<span class="question-mark">?</span>;
+                } <span class="kw">else </span>{
+                    <span class="self">self</span>.inner.write_str(<span class="string">&quot;    &quot;</span>)<span class="question-mark">?</span>;
                 }
             }
 
-            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">write_str</span>(<span class="ident">line</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.inner.write_str(line)<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">one_digit</span>() {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="string">&quot;verify\nthis&quot;</span>;
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;    2: verify\n       this&quot;</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">String::new</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>one_digit() {
+        <span class="kw">let </span>input = <span class="string">&quot;verify\nthis&quot;</span>;
+        <span class="kw">let </span>expected = <span class="string">&quot;    2: verify\n       this&quot;</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>output = String::new();
 
-        <span class="ident">Indented</span> {
-            <span class="ident">inner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">output</span>,
-            <span class="ident">number</span>: <span class="prelude-val">Some</span>(<span class="number">2</span>),
-            <span class="ident">started</span>: <span class="bool-val">false</span>,
+        Indented {
+            inner: <span class="kw-2">&amp;mut </span>output,
+            number: <span class="prelude-val">Some</span>(<span class="number">2</span>),
+            started: <span class="bool-val">false</span>,
         }
-        .<span class="ident">write_str</span>(<span class="ident">input</span>)
-        .<span class="ident">unwrap</span>();
+        .write_str(input)
+        .unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">expected</span>, <span class="ident">output</span>);
+        <span class="macro">assert_eq!</span>(expected, output);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">two_digits</span>() {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="string">&quot;verify\nthis&quot;</span>;
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;   12: verify\n       this&quot;</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">String::new</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>two_digits() {
+        <span class="kw">let </span>input = <span class="string">&quot;verify\nthis&quot;</span>;
+        <span class="kw">let </span>expected = <span class="string">&quot;   12: verify\n       this&quot;</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>output = String::new();
 
-        <span class="ident">Indented</span> {
-            <span class="ident">inner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">output</span>,
-            <span class="ident">number</span>: <span class="prelude-val">Some</span>(<span class="number">12</span>),
-            <span class="ident">started</span>: <span class="bool-val">false</span>,
+        Indented {
+            inner: <span class="kw-2">&amp;mut </span>output,
+            number: <span class="prelude-val">Some</span>(<span class="number">12</span>),
+            started: <span class="bool-val">false</span>,
         }
-        .<span class="ident">write_str</span>(<span class="ident">input</span>)
-        .<span class="ident">unwrap</span>();
+        .write_str(input)
+        .unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">expected</span>, <span class="ident">output</span>);
+        <span class="macro">assert_eq!</span>(expected, output);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">no_digits</span>() {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="string">&quot;verify\nthis&quot;</span>;
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;    verify\n    this&quot;</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">String::new</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>no_digits() {
+        <span class="kw">let </span>input = <span class="string">&quot;verify\nthis&quot;</span>;
+        <span class="kw">let </span>expected = <span class="string">&quot;    verify\n    this&quot;</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>output = String::new();
 
-        <span class="ident">Indented</span> {
-            <span class="ident">inner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">output</span>,
-            <span class="ident">number</span>: <span class="prelude-val">None</span>,
-            <span class="ident">started</span>: <span class="bool-val">false</span>,
+        Indented {
+            inner: <span class="kw-2">&amp;mut </span>output,
+            number: <span class="prelude-val">None</span>,
+            started: <span class="bool-val">false</span>,
         }
-        .<span class="ident">write_str</span>(<span class="ident">input</span>)
-        .<span class="ident">unwrap</span>();
+        .write_str(input)
+        .unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">expected</span>, <span class="ident">output</span>);
+        <span class="macro">assert_eq!</span>(expected, output);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="anyhow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="anyhow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

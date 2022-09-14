@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.5.6/src/literal/imp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>imp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../regex/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.6.0/src/literal/imp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>imp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../regex/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -407,408 +400,407 @@
 <span id="400">400</span>
 <span id="401">401</span>
 <span id="402">402</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::mem</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::mem;
 
-<span class="kw">use</span> <span class="ident">aho_corasick</span>::{<span class="self">self</span>, <span class="ident">packed</span>, <span class="ident">AhoCorasick</span>, <span class="ident">AhoCorasickBuilder</span>};
-<span class="kw">use</span> <span class="ident">memchr</span>::{<span class="ident">memchr</span>, <span class="ident">memchr2</span>, <span class="ident">memchr3</span>, <span class="ident">memmem</span>};
-<span class="kw">use</span> <span class="ident">regex_syntax::hir::literal</span>::{<span class="ident">Literal</span>, <span class="ident">Literals</span>};
+<span class="kw">use </span>aho_corasick::{<span class="self">self</span>, packed, AhoCorasick, AhoCorasickBuilder};
+<span class="kw">use </span>memchr::{memchr, memchr2, memchr3, memmem};
+<span class="kw">use </span>regex_syntax::hir::literal::{Literal, Literals};
 
-<span class="doccomment">/// A prefix extracted from a compiled regular expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A regex prefix is a set of literal strings that *must* be matched at the</span>
-<span class="doccomment">/// beginning of a regex in order for the entire regex to match. Similarly</span>
-<span class="doccomment">/// for a regex suffix.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LiteralSearcher</span> {
-    <span class="ident">complete</span>: <span class="ident">bool</span>,
-    <span class="ident">lcp</span>: <span class="ident">Memmem</span>,
-    <span class="ident">lcs</span>: <span class="ident">Memmem</span>,
-    <span class="ident">matcher</span>: <span class="ident">Matcher</span>,
+<span class="doccomment">/// A prefix extracted from a compiled regular expression.
+///
+/// A regex prefix is a set of literal strings that *must* be matched at the
+/// beginning of a regex in order for the entire regex to match. Similarly
+/// for a regex suffix.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>LiteralSearcher {
+    complete: bool,
+    lcp: Memmem,
+    lcs: Memmem,
+    matcher: Matcher,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Matcher</span> {
-    <span class="doccomment">/// No literals. (Never advances through the input.)</span>
-    <span class="ident">Empty</span>,
-    <span class="doccomment">/// A set of four or more single byte literals.</span>
-    <span class="ident">Bytes</span>(<span class="ident">SingleByteSet</span>),
-    <span class="doccomment">/// A single substring, using vector accelerated routines when available.</span>
-    <span class="ident">Memmem</span>(<span class="ident">Memmem</span>),
-    <span class="doccomment">/// An Aho-Corasick automaton.</span>
-    <span class="ident">AC</span> { <span class="ident">ac</span>: <span class="ident">AhoCorasick</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>, <span class="ident">lits</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Literal</span><span class="op">&gt;</span> },
-    <span class="doccomment">/// A packed multiple substring searcher, using SIMD.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that Aho-Corasick will actually use this packed searcher</span>
-    <span class="doccomment">/// internally automatically, however, there is some overhead associated</span>
-    <span class="doccomment">/// with going through the Aho-Corasick machinery. So using the packed</span>
-    <span class="doccomment">/// searcher directly results in some gains.</span>
-    <span class="ident">Packed</span> { <span class="ident">s</span>: <span class="ident">packed::Searcher</span>, <span class="ident">lits</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Literal</span><span class="op">&gt;</span> },
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">enum </span>Matcher {
+    <span class="doccomment">/// No literals. (Never advances through the input.)
+    </span>Empty,
+    <span class="doccomment">/// A set of four or more single byte literals.
+    </span>Bytes(SingleByteSet),
+    <span class="doccomment">/// A single substring, using vector accelerated routines when available.
+    </span>Memmem(Memmem),
+    <span class="doccomment">/// An Aho-Corasick automaton.
+    </span>AC { ac: AhoCorasick&lt;u32&gt;, lits: Vec&lt;Literal&gt; },
+    <span class="doccomment">/// A packed multiple substring searcher, using SIMD.
+    ///
+    /// Note that Aho-Corasick will actually use this packed searcher
+    /// internally automatically, however, there is some overhead associated
+    /// with going through the Aho-Corasick machinery. So using the packed
+    /// searcher directly results in some gains.
+    </span>Packed { s: packed::Searcher, lits: Vec&lt;Literal&gt; },
 }
 
-<span class="kw">impl</span> <span class="ident">LiteralSearcher</span> {
-    <span class="doccomment">/// Returns a matcher that never matches and never advances the input.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">Literals::empty</span>(), <span class="ident">Matcher::Empty</span>)
+<span class="kw">impl </span>LiteralSearcher {
+    <span class="doccomment">/// Returns a matcher that never matches and never advances the input.
+    </span><span class="kw">pub fn </span>empty() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(Literals::empty(), Matcher::Empty)
     }
 
-    <span class="doccomment">/// Returns a matcher for literal prefixes from the given set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prefixes</span>(<span class="ident">lits</span>: <span class="ident">Literals</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="ident">Matcher::prefixes</span>(<span class="kw-2">&amp;</span><span class="ident">lits</span>);
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">lits</span>, <span class="ident">matcher</span>)
+    <span class="doccomment">/// Returns a matcher for literal prefixes from the given set.
+    </span><span class="kw">pub fn </span>prefixes(lits: Literals) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>matcher = Matcher::prefixes(<span class="kw-2">&amp;</span>lits);
+        <span class="self">Self</span>::new(lits, matcher)
     }
 
-    <span class="doccomment">/// Returns a matcher for literal suffixes from the given set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">suffixes</span>(<span class="ident">lits</span>: <span class="ident">Literals</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="ident">Matcher::suffixes</span>(<span class="kw-2">&amp;</span><span class="ident">lits</span>);
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">lits</span>, <span class="ident">matcher</span>)
+    <span class="doccomment">/// Returns a matcher for literal suffixes from the given set.
+    </span><span class="kw">pub fn </span>suffixes(lits: Literals) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>matcher = Matcher::suffixes(<span class="kw-2">&amp;</span>lits);
+        <span class="self">Self</span>::new(lits, matcher)
     }
 
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">lits</span>: <span class="ident">Literals</span>, <span class="ident">matcher</span>: <span class="ident">Matcher</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">complete</span> <span class="op">=</span> <span class="ident">lits</span>.<span class="ident">all_complete</span>();
-        <span class="ident">LiteralSearcher</span> {
-            <span class="ident">complete</span>: <span class="ident">complete</span>,
-            <span class="ident">lcp</span>: <span class="ident">Memmem::new</span>(<span class="ident">lits</span>.<span class="ident">longest_common_prefix</span>()),
-            <span class="ident">lcs</span>: <span class="ident">Memmem::new</span>(<span class="ident">lits</span>.<span class="ident">longest_common_suffix</span>()),
-            <span class="ident">matcher</span>: <span class="ident">matcher</span>,
+    <span class="kw">fn </span>new(lits: Literals, matcher: Matcher) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>complete = lits.all_complete();
+        LiteralSearcher {
+            complete,
+            lcp: Memmem::new(lits.longest_common_prefix()),
+            lcs: Memmem::new(lits.longest_common_suffix()),
+            matcher,
         }
     }
 
-    <span class="doccomment">/// Returns true if all matches comprise the entire regular expression.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This does not necessarily mean that a literal match implies a match</span>
-    <span class="doccomment">/// of the regular expression. For example, the regular expression `^a`</span>
-    <span class="doccomment">/// is comprised of a single complete literal `a`, but the regular</span>
-    <span class="doccomment">/// expression demands that it only match at the beginning of a string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">complete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">complete</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_empty</span>()
+    <span class="doccomment">/// Returns true if all matches comprise the entire regular expression.
+    ///
+    /// This does not necessarily mean that a literal match implies a match
+    /// of the regular expression. For example, the regular expression `^a`
+    /// is comprised of a single complete literal `a`, but the regular
+    /// expression demands that it only match at the beginning of a string.
+    </span><span class="kw">pub fn </span>complete(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.complete &amp;&amp; !<span class="self">self</span>.is_empty()
     }
 
-    <span class="doccomment">/// Find the position of a literal in `haystack` if it exists.</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::Matcher</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">matcher</span> {
-            <span class="ident">Empty</span> =&gt; <span class="prelude-val">Some</span>((<span class="number">0</span>, <span class="number">0</span>)),
-            <span class="ident">Bytes</span>(<span class="kw-2">ref</span> <span class="ident">sset</span>) =&gt; <span class="ident">sset</span>.<span class="ident">find</span>(<span class="ident">haystack</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> (<span class="ident">i</span>, <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>)),
-            <span class="ident">Memmem</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">find</span>(<span class="ident">haystack</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> (<span class="ident">i</span>, <span class="ident">i</span> <span class="op">+</span> <span class="ident">s</span>.<span class="ident">len</span>())),
-            <span class="ident">AC</span> { <span class="kw-2">ref</span> <span class="ident">ac</span>, .. } =&gt; {
-                <span class="ident">ac</span>.<span class="ident">find</span>(<span class="ident">haystack</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> (<span class="ident">m</span>.<span class="ident">start</span>(), <span class="ident">m</span>.<span class="ident">end</span>()))
+    <span class="doccomment">/// Find the position of a literal in `haystack` if it exists.
+    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
+    </span><span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="kw">use </span><span class="self">self</span>::Matcher::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self</span>.matcher {
+            Empty =&gt; <span class="prelude-val">Some</span>((<span class="number">0</span>, <span class="number">0</span>)),
+            Bytes(<span class="kw-2">ref </span>sset) =&gt; sset.find(haystack).map(|i| (i, i + <span class="number">1</span>)),
+            Memmem(<span class="kw-2">ref </span>s) =&gt; s.find(haystack).map(|i| (i, i + s.len())),
+            AC { <span class="kw-2">ref </span>ac, .. } =&gt; {
+                ac.find(haystack).map(|m| (m.start(), m.end()))
             }
-            <span class="ident">Packed</span> { <span class="kw-2">ref</span> <span class="ident">s</span>, .. } =&gt; {
-                <span class="ident">s</span>.<span class="ident">find</span>(<span class="ident">haystack</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> (<span class="ident">m</span>.<span class="ident">start</span>(), <span class="ident">m</span>.<span class="ident">end</span>()))
+            Packed { <span class="kw-2">ref </span>s, .. } =&gt; {
+                s.find(haystack).map(|m| (m.start(), m.end()))
             }
         }
     }
 
-    <span class="doccomment">/// Like find, except matches must start at index `0`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
-        <span class="kw">for</span> <span class="ident">lit</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="ident">lit</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">haystack</span>.<span class="ident">len</span>() {
+    <span class="doccomment">/// Like find, except matches must start at index `0`.
+    </span><span class="kw">pub fn </span>find_start(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="kw">for </span>lit <span class="kw">in </span><span class="self">self</span>.iter() {
+            <span class="kw">if </span>lit.len() &gt; haystack.len() {
                 <span class="kw">continue</span>;
             }
-            <span class="kw">if</span> <span class="ident">lit</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="number">0</span>..<span class="ident">lit</span>.<span class="ident">len</span>()] {
-                <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="number">0</span>, <span class="ident">lit</span>.<span class="ident">len</span>()));
+            <span class="kw">if </span>lit == <span class="kw-2">&amp;</span>haystack[<span class="number">0</span>..lit.len()] {
+                <span class="kw">return </span><span class="prelude-val">Some</span>((<span class="number">0</span>, lit.len()));
             }
         }
-        <span class="prelude-val">None</span>
-    }
+        <span class="prelude-val">None
+    </span>}
 
-    <span class="doccomment">/// Like find, except matches must end at index `haystack.len()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
-        <span class="kw">for</span> <span class="ident">lit</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="ident">lit</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">haystack</span>.<span class="ident">len</span>() {
+    <span class="doccomment">/// Like find, except matches must end at index `haystack.len()`.
+    </span><span class="kw">pub fn </span>find_end(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="kw">for </span>lit <span class="kw">in </span><span class="self">self</span>.iter() {
+            <span class="kw">if </span>lit.len() &gt; haystack.len() {
                 <span class="kw">continue</span>;
             }
-            <span class="kw">if</span> <span class="ident">lit</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">lit</span>.<span class="ident">len</span>()..] {
-                <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">lit</span>.<span class="ident">len</span>(), <span class="ident">haystack</span>.<span class="ident">len</span>()));
+            <span class="kw">if </span>lit == <span class="kw-2">&amp;</span>haystack[haystack.len() - lit.len()..] {
+                <span class="kw">return </span><span class="prelude-val">Some</span>((haystack.len() - lit.len(), haystack.len()));
             }
         }
-        <span class="prelude-val">None</span>
-    }
+        <span class="prelude-val">None
+    </span>}
 
-    <span class="doccomment">/// Returns an iterator over all literals to be matched.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LiteralIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">matcher</span> {
-            <span class="ident">Matcher::Empty</span> =&gt; <span class="ident">LiteralIter::Empty</span>,
-            <span class="ident">Matcher::Bytes</span>(<span class="kw-2">ref</span> <span class="ident">sset</span>) =&gt; <span class="ident">LiteralIter::Bytes</span>(<span class="kw-2">&amp;</span><span class="ident">sset</span>.<span class="ident">dense</span>),
-            <span class="ident">Matcher::Memmem</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <span class="ident">LiteralIter::Single</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">finder</span>.<span class="ident">needle</span>()),
-            <span class="ident">Matcher::AC</span> { <span class="kw-2">ref</span> <span class="ident">lits</span>, .. } =&gt; <span class="ident">LiteralIter::AC</span>(<span class="ident">lits</span>),
-            <span class="ident">Matcher::Packed</span> { <span class="kw-2">ref</span> <span class="ident">lits</span>, .. } =&gt; <span class="ident">LiteralIter::Packed</span>(<span class="ident">lits</span>),
+    <span class="doccomment">/// Returns an iterator over all literals to be matched.
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LiteralIter&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="kw">match </span><span class="self">self</span>.matcher {
+            Matcher::Empty =&gt; LiteralIter::Empty,
+            Matcher::Bytes(<span class="kw-2">ref </span>sset) =&gt; LiteralIter::Bytes(<span class="kw-2">&amp;</span>sset.dense),
+            Matcher::Memmem(<span class="kw-2">ref </span>s) =&gt; LiteralIter::Single(<span class="kw-2">&amp;</span>s.finder.needle()),
+            Matcher::AC { <span class="kw-2">ref </span>lits, .. } =&gt; LiteralIter::AC(lits),
+            Matcher::Packed { <span class="kw-2">ref </span>lits, .. } =&gt; LiteralIter::Packed(lits),
         }
     }
 
-    <span class="doccomment">/// Returns a matcher for the longest common prefix of this matcher.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lcp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Memmem</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">lcp</span>
+    <span class="doccomment">/// Returns a matcher for the longest common prefix of this matcher.
+    </span><span class="kw">pub fn </span>lcp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Memmem {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.lcp
     }
 
-    <span class="doccomment">/// Returns a matcher for the longest common suffix of this matcher.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lcs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Memmem</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">lcs</span>
+    <span class="doccomment">/// Returns a matcher for the longest common suffix of this matcher.
+    </span><span class="kw">pub fn </span>lcs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Memmem {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.lcs
     }
 
-    <span class="doccomment">/// Returns true iff this prefix is empty.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span>
-    }
+    <span class="doccomment">/// Returns true iff this prefix is empty.
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.len() == <span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Returns the number of prefixes in this machine.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::Matcher</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">matcher</span> {
-            <span class="ident">Empty</span> =&gt; <span class="number">0</span>,
-            <span class="ident">Bytes</span>(<span class="kw-2">ref</span> <span class="ident">sset</span>) =&gt; <span class="ident">sset</span>.<span class="ident">dense</span>.<span class="ident">len</span>(),
-            <span class="ident">Memmem</span>(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
-            <span class="ident">AC</span> { <span class="kw-2">ref</span> <span class="ident">ac</span>, .. } =&gt; <span class="ident">ac</span>.<span class="ident">pattern_count</span>(),
-            <span class="ident">Packed</span> { <span class="kw-2">ref</span> <span class="ident">lits</span>, .. } =&gt; <span class="ident">lits</span>.<span class="ident">len</span>(),
+    <span class="doccomment">/// Returns the number of prefixes in this machine.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">use </span><span class="self">self</span>::Matcher::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self</span>.matcher {
+            Empty =&gt; <span class="number">0</span>,
+            Bytes(<span class="kw-2">ref </span>sset) =&gt; sset.dense.len(),
+            Memmem(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
+            AC { <span class="kw-2">ref </span>ac, .. } =&gt; ac.pattern_count(),
+            Packed { <span class="kw-2">ref </span>lits, .. } =&gt; lits.len(),
         }
     }
 
-    <span class="doccomment">/// Return the approximate heap usage of literals in bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">approximate_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::Matcher</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">matcher</span> {
-            <span class="ident">Empty</span> =&gt; <span class="number">0</span>,
-            <span class="ident">Bytes</span>(<span class="kw-2">ref</span> <span class="ident">sset</span>) =&gt; <span class="ident">sset</span>.<span class="ident">approximate_size</span>(),
-            <span class="ident">Memmem</span>(<span class="kw-2">ref</span> <span class="ident">single</span>) =&gt; <span class="ident">single</span>.<span class="ident">approximate_size</span>(),
-            <span class="ident">AC</span> { <span class="kw-2">ref</span> <span class="ident">ac</span>, .. } =&gt; <span class="ident">ac</span>.<span class="ident">heap_bytes</span>(),
-            <span class="ident">Packed</span> { <span class="kw-2">ref</span> <span class="ident">s</span>, .. } =&gt; <span class="ident">s</span>.<span class="ident">heap_bytes</span>(),
+    <span class="doccomment">/// Return the approximate heap usage of literals in bytes.
+    </span><span class="kw">pub fn </span>approximate_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">use </span><span class="self">self</span>::Matcher::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self</span>.matcher {
+            Empty =&gt; <span class="number">0</span>,
+            Bytes(<span class="kw-2">ref </span>sset) =&gt; sset.approximate_size(),
+            Memmem(<span class="kw-2">ref </span>single) =&gt; single.approximate_size(),
+            AC { <span class="kw-2">ref </span>ac, .. } =&gt; ac.heap_bytes(),
+            Packed { <span class="kw-2">ref </span>s, .. } =&gt; s.heap_bytes(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Matcher</span> {
-    <span class="kw">fn</span> <span class="ident">prefixes</span>(<span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="ident">Literals</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">sset</span> <span class="op">=</span> <span class="ident">SingleByteSet::prefixes</span>(<span class="ident">lits</span>);
-        <span class="ident">Matcher::new</span>(<span class="ident">lits</span>, <span class="ident">sset</span>)
+<span class="kw">impl </span>Matcher {
+    <span class="kw">fn </span>prefixes(lits: <span class="kw-2">&amp;</span>Literals) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>sset = SingleByteSet::prefixes(lits);
+        Matcher::new(lits, sset)
     }
 
-    <span class="kw">fn</span> <span class="ident">suffixes</span>(<span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="ident">Literals</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">sset</span> <span class="op">=</span> <span class="ident">SingleByteSet::suffixes</span>(<span class="ident">lits</span>);
-        <span class="ident">Matcher::new</span>(<span class="ident">lits</span>, <span class="ident">sset</span>)
+    <span class="kw">fn </span>suffixes(lits: <span class="kw-2">&amp;</span>Literals) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>sset = SingleByteSet::suffixes(lits);
+        Matcher::new(lits, sset)
     }
 
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="ident">Literals</span>, <span class="ident">sset</span>: <span class="ident">SingleByteSet</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="ident">lits</span>.<span class="ident">literals</span>().<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="ident">Matcher::Empty</span>;
+    <span class="kw">fn </span>new(lits: <span class="kw-2">&amp;</span>Literals, sset: SingleByteSet) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span>lits.literals().is_empty() {
+            <span class="kw">return </span>Matcher::Empty;
         }
-        <span class="kw">if</span> <span class="ident">sset</span>.<span class="ident">dense</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">26</span> {
-            <span class="comment">// Avoid trying to match a large number of single bytes.</span>
-            <span class="comment">// This is *very* sensitive to a frequency analysis comparison</span>
-            <span class="comment">// between the bytes in sset and the composition of the haystack.</span>
-            <span class="comment">// No matter the size of sset, if its members all are rare in the</span>
-            <span class="comment">// haystack, then it&#39;d be worth using it. How to tune this... IDK.</span>
-            <span class="comment">// ---AG</span>
-            <span class="kw">return</span> <span class="ident">Matcher::Empty</span>;
+        <span class="kw">if </span>sset.dense.len() &gt;= <span class="number">26 </span>{
+            <span class="comment">// Avoid trying to match a large number of single bytes.
+            // This is *very* sensitive to a frequency analysis comparison
+            // between the bytes in sset and the composition of the haystack.
+            // No matter the size of sset, if its members all are rare in the
+            // haystack, then it&#39;d be worth using it. How to tune this... IDK.
+            // ---AG
+            </span><span class="kw">return </span>Matcher::Empty;
         }
-        <span class="kw">if</span> <span class="ident">sset</span>.<span class="ident">complete</span> {
-            <span class="kw">return</span> <span class="ident">Matcher::Bytes</span>(<span class="ident">sset</span>);
+        <span class="kw">if </span>sset.complete {
+            <span class="kw">return </span>Matcher::Bytes(sset);
         }
-        <span class="kw">if</span> <span class="ident">lits</span>.<span class="ident">literals</span>().<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
-            <span class="kw">return</span> <span class="ident">Matcher::Memmem</span>(<span class="ident">Memmem::new</span>(<span class="kw-2">&amp;</span><span class="ident">lits</span>.<span class="ident">literals</span>()[<span class="number">0</span>]));
+        <span class="kw">if </span>lits.literals().len() == <span class="number">1 </span>{
+            <span class="kw">return </span>Matcher::Memmem(Memmem::new(<span class="kw-2">&amp;</span>lits.literals()[<span class="number">0</span>]));
         }
 
-        <span class="kw">let</span> <span class="ident">pats</span> <span class="op">=</span> <span class="ident">lits</span>.<span class="ident">literals</span>().<span class="ident">to_owned</span>();
-        <span class="kw">let</span> <span class="ident">is_aho_corasick_fast</span> <span class="op">=</span> <span class="ident">sset</span>.<span class="ident">dense</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">sset</span>.<span class="ident">all_ascii</span>;
-        <span class="kw">if</span> <span class="ident">lits</span>.<span class="ident">literals</span>().<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">100</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">is_aho_corasick_fast</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">packed::Config::new</span>()
-                .<span class="ident">match_kind</span>(<span class="ident">packed::MatchKind::LeftmostFirst</span>)
-                .<span class="ident">builder</span>();
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">pats</span>).<span class="ident">build</span>() {
-                <span class="kw">return</span> <span class="ident">Matcher::Packed</span> { <span class="ident">s</span>, <span class="ident">lits</span>: <span class="ident">pats</span> };
+        <span class="kw">let </span>pats = lits.literals().to_owned();
+        <span class="kw">let </span>is_aho_corasick_fast = sset.dense.len() &lt;= <span class="number">1 </span>&amp;&amp; sset.all_ascii;
+        <span class="kw">if </span>lits.literals().len() &lt;= <span class="number">100 </span>&amp;&amp; !is_aho_corasick_fast {
+            <span class="kw">let </span><span class="kw-2">mut </span>builder = packed::Config::new()
+                .match_kind(packed::MatchKind::LeftmostFirst)
+                .builder();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = builder.extend(<span class="kw-2">&amp;</span>pats).build() {
+                <span class="kw">return </span>Matcher::Packed { s, lits: pats };
             }
         }
-        <span class="kw">let</span> <span class="ident">ac</span> <span class="op">=</span> <span class="ident">AhoCorasickBuilder::new</span>()
-            .<span class="ident">match_kind</span>(<span class="ident">aho_corasick::MatchKind::LeftmostFirst</span>)
-            .<span class="ident">dfa</span>(<span class="bool-val">true</span>)
-            .<span class="ident">build_with_size</span>::<span class="op">&lt;</span><span class="ident">u32</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">pats</span>)
-            .<span class="ident">unwrap</span>();
-        <span class="ident">Matcher::AC</span> { <span class="ident">ac</span>, <span class="ident">lits</span>: <span class="ident">pats</span> }
+        <span class="kw">let </span>ac = AhoCorasickBuilder::new()
+            .match_kind(aho_corasick::MatchKind::LeftmostFirst)
+            .dfa(<span class="bool-val">true</span>)
+            .build_with_size::&lt;u32, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>pats)
+            .unwrap();
+        Matcher::AC { ac, lits: pats }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LiteralIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">Empty</span>,
-    <span class="ident">Bytes</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]),
-    <span class="ident">Single</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]),
-    <span class="ident">AC</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">Literal</span>]),
-    <span class="ident">Packed</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">Literal</span>]),
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>LiteralIter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    Empty,
+    Bytes(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]),
+    Single(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]),
+    AC(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[Literal]),
+    Packed(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[Literal]),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">LiteralIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>];
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>LiteralIter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8];
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">LiteralIter::Empty</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">LiteralIter::Bytes</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">many</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">many</span>.<span class="ident">is_empty</span>() {
-                    <span class="prelude-val">None</span>
-                } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">many</span>[<span class="number">0</span>..<span class="number">1</span>];
-                    <span class="kw-2">*</span><span class="ident">many</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">many</span>[<span class="number">1</span>..];
-                    <span class="prelude-val">Some</span>(<span class="ident">next</span>)
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            LiteralIter::Empty =&gt; <span class="prelude-val">None</span>,
+            LiteralIter::Bytes(<span class="kw-2">ref mut </span>many) =&gt; {
+                <span class="kw">if </span>many.is_empty() {
+                    <span class="prelude-val">None
+                </span>} <span class="kw">else </span>{
+                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span>many[<span class="number">0</span>..<span class="number">1</span>];
+                    <span class="kw-2">*</span>many = <span class="kw-2">&amp;</span>many[<span class="number">1</span>..];
+                    <span class="prelude-val">Some</span>(next)
                 }
             }
-            <span class="ident">LiteralIter::Single</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">one</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">one</span>.<span class="ident">is_empty</span>() {
-                    <span class="prelude-val">None</span>
-                } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">one</span>[..];
-                    <span class="kw-2">*</span><span class="ident">one</span> <span class="op">=</span> <span class="kw-2">&amp;</span>[];
-                    <span class="prelude-val">Some</span>(<span class="ident">next</span>)
+            LiteralIter::Single(<span class="kw-2">ref mut </span>one) =&gt; {
+                <span class="kw">if </span>one.is_empty() {
+                    <span class="prelude-val">None
+                </span>} <span class="kw">else </span>{
+                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span>one[..];
+                    <span class="kw-2">*</span>one = <span class="kw-2">&amp;</span>[];
+                    <span class="prelude-val">Some</span>(next)
                 }
             }
-            <span class="ident">LiteralIter::AC</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">lits</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">lits</span>.<span class="ident">is_empty</span>() {
-                    <span class="prelude-val">None</span>
-                } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">lits</span>[<span class="number">0</span>];
-                    <span class="kw-2">*</span><span class="ident">lits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">lits</span>[<span class="number">1</span>..];
-                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">next</span>)
+            LiteralIter::AC(<span class="kw-2">ref mut </span>lits) =&gt; {
+                <span class="kw">if </span>lits.is_empty() {
+                    <span class="prelude-val">None
+                </span>} <span class="kw">else </span>{
+                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span>lits[<span class="number">0</span>];
+                    <span class="kw-2">*</span>lits = <span class="kw-2">&amp;</span>lits[<span class="number">1</span>..];
+                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;**</span>next)
                 }
             }
-            <span class="ident">LiteralIter::Packed</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">lits</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">lits</span>.<span class="ident">is_empty</span>() {
-                    <span class="prelude-val">None</span>
-                } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">lits</span>[<span class="number">0</span>];
-                    <span class="kw-2">*</span><span class="ident">lits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">lits</span>[<span class="number">1</span>..];
-                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">next</span>)
+            LiteralIter::Packed(<span class="kw-2">ref mut </span>lits) =&gt; {
+                <span class="kw">if </span>lits.is_empty() {
+                    <span class="prelude-val">None
+                </span>} <span class="kw">else </span>{
+                    <span class="kw">let </span>next = <span class="kw-2">&amp;</span>lits[<span class="number">0</span>];
+                    <span class="kw-2">*</span>lits = <span class="kw-2">&amp;</span>lits[<span class="number">1</span>..];
+                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;**</span>next)
                 }
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">SingleByteSet</span> {
-    <span class="ident">sparse</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-    <span class="ident">dense</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-    <span class="ident">complete</span>: <span class="ident">bool</span>,
-    <span class="ident">all_ascii</span>: <span class="ident">bool</span>,
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">struct </span>SingleByteSet {
+    sparse: Vec&lt;bool&gt;,
+    dense: Vec&lt;u8&gt;,
+    complete: bool,
+    all_ascii: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">SingleByteSet</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">SingleByteSet</span> {
-        <span class="ident">SingleByteSet</span> {
-            <span class="ident">sparse</span>: <span class="macro">vec!</span>[<span class="bool-val">false</span>; <span class="number">256</span>],
-            <span class="ident">dense</span>: <span class="macro">vec!</span>[],
-            <span class="ident">complete</span>: <span class="bool-val">true</span>,
-            <span class="ident">all_ascii</span>: <span class="bool-val">true</span>,
+<span class="kw">impl </span>SingleByteSet {
+    <span class="kw">fn </span>new() -&gt; SingleByteSet {
+        SingleByteSet {
+            sparse: <span class="macro">vec!</span>[<span class="bool-val">false</span>; <span class="number">256</span>],
+            dense: <span class="macro">vec!</span>[],
+            complete: <span class="bool-val">true</span>,
+            all_ascii: <span class="bool-val">true</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">prefixes</span>(<span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="ident">Literals</span>) -&gt; <span class="ident">SingleByteSet</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sset</span> <span class="op">=</span> <span class="ident">SingleByteSet::new</span>();
-        <span class="kw">for</span> <span class="ident">lit</span> <span class="kw">in</span> <span class="ident">lits</span>.<span class="ident">literals</span>() {
-            <span class="ident">sset</span>.<span class="ident">complete</span> <span class="op">=</span> <span class="ident">sset</span>.<span class="ident">complete</span> <span class="op">&amp;&amp;</span> <span class="ident">lit</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span>;
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>) <span class="op">=</span> <span class="ident">lit</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">sset</span>.<span class="ident">sparse</span>[<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>] {
-                    <span class="kw">if</span> <span class="ident">b</span> <span class="op">&gt;</span> <span class="number">0x7F</span> {
-                        <span class="ident">sset</span>.<span class="ident">all_ascii</span> <span class="op">=</span> <span class="bool-val">false</span>;
+    <span class="kw">fn </span>prefixes(lits: <span class="kw-2">&amp;</span>Literals) -&gt; SingleByteSet {
+        <span class="kw">let </span><span class="kw-2">mut </span>sset = SingleByteSet::new();
+        <span class="kw">for </span>lit <span class="kw">in </span>lits.literals() {
+            sset.complete = sset.complete &amp;&amp; lit.len() == <span class="number">1</span>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) = lit.get(<span class="number">0</span>) {
+                <span class="kw">if </span>!sset.sparse[b <span class="kw">as </span>usize] {
+                    <span class="kw">if </span>b &gt; <span class="number">0x7F </span>{
+                        sset.all_ascii = <span class="bool-val">false</span>;
                     }
-                    <span class="ident">sset</span>.<span class="ident">dense</span>.<span class="ident">push</span>(<span class="ident">b</span>);
-                    <span class="ident">sset</span>.<span class="ident">sparse</span>[<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span> <span class="bool-val">true</span>;
+                    sset.dense.push(b);
+                    sset.sparse[b <span class="kw">as </span>usize] = <span class="bool-val">true</span>;
                 }
             }
         }
-        <span class="ident">sset</span>
+        sset
     }
 
-    <span class="kw">fn</span> <span class="ident">suffixes</span>(<span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="ident">Literals</span>) -&gt; <span class="ident">SingleByteSet</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sset</span> <span class="op">=</span> <span class="ident">SingleByteSet::new</span>();
-        <span class="kw">for</span> <span class="ident">lit</span> <span class="kw">in</span> <span class="ident">lits</span>.<span class="ident">literals</span>() {
-            <span class="ident">sset</span>.<span class="ident">complete</span> <span class="op">=</span> <span class="ident">sset</span>.<span class="ident">complete</span> <span class="op">&amp;&amp;</span> <span class="ident">lit</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span>;
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>) <span class="op">=</span> <span class="ident">lit</span>.<span class="ident">get</span>(<span class="ident">lit</span>.<span class="ident">len</span>().<span class="ident">checked_sub</span>(<span class="number">1</span>).<span class="ident">unwrap</span>()) {
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">sset</span>.<span class="ident">sparse</span>[<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>] {
-                    <span class="kw">if</span> <span class="ident">b</span> <span class="op">&gt;</span> <span class="number">0x7F</span> {
-                        <span class="ident">sset</span>.<span class="ident">all_ascii</span> <span class="op">=</span> <span class="bool-val">false</span>;
+    <span class="kw">fn </span>suffixes(lits: <span class="kw-2">&amp;</span>Literals) -&gt; SingleByteSet {
+        <span class="kw">let </span><span class="kw-2">mut </span>sset = SingleByteSet::new();
+        <span class="kw">for </span>lit <span class="kw">in </span>lits.literals() {
+            sset.complete = sset.complete &amp;&amp; lit.len() == <span class="number">1</span>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) = lit.get(lit.len().checked_sub(<span class="number">1</span>).unwrap()) {
+                <span class="kw">if </span>!sset.sparse[b <span class="kw">as </span>usize] {
+                    <span class="kw">if </span>b &gt; <span class="number">0x7F </span>{
+                        sset.all_ascii = <span class="bool-val">false</span>;
                     }
-                    <span class="ident">sset</span>.<span class="ident">dense</span>.<span class="ident">push</span>(<span class="ident">b</span>);
-                    <span class="ident">sset</span>.<span class="ident">sparse</span>[<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span> <span class="bool-val">true</span>;
+                    sset.dense.push(b);
+                    sset.sparse[b <span class="kw">as </span>usize] = <span class="bool-val">true</span>;
                 }
             }
         }
-        <span class="ident">sset</span>
+        sset
     }
 
-    <span class="doccomment">/// Faster find that special cases certain sizes to use memchr.</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">dense</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="number">1</span> =&gt; <span class="ident">memchr</span>(<span class="self">self</span>.<span class="ident">dense</span>[<span class="number">0</span>], <span class="ident">text</span>),
-            <span class="number">2</span> =&gt; <span class="ident">memchr2</span>(<span class="self">self</span>.<span class="ident">dense</span>[<span class="number">0</span>], <span class="self">self</span>.<span class="ident">dense</span>[<span class="number">1</span>], <span class="ident">text</span>),
-            <span class="number">3</span> =&gt; <span class="ident">memchr3</span>(<span class="self">self</span>.<span class="ident">dense</span>[<span class="number">0</span>], <span class="self">self</span>.<span class="ident">dense</span>[<span class="number">1</span>], <span class="self">self</span>.<span class="ident">dense</span>[<span class="number">2</span>], <span class="ident">text</span>),
-            <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">_find</span>(<span class="ident">text</span>),
+    <span class="doccomment">/// Faster find that special cases certain sizes to use memchr.
+    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
+    </span><span class="kw">fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">match </span><span class="self">self</span>.dense.len() {
+            <span class="number">0 </span>=&gt; <span class="prelude-val">None</span>,
+            <span class="number">1 </span>=&gt; memchr(<span class="self">self</span>.dense[<span class="number">0</span>], text),
+            <span class="number">2 </span>=&gt; memchr2(<span class="self">self</span>.dense[<span class="number">0</span>], <span class="self">self</span>.dense[<span class="number">1</span>], text),
+            <span class="number">3 </span>=&gt; memchr3(<span class="self">self</span>.dense[<span class="number">0</span>], <span class="self">self</span>.dense[<span class="number">1</span>], <span class="self">self</span>.dense[<span class="number">2</span>], text),
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>._find(text),
         }
     }
 
-    <span class="doccomment">/// Generic find that works on any sized set.</span>
-    <span class="kw">fn</span> <span class="ident">_find</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>) <span class="kw">in</span> <span class="ident">haystack</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sparse</span>[<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>] {
-                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>);
+    <span class="doccomment">/// Generic find that works on any sized set.
+    </span><span class="kw">fn </span>_find(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="kw">for </span>(i, <span class="kw-2">&amp;</span>b) <span class="kw">in </span>haystack.iter().enumerate() {
+            <span class="kw">if </span><span class="self">self</span>.sparse[b <span class="kw">as </span>usize] {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(i);
             }
         }
-        <span class="prelude-val">None</span>
-    }
+        <span class="prelude-val">None
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">approximate_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        (<span class="self">self</span>.<span class="ident">dense</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>())
-            <span class="op">+</span> (<span class="self">self</span>.<span class="ident">sparse</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>())
+    <span class="kw">fn </span>approximate_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        (<span class="self">self</span>.dense.len() * mem::size_of::&lt;u8&gt;())
+            + (<span class="self">self</span>.sparse.len() * mem::size_of::&lt;bool&gt;())
     }
 }
 
-<span class="doccomment">/// A simple wrapper around the memchr crate&#39;s memmem implementation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The API this exposes mirrors the API of previous substring searchers that</span>
-<span class="doccomment">/// this supplanted.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Memmem</span> {
-    <span class="ident">finder</span>: <span class="ident">memmem::Finder</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>,
-    <span class="ident">char_len</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// A simple wrapper around the memchr crate&#39;s memmem implementation.
+///
+/// The API this exposes mirrors the API of previous substring searchers that
+/// this supplanted.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Memmem {
+    finder: memmem::Finder&lt;<span class="lifetime">&#39;static</span>&gt;,
+    char_len: usize,
 }
 
-<span class="kw">impl</span> <span class="ident">Memmem</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">pat</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Memmem</span> {
-        <span class="ident">Memmem</span> {
-            <span class="ident">finder</span>: <span class="ident">memmem::Finder::new</span>(<span class="ident">pat</span>).<span class="ident">into_owned</span>(),
-            <span class="ident">char_len</span>: <span class="ident">char_len_lossy</span>(<span class="ident">pat</span>),
+<span class="kw">impl </span>Memmem {
+    <span class="kw">fn </span>new(pat: <span class="kw-2">&amp;</span>[u8]) -&gt; Memmem {
+        Memmem {
+            finder: memmem::Finder::new(pat).into_owned(),
+            char_len: char_len_lossy(pat),
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">finder</span>.<span class="ident">find</span>(<span class="ident">haystack</span>)
+    <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
+    </span><span class="kw">pub fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.finder.find(haystack)
     }
 
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_suffix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="ident">text</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">len</span>() {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+    <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
+    </span><span class="kw">pub fn </span>is_suffix(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
+        <span class="kw">if </span>text.len() &lt; <span class="self">self</span>.len() {
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
-        <span class="kw-2">&amp;</span><span class="ident">text</span>[<span class="ident">text</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">len</span>()..] <span class="op">==</span> <span class="self">self</span>.<span class="ident">finder</span>.<span class="ident">needle</span>()
+        <span class="kw-2">&amp;</span>text[text.len() - <span class="self">self</span>.len()..] == <span class="self">self</span>.finder.needle()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">finder</span>.<span class="ident">needle</span>().<span class="ident">len</span>()
+    <span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.finder.needle().len()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">char_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">char_len</span>
+    <span class="kw">pub fn </span>char_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.char_len
     }
 
-    <span class="kw">fn</span> <span class="ident">approximate_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">finder</span>.<span class="ident">needle</span>().<span class="ident">len</span>() <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>()
+    <span class="kw">fn </span>approximate_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.finder.needle().len() * mem::size_of::&lt;u8&gt;()
     }
 }
 
-<span class="kw">fn</span> <span class="ident">char_len_lossy</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">usize</span> {
-    <span class="ident">String::from_utf8_lossy</span>(<span class="ident">bytes</span>).<span class="ident">chars</span>().<span class="ident">count</span>()
+<span class="kw">fn </span>char_len_lossy(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
+    String::from_utf8_lossy(bytes).chars().count()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

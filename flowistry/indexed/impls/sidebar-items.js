@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["arg_location",""]],"struct":[["LocationDomain",""],["LocationIndex",""]],"type":[["LocationSet",""],["PlaceSet",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["arg_location",""]],"struct":[["LocationDomain",""],["LocationIndex",""]],"type":[["LocationSet",""],["PlaceSet",""]]};

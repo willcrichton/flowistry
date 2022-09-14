@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro-error-attr-1.0.4/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../proc_macro_error_attr/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../proc_macro_error_attr/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../proc_macro_error_attr/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro-error-attr-1.0.4/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../proc_macro_error_attr/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../proc_macro_error_attr/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../proc_macro_error_attr/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -94,95 +87,94 @@
 <span id="87">87</span>
 <span id="88">88</span>
 <span id="89">89</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="ident">proc_macro2</span>::{<span class="ident">Delimiter</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">TokenStream</span>, <span class="ident">TokenTree</span>};
-<span class="kw">use</span> <span class="ident">quote::ToTokens</span>;
-<span class="kw">use</span> <span class="ident">std::iter::Peekable</span>;
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{Error, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>proc_macro2::{Delimiter, Ident, Span, TokenStream, TokenTree};
+<span class="kw">use </span>quote::ToTokens;
+<span class="kw">use </span>std::iter::Peekable;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_input</span>(
-    <span class="ident">input</span>: <span class="ident">TokenStream</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span>, <span class="ident">TokenTree</span>)<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">into_iter</span>().<span class="ident">peekable</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_input(
+    input: TokenStream,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;Attribute&gt;, Vec&lt;TokenTree&gt;, TokenTree)&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>input = input.into_iter().peekable();
+    <span class="kw">let </span><span class="kw-2">mut </span>attrs = Vec::new();
 
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">attr</span>) <span class="op">=</span> <span class="ident">parse_next_attr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">input</span>)<span class="question-mark">?</span> {
-        <span class="ident">attrs</span>.<span class="ident">push</span>(<span class="ident">attr</span>);
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(attr) = parse_next_attr(<span class="kw-2">&amp;mut </span>input)<span class="question-mark">? </span>{
+        attrs.push(attr);
     }
 
-    <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">parse_signature</span>(<span class="kw-2">&amp;mut</span> <span class="ident">input</span>);
-    <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">next</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-        <span class="ident">Error::new</span>(
-            <span class="ident">Span::call_site</span>(),
-            <span class="string">&quot;`#[proc_macro_error]` can be applied only to functions&quot;</span>.<span class="ident">to_string</span>(),
+    <span class="kw">let </span>sig = parse_signature(<span class="kw-2">&amp;mut </span>input);
+    <span class="kw">let </span>body = input.next().ok_or_else(|| {
+        Error::new(
+            Span::call_site(),
+            <span class="string">&quot;`#[proc_macro_error]` can be applied only to functions&quot;</span>.to_string(),
         )
     })<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>((<span class="ident">attrs</span>, <span class="ident">sig</span>, <span class="ident">body</span>))
+    <span class="prelude-val">Ok</span>((attrs, sig, body))
 }
 
-<span class="kw">fn</span> <span class="ident">parse_next_attr</span>(
-    <span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Peekable</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenTree</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">shebang</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">peek</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Punct</span>(<span class="kw-2">ref</span> <span class="ident">punct</span>)) <span class="kw">if</span> <span class="ident">punct</span>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;#&#39;</span> =&gt; <span class="ident">input</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>(),
-        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+<span class="kw">fn </span>parse_next_attr(
+    input: <span class="kw-2">&amp;mut </span>Peekable&lt;<span class="kw">impl </span>Iterator&lt;Item = TokenTree&gt;&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Attribute&gt;&gt; {
+    <span class="kw">let </span>shebang = <span class="kw">match </span>input.peek() {
+        <span class="prelude-val">Some</span>(TokenTree::Punct(<span class="kw-2">ref </span>punct)) <span class="kw">if </span>punct.as_char() == <span class="string">&#39;#&#39; </span>=&gt; input.next().unwrap(),
+        <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
     };
 
-    <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">peek</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Group</span>(<span class="kw-2">ref</span> <span class="ident">group</span>)) <span class="kw">if</span> <span class="ident">group</span>.<span class="ident">delimiter</span>() <span class="op">==</span> <span class="ident">Delimiter::Bracket</span> =&gt; {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">group</span>.<span class="ident">clone</span>();
-            <span class="ident">input</span>.<span class="ident">next</span>();
-            <span class="ident">res</span>
+    <span class="kw">let </span>group = <span class="kw">match </span>input.peek() {
+        <span class="prelude-val">Some</span>(TokenTree::Group(<span class="kw-2">ref </span>group)) <span class="kw">if </span>group.delimiter() == Delimiter::Bracket =&gt; {
+            <span class="kw">let </span>res = group.clone();
+            input.next();
+            res
         }
-        <span class="ident">other</span> =&gt; {
-            <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">map_or</span>(<span class="ident">Span::call_site</span>(), <span class="op">|</span><span class="ident">tt</span><span class="op">|</span> <span class="ident">tt</span>.<span class="ident">span</span>());
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">span</span>, <span class="string">&quot;expected `[`&quot;</span>.<span class="ident">to_string</span>()));
+        other =&gt; {
+            <span class="kw">let </span>span = other.map_or(Span::call_site(), |tt| tt.span());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(span, <span class="string">&quot;expected `[`&quot;</span>.to_string()));
         }
     };
 
-    <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">group</span>.<span class="ident">stream</span>().<span class="ident">into_iter</span>().<span class="ident">next</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Ident</span>(<span class="ident">ident</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">ident</span>),
-        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">let </span>path = <span class="kw">match </span>group.stream().into_iter().next() {
+        <span class="prelude-val">Some</span>(TokenTree::Ident(ident)) =&gt; <span class="prelude-val">Some</span>(ident),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     };
 
-    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Attribute</span> {
-        <span class="ident">shebang</span>,
-        <span class="ident">group</span>: <span class="ident">TokenTree::Group</span>(<span class="ident">group</span>),
-        <span class="ident">path</span>,
+    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Attribute {
+        shebang,
+        group: TokenTree::Group(group),
+        path,
     }))
 }
 
-<span class="kw">fn</span> <span class="ident">parse_signature</span>(<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Peekable</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenTree</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">loop</span> {
-        <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">peek</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Group</span>(<span class="kw-2">ref</span> <span class="ident">group</span>)) <span class="kw">if</span> <span class="ident">group</span>.<span class="ident">delimiter</span>() <span class="op">==</span> <span class="ident">Delimiter::Brace</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">sig</span>;
+<span class="kw">fn </span>parse_signature(input: <span class="kw-2">&amp;mut </span>Peekable&lt;<span class="kw">impl </span>Iterator&lt;Item = TokenTree&gt;&gt;) -&gt; Vec&lt;TokenTree&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>sig = Vec::new();
+    <span class="kw">loop </span>{
+        <span class="kw">match </span>input.peek() {
+            <span class="prelude-val">Some</span>(TokenTree::Group(<span class="kw-2">ref </span>group)) <span class="kw">if </span>group.delimiter() == Delimiter::Brace =&gt; {
+                <span class="kw">return </span>sig;
             }
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">sig</span>,
-            <span class="kw">_</span> =&gt; <span class="ident">sig</span>.<span class="ident">push</span>(<span class="ident">input</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>()),
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>sig,
+            <span class="kw">_ </span>=&gt; sig.push(input.next().unwrap()),
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Attribute</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">shebang</span>: <span class="ident">TokenTree</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">group</span>: <span class="ident">TokenTree</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Attribute {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) shebang: TokenTree,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) group: TokenTree,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) path: <span class="prelude-ty">Option</span>&lt;Ident&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Attribute</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">path_is_ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">p</span> <span class="op">==</span> <span class="ident">ident</span>)
+<span class="kw">impl </span>Attribute {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>path_is_ident(<span class="kw-2">&amp;</span><span class="self">self</span>, ident: <span class="kw-2">&amp;</span>str) -&gt; bool {
+        <span class="self">self</span>.path.as_ref().map_or(<span class="bool-val">false</span>, |p| <span class="kw-2">*</span>p == ident)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">Attribute</span> {
-    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ts</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
-        <span class="self">self</span>.<span class="ident">shebang</span>.<span class="ident">to_tokens</span>(<span class="ident">ts</span>);
-        <span class="self">self</span>.<span class="ident">group</span>.<span class="ident">to_tokens</span>(<span class="ident">ts</span>);
+<span class="kw">impl </span>ToTokens <span class="kw">for </span>Attribute {
+    <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;mut </span>TokenStream) {
+        <span class="self">self</span>.shebang.to_tokens(ts);
+        <span class="self">self</span>.group.to_tokens(ts);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro_error_attr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro_error_attr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

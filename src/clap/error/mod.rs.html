@@ -1,13 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.6/src/error/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.21/src/error/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1160,1169 +1153,1158 @@
 <span id="1151">1151</span>
 <span id="1152">1152</span>
 <span id="1153">1153</span>
-<span id="1154">1154</span>
-<span id="1155">1155</span>
-<span id="1156">1156</span>
-<span id="1157">1157</span>
-<span id="1158">1158</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Error reporting</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Error reporting
+</span><span class="attribute">#![allow(deprecated)]
 
-<span class="comment">// Std</span>
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">borrow::Cow</span>,
-    <span class="ident">convert::From</span>,
-    <span class="ident">error</span>,
-    <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>, <span class="ident">Formatter</span>},
-    <span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">BufRead</span>},
-    <span class="ident">result::Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>,
+</span><span class="comment">// Std
+</span><span class="kw">use </span>std::{
+    borrow::Cow,
+    convert::From,
+    error,
+    fmt::{<span class="self">self</span>, Debug, Display, Formatter},
+    io::{<span class="self">self</span>, BufRead},
+    result::Result <span class="kw">as </span>StdResult,
 };
 
-<span class="comment">// Internal</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::output::fmt::Colorizer</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::output::fmt::Stream</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parser::features::suggestions</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util</span>::{<span class="ident">color::ColorChoice</span>, <span class="ident">safe_exit</span>, <span class="ident">SUCCESS_CODE</span>, <span class="ident">USAGE_CODE</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::AppSettings</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Command</span>;
+<span class="comment">// Internal
+</span><span class="kw">use </span><span class="kw">crate</span>::output::fmt::Colorizer;
+<span class="kw">use </span><span class="kw">crate</span>::output::fmt::Stream;
+<span class="kw">use </span><span class="kw">crate</span>::parser::features::suggestions;
+<span class="kw">use </span><span class="kw">crate</span>::util::{color::ColorChoice, safe_exit, SUCCESS_CODE, USAGE_CODE};
+<span class="kw">use </span><span class="kw">crate</span>::AppSettings;
+<span class="kw">use </span><span class="kw">crate</span>::Command;
 
-<span class="kw">mod</span> <span class="ident">context</span>;
-<span class="kw">mod</span> <span class="ident">kind</span>;
+<span class="kw">mod </span>context;
+<span class="kw">mod </span>kind;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">context::ContextKind</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">context::ContextValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">kind::ErrorKind</span>;
+<span class="kw">pub use </span>context::ContextKind;
+<span class="kw">pub use </span>context::ContextValue;
+<span class="kw">pub use </span>kind::ErrorKind;
 
-<span class="doccomment">/// Short hand for [`Result`] type</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Result`]: std::result::Result</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span> <span class="op">=</span> <span class="ident">Error</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StdResult</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Short hand for [`Result`] type
+///
+/// [`Result`]: std::result::Result
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T, E = Error&gt; = StdResult&lt;T, E&gt;;
 
-<span class="doccomment">/// Command Line Argument Parser Error</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`Command::error`] to create an error.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Command::error`]: crate::Command::error</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Error</span> {
-    <span class="ident">inner</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ErrorInner</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Deprecated, replaced with [`Error::kind()`]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.1.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Error::kind()`&quot;</span>)
-    )]</span>
-    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">ErrorKind</span>,
-    <span class="doccomment">/// Deprecated, replaced with [`Error::context()`]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.1.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Error::context()`&quot;</span>)
-    )]</span>
-    <span class="kw">pub</span> <span class="ident">info</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Command Line Argument Parser Error
+///
+/// See [`Command::error`] to create an error.
+///
+/// [`Command::error`]: crate::Command::error
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Error {
+    inner: Box&lt;ErrorInner&gt;,
+    <span class="doccomment">/// Deprecated, replaced with [`Error::kind()`]
+    </span><span class="attribute">#[cfg_attr(
+        feature = <span class="string">&quot;deprecated&quot;</span>,
+        deprecated(since = <span class="string">&quot;3.1.0&quot;</span>, note = <span class="string">&quot;Replaced with `Error::kind()`&quot;</span>)
+    )]
+    </span><span class="kw">pub </span>kind: ErrorKind,
+    <span class="doccomment">/// Deprecated, replaced with [`Error::context()`]
+    </span><span class="attribute">#[cfg_attr(
+        feature = <span class="string">&quot;deprecated&quot;</span>,
+        deprecated(since = <span class="string">&quot;3.1.0&quot;</span>, note = <span class="string">&quot;Replaced with `Error::context()`&quot;</span>)
+    )]
+    </span><span class="kw">pub </span>info: Vec&lt;String&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">ErrorInner</span> {
-    <span class="ident">kind</span>: <span class="ident">ErrorKind</span>,
-    <span class="ident">context</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">ContextKind</span>, <span class="ident">ContextValue</span>)<span class="op">&gt;</span>,
-    <span class="ident">message</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
-    <span class="ident">source</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">help_flag</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="ident">color_when</span>: <span class="ident">ColorChoice</span>,
-    <span class="ident">wait_on_exit</span>: <span class="ident">bool</span>,
-    <span class="ident">backtrace</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Backtrace</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>ErrorInner {
+    kind: ErrorKind,
+    context: Vec&lt;(ContextKind, ContextValue)&gt;,
+    message: <span class="prelude-ty">Option</span>&lt;Message&gt;,
+    source: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>error::Error + Send + Sync&gt;&gt;,
+    help_flag: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
+    color_when: ColorChoice,
+    wait_on_exit: bool,
+    backtrace: <span class="prelude-ty">Option</span>&lt;Backtrace&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Error</span> {
-    <span class="doccomment">/// Create an unformatted error</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is for you need to pass the error up to</span>
-    <span class="doccomment">/// a place that has access to the `Command` at which point you can call [`Error::format`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Prefer [`Command::error`] for generating errors.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Command::error`]: crate::Command::error</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="ident">kind</span>: <span class="ident">ErrorKind</span>, <span class="ident">message</span>: <span class="kw">impl</span> <span class="ident">std::fmt::Display</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">kind</span>).<span class="ident">set_message</span>(<span class="ident">message</span>.<span class="ident">to_string</span>())
+<span class="kw">impl </span>Error {
+    <span class="doccomment">/// Create an unformatted error
+    ///
+    /// This is for you need to pass the error up to
+    /// a place that has access to the `Command` at which point you can call [`Error::format`].
+    ///
+    /// Prefer [`Command::error`] for generating errors.
+    ///
+    /// [`Command::error`]: crate::Command::error
+    </span><span class="kw">pub fn </span>raw(kind: ErrorKind, message: <span class="kw">impl </span>std::fmt::Display) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(kind).set_message(message.to_string())
     }
 
-    <span class="doccomment">/// Format the existing message with the Command&#39;s context</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cmd</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Command</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">cmd</span>.<span class="ident">_build_self</span>();
-        <span class="kw">let</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">render_usage</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">message</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">message</span>.<span class="ident">as_mut</span>() {
-            <span class="ident">message</span>.<span class="ident">format</span>(<span class="ident">cmd</span>, <span class="ident">usage</span>);
+    <span class="doccomment">/// Format the existing message with the Command&#39;s context
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>format(<span class="kw-2">mut </span><span class="self">self</span>, cmd: <span class="kw-2">&amp;mut </span>Command) -&gt; <span class="self">Self </span>{
+        cmd._build_self();
+        <span class="kw">let </span>usage = cmd.render_usage();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = <span class="self">self</span>.inner.message.as_mut() {
+            message.format(cmd, usage);
         }
-        <span class="self">self</span>.<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
+        <span class="self">self</span>.with_cmd(cmd)
     }
 
-    <span class="doccomment">/// Type of error for programmatic processing</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ErrorKind</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">kind</span>
+    <span class="doccomment">/// Type of error for programmatic processing
+    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ErrorKind {
+        <span class="self">self</span>.inner.kind
     }
 
-    <span class="doccomment">/// Additional information to further qualify the error</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">context</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">ContextKind</span>, <span class="kw-2">&amp;</span><span class="ident">ContextValue</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">context</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> (<span class="kw-2">*</span><span class="ident">k</span>, <span class="ident">v</span>))
+    <span class="doccomment">/// Additional information to further qualify the error
+    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (ContextKind, <span class="kw-2">&amp;</span>ContextValue)&gt; {
+        <span class="self">self</span>.inner.context.iter().map(|(k, v)| (<span class="kw-2">*</span>k, v))
     }
 
-    <span class="doccomment">/// Should the message be written to `stdout` or not?</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_stderr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">stream</span>() <span class="op">==</span> <span class="ident">Stream::Stderr</span>
+    <span class="doccomment">/// Should the message be written to `stdout` or not?
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>use_stderr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.stream() == Stream::Stderr
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Stream</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span>() {
-            <span class="ident">ErrorKind::DisplayHelp</span> <span class="op">|</span> <span class="ident">ErrorKind::DisplayVersion</span> =&gt; <span class="ident">Stream::Stdout</span>,
-            <span class="kw">_</span> =&gt; <span class="ident">Stream::Stderr</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Stream {
+        <span class="kw">match </span><span class="self">self</span>.kind() {
+            ErrorKind::DisplayHelp | ErrorKind::DisplayVersion =&gt; Stream::Stdout,
+            <span class="kw">_ </span>=&gt; Stream::Stderr,
         }
     }
 
-    <span class="doccomment">/// Prints the error and exits.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Depending on the error kind, this either prints to `stderr` and exits with a status of `2`</span>
-    <span class="doccomment">/// or prints to `stdout` and exits with a status of `0`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="op">!</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">use_stderr</span>() {
-            <span class="comment">// Swallow broken pipe errors</span>
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">print</span>();
+    <span class="doccomment">/// Prints the error and exits.
+    ///
+    /// Depending on the error kind, this either prints to `stderr` and exits with a status of `2`
+    /// or prints to `stdout` and exits with a status of `0`.
+    </span><span class="kw">pub fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ! {
+        <span class="kw">if </span><span class="self">self</span>.use_stderr() {
+            <span class="comment">// Swallow broken pipe errors
+            </span><span class="kw">let _ </span>= <span class="self">self</span>.print();
 
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">wait_on_exit</span> {
+            <span class="kw">if </span><span class="self">self</span>.inner.wait_on_exit {
                 <span class="macro">wlnerr!</span>(<span class="string">&quot;\nPress [ENTER] / [RETURN] to continue...&quot;</span>);
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::new</span>();
-                <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">io::stdin</span>();
-                <span class="ident">i</span>.<span class="ident">lock</span>().<span class="ident">read_line</span>(<span class="kw-2">&amp;mut</span> <span class="ident">s</span>).<span class="ident">unwrap</span>();
+                <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
+                <span class="kw">let </span>i = io::stdin();
+                i.lock().read_line(<span class="kw-2">&amp;mut </span>s).unwrap();
             }
 
-            <span class="ident">safe_exit</span>(<span class="ident">USAGE_CODE</span>);
+            safe_exit(USAGE_CODE);
         }
 
-        <span class="comment">// Swallow broken pipe errors</span>
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">print</span>();
-        <span class="ident">safe_exit</span>(<span class="ident">SUCCESS_CODE</span>)
+        <span class="comment">// Swallow broken pipe errors
+        </span><span class="kw">let _ </span>= <span class="self">self</span>.print();
+        safe_exit(SUCCESS_CODE)
     }
 
-    <span class="doccomment">/// Prints formatted and colored error to `stdout` or `stderr` according to its error kind</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use clap::Command;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// match Command::new(&quot;Command&quot;).try_get_matches() {</span>
-    <span class="doccomment">///     Ok(matches) =&gt; {</span>
-    <span class="doccomment">///         // do_something</span>
-    <span class="doccomment">///     },</span>
-    <span class="doccomment">///     Err(err) =&gt; {</span>
-    <span class="doccomment">///         err.print().expect(&quot;Error writing Error&quot;);</span>
-    <span class="doccomment">///         // do_something</span>
-    <span class="doccomment">///     },</span>
-    <span class="doccomment">/// };</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">formatted</span>().<span class="ident">print</span>()
+    <span class="doccomment">/// Prints formatted and colored error to `stdout` or `stderr` according to its error kind
+    ///
+    /// # Example
+    /// ```no_run
+    /// use clap::Command;
+    ///
+    /// match Command::new(&quot;Command&quot;).try_get_matches() {
+    ///     Ok(matches) =&gt; {
+    ///         // do_something
+    ///     },
+    ///     Err(err) =&gt; {
+    ///         err.print().expect(&quot;Error writing Error&quot;);
+    ///         // do_something
+    ///     },
+    /// };
+    /// ```
+    </span><span class="kw">pub fn </span>print(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.formatted().print()
     }
 
-    <span class="doccomment">/// Deprecated, replaced with [`Command::error`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Command::error`]: crate::Command::error</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Command::error`&quot;</span>)
-    )]</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_description</span>(<span class="ident">description</span>: <span class="ident">String</span>, <span class="ident">kind</span>: <span class="ident">ErrorKind</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Error::raw</span>(<span class="ident">kind</span>, <span class="ident">description</span>)
+    <span class="doccomment">/// Deprecated, replaced with [`Command::error`]
+    ///
+    /// [`Command::error`]: crate::Command::error
+    </span><span class="attribute">#[cfg_attr(
+        feature = <span class="string">&quot;deprecated&quot;</span>,
+        deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `Command::error`&quot;</span>)
+    )]
+    #[doc(hidden)]
+    </span><span class="kw">pub fn </span>with_description(description: String, kind: ErrorKind) -&gt; <span class="self">Self </span>{
+        Error::raw(kind, description)
     }
 
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">ErrorKind</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Box::new</span>(<span class="ident">ErrorInner</span> {
-                <span class="ident">kind</span>,
-                <span class="ident">context</span>: <span class="ident">Vec::new</span>(),
-                <span class="ident">message</span>: <span class="prelude-val">None</span>,
-                <span class="ident">source</span>: <span class="prelude-val">None</span>,
-                <span class="ident">help_flag</span>: <span class="prelude-val">None</span>,
-                <span class="ident">color_when</span>: <span class="ident">ColorChoice::Never</span>,
-                <span class="ident">wait_on_exit</span>: <span class="bool-val">false</span>,
-                <span class="ident">backtrace</span>: <span class="ident">Backtrace::new</span>(),
+    <span class="kw">fn </span>new(kind: ErrorKind) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Box::new(ErrorInner {
+                kind,
+                context: Vec::new(),
+                message: <span class="prelude-val">None</span>,
+                source: <span class="prelude-val">None</span>,
+                help_flag: <span class="prelude-val">None</span>,
+                color_when: ColorChoice::Never,
+                wait_on_exit: <span class="bool-val">false</span>,
+                backtrace: Backtrace::new(),
             }),
-            <span class="ident">kind</span>,
-            <span class="ident">info</span>: <span class="macro">vec!</span>[],
+            kind,
+            info: <span class="macro">vec!</span>[],
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">for_app</span>(<span class="ident">kind</span>: <span class="ident">ErrorKind</span>, <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>, <span class="ident">colorizer</span>: <span class="ident">Colorizer</span>, <span class="ident">info</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">kind</span>)
-            .<span class="ident">set_message</span>(<span class="ident">colorizer</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
+    <span class="attribute">#[inline(never)]
+    </span><span class="kw">fn </span>for_app(kind: ErrorKind, cmd: <span class="kw-2">&amp;</span>Command, colorizer: Colorizer, info: Vec&lt;String&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(kind)
+            .set_message(colorizer)
+            .with_cmd(cmd)
+            .set_info(info)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with_cmd</span>(<span class="self">self</span>, <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">set_wait_on_exit</span>(<span class="ident">cmd</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings::WaitOnError</span>))
-            .<span class="ident">set_color</span>(<span class="ident">cmd</span>.<span class="ident">get_color</span>())
-            .<span class="ident">set_help_flag</span>(<span class="ident">get_help_flag</span>(<span class="ident">cmd</span>))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_cmd(<span class="self">self</span>, cmd: <span class="kw-2">&amp;</span>Command) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.set_wait_on_exit(cmd.is_set(AppSettings::WaitOnError))
+            .set_color(cmd.get_color())
+            .set_help_flag(get_help_flag(cmd))
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_message</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">message</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">message</span>.<span class="ident">into</span>());
-        <span class="self">self</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_message(<span class="kw-2">mut </span><span class="self">self</span>, message: <span class="kw">impl </span>Into&lt;Message&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.inner.message = <span class="prelude-val">Some</span>(message.into());
+        <span class="self">self
+    </span>}
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_info(<span class="kw-2">mut </span><span class="self">self</span>, info: Vec&lt;String&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.info = info;
+        <span class="self">self
+    </span>}
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_source(<span class="kw-2">mut </span><span class="self">self</span>, source: Box&lt;<span class="kw">dyn </span>error::Error + Send + Sync&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.inner.source = <span class="prelude-val">Some</span>(source);
+        <span class="self">self
+    </span>}
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_color(<span class="kw-2">mut </span><span class="self">self</span>, color_when: ColorChoice) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.inner.color_when = color_when;
+        <span class="self">self
+    </span>}
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_help_flag(<span class="kw-2">mut </span><span class="self">self</span>, help_flag: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.inner.help_flag = help_flag;
+        <span class="self">self
+    </span>}
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_wait_on_exit(<span class="kw-2">mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.inner.wait_on_exit = yes;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Does not verify if `ContextKind` is already present
+    </span><span class="attribute">#[inline(never)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>insert_context_unchecked(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        kind: ContextKind,
+        value: ContextValue,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.inner.context.push((kind, value));
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Does not verify if `ContextKind` is already present
+    </span><span class="attribute">#[inline(never)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>extend_context_unchecked&lt;<span class="kw">const </span>N: usize&gt;(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        context: [(ContextKind, ContextValue); N],
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.inner.context.extend(context);
+        <span class="self">self
+    </span>}
+
+    <span class="attribute">#[inline(never)]
+    </span><span class="kw">fn </span>get_context(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: ContextKind) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ContextValue&gt; {
+        <span class="self">self</span>.inner
+            .context
+            .iter()
+            .find_map(|(k, v)| (<span class="kw-2">*</span>k == kind).then(|| v))
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_info</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">info</span> <span class="op">=</span> <span class="ident">info</span>;
-        <span class="self">self</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>display_help(cmd: <span class="kw-2">&amp;</span>Command, colorizer: Colorizer) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::for_app(ErrorKind::DisplayHelp, cmd, colorizer, <span class="macro">vec!</span>[])
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_source</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">source</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">source</span>);
-        <span class="self">self</span>
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_color</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">color_when</span>: <span class="ident">ColorChoice</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">color_when</span> <span class="op">=</span> <span class="ident">color_when</span>;
-        <span class="self">self</span>
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_help_flag</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">help_flag</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">help_flag</span> <span class="op">=</span> <span class="ident">help_flag</span>;
-        <span class="self">self</span>
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_wait_on_exit</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">wait_on_exit</span> <span class="op">=</span> <span class="ident">yes</span>;
-        <span class="self">self</span>
-    }
-
-    <span class="doccomment">/// Does not verify if `ContextKind` is already present</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">insert_context_unchecked</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">kind</span>: <span class="ident">ContextKind</span>,
-        <span class="ident">value</span>: <span class="ident">ContextValue</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">context</span>.<span class="ident">push</span>((<span class="ident">kind</span>, <span class="ident">value</span>));
-        <span class="self">self</span>
-    }
-
-    <span class="doccomment">/// Does not verify if `ContextKind` is already present</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">extend_context_unchecked</span><span class="op">&lt;</span><span class="kw">const</span> <span class="ident">N</span>: <span class="ident">usize</span><span class="op">&gt;</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">context</span>: [(<span class="ident">ContextKind</span>, <span class="ident">ContextValue</span>); <span class="ident">N</span>],
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">context</span>.<span class="ident">extend</span>(<span class="ident">context</span>);
-        <span class="self">self</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">get_context</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">kind</span>: <span class="ident">ContextKind</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ContextValue</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>
-            .<span class="ident">context</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">find_map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> (<span class="kw-2">*</span><span class="ident">k</span> <span class="op">==</span> <span class="ident">kind</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">v</span>))
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">display_help</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>, <span class="ident">colorizer</span>: <span class="ident">Colorizer</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::for_app</span>(<span class="ident">ErrorKind::DisplayHelp</span>, <span class="ident">cmd</span>, <span class="ident">colorizer</span>, <span class="macro">vec!</span>[])
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">display_help_error</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>, <span class="ident">colorizer</span>: <span class="ident">Colorizer</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::for_app</span>(
-            <span class="ident">ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand</span>,
-            <span class="ident">cmd</span>,
-            <span class="ident">colorizer</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>display_help_error(cmd: <span class="kw-2">&amp;</span>Command, colorizer: Colorizer) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::for_app(
+            ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand,
+            cmd,
+            colorizer,
             <span class="macro">vec!</span>[],
         )
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">display_version</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>, <span class="ident">colorizer</span>: <span class="ident">Colorizer</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::for_app</span>(<span class="ident">ErrorKind::DisplayVersion</span>, <span class="ident">cmd</span>, <span class="ident">colorizer</span>, <span class="macro">vec!</span>[])
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>display_version(cmd: <span class="kw-2">&amp;</span>Command, colorizer: Colorizer) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::for_app(ErrorKind::DisplayVersion, cmd, colorizer, <span class="macro">vec!</span>[])
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">argument_conflict</span>(
-        <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>,
-        <span class="ident">arg</span>: <span class="ident">String</span>,
-        <span class="kw-2">mut</span> <span class="ident">others</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-        <span class="ident">usage</span>: <span class="ident">String</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">others</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">others</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">others</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> =&gt; <span class="ident">ContextValue::None</span>,
-            <span class="number">1</span> =&gt; <span class="ident">ContextValue::String</span>(<span class="ident">others</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>()),
-            <span class="kw">_</span> =&gt; <span class="ident">ContextValue::Strings</span>(<span class="ident">others</span>),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>argument_conflict(
+        cmd: <span class="kw-2">&amp;</span>Command,
+        arg: String,
+        <span class="kw-2">mut </span>others: Vec&lt;String&gt;,
+        usage: String,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = others.clone();
+        <span class="kw">let </span>others = <span class="kw">match </span>others.len() {
+            <span class="number">0 </span>=&gt; ContextValue::None,
+            <span class="number">1 </span>=&gt; ContextValue::String(others.pop().unwrap()),
+            <span class="kw">_ </span>=&gt; ContextValue::Strings(others),
         };
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::ArgumentConflict</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidArg</span>, <span class="ident">ContextValue::String</span>(<span class="ident">arg</span>)),
-                (<span class="ident">ContextKind::PriorArg</span>, <span class="ident">others</span>),
-                (<span class="ident">ContextKind::Usage</span>, <span class="ident">ContextValue::String</span>(<span class="ident">usage</span>)),
+        <span class="self">Self</span>::new(ErrorKind::ArgumentConflict)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([
+                (ContextKind::InvalidArg, ContextValue::String(arg)),
+                (ContextKind::PriorArg, others),
+                (ContextKind::Usage, ContextValue::String(usage)),
             ])
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">empty_value</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>, <span class="ident">good_vals</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>], <span class="ident">arg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">arg</span>.<span class="ident">clone</span>()];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::EmptyValue</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([(<span class="ident">ContextKind::InvalidArg</span>, <span class="ident">ContextValue::String</span>(<span class="ident">arg</span>))]);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">good_vals</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">err</span> <span class="op">=</span> <span class="ident">err</span>.<span class="ident">insert_context_unchecked</span>(
-                <span class="ident">ContextKind::ValidValue</span>,
-                <span class="ident">ContextValue::Strings</span>(<span class="ident">good_vals</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">to_owned</span>()).<span class="ident">collect</span>()),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>empty_value(cmd: <span class="kw-2">&amp;</span>Command, good_vals: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str], arg: String) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[arg.clone()];
+        <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::EmptyValue)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([(ContextKind::InvalidArg, ContextValue::String(arg))]);
+        <span class="kw">if </span>!good_vals.is_empty() {
+            err = err.insert_context_unchecked(
+                ContextKind::ValidValue,
+                ContextValue::Strings(good_vals.iter().map(|s| (<span class="kw-2">*</span>s).to_owned()).collect()),
             );
         }
-        <span class="ident">err</span>
+        err
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">no_equals</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>, <span class="ident">arg</span>: <span class="ident">String</span>, <span class="ident">usage</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">arg</span>.<span class="ident">clone</span>()];
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::NoEquals</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidArg</span>, <span class="ident">ContextValue::String</span>(<span class="ident">arg</span>)),
-                (<span class="ident">ContextKind::Usage</span>, <span class="ident">ContextValue::String</span>(<span class="ident">usage</span>)),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>no_equals(cmd: <span class="kw-2">&amp;</span>Command, arg: String, usage: String) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[arg.clone()];
+        <span class="self">Self</span>::new(ErrorKind::NoEquals)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([
+                (ContextKind::InvalidArg, ContextValue::String(arg)),
+                (ContextKind::Usage, ContextValue::String(usage)),
             ])
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">invalid_value</span>(
-        <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>,
-        <span class="ident">bad_val</span>: <span class="ident">String</span>,
-        <span class="ident">good_vals</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>],
-        <span class="ident">arg</span>: <span class="ident">String</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">arg</span>.<span class="ident">clone</span>(), <span class="ident">bad_val</span>.<span class="ident">clone</span>()];
-        <span class="ident">info</span>.<span class="ident">extend</span>(<span class="ident">good_vals</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">to_owned</span>()));
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invalid_value(
+        cmd: <span class="kw-2">&amp;</span>Command,
+        bad_val: String,
+        good_vals: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str],
+        arg: String,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>info = <span class="macro">vec!</span>[arg.clone(), bad_val.clone()];
+        info.extend(good_vals.iter().map(|s| (<span class="kw-2">*</span>s).to_owned()));
 
-        <span class="kw">let</span> <span class="ident">suggestion</span> <span class="op">=</span> <span class="ident">suggestions::did_you_mean</span>(<span class="kw-2">&amp;</span><span class="ident">bad_val</span>, <span class="ident">good_vals</span>.<span class="ident">iter</span>()).<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::InvalidValue</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidArg</span>, <span class="ident">ContextValue::String</span>(<span class="ident">arg</span>)),
-                (<span class="ident">ContextKind::InvalidValue</span>, <span class="ident">ContextValue::String</span>(<span class="ident">bad_val</span>)),
+        <span class="kw">let </span>suggestion = suggestions::did_you_mean(<span class="kw-2">&amp;</span>bad_val, good_vals.iter()).pop();
+        <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::InvalidValue)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([
+                (ContextKind::InvalidArg, ContextValue::String(arg)),
+                (ContextKind::InvalidValue, ContextValue::String(bad_val)),
                 (
-                    <span class="ident">ContextKind::ValidValue</span>,
-                    <span class="ident">ContextValue::Strings</span>(<span class="ident">good_vals</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">to_owned</span>()).<span class="ident">collect</span>()),
+                    ContextKind::ValidValue,
+                    ContextValue::Strings(good_vals.iter().map(|s| (<span class="kw-2">*</span>s).to_owned()).collect()),
                 ),
             ]);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">suggestion</span>) <span class="op">=</span> <span class="ident">suggestion</span> {
-            <span class="ident">err</span> <span class="op">=</span> <span class="ident">err</span>.<span class="ident">insert_context_unchecked</span>(
-                <span class="ident">ContextKind::SuggestedValue</span>,
-                <span class="ident">ContextValue::String</span>(<span class="ident">suggestion</span>),
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(suggestion) = suggestion {
+            err = err.insert_context_unchecked(
+                ContextKind::SuggestedValue,
+                ContextValue::String(suggestion),
             );
         }
-        <span class="ident">err</span>
+        err
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">invalid_subcommand</span>(
-        <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>,
-        <span class="ident">subcmd</span>: <span class="ident">String</span>,
-        <span class="ident">did_you_mean</span>: <span class="ident">String</span>,
-        <span class="ident">name</span>: <span class="ident">String</span>,
-        <span class="ident">usage</span>: <span class="ident">String</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">subcmd</span>.<span class="ident">clone</span>()];
-        <span class="kw">let</span> <span class="ident">suggestion</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{} -- {}&quot;</span>, <span class="ident">name</span>, <span class="ident">subcmd</span>);
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::InvalidSubcommand</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidSubcommand</span>, <span class="ident">ContextValue::String</span>(<span class="ident">subcmd</span>)),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invalid_subcommand(
+        cmd: <span class="kw-2">&amp;</span>Command,
+        subcmd: String,
+        did_you_mean: String,
+        name: String,
+        usage: String,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[subcmd.clone()];
+        <span class="kw">let </span>suggestion = <span class="macro">format!</span>(<span class="string">&quot;{} -- {}&quot;</span>, name, subcmd);
+        <span class="self">Self</span>::new(ErrorKind::InvalidSubcommand)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([
+                (ContextKind::InvalidSubcommand, ContextValue::String(subcmd)),
                 (
-                    <span class="ident">ContextKind::SuggestedSubcommand</span>,
-                    <span class="ident">ContextValue::String</span>(<span class="ident">did_you_mean</span>),
+                    ContextKind::SuggestedSubcommand,
+                    ContextValue::String(did_you_mean),
                 ),
                 (
-                    <span class="ident">ContextKind::SuggestedCommand</span>,
-                    <span class="ident">ContextValue::String</span>(<span class="ident">suggestion</span>),
+                    ContextKind::SuggestedCommand,
+                    ContextValue::String(suggestion),
                 ),
-                (<span class="ident">ContextKind::Usage</span>, <span class="ident">ContextValue::String</span>(<span class="ident">usage</span>)),
+                (ContextKind::Usage, ContextValue::String(usage)),
             ])
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unrecognized_subcommand</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>, <span class="ident">subcmd</span>: <span class="ident">String</span>, <span class="ident">usage</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">subcmd</span>.<span class="ident">clone</span>()];
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::UnrecognizedSubcommand</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidSubcommand</span>, <span class="ident">ContextValue::String</span>(<span class="ident">subcmd</span>)),
-                (<span class="ident">ContextKind::Usage</span>, <span class="ident">ContextValue::String</span>(<span class="ident">usage</span>)),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unrecognized_subcommand(cmd: <span class="kw-2">&amp;</span>Command, subcmd: String, usage: String) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[subcmd.clone()];
+        <span class="self">Self</span>::new(ErrorKind::UnrecognizedSubcommand)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([
+                (ContextKind::InvalidSubcommand, ContextValue::String(subcmd)),
+                (ContextKind::Usage, ContextValue::String(usage)),
             ])
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">missing_required_argument</span>(
-        <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>,
-        <span class="ident">required</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-        <span class="ident">usage</span>: <span class="ident">String</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">required</span>.<span class="ident">clone</span>();
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::MissingRequiredArgument</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidArg</span>, <span class="ident">ContextValue::Strings</span>(<span class="ident">required</span>)),
-                (<span class="ident">ContextKind::Usage</span>, <span class="ident">ContextValue::String</span>(<span class="ident">usage</span>)),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>missing_required_argument(
+        cmd: <span class="kw-2">&amp;</span>Command,
+        required: Vec&lt;String&gt;,
+        usage: String,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = required.clone();
+        <span class="self">Self</span>::new(ErrorKind::MissingRequiredArgument)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([
+                (ContextKind::InvalidArg, ContextValue::Strings(required)),
+                (ContextKind::Usage, ContextValue::String(usage)),
             ])
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">missing_subcommand</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>, <span class="ident">name</span>: <span class="ident">String</span>, <span class="ident">usage</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::MissingSubcommand</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidSubcommand</span>, <span class="ident">ContextValue::String</span>(<span class="ident">name</span>)),
-                (<span class="ident">ContextKind::Usage</span>, <span class="ident">ContextValue::String</span>(<span class="ident">usage</span>)),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>missing_subcommand(cmd: <span class="kw-2">&amp;</span>Command, name: String, usage: String) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[];
+        <span class="self">Self</span>::new(ErrorKind::MissingSubcommand)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([
+                (ContextKind::InvalidSubcommand, ContextValue::String(name)),
+                (ContextKind::Usage, ContextValue::String(usage)),
             ])
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">invalid_utf8</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>, <span class="ident">usage</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::InvalidUtf8</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([(<span class="ident">ContextKind::Usage</span>, <span class="ident">ContextValue::String</span>(<span class="ident">usage</span>))])
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invalid_utf8(cmd: <span class="kw-2">&amp;</span>Command, usage: String) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[];
+        <span class="self">Self</span>::new(ErrorKind::InvalidUtf8)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([(ContextKind::Usage, ContextValue::String(usage))])
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">too_many_occurrences</span>(
-        <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>,
-        <span class="ident">arg</span>: <span class="ident">String</span>,
-        <span class="ident">max_occurs</span>: <span class="ident">usize</span>,
-        <span class="ident">curr_occurs</span>: <span class="ident">usize</span>,
-        <span class="ident">usage</span>: <span class="ident">String</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">arg</span>.<span class="ident">clone</span>(), <span class="ident">curr_occurs</span>.<span class="ident">to_string</span>(), <span class="ident">max_occurs</span>.<span class="ident">to_string</span>()];
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::TooManyOccurrences</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidArg</span>, <span class="ident">ContextValue::String</span>(<span class="ident">arg</span>)),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>too_many_occurrences(
+        cmd: <span class="kw-2">&amp;</span>Command,
+        arg: String,
+        max_occurs: usize,
+        curr_occurs: usize,
+        usage: String,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[arg.clone(), curr_occurs.to_string(), max_occurs.to_string()];
+        <span class="self">Self</span>::new(ErrorKind::TooManyOccurrences)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([
+                (ContextKind::InvalidArg, ContextValue::String(arg)),
                 (
-                    <span class="ident">ContextKind::MaxOccurrences</span>,
-                    <span class="ident">ContextValue::Number</span>(<span class="ident">max_occurs</span> <span class="kw">as</span> <span class="ident">isize</span>),
-                ),
-                (
-                    <span class="ident">ContextKind::ActualNumValues</span>,
-                    <span class="ident">ContextValue::Number</span>(<span class="ident">curr_occurs</span> <span class="kw">as</span> <span class="ident">isize</span>),
-                ),
-                (<span class="ident">ContextKind::Usage</span>, <span class="ident">ContextValue::String</span>(<span class="ident">usage</span>)),
-            ])
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">too_many_values</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>, <span class="ident">val</span>: <span class="ident">String</span>, <span class="ident">arg</span>: <span class="ident">String</span>, <span class="ident">usage</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">arg</span>.<span class="ident">clone</span>(), <span class="ident">val</span>.<span class="ident">clone</span>()];
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::TooManyValues</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidArg</span>, <span class="ident">ContextValue::String</span>(<span class="ident">arg</span>)),
-                (<span class="ident">ContextKind::InvalidValue</span>, <span class="ident">ContextValue::String</span>(<span class="ident">val</span>)),
-                (<span class="ident">ContextKind::Usage</span>, <span class="ident">ContextValue::String</span>(<span class="ident">usage</span>)),
-            ])
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">too_few_values</span>(
-        <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>,
-        <span class="ident">arg</span>: <span class="ident">String</span>,
-        <span class="ident">min_vals</span>: <span class="ident">usize</span>,
-        <span class="ident">curr_vals</span>: <span class="ident">usize</span>,
-        <span class="ident">usage</span>: <span class="ident">String</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">arg</span>.<span class="ident">clone</span>(), <span class="ident">curr_vals</span>.<span class="ident">to_string</span>(), <span class="ident">min_vals</span>.<span class="ident">to_string</span>()];
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::TooFewValues</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidArg</span>, <span class="ident">ContextValue::String</span>(<span class="ident">arg</span>)),
-                (
-                    <span class="ident">ContextKind::MinValues</span>,
-                    <span class="ident">ContextValue::Number</span>(<span class="ident">min_vals</span> <span class="kw">as</span> <span class="ident">isize</span>),
+                    ContextKind::MaxOccurrences,
+                    ContextValue::Number(max_occurs <span class="kw">as </span>isize),
                 ),
                 (
-                    <span class="ident">ContextKind::ActualNumValues</span>,
-                    <span class="ident">ContextValue::Number</span>(<span class="ident">curr_vals</span> <span class="kw">as</span> <span class="ident">isize</span>),
+                    ContextKind::ActualNumValues,
+                    ContextValue::Number(curr_occurs <span class="kw">as </span>isize),
                 ),
-                (<span class="ident">ContextKind::Usage</span>, <span class="ident">ContextValue::String</span>(<span class="ident">usage</span>)),
+                (ContextKind::Usage, ContextValue::String(usage)),
             ])
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_validation</span>(
-        <span class="ident">arg</span>: <span class="ident">String</span>,
-        <span class="ident">val</span>: <span class="ident">String</span>,
-        <span class="ident">err</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">arg</span>.<span class="ident">clone</span>(), <span class="ident">val</span>.<span class="ident">to_string</span>(), <span class="ident">err</span>.<span class="ident">to_string</span>()];
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::ValueValidation</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">set_source</span>(<span class="ident">err</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidArg</span>, <span class="ident">ContextValue::String</span>(<span class="ident">arg</span>)),
-                (<span class="ident">ContextKind::InvalidValue</span>, <span class="ident">ContextValue::String</span>(<span class="ident">val</span>)),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>too_many_values(cmd: <span class="kw-2">&amp;</span>Command, val: String, arg: String, usage: String) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[arg.clone(), val.clone()];
+        <span class="self">Self</span>::new(ErrorKind::TooManyValues)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([
+                (ContextKind::InvalidArg, ContextValue::String(arg)),
+                (ContextKind::InvalidValue, ContextValue::String(val)),
+                (ContextKind::Usage, ContextValue::String(usage)),
             ])
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">wrong_number_of_values</span>(
-        <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>,
-        <span class="ident">arg</span>: <span class="ident">String</span>,
-        <span class="ident">num_vals</span>: <span class="ident">usize</span>,
-        <span class="ident">curr_vals</span>: <span class="ident">usize</span>,
-        <span class="ident">usage</span>: <span class="ident">String</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">arg</span>.<span class="ident">clone</span>(), <span class="ident">curr_vals</span>.<span class="ident">to_string</span>(), <span class="ident">num_vals</span>.<span class="ident">to_string</span>()];
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::WrongNumberOfValues</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidArg</span>, <span class="ident">ContextValue::String</span>(<span class="ident">arg</span>)),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>too_few_values(
+        cmd: <span class="kw-2">&amp;</span>Command,
+        arg: String,
+        min_vals: usize,
+        curr_vals: usize,
+        usage: String,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[arg.clone(), curr_vals.to_string(), min_vals.to_string()];
+        <span class="self">Self</span>::new(ErrorKind::TooFewValues)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([
+                (ContextKind::InvalidArg, ContextValue::String(arg)),
                 (
-                    <span class="ident">ContextKind::ExpectedNumValues</span>,
-                    <span class="ident">ContextValue::Number</span>(<span class="ident">num_vals</span> <span class="kw">as</span> <span class="ident">isize</span>),
+                    ContextKind::MinValues,
+                    ContextValue::Number(min_vals <span class="kw">as </span>isize),
                 ),
                 (
-                    <span class="ident">ContextKind::ActualNumValues</span>,
-                    <span class="ident">ContextValue::Number</span>(<span class="ident">curr_vals</span> <span class="kw">as</span> <span class="ident">isize</span>),
+                    ContextKind::ActualNumValues,
+                    ContextValue::Number(curr_vals <span class="kw">as </span>isize),
                 ),
-                (<span class="ident">ContextKind::Usage</span>, <span class="ident">ContextValue::String</span>(<span class="ident">usage</span>)),
+                (ContextKind::Usage, ContextValue::String(usage)),
             ])
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unexpected_multiple_usage</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>, <span class="ident">arg</span>: <span class="ident">String</span>, <span class="ident">usage</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">arg</span>.<span class="ident">clone</span>()];
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::UnexpectedMultipleUsage</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidArg</span>, <span class="ident">ContextValue::String</span>(<span class="ident">arg</span>)),
-                (<span class="ident">ContextKind::Usage</span>, <span class="ident">ContextValue::String</span>(<span class="ident">usage</span>)),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>value_validation(
+        arg: String,
+        val: String,
+        err: Box&lt;<span class="kw">dyn </span>error::Error + Send + Sync&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[arg.clone(), val.to_string(), err.to_string()];
+        <span class="self">Self</span>::new(ErrorKind::ValueValidation)
+            .set_info(info)
+            .set_source(err)
+            .extend_context_unchecked([
+                (ContextKind::InvalidArg, ContextValue::String(arg)),
+                (ContextKind::InvalidValue, ContextValue::String(val)),
             ])
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unknown_argument</span>(
-        <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>,
-        <span class="ident">arg</span>: <span class="ident">String</span>,
-        <span class="ident">did_you_mean</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
-        <span class="ident">usage</span>: <span class="ident">String</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">arg</span>.<span class="ident">clone</span>()];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::UnknownArgument</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidArg</span>, <span class="ident">ContextValue::String</span>(<span class="ident">arg</span>)),
-                (<span class="ident">ContextKind::Usage</span>, <span class="ident">ContextValue::String</span>(<span class="ident">usage</span>)),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wrong_number_of_values(
+        cmd: <span class="kw-2">&amp;</span>Command,
+        arg: String,
+        num_vals: usize,
+        curr_vals: usize,
+        usage: String,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[arg.clone(), curr_vals.to_string(), num_vals.to_string()];
+        <span class="self">Self</span>::new(ErrorKind::WrongNumberOfValues)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([
+                (ContextKind::InvalidArg, ContextValue::String(arg)),
+                (
+                    ContextKind::ExpectedNumValues,
+                    ContextValue::Number(num_vals <span class="kw">as </span>isize),
+                ),
+                (
+                    ContextKind::ActualNumValues,
+                    ContextValue::Number(curr_vals <span class="kw">as </span>isize),
+                ),
+                (ContextKind::Usage, ContextValue::String(usage)),
+            ])
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unexpected_multiple_usage(cmd: <span class="kw-2">&amp;</span>Command, arg: String, usage: String) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[arg.clone()];
+        <span class="self">Self</span>::new(ErrorKind::UnexpectedMultipleUsage)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([
+                (ContextKind::InvalidArg, ContextValue::String(arg)),
+                (ContextKind::Usage, ContextValue::String(usage)),
+            ])
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unknown_argument(
+        cmd: <span class="kw-2">&amp;</span>Command,
+        arg: String,
+        did_you_mean: <span class="prelude-ty">Option</span>&lt;(String, <span class="prelude-ty">Option</span>&lt;String&gt;)&gt;,
+        usage: String,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[arg.clone()];
+        <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::UnknownArgument)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([
+                (ContextKind::InvalidArg, ContextValue::String(arg)),
+                (ContextKind::Usage, ContextValue::String(usage)),
             ]);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">flag</span>, <span class="ident">sub</span>)) <span class="op">=</span> <span class="ident">did_you_mean</span> {
-            <span class="ident">err</span> <span class="op">=</span> <span class="ident">err</span>.<span class="ident">insert_context_unchecked</span>(
-                <span class="ident">ContextKind::SuggestedArg</span>,
-                <span class="ident">ContextValue::String</span>(<span class="macro">format!</span>(<span class="string">&quot;--{}&quot;</span>, <span class="ident">flag</span>)),
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((flag, sub)) = did_you_mean {
+            err = err.insert_context_unchecked(
+                ContextKind::SuggestedArg,
+                ContextValue::String(<span class="macro">format!</span>(<span class="string">&quot;--{}&quot;</span>, flag)),
             );
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sub</span>) <span class="op">=</span> <span class="ident">sub</span> {
-                <span class="ident">err</span> <span class="op">=</span> <span class="ident">err</span>.<span class="ident">insert_context_unchecked</span>(
-                    <span class="ident">ContextKind::SuggestedSubcommand</span>,
-                    <span class="ident">ContextValue::String</span>(<span class="ident">sub</span>),
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(sub) = sub {
+                err = err.insert_context_unchecked(
+                    ContextKind::SuggestedSubcommand,
+                    ContextValue::String(sub),
                 );
             }
         }
-        <span class="ident">err</span>
+        err
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unnecessary_double_dash</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>, <span class="ident">arg</span>: <span class="ident">String</span>, <span class="ident">usage</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">arg</span>.<span class="ident">clone</span>()];
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::UnknownArgument</span>)
-            .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([
-                (<span class="ident">ContextKind::InvalidArg</span>, <span class="ident">ContextValue::String</span>(<span class="ident">arg</span>)),
-                (<span class="ident">ContextKind::TrailingArg</span>, <span class="ident">ContextValue::Bool</span>(<span class="bool-val">true</span>)),
-                (<span class="ident">ContextKind::Usage</span>, <span class="ident">ContextValue::String</span>(<span class="ident">usage</span>)),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unnecessary_double_dash(cmd: <span class="kw-2">&amp;</span>Command, arg: String, usage: String) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[arg.clone()];
+        <span class="self">Self</span>::new(ErrorKind::UnknownArgument)
+            .with_cmd(cmd)
+            .set_info(info)
+            .extend_context_unchecked([
+                (ContextKind::InvalidArg, ContextValue::String(arg)),
+                (ContextKind::TrailingArg, ContextValue::Bool(<span class="bool-val">true</span>)),
+                (ContextKind::Usage, ContextValue::String(usage)),
             ])
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">argument_not_found_auto</span>(<span class="ident">arg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">arg</span>.<span class="ident">clone</span>()];
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ErrorKind::ArgumentNotFound</span>)
-            .<span class="ident">set_info</span>(<span class="ident">info</span>)
-            .<span class="ident">extend_context_unchecked</span>([(<span class="ident">ContextKind::InvalidArg</span>, <span class="ident">ContextValue::String</span>(<span class="ident">arg</span>))])
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>argument_not_found_auto(arg: String) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>info = <span class="macro">vec!</span>[arg.clone()];
+        <span class="self">Self</span>::new(ErrorKind::ArgumentNotFound)
+            .set_info(info)
+            .extend_context_unchecked([(ContextKind::InvalidArg, ContextValue::String(arg))])
     }
 
-    <span class="kw">fn</span> <span class="ident">formatted</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Colorizer</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">message</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">message</span>.<span class="ident">as_ref</span>() {
-            <span class="ident">message</span>.<span class="ident">formatted</span>()
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Colorizer::new</span>(<span class="self">self</span>.<span class="ident">stream</span>(), <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">color_when</span>);
+    <span class="kw">fn </span>formatted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, Colorizer&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = <span class="self">self</span>.inner.message.as_ref() {
+            message.formatted()
+        } <span class="kw">else </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>c = Colorizer::new(<span class="self">self</span>.stream(), <span class="self">self</span>.inner.color_when);
 
-            <span class="ident">start_error</span>(<span class="kw-2">&amp;mut</span> <span class="ident">c</span>);
+            start_error(<span class="kw-2">&amp;mut </span>c);
 
-            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">write_dynamic_context</span>(<span class="kw-2">&amp;mut</span> <span class="ident">c</span>) {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">kind</span>().<span class="ident">as_str</span>() {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="ident">msg</span>.<span class="ident">to_owned</span>());
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">source</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">source</span>.<span class="ident">as_ref</span>() {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="ident">source</span>.<span class="ident">to_string</span>());
-                } <span class="kw">else</span> {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;Unknown cause&quot;</span>);
+            <span class="kw">if </span>!<span class="self">self</span>.write_dynamic_context(<span class="kw-2">&amp;mut </span>c) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = <span class="self">self</span>.kind().as_str() {
+                    c.none(msg.to_owned());
+                } <span class="kw">else if let </span><span class="prelude-val">Some</span>(source) = <span class="self">self</span>.inner.source.as_ref() {
+                    c.none(source.to_string());
+                } <span class="kw">else </span>{
+                    c.none(<span class="string">&quot;Unknown cause&quot;</span>);
                 }
             }
 
-            <span class="kw">let</span> <span class="ident">usage</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::Usage</span>);
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">usage</span>)) <span class="op">=</span> <span class="ident">usage</span> {
-                <span class="ident">put_usage</span>(<span class="kw-2">&amp;mut</span> <span class="ident">c</span>, <span class="ident">usage</span>);
+            <span class="kw">let </span>usage = <span class="self">self</span>.get_context(ContextKind::Usage);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(usage)) = usage {
+                put_usage(<span class="kw-2">&amp;mut </span>c, usage);
             }
 
-            <span class="ident">try_help</span>(<span class="kw-2">&amp;mut</span> <span class="ident">c</span>, <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">help_flag</span>);
+            try_help(<span class="kw-2">&amp;mut </span>c, <span class="self">self</span>.inner.help_flag);
 
-            <span class="ident">Cow::Owned</span>(<span class="ident">c</span>)
+            Cow::Owned(c)
         }
     }
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_dynamic_context</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Colorizer</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span>() {
-            <span class="ident">ErrorKind::ArgumentConflict</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                <span class="kw">let</span> <span class="ident">prior_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::PriorArg</span>);
-                <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)), <span class="prelude-val">Some</span>(<span class="ident">prior_arg</span>)) <span class="op">=</span>
-                    (<span class="ident">invalid_arg</span>, <span class="ident">prior_arg</span>)
+    <span class="attribute">#[must_use]
+    </span><span class="kw">fn </span>write_dynamic_context(<span class="kw-2">&amp;</span><span class="self">self</span>, c: <span class="kw-2">&amp;mut </span>Colorizer) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.kind() {
+            ErrorKind::ArgumentConflict =&gt; {
+                <span class="kw">let </span>invalid_arg = <span class="self">self</span>.get_context(ContextKind::InvalidArg);
+                <span class="kw">let </span>prior_arg = <span class="self">self</span>.get_context(ContextKind::PriorArg);
+                <span class="kw">if let </span>(<span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)), <span class="prelude-val">Some</span>(prior_arg)) =
+                    (invalid_arg, prior_arg)
                 {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;The argument &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; cannot be used with&quot;</span>);
+                    c.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                    c.warning(invalid_arg);
+                    c.none(<span class="string">&quot;&#39; cannot be used with&quot;</span>);
 
-                    <span class="kw">match</span> <span class="ident">prior_arg</span> {
-                        <span class="ident">ContextValue::Strings</span>(<span class="ident">values</span>) =&gt; {
-                            <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;:&quot;</span>);
-                            <span class="kw">for</span> <span class="ident">v</span> <span class="kw">in</span> <span class="ident">values</span> {
-                                <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;\n    &quot;</span>);
-                                <span class="ident">c</span>.<span class="ident">warning</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">v</span>);
+                    <span class="kw">match </span>prior_arg {
+                        ContextValue::Strings(values) =&gt; {
+                            c.none(<span class="string">&quot;:&quot;</span>);
+                            <span class="kw">for </span>v <span class="kw">in </span>values {
+                                c.none(<span class="string">&quot;\n    &quot;</span>);
+                                c.warning(<span class="kw-2">&amp;**</span>v);
                             }
                         }
-                        <span class="ident">ContextValue::String</span>(<span class="ident">value</span>) =&gt; {
-                            <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot; &#39;&quot;</span>);
-                            <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">value</span>);
-                            <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;&quot;</span>);
+                        ContextValue::String(value) =&gt; {
+                            c.none(<span class="string">&quot; &#39;&quot;</span>);
+                            c.warning(value);
+                            c.none(<span class="string">&quot;&#39;&quot;</span>);
                         }
-                        <span class="kw">_</span> =&gt; {
-                            <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot; one or more of the other specified arguments&quot;</span>);
+                        <span class="kw">_ </span>=&gt; {
+                            c.none(<span class="string">&quot; one or more of the other specified arguments&quot;</span>);
                         }
                     }
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::EmptyValue</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)) <span class="op">=</span> <span class="ident">invalid_arg</span> {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;The argument &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; requires a value but none was supplied&quot;</span>);
+            ErrorKind::EmptyValue =&gt; {
+                <span class="kw">let </span>invalid_arg = <span class="self">self</span>.get_context(ContextKind::InvalidArg);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)) = invalid_arg {
+                    c.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                    c.warning(invalid_arg);
+                    c.none(<span class="string">&quot;&#39; requires a value but none was supplied&quot;</span>);
 
-                    <span class="kw">let</span> <span class="ident">possible_values</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::ValidValue</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::Strings</span>(<span class="ident">possible_values</span>)) <span class="op">=</span> <span class="ident">possible_values</span> {
-                        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;\n\t[possible values: &quot;</span>);
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">last</span>, <span class="ident">elements</span>)) <span class="op">=</span> <span class="ident">possible_values</span>.<span class="ident">split_last</span>() {
-                            <span class="kw">for</span> <span class="ident">v</span> <span class="kw">in</span> <span class="ident">elements</span> {
-                                <span class="ident">c</span>.<span class="ident">good</span>(<span class="ident">escape</span>(<span class="ident">v</span>));
-                                <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;, &quot;</span>);
+                    <span class="kw">let </span>possible_values = <span class="self">self</span>.get_context(ContextKind::ValidValue);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::Strings(possible_values)) = possible_values {
+                        c.none(<span class="string">&quot;\n\t[possible values: &quot;</span>);
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>((last, elements)) = possible_values.split_last() {
+                            <span class="kw">for </span>v <span class="kw">in </span>elements {
+                                c.good(escape(v));
+                                c.none(<span class="string">&quot;, &quot;</span>);
                             }
-                            <span class="ident">c</span>.<span class="ident">good</span>(<span class="ident">escape</span>(<span class="ident">last</span>));
+                            c.good(escape(last));
                         }
-                        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;]&quot;</span>);
+                        c.none(<span class="string">&quot;]&quot;</span>);
                     }
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::NoEquals</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)) <span class="op">=</span> <span class="ident">invalid_arg</span> {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;Equal sign is needed when assigning values to &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;.&quot;</span>);
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+            ErrorKind::NoEquals =&gt; {
+                <span class="kw">let </span>invalid_arg = <span class="self">self</span>.get_context(ContextKind::InvalidArg);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)) = invalid_arg {
+                    c.none(<span class="string">&quot;Equal sign is needed when assigning values to &#39;&quot;</span>);
+                    c.warning(invalid_arg);
+                    c.none(<span class="string">&quot;&#39;.&quot;</span>);
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::InvalidValue</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                <span class="kw">let</span> <span class="ident">invalid_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidValue</span>);
-                <span class="kw">if</span> <span class="kw">let</span> (
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)),
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_value</span>)),
-                ) <span class="op">=</span> (<span class="ident">invalid_arg</span>, <span class="ident">invalid_value</span>)
+            ErrorKind::InvalidValue =&gt; {
+                <span class="kw">let </span>invalid_arg = <span class="self">self</span>.get_context(ContextKind::InvalidArg);
+                <span class="kw">let </span>invalid_value = <span class="self">self</span>.get_context(ContextKind::InvalidValue);
+                <span class="kw">if let </span>(
+                    <span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)),
+                    <span class="prelude-val">Some</span>(ContextValue::String(invalid_value)),
+                ) = (invalid_arg, invalid_value)
                 {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="ident">quote</span>(<span class="ident">invalid_value</span>));
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot; isn&#39;t a valid value for &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;&quot;</span>);
+                    c.none(quote(invalid_value));
+                    c.none(<span class="string">&quot; isn&#39;t a valid value for &#39;&quot;</span>);
+                    c.warning(invalid_arg);
+                    c.none(<span class="string">&quot;&#39;&quot;</span>);
 
-                    <span class="kw">let</span> <span class="ident">possible_values</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::ValidValue</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::Strings</span>(<span class="ident">possible_values</span>)) <span class="op">=</span> <span class="ident">possible_values</span> {
-                        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;\n\t[possible values: &quot;</span>);
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">last</span>, <span class="ident">elements</span>)) <span class="op">=</span> <span class="ident">possible_values</span>.<span class="ident">split_last</span>() {
-                            <span class="kw">for</span> <span class="ident">v</span> <span class="kw">in</span> <span class="ident">elements</span> {
-                                <span class="ident">c</span>.<span class="ident">good</span>(<span class="ident">escape</span>(<span class="ident">v</span>));
-                                <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;, &quot;</span>);
+                    <span class="kw">let </span>possible_values = <span class="self">self</span>.get_context(ContextKind::ValidValue);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::Strings(possible_values)) = possible_values {
+                        c.none(<span class="string">&quot;\n\t[possible values: &quot;</span>);
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>((last, elements)) = possible_values.split_last() {
+                            <span class="kw">for </span>v <span class="kw">in </span>elements {
+                                c.good(escape(v));
+                                c.none(<span class="string">&quot;, &quot;</span>);
                             }
-                            <span class="ident">c</span>.<span class="ident">good</span>(<span class="ident">escape</span>(<span class="ident">last</span>));
+                            c.good(escape(last));
                         }
-                        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;]&quot;</span>);
+                        c.none(<span class="string">&quot;]&quot;</span>);
                     }
 
-                    <span class="kw">let</span> <span class="ident">suggestion</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::SuggestedValue</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">suggestion</span>)) <span class="op">=</span> <span class="ident">suggestion</span> {
-                        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n\tDid you mean &quot;</span>);
-                        <span class="ident">c</span>.<span class="ident">good</span>(<span class="ident">quote</span>(<span class="ident">suggestion</span>));
-                        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;?&quot;</span>);
+                    <span class="kw">let </span>suggestion = <span class="self">self</span>.get_context(ContextKind::SuggestedValue);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(suggestion)) = suggestion {
+                        c.none(<span class="string">&quot;\n\n\tDid you mean &quot;</span>);
+                        c.good(quote(suggestion));
+                        c.none(<span class="string">&quot;?&quot;</span>);
                     }
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::InvalidSubcommand</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_sub</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidSubcommand</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_sub</span>)) <span class="op">=</span> <span class="ident">invalid_sub</span> {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;The subcommand &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_sub</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; wasn&#39;t recognized&quot;</span>);
+            ErrorKind::InvalidSubcommand =&gt; {
+                <span class="kw">let </span>invalid_sub = <span class="self">self</span>.get_context(ContextKind::InvalidSubcommand);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_sub)) = invalid_sub {
+                    c.none(<span class="string">&quot;The subcommand &#39;&quot;</span>);
+                    c.warning(invalid_sub);
+                    c.none(<span class="string">&quot;&#39; wasn&#39;t recognized&quot;</span>);
 
-                    <span class="kw">let</span> <span class="ident">valid_sub</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::SuggestedSubcommand</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">valid_sub</span>)) <span class="op">=</span> <span class="ident">valid_sub</span> {
-                        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n\tDid you mean &quot;</span>);
-                        <span class="ident">c</span>.<span class="ident">good</span>(<span class="ident">valid_sub</span>);
-                        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;?&quot;</span>);
+                    <span class="kw">let </span>valid_sub = <span class="self">self</span>.get_context(ContextKind::SuggestedSubcommand);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(valid_sub)) = valid_sub {
+                        c.none(<span class="string">&quot;\n\n\tDid you mean &quot;</span>);
+                        c.good(valid_sub);
+                        c.none(<span class="string">&quot;?&quot;</span>);
                     }
 
-                    <span class="kw">let</span> <span class="ident">suggestion</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::SuggestedCommand</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">suggestion</span>)) <span class="op">=</span> <span class="ident">suggestion</span> {
-                        <span class="ident">c</span>.<span class="ident">none</span>(
+                    <span class="kw">let </span>suggestion = <span class="self">self</span>.get_context(ContextKind::SuggestedCommand);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(suggestion)) = suggestion {
+                        c.none(
             <span class="string">&quot;\n\nIf you believe you received this message in error, try re-running with &#39;&quot;</span>,
         );
-                        <span class="ident">c</span>.<span class="ident">good</span>(<span class="ident">suggestion</span>);
-                        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;&quot;</span>);
+                        c.good(suggestion);
+                        c.none(<span class="string">&quot;&#39;&quot;</span>);
                     }
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::UnrecognizedSubcommand</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_sub</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidSubcommand</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_sub</span>)) <span class="op">=</span> <span class="ident">invalid_sub</span> {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;The subcommand &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_sub</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; wasn&#39;t recognized&quot;</span>);
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+            ErrorKind::UnrecognizedSubcommand =&gt; {
+                <span class="kw">let </span>invalid_sub = <span class="self">self</span>.get_context(ContextKind::InvalidSubcommand);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_sub)) = invalid_sub {
+                    c.none(<span class="string">&quot;The subcommand &#39;&quot;</span>);
+                    c.warning(invalid_sub);
+                    c.none(<span class="string">&quot;&#39; wasn&#39;t recognized&quot;</span>);
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::MissingRequiredArgument</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::Strings</span>(<span class="ident">invalid_arg</span>)) <span class="op">=</span> <span class="ident">invalid_arg</span> {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;The following required arguments were not provided:&quot;</span>);
-                    <span class="kw">for</span> <span class="ident">v</span> <span class="kw">in</span> <span class="ident">invalid_arg</span> {
-                        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;\n    &quot;</span>);
-                        <span class="ident">c</span>.<span class="ident">good</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">v</span>);
+            ErrorKind::MissingRequiredArgument =&gt; {
+                <span class="kw">let </span>invalid_arg = <span class="self">self</span>.get_context(ContextKind::InvalidArg);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::Strings(invalid_arg)) = invalid_arg {
+                    c.none(<span class="string">&quot;The following required arguments were not provided:&quot;</span>);
+                    <span class="kw">for </span>v <span class="kw">in </span>invalid_arg {
+                        c.none(<span class="string">&quot;\n    &quot;</span>);
+                        c.good(<span class="kw-2">&amp;**</span>v);
                     }
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::MissingSubcommand</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_sub</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidSubcommand</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_sub</span>)) <span class="op">=</span> <span class="ident">invalid_sub</span> {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_sub</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; requires a subcommand but one was not provided&quot;</span>);
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+            ErrorKind::MissingSubcommand =&gt; {
+                <span class="kw">let </span>invalid_sub = <span class="self">self</span>.get_context(ContextKind::InvalidSubcommand);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_sub)) = invalid_sub {
+                    c.none(<span class="string">&quot;&#39;&quot;</span>);
+                    c.warning(invalid_sub);
+                    c.none(<span class="string">&quot;&#39; requires a subcommand but one was not provided&quot;</span>);
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::InvalidUtf8</span> =&gt; <span class="bool-val">false</span>,
-            <span class="ident">ErrorKind::TooManyOccurrences</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                <span class="kw">let</span> <span class="ident">actual_num_occurs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::ActualNumOccurrences</span>);
-                <span class="kw">let</span> <span class="ident">max_occurs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::MaxOccurrences</span>);
-                <span class="kw">if</span> <span class="kw">let</span> (
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)),
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::Number</span>(<span class="ident">actual_num_occurs</span>)),
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::Number</span>(<span class="ident">max_occurs</span>)),
-                ) <span class="op">=</span> (<span class="ident">invalid_arg</span>, <span class="ident">actual_num_occurs</span>, <span class="ident">max_occurs</span>)
+            ErrorKind::InvalidUtf8 =&gt; <span class="bool-val">false</span>,
+            ErrorKind::TooManyOccurrences =&gt; {
+                <span class="kw">let </span>invalid_arg = <span class="self">self</span>.get_context(ContextKind::InvalidArg);
+                <span class="kw">let </span>actual_num_occurs = <span class="self">self</span>.get_context(ContextKind::ActualNumOccurrences);
+                <span class="kw">let </span>max_occurs = <span class="self">self</span>.get_context(ContextKind::MaxOccurrences);
+                <span class="kw">if let </span>(
+                    <span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)),
+                    <span class="prelude-val">Some</span>(ContextValue::Number(actual_num_occurs)),
+                    <span class="prelude-val">Some</span>(ContextValue::Number(max_occurs)),
+                ) = (invalid_arg, actual_num_occurs, max_occurs)
                 {
-                    <span class="kw">let</span> <span class="ident">were_provided</span> <span class="op">=</span> <span class="ident">Error::singular_or_plural</span>(<span class="kw-2">*</span><span class="ident">actual_num_occurs</span> <span class="kw">as</span> <span class="ident">usize</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;The argument &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; allows at most &quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">max_occurs</span>.<span class="ident">to_string</span>());
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot; occurrences but &quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">actual_num_occurs</span>.<span class="ident">to_string</span>());
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="ident">were_provided</span>);
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+                    <span class="kw">let </span>were_provided = Error::singular_or_plural(<span class="kw-2">*</span>actual_num_occurs <span class="kw">as </span>usize);
+                    c.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                    c.warning(invalid_arg);
+                    c.none(<span class="string">&quot;&#39; allows at most &quot;</span>);
+                    c.warning(max_occurs.to_string());
+                    c.none(<span class="string">&quot; occurrences but &quot;</span>);
+                    c.warning(actual_num_occurs.to_string());
+                    c.none(were_provided);
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::TooManyValues</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                <span class="kw">let</span> <span class="ident">invalid_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidValue</span>);
-                <span class="kw">if</span> <span class="kw">let</span> (
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)),
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_value</span>)),
-                ) <span class="op">=</span> (<span class="ident">invalid_arg</span>, <span class="ident">invalid_value</span>)
+            ErrorKind::TooManyValues =&gt; {
+                <span class="kw">let </span>invalid_arg = <span class="self">self</span>.get_context(ContextKind::InvalidArg);
+                <span class="kw">let </span>invalid_value = <span class="self">self</span>.get_context(ContextKind::InvalidValue);
+                <span class="kw">if let </span>(
+                    <span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)),
+                    <span class="prelude-val">Some</span>(ContextValue::String(invalid_value)),
+                ) = (invalid_arg, invalid_value)
                 {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;The value &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_value</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; was provided to &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; but it wasn&#39;t expecting any more values&quot;</span>);
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+                    c.none(<span class="string">&quot;The value &#39;&quot;</span>);
+                    c.warning(invalid_value);
+                    c.none(<span class="string">&quot;&#39; was provided to &#39;&quot;</span>);
+                    c.warning(invalid_arg);
+                    c.none(<span class="string">&quot;&#39; but it wasn&#39;t expecting any more values&quot;</span>);
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::TooFewValues</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                <span class="kw">let</span> <span class="ident">actual_num_values</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::ActualNumValues</span>);
-                <span class="kw">let</span> <span class="ident">min_values</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::MinValues</span>);
-                <span class="kw">if</span> <span class="kw">let</span> (
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)),
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::Number</span>(<span class="ident">actual_num_values</span>)),
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::Number</span>(<span class="ident">min_values</span>)),
-                ) <span class="op">=</span> (<span class="ident">invalid_arg</span>, <span class="ident">actual_num_values</span>, <span class="ident">min_values</span>)
+            ErrorKind::TooFewValues =&gt; {
+                <span class="kw">let </span>invalid_arg = <span class="self">self</span>.get_context(ContextKind::InvalidArg);
+                <span class="kw">let </span>actual_num_values = <span class="self">self</span>.get_context(ContextKind::ActualNumValues);
+                <span class="kw">let </span>min_values = <span class="self">self</span>.get_context(ContextKind::MinValues);
+                <span class="kw">if let </span>(
+                    <span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)),
+                    <span class="prelude-val">Some</span>(ContextValue::Number(actual_num_values)),
+                    <span class="prelude-val">Some</span>(ContextValue::Number(min_values)),
+                ) = (invalid_arg, actual_num_values, min_values)
                 {
-                    <span class="kw">let</span> <span class="ident">were_provided</span> <span class="op">=</span> <span class="ident">Error::singular_or_plural</span>(<span class="kw-2">*</span><span class="ident">actual_num_values</span> <span class="kw">as</span> <span class="ident">usize</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;The argument &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; requires at least &quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">min_values</span>.<span class="ident">to_string</span>());
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot; values but only &quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">actual_num_values</span>.<span class="ident">to_string</span>());
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="ident">were_provided</span>);
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+                    <span class="kw">let </span>were_provided = Error::singular_or_plural(<span class="kw-2">*</span>actual_num_values <span class="kw">as </span>usize);
+                    c.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                    c.warning(invalid_arg);
+                    c.none(<span class="string">&quot;&#39; requires at least &quot;</span>);
+                    c.warning(min_values.to_string());
+                    c.none(<span class="string">&quot; values but only &quot;</span>);
+                    c.warning(actual_num_values.to_string());
+                    c.none(were_provided);
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::ValueValidation</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                <span class="kw">let</span> <span class="ident">invalid_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidValue</span>);
-                <span class="kw">if</span> <span class="kw">let</span> (
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)),
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_value</span>)),
-                ) <span class="op">=</span> (<span class="ident">invalid_arg</span>, <span class="ident">invalid_value</span>)
+            ErrorKind::ValueValidation =&gt; {
+                <span class="kw">let </span>invalid_arg = <span class="self">self</span>.get_context(ContextKind::InvalidArg);
+                <span class="kw">let </span>invalid_value = <span class="self">self</span>.get_context(ContextKind::InvalidValue);
+                <span class="kw">if let </span>(
+                    <span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)),
+                    <span class="prelude-val">Some</span>(ContextValue::String(invalid_value)),
+                ) = (invalid_arg, invalid_value)
                 {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;Invalid value &quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">quote</span>(<span class="ident">invalid_value</span>));
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot; for &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">source</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">source</span>.<span class="ident">as_deref</span>() {
-                        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;: &quot;</span>);
-                        <span class="ident">c</span>.<span class="ident">none</span>(<span class="ident">source</span>.<span class="ident">to_string</span>());
-                    } <span class="kw">else</span> {
-                        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;&quot;</span>);
+                    c.none(<span class="string">&quot;Invalid value &quot;</span>);
+                    c.warning(quote(invalid_value));
+                    c.none(<span class="string">&quot; for &#39;&quot;</span>);
+                    c.warning(invalid_arg);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(source) = <span class="self">self</span>.inner.source.as_deref() {
+                        c.none(<span class="string">&quot;&#39;: &quot;</span>);
+                        c.none(source.to_string());
+                    } <span class="kw">else </span>{
+                        c.none(<span class="string">&quot;&#39;&quot;</span>);
                     }
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::WrongNumberOfValues</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                <span class="kw">let</span> <span class="ident">actual_num_values</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::ActualNumValues</span>);
-                <span class="kw">let</span> <span class="ident">num_values</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::ExpectedNumValues</span>);
-                <span class="kw">if</span> <span class="kw">let</span> (
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)),
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::Number</span>(<span class="ident">actual_num_values</span>)),
-                    <span class="prelude-val">Some</span>(<span class="ident">ContextValue::Number</span>(<span class="ident">num_values</span>)),
-                ) <span class="op">=</span> (<span class="ident">invalid_arg</span>, <span class="ident">actual_num_values</span>, <span class="ident">num_values</span>)
+            ErrorKind::WrongNumberOfValues =&gt; {
+                <span class="kw">let </span>invalid_arg = <span class="self">self</span>.get_context(ContextKind::InvalidArg);
+                <span class="kw">let </span>actual_num_values = <span class="self">self</span>.get_context(ContextKind::ActualNumValues);
+                <span class="kw">let </span>num_values = <span class="self">self</span>.get_context(ContextKind::ExpectedNumValues);
+                <span class="kw">if let </span>(
+                    <span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)),
+                    <span class="prelude-val">Some</span>(ContextValue::Number(actual_num_values)),
+                    <span class="prelude-val">Some</span>(ContextValue::Number(num_values)),
+                ) = (invalid_arg, actual_num_values, num_values)
                 {
-                    <span class="kw">let</span> <span class="ident">were_provided</span> <span class="op">=</span> <span class="ident">Error::singular_or_plural</span>(<span class="kw-2">*</span><span class="ident">actual_num_values</span> <span class="kw">as</span> <span class="ident">usize</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;The argument &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; requires &quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">num_values</span>.<span class="ident">to_string</span>());
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot; values, but &quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">actual_num_values</span>.<span class="ident">to_string</span>());
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="ident">were_provided</span>);
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+                    <span class="kw">let </span>were_provided = Error::singular_or_plural(<span class="kw-2">*</span>actual_num_values <span class="kw">as </span>usize);
+                    c.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                    c.warning(invalid_arg);
+                    c.none(<span class="string">&quot;&#39; requires &quot;</span>);
+                    c.warning(num_values.to_string());
+                    c.none(<span class="string">&quot; values, but &quot;</span>);
+                    c.warning(actual_num_values.to_string());
+                    c.none(were_provided);
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::UnexpectedMultipleUsage</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)) <span class="op">=</span> <span class="ident">invalid_arg</span> {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;The argument &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>.<span class="ident">to_string</span>());
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; was provided more than once, but cannot be used multiple times&quot;</span>);
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+            ErrorKind::UnexpectedMultipleUsage =&gt; {
+                <span class="kw">let </span>invalid_arg = <span class="self">self</span>.get_context(ContextKind::InvalidArg);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)) = invalid_arg {
+                    c.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                    c.warning(invalid_arg.to_string());
+                    c.none(<span class="string">&quot;&#39; was provided more than once, but cannot be used multiple times&quot;</span>);
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::UnknownArgument</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)) <span class="op">=</span> <span class="ident">invalid_arg</span> {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;Found argument &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>.<span class="ident">to_string</span>());
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; which wasn&#39;t expected, or isn&#39;t valid in this context&quot;</span>);
+            ErrorKind::UnknownArgument =&gt; {
+                <span class="kw">let </span>invalid_arg = <span class="self">self</span>.get_context(ContextKind::InvalidArg);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)) = invalid_arg {
+                    c.none(<span class="string">&quot;Found argument &#39;&quot;</span>);
+                    c.warning(invalid_arg.to_string());
+                    c.none(<span class="string">&quot;&#39; which wasn&#39;t expected, or isn&#39;t valid in this context&quot;</span>);
 
-                    <span class="kw">let</span> <span class="ident">valid_sub</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::SuggestedSubcommand</span>);
-                    <span class="kw">let</span> <span class="ident">valid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::SuggestedArg</span>);
-                    <span class="kw">match</span> (<span class="ident">valid_sub</span>, <span class="ident">valid_arg</span>) {
+                    <span class="kw">let </span>valid_sub = <span class="self">self</span>.get_context(ContextKind::SuggestedSubcommand);
+                    <span class="kw">let </span>valid_arg = <span class="self">self</span>.get_context(ContextKind::SuggestedArg);
+                    <span class="kw">match </span>(valid_sub, valid_arg) {
                         (
-                            <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">valid_sub</span>)),
-                            <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">valid_arg</span>)),
+                            <span class="prelude-val">Some</span>(ContextValue::String(valid_sub)),
+                            <span class="prelude-val">Some</span>(ContextValue::String(valid_arg)),
                         ) =&gt; {
-                            <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n\tDid you mean &quot;</span>);
-                            <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;to put &#39;&quot;</span>);
-                            <span class="ident">c</span>.<span class="ident">good</span>(<span class="ident">valid_arg</span>);
-                            <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; after the subcommand &#39;&quot;</span>);
-                            <span class="ident">c</span>.<span class="ident">good</span>(<span class="ident">valid_sub</span>);
-                            <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;?&quot;</span>);
+                            c.none(<span class="string">&quot;\n\n\tDid you mean &quot;</span>);
+                            c.none(<span class="string">&quot;to put &#39;&quot;</span>);
+                            c.good(valid_arg);
+                            c.none(<span class="string">&quot;&#39; after the subcommand &#39;&quot;</span>);
+                            c.good(valid_sub);
+                            c.none(<span class="string">&quot;&#39;?&quot;</span>);
                         }
-                        (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">valid_arg</span>))) =&gt; {
-                            <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n\tDid you mean &#39;&quot;</span>);
-                            <span class="ident">c</span>.<span class="ident">good</span>(<span class="ident">valid_arg</span>);
-                            <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;?&quot;</span>);
+                        (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(ContextValue::String(valid_arg))) =&gt; {
+                            c.none(<span class="string">&quot;\n\n\tDid you mean &#39;&quot;</span>);
+                            c.good(valid_arg);
+                            c.none(<span class="string">&quot;&#39;?&quot;</span>);
                         }
                         (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {}
                     }
 
-                    <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)) <span class="op">=</span> <span class="ident">invalid_arg</span> {
-                        <span class="kw">if</span> <span class="ident">invalid_arg</span>.<span class="ident">starts_with</span>(<span class="string">&#39;-&#39;</span>) {
-                            <span class="ident">c</span>.<span class="ident">none</span>(<span class="macro">format!</span>(
+                    <span class="kw">let </span>invalid_arg = <span class="self">self</span>.get_context(ContextKind::InvalidArg);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)) = invalid_arg {
+                        <span class="kw">if </span>invalid_arg.starts_with(<span class="string">&#39;-&#39;</span>) {
+                            c.none(<span class="macro">format!</span>(
                                 <span class="string">&quot;\n\n\tIf you tried to supply `{}` as a value rather than a flag, use `-- {}`&quot;</span>,
-                                <span class="ident">invalid_arg</span>, <span class="ident">invalid_arg</span>
+                                invalid_arg, invalid_arg
                             ));
                         }
 
-                        <span class="kw">let</span> <span class="ident">trailing_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::TrailingArg</span>);
-                        <span class="kw">if</span> <span class="ident">trailing_arg</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">ContextValue::Bool</span>(<span class="bool-val">true</span>)) {
-                            <span class="ident">c</span>.<span class="ident">none</span>(<span class="macro">format!</span>(
+                        <span class="kw">let </span>trailing_arg = <span class="self">self</span>.get_context(ContextKind::TrailingArg);
+                        <span class="kw">if </span>trailing_arg == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>ContextValue::Bool(<span class="bool-val">true</span>)) {
+                            c.none(<span class="macro">format!</span>(
                             <span class="string">&quot;\n\n\tIf you tried to supply `{}` as a subcommand, remove the &#39;--&#39; before it.&quot;</span>,
-                            <span class="ident">invalid_arg</span>
+                            invalid_arg
                         ));
                         }
                     }
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::ArgumentNotFound</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)) <span class="op">=</span> <span class="ident">invalid_arg</span> {
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;The argument &#39;&quot;</span>);
-                    <span class="ident">c</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>.<span class="ident">to_string</span>());
-                    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; wasn&#39;t found&quot;</span>);
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
-                }
+            ErrorKind::ArgumentNotFound =&gt; {
+                <span class="kw">let </span>invalid_arg = <span class="self">self</span>.get_context(ContextKind::InvalidArg);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)) = invalid_arg {
+                    c.none(<span class="string">&quot;The argument &#39;&quot;</span>);
+                    c.warning(invalid_arg.to_string());
+                    c.none(<span class="string">&quot;&#39; wasn&#39;t found&quot;</span>);
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
             }
-            <span class="ident">ErrorKind::DisplayHelp</span>
-            <span class="op">|</span> <span class="ident">ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand</span>
-            <span class="op">|</span> <span class="ident">ErrorKind::DisplayVersion</span>
-            <span class="op">|</span> <span class="ident">ErrorKind::Io</span>
-            <span class="op">|</span> <span class="ident">ErrorKind::Format</span> =&gt; <span class="bool-val">false</span>,
+            ErrorKind::DisplayHelp
+            | ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand
+            | ErrorKind::DisplayVersion
+            | ErrorKind::Io
+            | ErrorKind::Format =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="doccomment">/// Returns the singular or plural form on the verb to be based on the argument&#39;s value.</span>
-    <span class="kw">fn</span> <span class="ident">singular_or_plural</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-        <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="number">1</span> {
-            <span class="string">&quot; were provided&quot;</span>
-        } <span class="kw">else</span> {
-            <span class="string">&quot; was provided&quot;</span>
-        }
+    <span class="doccomment">/// Returns the singular or plural form on the verb to be based on the argument&#39;s value.
+    </span><span class="kw">fn </span>singular_or_plural(n: usize) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">if </span>n &gt; <span class="number">1 </span>{
+            <span class="string">&quot; were provided&quot;
+        </span>} <span class="kw">else </span>{
+            <span class="string">&quot; was provided&quot;
+        </span>}
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">io::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">io::Error</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Error::raw</span>(<span class="ident">ErrorKind::Io</span>, <span class="ident">e</span>)
+<span class="kw">impl </span>From&lt;io::Error&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(e: io::Error) -&gt; <span class="self">Self </span>{
+        Error::raw(ErrorKind::Io, e)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">fmt::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">fmt::Error</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Error::raw</span>(<span class="ident">ErrorKind::Format</span>, <span class="ident">e</span>)
+<span class="kw">impl </span>From&lt;fmt::Error&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(e: fmt::Error) -&gt; <span class="self">Self </span>{
+        Error::raw(ErrorKind::Format, e)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">error::Error</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">trivial_casts</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">source</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">as_ref</span>() <span class="kw">as</span> <span class="kw">_</span>)
+<span class="kw">impl </span>error::Error <span class="kw">for </span>Error {
+    <span class="attribute">#[allow(trivial_casts)]
+    </span><span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="self">self</span>.inner.source.as_ref().map(|e| e.as_ref() <span class="kw">as _</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="comment">// Assuming `self.message` already has a trailing newline, from `try_help` or similar</span>
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">formatted</span>())<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">backtrace</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">backtrace</span>.<span class="ident">as_ref</span>() {
-            <span class="macro">writeln!</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;Backtrace:&quot;</span>)<span class="question-mark">?</span>;
-            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">backtrace</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span>Display <span class="kw">for </span>Error {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; fmt::Result {
+        <span class="comment">// Assuming `self.message` already has a trailing newline, from `try_help` or similar
+        </span><span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.formatted())<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(backtrace) = <span class="self">self</span>.inner.backtrace.as_ref() {
+            <span class="macro">writeln!</span>(f)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(f, <span class="string">&quot;Backtrace:&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(f, <span class="string">&quot;{}&quot;</span>, backtrace)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">fn</span> <span class="ident">start_error</span>(<span class="ident">c</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Colorizer</span>) {
-    <span class="ident">c</span>.<span class="ident">error</span>(<span class="string">&quot;error:&quot;</span>);
-    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot; &quot;</span>);
+<span class="kw">fn </span>start_error(c: <span class="kw-2">&amp;mut </span>Colorizer) {
+    c.error(<span class="string">&quot;error:&quot;</span>);
+    c.none(<span class="string">&quot; &quot;</span>);
 }
 
-<span class="kw">fn</span> <span class="ident">put_usage</span>(<span class="ident">c</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Colorizer</span>, <span class="ident">usage</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) {
-    <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n&quot;</span>);
-    <span class="ident">c</span>.<span class="ident">none</span>(<span class="ident">usage</span>);
+<span class="kw">fn </span>put_usage(c: <span class="kw-2">&amp;mut </span>Colorizer, usage: <span class="kw">impl </span>Into&lt;String&gt;) {
+    c.none(<span class="string">&quot;\n\n&quot;</span>);
+    c.none(usage);
 }
 
-<span class="kw">fn</span> <span class="ident">get_help_flag</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">cmd</span>.<span class="ident">is_disable_help_flag_set</span>() {
+<span class="kw">fn </span>get_help_flag(cmd: <span class="kw-2">&amp;</span>Command) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    <span class="kw">if </span>!cmd.is_disable_help_flag_set() {
         <span class="prelude-val">Some</span>(<span class="string">&quot;--help&quot;</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">cmd</span>.<span class="ident">has_subcommands</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">cmd</span>.<span class="ident">is_disable_help_subcommand_set</span>() {
+    } <span class="kw">else if </span>cmd.has_subcommands() &amp;&amp; !cmd.is_disable_help_subcommand_set() {
         <span class="prelude-val">Some</span>(<span class="string">&quot;help&quot;</span>)
-    } <span class="kw">else</span> {
-        <span class="prelude-val">None</span>
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>}
+}
+
+<span class="kw">fn </span>try_help(c: <span class="kw-2">&amp;mut </span>Colorizer, help: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(help) = help {
+        c.none(<span class="string">&quot;\n\nFor more information try &quot;</span>);
+        c.good(help);
+        c.none(<span class="string">&quot;\n&quot;</span>);
+    } <span class="kw">else </span>{
+        c.none(<span class="string">&quot;\n&quot;</span>);
     }
 }
 
-<span class="kw">fn</span> <span class="ident">try_help</span>(<span class="ident">c</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Colorizer</span>, <span class="ident">help</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">help</span>) <span class="op">=</span> <span class="ident">help</span> {
-        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;\n\nFor more information try &quot;</span>);
-        <span class="ident">c</span>.<span class="ident">good</span>(<span class="ident">help</span>);
-        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;\n&quot;</span>);
-    } <span class="kw">else</span> {
-        <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;\n&quot;</span>);
+<span class="kw">fn </span>quote(s: <span class="kw">impl </span>AsRef&lt;str&gt;) -&gt; String {
+    <span class="kw">let </span>s = s.as_ref();
+    <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, s)
+}
+
+<span class="kw">fn </span>escape(s: <span class="kw">impl </span>AsRef&lt;str&gt;) -&gt; String {
+    <span class="kw">let </span>s = s.as_ref();
+    <span class="kw">if </span>s.contains(char::is_whitespace) {
+        quote(s)
+    } <span class="kw">else </span>{
+        s.to_owned()
     }
 }
 
-<span class="kw">fn</span> <span class="ident">quote</span>(<span class="ident">s</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span> {
-    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">as_ref</span>();
-    <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">s</span>)
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Message {
+    Raw(String),
+    Formatted(Colorizer),
 }
 
-<span class="kw">fn</span> <span class="ident">escape</span>(<span class="ident">s</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span> {
-    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">as_ref</span>();
-    <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">contains</span>(<span class="ident">char::is_whitespace</span>) {
-        <span class="ident">quote</span>(<span class="ident">s</span>)
-    } <span class="kw">else</span> {
-        <span class="ident">s</span>.<span class="ident">to_owned</span>()
-    }
-}
+<span class="kw">impl </span>Message {
+    <span class="kw">fn </span>format(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cmd: <span class="kw-2">&amp;</span>Command, usage: String) {
+        <span class="kw">match </span><span class="self">self </span>{
+            Message::Raw(s) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>c = Colorizer::new(Stream::Stderr, cmd.get_color());
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Message</span> {
-    <span class="ident">Raw</span>(<span class="ident">String</span>),
-    <span class="ident">Formatted</span>(<span class="ident">Colorizer</span>),
-}
-
-<span class="kw">impl</span> <span class="ident">Message</span> {
-    <span class="kw">fn</span> <span class="ident">format</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>, <span class="ident">usage</span>: <span class="ident">String</span>) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Message::Raw</span>(<span class="ident">s</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Colorizer::new</span>(<span class="ident">Stream::Stderr</span>, <span class="ident">cmd</span>.<span class="ident">get_color</span>());
-
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">String::new</span>();
-                <span class="ident">std::mem::swap</span>(<span class="ident">s</span>, <span class="kw-2">&amp;mut</span> <span class="ident">message</span>);
-                <span class="ident">start_error</span>(<span class="kw-2">&amp;mut</span> <span class="ident">c</span>);
-                <span class="ident">c</span>.<span class="ident">none</span>(<span class="ident">message</span>);
-                <span class="ident">put_usage</span>(<span class="kw-2">&amp;mut</span> <span class="ident">c</span>, <span class="ident">usage</span>);
-                <span class="ident">try_help</span>(<span class="kw-2">&amp;mut</span> <span class="ident">c</span>, <span class="ident">get_help_flag</span>(<span class="ident">cmd</span>));
-                <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Formatted</span>(<span class="ident">c</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>message = String::new();
+                std::mem::swap(s, <span class="kw-2">&amp;mut </span>message);
+                start_error(<span class="kw-2">&amp;mut </span>c);
+                c.none(message);
+                put_usage(<span class="kw-2">&amp;mut </span>c, usage);
+                try_help(<span class="kw-2">&amp;mut </span>c, get_help_flag(cmd));
+                <span class="kw-2">*</span><span class="self">self </span>= <span class="self">Self</span>::Formatted(c);
             }
-            <span class="ident">Message::Formatted</span>(<span class="kw">_</span>) =&gt; {}
+            Message::Formatted(<span class="kw">_</span>) =&gt; {}
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">formatted</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="ident">Colorizer</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Message::Raw</span>(<span class="ident">s</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Colorizer::new</span>(<span class="ident">Stream::Stderr</span>, <span class="ident">ColorChoice::Never</span>);
-                <span class="ident">start_error</span>(<span class="kw-2">&amp;mut</span> <span class="ident">c</span>);
-                <span class="ident">c</span>.<span class="ident">none</span>(<span class="ident">s</span>);
-                <span class="ident">Cow::Owned</span>(<span class="ident">c</span>)
+    <span class="kw">fn </span>formatted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;Colorizer&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Message::Raw(s) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>c = Colorizer::new(Stream::Stderr, ColorChoice::Never);
+                start_error(<span class="kw-2">&amp;mut </span>c);
+                c.none(s);
+                Cow::Owned(c)
             }
-            <span class="ident">Message::Formatted</span>(<span class="ident">c</span>) =&gt; <span class="ident">Cow::Borrowed</span>(<span class="ident">c</span>),
+            Message::Formatted(c) =&gt; Cow::Borrowed(c),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Message</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Raw</span>(<span class="ident">inner</span>)
+<span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>Message {
+    <span class="kw">fn </span>from(inner: String) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Raw(inner)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Colorizer</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Message</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">Colorizer</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Formatted</span>(<span class="ident">inner</span>)
+<span class="kw">impl </span>From&lt;Colorizer&gt; <span class="kw">for </span>Message {
+    <span class="kw">fn </span>from(inner: Colorizer) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Formatted(inner)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Backtrace</span>(<span class="ident">backtrace::Backtrace</span>);
+<span class="attribute">#[cfg(feature = <span class="string">&quot;debug&quot;</span>)]
+#[derive(Debug)]
+</span><span class="kw">struct </span>Backtrace(backtrace::Backtrace);
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">Backtrace</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<span class="self">Self</span>(<span class="ident">backtrace::Backtrace::new</span>()))
+<span class="attribute">#[cfg(feature = <span class="string">&quot;debug&quot;</span>)]
+</span><span class="kw">impl </span>Backtrace {
+    <span class="kw">fn </span>new() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Some</span>(<span class="self">Self</span>(backtrace::Backtrace::new()))
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Backtrace</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="comment">// `backtrace::Backtrace` uses `Debug` instead of `Display`</span>
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+<span class="attribute">#[cfg(feature = <span class="string">&quot;debug&quot;</span>)]
+</span><span class="kw">impl </span>Display <span class="kw">for </span>Backtrace {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; fmt::Result {
+        <span class="comment">// `backtrace::Backtrace` uses `Debug` instead of `Display`
+        </span><span class="macro">write!</span>(f, <span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Backtrace</span>;
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;debug&quot;</span>))]
+#[derive(Debug)]
+</span><span class="kw">struct </span>Backtrace;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>))]</span>
-<span class="kw">impl</span> <span class="ident">Backtrace</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
-    }
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;debug&quot;</span>))]
+</span><span class="kw">impl </span>Backtrace {
+    <span class="kw">fn </span>new() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>))]</span>
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Backtrace</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;debug&quot;</span>))]
+</span><span class="kw">impl </span>Display <span class="kw">for </span>Backtrace {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Formatter) -&gt; fmt::Result {
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="doccomment">/// Check `clap::Error` impls Send and Sync.</span>
-    <span class="kw">mod</span> <span class="ident">clap_error_impl_send_sync</span> {
-        <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Error</span>;
-        <span class="kw">trait</span> <span class="ident">Foo</span>: <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {}
-        <span class="kw">impl</span> <span class="ident">Foo</span> <span class="kw">for</span> <span class="ident">Error</span> {}
-    }
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>check_auto_traits() {
+    <span class="macro">static_assertions::assert_impl_all!</span>(Error: Send, Sync, Unpin);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

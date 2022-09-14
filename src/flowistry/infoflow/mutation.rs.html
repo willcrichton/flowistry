@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/infoflow/mutation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mutation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/infoflow/mutation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mutation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -15,13 +14,7 @@
     });
 </script>
 
-</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -145,134 +138,129 @@
 <span id="122">122</span>
 <span id="123">123</span>
 <span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">log::debug</span>;
-<span class="kw">use</span> <span class="ident">rustc_middle::mir</span>::{<span class="ident">visit::Visitor</span>, <span class="kw-2">*</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>log::debug;
+<span class="kw">use </span>rustc_middle::mir::{visit::Visitor, <span class="kw-2">*</span>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mir</span>::{
-  <span class="ident">aliases::Aliases</span>,
-  <span class="ident">utils</span>::{<span class="self">self</span>, <span class="ident">OperandExt</span>, <span class="ident">PlaceCollector</span>},
+<span class="kw">use </span><span class="kw">crate</span>::mir::{
+  aliases::Aliases,
+  utils::{<span class="self">self</span>, OperandExt, PlaceCollector},
 };
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MutationStatus</span> {
-  <span class="ident">Definitely</span>,
-  <span class="ident">Possibly</span>,
+<span class="kw">pub enum </span>MutationStatus {
+  Definitely,
+  Possibly,
 }
 
-<span class="comment">// Note: wcrichto tried making FnMut(...) a trait alias, but this</span>
-<span class="comment">// interacted poorly with type inference and required ModularMutationVisitor</span>
-<span class="comment">// clients to explicitly write out the type parameter of every closure argument.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ModularMutationVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, <span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">F</span>: <span class="ident">FnMut</span>(
-    <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="kw-2">&amp;</span>[(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>)],
-    <span class="ident">Location</span>,
-    <span class="ident">MutationStatus</span>,
+<span class="comment">// Note: wcrichto tried making FnMut(...) a trait alias, but this
+// interacted poorly with type inference and required ModularMutationVisitor
+// clients to explicitly write out the type parameter of every closure argument.
+</span><span class="kw">pub struct </span>ModularMutationVisitor&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, F&gt;
+<span class="kw">where
+  </span>F: FnMut(
+    Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    <span class="kw-2">&amp;</span>[(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;)],
+    Location,
+    MutationStatus,
   ),
 {
-  <span class="ident">f</span>: <span class="ident">F</span>,
-  <span class="ident">aliases</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Aliases</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+  f: F,
+  aliases: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">ModularMutationVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, <span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">F</span>: <span class="ident">FnMut</span>(
-    <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="kw-2">&amp;</span>[(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>)],
-    <span class="ident">Location</span>,
-    <span class="ident">MutationStatus</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, F&gt; ModularMutationVisitor&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, F&gt;
+<span class="kw">where
+  </span>F: FnMut(
+    Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    <span class="kw-2">&amp;</span>[(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;)],
+    Location,
+    MutationStatus,
   ),
 {
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">aliases</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Aliases</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span> {
-    <span class="ident">ModularMutationVisitor</span> { <span class="ident">aliases</span>, <span class="ident">f</span> }
+  <span class="kw">pub fn </span>new(aliases: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;, f: F) -&gt; <span class="self">Self </span>{
+    ModularMutationVisitor { aliases, f }
   }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ModularMutationVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>, <span class="ident">F</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">F</span>: <span class="ident">FnMut</span>(
-    <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="kw-2">&amp;</span>[(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>)],
-    <span class="ident">Location</span>,
-    <span class="ident">MutationStatus</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>, F&gt; Visitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>ModularMutationVisitor&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>, F&gt;
+<span class="kw">where
+  </span>F: FnMut(
+    Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    <span class="kw-2">&amp;</span>[(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;)],
+    Location,
+    MutationStatus,
   ),
 {
-  <span class="kw">fn</span> <span class="ident">visit_assign</span>(
-    <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-    <span class="ident">place</span>: <span class="kw-2">&amp;</span><span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">rvalue</span>: <span class="kw-2">&amp;</span><span class="ident">Rvalue</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">location</span>: <span class="ident">Location</span>,
+  <span class="kw">fn </span>visit_assign(
+    <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+    place: <span class="kw-2">&amp;</span>Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    rvalue: <span class="kw-2">&amp;</span>Rvalue&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    location: Location,
   ) {
     <span class="macro">debug!</span>(<span class="string">&quot;Checking {location:?}: {place:?} = {rvalue:?}&quot;</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">collector</span> <span class="op">=</span> <span class="ident">PlaceCollector</span> {
-      <span class="ident">places</span>: <span class="ident">Vec::new</span>(),
-      <span class="ident">tcx</span>: <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">tcx</span>,
+    <span class="kw">let </span><span class="kw-2">mut </span>collector = PlaceCollector {
+      places: Vec::new(),
+      tcx: <span class="self">self</span>.aliases.tcx,
     };
-    <span class="ident">collector</span>.<span class="ident">visit_rvalue</span>(<span class="ident">rvalue</span>, <span class="ident">location</span>);
-    (<span class="self">self</span>.<span class="ident">f</span>)(
-      <span class="kw-2">*</span><span class="ident">place</span>,
-      <span class="kw-2">&amp;</span><span class="ident">collector</span>.<span class="ident">places</span>,
-      <span class="ident">location</span>,
-      <span class="ident">MutationStatus::Definitely</span>,
+    collector.visit_rvalue(rvalue, location);
+    (<span class="self">self</span>.f)(
+      <span class="kw-2">*</span>place,
+      <span class="kw-2">&amp;</span>collector.places,
+      location,
+      MutationStatus::Definitely,
     );
   }
 
-  <span class="kw">fn</span> <span class="ident">visit_terminator</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">terminator</span>: <span class="kw-2">&amp;</span><span class="ident">Terminator</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">location</span>: <span class="ident">Location</span>) {
-    <span class="macro">debug!</span>(<span class="string">&quot;Checking {location:?}: {:?}&quot;</span>, <span class="ident">terminator</span>.<span class="ident">kind</span>);
-    <span class="kw">let</span> <span class="ident">tcx</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">tcx</span>;
+  <span class="kw">fn </span>visit_terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, terminator: <span class="kw-2">&amp;</span>Terminator&lt;<span class="lifetime">&#39;tcx</span>&gt;, location: Location) {
+    <span class="macro">debug!</span>(<span class="string">&quot;Checking {location:?}: {:?}&quot;</span>, terminator.kind);
+    <span class="kw">let </span>tcx = <span class="self">self</span>.aliases.tcx;
 
-    <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">terminator</span>.<span class="ident">kind</span> {
-      <span class="ident">TerminatorKind::Call</span> {
-        <span class="comment">/*func,*/</span> <span class="comment">// TODO: deal with func</span>
-        <span class="ident">args</span>,
-        <span class="ident">destination</span>,
+    <span class="kw">match </span><span class="kw-2">&amp;</span>terminator.kind {
+      TerminatorKind::Call {
+        <span class="comment">/*func,*/ // TODO: deal with func
+        </span>args,
+        destination,
         ..
       } =&gt; {
-        <span class="kw">let</span> <span class="ident">arg_places</span> <span class="op">=</span> <span class="ident">utils::arg_places</span>(<span class="ident">args</span>)
-          .<span class="ident">into_iter</span>()
-          .<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">place</span>)<span class="op">|</span> <span class="ident">place</span>)
-          .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">arg_inputs</span> <span class="op">=</span> <span class="ident">arg_places</span>
-          .<span class="ident">iter</span>()
-          .<span class="ident">map</span>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">place</span>, <span class="prelude-val">None</span>))
-          .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+        <span class="kw">let </span>arg_places = utils::arg_places(args)
+          .into_iter()
+          .map(|(<span class="kw">_</span>, place)| place)
+          .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="kw">let </span>arg_inputs = arg_places
+          .iter()
+          .map(|place| (<span class="kw-2">*</span>place, <span class="prelude-val">None</span>))
+          .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">dst_place</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="ident">destination</span> {
-          <span class="kw">let</span> <span class="ident">ret_is_unit</span> <span class="op">=</span> <span class="ident">dst_place</span>
-            .<span class="ident">ty</span>(<span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">body</span>.<span class="ident">local_decls</span>(), <span class="ident">tcx</span>)
-            .<span class="ident">ty</span>
-            .<span class="ident">is_unit</span>();
-          <span class="kw">let</span> <span class="ident">empty</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-          <span class="kw">let</span> <span class="ident">inputs</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">ret_is_unit</span> { <span class="kw-2">&amp;</span><span class="ident">empty</span> } <span class="kw">else</span> { <span class="kw-2">&amp;</span><span class="ident">arg_inputs</span> };
+        <span class="kw">let </span>ret_is_unit = destination
+          .ty(<span class="self">self</span>.aliases.body.local_decls(), tcx)
+          .ty
+          .is_unit();
+        <span class="kw">let </span>empty = <span class="macro">vec!</span>[];
+        <span class="kw">let </span>inputs = <span class="kw">if </span>ret_is_unit { <span class="kw-2">&amp;</span>empty } <span class="kw">else </span>{ <span class="kw-2">&amp;</span>arg_inputs };
 
-          (<span class="self">self</span>.<span class="ident">f</span>)(<span class="kw-2">*</span><span class="ident">dst_place</span>, <span class="ident">inputs</span>, <span class="ident">location</span>, <span class="ident">MutationStatus::Definitely</span>);
-        }
+        (<span class="self">self</span>.f)(<span class="kw-2">*</span>destination, inputs, location, MutationStatus::Definitely);
 
-        <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">arg_places</span> {
-          <span class="kw">for</span> <span class="ident">arg_mut</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">reachable_values</span>(<span class="ident">arg</span>, <span class="ident">Mutability::Mut</span>) {
-            <span class="comment">// The argument itself can never be modified in a caller-visible way,</span>
-            <span class="comment">// because it&#39;s either getting moved or copied.</span>
-            <span class="kw">if</span> <span class="ident">arg</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">arg_mut</span> {
+        <span class="kw">for </span>arg <span class="kw">in </span>arg_places {
+          <span class="kw">for </span>arg_mut <span class="kw">in </span><span class="self">self</span>.aliases.reachable_values(arg, Mutability::Mut) {
+            <span class="comment">// The argument itself can never be modified in a caller-visible way,
+            // because it&#39;s either getting moved or copied.
+            </span><span class="kw">if </span>arg == <span class="kw-2">*</span>arg_mut {
               <span class="kw">continue</span>;
             }
 
-            (<span class="self">self</span>.<span class="ident">f</span>)(<span class="kw-2">*</span><span class="ident">arg_mut</span>, <span class="kw-2">&amp;</span><span class="ident">arg_inputs</span>, <span class="ident">location</span>, <span class="ident">MutationStatus::Possibly</span>);
+            (<span class="self">self</span>.f)(<span class="kw-2">*</span>arg_mut, <span class="kw-2">&amp;</span>arg_inputs, location, MutationStatus::Possibly);
           }
         }
       }
 
-      <span class="ident">TerminatorKind::DropAndReplace</span> { <span class="ident">place</span>, <span class="ident">value</span>, .. } =&gt; {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">src</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_place</span>() {
-          (<span class="self">self</span>.<span class="ident">f</span>)(<span class="kw-2">*</span><span class="ident">place</span>, <span class="kw-2">&amp;</span>[(<span class="ident">src</span>, <span class="prelude-val">None</span>)], <span class="ident">location</span>, <span class="ident">MutationStatus::Definitely</span>);
+      TerminatorKind::DropAndReplace { place, value, .. } =&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(src) = value.to_place() {
+          (<span class="self">self</span>.f)(<span class="kw-2">*</span>place, <span class="kw-2">&amp;</span>[(src, <span class="prelude-val">None</span>)], location, MutationStatus::Definitely);
         }
       }
 
-      <span class="kw">_</span> =&gt; {}
+      <span class="kw">_ </span>=&gt; {}
     }
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

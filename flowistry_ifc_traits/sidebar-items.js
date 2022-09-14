@@ -1,1 +1,1 @@
-initSidebarItems({"macro":[["insecure_print",""]],"struct":[["InsecureString",""]],"trait":[["Insecure",""],["Secure",""]]});
+window.SIDEBAR_ITEMS = {"macro":[["insecure_print",""]],"struct":[["InsecureString",""]],"trait":[["Insecure",""],["Secure",""]]};

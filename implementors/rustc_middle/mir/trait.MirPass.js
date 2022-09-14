@@ -1,3 +1,3 @@
-(function() {var implementors = {};
-implementors["flowistry"] = [{"text":"impl&lt;'tcx&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/trait.MirPass.html\" title=\"trait rustc_middle::mir::MirPass\">MirPass</a>&lt;'tcx&gt; for <a class=\"struct\" href=\"flowistry/mir/utils/struct.SimplifyMir.html\" title=\"struct flowistry::mir::utils::SimplifyMir\">SimplifyMir</a>","synthetic":false,"types":["flowistry::mir::utils::SimplifyMir"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"flowistry":[["impl&lt;'tcx&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/trait.MirPass.html\" title=\"trait rustc_middle::mir::MirPass\">MirPass</a>&lt;'tcx&gt; for <a class=\"struct\" href=\"flowistry/mir/utils/struct.SimplifyMir.html\" title=\"struct flowistry::mir::utils::SimplifyMir\">SimplifyMir</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

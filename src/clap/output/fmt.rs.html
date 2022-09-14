@@ -1,13 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.6/src/output/fmt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fmt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.21/src/output/fmt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fmt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -165,164 +158,163 @@
 <span id="156">156</span>
 <span id="157">157</span>
 <span id="158">158</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::color::ColorChoice</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::util::color::ColorChoice;
 
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>, <span class="ident">Formatter</span>},
-    <span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">Write</span>},
+<span class="kw">use </span>std::{
+    fmt::{<span class="self">self</span>, Display, Formatter},
+    io::{<span class="self">self</span>, Write},
 };
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Stream</span> {
-    <span class="ident">Stdout</span>,
-    <span class="ident">Stderr</span>,
+<span class="attribute">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Stream {
+    Stdout,
+    Stderr,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Colorizer</span> {
-    <span class="ident">stream</span>: <span class="ident">Stream</span>,
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-    <span class="ident">color_when</span>: <span class="ident">ColorChoice</span>,
-    <span class="ident">pieces</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">Style</span>)<span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Colorizer {
+    stream: Stream,
+    <span class="attribute">#[allow(unused)]
+    </span>color_when: ColorChoice,
+    pieces: Vec&lt;(String, Style)&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Colorizer</span> {
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">Stream</span>, <span class="ident">color_when</span>: <span class="ident">ColorChoice</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Colorizer</span> {
-            <span class="ident">stream</span>,
-            <span class="ident">color_when</span>,
-            <span class="ident">pieces</span>: <span class="macro">vec!</span>[],
+<span class="kw">impl </span>Colorizer {
+    <span class="attribute">#[inline(never)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(stream: Stream, color_when: ColorChoice) -&gt; <span class="self">Self </span>{
+        Colorizer {
+            stream,
+            color_when,
+            pieces: <span class="macro">vec!</span>[],
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">good</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">pieces</span>.<span class="ident">push</span>((<span class="ident">msg</span>.<span class="ident">into</span>(), <span class="ident">Style::Good</span>));
+    <span class="attribute">#[inline(never)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>good(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw">impl </span>Into&lt;String&gt;) {
+        <span class="self">self</span>.pieces.push((msg.into(), Style::Good));
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">warning</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">pieces</span>.<span class="ident">push</span>((<span class="ident">msg</span>.<span class="ident">into</span>(), <span class="ident">Style::Warning</span>));
+    <span class="attribute">#[inline(never)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>warning(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw">impl </span>Into&lt;String&gt;) {
+        <span class="self">self</span>.pieces.push((msg.into(), Style::Warning));
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">error</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">pieces</span>.<span class="ident">push</span>((<span class="ident">msg</span>.<span class="ident">into</span>(), <span class="ident">Style::Error</span>));
+    <span class="attribute">#[inline(never)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw">impl </span>Into&lt;String&gt;) {
+        <span class="self">self</span>.pieces.push((msg.into(), Style::Error));
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">hint</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">pieces</span>.<span class="ident">push</span>((<span class="ident">msg</span>.<span class="ident">into</span>(), <span class="ident">Style::Hint</span>));
+    <span class="attribute">#[inline(never)]
+    #[allow(dead_code)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>hint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw">impl </span>Into&lt;String&gt;) {
+        <span class="self">self</span>.pieces.push((msg.into(), Style::Hint));
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">none</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">pieces</span>.<span class="ident">push</span>((<span class="ident">msg</span>.<span class="ident">into</span>(), <span class="ident">Style::Default</span>));
+    <span class="attribute">#[inline(never)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>none(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw">impl </span>Into&lt;String&gt;) {
+        <span class="self">self</span>.pieces.push((msg.into(), Style::Default));
     }
 }
 
-<span class="doccomment">/// Printing methods.</span>
-<span class="kw">impl</span> <span class="ident">Colorizer</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">print</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">termcolor</span>::{<span class="ident">BufferWriter</span>, <span class="ident">ColorChoice</span> <span class="kw">as</span> <span class="ident">DepColorChoice</span>, <span class="ident">ColorSpec</span>, <span class="ident">WriteColor</span>};
+<span class="doccomment">/// Printing methods.
+</span><span class="kw">impl </span>Colorizer {
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>print(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">use </span>termcolor::{BufferWriter, ColorChoice <span class="kw">as </span>DepColorChoice, ColorSpec, WriteColor};
 
-        <span class="kw">let</span> <span class="ident">color_when</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">color_when</span> {
-            <span class="ident">ColorChoice::Always</span> =&gt; <span class="ident">DepColorChoice::Always</span>,
-            <span class="ident">ColorChoice::Auto</span> <span class="kw">if</span> <span class="ident">is_a_tty</span>(<span class="self">self</span>.<span class="ident">stream</span>) =&gt; <span class="ident">DepColorChoice::Auto</span>,
-            <span class="kw">_</span> =&gt; <span class="ident">DepColorChoice::Never</span>,
+        <span class="kw">let </span>color_when = <span class="kw">match </span><span class="self">self</span>.color_when {
+            ColorChoice::Always =&gt; DepColorChoice::Always,
+            ColorChoice::Auto <span class="kw">if </span>is_a_tty(<span class="self">self</span>.stream) =&gt; DepColorChoice::Auto,
+            <span class="kw">_ </span>=&gt; DepColorChoice::Never,
         };
 
-        <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">stream</span> {
-            <span class="ident">Stream::Stderr</span> =&gt; <span class="ident">BufferWriter::stderr</span>(<span class="ident">color_when</span>),
-            <span class="ident">Stream::Stdout</span> =&gt; <span class="ident">BufferWriter::stdout</span>(<span class="ident">color_when</span>),
+        <span class="kw">let </span>writer = <span class="kw">match </span><span class="self">self</span>.stream {
+            Stream::Stderr =&gt; BufferWriter::stderr(color_when),
+            Stream::Stdout =&gt; BufferWriter::stdout(color_when),
         };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">writer</span>.<span class="ident">buffer</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = writer.buffer();
 
-        <span class="kw">for</span> <span class="ident">piece</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">pieces</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">color</span> <span class="op">=</span> <span class="ident">ColorSpec::new</span>();
-            <span class="kw">match</span> <span class="ident">piece</span>.<span class="number">1</span> {
-                <span class="ident">Style::Good</span> =&gt; {
-                    <span class="ident">color</span>.<span class="ident">set_fg</span>(<span class="prelude-val">Some</span>(<span class="ident">termcolor::Color::Green</span>));
+        <span class="kw">for </span>piece <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.pieces {
+            <span class="kw">let </span><span class="kw-2">mut </span>color = ColorSpec::new();
+            <span class="kw">match </span>piece.<span class="number">1 </span>{
+                Style::Good =&gt; {
+                    color.set_fg(<span class="prelude-val">Some</span>(termcolor::Color::Green));
                 }
-                <span class="ident">Style::Warning</span> =&gt; {
-                    <span class="ident">color</span>.<span class="ident">set_fg</span>(<span class="prelude-val">Some</span>(<span class="ident">termcolor::Color::Yellow</span>));
+                Style::Warning =&gt; {
+                    color.set_fg(<span class="prelude-val">Some</span>(termcolor::Color::Yellow));
                 }
-                <span class="ident">Style::Error</span> =&gt; {
-                    <span class="ident">color</span>.<span class="ident">set_fg</span>(<span class="prelude-val">Some</span>(<span class="ident">termcolor::Color::Red</span>));
-                    <span class="ident">color</span>.<span class="ident">set_bold</span>(<span class="bool-val">true</span>);
+                Style::Error =&gt; {
+                    color.set_fg(<span class="prelude-val">Some</span>(termcolor::Color::Red));
+                    color.set_bold(<span class="bool-val">true</span>);
                 }
-                <span class="ident">Style::Hint</span> =&gt; {
-                    <span class="ident">color</span>.<span class="ident">set_dimmed</span>(<span class="bool-val">true</span>);
+                Style::Hint =&gt; {
+                    color.set_dimmed(<span class="bool-val">true</span>);
                 }
-                <span class="ident">Style::Default</span> =&gt; {}
+                Style::Default =&gt; {}
             }
 
-            <span class="ident">buffer</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="ident">color</span>)<span class="question-mark">?</span>;
-            <span class="ident">buffer</span>.<span class="ident">write_all</span>(<span class="ident">piece</span>.<span class="number">0</span>.<span class="ident">as_bytes</span>())<span class="question-mark">?</span>;
-            <span class="ident">buffer</span>.<span class="ident">reset</span>()<span class="question-mark">?</span>;
+            buffer.set_color(<span class="kw-2">&amp;</span>color)<span class="question-mark">?</span>;
+            buffer.write_all(piece.<span class="number">0</span>.as_bytes())<span class="question-mark">?</span>;
+            buffer.reset()<span class="question-mark">?</span>;
         }
 
-        <span class="ident">writer</span>.<span class="ident">print</span>(<span class="kw-2">&amp;</span><span class="ident">buffer</span>)
+        writer.print(<span class="kw-2">&amp;</span>buffer)
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">print</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="comment">// [e]println can&#39;t be used here because it panics</span>
-        <span class="comment">// if something went wrong. We don&#39;t want that.</span>
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">stream</span> {
-            <span class="ident">Stream::Stdout</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">stdout</span> <span class="op">=</span> <span class="ident">std::io::stdout</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stdout</span> <span class="op">=</span> <span class="ident">stdout</span>.<span class="ident">lock</span>();
-                <span class="macro">write!</span>(<span class="ident">stdout</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>)
+    <span class="attribute">#[cfg(not(feature = <span class="string">&quot;color&quot;</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>print(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="comment">// [e]println can&#39;t be used here because it panics
+        // if something went wrong. We don&#39;t want that.
+        </span><span class="kw">match </span><span class="self">self</span>.stream {
+            Stream::Stdout =&gt; {
+                <span class="kw">let </span>stdout = std::io::stdout();
+                <span class="kw">let </span><span class="kw-2">mut </span>stdout = stdout.lock();
+                <span class="macro">write!</span>(stdout, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>)
             }
-            <span class="ident">Stream::Stderr</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">stderr</span> <span class="op">=</span> <span class="ident">std::io::stderr</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stderr</span> <span class="op">=</span> <span class="ident">stderr</span>.<span class="ident">lock</span>();
-                <span class="macro">write!</span>(<span class="ident">stderr</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>)
+            Stream::Stderr =&gt; {
+                <span class="kw">let </span>stderr = std::io::stderr();
+                <span class="kw">let </span><span class="kw-2">mut </span>stderr = stderr.lock();
+                <span class="macro">write!</span>(stderr, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>)
             }
         }
     }
 }
 
-<span class="doccomment">/// Color-unaware printing. Never uses coloring.</span>
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Colorizer</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">for</span> <span class="ident">piece</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">pieces</span> {
-            <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">piece</span>.<span class="number">0</span>, <span class="ident">f</span>)<span class="question-mark">?</span>;
+<span class="doccomment">/// Color-unaware printing. Never uses coloring.
+</span><span class="kw">impl </span>Display <span class="kw">for </span>Colorizer {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; fmt::Result {
+        <span class="kw">for </span>piece <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.pieces {
+            Display::fmt(<span class="kw-2">&amp;</span>piece.<span class="number">0</span>, f)<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Style</span> {
-    <span class="ident">Good</span>,
-    <span class="ident">Warning</span>,
-    <span class="ident">Error</span>,
-    <span class="ident">Hint</span>,
-    <span class="ident">Default</span>,
+<span class="attribute">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>Style {
+    Good,
+    Warning,
+    Error,
+    Hint,
+    Default,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Style</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Default</span>
+<span class="kw">impl </span>Default <span class="kw">for </span>Style {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Default
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">is_a_tty</span>(<span class="ident">stream</span>: <span class="ident">Stream</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">stream</span> {
-        <span class="ident">Stream::Stdout</span> =&gt; <span class="ident">atty::Stream::Stdout</span>,
-        <span class="ident">Stream::Stderr</span> =&gt; <span class="ident">atty::Stream::Stderr</span>,
+<span class="attribute">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
+</span><span class="kw">fn </span>is_a_tty(stream: Stream) -&gt; bool {
+    <span class="kw">let </span>stream = <span class="kw">match </span>stream {
+        Stream::Stdout =&gt; atty::Stream::Stdout,
+        Stream::Stderr =&gt; atty::Stream::Stderr,
     };
 
-    <span class="ident">atty::is</span>(<span class="ident">stream</span>)
+    atty::is(stream)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

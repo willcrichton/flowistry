@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro-error-1.0.4/src/diagnostic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>diagnostic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../proc_macro_error/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../proc_macro_error/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../proc_macro_error/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro-error-1.0.4/src/diagnostic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>diagnostic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../proc_macro_error/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../proc_macro_error/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../proc_macro_error/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -354,355 +347,354 @@
 <span id="347">347</span>
 <span id="348">348</span>
 <span id="349">349</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">abort_now</span>, <span class="ident">check_correctness</span>, <span class="ident">sealed::Sealed</span>, <span class="ident">SpanRange</span>};
-<span class="kw">use</span> <span class="ident">proc_macro2::Span</span>;
-<span class="kw">use</span> <span class="ident">proc_macro2::TokenStream</span>;
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{abort_now, check_correctness, sealed::Sealed, SpanRange};
+<span class="kw">use </span>proc_macro2::Span;
+<span class="kw">use </span>proc_macro2::TokenStream;
 
-<span class="kw">use</span> <span class="ident">quote</span>::{<span class="ident">quote_spanned</span>, <span class="ident">ToTokens</span>};
+<span class="kw">use </span>quote::{quote_spanned, ToTokens};
 
-<span class="doccomment">/// Represents a diagnostic level</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Warnings</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Warnings are ignored on stable/beta</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Level</span> {
-    <span class="ident">Error</span>,
-    <span class="ident">Warning</span>,
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="ident">NonExhaustive</span>,
+<span class="doccomment">/// Represents a diagnostic level
+///
+/// # Warnings
+///
+/// Warnings are ignored on stable/beta
+</span><span class="attribute">#[derive(Debug, PartialEq)]
+</span><span class="kw">pub enum </span>Level {
+    Error,
+    Warning,
+    <span class="attribute">#[doc(hidden)]
+    </span>NonExhaustive,
 }
 
-<span class="doccomment">/// Represents a single diagnostic message</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Diagnostic</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">level</span>: <span class="ident">Level</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">span_range</span>: <span class="ident">SpanRange</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">msg</span>: <span class="ident">String</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">suggestions</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SuggestionKind</span>, <span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SpanRange</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">children</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SpanRange</span>, <span class="ident">String</span>)<span class="op">&gt;</span>,
+<span class="doccomment">/// Represents a single diagnostic message
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Diagnostic {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) level: Level,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) span_range: SpanRange,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) msg: String,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) suggestions: Vec&lt;(SuggestionKind, String, <span class="prelude-ty">Option</span>&lt;SpanRange&gt;)&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) children: Vec&lt;(SpanRange, String)&gt;,
 }
 
-<span class="doccomment">/// A collection of methods that do not exist in `proc_macro::Diagnostic`</span>
-<span class="doccomment">/// but still useful to have around.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This trait is sealed and cannot be implemented outside of `proc_macro_error`.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DiagnosticExt</span>: <span class="ident">Sealed</span> {
-    <span class="doccomment">/// Create a new diagnostic message that points to the `span_range`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is the same as `Diagnostic::spanned` but produces considerably</span>
-    <span class="doccomment">/// better error messages for multi-token spans on stable.</span>
-    <span class="kw">fn</span> <span class="ident">spanned_range</span>(<span class="ident">span_range</span>: <span class="ident">SpanRange</span>, <span class="ident">level</span>: <span class="ident">Level</span>, <span class="ident">message</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span>;
+<span class="doccomment">/// A collection of methods that do not exist in `proc_macro::Diagnostic`
+/// but still useful to have around.
+///
+/// This trait is sealed and cannot be implemented outside of `proc_macro_error`.
+</span><span class="kw">pub trait </span>DiagnosticExt: Sealed {
+    <span class="doccomment">/// Create a new diagnostic message that points to the `span_range`.
+    ///
+    /// This function is the same as `Diagnostic::spanned` but produces considerably
+    /// better error messages for multi-token spans on stable.
+    </span><span class="kw">fn </span>spanned_range(span_range: SpanRange, level: Level, message: String) -&gt; <span class="self">Self</span>;
 
-    <span class="doccomment">/// Add another error message to self such that it will be emitted right after</span>
-    <span class="doccomment">/// the main message.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is the same as `Diagnostic::span_error` but produces considerably</span>
-    <span class="doccomment">/// better error messages for multi-token spans on stable.</span>
-    <span class="kw">fn</span> <span class="ident">span_range_error</span>(<span class="self">self</span>, <span class="ident">span_range</span>: <span class="ident">SpanRange</span>, <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span>;
+    <span class="doccomment">/// Add another error message to self such that it will be emitted right after
+    /// the main message.
+    ///
+    /// This function is the same as `Diagnostic::span_error` but produces considerably
+    /// better error messages for multi-token spans on stable.
+    </span><span class="kw">fn </span>span_range_error(<span class="self">self</span>, span_range: SpanRange, msg: String) -&gt; <span class="self">Self</span>;
 
-    <span class="doccomment">/// Attach a &quot;help&quot; note to your main message, the note will have it&#39;s own span on nightly.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is the same as `Diagnostic::span_help` but produces considerably</span>
-    <span class="doccomment">/// better error messages for multi-token spans on stable.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Span</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span</span>
-    <span class="kw">fn</span> <span class="ident">span_range_help</span>(<span class="self">self</span>, <span class="ident">span_range</span>: <span class="ident">SpanRange</span>, <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span>;
+    <span class="doccomment">/// Attach a &quot;help&quot; note to your main message, the note will have it&#39;s own span on nightly.
+    ///
+    /// This function is the same as `Diagnostic::span_help` but produces considerably
+    /// better error messages for multi-token spans on stable.
+    ///
+    /// # Span
+    ///
+    /// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span
+    </span><span class="kw">fn </span>span_range_help(<span class="self">self</span>, span_range: SpanRange, msg: String) -&gt; <span class="self">Self</span>;
 
-    <span class="doccomment">/// Attach a note to your main message, the note will have it&#39;s own span on nightly.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is the same as `Diagnostic::span_note` but produces considerably</span>
-    <span class="doccomment">/// better error messages for multi-token spans on stable.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Span</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span</span>
-    <span class="kw">fn</span> <span class="ident">span_range_note</span>(<span class="self">self</span>, <span class="ident">span_range</span>: <span class="ident">SpanRange</span>, <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span>;
+    <span class="doccomment">/// Attach a note to your main message, the note will have it&#39;s own span on nightly.
+    ///
+    /// This function is the same as `Diagnostic::span_note` but produces considerably
+    /// better error messages for multi-token spans on stable.
+    ///
+    /// # Span
+    ///
+    /// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span
+    </span><span class="kw">fn </span>span_range_note(<span class="self">self</span>, span_range: SpanRange, msg: String) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">impl</span> <span class="ident">DiagnosticExt</span> <span class="kw">for</span> <span class="ident">Diagnostic</span> {
-    <span class="kw">fn</span> <span class="ident">spanned_range</span>(<span class="ident">span_range</span>: <span class="ident">SpanRange</span>, <span class="ident">level</span>: <span class="ident">Level</span>, <span class="ident">message</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Diagnostic</span> {
-            <span class="ident">level</span>,
-            <span class="ident">span_range</span>,
-            <span class="ident">msg</span>: <span class="ident">message</span>,
-            <span class="ident">suggestions</span>: <span class="macro">vec!</span>[],
-            <span class="ident">children</span>: <span class="macro">vec!</span>[],
+<span class="kw">impl </span>DiagnosticExt <span class="kw">for </span>Diagnostic {
+    <span class="kw">fn </span>spanned_range(span_range: SpanRange, level: Level, message: String) -&gt; <span class="self">Self </span>{
+        Diagnostic {
+            level,
+            span_range,
+            msg: message,
+            suggestions: <span class="macro">vec!</span>[],
+            children: <span class="macro">vec!</span>[],
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">span_range_error</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">span_range</span>: <span class="ident">SpanRange</span>, <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">children</span>.<span class="ident">push</span>((<span class="ident">span_range</span>, <span class="ident">msg</span>));
-        <span class="self">self</span>
+    <span class="kw">fn </span>span_range_error(<span class="kw-2">mut </span><span class="self">self</span>, span_range: SpanRange, msg: String) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.children.push((span_range, msg));
+        <span class="self">self
+    </span>}
+
+    <span class="kw">fn </span>span_range_help(<span class="kw-2">mut </span><span class="self">self</span>, span_range: SpanRange, msg: String) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.suggestions
+            .push((SuggestionKind::Help, msg, <span class="prelude-val">Some</span>(span_range)));
+        <span class="self">self
+    </span>}
+
+    <span class="kw">fn </span>span_range_note(<span class="kw-2">mut </span><span class="self">self</span>, span_range: SpanRange, msg: String) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.suggestions
+            .push((SuggestionKind::Note, msg, <span class="prelude-val">Some</span>(span_range)));
+        <span class="self">self
+    </span>}
+}
+
+<span class="kw">impl </span>Diagnostic {
+    <span class="doccomment">/// Create a new diagnostic message that points to `Span::call_site()`
+    </span><span class="kw">pub fn </span>new(level: Level, message: String) -&gt; <span class="self">Self </span>{
+        Diagnostic::spanned(Span::call_site(), level, message)
     }
 
-    <span class="kw">fn</span> <span class="ident">span_range_help</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">span_range</span>: <span class="ident">SpanRange</span>, <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">suggestions</span>
-            .<span class="ident">push</span>((<span class="ident">SuggestionKind::Help</span>, <span class="ident">msg</span>, <span class="prelude-val">Some</span>(<span class="ident">span_range</span>)));
-        <span class="self">self</span>
+    <span class="doccomment">/// Create a new diagnostic message that points to the `span`
+    </span><span class="kw">pub fn </span>spanned(span: Span, level: Level, message: String) -&gt; <span class="self">Self </span>{
+        Diagnostic::spanned_range(
+            SpanRange {
+                first: span,
+                last: span,
+            },
+            level,
+            message,
+        )
     }
 
-    <span class="kw">fn</span> <span class="ident">span_range_note</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">span_range</span>: <span class="ident">SpanRange</span>, <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">suggestions</span>
-            .<span class="ident">push</span>((<span class="ident">SuggestionKind::Note</span>, <span class="ident">msg</span>, <span class="prelude-val">Some</span>(<span class="ident">span_range</span>)));
-        <span class="self">self</span>
+    <span class="doccomment">/// Add another error message to self such that it will be emitted right after
+    /// the main message.
+    </span><span class="kw">pub fn </span>span_error(<span class="self">self</span>, span: Span, msg: String) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.span_range_error(
+            SpanRange {
+                first: span,
+                last: span,
+            },
+            msg,
+        )
+    }
+
+    <span class="doccomment">/// Attach a &quot;help&quot; note to your main message, the note will have it&#39;s own span on nightly.
+    ///
+    /// # Span
+    ///
+    /// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span
+    </span><span class="kw">pub fn </span>span_help(<span class="self">self</span>, span: Span, msg: String) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.span_range_help(
+            SpanRange {
+                first: span,
+                last: span,
+            },
+            msg,
+        )
+    }
+
+    <span class="doccomment">/// Attach a &quot;help&quot; note to your main message.
+    </span><span class="kw">pub fn </span>help(<span class="kw-2">mut </span><span class="self">self</span>, msg: String) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.suggestions.push((SuggestionKind::Help, msg, <span class="prelude-val">None</span>));
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Attach a note to your main message, the note will have it&#39;s own span on nightly.
+    ///
+    /// # Span
+    ///
+    /// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span
+    </span><span class="kw">pub fn </span>span_note(<span class="self">self</span>, span: Span, msg: String) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.span_range_note(
+            SpanRange {
+                first: span,
+                last: span,
+            },
+            msg,
+        )
+    }
+
+    <span class="doccomment">/// Attach a note to your main message
+    </span><span class="kw">pub fn </span>note(<span class="kw-2">mut </span><span class="self">self</span>, msg: String) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.suggestions.push((SuggestionKind::Note, msg, <span class="prelude-val">None</span>));
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// The message of main warning/error (no notes attached)
+    </span><span class="kw">pub fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.msg
+    }
+
+    <span class="doccomment">/// Abort the proc-macro&#39;s execution and display the diagnostic.
+    ///
+    /// # Warnings
+    ///
+    /// Warnings are not emitted on stable and beta, but this function will abort anyway.
+    </span><span class="kw">pub fn </span>abort(<span class="self">self</span>) -&gt; ! {
+        <span class="self">self</span>.emit();
+        abort_now()
+    }
+
+    <span class="doccomment">/// Display the diagnostic while not aborting macro execution.
+    ///
+    /// # Warnings
+    ///
+    /// Warnings are ignored on stable/beta
+    </span><span class="kw">pub fn </span>emit(<span class="self">self</span>) {
+        check_correctness();
+        <span class="kw">crate</span>::imp::emit_diagnostic(<span class="self">self</span>);
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Diagnostic</span> {
-    <span class="doccomment">/// Create a new diagnostic message that points to `Span::call_site()`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">level</span>: <span class="ident">Level</span>, <span class="ident">message</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Diagnostic::spanned</span>(<span class="ident">Span::call_site</span>(), <span class="ident">level</span>, <span class="ident">message</span>)
-    }
-
-    <span class="doccomment">/// Create a new diagnostic message that points to the `span`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spanned</span>(<span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">level</span>: <span class="ident">Level</span>, <span class="ident">message</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Diagnostic::spanned_range</span>(
-            <span class="ident">SpanRange</span> {
-                <span class="ident">first</span>: <span class="ident">span</span>,
-                <span class="ident">last</span>: <span class="ident">span</span>,
-            },
-            <span class="ident">level</span>,
-            <span class="ident">message</span>,
-        )
-    }
-
-    <span class="doccomment">/// Add another error message to self such that it will be emitted right after</span>
-    <span class="doccomment">/// the main message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_error</span>(<span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">span_range_error</span>(
-            <span class="ident">SpanRange</span> {
-                <span class="ident">first</span>: <span class="ident">span</span>,
-                <span class="ident">last</span>: <span class="ident">span</span>,
-            },
-            <span class="ident">msg</span>,
-        )
-    }
-
-    <span class="doccomment">/// Attach a &quot;help&quot; note to your main message, the note will have it&#39;s own span on nightly.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Span</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_help</span>(<span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">span_range_help</span>(
-            <span class="ident">SpanRange</span> {
-                <span class="ident">first</span>: <span class="ident">span</span>,
-                <span class="ident">last</span>: <span class="ident">span</span>,
-            },
-            <span class="ident">msg</span>,
-        )
-    }
-
-    <span class="doccomment">/// Attach a &quot;help&quot; note to your main message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">help</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">suggestions</span>.<span class="ident">push</span>((<span class="ident">SuggestionKind::Help</span>, <span class="ident">msg</span>, <span class="prelude-val">None</span>));
-        <span class="self">self</span>
-    }
-
-    <span class="doccomment">/// Attach a note to your main message, the note will have it&#39;s own span on nightly.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Span</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The span is ignored on stable, the note effectively inherits its parent&#39;s (main message) span</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_note</span>(<span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">span_range_note</span>(
-            <span class="ident">SpanRange</span> {
-                <span class="ident">first</span>: <span class="ident">span</span>,
-                <span class="ident">last</span>: <span class="ident">span</span>,
-            },
-            <span class="ident">msg</span>,
-        )
-    }
-
-    <span class="doccomment">/// Attach a note to your main message</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">note</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">suggestions</span>.<span class="ident">push</span>((<span class="ident">SuggestionKind::Note</span>, <span class="ident">msg</span>, <span class="prelude-val">None</span>));
-        <span class="self">self</span>
-    }
-
-    <span class="doccomment">/// The message of main warning/error (no notes attached)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">msg</span>
-    }
-
-    <span class="doccomment">/// Abort the proc-macro&#39;s execution and display the diagnostic.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Warnings</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Warnings are not emitted on stable and beta, but this function will abort anyway.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">abort</span>(<span class="self">self</span>) -&gt; <span class="op">!</span> {
-        <span class="self">self</span>.<span class="ident">emit</span>();
-        <span class="ident">abort_now</span>()
-    }
-
-    <span class="doccomment">/// Display the diagnostic while not aborting macro execution.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Warnings</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Warnings are ignored on stable/beta</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">emit</span>(<span class="self">self</span>) {
-        <span class="ident">check_correctness</span>();
-        <span class="ident"><span class="kw">crate</span>::imp::emit_diagnostic</span>(<span class="self">self</span>);
-    }
-}
-
-<span class="doccomment">/// **NOT PUBLIC API! NOTHING TO SEE HERE!!!**</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">impl</span> <span class="ident">Diagnostic</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_suggestion</span>(<span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">suggestion</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="ident">suggestion</span> {
-            <span class="string">&quot;help&quot;</span> <span class="op">|</span> <span class="string">&quot;hint&quot;</span> =&gt; <span class="self">self</span>.<span class="ident">span_help</span>(<span class="ident">span</span>, <span class="ident">msg</span>),
-            <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">span_note</span>(<span class="ident">span</span>, <span class="ident">msg</span>),
+<span class="doccomment">/// **NOT PUBLIC API! NOTHING TO SEE HERE!!!**
+</span><span class="attribute">#[doc(hidden)]
+</span><span class="kw">impl </span>Diagnostic {
+    <span class="kw">pub fn </span>span_suggestion(<span class="self">self</span>, span: Span, suggestion: <span class="kw-2">&amp;</span>str, msg: String) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>suggestion {
+            <span class="string">&quot;help&quot; </span>| <span class="string">&quot;hint&quot; </span>=&gt; <span class="self">self</span>.span_help(span, msg),
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>.span_note(span, msg),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">suggestion</span>(<span class="self">self</span>, <span class="ident">suggestion</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="ident">suggestion</span> {
-            <span class="string">&quot;help&quot;</span> <span class="op">|</span> <span class="string">&quot;hint&quot;</span> =&gt; <span class="self">self</span>.<span class="ident">help</span>(<span class="ident">msg</span>),
-            <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">note</span>(<span class="ident">msg</span>),
+    <span class="kw">pub fn </span>suggestion(<span class="self">self</span>, suggestion: <span class="kw-2">&amp;</span>str, msg: String) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>suggestion {
+            <span class="string">&quot;help&quot; </span>| <span class="string">&quot;hint&quot; </span>=&gt; <span class="self">self</span>.help(msg),
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>.note(msg),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">Diagnostic</span> {
-    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ts</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
-        <span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
+<span class="kw">impl </span>ToTokens <span class="kw">for </span>Diagnostic {
+    <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;mut </span>TokenStream) {
+        <span class="kw">use </span>std::borrow::Cow;
 
-        <span class="kw">fn</span> <span class="ident">ensure_lf</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">String</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
-            <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">ends_with</span>(<span class="string">&#39;\n&#39;</span>) {
-                <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="ident">s</span>);
-            } <span class="kw">else</span> {
-                <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="ident">s</span>);
-                <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+        <span class="kw">fn </span>ensure_lf(buf: <span class="kw-2">&amp;mut </span>String, s: <span class="kw-2">&amp;</span>str) {
+            <span class="kw">if </span>s.ends_with(<span class="string">&#39;\n&#39;</span>) {
+                buf.push_str(s);
+            } <span class="kw">else </span>{
+                buf.push_str(s);
+                buf.push(<span class="string">&#39;\n&#39;</span>);
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">diag_to_tokens</span>(
-            <span class="ident">span_range</span>: <span class="ident">SpanRange</span>,
-            <span class="ident">level</span>: <span class="kw-2">&amp;</span><span class="ident">Level</span>,
-            <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-            <span class="ident">suggestions</span>: <span class="kw-2">&amp;</span>[(<span class="ident">SuggestionKind</span>, <span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SpanRange</span><span class="op">&gt;</span>)],
-        ) -&gt; <span class="ident">TokenStream</span> {
-            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">level</span> <span class="op">==</span> <span class="ident">Level::Warning</span> {
-                <span class="kw">return</span> <span class="ident">TokenStream::new</span>();
+        <span class="kw">fn </span>diag_to_tokens(
+            span_range: SpanRange,
+            level: <span class="kw-2">&amp;</span>Level,
+            msg: <span class="kw-2">&amp;</span>str,
+            suggestions: <span class="kw-2">&amp;</span>[(SuggestionKind, String, <span class="prelude-ty">Option</span>&lt;SpanRange&gt;)],
+        ) -&gt; TokenStream {
+            <span class="kw">if </span><span class="kw-2">*</span>level == Level::Warning {
+                <span class="kw">return </span>TokenStream::new();
             }
 
-            <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">suggestions</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">Cow::Borrowed</span>(<span class="ident">msg</span>)
-            } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">String::new</span>();
-                <span class="ident">ensure_lf</span>(<span class="kw-2">&amp;mut</span> <span class="ident">message</span>, <span class="ident">msg</span>);
-                <span class="ident">message</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+            <span class="kw">let </span>message = <span class="kw">if </span>suggestions.is_empty() {
+                Cow::Borrowed(msg)
+            } <span class="kw">else </span>{
+                <span class="kw">let </span><span class="kw-2">mut </span>message = String::new();
+                ensure_lf(<span class="kw-2">&amp;mut </span>message, msg);
+                message.push(<span class="string">&#39;\n&#39;</span>);
 
-                <span class="kw">for</span> (<span class="ident">kind</span>, <span class="ident">note</span>, <span class="ident">_span</span>) <span class="kw">in</span> <span class="ident">suggestions</span> {
-                    <span class="ident">message</span>.<span class="ident">push_str</span>(<span class="string">&quot;  = &quot;</span>);
-                    <span class="ident">message</span>.<span class="ident">push_str</span>(<span class="ident">kind</span>.<span class="ident">name</span>());
-                    <span class="ident">message</span>.<span class="ident">push_str</span>(<span class="string">&quot;: &quot;</span>);
-                    <span class="ident">ensure_lf</span>(<span class="kw-2">&amp;mut</span> <span class="ident">message</span>, <span class="ident">note</span>);
+                <span class="kw">for </span>(kind, note, _span) <span class="kw">in </span>suggestions {
+                    message.push_str(<span class="string">&quot;  = &quot;</span>);
+                    message.push_str(kind.name());
+                    message.push_str(<span class="string">&quot;: &quot;</span>);
+                    ensure_lf(<span class="kw-2">&amp;mut </span>message, note);
                 }
-                <span class="ident">message</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+                message.push(<span class="string">&#39;\n&#39;</span>);
 
-                <span class="ident">Cow::Owned</span>(<span class="ident">message</span>)
+                Cow::Owned(message)
             };
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">proc_macro2::Literal::string</span>(<span class="kw-2">&amp;</span><span class="ident">message</span>);
-            <span class="ident">msg</span>.<span class="ident">set_span</span>(<span class="ident">span_range</span>.<span class="ident">last</span>);
-            <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="macro">quote_spanned!</span>(<span class="ident">span_range</span>.<span class="ident">last</span>=&gt; { #<span class="ident">msg</span> } );
-            <span class="macro">quote_spanned!</span>(<span class="ident">span_range</span>.<span class="ident">first</span>=&gt; <span class="macro">compile_error!</span>#<span class="ident">group</span>)
+            <span class="kw">let </span><span class="kw-2">mut </span>msg = proc_macro2::Literal::string(<span class="kw-2">&amp;</span>message);
+            msg.set_span(span_range.last);
+            <span class="kw">let </span>group = <span class="macro">quote_spanned!</span>(span_range.last=&gt; { #msg } );
+            <span class="macro">quote_spanned!</span>(span_range.first=&gt; <span class="macro">compile_error!</span>#group)
         }
 
-        <span class="ident">ts</span>.<span class="ident">extend</span>(<span class="ident">diag_to_tokens</span>(
-            <span class="self">self</span>.<span class="ident">span_range</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">level</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">msg</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">suggestions</span>,
+        ts.extend(diag_to_tokens(
+            <span class="self">self</span>.span_range,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.level,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.msg,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.suggestions,
         ));
-        <span class="ident">ts</span>.<span class="ident">extend</span>(
-            <span class="self">self</span>.<span class="ident">children</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">span_range</span>, <span class="ident">msg</span>)<span class="op">|</span> <span class="ident">diag_to_tokens</span>(<span class="kw-2">*</span><span class="ident">span_range</span>, <span class="kw-2">&amp;</span><span class="ident">Level::Error</span>, <span class="kw-2">&amp;</span><span class="ident">msg</span>, <span class="kw-2">&amp;</span>[])),
+        ts.extend(
+            <span class="self">self</span>.children
+                .iter()
+                .map(|(span_range, msg)| diag_to_tokens(<span class="kw-2">*</span>span_range, <span class="kw-2">&amp;</span>Level::Error, <span class="kw-2">&amp;</span>msg, <span class="kw-2">&amp;</span>[])),
         );
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">SuggestionKind</span> {
-    <span class="ident">Help</span>,
-    <span class="ident">Note</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>SuggestionKind {
+    Help,
+    Note,
 }
 
-<span class="kw">impl</span> <span class="ident">SuggestionKind</span> {
-    <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SuggestionKind::Note</span> =&gt; <span class="string">&quot;note&quot;</span>,
-            <span class="ident">SuggestionKind::Help</span> =&gt; <span class="string">&quot;help&quot;</span>,
+<span class="kw">impl </span>SuggestionKind {
+    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            SuggestionKind::Note =&gt; <span class="string">&quot;note&quot;</span>,
+            SuggestionKind::Help =&gt; <span class="string">&quot;help&quot;</span>,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;syn-error&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">syn::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Diagnostic</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">syn::Error</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">use</span> <span class="ident">proc_macro2</span>::{<span class="ident">Delimiter</span>, <span class="ident">TokenTree</span>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;syn-error&quot;</span>)]
+</span><span class="kw">impl </span>From&lt;syn::Error&gt; <span class="kw">for </span>Diagnostic {
+    <span class="kw">fn </span>from(err: syn::Error) -&gt; <span class="self">Self </span>{
+        <span class="kw">use </span>proc_macro2::{Delimiter, TokenTree};
 
-        <span class="kw">fn</span> <span class="ident">gut_error</span>(<span class="ident">ts</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenTree</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">SpanRange</span>, <span class="ident">String</span>)<span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ts</span>.<span class="ident">next</span>() {
-                <span class="comment">// compile_error</span>
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">tt</span>) =&gt; <span class="ident">tt</span>.<span class="ident">span</span>(),
+        <span class="kw">fn </span>gut_error(ts: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Iterator&lt;Item = TokenTree&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;(SpanRange, String)&gt; {
+            <span class="kw">let </span>first = <span class="kw">match </span>ts.next() {
+                <span class="comment">// compile_error
+                </span><span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+                <span class="prelude-val">Some</span>(tt) =&gt; tt.span(),
             };
-            <span class="ident">ts</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>(); <span class="comment">// !</span>
+            ts.next().unwrap(); <span class="comment">// !
 
-            <span class="kw">let</span> <span class="ident">lit</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ts</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>() {
-                <span class="ident">TokenTree::Group</span>(<span class="ident">group</span>) =&gt; {
-                    <span class="comment">// Currently `syn` builds `compile_error!` invocations</span>
-                    <span class="comment">// exclusively in `ident{&quot;...&quot;}` (braced) form which is not</span>
-                    <span class="comment">// followed by `;` (semicolon).</span>
-                    <span class="comment">//</span>
-                    <span class="comment">// But if it changes to `ident(&quot;...&quot;);` (parenthesized)</span>
-                    <span class="comment">// or `ident[&quot;...&quot;];` (bracketed) form,</span>
-                    <span class="comment">// we will need to skip the `;` as well.</span>
-                    <span class="comment">// Highly unlikely, but better safe than sorry.</span>
+            </span><span class="kw">let </span>lit = <span class="kw">match </span>ts.next().unwrap() {
+                TokenTree::Group(group) =&gt; {
+                    <span class="comment">// Currently `syn` builds `compile_error!` invocations
+                    // exclusively in `ident{&quot;...&quot;}` (braced) form which is not
+                    // followed by `;` (semicolon).
+                    //
+                    // But if it changes to `ident(&quot;...&quot;);` (parenthesized)
+                    // or `ident[&quot;...&quot;];` (bracketed) form,
+                    // we will need to skip the `;` as well.
+                    // Highly unlikely, but better safe than sorry.
 
-                    <span class="kw">if</span> <span class="ident">group</span>.<span class="ident">delimiter</span>() <span class="op">==</span> <span class="ident">Delimiter::Parenthesis</span>
-                        <span class="op">|</span><span class="op">|</span> <span class="ident">group</span>.<span class="ident">delimiter</span>() <span class="op">==</span> <span class="ident">Delimiter::Bracket</span>
+                    </span><span class="kw">if </span>group.delimiter() == Delimiter::Parenthesis
+                        || group.delimiter() == Delimiter::Bracket
                     {
-                        <span class="ident">ts</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>(); <span class="comment">// ;</span>
-                    }
+                        ts.next().unwrap(); <span class="comment">// ;
+                    </span>}
 
-                    <span class="kw">match</span> <span class="ident">group</span>.<span class="ident">stream</span>().<span class="ident">into_iter</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>() {
-                        <span class="ident">TokenTree::Literal</span>(<span class="ident">lit</span>) =&gt; <span class="ident">lit</span>,
-                        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+                    <span class="kw">match </span>group.stream().into_iter().next().unwrap() {
+                        TokenTree::Literal(lit) =&gt; lit,
+                        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                     }
                 }
-                <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             };
 
-            <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="ident">lit</span>.<span class="ident">span</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">lit</span>.<span class="ident">to_string</span>();
+            <span class="kw">let </span>last = lit.span();
+            <span class="kw">let </span><span class="kw-2">mut </span>msg = lit.to_string();
 
-            <span class="comment">// &quot;abc&quot; =&gt; abc</span>
-            <span class="ident">msg</span>.<span class="ident">pop</span>();
-            <span class="ident">msg</span>.<span class="ident">remove</span>(<span class="number">0</span>);
+            <span class="comment">// &quot;abc&quot; =&gt; abc
+            </span>msg.pop();
+            msg.remove(<span class="number">0</span>);
 
-            <span class="prelude-val">Some</span>((<span class="ident">SpanRange</span> { <span class="ident">first</span>, <span class="ident">last</span> }, <span class="ident">msg</span>))
+            <span class="prelude-val">Some</span>((SpanRange { first, last }, msg))
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ts</span> <span class="op">=</span> <span class="ident">err</span>.<span class="ident">to_compile_error</span>().<span class="ident">into_iter</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>ts = err.to_compile_error().into_iter();
 
-        <span class="kw">let</span> (<span class="ident">span_range</span>, <span class="ident">msg</span>) <span class="op">=</span> <span class="ident">gut_error</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ts</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Diagnostic::spanned_range</span>(<span class="ident">span_range</span>, <span class="ident">Level::Error</span>, <span class="ident">msg</span>);
+        <span class="kw">let </span>(span_range, msg) = gut_error(<span class="kw-2">&amp;mut </span>ts).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>res = Diagnostic::spanned_range(span_range, Level::Error, msg);
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">span_range</span>, <span class="ident">msg</span>)) <span class="op">=</span> <span class="ident">gut_error</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ts</span>) {
-            <span class="ident">res</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">span_range_error</span>(<span class="ident">span_range</span>, <span class="ident">msg</span>);
+        <span class="kw">while let </span><span class="prelude-val">Some</span>((span_range, msg)) = gut_error(<span class="kw-2">&amp;mut </span>ts) {
+            res = res.span_range_error(span_range, msg);
         }
 
-        <span class="ident">res</span>
+        res
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

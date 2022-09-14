@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.18/src/packed/rabinkarp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rabinkarp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../aho_corasick/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/packed/rabinkarp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rabinkarp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../aho_corasick/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -190,191 +183,190 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::mem</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::mem;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::packed::pattern</span>::{<span class="ident">PatternID</span>, <span class="ident">Patterns</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Match</span>;
+<span class="kw">use </span><span class="kw">crate</span>::packed::pattern::{PatternID, Patterns};
+<span class="kw">use </span><span class="kw">crate</span>::Match;
 
-<span class="doccomment">/// The type of the rolling hash used in the Rabin-Karp algorithm.</span>
-<span class="kw">type</span> <span class="ident">Hash</span> <span class="op">=</span> <span class="ident">usize</span>;
+<span class="doccomment">/// The type of the rolling hash used in the Rabin-Karp algorithm.
+</span><span class="kw">type </span>Hash = usize;
 
-<span class="doccomment">/// The number of buckets to store our patterns in. We don&#39;t want this to be</span>
-<span class="doccomment">/// too big in order to avoid wasting memory, but we don&#39;t want it to be too</span>
-<span class="doccomment">/// small either to avoid spending too much time confirming literals.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The number of buckets MUST be a power of two. Otherwise, determining the</span>
-<span class="doccomment">/// bucket from a hash will slow down the code considerably. Using a power</span>
-<span class="doccomment">/// of two means `hash % NUM_BUCKETS` can compile down to a simple `and`</span>
-<span class="doccomment">/// instruction.</span>
-<span class="kw">const</span> <span class="ident">NUM_BUCKETS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span>;
+<span class="doccomment">/// The number of buckets to store our patterns in. We don&#39;t want this to be
+/// too big in order to avoid wasting memory, but we don&#39;t want it to be too
+/// small either to avoid spending too much time confirming literals.
+///
+/// The number of buckets MUST be a power of two. Otherwise, determining the
+/// bucket from a hash will slow down the code considerably. Using a power
+/// of two means `hash % NUM_BUCKETS` can compile down to a simple `and`
+/// instruction.
+</span><span class="kw">const </span>NUM_BUCKETS: usize = <span class="number">64</span>;
 
-<span class="doccomment">/// An implementation of the Rabin-Karp algorithm. The main idea of this</span>
-<span class="doccomment">/// algorithm is to maintain a rolling hash as it moves through the input, and</span>
-<span class="doccomment">/// then check whether that hash corresponds to the same hash for any of the</span>
-<span class="doccomment">/// patterns we&#39;re looking for.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A draw back of naively scaling Rabin-Karp to multiple patterns is that</span>
-<span class="doccomment">/// it requires all of the patterns to be the same length, which in turn</span>
-<span class="doccomment">/// corresponds to the number of bytes to hash. We adapt this to work for</span>
-<span class="doccomment">/// multiple patterns of varying size by fixing the number of bytes to hash</span>
-<span class="doccomment">/// to be the length of the smallest pattern. We also split the patterns into</span>
-<span class="doccomment">/// several buckets to hopefully make the confirmation step faster.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Wikipedia has a decent explanation, if a bit heavy on the theory:</span>
-<span class="doccomment">/// https://en.wikipedia.org/wiki/Rabin%E2%80%93Karp_algorithm</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// But ESMAJ provides something a bit more concrete:</span>
-<span class="doccomment">/// http://www-igm.univ-mlv.fr/~lecroq/string/node5.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RabinKarp</span> {
-    <span class="doccomment">/// The order of patterns in each bucket is significant. Namely, they are</span>
-    <span class="doccomment">/// arranged such that the first one to match is the correct match. This</span>
-    <span class="doccomment">/// may not necessarily correspond to the order provided by the caller.</span>
-    <span class="doccomment">/// For example, if leftmost-longest semantics are used, then the patterns</span>
-    <span class="doccomment">/// are sorted by their length in descending order. If leftmost-first</span>
-    <span class="doccomment">/// semantics are used, then the patterns are sorted by their pattern ID</span>
-    <span class="doccomment">/// in ascending order (which corresponds to the caller&#39;s order).</span>
-    <span class="ident">buckets</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Hash</span>, <span class="ident">PatternID</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The length of the hashing window. Generally, this corresponds to the</span>
-    <span class="doccomment">/// length of the smallest pattern.</span>
-    <span class="ident">hash_len</span>: <span class="ident">usize</span>,
-    <span class="doccomment">/// The factor to subtract out of a hash before updating it with a new</span>
-    <span class="doccomment">/// byte.</span>
-    <span class="ident">hash_2pow</span>: <span class="ident">usize</span>,
-    <span class="doccomment">/// The maximum identifier of a pattern. This is used as a sanity check</span>
-    <span class="doccomment">/// to ensure that the patterns provided by the caller are the same as</span>
-    <span class="doccomment">/// the patterns that were used to compile the matcher. This sanity check</span>
-    <span class="doccomment">/// possibly permits safely eliminating bounds checks regardless of what</span>
-    <span class="doccomment">/// patterns are provided by the caller.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// (Currently, we don&#39;t use this to elide bounds checks since it doesn&#39;t</span>
-    <span class="doccomment">/// result in a measurable performance improvement, but we do use it for</span>
-    <span class="doccomment">/// better failure modes.)</span>
-    <span class="ident">max_pattern_id</span>: <span class="ident">PatternID</span>,
+<span class="doccomment">/// An implementation of the Rabin-Karp algorithm. The main idea of this
+/// algorithm is to maintain a rolling hash as it moves through the input, and
+/// then check whether that hash corresponds to the same hash for any of the
+/// patterns we&#39;re looking for.
+///
+/// A draw back of naively scaling Rabin-Karp to multiple patterns is that
+/// it requires all of the patterns to be the same length, which in turn
+/// corresponds to the number of bytes to hash. We adapt this to work for
+/// multiple patterns of varying size by fixing the number of bytes to hash
+/// to be the length of the smallest pattern. We also split the patterns into
+/// several buckets to hopefully make the confirmation step faster.
+///
+/// Wikipedia has a decent explanation, if a bit heavy on the theory:
+/// https://en.wikipedia.org/wiki/Rabin%E2%80%93Karp_algorithm
+///
+/// But ESMAJ provides something a bit more concrete:
+/// https://www-igm.univ-mlv.fr/~lecroq/string/node5.html
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>RabinKarp {
+    <span class="doccomment">/// The order of patterns in each bucket is significant. Namely, they are
+    /// arranged such that the first one to match is the correct match. This
+    /// may not necessarily correspond to the order provided by the caller.
+    /// For example, if leftmost-longest semantics are used, then the patterns
+    /// are sorted by their length in descending order. If leftmost-first
+    /// semantics are used, then the patterns are sorted by their pattern ID
+    /// in ascending order (which corresponds to the caller&#39;s order).
+    </span>buckets: Vec&lt;Vec&lt;(Hash, PatternID)&gt;&gt;,
+    <span class="doccomment">/// The length of the hashing window. Generally, this corresponds to the
+    /// length of the smallest pattern.
+    </span>hash_len: usize,
+    <span class="doccomment">/// The factor to subtract out of a hash before updating it with a new
+    /// byte.
+    </span>hash_2pow: usize,
+    <span class="doccomment">/// The maximum identifier of a pattern. This is used as a sanity check
+    /// to ensure that the patterns provided by the caller are the same as
+    /// the patterns that were used to compile the matcher. This sanity check
+    /// possibly permits safely eliminating bounds checks regardless of what
+    /// patterns are provided by the caller.
+    ///
+    /// (Currently, we don&#39;t use this to elide bounds checks since it doesn&#39;t
+    /// result in a measurable performance improvement, but we do use it for
+    /// better failure modes.)
+    </span>max_pattern_id: PatternID,
 }
 
-<span class="kw">impl</span> <span class="ident">RabinKarp</span> {
-    <span class="doccomment">/// Compile a new Rabin-Karp matcher from the patterns given.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This panics if any of the patterns in the collection are empty, or if</span>
-    <span class="doccomment">/// the collection is itself empty.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">patterns</span>: <span class="kw-2">&amp;</span><span class="ident">Patterns</span>) -&gt; <span class="ident">RabinKarp</span> {
-        <span class="macro">assert!</span>(<span class="ident">patterns</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">hash_len</span> <span class="op">=</span> <span class="ident">patterns</span>.<span class="ident">minimum_len</span>();
-        <span class="macro">assert!</span>(<span class="ident">hash_len</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>);
+<span class="kw">impl </span>RabinKarp {
+    <span class="doccomment">/// Compile a new Rabin-Karp matcher from the patterns given.
+    ///
+    /// This panics if any of the patterns in the collection are empty, or if
+    /// the collection is itself empty.
+    </span><span class="kw">pub fn </span>new(patterns: <span class="kw-2">&amp;</span>Patterns) -&gt; RabinKarp {
+        <span class="macro">assert!</span>(patterns.len() &gt;= <span class="number">1</span>);
+        <span class="kw">let </span>hash_len = patterns.minimum_len();
+        <span class="macro">assert!</span>(hash_len &gt;= <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash_2pow</span> <span class="op">=</span> <span class="number">1usize</span>;
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">hash_len</span> {
-            <span class="ident">hash_2pow</span> <span class="op">=</span> <span class="ident">hash_2pow</span>.<span class="ident">wrapping_shl</span>(<span class="number">1</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>hash_2pow = <span class="number">1usize</span>;
+        <span class="kw">for _ in </span><span class="number">1</span>..hash_len {
+            hash_2pow = hash_2pow.wrapping_shl(<span class="number">1</span>);
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rk</span> <span class="op">=</span> <span class="ident">RabinKarp</span> {
-            <span class="ident">buckets</span>: <span class="macro">vec!</span>[<span class="macro">vec!</span>[]; <span class="ident">NUM_BUCKETS</span>],
-            <span class="ident">hash_len</span>,
-            <span class="ident">hash_2pow</span>,
-            <span class="ident">max_pattern_id</span>: <span class="ident">patterns</span>.<span class="ident">max_pattern_id</span>(),
+        <span class="kw">let </span><span class="kw-2">mut </span>rk = RabinKarp {
+            buckets: <span class="macro">vec!</span>[<span class="macro">vec!</span>[]; NUM_BUCKETS],
+            hash_len,
+            hash_2pow,
+            max_pattern_id: patterns.max_pattern_id(),
         };
-        <span class="kw">for</span> (<span class="ident">id</span>, <span class="ident">pat</span>) <span class="kw">in</span> <span class="ident">patterns</span>.<span class="ident">iter</span>() {
-            <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">rk</span>.<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="ident">pat</span>.<span class="ident">bytes</span>()[..<span class="ident">rk</span>.<span class="ident">hash_len</span>]);
-            <span class="kw">let</span> <span class="ident">bucket</span> <span class="op">=</span> <span class="ident">hash</span> <span class="op">%</span> <span class="ident">NUM_BUCKETS</span>;
-            <span class="ident">rk</span>.<span class="ident">buckets</span>[<span class="ident">bucket</span>].<span class="ident">push</span>((<span class="ident">hash</span>, <span class="ident">id</span>));
+        <span class="kw">for </span>(id, pat) <span class="kw">in </span>patterns.iter() {
+            <span class="kw">let </span>hash = rk.hash(<span class="kw-2">&amp;</span>pat.bytes()[..rk.hash_len]);
+            <span class="kw">let </span>bucket = hash % NUM_BUCKETS;
+            rk.buckets[bucket].push((hash, id));
         }
-        <span class="ident">rk</span>
+        rk
     }
 
-    <span class="doccomment">/// Return the first matching pattern in the given haystack, begining the</span>
-    <span class="doccomment">/// search at `at`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_at</span>(
+    <span class="doccomment">/// Return the first matching pattern in the given haystack, begining the
+    /// search at `at`.
+    </span><span class="kw">pub fn </span>find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">patterns</span>: <span class="kw-2">&amp;</span><span class="ident">Patterns</span>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
-        <span class="macro">assert_eq!</span>(<span class="ident">NUM_BUCKETS</span>, <span class="self">self</span>.<span class="ident">buckets</span>.<span class="ident">len</span>());
+        patterns: <span class="kw-2">&amp;</span>Patterns,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        <span class="kw-2">mut </span>at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">assert_eq!</span>(NUM_BUCKETS, <span class="self">self</span>.buckets.len());
         <span class="macro">assert_eq!</span>(
-            <span class="self">self</span>.<span class="ident">max_pattern_id</span>,
-            <span class="ident">patterns</span>.<span class="ident">max_pattern_id</span>(),
+            <span class="self">self</span>.max_pattern_id,
+            patterns.max_pattern_id(),
             <span class="string">&quot;Rabin-Karp must be called with same patterns it was built with&quot;</span>,
         );
 
-        <span class="kw">if</span> <span class="ident">at</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">hash_len</span> <span class="op">&gt;</span> <span class="ident">haystack</span>.<span class="ident">len</span>() {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        <span class="kw">if </span>at + <span class="self">self</span>.hash_len &gt; haystack.len() {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">at</span>..<span class="ident">at</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">hash_len</span>]);
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">bucket</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">buckets</span>[<span class="ident">hash</span> <span class="op">%</span> <span class="ident">NUM_BUCKETS</span>];
-            <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">phash</span>, <span class="ident">pid</span>) <span class="kw">in</span> <span class="ident">bucket</span> {
-                <span class="kw">if</span> <span class="ident">phash</span> <span class="op">==</span> <span class="ident">hash</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">verify</span>(<span class="ident">patterns</span>, <span class="ident">pid</span>, <span class="ident">haystack</span>, <span class="ident">at</span>) {
-                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>hash = <span class="self">self</span>.hash(<span class="kw-2">&amp;</span>haystack[at..at + <span class="self">self</span>.hash_len]);
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>bucket = <span class="kw-2">&amp;</span><span class="self">self</span>.buckets[hash % NUM_BUCKETS];
+            <span class="kw">for </span><span class="kw-2">&amp;</span>(phash, pid) <span class="kw">in </span>bucket {
+                <span class="kw">if </span>phash == hash {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = <span class="self">self</span>.verify(patterns, pid, haystack, at) {
+                        <span class="kw">return </span><span class="prelude-val">Some</span>(c);
                     }
                 }
             }
-            <span class="kw">if</span> <span class="ident">at</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">hash_len</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>() {
-                <span class="kw">return</span> <span class="prelude-val">None</span>;
+            <span class="kw">if </span>at + <span class="self">self</span>.hash_len &gt;= haystack.len() {
+                <span class="kw">return </span><span class="prelude-val">None</span>;
             }
-            <span class="ident">hash</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">update_hash</span>(
-                <span class="ident">hash</span>,
-                <span class="ident">haystack</span>[<span class="ident">at</span>],
-                <span class="ident">haystack</span>[<span class="ident">at</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">hash_len</span>],
+            hash = <span class="self">self</span>.update_hash(
+                hash,
+                haystack[at],
+                haystack[at + <span class="self">self</span>.hash_len],
             );
-            <span class="ident">at</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            at += <span class="number">1</span>;
         }
     }
 
-    <span class="doccomment">/// Returns the approximate total amount of heap used by this searcher, in</span>
-    <span class="doccomment">/// units of bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">let</span> <span class="ident">num_patterns</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">max_pattern_id</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="number">1</span>;
-        <span class="self">self</span>.<span class="ident">buckets</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Hash</span>, <span class="ident">PatternID</span>)<span class="op">&gt;</span><span class="op">&gt;</span>()
-            <span class="op">+</span> <span class="ident">num_patterns</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span>(<span class="ident">Hash</span>, <span class="ident">PatternID</span>)<span class="op">&gt;</span>()
+    <span class="doccomment">/// Returns the approximate total amount of heap used by this searcher, in
+    /// units of bytes.
+    </span><span class="kw">pub fn </span>heap_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">let </span>num_patterns = <span class="self">self</span>.max_pattern_id <span class="kw">as </span>usize + <span class="number">1</span>;
+        <span class="self">self</span>.buckets.len() * mem::size_of::&lt;Vec&lt;(Hash, PatternID)&gt;&gt;()
+            + num_patterns * mem::size_of::&lt;(Hash, PatternID)&gt;()
     }
 
-    <span class="doccomment">/// Verify whether the pattern with the given id matches at</span>
-    <span class="doccomment">/// `haystack[at..]`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// We tag this function as `cold` because it helps improve codegen.</span>
-    <span class="doccomment">/// Intuitively, it would seem like inlining it would be better. However,</span>
-    <span class="doccomment">/// the only time this is called and a match is not found is when there</span>
-    <span class="doccomment">/// there is a hash collision, or when a prefix of a pattern matches but</span>
-    <span class="doccomment">/// the entire pattern doesn&#39;t match. This is hopefully fairly rare, and</span>
-    <span class="doccomment">/// if it does occur a lot, it&#39;s going to be slow no matter what we do.</span>
-    <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">fn</span> <span class="ident">verify</span>(
+    <span class="doccomment">/// Verify whether the pattern with the given id matches at
+    /// `haystack[at..]`.
+    ///
+    /// We tag this function as `cold` because it helps improve codegen.
+    /// Intuitively, it would seem like inlining it would be better. However,
+    /// the only time this is called and a match is not found is when there
+    /// there is a hash collision, or when a prefix of a pattern matches but
+    /// the entire pattern doesn&#39;t match. This is hopefully fairly rare, and
+    /// if it does occur a lot, it&#39;s going to be slow no matter what we do.
+    </span><span class="attribute">#[cold]
+    </span><span class="kw">fn </span>verify(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">patterns</span>: <span class="kw-2">&amp;</span><span class="ident">Patterns</span>,
-        <span class="ident">id</span>: <span class="ident">PatternID</span>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="ident">patterns</span>.<span class="ident">get</span>(<span class="ident">id</span>);
-        <span class="kw">if</span> <span class="ident">pat</span>.<span class="ident">is_prefix</span>(<span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">at</span>..]) {
-            <span class="prelude-val">Some</span>(<span class="ident">Match::from_span</span>(<span class="ident">id</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">at</span>, <span class="ident">at</span> <span class="op">+</span> <span class="ident">pat</span>.<span class="ident">len</span>()))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+        patterns: <span class="kw-2">&amp;</span>Patterns,
+        id: PatternID,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="kw">let </span>pat = patterns.get(id);
+        <span class="kw">if </span>pat.is_prefix(<span class="kw-2">&amp;</span>haystack[at..]) {
+            <span class="prelude-val">Some</span>(Match::from_span(id <span class="kw">as </span>usize, at, at + pat.len()))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="doccomment">/// Hash the given bytes.</span>
-    <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Hash</span> {
-        <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">hash_len</span>, <span class="ident">bytes</span>.<span class="ident">len</span>());
+    <span class="doccomment">/// Hash the given bytes.
+    </span><span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; Hash {
+        <span class="macro">assert_eq!</span>(<span class="self">self</span>.hash_len, bytes.len());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hash</span> <span class="op">=</span> <span class="number">0usize</span>;
-        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">b</span> <span class="kw">in</span> <span class="ident">bytes</span> {
-            <span class="ident">hash</span> <span class="op">=</span> <span class="ident">hash</span>.<span class="ident">wrapping_shl</span>(<span class="number">1</span>).<span class="ident">wrapping_add</span>(<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>hash = <span class="number">0usize</span>;
+        <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span>bytes {
+            hash = hash.wrapping_shl(<span class="number">1</span>).wrapping_add(b <span class="kw">as </span>usize);
         }
-        <span class="ident">hash</span>
+        hash
     }
 
-    <span class="doccomment">/// Update the hash given based on removing `old_byte` at the beginning</span>
-    <span class="doccomment">/// of some byte string, and appending `new_byte` to the end of that same</span>
-    <span class="doccomment">/// byte string.</span>
-    <span class="kw">fn</span> <span class="ident">update_hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">prev</span>: <span class="ident">Hash</span>, <span class="ident">old_byte</span>: <span class="ident">u8</span>, <span class="ident">new_byte</span>: <span class="ident">u8</span>) -&gt; <span class="ident">Hash</span> {
-        <span class="ident">prev</span>.<span class="ident">wrapping_sub</span>((<span class="ident">old_byte</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">wrapping_mul</span>(<span class="self">self</span>.<span class="ident">hash_2pow</span>))
-            .<span class="ident">wrapping_shl</span>(<span class="number">1</span>)
-            .<span class="ident">wrapping_add</span>(<span class="ident">new_byte</span> <span class="kw">as</span> <span class="ident">usize</span>)
+    <span class="doccomment">/// Update the hash given based on removing `old_byte` at the beginning
+    /// of some byte string, and appending `new_byte` to the end of that same
+    /// byte string.
+    </span><span class="kw">fn </span>update_hash(<span class="kw-2">&amp;</span><span class="self">self</span>, prev: Hash, old_byte: u8, new_byte: u8) -&gt; Hash {
+        prev.wrapping_sub((old_byte <span class="kw">as </span>usize).wrapping_mul(<span class="self">self</span>.hash_2pow))
+            .wrapping_shl(<span class="number">1</span>)
+            .wrapping_add(new_byte <span class="kw">as </span>usize)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

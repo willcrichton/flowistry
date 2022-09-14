@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry_ifc/src/analysis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry_ifc/src/analysis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -15,13 +14,7 @@
     });
 </script>
 
-</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../flowistry_ifc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../flowistry_ifc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../flowistry_ifc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../flowistry_ifc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../flowistry_ifc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../flowistry_ifc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -228,213 +221,212 @@
 <span id="205">205</span>
 <span id="206">206</span>
 <span id="207">207</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
+</pre><pre class="rust"><code><span class="attribute">#![allow(dead_code)]
+#![allow(dead_code)]
 
-<span class="kw">use</span> <span class="ident">std::io::Write</span>;
+</span><span class="kw">use </span>std::io::Write;
 
-<span class="kw">use</span> <span class="ident">anyhow::Result</span>;
-<span class="kw">use</span> <span class="ident">flowistry</span>::{
-  <span class="ident">indexed::impls::PlaceSet</span>,
-  <span class="ident">infoflow::FlowResults</span>,
-  <span class="ident">mir::utils</span>::{<span class="ident">BodyExt</span>, <span class="ident">PlaceExt</span>, <span class="ident">SpanExt</span>},
+<span class="kw">use </span>anyhow::Result;
+<span class="kw">use </span>flowistry::{
+  indexed::impls::PlaceSet,
+  infoflow::FlowResults,
+  mir::utils::{BodyExt, PlaceExt, SpanExt},
 };
-<span class="kw">use</span> <span class="ident">rustc_data_structures::fx::FxHashMap</span> <span class="kw">as</span> <span class="ident">HashMap</span>;
-<span class="kw">use</span> <span class="ident">rustc_hir</span>::{<span class="ident">def::Res</span>, <span class="ident">def_id::DefId</span>, <span class="ident">BodyId</span>};
-<span class="kw">use</span> <span class="ident">rustc_infer::traits::EvaluationResult</span>;
-<span class="kw">use</span> <span class="ident">rustc_middle</span>::{
-  <span class="ident">mir</span>::<span class="kw-2">*</span>,
-  <span class="ident">ty</span>::{<span class="ident">ParamEnv</span>, <span class="ident">Ty</span>, <span class="ident">TyCtxt</span>},
+<span class="kw">use </span>rustc_data_structures::fx::FxHashMap <span class="kw">as </span>HashMap;
+<span class="kw">use </span>rustc_hir::{def::Res, def_id::DefId, BodyId};
+<span class="kw">use </span>rustc_infer::traits::EvaluationResult;
+<span class="kw">use </span>rustc_middle::{
+  mir::<span class="kw-2">*</span>,
+  ty::{ParamEnv, Ty, TyCtxt},
 };
-<span class="kw">use</span> <span class="ident">rustc_mir_dataflow::JoinSemiLattice</span>;
-<span class="kw">use</span> <span class="ident">rustc_span::FileName</span>;
-<span class="kw">use</span> <span class="ident">rustc_trait_selection::infer</span>::{<span class="ident">InferCtxtExt</span>, <span class="ident">TyCtxtInferExt</span>};
-<span class="kw">use</span> <span class="ident">termcolor</span>::{<span class="ident">Color</span>, <span class="ident">ColorChoice</span>, <span class="ident">ColorSpec</span>, <span class="ident">StandardStream</span>, <span class="ident">WriteColor</span>};
+<span class="kw">use </span>rustc_mir_dataflow::JoinSemiLattice;
+<span class="kw">use </span>rustc_span::FileName;
+<span class="kw">use </span>rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
+<span class="kw">use </span>termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
-<span class="kw">fn</span> <span class="ident">implements_trait</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
-  <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="ident">param_env</span>: <span class="ident">ParamEnv</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="ident">trait_def_id</span>: <span class="ident">DefId</span>,
-) -&gt; <span class="ident">bool</span> {
-  <span class="ident">tcx</span>.<span class="ident">infer_ctxt</span>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span> {
-    <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">erase_regions</span>(<span class="ident">ty</span>);
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">infcx</span>.<span class="ident">type_implements_trait</span>(
-      <span class="ident">trait_def_id</span>,
-      <span class="ident">ty</span>,
-      <span class="ident">tcx</span>.<span class="ident">mk_substs_trait</span>(<span class="ident">ty</span>, <span class="kw-2">&amp;</span>[]),
-      <span class="ident">param_env</span>,
+<span class="kw">fn </span>implements_trait&lt;<span class="lifetime">&#39;tcx</span>&gt;(
+  tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  param_env: ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  trait_def_id: DefId,
+) -&gt; bool {
+  tcx.infer_ctxt().enter(|infcx| {
+    <span class="kw">let </span>ty = tcx.erase_regions(ty);
+    <span class="kw">let </span>result = infcx.type_implements_trait(
+      trait_def_id,
+      ty,
+      tcx.mk_substs_trait(ty, <span class="kw-2">&amp;</span>[]),
+      param_env,
     );
     <span class="macro">matches!</span>(
-      <span class="ident">result</span>,
-      <span class="ident">EvaluationResult::EvaluatedToOk</span> <span class="op">|</span> <span class="ident">EvaluationResult::EvaluatedToOkModuloRegions</span>
+      result,
+      EvaluationResult::EvaluatedToOk | EvaluationResult::EvaluatedToOkModuloRegions
     )
   })
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">IssueFound</span> {
-  <span class="ident">Yes</span>,
-  <span class="ident">No</span>,
+<span class="kw">pub enum </span>IssueFound {
+  Yes,
+  No,
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">analyze</span>(<span class="ident">body_id</span>: <span class="kw-2">&amp;</span><span class="ident">BodyId</span>, <span class="ident">results</span>: <span class="kw-2">&amp;</span><span class="ident">FlowResults</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IssueFound</span><span class="op">&gt;</span> {
-  <span class="kw">let</span> <span class="ident">tcx</span> <span class="op">=</span> <span class="ident">results</span>.<span class="ident">analysis</span>.<span class="ident">tcx</span>;
-  <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">results</span>.<span class="ident">analysis</span>.<span class="ident">body</span>;
-  <span class="kw">let</span> <span class="ident">def_id</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">body_owner_def_id</span>(<span class="kw-2">*</span><span class="ident">body_id</span>).<span class="ident">to_def_id</span>();
+<span class="kw">pub fn </span>analyze(body_id: <span class="kw-2">&amp;</span>BodyId, results: <span class="kw-2">&amp;</span>FlowResults) -&gt; <span class="prelude-ty">Result</span>&lt;IssueFound&gt; {
+  <span class="kw">let </span>tcx = results.analysis.tcx;
+  <span class="kw">let </span>body = results.analysis.body;
+  <span class="kw">let </span>def_id = tcx.hir().body_owner_def_id(<span class="kw-2">*</span>body_id).to_def_id();
 
   <span class="macro">log::debug!</span>(
     <span class="string">&quot;Crates: {:?}&quot;</span>,
-    <span class="ident">tcx</span>
-      .<span class="ident">crates</span>(())
-      .<span class="ident">iter</span>()
-      .<span class="ident">map</span>(<span class="op">|</span><span class="ident">krate</span><span class="op">|</span> <span class="ident">tcx</span>.<span class="ident">crate_name</span>(<span class="kw-2">*</span><span class="ident">krate</span>))
-      .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+    tcx
+      .crates(())
+      .iter()
+      .map(|krate| tcx.crate_name(<span class="kw-2">*</span>krate))
+      .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
   );
-  <span class="kw">let</span> <span class="ident">ifc_crate</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">tcx</span>
-    .<span class="ident">crates</span>(())
-    .<span class="ident">iter</span>()
-    .<span class="ident">find</span>(<span class="op">|</span><span class="ident">krate</span><span class="op">|</span> <span class="ident">tcx</span>.<span class="ident">crate_name</span>(<span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">krate</span>).<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;flowistry_ifc_traits&quot;</span>)
+  <span class="kw">let </span>ifc_crate = <span class="kw">match </span>tcx
+    .crates(())
+    .iter()
+    .find(|krate| tcx.crate_name(<span class="kw-2">**</span>krate).as_str() == <span class="string">&quot;flowistry_ifc_traits&quot;</span>)
   {
-    <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="kw-2">*</span><span class="ident">c</span>,
-    <span class="prelude-val">None</span> =&gt; {
-      <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">IssueFound::No</span>);
+    <span class="prelude-val">Some</span>(c) =&gt; <span class="kw-2">*</span>c,
+    <span class="prelude-val">None </span>=&gt; {
+      <span class="kw">return </span><span class="prelude-val">Ok</span>(IssueFound::No);
     }
   };
 
-  <span class="kw">let</span> <span class="ident">ifc_mod</span> <span class="op">=</span> <span class="ident">DefId</span> {
-    <span class="ident">krate</span>: <span class="ident">ifc_crate</span>,
-    <span class="ident">index</span>: <span class="ident">rustc_hir::def_id::CRATE_DEF_INDEX</span>,
+  <span class="kw">let </span>ifc_mod = DefId {
+    krate: ifc_crate,
+    index: rustc_hir::def_id::CRATE_DEF_INDEX,
   };
-  <span class="kw">let</span> <span class="ident">ifc_items</span> <span class="op">=</span> <span class="ident">tcx</span>
-    .<span class="ident">module_children</span>(<span class="ident">ifc_mod</span>)
-    .<span class="ident">iter</span>()
-    .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">export</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">export</span>.<span class="ident">res</span> {
-      <span class="ident">Res::Def</span>(<span class="kw">_</span>, <span class="ident">id</span>) =&gt; <span class="prelude-val">Some</span>((<span class="ident">export</span>.<span class="ident">ident</span>.<span class="ident">to_string</span>(), <span class="ident">id</span>)),
-      <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+  <span class="kw">let </span>ifc_items = tcx
+    .module_children(ifc_mod)
+    .iter()
+    .filter_map(|export| <span class="kw">match </span>export.res {
+      Res::Def(<span class="kw">_</span>, id) =&gt; <span class="prelude-val">Some</span>((export.ident.to_string(), id)),
+      <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     })
-    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    .collect::&lt;HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;();
 
-  <span class="kw">let</span> <span class="ident">all_places</span> <span class="op">=</span> <span class="ident">body</span>
-    .<span class="ident">local_decls</span>()
-    .<span class="ident">indices</span>()
-    .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">local</span><span class="op">|</span> {
-      <span class="kw">let</span> <span class="ident">place</span> <span class="op">=</span> <span class="ident">Place::from_local</span>(<span class="ident">local</span>, <span class="ident">tcx</span>);
-      <span class="ident">place</span>.<span class="ident">interior_places</span>(<span class="ident">tcx</span>, <span class="ident">body</span>, <span class="ident">def_id</span>)
+  <span class="kw">let </span>all_places = body
+    .local_decls()
+    .indices()
+    .flat_map(|local| {
+      <span class="kw">let </span>place = Place::from_local(local, tcx);
+      place.interior_places(tcx, body, def_id)
     })
-    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">PlaceSet</span><span class="op">&gt;</span>();
+    .collect::&lt;PlaceSet&gt;();
 
-  <span class="kw">let</span> <span class="ident">find_implements</span> <span class="op">=</span> <span class="op">|</span><span class="ident">trait_def_id</span><span class="op">|</span> -&gt; <span class="ident">PlaceSet</span> {
-    <span class="ident">all_places</span>
-      .<span class="ident">iter</span>()
-      .<span class="ident">copied</span>()
-      .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">place</span>.<span class="ident">ty</span>(<span class="ident">body</span>.<span class="ident">local_decls</span>(), <span class="ident">tcx</span>).<span class="ident">ty</span>;
-        <span class="ident">implements_trait</span>(<span class="ident">tcx</span>, <span class="ident">tcx</span>.<span class="ident">param_env</span>(<span class="ident">def_id</span>), <span class="ident">ty</span>, <span class="ident">trait_def_id</span>)
+  <span class="kw">let </span>find_implements = |trait_def_id| -&gt; PlaceSet {
+    all_places
+      .iter()
+      .copied()
+      .filter(|place| {
+        <span class="kw">let </span>ty = place.ty(body.local_decls(), tcx).ty;
+        implements_trait(tcx, tcx.param_env(def_id), ty, trait_def_id)
       })
-      .<span class="ident">collect</span>()
+      .collect()
   };
-  <span class="kw">let</span> <span class="ident">secure_places</span> <span class="op">=</span> <span class="ident">find_implements</span>(<span class="ident">ifc_items</span>[<span class="string">&quot;Secure&quot;</span>]);
-  <span class="kw">let</span> <span class="ident">insecure_places</span> <span class="op">=</span> <span class="ident">find_implements</span>(<span class="ident">ifc_items</span>[<span class="string">&quot;Insecure&quot;</span>]);
+  <span class="kw">let </span>secure_places = find_implements(ifc_items[<span class="string">&quot;Secure&quot;</span>]);
+  <span class="kw">let </span>insecure_places = find_implements(ifc_items[<span class="string">&quot;Insecure&quot;</span>]);
 
-  <span class="kw">let</span> <span class="ident">final_state</span> <span class="op">=</span> <span class="ident">body</span>
-    .<span class="ident">all_returns</span>()
-    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">location</span><span class="op">|</span> <span class="ident">results</span>.<span class="ident">state_at</span>(<span class="ident">location</span>).<span class="ident">clone</span>())
-    .<span class="ident">reduce</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> {
-      <span class="ident">a</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>);
-      <span class="ident">a</span>
+  <span class="kw">let </span>final_state = body
+    .all_returns()
+    .map(|location| results.state_at(location).clone())
+    .reduce(|<span class="kw-2">mut </span>a, b| {
+      a.join(<span class="kw-2">&amp;</span>b);
+      a
     })
-    .<span class="ident">unwrap</span>();
+    .unwrap();
 
-  <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">errors</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-  <span class="kw">for</span> <span class="ident">secure</span> <span class="kw">in</span> <span class="ident">secure_places</span>.<span class="ident">iter</span>() {
-    <span class="kw">let</span> <span class="ident">secure_deps</span> <span class="op">=</span> <span class="ident">final_state</span>.<span class="ident">row_set</span>(<span class="kw-2">*</span><span class="ident">secure</span>);
-    <span class="kw">for</span> <span class="ident">insecure</span> <span class="kw">in</span> <span class="ident">insecure_places</span>.<span class="ident">iter</span>() {
-      <span class="kw">let</span> <span class="ident">insecure_deps</span> <span class="op">=</span> <span class="ident">final_state</span>.<span class="ident">row_set</span>(<span class="kw-2">*</span><span class="ident">insecure</span>);
-      <span class="kw">if</span> <span class="ident">insecure_deps</span>.<span class="ident">is_superset</span>(<span class="kw-2">&amp;</span><span class="ident">secure_deps</span>) {
-        <span class="ident">errors</span>.<span class="ident">push</span>((<span class="ident">secure</span>, <span class="ident">insecure</span>));
+  <span class="kw">let </span><span class="kw-2">mut </span>errors = Vec::new();
+  <span class="kw">for </span>secure <span class="kw">in </span>secure_places.iter() {
+    <span class="kw">let </span>secure_deps = final_state.row_set(<span class="kw-2">*</span>secure);
+    <span class="kw">for </span>insecure <span class="kw">in </span>insecure_places.iter() {
+      <span class="kw">let </span>insecure_deps = final_state.row_set(<span class="kw-2">*</span>insecure);
+      <span class="kw">if </span>insecure_deps.is_superset(<span class="kw-2">&amp;</span>secure_deps) {
+        errors.push((secure, insecure));
       }
     }
   }
 
-  <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stdout</span> <span class="op">=</span> <span class="ident">StandardStream::stderr</span>(<span class="ident">ColorChoice::Auto</span>);
-  <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">black_spec</span> <span class="op">=</span> <span class="ident">ColorSpec::new</span>();
-  <span class="ident">black_spec</span>.<span class="ident">set_fg</span>(<span class="prelude-val">Some</span>(<span class="ident">Color::Yellow</span>));
-  <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">red_spec</span> <span class="op">=</span> <span class="ident">ColorSpec::new</span>();
-  <span class="ident">red_spec</span>.<span class="ident">set_fg</span>(<span class="prelude-val">Some</span>(<span class="ident">Color::Red</span>));
+  <span class="kw">let </span><span class="kw-2">mut </span>stdout = StandardStream::stderr(ColorChoice::Auto);
+  <span class="kw">let </span><span class="kw-2">mut </span>black_spec = ColorSpec::new();
+  black_spec.set_fg(<span class="prelude-val">Some</span>(Color::Yellow));
+  <span class="kw">let </span><span class="kw-2">mut </span>red_spec = ColorSpec::new();
+  red_spec.set_fg(<span class="prelude-val">Some</span>(Color::Red));
 
-  <span class="kw">let</span> <span class="ident">decls</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">local_decls</span>();
-  <span class="kw">let</span> <span class="ident">source_map</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>();
-  <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">source_map</span>.<span class="ident">span_to_filename</span>(<span class="ident">body</span>.<span class="ident">span</span>) {
-    <span class="ident">FileName::Real</span>(<span class="ident">f</span>) =&gt; <span class="ident">f</span>,
-    <span class="kw">_</span> =&gt; <span class="macro">unimplemented!</span>(),
+  <span class="kw">let </span>decls = body.local_decls();
+  <span class="kw">let </span>source_map = tcx.sess.source_map();
+  <span class="kw">let </span>filename = <span class="kw">match </span>source_map.span_to_filename(body.span) {
+    FileName::Real(f) =&gt; f,
+    <span class="kw">_ </span>=&gt; <span class="macro">unimplemented!</span>(),
   };
-  <span class="kw">let</span> <span class="ident">has_errors</span> <span class="op">=</span> <span class="op">!</span><span class="ident">errors</span>.<span class="ident">is_empty</span>();
-  <span class="kw">for</span> (<span class="ident">src</span>, <span class="ident">dst</span>) <span class="kw">in</span> <span class="ident">errors</span> {
-    <span class="kw">let</span> <span class="ident">body_span</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">span_with_body</span>(<span class="ident">body_id</span>.<span class="ident">hir_id</span>);
-    <span class="kw">let</span> <span class="ident">src_span</span> <span class="op">=</span> <span class="ident">decls</span>[<span class="ident">src</span>.<span class="ident">local</span>].<span class="ident">source_info</span>.<span class="ident">span</span>.<span class="ident">as_local</span>(<span class="ident">body_span</span>);
-    <span class="kw">let</span> <span class="ident">dst_span</span> <span class="op">=</span> <span class="ident">decls</span>[<span class="ident">dst</span>.<span class="ident">local</span>].<span class="ident">source_info</span>.<span class="ident">span</span>.<span class="ident">as_local</span>(<span class="ident">body_span</span>);
+  <span class="kw">let </span>has_errors = !errors.is_empty();
+  <span class="kw">for </span>(src, dst) <span class="kw">in </span>errors {
+    <span class="kw">let </span>body_span = tcx.hir().span_with_body(body_id.hir_id);
+    <span class="kw">let </span>src_span = decls[src.local].source_info.span.as_local(body_span);
+    <span class="kw">let </span>dst_span = decls[dst.local].source_info.span.as_local(body_span);
 
-    <span class="kw">let</span> <span class="ident">span_range</span> <span class="op">=</span> <span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">span</span> {
-      <span class="prelude-val">Some</span>(<span class="ident">span</span>) =&gt; {
-        <span class="kw">let</span> <span class="ident">lines</span> <span class="op">=</span> <span class="ident">source_map</span>.<span class="ident">span_to_lines</span>(<span class="ident">span</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">lines</span>.<span class="ident">lines</span>.<span class="ident">first</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="ident">lines</span>.<span class="ident">lines</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>();
+    <span class="kw">let </span>span_range = |span| <span class="kw">match </span>span {
+      <span class="prelude-val">Some</span>(span) =&gt; {
+        <span class="kw">let </span>lines = source_map.span_to_lines(span).unwrap();
+        <span class="kw">let </span>first = lines.lines.first().unwrap();
+        <span class="kw">let </span>last = lines.lines.last().unwrap();
         <span class="macro">format!</span>(
           <span class="string">&quot;{}:{}-{}:{}&quot;</span>,
-          <span class="ident">first</span>.<span class="ident">line_index</span> <span class="op">+</span> <span class="number">1</span>,
-          <span class="ident">first</span>.<span class="ident">start_col</span>.<span class="number">0</span>,
-          <span class="ident">last</span>.<span class="ident">line_index</span> <span class="op">+</span> <span class="number">1</span>,
-          <span class="ident">last</span>.<span class="ident">end_col</span>.<span class="number">0</span>
-        )
+          first.line_index + <span class="number">1</span>,
+          first.start_col.<span class="number">0</span>,
+          last.line_index + <span class="number">1</span>,
+          last.end_col.<span class="number">0
+        </span>)
       }
-      <span class="prelude-val">None</span> =&gt; <span class="string">&quot;&lt;in macro expansion&gt;&quot;</span>.<span class="ident">to_owned</span>(),
+      <span class="prelude-val">None </span>=&gt; <span class="string">&quot;&lt;in macro expansion&gt;&quot;</span>.to_owned(),
     };
 
-    <span class="kw">let</span> <span class="ident">span_contents</span> <span class="op">=</span> <span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">span</span> {
-      <span class="prelude-val">Some</span>(<span class="ident">span</span>) =&gt; <span class="ident">source_map</span>.<span class="ident">span_to_snippet</span>(<span class="ident">span</span>).<span class="ident">unwrap</span>(),
-      <span class="prelude-val">None</span> =&gt; <span class="string">&quot;&lt;in macro expansion&gt;&quot;</span>.<span class="ident">to_owned</span>(),
+    <span class="kw">let </span>span_contents = |span| <span class="kw">match </span>span {
+      <span class="prelude-val">Some</span>(span) =&gt; source_map.span_to_snippet(span).unwrap(),
+      <span class="prelude-val">None </span>=&gt; <span class="string">&quot;&lt;in macro expansion&gt;&quot;</span>.to_owned(),
     };
 
-    <span class="ident">stdout</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="ident">red_spec</span>)<span class="question-mark">?</span>;
+    stdout.set_color(<span class="kw-2">&amp;</span>red_spec)<span class="question-mark">?</span>;
     <span class="macro">writeln!</span>(
-      <span class="ident">stdout</span>,
+      stdout,
       <span class="string">&quot;ERROR: insecure flow in {filename} from data at {src_span}:&quot;</span>,
-      <span class="ident">filename</span> <span class="op">=</span> <span class="ident">filename</span>
-        .<span class="ident">local_path_if_available</span>()
-        .<span class="ident">file_name</span>()
-        .<span class="ident">unwrap</span>()
-        .<span class="ident">to_string_lossy</span>(),
-      <span class="ident">src_span</span> <span class="op">=</span> <span class="ident">span_range</span>(<span class="ident">src_span</span>)
+      filename = filename
+        .local_path_if_available()
+        .file_name()
+        .unwrap()
+        .to_string_lossy(),
+      src_span = span_range(src_span)
     )<span class="question-mark">?</span>;
 
-    <span class="ident">stdout</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="ident">black_spec</span>)<span class="question-mark">?</span>;
+    stdout.set_color(<span class="kw-2">&amp;</span>black_spec)<span class="question-mark">?</span>;
     <span class="macro">writeln!</span>(
-      <span class="ident">stdout</span>,
+      stdout,
       <span class="string">&quot;  {src_snippet}&quot;</span>,
-      <span class="ident">src_snippet</span> <span class="op">=</span> <span class="ident">span_contents</span>(<span class="ident">src_span</span>)
+      src_snippet = span_contents(src_span)
     )<span class="question-mark">?</span>;
 
-    <span class="ident">stdout</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="ident">red_spec</span>)<span class="question-mark">?</span>;
+    stdout.set_color(<span class="kw-2">&amp;</span>red_spec)<span class="question-mark">?</span>;
     <span class="macro">writeln!</span>(
-      <span class="ident">stdout</span>,
+      stdout,
       <span class="string">&quot;to data at {dst_span}:&quot;</span>,
-      <span class="ident">dst_span</span> <span class="op">=</span> <span class="ident">span_range</span>(<span class="ident">dst_span</span>)
+      dst_span = span_range(dst_span)
     )<span class="question-mark">?</span>;
 
-    <span class="ident">stdout</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="ident">black_spec</span>)<span class="question-mark">?</span>;
+    stdout.set_color(<span class="kw-2">&amp;</span>black_spec)<span class="question-mark">?</span>;
     <span class="macro">writeln!</span>(
-      <span class="ident">stdout</span>,
+      stdout,
       <span class="string">&quot;  {dst_snippet}\n&quot;</span>,
-      <span class="ident">dst_snippet</span> <span class="op">=</span> <span class="ident">span_contents</span>(<span class="ident">dst_span</span>)
+      dst_snippet = span_contents(dst_span)
     )<span class="question-mark">?</span>;
   }
 
-  <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="ident">has_errors</span> {
-    <span class="ident">IssueFound::Yes</span>
-  } <span class="kw">else</span> {
-    <span class="ident">IssueFound::No</span>
+  <span class="prelude-val">Ok</span>(<span class="kw">if </span>has_errors {
+    IssueFound::Yes
+  } <span class="kw">else </span>{
+    IssueFound::No
   })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="flowistry_ifc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="flowistry_ifc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

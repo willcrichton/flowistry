@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.3/src/grouping_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>grouping_map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.4/src/grouping_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>grouping_map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -540,543 +533,540 @@
 <span id="533">533</span>
 <span id="534">534</span>
 <span id="535">535</span>
-<span id="536">536</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;use_std&quot;</span>)]</span>
+</pre><pre class="rust"><code><span class="attribute">#![cfg(feature = <span class="string">&quot;use_std&quot;</span>)]
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::MinMaxResult</span>;
-<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
-<span class="kw">use</span> <span class="ident">std::cmp::Ordering</span>;
-<span class="kw">use</span> <span class="ident">std::hash::Hash</span>;
-<span class="kw">use</span> <span class="ident">std::iter::Iterator</span>;
-<span class="kw">use</span> <span class="ident">std::ops</span>::{<span class="ident">Add</span>, <span class="ident">Mul</span>};
+</span><span class="kw">use </span><span class="kw">crate</span>::MinMaxResult;
+<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::cmp::Ordering;
+<span class="kw">use </span>std::hash::Hash;
+<span class="kw">use </span>std::iter::Iterator;
+<span class="kw">use </span>std::ops::{Add, Mul};
 
-<span class="doccomment">/// A wrapper to allow for an easy [`into_grouping_map_by`](crate::Itertools::into_grouping_map_by)</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MapForGrouping</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">I</span>, <span class="ident">F</span>);
+<span class="doccomment">/// A wrapper to allow for an easy [`into_grouping_map_by`](crate::Itertools::into_grouping_map_by)
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>MapForGrouping&lt;I, F&gt;(I, F);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">MapForGrouping</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iter</span>: <span class="ident">I</span>, <span class="ident">key_mapper</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">iter</span>, <span class="ident">key_mapper</span>)
+<span class="kw">impl</span>&lt;I, F&gt; MapForGrouping&lt;I, F&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(iter: I, key_mapper: F) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(iter, key_mapper)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">MapForGrouping</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">V</span><span class="op">&gt;</span>,
-          <span class="ident">K</span>: <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span>,
-          <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="ident">K</span>,
+<span class="kw">impl</span>&lt;K, V, I, F&gt; Iterator <span class="kw">for </span>MapForGrouping&lt;I, F&gt;
+    <span class="kw">where </span>I: Iterator&lt;Item = V&gt;,
+          K: Hash + Eq,
+          F: FnMut(<span class="kw-2">&amp;</span>V) -&gt; K,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">K</span>, <span class="ident">V</span>);
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> ((<span class="self">self</span>.<span class="number">1</span>)(<span class="kw-2">&amp;</span><span class="ident">val</span>), <span class="ident">val</span>))
+    <span class="kw">type </span>Item = (K, V);
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.next().map(|val| ((<span class="self">self</span>.<span class="number">1</span>)(<span class="kw-2">&amp;</span>val), val))
     }
 }
 
-<span class="doccomment">/// Creates a new `GroupingMap` from `iter`</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="ident">GroupingMap</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span>,
-          <span class="ident">K</span>: <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span>,
+<span class="doccomment">/// Creates a new `GroupingMap` from `iter`
+</span><span class="kw">pub fn </span>new&lt;I, K, V&gt;(iter: I) -&gt; GroupingMap&lt;I&gt;
+    <span class="kw">where </span>I: Iterator&lt;Item = (K, V)&gt;,
+          K: Hash + Eq,
 {
-    <span class="ident">GroupingMap</span> { <span class="ident">iter</span> }
+    GroupingMap { iter }
 }
 
-<span class="doccomment">/// `GroupingMapBy` is an intermediate struct for efficient group-and-fold operations.</span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// See [`GroupingMap`] for more informations.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;GroupingMapBy is lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">GroupingMapBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">GroupingMap</span><span class="op">&lt;</span><span class="ident">MapForGrouping</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="doccomment">/// `GroupingMapBy` is an intermediate struct for efficient group-and-fold operations.
+/// 
+/// See [`GroupingMap`] for more informations.
+</span><span class="kw">pub type </span>GroupingMapBy&lt;I, F&gt; = GroupingMap&lt;MapForGrouping&lt;I, F&gt;&gt;;
 
-<span class="doccomment">/// `GroupingMap` is an intermediate struct for efficient group-and-fold operations.</span>
-<span class="doccomment">/// It groups elements by their key and at the same time fold each group</span>
-<span class="doccomment">/// using some aggregating operation.</span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// No method on this struct performs temporary allocations.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;GroupingMap is lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GroupingMap</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
-    <span class="ident">iter</span>: <span class="ident">I</span>,
+<span class="doccomment">/// `GroupingMap` is an intermediate struct for efficient group-and-fold operations.
+/// It groups elements by their key and at the same time fold each group
+/// using some aggregating operation.
+/// 
+/// No method on this struct performs temporary allocations.
+</span><span class="attribute">#[derive(Clone, Debug)]
+#[must_use = <span class="string">&quot;GroupingMap is lazy and do nothing unless consumed&quot;</span>]
+</span><span class="kw">pub struct </span>GroupingMap&lt;I&gt; {
+    iter: I,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">GroupingMap</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span>,
-          <span class="ident">K</span>: <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span>,
+<span class="kw">impl</span>&lt;I, K, V&gt; GroupingMap&lt;I&gt;
+    <span class="kw">where </span>I: Iterator&lt;Item = (K, V)&gt;,
+          K: Hash + Eq,
 {
-    <span class="doccomment">/// This is the generic way to perform any operation on a `GroupingMap`.</span>
-    <span class="doccomment">/// It&#39;s suggested to use this method only to implement custom operations</span>
-    <span class="doccomment">/// when the already provided ones are not enough.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements</span>
-    <span class="doccomment">/// of each group sequentially, passing the previously accumulated value, a reference to the key</span>
-    <span class="doccomment">/// and the current element as arguments, and stores the results in an `HashMap`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `operation` function is invoked on each element with the following parameters:</span>
-    <span class="doccomment">///  - the current value of the accumulator of the group if there is currently one;</span>
-    <span class="doccomment">///  - a reference to the key of the group this element belongs to;</span>
-    <span class="doccomment">///  - the element from the source being aggregated;</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// If `operation` returns `Some(element)` then the accumulator is updated with `element`,</span>
-    <span class="doccomment">/// otherwise the previous accumulation is discarded.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Return a `HashMap` associating the key of each group with the result of aggregation of</span>
-    <span class="doccomment">/// that group&#39;s elements. If the aggregation of the last element of a group discards the</span>
-    <span class="doccomment">/// accumulator then there won&#39;t be an entry associated to that group&#39;s key.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let data = vec![2, 8, 5, 7, 9, 0, 4, 10];</span>
-    <span class="doccomment">/// let lookup = data.into_iter()</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 4)</span>
-    <span class="doccomment">///     .aggregate(|acc, _key, val| {</span>
-    <span class="doccomment">///         if val == 0 || val == 10 {</span>
-    <span class="doccomment">///             None</span>
-    <span class="doccomment">///         } else {</span>
-    <span class="doccomment">///             Some(acc.unwrap_or(0) + val)</span>
-    <span class="doccomment">///         }</span>
-    <span class="doccomment">///     });</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], 4);        // 0 resets the accumulator so only 4 is summed</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], 5 + 9);</span>
-    <span class="doccomment">/// assert_eq!(lookup.get(&amp;2), None); // 10 resets the accumulator and nothing is summed afterward</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;3], 7);</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);      // The final keys are only 0, 1 and 2</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aggregate</span><span class="op">&lt;</span><span class="ident">FO</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">operation</span>: <span class="ident">FO</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">R</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">FO</span>: <span class="ident">FnMut</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="ident">V</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// This is the generic way to perform any operation on a `GroupingMap`.
+    /// It&#39;s suggested to use this method only to implement custom operations
+    /// when the already provided ones are not enough.
+    /// 
+    /// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
+    /// of each group sequentially, passing the previously accumulated value, a reference to the key
+    /// and the current element as arguments, and stores the results in an `HashMap`.
+    ///
+    /// The `operation` function is invoked on each element with the following parameters:
+    ///  - the current value of the accumulator of the group if there is currently one;
+    ///  - a reference to the key of the group this element belongs to;
+    ///  - the element from the source being aggregated;
+    /// 
+    /// If `operation` returns `Some(element)` then the accumulator is updated with `element`,
+    /// otherwise the previous accumulation is discarded.
+    ///
+    /// Return a `HashMap` associating the key of each group with the result of aggregation of
+    /// that group&#39;s elements. If the aggregation of the last element of a group discards the
+    /// accumulator then there won&#39;t be an entry associated to that group&#39;s key.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let data = vec![2, 8, 5, 7, 9, 0, 4, 10];
+    /// let lookup = data.into_iter()
+    ///     .into_grouping_map_by(|&amp;n| n % 4)
+    ///     .aggregate(|acc, _key, val| {
+    ///         if val == 0 || val == 10 {
+    ///             None
+    ///         } else {
+    ///             Some(acc.unwrap_or(0) + val)
+    ///         }
+    ///     });
+    /// 
+    /// assert_eq!(lookup[&amp;0], 4);        // 0 resets the accumulator so only 4 is summed
+    /// assert_eq!(lookup[&amp;1], 5 + 9);
+    /// assert_eq!(lookup.get(&amp;2), None); // 10 resets the accumulator and nothing is summed afterward
+    /// assert_eq!(lookup[&amp;3], 7);
+    /// assert_eq!(lookup.len(), 3);      // The final keys are only 0, 1 and 2
+    /// ```
+    </span><span class="kw">pub fn </span>aggregate&lt;FO, R&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>operation: FO) -&gt; HashMap&lt;K, R&gt;
+        <span class="kw">where </span>FO: FnMut(<span class="prelude-ty">Option</span>&lt;R&gt;, <span class="kw-2">&amp;</span>K, V) -&gt; <span class="prelude-ty">Option</span>&lt;R&gt;,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">destination_map</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>destination_map = HashMap::new();
 
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">for_each</span>(<span class="op">|</span>(<span class="ident">key</span>, <span class="ident">val</span>)<span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">acc</span> <span class="op">=</span> <span class="ident">destination_map</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>);
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">op_res</span>) <span class="op">=</span> <span class="ident">operation</span>(<span class="ident">acc</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">val</span>) {
-                <span class="ident">destination_map</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">op_res</span>);
+        <span class="self">self</span>.iter.for_each(|(key, val)| {
+            <span class="kw">let </span>acc = destination_map.remove(<span class="kw-2">&amp;</span>key);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(op_res) = operation(acc, <span class="kw-2">&amp;</span>key, val) {
+                destination_map.insert(key, op_res);
             }
         });
 
-        <span class="ident">destination_map</span>
+        destination_map
     }
 
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements</span>
-    <span class="doccomment">/// of each group sequentially, passing the previously accumulated value, a reference to the key</span>
-    <span class="doccomment">/// and the current element as arguments, and stores the results in a new map.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `init` is the value from which will be cloned the initial value of each accumulator.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `operation` is a function that is invoked on each element with the following parameters:</span>
-    <span class="doccomment">///  - the current value of the accumulator of the group;</span>
-    <span class="doccomment">///  - a reference to the key of the group this element belongs to;</span>
-    <span class="doccomment">///  - the element from the source being accumulated.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Return a `HashMap` associating the key of each group with the result of folding that group&#39;s elements.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let lookup = (1..=7)</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 3)</span>
-    <span class="doccomment">///     .fold(0, |acc, _key, val| acc + val);</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], 3 + 6);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], 1 + 4 + 7);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;2], 2 + 5);</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fold</span><span class="op">&lt;</span><span class="ident">FO</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">R</span>, <span class="kw-2">mut</span> <span class="ident">operation</span>: <span class="ident">FO</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">R</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">R</span>: <span class="ident">Clone</span>,
-              <span class="ident">FO</span>: <span class="ident">FnMut</span>(<span class="ident">R</span>, <span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="ident">V</span>) -&gt; <span class="ident">R</span>,
+    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
+    /// of each group sequentially, passing the previously accumulated value, a reference to the key
+    /// and the current element as arguments, and stores the results in a new map.
+    ///
+    /// `init` is the value from which will be cloned the initial value of each accumulator.
+    ///
+    /// `operation` is a function that is invoked on each element with the following parameters:
+    ///  - the current value of the accumulator of the group;
+    ///  - a reference to the key of the group this element belongs to;
+    ///  - the element from the source being accumulated.
+    ///
+    /// Return a `HashMap` associating the key of each group with the result of folding that group&#39;s elements.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = (1..=7)
+    ///     .into_grouping_map_by(|&amp;n| n % 3)
+    ///     .fold(0, |acc, _key, val| acc + val);
+    /// 
+    /// assert_eq!(lookup[&amp;0], 3 + 6);
+    /// assert_eq!(lookup[&amp;1], 1 + 4 + 7);
+    /// assert_eq!(lookup[&amp;2], 2 + 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    </span><span class="kw">pub fn </span>fold&lt;FO, R&gt;(<span class="self">self</span>, init: R, <span class="kw-2">mut </span>operation: FO) -&gt; HashMap&lt;K, R&gt;
+        <span class="kw">where </span>R: Clone,
+              FO: FnMut(R, <span class="kw-2">&amp;</span>K, V) -&gt; R,
     {
-        <span class="self">self</span>.<span class="ident">aggregate</span>(<span class="op">|</span><span class="ident">acc</span>, <span class="ident">key</span>, <span class="ident">val</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">acc</span> <span class="op">=</span> <span class="ident">acc</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">init</span>.<span class="ident">clone</span>());
-            <span class="prelude-val">Some</span>(<span class="ident">operation</span>(<span class="ident">acc</span>, <span class="ident">key</span>, <span class="ident">val</span>))
+        <span class="self">self</span>.aggregate(|acc, key, val| {
+            <span class="kw">let </span>acc = acc.unwrap_or_else(|| init.clone());
+            <span class="prelude-val">Some</span>(operation(acc, key, val))
         })
     }
 
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements</span>
-    <span class="doccomment">/// of each group sequentially, passing the previously accumulated value, a reference to the key</span>
-    <span class="doccomment">/// and the current element as arguments, and stores the results in a new map.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is similar to [`fold`] but the initial value of the accumulator is the first element of the group.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `operation` is a function that is invoked on each element with the following parameters:</span>
-    <span class="doccomment">///  - the current value of the accumulator of the group;</span>
-    <span class="doccomment">///  - a reference to the key of the group this element belongs to;</span>
-    <span class="doccomment">///  - the element from the source being accumulated.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Return a `HashMap` associating the key of each group with the result of folding that group&#39;s elements.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// [`fold`]: GroupingMap::fold</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let lookup = (1..=7)</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 3)</span>
-    <span class="doccomment">///     .fold_first(|acc, _key, val| acc + val);</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], 3 + 6);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], 1 + 4 + 7);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;2], 2 + 5);</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fold_first</span><span class="op">&lt;</span><span class="ident">FO</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">operation</span>: <span class="ident">FO</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">FO</span>: <span class="ident">FnMut</span>(<span class="ident">V</span>, <span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="ident">V</span>) -&gt; <span class="ident">V</span>,
+    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and applies `operation` to the elements
+    /// of each group sequentially, passing the previously accumulated value, a reference to the key
+    /// and the current element as arguments, and stores the results in a new map.
+    ///
+    /// This is similar to [`fold`] but the initial value of the accumulator is the first element of the group.
+    ///
+    /// `operation` is a function that is invoked on each element with the following parameters:
+    ///  - the current value of the accumulator of the group;
+    ///  - a reference to the key of the group this element belongs to;
+    ///  - the element from the source being accumulated.
+    ///
+    /// Return a `HashMap` associating the key of each group with the result of folding that group&#39;s elements.
+    /// 
+    /// [`fold`]: GroupingMap::fold
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = (1..=7)
+    ///     .into_grouping_map_by(|&amp;n| n % 3)
+    ///     .fold_first(|acc, _key, val| acc + val);
+    /// 
+    /// assert_eq!(lookup[&amp;0], 3 + 6);
+    /// assert_eq!(lookup[&amp;1], 1 + 4 + 7);
+    /// assert_eq!(lookup[&amp;2], 2 + 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    </span><span class="kw">pub fn </span>fold_first&lt;FO&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>operation: FO) -&gt; HashMap&lt;K, V&gt;
+        <span class="kw">where </span>FO: FnMut(V, <span class="kw-2">&amp;</span>K, V) -&gt; V,
     {
-        <span class="self">self</span>.<span class="ident">aggregate</span>(<span class="op">|</span><span class="ident">acc</span>, <span class="ident">key</span>, <span class="ident">val</span><span class="op">|</span> {
-            <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">acc</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">acc</span>) =&gt; <span class="ident">operation</span>(<span class="ident">acc</span>, <span class="ident">key</span>, <span class="ident">val</span>),
-                <span class="prelude-val">None</span> =&gt; <span class="ident">val</span>,
+        <span class="self">self</span>.aggregate(|acc, key, val| {
+            <span class="prelude-val">Some</span>(<span class="kw">match </span>acc {
+                <span class="prelude-val">Some</span>(acc) =&gt; operation(acc, key, val),
+                <span class="prelude-val">None </span>=&gt; val,
             })
         })
     }
 
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and collects the elements of each group in</span>
-    <span class="doccomment">/// an instance of `C`. The iteration order is preserved when inserting elements. </span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// Return a `HashMap` associating the key of each group with the collection containing that group&#39;s elements.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// use std::collections::HashSet;</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let lookup = vec![0, 1, 2, 3, 4, 5, 6, 2, 3, 6].into_iter()</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 3)</span>
-    <span class="doccomment">///     .collect::&lt;HashSet&lt;_&gt;&gt;();</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], vec![0, 3, 6].into_iter().collect::&lt;HashSet&lt;_&gt;&gt;());</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], vec![1, 4].into_iter().collect::&lt;HashSet&lt;_&gt;&gt;());</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;2], vec![2, 5].into_iter().collect::&lt;HashSet&lt;_&gt;&gt;());</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">collect</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">C</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">C</span>: <span class="ident">Default</span> <span class="op">+</span> <span class="ident">Extend</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and collects the elements of each group in
+    /// an instance of `C`. The iteration order is preserved when inserting elements. 
+    /// 
+    /// Return a `HashMap` associating the key of each group with the collection containing that group&#39;s elements.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// use std::collections::HashSet;
+    /// 
+    /// let lookup = vec![0, 1, 2, 3, 4, 5, 6, 2, 3, 6].into_iter()
+    ///     .into_grouping_map_by(|&amp;n| n % 3)
+    ///     .collect::&lt;HashSet&lt;_&gt;&gt;();
+    /// 
+    /// assert_eq!(lookup[&amp;0], vec![0, 3, 6].into_iter().collect::&lt;HashSet&lt;_&gt;&gt;());
+    /// assert_eq!(lookup[&amp;1], vec![1, 4].into_iter().collect::&lt;HashSet&lt;_&gt;&gt;());
+    /// assert_eq!(lookup[&amp;2], vec![2, 5].into_iter().collect::&lt;HashSet&lt;_&gt;&gt;());
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    </span><span class="kw">pub fn </span>collect&lt;C&gt;(<span class="self">self</span>) -&gt; HashMap&lt;K, C&gt;
+        <span class="kw">where </span>C: Default + Extend&lt;V&gt;,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">destination_map</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>destination_map = HashMap::new();
 
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">for_each</span>(<span class="op">|</span>(<span class="ident">key</span>, <span class="ident">val</span>)<span class="op">|</span> {
-            <span class="ident">destination_map</span>.<span class="ident">entry</span>(<span class="ident">key</span>).<span class="ident">or_insert_with</span>(<span class="ident">C::default</span>).<span class="ident">extend</span>(<span class="prelude-val">Some</span>(<span class="ident">val</span>));
+        <span class="self">self</span>.iter.for_each(|(key, val)| {
+            destination_map.entry(key).or_insert_with(C::default).extend(<span class="prelude-val">Some</span>(val));
         });
 
-        <span class="ident">destination_map</span>
+        destination_map
     }
 
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the maximum of each group.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// If several elements are equally maximum, the last element is picked.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// Returns a `HashMap` associating the key of each group with the maximum of that group&#39;s elements.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 3)</span>
-    <span class="doccomment">///     .max();</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], 12);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], 7);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;2], 8);</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max</span>(<span class="self">self</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">V</span>: <span class="ident">Ord</span>,
+    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the maximum of each group.
+    /// 
+    /// If several elements are equally maximum, the last element is picked.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the maximum of that group&#39;s elements.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&amp;n| n % 3)
+    ///     .max();
+    /// 
+    /// assert_eq!(lookup[&amp;0], 12);
+    /// assert_eq!(lookup[&amp;1], 7);
+    /// assert_eq!(lookup[&amp;2], 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    </span><span class="kw">pub fn </span>max(<span class="self">self</span>) -&gt; HashMap&lt;K, V&gt;
+        <span class="kw">where </span>V: Ord,
     {
-        <span class="self">self</span>.<span class="ident">max_by</span>(<span class="op">|</span><span class="kw">_</span>, <span class="ident">v1</span>, <span class="ident">v2</span><span class="op">|</span> <span class="ident">V::cmp</span>(<span class="ident">v1</span>, <span class="ident">v2</span>))
+        <span class="self">self</span>.max_by(|<span class="kw">_</span>, v1, v2| V::cmp(v1, v2))
     }
 
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the maximum of each group</span>
-    <span class="doccomment">/// with respect to the specified comparison function.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// If several elements are equally maximum, the last element is picked.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// Returns a `HashMap` associating the key of each group with the maximum of that group&#39;s elements.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 3)</span>
-    <span class="doccomment">///     .max_by(|_key, x, y| y.cmp(x));</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], 3);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], 1);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;2], 5);</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">compare</span>: <span class="ident">F</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="ident">Ordering</span>,
+    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the maximum of each group
+    /// with respect to the specified comparison function.
+    /// 
+    /// If several elements are equally maximum, the last element is picked.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the maximum of that group&#39;s elements.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&amp;n| n % 3)
+    ///     .max_by(|_key, x, y| y.cmp(x));
+    /// 
+    /// assert_eq!(lookup[&amp;0], 3);
+    /// assert_eq!(lookup[&amp;1], 1);
+    /// assert_eq!(lookup[&amp;2], 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    </span><span class="kw">pub fn </span>max_by&lt;F&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>compare: F) -&gt; HashMap&lt;K, V&gt;
+        <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V, <span class="kw-2">&amp;</span>V) -&gt; Ordering,
     {
-        <span class="self">self</span>.<span class="ident">fold_first</span>(<span class="op">|</span><span class="ident">acc</span>, <span class="ident">key</span>, <span class="ident">val</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">compare</span>(<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">acc</span>, <span class="kw-2">&amp;</span><span class="ident">val</span>) {
-            <span class="ident">Ordering::Less</span> <span class="op">|</span> <span class="ident">Ordering::Equal</span> =&gt; <span class="ident">val</span>,
-            <span class="ident">Ordering::Greater</span> =&gt; <span class="ident">acc</span>
+        <span class="self">self</span>.fold_first(|acc, key, val| <span class="kw">match </span>compare(key, <span class="kw-2">&amp;</span>acc, <span class="kw-2">&amp;</span>val) {
+            Ordering::Less | Ordering::Equal =&gt; val,
+            Ordering::Greater =&gt; acc
         })
     }
 
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the element of each group</span>
-    <span class="doccomment">/// that gives the maximum from the specified function.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// If several elements are equally maximum, the last element is picked.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// Returns a `HashMap` associating the key of each group with the maximum of that group&#39;s elements.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 3)</span>
-    <span class="doccomment">///     .max_by_key(|_key, &amp;val| val % 4);</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], 3);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], 7);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;2], 5);</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_by_key</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">CK</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="ident">CK</span>,
-              <span class="ident">CK</span>: <span class="ident">Ord</span>,
+    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the element of each group
+    /// that gives the maximum from the specified function.
+    /// 
+    /// If several elements are equally maximum, the last element is picked.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the maximum of that group&#39;s elements.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&amp;n| n % 3)
+    ///     .max_by_key(|_key, &amp;val| val % 4);
+    /// 
+    /// assert_eq!(lookup[&amp;0], 3);
+    /// assert_eq!(lookup[&amp;1], 7);
+    /// assert_eq!(lookup[&amp;2], 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    </span><span class="kw">pub fn </span>max_by_key&lt;F, CK&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>f: F) -&gt; HashMap&lt;K, V&gt;
+        <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V) -&gt; CK,
+              CK: Ord,
     {
-        <span class="self">self</span>.<span class="ident">max_by</span>(<span class="op">|</span><span class="ident">key</span>, <span class="ident">v1</span>, <span class="ident">v2</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">v1</span>).<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>(<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">v2</span>)))
+        <span class="self">self</span>.max_by(|key, v1, v2| f(key, v1).cmp(<span class="kw-2">&amp;</span>f(key, v2)))
     }
 
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the minimum of each group.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// If several elements are equally minimum, the first element is picked.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// Returns a `HashMap` associating the key of each group with the minimum of that group&#39;s elements.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 3)</span>
-    <span class="doccomment">///     .min();</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], 3);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], 1);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;2], 5);</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min</span>(<span class="self">self</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">V</span>: <span class="ident">Ord</span>,
+    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the minimum of each group.
+    /// 
+    /// If several elements are equally minimum, the first element is picked.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the minimum of that group&#39;s elements.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&amp;n| n % 3)
+    ///     .min();
+    /// 
+    /// assert_eq!(lookup[&amp;0], 3);
+    /// assert_eq!(lookup[&amp;1], 1);
+    /// assert_eq!(lookup[&amp;2], 5);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    </span><span class="kw">pub fn </span>min(<span class="self">self</span>) -&gt; HashMap&lt;K, V&gt;
+        <span class="kw">where </span>V: Ord,
     {
-        <span class="self">self</span>.<span class="ident">min_by</span>(<span class="op">|</span><span class="kw">_</span>, <span class="ident">v1</span>, <span class="ident">v2</span><span class="op">|</span> <span class="ident">V::cmp</span>(<span class="ident">v1</span>, <span class="ident">v2</span>))
+        <span class="self">self</span>.min_by(|<span class="kw">_</span>, v1, v2| V::cmp(v1, v2))
     }
 
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the minimum of each group</span>
-    <span class="doccomment">/// with respect to the specified comparison function.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// If several elements are equally minimum, the first element is picked.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// Returns a `HashMap` associating the key of each group with the minimum of that group&#39;s elements.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 3)</span>
-    <span class="doccomment">///     .min_by(|_key, x, y| y.cmp(x));</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], 12);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], 7);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;2], 8);</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">compare</span>: <span class="ident">F</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="ident">Ordering</span>,
+    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the minimum of each group
+    /// with respect to the specified comparison function.
+    /// 
+    /// If several elements are equally minimum, the first element is picked.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the minimum of that group&#39;s elements.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&amp;n| n % 3)
+    ///     .min_by(|_key, x, y| y.cmp(x));
+    /// 
+    /// assert_eq!(lookup[&amp;0], 12);
+    /// assert_eq!(lookup[&amp;1], 7);
+    /// assert_eq!(lookup[&amp;2], 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    </span><span class="kw">pub fn </span>min_by&lt;F&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>compare: F) -&gt; HashMap&lt;K, V&gt;
+        <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V, <span class="kw-2">&amp;</span>V) -&gt; Ordering,
     {
-        <span class="self">self</span>.<span class="ident">fold_first</span>(<span class="op">|</span><span class="ident">acc</span>, <span class="ident">key</span>, <span class="ident">val</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">compare</span>(<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">acc</span>, <span class="kw-2">&amp;</span><span class="ident">val</span>) {
-            <span class="ident">Ordering::Less</span> <span class="op">|</span> <span class="ident">Ordering::Equal</span> =&gt; <span class="ident">acc</span>,
-            <span class="ident">Ordering::Greater</span> =&gt; <span class="ident">val</span>
+        <span class="self">self</span>.fold_first(|acc, key, val| <span class="kw">match </span>compare(key, <span class="kw-2">&amp;</span>acc, <span class="kw-2">&amp;</span>val) {
+            Ordering::Less | Ordering::Equal =&gt; acc,
+            Ordering::Greater =&gt; val
         })
     }
 
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the element of each group</span>
-    <span class="doccomment">/// that gives the minimum from the specified function.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// If several elements are equally minimum, the first element is picked.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// Returns a `HashMap` associating the key of each group with the minimum of that group&#39;s elements.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 3)</span>
-    <span class="doccomment">///     .min_by_key(|_key, &amp;val| val % 4);</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], 12);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], 4);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;2], 8);</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min_by_key</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">CK</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="ident">CK</span>,
-              <span class="ident">CK</span>: <span class="ident">Ord</span>,
+    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and finds the element of each group
+    /// that gives the minimum from the specified function.
+    /// 
+    /// If several elements are equally minimum, the first element is picked.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the minimum of that group&#39;s elements.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&amp;n| n % 3)
+    ///     .min_by_key(|_key, &amp;val| val % 4);
+    /// 
+    /// assert_eq!(lookup[&amp;0], 12);
+    /// assert_eq!(lookup[&amp;1], 4);
+    /// assert_eq!(lookup[&amp;2], 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    </span><span class="kw">pub fn </span>min_by_key&lt;F, CK&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>f: F) -&gt; HashMap&lt;K, V&gt;
+        <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V) -&gt; CK,
+              CK: Ord,
     {
-        <span class="self">self</span>.<span class="ident">min_by</span>(<span class="op">|</span><span class="ident">key</span>, <span class="ident">v1</span>, <span class="ident">v2</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">v1</span>).<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>(<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">v2</span>)))
+        <span class="self">self</span>.min_by(|key, v1, v2| f(key, v1).cmp(<span class="kw-2">&amp;</span>f(key, v2)))
     }
 
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of</span>
-    <span class="doccomment">/// each group.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// If several elements are equally maximum, the last element is picked.</span>
-    <span class="doccomment">/// If several elements are equally minimum, the first element is picked.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// See [.minmax()](crate::Itertools::minmax) for the non-grouping version.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// Differences from the non grouping version:</span>
-    <span class="doccomment">/// - It never produces a `MinMaxResult::NoElements`</span>
-    <span class="doccomment">/// - It doesn&#39;t have any speedup</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group&#39;s elements.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// use itertools::MinMaxResult::{OneElement, MinMax};</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 3)</span>
-    <span class="doccomment">///     .minmax();</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], MinMax(3, 12));</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], MinMax(1, 7));</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;2], OneElement(5));</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">minmax</span>(<span class="self">self</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">MinMaxResult</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">V</span>: <span class="ident">Ord</span>,
+    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
+    /// each group.
+    /// 
+    /// If several elements are equally maximum, the last element is picked.
+    /// If several elements are equally minimum, the first element is picked.
+    /// 
+    /// See [.minmax()](crate::Itertools::minmax) for the non-grouping version.
+    /// 
+    /// Differences from the non grouping version:
+    /// - It never produces a `MinMaxResult::NoElements`
+    /// - It doesn&#39;t have any speedup
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group&#39;s elements.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&amp;n| n % 3)
+    ///     .minmax();
+    /// 
+    /// assert_eq!(lookup[&amp;0], MinMax(3, 12));
+    /// assert_eq!(lookup[&amp;1], MinMax(1, 7));
+    /// assert_eq!(lookup[&amp;2], OneElement(5));
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    </span><span class="kw">pub fn </span>minmax(<span class="self">self</span>) -&gt; HashMap&lt;K, MinMaxResult&lt;V&gt;&gt;
+        <span class="kw">where </span>V: Ord,
     {
-        <span class="self">self</span>.<span class="ident">minmax_by</span>(<span class="op">|</span><span class="kw">_</span>, <span class="ident">v1</span>, <span class="ident">v2</span><span class="op">|</span> <span class="ident">V::cmp</span>(<span class="ident">v1</span>, <span class="ident">v2</span>))
+        <span class="self">self</span>.minmax_by(|<span class="kw">_</span>, v1, v2| V::cmp(v1, v2))
     }
 
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of</span>
-    <span class="doccomment">/// each group with respect to the specified comparison function.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// If several elements are equally maximum, the last element is picked.</span>
-    <span class="doccomment">/// If several elements are equally minimum, the first element is picked.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// It has the same differences from the non-grouping version as `minmax`.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group&#39;s elements.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// use itertools::MinMaxResult::{OneElement, MinMax};</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 3)</span>
-    <span class="doccomment">///     .minmax_by(|_key, x, y| y.cmp(x));</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], MinMax(12, 3));</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], MinMax(7, 1));</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;2], OneElement(5));</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">minmax_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">compare</span>: <span class="ident">F</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">MinMaxResult</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="ident">Ordering</span>,
+    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and find the maximum and minimum of
+    /// each group with respect to the specified comparison function.
+    /// 
+    /// If several elements are equally maximum, the last element is picked.
+    /// If several elements are equally minimum, the first element is picked.
+    /// 
+    /// It has the same differences from the non-grouping version as `minmax`.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group&#39;s elements.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&amp;n| n % 3)
+    ///     .minmax_by(|_key, x, y| y.cmp(x));
+    /// 
+    /// assert_eq!(lookup[&amp;0], MinMax(12, 3));
+    /// assert_eq!(lookup[&amp;1], MinMax(7, 1));
+    /// assert_eq!(lookup[&amp;2], OneElement(5));
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    </span><span class="kw">pub fn </span>minmax_by&lt;F&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>compare: F) -&gt; HashMap&lt;K, MinMaxResult&lt;V&gt;&gt;
+        <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V, <span class="kw-2">&amp;</span>V) -&gt; Ordering,
     {
-        <span class="self">self</span>.<span class="ident">aggregate</span>(<span class="op">|</span><span class="ident">acc</span>, <span class="ident">key</span>, <span class="ident">val</span><span class="op">|</span> {
-            <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">acc</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">MinMaxResult::OneElement</span>(<span class="ident">e</span>)) =&gt; {
-                    <span class="kw">if</span> <span class="ident">compare</span>(<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">val</span>, <span class="kw-2">&amp;</span><span class="ident">e</span>) <span class="op">==</span> <span class="ident">Ordering::Less</span> {
-                        <span class="ident">MinMaxResult::MinMax</span>(<span class="ident">val</span>, <span class="ident">e</span>)
-                    } <span class="kw">else</span> {
-                        <span class="ident">MinMaxResult::MinMax</span>(<span class="ident">e</span>, <span class="ident">val</span>)
+        <span class="self">self</span>.aggregate(|acc, key, val| {
+            <span class="prelude-val">Some</span>(<span class="kw">match </span>acc {
+                <span class="prelude-val">Some</span>(MinMaxResult::OneElement(e)) =&gt; {
+                    <span class="kw">if </span>compare(key, <span class="kw-2">&amp;</span>val, <span class="kw-2">&amp;</span>e) == Ordering::Less {
+                        MinMaxResult::MinMax(val, e)
+                    } <span class="kw">else </span>{
+                        MinMaxResult::MinMax(e, val)
                     }
                 }
-                <span class="prelude-val">Some</span>(<span class="ident">MinMaxResult::MinMax</span>(<span class="ident">min</span>, <span class="ident">max</span>)) =&gt; {
-                    <span class="kw">if</span> <span class="ident">compare</span>(<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">val</span>, <span class="kw-2">&amp;</span><span class="ident">min</span>) <span class="op">==</span> <span class="ident">Ordering::Less</span> {
-                        <span class="ident">MinMaxResult::MinMax</span>(<span class="ident">val</span>, <span class="ident">max</span>)
-                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">compare</span>(<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">val</span>, <span class="kw-2">&amp;</span><span class="ident">max</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">Ordering::Less</span> {
-                        <span class="ident">MinMaxResult::MinMax</span>(<span class="ident">min</span>, <span class="ident">val</span>)
-                    } <span class="kw">else</span> {
-                        <span class="ident">MinMaxResult::MinMax</span>(<span class="ident">min</span>, <span class="ident">max</span>)
+                <span class="prelude-val">Some</span>(MinMaxResult::MinMax(min, max)) =&gt; {
+                    <span class="kw">if </span>compare(key, <span class="kw-2">&amp;</span>val, <span class="kw-2">&amp;</span>min) == Ordering::Less {
+                        MinMaxResult::MinMax(val, max)
+                    } <span class="kw">else if </span>compare(key, <span class="kw-2">&amp;</span>val, <span class="kw-2">&amp;</span>max) != Ordering::Less {
+                        MinMaxResult::MinMax(min, val)
+                    } <span class="kw">else </span>{
+                        MinMaxResult::MinMax(min, max)
                     }
                 }
-                <span class="prelude-val">None</span> =&gt; <span class="ident">MinMaxResult::OneElement</span>(<span class="ident">val</span>),
-                <span class="prelude-val">Some</span>(<span class="ident">MinMaxResult::NoElements</span>) =&gt; <span class="macro">unreachable!</span>(),
+                <span class="prelude-val">None </span>=&gt; MinMaxResult::OneElement(val),
+                <span class="prelude-val">Some</span>(MinMaxResult::NoElements) =&gt; <span class="macro">unreachable!</span>(),
             })
         })
     }
 
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and find the elements of each group</span>
-    <span class="doccomment">/// that gives the minimum and maximum from the specified function.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// If several elements are equally maximum, the last element is picked.</span>
-    <span class="doccomment">/// If several elements are equally minimum, the first element is picked.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// It has the same differences from the non-grouping version as `minmax`.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group&#39;s elements.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// use itertools::MinMaxResult::{OneElement, MinMax};</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 3)</span>
-    <span class="doccomment">///     .minmax_by_key(|_key, &amp;val| val % 4);</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], MinMax(12, 3));</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], MinMax(4, 7));</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;2], OneElement(5));</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">minmax_by_key</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">CK</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">MinMaxResult</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="ident">CK</span>,
-              <span class="ident">CK</span>: <span class="ident">Ord</span>,
+    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and find the elements of each group
+    /// that gives the minimum and maximum from the specified function.
+    /// 
+    /// If several elements are equally maximum, the last element is picked.
+    /// If several elements are equally minimum, the first element is picked.
+    /// 
+    /// It has the same differences from the non-grouping version as `minmax`.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the minimum and maximum of that group&#39;s elements.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// use itertools::MinMaxResult::{OneElement, MinMax};
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&amp;n| n % 3)
+    ///     .minmax_by_key(|_key, &amp;val| val % 4);
+    /// 
+    /// assert_eq!(lookup[&amp;0], MinMax(12, 3));
+    /// assert_eq!(lookup[&amp;1], MinMax(4, 7));
+    /// assert_eq!(lookup[&amp;2], OneElement(5));
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    </span><span class="kw">pub fn </span>minmax_by_key&lt;F, CK&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>f: F) -&gt; HashMap&lt;K, MinMaxResult&lt;V&gt;&gt;
+        <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V) -&gt; CK,
+              CK: Ord,
     {
-        <span class="self">self</span>.<span class="ident">minmax_by</span>(<span class="op">|</span><span class="ident">key</span>, <span class="ident">v1</span>, <span class="ident">v2</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">v1</span>).<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>(<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">v2</span>)))
+        <span class="self">self</span>.minmax_by(|key, v1, v2| f(key, v1).cmp(<span class="kw-2">&amp;</span>f(key, v2)))
     }
     
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and sums them.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// This is just a shorthand for `self.fold_first(|acc, _, val| acc + val)`.</span>
-    <span class="doccomment">/// It is more limited than `Iterator::sum` since it doesn&#39;t use the `Sum` trait.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// Returns a `HashMap` associating the key of each group with the sum of that group&#39;s elements.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 3)</span>
-    <span class="doccomment">///     .sum();</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], 3 + 9 + 12);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], 1 + 4 + 7);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;2], 5 + 8);</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sum</span>(<span class="self">self</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">V</span>: <span class="ident">Add</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">V</span><span class="op">&gt;</span>
+    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and sums them.
+    /// 
+    /// This is just a shorthand for `self.fold_first(|acc, _, val| acc + val)`.
+    /// It is more limited than `Iterator::sum` since it doesn&#39;t use the `Sum` trait.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the sum of that group&#39;s elements.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&amp;n| n % 3)
+    ///     .sum();
+    /// 
+    /// assert_eq!(lookup[&amp;0], 3 + 9 + 12);
+    /// assert_eq!(lookup[&amp;1], 1 + 4 + 7);
+    /// assert_eq!(lookup[&amp;2], 5 + 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    </span><span class="kw">pub fn </span>sum(<span class="self">self</span>) -&gt; HashMap&lt;K, V&gt;
+        <span class="kw">where </span>V: Add&lt;V, Output = V&gt;
     {
-        <span class="self">self</span>.<span class="ident">fold_first</span>(<span class="op">|</span><span class="ident">acc</span>, <span class="kw">_</span>, <span class="ident">val</span><span class="op">|</span> <span class="ident">acc</span> <span class="op">+</span> <span class="ident">val</span>)
+        <span class="self">self</span>.fold_first(|acc, <span class="kw">_</span>, val| acc + val)
     }
 
-    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and multiply them.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// This is just a shorthand for `self.fold_first(|acc, _, val| acc * val)`.</span>
-    <span class="doccomment">/// It is more limited than `Iterator::product` since it doesn&#39;t use the `Product` trait.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// Returns a `HashMap` associating the key of each group with the product of that group&#39;s elements.</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use itertools::Itertools;</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()</span>
-    <span class="doccomment">///     .into_grouping_map_by(|&amp;n| n % 3)</span>
-    <span class="doccomment">///     .product();</span>
-    <span class="doccomment">/// </span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;0], 3 * 9 * 12);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;1], 1 * 4 * 7);</span>
-    <span class="doccomment">/// assert_eq!(lookup[&amp;2], 5 * 8);</span>
-    <span class="doccomment">/// assert_eq!(lookup.len(), 3);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">product</span>(<span class="self">self</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">V</span>: <span class="ident">Mul</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">V</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Groups elements from the `GroupingMap` source by key and multiply them.
+    /// 
+    /// This is just a shorthand for `self.fold_first(|acc, _, val| acc * val)`.
+    /// It is more limited than `Iterator::product` since it doesn&#39;t use the `Product` trait.
+    /// 
+    /// Returns a `HashMap` associating the key of each group with the product of that group&#39;s elements.
+    /// 
+    /// ```
+    /// use itertools::Itertools;
+    /// 
+    /// let lookup = vec![1, 3, 4, 5, 7, 8, 9, 12].into_iter()
+    ///     .into_grouping_map_by(|&amp;n| n % 3)
+    ///     .product();
+    /// 
+    /// assert_eq!(lookup[&amp;0], 3 * 9 * 12);
+    /// assert_eq!(lookup[&amp;1], 1 * 4 * 7);
+    /// assert_eq!(lookup[&amp;2], 5 * 8);
+    /// assert_eq!(lookup.len(), 3);
+    /// ```
+    </span><span class="kw">pub fn </span>product(<span class="self">self</span>) -&gt; HashMap&lt;K, V&gt;
+        <span class="kw">where </span>V: Mul&lt;V, Output = V&gt;,
     {
-        <span class="self">self</span>.<span class="ident">fold_first</span>(<span class="op">|</span><span class="ident">acc</span>, <span class="kw">_</span>, <span class="ident">val</span><span class="op">|</span> <span class="ident">acc</span> <span class="op">*</span> <span class="ident">val</span>)
+        <span class="self">self</span>.fold_first(|acc, <span class="kw">_</span>, val| acc * val)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

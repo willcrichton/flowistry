@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["MutationStatus",""]],"struct":[["ModularMutationVisitor",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["MutationStatus",""]],"struct":[["ModularMutationVisitor",""]]};

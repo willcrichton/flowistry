@@ -1,13 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.6/src/parser/matches/matched_arg.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>matched_arg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../clap/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../clap/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.21/src/parser/matches/matched_arg.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>matched_arg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../clap/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../clap/index.html">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -247,246 +240,245 @@
 <span id="238">238</span>
 <span id="239">239</span>
 <span id="240">240</span>
-</pre><pre class="rust"><code><span class="comment">// Std</span>
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">ffi</span>::{<span class="ident">OsStr</span>, <span class="ident">OsString</span>},
-    <span class="ident">iter</span>::{<span class="ident">Cloned</span>, <span class="ident">Flatten</span>},
-    <span class="ident">slice::Iter</span>,
+</pre><pre class="rust"><code><span class="comment">// Std
+</span><span class="kw">use </span>std::{
+    ffi::{OsStr, OsString},
+    iter::{Cloned, Flatten},
+    slice::Iter,
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::builder::ArgPredicate</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parser::AnyValue</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parser::AnyValueId</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parser::ValueSource</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::eq_ignore_case</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::INTERNAL_ERROR_MSG</span>;
+<span class="kw">use </span><span class="kw">crate</span>::builder::ArgPredicate;
+<span class="kw">use </span><span class="kw">crate</span>::parser::AnyValue;
+<span class="kw">use </span><span class="kw">crate</span>::parser::AnyValueId;
+<span class="kw">use </span><span class="kw">crate</span>::parser::ValueSource;
+<span class="kw">use </span><span class="kw">crate</span>::util::eq_ignore_case;
+<span class="kw">use </span><span class="kw">crate</span>::INTERNAL_ERROR_MSG;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">MatchedArg</span> {
-    <span class="ident">occurs</span>: <span class="ident">u64</span>,
-    <span class="ident">source</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValueSource</span><span class="op">&gt;</span>,
-    <span class="ident">indices</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">type_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AnyValueId</span><span class="op">&gt;</span>,
-    <span class="ident">vals</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AnyValue</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">raw_vals</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">ignore_case</span>: <span class="ident">bool</span>,
+<span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MatchedArg {
+    occurs: u64,
+    source: <span class="prelude-ty">Option</span>&lt;ValueSource&gt;,
+    indices: Vec&lt;usize&gt;,
+    type_id: <span class="prelude-ty">Option</span>&lt;AnyValueId&gt;,
+    vals: Vec&lt;Vec&lt;AnyValue&gt;&gt;,
+    raw_vals: Vec&lt;Vec&lt;OsString&gt;&gt;,
+    ignore_case: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">MatchedArg</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_arg</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Arg</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">ignore_case</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">is_ignore_case_set</span>();
-        <span class="self">Self</span> {
-            <span class="ident">occurs</span>: <span class="number">0</span>,
-            <span class="ident">source</span>: <span class="prelude-val">None</span>,
-            <span class="ident">indices</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">type_id</span>: <span class="prelude-val">Some</span>(<span class="ident">arg</span>.<span class="ident">get_value_parser</span>().<span class="ident">type_id</span>()),
-            <span class="ident">vals</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">raw_vals</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">ignore_case</span>,
+<span class="kw">impl </span>MatchedArg {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_arg(arg: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>ignore_case = arg.is_ignore_case_set();
+        <span class="self">Self </span>{
+            occurs: <span class="number">0</span>,
+            source: <span class="prelude-val">None</span>,
+            indices: Vec::new(),
+            type_id: <span class="prelude-val">Some</span>(arg.get_value_parser().type_id()),
+            vals: Vec::new(),
+            raw_vals: Vec::new(),
+            ignore_case,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_group</span>() -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="self">Self</span> {
-            <span class="ident">occurs</span>: <span class="number">0</span>,
-            <span class="ident">source</span>: <span class="prelude-val">None</span>,
-            <span class="ident">indices</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">type_id</span>: <span class="prelude-val">None</span>,
-            <span class="ident">vals</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">raw_vals</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">ignore_case</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_group() -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>ignore_case = <span class="bool-val">false</span>;
+        <span class="self">Self </span>{
+            occurs: <span class="number">0</span>,
+            source: <span class="prelude-val">None</span>,
+            indices: Vec::new(),
+            type_id: <span class="prelude-val">None</span>,
+            vals: Vec::new(),
+            raw_vals: Vec::new(),
+            ignore_case,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_external</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Command</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="self">Self</span> {
-            <span class="ident">occurs</span>: <span class="number">0</span>,
-            <span class="ident">source</span>: <span class="prelude-val">None</span>,
-            <span class="ident">indices</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">type_id</span>: <span class="prelude-val">Some</span>(
-                <span class="ident">cmd</span>.<span class="ident">get_external_subcommand_value_parser</span>()
-                    .<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>)
-                    .<span class="ident">type_id</span>(),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_external(cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>ignore_case = <span class="bool-val">false</span>;
+        <span class="self">Self </span>{
+            occurs: <span class="number">0</span>,
+            source: <span class="prelude-val">None</span>,
+            indices: Vec::new(),
+            type_id: <span class="prelude-val">Some</span>(
+                cmd.get_external_subcommand_value_parser()
+                    .expect(INTERNAL_ERROR_MSG)
+                    .type_id(),
             ),
-            <span class="ident">vals</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">raw_vals</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">ignore_case</span>,
+            vals: Vec::new(),
+            raw_vals: Vec::new(),
+            ignore_case,
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>, <span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">inc_occurrences</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">occurs</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, deprecated(since = <span class="string">&quot;3.2.0&quot;</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_occurrences(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.occurs += <span class="number">1</span>;
     }
 
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>, <span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_occurrences</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">occurs</span>: <span class="ident">u64</span>) {
-        <span class="self">self</span>.<span class="ident">occurs</span> <span class="op">=</span> <span class="ident">occurs</span>
+    <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, deprecated(since = <span class="string">&quot;3.2.0&quot;</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_occurrences(<span class="kw-2">&amp;mut </span><span class="self">self</span>, occurs: u64) {
+        <span class="self">self</span>.occurs = occurs
     }
 
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>, <span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_occurrences</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">occurs</span>
+    <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;deprecated&quot;</span>, deprecated(since = <span class="string">&quot;3.2.0&quot;</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_occurrences(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.occurs
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">indices</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Cloned</span><span class="op">&lt;</span><span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">indices</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cloned&lt;Iter&lt;<span class="lifetime">&#39;_</span>, usize&gt;&gt; {
+        <span class="self">self</span>.indices.iter().cloned()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">indices</span>.<span class="ident">get</span>(<span class="ident">index</span>).<span class="ident">cloned</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.indices.get(index).cloned()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push_index</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) {
-        <span class="self">self</span>.<span class="ident">indices</span>.<span class="ident">push</span>(<span class="ident">index</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize) {
+        <span class="self">self</span>.indices.push(index)
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-grouped&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">vals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Iter</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AnyValue</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">vals</span>.<span class="ident">iter</span>()
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;unstable-grouped&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>vals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;Vec&lt;AnyValue&gt;&gt; {
+        <span class="self">self</span>.vals.iter()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">vals_flatten</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Flatten</span><span class="op">&lt;</span><span class="ident">Iter</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AnyValue</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">vals</span>.<span class="ident">iter</span>().<span class="ident">flatten</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>vals_flatten(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Flatten&lt;Iter&lt;Vec&lt;AnyValue&gt;&gt;&gt; {
+        <span class="self">self</span>.vals.iter().flatten()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_vals_flatten</span>(<span class="self">self</span>) -&gt; <span class="ident">Flatten</span><span class="op">&lt;</span><span class="ident">std::vec::IntoIter</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AnyValue</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">vals</span>.<span class="ident">into_iter</span>().<span class="ident">flatten</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_vals_flatten(<span class="self">self</span>) -&gt; Flatten&lt;std::vec::IntoIter&lt;Vec&lt;AnyValue&gt;&gt;&gt; {
+        <span class="self">self</span>.vals.into_iter().flatten()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">raw_vals_flatten</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Flatten</span><span class="op">&lt;</span><span class="ident">Iter</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">raw_vals</span>.<span class="ident">iter</span>().<span class="ident">flatten</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>raw_vals_flatten(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Flatten&lt;Iter&lt;Vec&lt;OsString&gt;&gt;&gt; {
+        <span class="self">self</span>.raw_vals.iter().flatten()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">AnyValue</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">vals_flatten</span>().<span class="ident">next</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>first(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AnyValue&gt; {
+        <span class="self">self</span>.vals_flatten().next()
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">first_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">OsString</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">raw_vals_flatten</span>().<span class="ident">next</span>()
+    <span class="attribute">#[cfg(test)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>first_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OsString&gt; {
+        <span class="self">self</span>.raw_vals_flatten().next()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_val_group</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">vals</span>.<span class="ident">push</span>(<span class="macro">vec!</span>[]);
-        <span class="self">self</span>.<span class="ident">raw_vals</span>.<span class="ident">push</span>(<span class="macro">vec!</span>[]);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_val_group(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.vals.push(<span class="macro">vec!</span>[]);
+        <span class="self">self</span>.raw_vals.push(<span class="macro">vec!</span>[]);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">append_val</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">AnyValue</span>, <span class="ident">raw_val</span>: <span class="ident">OsString</span>) {
-        <span class="comment">// We assume there is always a group created before.</span>
-        <span class="self">self</span>.<span class="ident">vals</span>.<span class="ident">last_mut</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>).<span class="ident">push</span>(<span class="ident">val</span>);
-        <span class="self">self</span>.<span class="ident">raw_vals</span>
-            .<span class="ident">last_mut</span>()
-            .<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>)
-            .<span class="ident">push</span>(<span class="ident">raw_val</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>append_val(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: AnyValue, raw_val: OsString) {
+        <span class="comment">// We assume there is always a group created before.
+        </span><span class="self">self</span>.vals.last_mut().expect(INTERNAL_ERROR_MSG).push(val);
+        <span class="self">self</span>.raw_vals
+            .last_mut()
+            .expect(INTERNAL_ERROR_MSG)
+            .push(raw_val);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">num_vals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">vals</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">len</span>()).<span class="ident">sum</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>num_vals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.vals.iter().map(|v| v.len()).sum()
     }
 
-    <span class="comment">// Will be used later</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">num_vals_last_group</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">vals</span>.<span class="ident">last</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">len</span>()).<span class="ident">unwrap_or</span>(<span class="number">0</span>)
+    <span class="comment">// Will be used later
+    </span><span class="attribute">#[allow(dead_code)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>num_vals_last_group(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.vals.last().map(|x| x.len()).unwrap_or(<span class="number">0</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">all_val_groups_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">vals</span>.<span class="ident">iter</span>().<span class="ident">flatten</span>().<span class="ident">count</span>() <span class="op">==</span> <span class="number">0</span>
-    }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>all_val_groups_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.vals.iter().flatten().count() == <span class="number">0
+    </span>}
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">check_explicit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">ArgPredicate</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">source</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">ValueSource::DefaultValue</span>) {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>check_explicit(<span class="kw-2">&amp;</span><span class="self">self</span>, predicate: ArgPredicate) -&gt; bool {
+        <span class="kw">if </span><span class="self">self</span>.source == <span class="prelude-val">Some</span>(ValueSource::DefaultValue) {
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <span class="kw">match</span> <span class="ident">predicate</span> {
-            <span class="ident">ArgPredicate::Equals</span>(<span class="ident">val</span>) =&gt; <span class="self">self</span>.<span class="ident">raw_vals_flatten</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ignore_case</span> {
-                    <span class="comment">// If `v` isn&#39;t utf8, it can&#39;t match `val`, so `OsStr::to_str` should be fine</span>
-                    <span class="ident">eq_ignore_case</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">to_string_lossy</span>(), <span class="kw-2">&amp;</span><span class="ident">val</span>.<span class="ident">to_string_lossy</span>())
-                } <span class="kw">else</span> {
-                    <span class="ident">OsString::as_os_str</span>(<span class="ident">v</span>) <span class="op">==</span> <span class="ident">OsStr::new</span>(<span class="ident">val</span>)
+        <span class="kw">match </span>predicate {
+            ArgPredicate::Equals(val) =&gt; <span class="self">self</span>.raw_vals_flatten().any(|v| {
+                <span class="kw">if </span><span class="self">self</span>.ignore_case {
+                    <span class="comment">// If `v` isn&#39;t utf8, it can&#39;t match `val`, so `OsStr::to_str` should be fine
+                    </span>eq_ignore_case(<span class="kw-2">&amp;</span>v.to_string_lossy(), <span class="kw-2">&amp;</span>val.to_string_lossy())
+                } <span class="kw">else </span>{
+                    OsString::as_os_str(v) == OsStr::new(val)
                 }
             }),
-            <span class="ident">ArgPredicate::IsPresent</span> =&gt; <span class="bool-val">true</span>,
+            ArgPredicate::IsPresent =&gt; <span class="bool-val">true</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValueSource</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">source</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ValueSource&gt; {
+        <span class="self">self</span>.source
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_source</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">ValueSource</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">existing</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">source</span> {
-            <span class="self">self</span>.<span class="ident">source</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">existing</span>.<span class="ident">max</span>(<span class="ident">source</span>));
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">source</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">source</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_source(<span class="kw-2">&amp;mut </span><span class="self">self</span>, source: ValueSource) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(existing) = <span class="self">self</span>.source {
+            <span class="self">self</span>.source = <span class="prelude-val">Some</span>(existing.max(source));
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.source = <span class="prelude-val">Some</span>(source)
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">type_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AnyValueId</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">type_id</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>type_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;AnyValueId&gt; {
+        <span class="self">self</span>.type_id
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">infer_type_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">expected</span>: <span class="ident">AnyValueId</span>) -&gt; <span class="ident">AnyValueId</span> {
-        <span class="self">self</span>.<span class="ident">type_id</span>()
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="self">self</span>.<span class="ident">vals_flatten</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">type_id</span>())
-                    .<span class="ident">find</span>(<span class="op">|</span><span class="ident">actual</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">actual</span> <span class="op">!</span><span class="op">=</span> <span class="ident">expected</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>infer_type_id(<span class="kw-2">&amp;</span><span class="self">self</span>, expected: AnyValueId) -&gt; AnyValueId {
+        <span class="self">self</span>.type_id()
+            .or_else(|| {
+                <span class="self">self</span>.vals_flatten()
+                    .map(|v| v.type_id())
+                    .find(|actual| <span class="kw-2">*</span>actual != expected)
             })
-            .<span class="ident">unwrap_or</span>(<span class="ident">expected</span>)
+            .unwrap_or(expected)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">MatchedArg</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">MatchedArg</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">MatchedArg</span> {
-            <span class="ident">occurs</span>: <span class="ident">self_occurs</span>,
-            <span class="ident">source</span>: <span class="ident">self_source</span>,
-            <span class="ident">indices</span>: <span class="ident">self_indices</span>,
-            <span class="ident">type_id</span>: <span class="ident">self_type_id</span>,
-            <span class="ident">vals</span>: <span class="kw">_</span>,
-            <span class="ident">raw_vals</span>: <span class="ident">self_raw_vals</span>,
-            <span class="ident">ignore_case</span>: <span class="ident">self_ignore_case</span>,
-        } <span class="op">=</span> <span class="self">self</span>;
-        <span class="kw">let</span> <span class="ident">MatchedArg</span> {
-            <span class="ident">occurs</span>: <span class="ident">other_occurs</span>,
-            <span class="ident">source</span>: <span class="ident">other_source</span>,
-            <span class="ident">indices</span>: <span class="ident">other_indices</span>,
-            <span class="ident">type_id</span>: <span class="ident">other_type_id</span>,
-            <span class="ident">vals</span>: <span class="kw">_</span>,
-            <span class="ident">raw_vals</span>: <span class="ident">other_raw_vals</span>,
-            <span class="ident">ignore_case</span>: <span class="ident">other_ignore_case</span>,
-        } <span class="op">=</span> <span class="ident">other</span>;
-        <span class="ident">self_occurs</span> <span class="op">==</span> <span class="ident">other_occurs</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">self_source</span> <span class="op">==</span> <span class="ident">other_source</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">self_indices</span> <span class="op">==</span> <span class="ident">other_indices</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">self_type_id</span> <span class="op">==</span> <span class="ident">other_type_id</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">self_raw_vals</span> <span class="op">==</span> <span class="ident">other_raw_vals</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">self_ignore_case</span> <span class="op">==</span> <span class="ident">other_ignore_case</span>
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>MatchedArg {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>MatchedArg) -&gt; bool {
+        <span class="kw">let </span>MatchedArg {
+            occurs: self_occurs,
+            source: self_source,
+            indices: self_indices,
+            type_id: self_type_id,
+            vals: <span class="kw">_</span>,
+            raw_vals: self_raw_vals,
+            ignore_case: self_ignore_case,
+        } = <span class="self">self</span>;
+        <span class="kw">let </span>MatchedArg {
+            occurs: other_occurs,
+            source: other_source,
+            indices: other_indices,
+            type_id: other_type_id,
+            vals: <span class="kw">_</span>,
+            raw_vals: other_raw_vals,
+            ignore_case: other_ignore_case,
+        } = other;
+        self_occurs == other_occurs
+            &amp;&amp; self_source == other_source
+            &amp;&amp; self_indices == other_indices
+            &amp;&amp; self_type_id == other_type_id
+            &amp;&amp; self_raw_vals == other_raw_vals
+            &amp;&amp; self_ignore_case == other_ignore_case
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">MatchedArg</span> {}
+<span class="kw">impl </span>Eq <span class="kw">for </span>MatchedArg {}
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_grouped_vals_first</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">MatchedArg::new_group</span>();
-        <span class="ident">m</span>.<span class="ident">new_val_group</span>();
-        <span class="ident">m</span>.<span class="ident">new_val_group</span>();
-        <span class="ident">m</span>.<span class="ident">append_val</span>(<span class="ident">AnyValue::new</span>(<span class="ident">String::from</span>(<span class="string">&quot;bbb&quot;</span>)), <span class="string">&quot;bbb&quot;</span>.<span class="ident">into</span>());
-        <span class="ident">m</span>.<span class="ident">append_val</span>(<span class="ident">AnyValue::new</span>(<span class="ident">String::from</span>(<span class="string">&quot;ccc&quot;</span>)), <span class="string">&quot;ccc&quot;</span>.<span class="ident">into</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">m</span>.<span class="ident">first_raw</span>(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">OsString::from</span>(<span class="string">&quot;bbb&quot;</span>)));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_grouped_vals_first() {
+        <span class="kw">let </span><span class="kw-2">mut </span>m = MatchedArg::new_group();
+        m.new_val_group();
+        m.new_val_group();
+        m.append_val(AnyValue::new(String::from(<span class="string">&quot;bbb&quot;</span>)), <span class="string">&quot;bbb&quot;</span>.into());
+        m.append_val(AnyValue::new(String::from(<span class="string">&quot;ccc&quot;</span>)), <span class="string">&quot;ccc&quot;</span>.into());
+        <span class="macro">assert_eq!</span>(m.first_raw(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>OsString::from(<span class="string">&quot;bbb&quot;</span>)));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/textwrap-0.15.0/src/wrap_algorithms.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wrap_algorithms.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../textwrap/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/textwrap-0.15.0/src/wrap_algorithms.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wrap_algorithms.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../textwrap/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -386,387 +379,386 @@
 <span id="379">379</span>
 <span id="380">380</span>
 <span id="381">381</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Word wrapping algorithms.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! After a text has been broken into words (or [`Fragment`]s), one</span>
-<span class="doccomment">//! now has to decide how to break the fragments into lines. The</span>
-<span class="doccomment">//! simplest algorithm for this is implemented by [`wrap_first_fit`]:</span>
-<span class="doccomment">//! it uses no look-ahead and simply adds fragments to the line as</span>
-<span class="doccomment">//! long as they fit. However, this can lead to poor line breaks if a</span>
-<span class="doccomment">//! large fragment almost-but-not-quite fits on a line. When that</span>
-<span class="doccomment">//! happens, the fragment is moved to the next line and it will leave</span>
-<span class="doccomment">//! behind a large gap. A more advanced algorithm, implemented by</span>
-<span class="doccomment">//! [`wrap_optimal_fit`], will take this into account. The optimal-fit</span>
-<span class="doccomment">//! algorithm considers all possible line breaks and will attempt to</span>
-<span class="doccomment">//! minimize the gaps left behind by overly short lines.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! While both algorithms run in linear time, the first-fit algorithm</span>
-<span class="doccomment">//! is about 4 times faster than the optimal-fit algorithm.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Word wrapping algorithms.
+//!
+//! After a text has been broken into words (or [`Fragment`]s), one
+//! now has to decide how to break the fragments into lines. The
+//! simplest algorithm for this is implemented by [`wrap_first_fit`]:
+//! it uses no look-ahead and simply adds fragments to the line as
+//! long as they fit. However, this can lead to poor line breaks if a
+//! large fragment almost-but-not-quite fits on a line. When that
+//! happens, the fragment is moved to the next line and it will leave
+//! behind a large gap. A more advanced algorithm, implemented by
+//! [`wrap_optimal_fit`], will take this into account. The optimal-fit
+//! algorithm considers all possible line breaks and will attempt to
+//! minimize the gaps left behind by overly short lines.
+//!
+//! While both algorithms run in linear time, the first-fit algorithm
+//! is about 4 times faster than the optimal-fit algorithm.
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;smawk&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">optimal_fit</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;smawk&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">optimal_fit</span>::{<span class="ident">wrap_optimal_fit</span>, <span class="ident">OverflowError</span>, <span class="ident">Penalties</span>};
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;smawk&quot;</span>)]
+</span><span class="kw">mod </span>optimal_fit;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;smawk&quot;</span>)]
+</span><span class="kw">pub use </span>optimal_fit::{wrap_optimal_fit, OverflowError, Penalties};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core</span>::{<span class="ident">Fragment</span>, <span class="ident">Word</span>};
+<span class="kw">use </span><span class="kw">crate</span>::core::{Fragment, Word};
 
-<span class="doccomment">/// Describes how to wrap words into lines.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The simplest approach is to wrap words one word at a time and</span>
-<span class="doccomment">/// accept the first way of wrapping which fit</span>
-<span class="doccomment">/// ([`WrapAlgorithm::FirstFit`]). If the `smawk` Cargo feature is</span>
-<span class="doccomment">/// enabled, a more complex algorithm is available which will look at</span>
-<span class="doccomment">/// an entire paragraph at a time in order to find optimal line breaks</span>
-<span class="doccomment">/// ([`WrapAlgorithm::OptimalFit`]).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">WrapAlgorithm</span> {
-    <span class="doccomment">/// Wrap words using a fast and simple algorithm.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This algorithm uses no look-ahead when finding line breaks.</span>
-    <span class="doccomment">/// Implemented by [`wrap_first_fit`], please see that function for</span>
-    <span class="doccomment">/// details and examples.</span>
-    <span class="ident">FirstFit</span>,
+<span class="doccomment">/// Describes how to wrap words into lines.
+///
+/// The simplest approach is to wrap words one word at a time and
+/// accept the first way of wrapping which fit
+/// ([`WrapAlgorithm::FirstFit`]). If the `smawk` Cargo feature is
+/// enabled, a more complex algorithm is available which will look at
+/// an entire paragraph at a time in order to find optimal line breaks
+/// ([`WrapAlgorithm::OptimalFit`]).
+</span><span class="attribute">#[derive(Clone, Copy)]
+</span><span class="kw">pub enum </span>WrapAlgorithm {
+    <span class="doccomment">/// Wrap words using a fast and simple algorithm.
+    ///
+    /// This algorithm uses no look-ahead when finding line breaks.
+    /// Implemented by [`wrap_first_fit`], please see that function for
+    /// details and examples.
+    </span>FirstFit,
 
-    <span class="doccomment">/// Wrap words using an advanced algorithm with look-ahead.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This wrapping algorithm considers the entire paragraph to find</span>
-    <span class="doccomment">/// optimal line breaks. When wrapping text, &quot;penalties&quot; are</span>
-    <span class="doccomment">/// assigned to line breaks based on the gaps left at the end of</span>
-    <span class="doccomment">/// lines. See [`Penalties`] for details.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The underlying wrapping algorithm is implemented by</span>
-    <span class="doccomment">/// [`wrap_optimal_fit`], please see that function for examples.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Note:** Only available when the `smawk` Cargo feature is</span>
-    <span class="doccomment">/// enabled.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;smawk&quot;</span>)]</span>
-    <span class="ident">OptimalFit</span>(<span class="ident">Penalties</span>),
+    <span class="doccomment">/// Wrap words using an advanced algorithm with look-ahead.
+    ///
+    /// This wrapping algorithm considers the entire paragraph to find
+    /// optimal line breaks. When wrapping text, &quot;penalties&quot; are
+    /// assigned to line breaks based on the gaps left at the end of
+    /// lines. See [`Penalties`] for details.
+    ///
+    /// The underlying wrapping algorithm is implemented by
+    /// [`wrap_optimal_fit`], please see that function for examples.
+    ///
+    /// **Note:** Only available when the `smawk` Cargo feature is
+    /// enabled.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;smawk&quot;</span>)]
+    </span>OptimalFit(Penalties),
 
-    <span class="doccomment">/// Custom wrapping function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Use this if you want to implement your own wrapping algorithm.</span>
-    <span class="doccomment">/// The function can freely decide how to turn a slice of</span>
-    <span class="doccomment">/// [`Word`]s into lines.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use textwrap::core::Word;</span>
-    <span class="doccomment">/// use textwrap::{wrap, Options, WrapAlgorithm};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// fn stair&lt;&#39;a, &#39;b&gt;(words: &amp;&#39;b [Word&lt;&#39;a&gt;], _: &amp;&#39;b [usize]) -&gt; Vec&lt;&amp;&#39;b [Word&lt;&#39;a&gt;]&gt; {</span>
-    <span class="doccomment">///     let mut lines = Vec::new();</span>
-    <span class="doccomment">///     let mut step = 1;</span>
-    <span class="doccomment">///     let mut start_idx = 0;</span>
-    <span class="doccomment">///     while start_idx + step &lt;= words.len() {</span>
-    <span class="doccomment">///       lines.push(&amp;words[start_idx .. start_idx+step]);</span>
-    <span class="doccomment">///       start_idx += step;</span>
-    <span class="doccomment">///       step += 1;</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">///     lines</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let options = Options::new(10).wrap_algorithm(WrapAlgorithm::Custom(stair));</span>
-    <span class="doccomment">/// assert_eq!(wrap(&quot;First, second, third, fourth, fifth, sixth&quot;, options),</span>
-    <span class="doccomment">///            vec![&quot;First,&quot;,</span>
-    <span class="doccomment">///                 &quot;second, third,&quot;,</span>
-    <span class="doccomment">///                 &quot;fourth, fifth, sixth&quot;]);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">Custom</span>(<span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="kw">fn</span>(<span class="ident">words</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">Word</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>], <span class="ident">line_widths</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">usize</span>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">Word</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>]<span class="op">&gt;</span>),
+    <span class="doccomment">/// Custom wrapping function.
+    ///
+    /// Use this if you want to implement your own wrapping algorithm.
+    /// The function can freely decide how to turn a slice of
+    /// [`Word`]s into lines.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use textwrap::core::Word;
+    /// use textwrap::{wrap, Options, WrapAlgorithm};
+    ///
+    /// fn stair&lt;&#39;a, &#39;b&gt;(words: &amp;&#39;b [Word&lt;&#39;a&gt;], _: &amp;&#39;b [usize]) -&gt; Vec&lt;&amp;&#39;b [Word&lt;&#39;a&gt;]&gt; {
+    ///     let mut lines = Vec::new();
+    ///     let mut step = 1;
+    ///     let mut start_idx = 0;
+    ///     while start_idx + step &lt;= words.len() {
+    ///       lines.push(&amp;words[start_idx .. start_idx+step]);
+    ///       start_idx += step;
+    ///       step += 1;
+    ///     }
+    ///     lines
+    /// }
+    ///
+    /// let options = Options::new(10).wrap_algorithm(WrapAlgorithm::Custom(stair));
+    /// assert_eq!(wrap(&quot;First, second, third, fourth, fifth, sixth&quot;, options),
+    ///            vec![&quot;First,&quot;,
+    ///                 &quot;second, third,&quot;,
+    ///                 &quot;fourth, fifth, sixth&quot;]);
+    /// ```
+    </span>Custom(<span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; <span class="kw">fn</span>(words: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[Word&lt;<span class="lifetime">&#39;a</span>&gt;], line_widths: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[usize]) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[Word&lt;<span class="lifetime">&#39;a</span>&gt;]&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">WrapAlgorithm</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">WrapAlgorithm::FirstFit</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;FirstFit&quot;</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;smawk&quot;</span>)]</span>
-            <span class="ident">WrapAlgorithm::OptimalFit</span>(<span class="ident">penalties</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;OptimalFit({:?})&quot;</span>, <span class="ident">penalties</span>),
-            <span class="ident">WrapAlgorithm::Custom</span>(<span class="kw">_</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;Custom(...)&quot;</span>),
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>WrapAlgorithm {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            WrapAlgorithm::FirstFit =&gt; f.write_str(<span class="string">&quot;FirstFit&quot;</span>),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;smawk&quot;</span>)]
+            </span>WrapAlgorithm::OptimalFit(penalties) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;OptimalFit({:?})&quot;</span>, penalties),
+            WrapAlgorithm::Custom(<span class="kw">_</span>) =&gt; f.write_str(<span class="string">&quot;Custom(...)&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">WrapAlgorithm</span> {
-    <span class="doccomment">/// Create new wrap algorithm.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The best wrapping algorithm is used by default, i.e.,</span>
-    <span class="doccomment">/// [`WrapAlgorithm::OptimalFit`] if available, otherwise</span>
-    <span class="doccomment">/// [`WrapAlgorithm::FirstFit`].</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;smawk&quot;</span>))]</span>
-        {
-            <span class="ident">WrapAlgorithm::FirstFit</span>
+<span class="kw">impl </span>WrapAlgorithm {
+    <span class="doccomment">/// Create new wrap algorithm.
+    ///
+    /// The best wrapping algorithm is used by default, i.e.,
+    /// [`WrapAlgorithm::OptimalFit`] if available, otherwise
+    /// [`WrapAlgorithm::FirstFit`].
+    </span><span class="kw">pub const fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="attribute">#[cfg(not(feature = <span class="string">&quot;smawk&quot;</span>))]
+        </span>{
+            WrapAlgorithm::FirstFit
         }
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;smawk&quot;</span>)]</span>
-        {
-            <span class="ident">WrapAlgorithm::new_optimal_fit</span>()
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;smawk&quot;</span>)]
+        </span>{
+            WrapAlgorithm::new_optimal_fit()
         }
     }
 
-    <span class="doccomment">/// New [`WrapAlgorithm::OptimalFit`] with default penalties. This</span>
-    <span class="doccomment">/// works well for monospace text.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Note:** Only available when the `smawk` Cargo feature is</span>
-    <span class="doccomment">/// enabled.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;smawk&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_optimal_fit</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">WrapAlgorithm::OptimalFit</span>(<span class="ident">Penalties::new</span>())
+    <span class="doccomment">/// New [`WrapAlgorithm::OptimalFit`] with default penalties. This
+    /// works well for monospace text.
+    ///
+    /// **Note:** Only available when the `smawk` Cargo feature is
+    /// enabled.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;smawk&quot;</span>)]
+    </span><span class="kw">pub const fn </span>new_optimal_fit() -&gt; <span class="self">Self </span>{
+        WrapAlgorithm::OptimalFit(Penalties::new())
     }
 
-    <span class="doccomment">/// Wrap words according to line widths.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `line_widths` slice gives the target line width for each</span>
-    <span class="doccomment">/// line (the last slice element is repeated as necessary). This</span>
-    <span class="doccomment">/// can be used to implement hanging indentation.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Wrap words according to line widths.
+    ///
+    /// The `line_widths` slice gives the target line width for each
+    /// line (the last slice element is repeated as necessary). This
+    /// can be used to implement hanging indentation.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>wrap&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">words</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">Word</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>],
-        <span class="ident">line_widths</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">usize</span>],
-    ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">Word</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>]<span class="op">&gt;</span> {
-        <span class="comment">// Every integer up to 2u64.pow(f64::MANTISSA_DIGITS) = 2**53</span>
-        <span class="comment">// = 9_007_199_254_740_992 can be represented without loss by</span>
-        <span class="comment">// a f64. Larger line widths will be rounded to the nearest</span>
-        <span class="comment">// representable number.</span>
-        <span class="kw">let</span> <span class="ident">f64_line_widths</span> <span class="op">=</span> <span class="ident">line_widths</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">w</span> <span class="kw">as</span> <span class="ident">f64</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+        words: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[Word&lt;<span class="lifetime">&#39;a</span>&gt;],
+        line_widths: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[usize],
+    ) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[Word&lt;<span class="lifetime">&#39;a</span>&gt;]&gt; {
+        <span class="comment">// Every integer up to 2u64.pow(f64::MANTISSA_DIGITS) = 2**53
+        // = 9_007_199_254_740_992 can be represented without loss by
+        // a f64. Larger line widths will be rounded to the nearest
+        // representable number.
+        </span><span class="kw">let </span>f64_line_widths = line_widths.iter().map(|w| <span class="kw-2">*</span>w <span class="kw">as </span>f64).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">WrapAlgorithm::FirstFit</span> =&gt; <span class="ident">wrap_first_fit</span>(<span class="ident">words</span>, <span class="kw-2">&amp;</span><span class="ident">f64_line_widths</span>),
+        <span class="kw">match </span><span class="self">self </span>{
+            WrapAlgorithm::FirstFit =&gt; wrap_first_fit(words, <span class="kw-2">&amp;</span>f64_line_widths),
 
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;smawk&quot;</span>)]</span>
-            <span class="ident">WrapAlgorithm::OptimalFit</span>(<span class="ident">penalties</span>) =&gt; {
-                <span class="comment">// The computation cannnot overflow when the line</span>
-                <span class="comment">// widths are restricted to usize.</span>
-                <span class="ident">wrap_optimal_fit</span>(<span class="ident">words</span>, <span class="kw-2">&amp;</span><span class="ident">f64_line_widths</span>, <span class="ident">penalties</span>).<span class="ident">unwrap</span>()
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;smawk&quot;</span>)]
+            </span>WrapAlgorithm::OptimalFit(penalties) =&gt; {
+                <span class="comment">// The computation cannnot overflow when the line
+                // widths are restricted to usize.
+                </span>wrap_optimal_fit(words, <span class="kw-2">&amp;</span>f64_line_widths, penalties).unwrap()
             }
 
-            <span class="ident">WrapAlgorithm::Custom</span>(<span class="ident">func</span>) =&gt; <span class="ident">func</span>(<span class="ident">words</span>, <span class="ident">line_widths</span>),
+            WrapAlgorithm::Custom(func) =&gt; func(words, line_widths),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">WrapAlgorithm</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">WrapAlgorithm::new</span>()
+<span class="kw">impl </span>Default <span class="kw">for </span>WrapAlgorithm {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        WrapAlgorithm::new()
     }
 }
 
-<span class="doccomment">/// Wrap abstract fragments into lines with a first-fit algorithm.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `line_widths` slice gives the target line width for each line</span>
-<span class="doccomment">/// (the last slice element is repeated as necessary). This can be</span>
-<span class="doccomment">/// used to implement hanging indentation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The fragments must already have been split into the desired</span>
-<span class="doccomment">/// widths, this function will not (and cannot) attempt to split them</span>
-<span class="doccomment">/// further when arranging them into lines.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # First-Fit Algorithm</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This implements a simple “greedy” algorithm: accumulate fragments</span>
-<span class="doccomment">/// one by one and when a fragment no longer fits, start a new line.</span>
-<span class="doccomment">/// There is no look-ahead, we simply take first fit of the fragments</span>
-<span class="doccomment">/// we find.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// While fast and predictable, this algorithm can produce poor line</span>
-<span class="doccomment">/// breaks when a long fragment is moved to a new line, leaving behind</span>
-<span class="doccomment">/// a large gap:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use textwrap::core::Word;</span>
-<span class="doccomment">/// use textwrap::wrap_algorithms::wrap_first_fit;</span>
-<span class="doccomment">/// use textwrap::WordSeparator;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Helper to convert wrapped lines to a Vec&lt;String&gt;.</span>
-<span class="doccomment">/// fn lines_to_strings(lines: Vec&lt;&amp;[Word&lt;&#39;_&gt;]&gt;) -&gt; Vec&lt;String&gt; {</span>
-<span class="doccomment">///     lines.iter().map(|line| {</span>
-<span class="doccomment">///         line.iter().map(|word| &amp;**word).collect::&lt;Vec&lt;_&gt;&gt;().join(&quot; &quot;)</span>
-<span class="doccomment">///     }).collect::&lt;Vec&lt;_&gt;&gt;()</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let text = &quot;These few words will unfortunately not wrap nicely.&quot;;</span>
-<span class="doccomment">/// let words = WordSeparator::AsciiSpace.find_words(text).collect::&lt;Vec&lt;_&gt;&gt;();</span>
-<span class="doccomment">/// assert_eq!(lines_to_strings(wrap_first_fit(&amp;words, &amp;[15.0])),</span>
-<span class="doccomment">///            vec![&quot;These few words&quot;,</span>
-<span class="doccomment">///                 &quot;will&quot;,  // &lt;-- short line</span>
-<span class="doccomment">///                 &quot;unfortunately&quot;,</span>
-<span class="doccomment">///                 &quot;not wrap&quot;,</span>
-<span class="doccomment">///                 &quot;nicely.&quot;]);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // We can avoid the short line if we look ahead:</span>
-<span class="doccomment">/// #[cfg(feature = &quot;smawk&quot;)]</span>
-<span class="doccomment">/// use textwrap::wrap_algorithms::{wrap_optimal_fit, Penalties};</span>
-<span class="doccomment">/// #[cfg(feature = &quot;smawk&quot;)]</span>
-<span class="doccomment">/// assert_eq!(lines_to_strings(wrap_optimal_fit(&amp;words, &amp;[15.0], &amp;Penalties::new()).unwrap()),</span>
-<span class="doccomment">///            vec![&quot;These few&quot;,</span>
-<span class="doccomment">///                 &quot;words will&quot;,</span>
-<span class="doccomment">///                 &quot;unfortunately&quot;,</span>
-<span class="doccomment">///                 &quot;not wrap&quot;,</span>
-<span class="doccomment">///                 &quot;nicely.&quot;]);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The [`wrap_optimal_fit`] function was used above to get better</span>
-<span class="doccomment">/// line breaks. It uses an advanced algorithm which tries to avoid</span>
-<span class="doccomment">/// short lines. This function is about 4 times faster than</span>
-<span class="doccomment">/// [`wrap_optimal_fit`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Imagine you&#39;re building a house site and you have a number of</span>
-<span class="doccomment">/// tasks you need to execute. Things like pour foundation, complete</span>
-<span class="doccomment">/// framing, install plumbing, electric cabling, install insulation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The construction workers can only work during daytime, so they</span>
-<span class="doccomment">/// need to pack up everything at night. Because they need to secure</span>
-<span class="doccomment">/// their tools and move machines back to the garage, this process</span>
-<span class="doccomment">/// takes much more time than the time it would take them to simply</span>
-<span class="doccomment">/// switch to another task.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// You would like to make a list of tasks to execute every day based</span>
-<span class="doccomment">/// on your estimates. You can model this with a program like this:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use textwrap::core::{Fragment, Word};</span>
-<span class="doccomment">/// use textwrap::wrap_algorithms::wrap_first_fit;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// #[derive(Debug)]</span>
-<span class="doccomment">/// struct Task&lt;&#39;a&gt; {</span>
-<span class="doccomment">///     name: &amp;&#39;a str,</span>
-<span class="doccomment">///     hours: f64,   // Time needed to complete task.</span>
-<span class="doccomment">///     sweep: f64,   // Time needed for a quick sweep after task during the day.</span>
-<span class="doccomment">///     cleanup: f64, // Time needed for full cleanup if day ends with this task.</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// impl Fragment for Task&lt;&#39;_&gt; {</span>
-<span class="doccomment">///     fn width(&amp;self) -&gt; f64 { self.hours }</span>
-<span class="doccomment">///     fn whitespace_width(&amp;self) -&gt; f64 { self.sweep }</span>
-<span class="doccomment">///     fn penalty_width(&amp;self) -&gt; f64 { self.cleanup }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // The morning tasks</span>
-<span class="doccomment">/// let tasks = vec![</span>
-<span class="doccomment">///     Task { name: &quot;Foundation&quot;,  hours: 4.0, sweep: 2.0, cleanup: 3.0 },</span>
-<span class="doccomment">///     Task { name: &quot;Framing&quot;,     hours: 3.0, sweep: 1.0, cleanup: 2.0 },</span>
-<span class="doccomment">///     Task { name: &quot;Plumbing&quot;,    hours: 2.0, sweep: 2.0, cleanup: 2.0 },</span>
-<span class="doccomment">///     Task { name: &quot;Electrical&quot;,  hours: 2.0, sweep: 1.0, cleanup: 2.0 },</span>
-<span class="doccomment">///     Task { name: &quot;Insulation&quot;,  hours: 2.0, sweep: 1.0, cleanup: 2.0 },</span>
-<span class="doccomment">///     Task { name: &quot;Drywall&quot;,     hours: 3.0, sweep: 1.0, cleanup: 2.0 },</span>
-<span class="doccomment">///     Task { name: &quot;Floors&quot;,      hours: 3.0, sweep: 1.0, cleanup: 2.0 },</span>
-<span class="doccomment">///     Task { name: &quot;Countertops&quot;, hours: 1.0, sweep: 1.0, cleanup: 2.0 },</span>
-<span class="doccomment">///     Task { name: &quot;Bathrooms&quot;,   hours: 2.0, sweep: 1.0, cleanup: 2.0 },</span>
-<span class="doccomment">/// ];</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Fill tasks into days, taking `day_length` into account. The</span>
-<span class="doccomment">/// // output shows the hours worked per day along with the names of</span>
-<span class="doccomment">/// // the tasks for that day.</span>
-<span class="doccomment">/// fn assign_days&lt;&#39;a&gt;(tasks: &amp;[Task&lt;&#39;a&gt;], day_length: f64) -&gt; Vec&lt;(f64, Vec&lt;&amp;&#39;a str&gt;)&gt; {</span>
-<span class="doccomment">///     let mut days = Vec::new();</span>
-<span class="doccomment">///     // Assign tasks to days. The assignment is a vector of slices,</span>
-<span class="doccomment">///     // with a slice per day.</span>
-<span class="doccomment">///     let assigned_days: Vec&lt;&amp;[Task&lt;&#39;a&gt;]&gt; = wrap_first_fit(&amp;tasks, &amp;[day_length]);</span>
-<span class="doccomment">///     for day in assigned_days.iter() {</span>
-<span class="doccomment">///         let last = day.last().unwrap();</span>
-<span class="doccomment">///         let work_hours: f64 = day.iter().map(|t| t.hours + t.sweep).sum();</span>
-<span class="doccomment">///         let names = day.iter().map(|t| t.name).collect::&lt;Vec&lt;_&gt;&gt;();</span>
-<span class="doccomment">///         days.push((work_hours - last.sweep + last.cleanup, names));</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///     days</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // With a single crew working 8 hours a day:</span>
-<span class="doccomment">/// assert_eq!(</span>
-<span class="doccomment">///     assign_days(&amp;tasks, 8.0),</span>
-<span class="doccomment">///     [</span>
-<span class="doccomment">///         (7.0, vec![&quot;Foundation&quot;]),</span>
-<span class="doccomment">///         (8.0, vec![&quot;Framing&quot;, &quot;Plumbing&quot;]),</span>
-<span class="doccomment">///         (7.0, vec![&quot;Electrical&quot;, &quot;Insulation&quot;]),</span>
-<span class="doccomment">///         (5.0, vec![&quot;Drywall&quot;]),</span>
-<span class="doccomment">///         (7.0, vec![&quot;Floors&quot;, &quot;Countertops&quot;]),</span>
-<span class="doccomment">///         (4.0, vec![&quot;Bathrooms&quot;]),</span>
-<span class="doccomment">///     ]</span>
-<span class="doccomment">/// );</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // With two crews working in shifts, 16 hours a day:</span>
-<span class="doccomment">/// assert_eq!(</span>
-<span class="doccomment">///     assign_days(&amp;tasks, 16.0),</span>
-<span class="doccomment">///     [</span>
-<span class="doccomment">///         (14.0, vec![&quot;Foundation&quot;, &quot;Framing&quot;, &quot;Plumbing&quot;]),</span>
-<span class="doccomment">///         (15.0, vec![&quot;Electrical&quot;, &quot;Insulation&quot;, &quot;Drywall&quot;, &quot;Floors&quot;]),</span>
-<span class="doccomment">///         (6.0, vec![&quot;Countertops&quot;, &quot;Bathrooms&quot;]),</span>
-<span class="doccomment">///     ]</span>
-<span class="doccomment">/// );</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Apologies to anyone who actually knows how to build a house and</span>
-<span class="doccomment">/// knows how long each step takes :-)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_first_fit</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">T</span>: <span class="ident">Fragment</span><span class="op">&gt;</span>(
-    <span class="ident">fragments</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">T</span>],
-    <span class="ident">line_widths</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">f64</span>],
-) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">T</span>]<span class="op">&gt;</span> {
-    <span class="comment">// The final line width is used for all remaining lines.</span>
-    <span class="kw">let</span> <span class="ident">default_line_width</span> <span class="op">=</span> <span class="ident">line_widths</span>.<span class="ident">last</span>().<span class="ident">copied</span>().<span class="ident">unwrap_or</span>(<span class="number">0.0</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lines</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">start</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">width</span> <span class="op">=</span> <span class="number">0.0</span>;
+<span class="doccomment">/// Wrap abstract fragments into lines with a first-fit algorithm.
+///
+/// The `line_widths` slice gives the target line width for each line
+/// (the last slice element is repeated as necessary). This can be
+/// used to implement hanging indentation.
+///
+/// The fragments must already have been split into the desired
+/// widths, this function will not (and cannot) attempt to split them
+/// further when arranging them into lines.
+///
+/// # First-Fit Algorithm
+///
+/// This implements a simple “greedy” algorithm: accumulate fragments
+/// one by one and when a fragment no longer fits, start a new line.
+/// There is no look-ahead, we simply take first fit of the fragments
+/// we find.
+///
+/// While fast and predictable, this algorithm can produce poor line
+/// breaks when a long fragment is moved to a new line, leaving behind
+/// a large gap:
+///
+/// ```
+/// use textwrap::core::Word;
+/// use textwrap::wrap_algorithms::wrap_first_fit;
+/// use textwrap::WordSeparator;
+///
+/// // Helper to convert wrapped lines to a Vec&lt;String&gt;.
+/// fn lines_to_strings(lines: Vec&lt;&amp;[Word&lt;&#39;_&gt;]&gt;) -&gt; Vec&lt;String&gt; {
+///     lines.iter().map(|line| {
+///         line.iter().map(|word| &amp;**word).collect::&lt;Vec&lt;_&gt;&gt;().join(&quot; &quot;)
+///     }).collect::&lt;Vec&lt;_&gt;&gt;()
+/// }
+///
+/// let text = &quot;These few words will unfortunately not wrap nicely.&quot;;
+/// let words = WordSeparator::AsciiSpace.find_words(text).collect::&lt;Vec&lt;_&gt;&gt;();
+/// assert_eq!(lines_to_strings(wrap_first_fit(&amp;words, &amp;[15.0])),
+///            vec![&quot;These few words&quot;,
+///                 &quot;will&quot;,  // &lt;-- short line
+///                 &quot;unfortunately&quot;,
+///                 &quot;not wrap&quot;,
+///                 &quot;nicely.&quot;]);
+///
+/// // We can avoid the short line if we look ahead:
+/// #[cfg(feature = &quot;smawk&quot;)]
+/// use textwrap::wrap_algorithms::{wrap_optimal_fit, Penalties};
+/// #[cfg(feature = &quot;smawk&quot;)]
+/// assert_eq!(lines_to_strings(wrap_optimal_fit(&amp;words, &amp;[15.0], &amp;Penalties::new()).unwrap()),
+///            vec![&quot;These few&quot;,
+///                 &quot;words will&quot;,
+///                 &quot;unfortunately&quot;,
+///                 &quot;not wrap&quot;,
+///                 &quot;nicely.&quot;]);
+/// ```
+///
+/// The [`wrap_optimal_fit`] function was used above to get better
+/// line breaks. It uses an advanced algorithm which tries to avoid
+/// short lines. This function is about 4 times faster than
+/// [`wrap_optimal_fit`].
+///
+/// # Examples
+///
+/// Imagine you&#39;re building a house site and you have a number of
+/// tasks you need to execute. Things like pour foundation, complete
+/// framing, install plumbing, electric cabling, install insulation.
+///
+/// The construction workers can only work during daytime, so they
+/// need to pack up everything at night. Because they need to secure
+/// their tools and move machines back to the garage, this process
+/// takes much more time than the time it would take them to simply
+/// switch to another task.
+///
+/// You would like to make a list of tasks to execute every day based
+/// on your estimates. You can model this with a program like this:
+///
+/// ```
+/// use textwrap::core::{Fragment, Word};
+/// use textwrap::wrap_algorithms::wrap_first_fit;
+///
+/// #[derive(Debug)]
+/// struct Task&lt;&#39;a&gt; {
+///     name: &amp;&#39;a str,
+///     hours: f64,   // Time needed to complete task.
+///     sweep: f64,   // Time needed for a quick sweep after task during the day.
+///     cleanup: f64, // Time needed for full cleanup if day ends with this task.
+/// }
+///
+/// impl Fragment for Task&lt;&#39;_&gt; {
+///     fn width(&amp;self) -&gt; f64 { self.hours }
+///     fn whitespace_width(&amp;self) -&gt; f64 { self.sweep }
+///     fn penalty_width(&amp;self) -&gt; f64 { self.cleanup }
+/// }
+///
+/// // The morning tasks
+/// let tasks = vec![
+///     Task { name: &quot;Foundation&quot;,  hours: 4.0, sweep: 2.0, cleanup: 3.0 },
+///     Task { name: &quot;Framing&quot;,     hours: 3.0, sweep: 1.0, cleanup: 2.0 },
+///     Task { name: &quot;Plumbing&quot;,    hours: 2.0, sweep: 2.0, cleanup: 2.0 },
+///     Task { name: &quot;Electrical&quot;,  hours: 2.0, sweep: 1.0, cleanup: 2.0 },
+///     Task { name: &quot;Insulation&quot;,  hours: 2.0, sweep: 1.0, cleanup: 2.0 },
+///     Task { name: &quot;Drywall&quot;,     hours: 3.0, sweep: 1.0, cleanup: 2.0 },
+///     Task { name: &quot;Floors&quot;,      hours: 3.0, sweep: 1.0, cleanup: 2.0 },
+///     Task { name: &quot;Countertops&quot;, hours: 1.0, sweep: 1.0, cleanup: 2.0 },
+///     Task { name: &quot;Bathrooms&quot;,   hours: 2.0, sweep: 1.0, cleanup: 2.0 },
+/// ];
+///
+/// // Fill tasks into days, taking `day_length` into account. The
+/// // output shows the hours worked per day along with the names of
+/// // the tasks for that day.
+/// fn assign_days&lt;&#39;a&gt;(tasks: &amp;[Task&lt;&#39;a&gt;], day_length: f64) -&gt; Vec&lt;(f64, Vec&lt;&amp;&#39;a str&gt;)&gt; {
+///     let mut days = Vec::new();
+///     // Assign tasks to days. The assignment is a vector of slices,
+///     // with a slice per day.
+///     let assigned_days: Vec&lt;&amp;[Task&lt;&#39;a&gt;]&gt; = wrap_first_fit(&amp;tasks, &amp;[day_length]);
+///     for day in assigned_days.iter() {
+///         let last = day.last().unwrap();
+///         let work_hours: f64 = day.iter().map(|t| t.hours + t.sweep).sum();
+///         let names = day.iter().map(|t| t.name).collect::&lt;Vec&lt;_&gt;&gt;();
+///         days.push((work_hours - last.sweep + last.cleanup, names));
+///     }
+///     days
+/// }
+///
+/// // With a single crew working 8 hours a day:
+/// assert_eq!(
+///     assign_days(&amp;tasks, 8.0),
+///     [
+///         (7.0, vec![&quot;Foundation&quot;]),
+///         (8.0, vec![&quot;Framing&quot;, &quot;Plumbing&quot;]),
+///         (7.0, vec![&quot;Electrical&quot;, &quot;Insulation&quot;]),
+///         (5.0, vec![&quot;Drywall&quot;]),
+///         (7.0, vec![&quot;Floors&quot;, &quot;Countertops&quot;]),
+///         (4.0, vec![&quot;Bathrooms&quot;]),
+///     ]
+/// );
+///
+/// // With two crews working in shifts, 16 hours a day:
+/// assert_eq!(
+///     assign_days(&amp;tasks, 16.0),
+///     [
+///         (14.0, vec![&quot;Foundation&quot;, &quot;Framing&quot;, &quot;Plumbing&quot;]),
+///         (15.0, vec![&quot;Electrical&quot;, &quot;Insulation&quot;, &quot;Drywall&quot;, &quot;Floors&quot;]),
+///         (6.0, vec![&quot;Countertops&quot;, &quot;Bathrooms&quot;]),
+///     ]
+/// );
+/// ```
+///
+/// Apologies to anyone who actually knows how to build a house and
+/// knows how long each step takes :-)
+</span><span class="kw">pub fn </span>wrap_first_fit&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, T: Fragment&gt;(
+    fragments: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T],
+    line_widths: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[f64],
+) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]&gt; {
+    <span class="comment">// The final line width is used for all remaining lines.
+    </span><span class="kw">let </span>default_line_width = line_widths.last().copied().unwrap_or(<span class="number">0.0</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>lines = Vec::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>start = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>width = <span class="number">0.0</span>;
 
-    <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">fragment</span>) <span class="kw">in</span> <span class="ident">fragments</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-        <span class="kw">let</span> <span class="ident">line_width</span> <span class="op">=</span> <span class="ident">line_widths</span>
-            .<span class="ident">get</span>(<span class="ident">lines</span>.<span class="ident">len</span>())
-            .<span class="ident">copied</span>()
-            .<span class="ident">unwrap_or</span>(<span class="ident">default_line_width</span>);
-        <span class="kw">if</span> <span class="ident">width</span> <span class="op">+</span> <span class="ident">fragment</span>.<span class="ident">width</span>() <span class="op">+</span> <span class="ident">fragment</span>.<span class="ident">penalty_width</span>() <span class="op">&gt;</span> <span class="ident">line_width</span> <span class="op">&amp;&amp;</span> <span class="ident">idx</span> <span class="op">&gt;</span> <span class="ident">start</span> {
-            <span class="ident">lines</span>.<span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="ident">fragments</span>[<span class="ident">start</span>..<span class="ident">idx</span>]);
-            <span class="ident">start</span> <span class="op">=</span> <span class="ident">idx</span>;
-            <span class="ident">width</span> <span class="op">=</span> <span class="number">0.0</span>;
+    <span class="kw">for </span>(idx, fragment) <span class="kw">in </span>fragments.iter().enumerate() {
+        <span class="kw">let </span>line_width = line_widths
+            .get(lines.len())
+            .copied()
+            .unwrap_or(default_line_width);
+        <span class="kw">if </span>width + fragment.width() + fragment.penalty_width() &gt; line_width &amp;&amp; idx &gt; start {
+            lines.push(<span class="kw-2">&amp;</span>fragments[start..idx]);
+            start = idx;
+            width = <span class="number">0.0</span>;
         }
-        <span class="ident">width</span> <span class="op">+</span><span class="op">=</span> <span class="ident">fragment</span>.<span class="ident">width</span>() <span class="op">+</span> <span class="ident">fragment</span>.<span class="ident">whitespace_width</span>();
+        width += fragment.width() + fragment.whitespace_width();
     }
-    <span class="ident">lines</span>.<span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="ident">fragments</span>[<span class="ident">start</span>..]);
-    <span class="ident">lines</span>
+    lines.push(<span class="kw-2">&amp;</span>fragments[start..]);
+    lines
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-    <span class="kw">struct</span> <span class="ident">Word</span>(<span class="ident">f64</span>);
+    <span class="attribute">#[derive(Debug, PartialEq)]
+    </span><span class="kw">struct </span>Word(f64);
 
-    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-    <span class="kw">impl</span> <span class="ident">Fragment</span> <span class="kw">for</span> <span class="ident">Word</span> {
-        <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> { <span class="self">self</span>.<span class="number">0</span> }
-        <span class="kw">fn</span> <span class="ident">whitespace_width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> { <span class="number">1.0</span> }
-        <span class="kw">fn</span> <span class="ident">penalty_width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> { <span class="number">0.0</span> }
+    <span class="attribute">#[rustfmt::skip]
+    </span><span class="kw">impl </span>Fragment <span class="kw">for </span>Word {
+        <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 { <span class="self">self</span>.<span class="number">0 </span>}
+        <span class="kw">fn </span>whitespace_width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 { <span class="number">1.0 </span>}
+        <span class="kw">fn </span>penalty_width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 { <span class="number">0.0 </span>}
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">wrap_string_longer_than_f64</span>() {
-        <span class="kw">let</span> <span class="ident">words</span> <span class="op">=</span> <span class="macro">vec!</span>[
-            <span class="ident">Word</span>(<span class="number">1e307</span>),
-            <span class="ident">Word</span>(<span class="number">2e307</span>),
-            <span class="ident">Word</span>(<span class="number">3e307</span>),
-            <span class="ident">Word</span>(<span class="number">4e307</span>),
-            <span class="ident">Word</span>(<span class="number">5e307</span>),
-            <span class="ident">Word</span>(<span class="number">6e307</span>),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>wrap_string_longer_than_f64() {
+        <span class="kw">let </span>words = <span class="macro">vec!</span>[
+            Word(<span class="number">1e307</span>),
+            Word(<span class="number">2e307</span>),
+            Word(<span class="number">3e307</span>),
+            Word(<span class="number">4e307</span>),
+            Word(<span class="number">5e307</span>),
+            Word(<span class="number">6e307</span>),
         ];
-        <span class="comment">// Wrap at just under f64::MAX (~19e307). The tiny</span>
-        <span class="comment">// whitespace_widths disappear because of loss of precision.</span>
-        <span class="macro">assert_eq!</span>(
-            <span class="ident">wrap_first_fit</span>(<span class="kw-2">&amp;</span><span class="ident">words</span>, <span class="kw-2">&amp;</span>[<span class="number">15e307</span>]),
+        <span class="comment">// Wrap at just under f64::MAX (~19e307). The tiny
+        // whitespace_widths disappear because of loss of precision.
+        </span><span class="macro">assert_eq!</span>(
+            wrap_first_fit(<span class="kw-2">&amp;</span>words, <span class="kw-2">&amp;</span>[<span class="number">15e307</span>]),
             <span class="kw-2">&amp;</span>[
                 <span class="macro">vec!</span>[
-                    <span class="ident">Word</span>(<span class="number">1e307</span>),
-                    <span class="ident">Word</span>(<span class="number">2e307</span>),
-                    <span class="ident">Word</span>(<span class="number">3e307</span>),
-                    <span class="ident">Word</span>(<span class="number">4e307</span>),
-                    <span class="ident">Word</span>(<span class="number">5e307</span>)
+                    Word(<span class="number">1e307</span>),
+                    Word(<span class="number">2e307</span>),
+                    Word(<span class="number">3e307</span>),
+                    Word(<span class="number">4e307</span>),
+                    Word(<span class="number">5e307</span>)
                 ],
-                <span class="macro">vec!</span>[<span class="ident">Word</span>(<span class="number">6e307</span>)]
+                <span class="macro">vec!</span>[Word(<span class="number">6e307</span>)]
             ]
         );
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="textwrap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="textwrap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

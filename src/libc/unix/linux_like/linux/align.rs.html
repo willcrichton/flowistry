@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.126/src/unix/linux_like/linux/align.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>align.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><script defer src="../../../../../main.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../libc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../../libc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../libc/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.132/src/unix/linux_like/linux/align.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>align.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../libc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../libc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../libc/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -155,156 +148,155 @@
 <span id="148">148</span>
 <span id="149">149</span>
 <span id="150">150</span>
-</pre><pre class="rust"><code><span class="macro">macro_rules!</span> <span class="ident">expand_align</span> {
+</pre><pre class="rust"><code><span class="macro">macro_rules! </span>expand_align {
     () =&gt; {
-        <span class="macro">s!</span> {
-            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">any</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>,
-                           <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>,
-                           <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc64&quot;</span>,
-                           <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips64&quot;</span>,
-                           <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;s390x&quot;</span>,
-                           <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc64&quot;</span>,
-                           <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;aarch64&quot;</span>,
-                           <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;riscv64&quot;</span>,
-                           <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;riscv32&quot;</span>,
-                           <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;loongarch64&quot;</span>),
-                       <span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">4</span>)))]</span>
-            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc64&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips64&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;s390x&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc64&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;aarch64&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;riscv64&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;riscv32&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;loongarch64&quot;</span>)),
-                       <span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">8</span>)))]</span>
-            <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">pthread_mutexattr_t</span> {
-                <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-                <span class="ident">size</span>: [<span class="ident">u8</span>; <span class="ident">::__SIZEOF_PTHREAD_MUTEXATTR_T</span>],
+        <span class="macro">s! </span>{
+            <span class="attribute">#[cfg_attr(any(target_pointer_width = <span class="string">&quot;32&quot;</span>,
+                           target_arch = <span class="string">&quot;x86_64&quot;</span>,
+                           target_arch = <span class="string">&quot;powerpc64&quot;</span>,
+                           target_arch = <span class="string">&quot;mips64&quot;</span>,
+                           target_arch = <span class="string">&quot;s390x&quot;</span>,
+                           target_arch = <span class="string">&quot;sparc64&quot;</span>,
+                           target_arch = <span class="string">&quot;aarch64&quot;</span>,
+                           target_arch = <span class="string">&quot;riscv64&quot;</span>,
+                           target_arch = <span class="string">&quot;riscv32&quot;</span>,
+                           target_arch = <span class="string">&quot;loongarch64&quot;</span>),
+                       repr(align(<span class="number">4</span>)))]
+            #[cfg_attr(not(any(target_pointer_width = <span class="string">&quot;32&quot;</span>,
+                               target_arch = <span class="string">&quot;x86_64&quot;</span>,
+                               target_arch = <span class="string">&quot;powerpc64&quot;</span>,
+                               target_arch = <span class="string">&quot;mips64&quot;</span>,
+                               target_arch = <span class="string">&quot;s390x&quot;</span>,
+                               target_arch = <span class="string">&quot;sparc64&quot;</span>,
+                               target_arch = <span class="string">&quot;aarch64&quot;</span>,
+                               target_arch = <span class="string">&quot;riscv64&quot;</span>,
+                               target_arch = <span class="string">&quot;riscv32&quot;</span>,
+                               target_arch = <span class="string">&quot;loongarch64&quot;</span>)),
+                       repr(align(<span class="number">8</span>)))]
+            </span><span class="kw">pub struct </span>pthread_mutexattr_t {
+                <span class="attribute">#[doc(hidden)]
+                </span>size: [u8; ::__SIZEOF_PTHREAD_MUTEXATTR_T],
             }
 
-            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>),
-                       <span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">4</span>)))]</span>
-            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>),
-                           <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>),
-                       <span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">8</span>)))]</span>
-            <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">pthread_rwlockattr_t</span> {
-                <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-                <span class="ident">size</span>: [<span class="ident">u8</span>; <span class="ident">::__SIZEOF_PTHREAD_RWLOCKATTR_T</span>],
+            <span class="attribute">#[cfg_attr(any(target_env = <span class="string">&quot;musl&quot;</span>, target_pointer_width = <span class="string">&quot;32&quot;</span>),
+                       repr(align(<span class="number">4</span>)))]
+            #[cfg_attr(all(not(target_env = <span class="string">&quot;musl&quot;</span>),
+                           target_pointer_width = <span class="string">&quot;64&quot;</span>),
+                       repr(align(<span class="number">8</span>)))]
+            </span><span class="kw">pub struct </span>pthread_rwlockattr_t {
+                <span class="attribute">#[doc(hidden)]
+                </span>size: [u8; ::__SIZEOF_PTHREAD_RWLOCKATTR_T],
             }
 
-            <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">4</span>))]</span>
-            <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">pthread_condattr_t</span> {
-                <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-                <span class="ident">size</span>: [<span class="ident">u8</span>; <span class="ident">::__SIZEOF_PTHREAD_CONDATTR_T</span>],
+            <span class="attribute">#[repr(align(<span class="number">4</span>))]
+            </span><span class="kw">pub struct </span>pthread_condattr_t {
+                <span class="attribute">#[doc(hidden)]
+                </span>size: [u8; ::__SIZEOF_PTHREAD_CONDATTR_T],
             }
 
-            <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">8</span>))]</span>
-            <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">fanotify_event_metadata</span> {
-                <span class="kw">pub</span> <span class="ident">event_len</span>: <span class="ident">__u32</span>,
-                <span class="kw">pub</span> <span class="ident">vers</span>: <span class="ident">__u8</span>,
-                <span class="kw">pub</span> <span class="ident">reserved</span>: <span class="ident">__u8</span>,
-                <span class="kw">pub</span> <span class="ident">metadata_len</span>: <span class="ident">__u16</span>,
-                <span class="kw">pub</span> <span class="ident">mask</span>: <span class="ident">__u64</span>,
-                <span class="kw">pub</span> <span class="ident">fd</span>: <span class="ident">::c_int</span>,
-                <span class="kw">pub</span> <span class="ident">pid</span>: <span class="ident">::c_int</span>,
+            <span class="attribute">#[repr(align(<span class="number">8</span>))]
+            </span><span class="kw">pub struct </span>fanotify_event_metadata {
+                <span class="kw">pub </span>event_len: __u32,
+                <span class="kw">pub </span>vers: __u8,
+                <span class="kw">pub </span>reserved: __u8,
+                <span class="kw">pub </span>metadata_len: __u16,
+                <span class="kw">pub </span>mask: __u64,
+                <span class="kw">pub </span>fd: ::c_int,
+                <span class="kw">pub </span>pid: ::c_int,
             }
         }
 
-        <span class="macro">s_no_extra_traits!</span> {
-            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>,
-                           <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>),
-                       <span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">4</span>)))]</span>
-            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>,
-                           <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>),
-                       <span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">8</span>)))]</span>
-            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>),
-                           <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
-                       <span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">4</span>)))]</span>
-            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>),
-                           <span class="ident">not</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>)),
-                       <span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">8</span>)))]</span>
-            <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">pthread_cond_t</span> {
-                <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-                <span class="ident">size</span>: [<span class="ident">u8</span>; <span class="ident">::__SIZEOF_PTHREAD_COND_T</span>],
+        <span class="macro">s_no_extra_traits! </span>{
+            <span class="attribute">#[cfg_attr(all(target_env = <span class="string">&quot;musl&quot;</span>,
+                           target_pointer_width = <span class="string">&quot;32&quot;</span>),
+                       repr(align(<span class="number">4</span>)))]
+            #[cfg_attr(all(target_env = <span class="string">&quot;musl&quot;</span>,
+                           target_pointer_width = <span class="string">&quot;64&quot;</span>),
+                       repr(align(<span class="number">8</span>)))]
+            #[cfg_attr(all(not(target_env = <span class="string">&quot;musl&quot;</span>),
+                           target_arch = <span class="string">&quot;x86&quot;</span>),
+                       repr(align(<span class="number">4</span>)))]
+            #[cfg_attr(all(not(target_env = <span class="string">&quot;musl&quot;</span>),
+                           not(target_arch = <span class="string">&quot;x86&quot;</span>)),
+                       repr(align(<span class="number">8</span>)))]
+            </span><span class="kw">pub struct </span>pthread_cond_t {
+                <span class="attribute">#[doc(hidden)]
+                </span>size: [u8; ::__SIZEOF_PTHREAD_COND_T],
             }
 
-            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>,
-                           <span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;hexagon&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;m68k&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>)),
-                       <span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">4</span>)))]</span>
-            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">any</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>,
-                           <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>,
-                                   <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>,
-                                   <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;hexagon&quot;</span>,
-                                   <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;m68k&quot;</span>,
-                                   <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
-                                   <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc&quot;</span>,
-                                   <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>,
-                                   <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>))),
-                       <span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">8</span>)))]</span>
-            <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">pthread_mutex_t</span> {
-                <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-                <span class="ident">size</span>: [<span class="ident">u8</span>; <span class="ident">::__SIZEOF_PTHREAD_MUTEX_T</span>],
+            <span class="attribute">#[cfg_attr(all(target_pointer_width = <span class="string">&quot;32&quot;</span>,
+                           any(target_arch = <span class="string">&quot;mips&quot;</span>,
+                               target_arch = <span class="string">&quot;arm&quot;</span>,
+                               target_arch = <span class="string">&quot;hexagon&quot;</span>,
+                               target_arch = <span class="string">&quot;m68k&quot;</span>,
+                               target_arch = <span class="string">&quot;powerpc&quot;</span>,
+                               target_arch = <span class="string">&quot;sparc&quot;</span>,
+                               target_arch = <span class="string">&quot;x86_64&quot;</span>,
+                               target_arch = <span class="string">&quot;x86&quot;</span>)),
+                       repr(align(<span class="number">4</span>)))]
+            #[cfg_attr(any(target_pointer_width = <span class="string">&quot;64&quot;</span>,
+                           not(any(target_arch = <span class="string">&quot;mips&quot;</span>,
+                                   target_arch = <span class="string">&quot;arm&quot;</span>,
+                                   target_arch = <span class="string">&quot;hexagon&quot;</span>,
+                                   target_arch = <span class="string">&quot;m68k&quot;</span>,
+                                   target_arch = <span class="string">&quot;powerpc&quot;</span>,
+                                   target_arch = <span class="string">&quot;sparc&quot;</span>,
+                                   target_arch = <span class="string">&quot;x86_64&quot;</span>,
+                                   target_arch = <span class="string">&quot;x86&quot;</span>))),
+                       repr(align(<span class="number">8</span>)))]
+            </span><span class="kw">pub struct </span>pthread_mutex_t {
+                <span class="attribute">#[doc(hidden)]
+                </span>size: [u8; ::__SIZEOF_PTHREAD_MUTEX_T],
             }
 
-            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>,
-                           <span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;hexagon&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;m68k&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>,
-                               <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>)),
-                       <span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">4</span>)))]</span>
-            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">any</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>,
-                           <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>,
-                                   <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>,
-                                   <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;hexagon&quot;</span>,
-                                   <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;m68k&quot;</span>,
-                                   <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
-                                   <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc&quot;</span>,
-                                   <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>,
-                                   <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>))),
-                       <span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">8</span>)))]</span>
-            <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">pthread_rwlock_t</span> {
-                <span class="ident">size</span>: [<span class="ident">u8</span>; <span class="ident">::__SIZEOF_PTHREAD_RWLOCK_T</span>],
+            <span class="attribute">#[cfg_attr(all(target_pointer_width = <span class="string">&quot;32&quot;</span>,
+                           any(target_arch = <span class="string">&quot;mips&quot;</span>,
+                               target_arch = <span class="string">&quot;arm&quot;</span>,
+                               target_arch = <span class="string">&quot;hexagon&quot;</span>,
+                               target_arch = <span class="string">&quot;m68k&quot;</span>,
+                               target_arch = <span class="string">&quot;powerpc&quot;</span>,
+                               target_arch = <span class="string">&quot;sparc&quot;</span>,
+                               target_arch = <span class="string">&quot;x86_64&quot;</span>,
+                               target_arch = <span class="string">&quot;x86&quot;</span>)),
+                       repr(align(<span class="number">4</span>)))]
+            #[cfg_attr(any(target_pointer_width = <span class="string">&quot;64&quot;</span>,
+                           not(any(target_arch = <span class="string">&quot;mips&quot;</span>,
+                                   target_arch = <span class="string">&quot;arm&quot;</span>,
+                                   target_arch = <span class="string">&quot;hexagon&quot;</span>,
+                                   target_arch = <span class="string">&quot;m68k&quot;</span>,
+                                   target_arch = <span class="string">&quot;powerpc&quot;</span>,
+                                   target_arch = <span class="string">&quot;sparc&quot;</span>,
+                                   target_arch = <span class="string">&quot;x86_64&quot;</span>,
+                                   target_arch = <span class="string">&quot;x86&quot;</span>))),
+                       repr(align(<span class="number">8</span>)))]
+            </span><span class="kw">pub struct </span>pthread_rwlock_t {
+                size: [u8; ::__SIZEOF_PTHREAD_RWLOCK_T],
             }
 
-            <span class="comment">// linux/can.h</span>
-            <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">8</span>))]</span>
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-            <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">can_frame</span> {
-                <span class="kw">pub</span> <span class="ident">can_id</span>: <span class="ident">canid_t</span>,
-                <span class="kw">pub</span> <span class="ident">can_dlc</span>: <span class="ident">u8</span>,
-                <span class="ident">__pad</span>: <span class="ident">u8</span>,
-                <span class="ident">__res0</span>: <span class="ident">u8</span>,
-                <span class="ident">__res1</span>: <span class="ident">u8</span>,
-                <span class="kw">pub</span> <span class="ident">data</span>: [<span class="ident">u8</span>; <span class="ident">CAN_MAX_DLEN</span>],
+            <span class="comment">// linux/can.h
+            </span><span class="attribute">#[repr(align(<span class="number">8</span>))]
+            #[allow(missing_debug_implementations)]
+            </span><span class="kw">pub struct </span>can_frame {
+                <span class="kw">pub </span>can_id: canid_t,
+                <span class="kw">pub </span>can_dlc: u8,
+                __pad: u8,
+                __res0: u8,
+                __res1: u8,
+                <span class="kw">pub </span>data: [u8; CAN_MAX_DLEN],
             }
 
-            <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">align</span>(<span class="number">8</span>))]</span>
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-            <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">canfd_frame</span> {
-                <span class="kw">pub</span> <span class="ident">can_id</span>: <span class="ident">canid_t</span>,
-                <span class="kw">pub</span> <span class="ident">len</span>: <span class="ident">u8</span>,
-                <span class="kw">pub</span> <span class="ident">flags</span>: <span class="ident">u8</span>,
-                <span class="ident">__res0</span>: <span class="ident">u8</span>,
-                <span class="ident">__res1</span>: <span class="ident">u8</span>,
-                <span class="kw">pub</span> <span class="ident">data</span>: [<span class="ident">u8</span>; <span class="ident">CANFD_MAX_DLEN</span>],
+            <span class="attribute">#[repr(align(<span class="number">8</span>))]
+            #[allow(missing_debug_implementations)]
+            </span><span class="kw">pub struct </span>canfd_frame {
+                <span class="kw">pub </span>can_id: canid_t,
+                <span class="kw">pub </span>len: u8,
+                <span class="kw">pub </span>flags: u8,
+                __res0: u8,
+                __res1: u8,
+                <span class="kw">pub </span>data: [u8; CANFD_MAX_DLEN],
             }
         }
     };
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="libc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="libc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

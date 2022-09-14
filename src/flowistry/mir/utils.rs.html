@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/mir/utils.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/mir/utils.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -15,13 +14,7 @@
     });
 </script>
 
-</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1009,994 +1002,993 @@
 <span id="986">986</span>
 <span id="987">987</span>
 <span id="988">988</span>
-</pre><pre class="rust"><code><span class="doccomment">//! A potpourri of utilities for working with the MIR, primarily exposed as extension traits.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! A potpourri of utilities for working with the MIR, primarily exposed as extension traits.
 
-<span class="kw">use</span> <span class="ident">std</span>::{
-  <span class="ident">cmp</span>,
-  <span class="ident">collections::hash_map::Entry</span>,
-  <span class="ident">hash::Hash</span>,
-  <span class="ident">io::Write</span>,
-  <span class="ident">iter</span>,
-  <span class="ident">ops::ControlFlow</span>,
-  <span class="ident">path::Path</span>,
-  <span class="ident">process</span>::{<span class="ident">Command</span>, <span class="ident">Stdio</span>},
+</span><span class="kw">use </span>std::{
+  cmp,
+  collections::hash_map::Entry,
+  hash::Hash,
+  io::Write,
+  iter,
+  ops::ControlFlow,
+  path::Path,
+  process::{Command, Stdio},
 };
 
-<span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">bail</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="ident">either::Either</span>;
-<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">trace</span>, <span class="ident">warn</span>};
-<span class="kw">use</span> <span class="ident">rustc_data_structures::fx</span>::{<span class="ident">FxHashMap</span> <span class="kw">as</span> <span class="ident">HashMap</span>, <span class="ident">FxHashSet</span> <span class="kw">as</span> <span class="ident">HashSet</span>};
-<span class="kw">use</span> <span class="ident">rustc_graphviz</span> <span class="kw">as</span> <span class="ident">dot</span>;
-<span class="kw">use</span> <span class="ident">rustc_hir::def_id::DefId</span>;
-<span class="kw">use</span> <span class="ident">rustc_infer::infer::TyCtxtInferExt</span>;
-<span class="kw">use</span> <span class="ident">rustc_middle</span>::{
-  <span class="ident">mir</span>::{
-    <span class="ident">pretty::write_mir_fn</span>,
-    <span class="ident">visit</span>::{<span class="ident">PlaceContext</span>, <span class="ident">Visitor</span>},
-    <span class="ident">MirPass</span>, <span class="kw-2">*</span>,
+<span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>either::Either;
+<span class="kw">use </span>log::{trace, warn};
+<span class="kw">use </span>rustc_data_structures::fx::{FxHashMap <span class="kw">as </span>HashMap, FxHashSet <span class="kw">as </span>HashSet};
+<span class="kw">use </span>rustc_graphviz <span class="kw">as </span>dot;
+<span class="kw">use </span>rustc_hir::def_id::DefId;
+<span class="kw">use </span>rustc_infer::infer::TyCtxtInferExt;
+<span class="kw">use </span>rustc_middle::{
+  mir::{
+    pretty::write_mir_fn,
+    visit::{PlaceContext, Visitor},
+    MirPass, <span class="kw-2">*</span>,
   },
-  <span class="ident">traits::ObligationCause</span>,
-  <span class="ident">ty</span>::{
-    <span class="self">self</span>, <span class="ident">AdtKind</span>, <span class="ident">RegionKind</span>, <span class="ident">RegionVid</span>, <span class="ident">Ty</span>, <span class="ident">TyCtxt</span>, <span class="ident">TyKind</span>, <span class="ident">TypeAndMut</span>, <span class="ident">TypeVisitor</span>,
+  traits::ObligationCause,
+  ty::{
+    <span class="self">self</span>, AdtKind, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeAndMut, TypeVisitor,
   },
 };
-<span class="kw">use</span> <span class="ident">rustc_mir_dataflow</span>::{<span class="ident">fmt::DebugWithContext</span>, <span class="ident">graphviz</span>, <span class="ident">Analysis</span>, <span class="ident">Results</span>};
-<span class="kw">use</span> <span class="ident">rustc_span</span>::{
-  <span class="ident">source_map::SourceMap</span>, <span class="ident">BytePos</span>, <span class="ident">Pos</span>, <span class="ident">Span</span>, <span class="ident">SpanData</span>, <span class="ident">Symbol</span>, <span class="ident">SyntaxContext</span>,
+<span class="kw">use </span>rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
+<span class="kw">use </span>rustc_span::{
+  source_map::SourceMap, BytePos, Pos, Span, SpanData, Symbol, SyntaxContext,
 };
-<span class="kw">use</span> <span class="ident">rustc_target::abi::VariantIdx</span>;
-<span class="kw">use</span> <span class="ident">rustc_trait_selection::infer::InferCtxtExt</span>;
-<span class="kw">use</span> <span class="ident">smallvec::SmallVec</span>;
+<span class="kw">use </span>rustc_target::abi::VariantIdx;
+<span class="kw">use </span>rustc_trait_selection::infer::InferCtxtExt;
+<span class="kw">use </span>smallvec::SmallVec;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-  <span class="ident">extensions</span>::{<span class="ident">is_extension_active</span>, <span class="ident">MutabilityMode</span>},
-  <span class="ident">mir::aliases::UNKNOWN_REGION</span>,
+<span class="kw">use crate</span>::{
+  extensions::{is_extension_active, MutabilityMode},
+  mir::aliases::UNKNOWN_REGION,
 };
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">OperandExt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">fn</span> <span class="ident">to_place</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="kw">pub trait </span>OperandExt&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">fn </span>to_place(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">OperandExt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Operand</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">fn</span> <span class="ident">to_place</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">Operand::Copy</span>(<span class="ident">place</span>) <span class="op">|</span> <span class="ident">Operand::Move</span>(<span class="ident">place</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">place</span>),
-      <span class="ident">Operand::Constant</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; OperandExt&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>Operand&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">fn </span>to_place(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
+    <span class="kw">match </span><span class="self">self </span>{
+      Operand::Copy(place) | Operand::Move(place) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>place),
+      Operand::Constant(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
     }
   }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">arg_mut_ptrs</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
-  <span class="ident">args</span>: <span class="kw-2">&amp;</span>[(<span class="ident">usize</span>, <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)],
-  <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="ident">def_id</span>: <span class="ident">DefId</span>,
-) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-  <span class="kw">let</span> <span class="ident">ignore_mut</span> <span class="op">=</span>
-    <span class="ident">is_extension_active</span>(<span class="op">|</span><span class="ident">mode</span><span class="op">|</span> <span class="ident">mode</span>.<span class="ident">mutability_mode</span> <span class="op">==</span> <span class="ident">MutabilityMode::IgnoreMut</span>);
-  <span class="ident">args</span>
-    .<span class="ident">iter</span>()
-    .<span class="ident">flat_map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">place</span>)<span class="op">|</span> {
-      <span class="ident">place</span>
-        .<span class="ident">interior_pointers</span>(<span class="ident">tcx</span>, <span class="ident">body</span>, <span class="ident">def_id</span>)
-        .<span class="ident">into_iter</span>()
-        .<span class="ident">flat_map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">places</span>)<span class="op">|</span> {
-          <span class="ident">places</span>
-            .<span class="ident">into_iter</span>()
-            .<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="ident">place</span>, <span class="ident">mutability</span>)<span class="op">|</span> <span class="kw">match</span> <span class="ident">mutability</span> {
-              <span class="ident">Mutability::Mut</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">place</span>),
-              <span class="ident">Mutability::Not</span> =&gt; <span class="ident">ignore_mut</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">place</span>),
+<span class="kw">pub fn </span>arg_mut_ptrs&lt;<span class="lifetime">&#39;tcx</span>&gt;(
+  args: <span class="kw-2">&amp;</span>[(usize, Place&lt;<span class="lifetime">&#39;tcx</span>&gt;)],
+  tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  def_id: DefId,
+) -&gt; Vec&lt;(usize, Place&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt; {
+  <span class="kw">let </span>ignore_mut =
+    is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
+  args
+    .iter()
+    .flat_map(|(i, place)| {
+      place
+        .interior_pointers(tcx, body, def_id)
+        .into_iter()
+        .flat_map(|(<span class="kw">_</span>, places)| {
+          places
+            .into_iter()
+            .filter_map(|(place, mutability)| <span class="kw">match </span>mutability {
+              Mutability::Mut =&gt; <span class="prelude-val">Some</span>(place),
+              Mutability::Not =&gt; ignore_mut.then_some(place),
             })
         })
-        .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">place</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">i</span>, <span class="ident">tcx</span>.<span class="ident">mk_place_deref</span>(<span class="ident">place</span>)))
+        .map(<span class="kw">move </span>|place| (<span class="kw-2">*</span>i, tcx.mk_place_deref(place)))
     })
-    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+    .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">arg_places</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(<span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Operand</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-  <span class="ident">args</span>
-    .<span class="ident">iter</span>()
-    .<span class="ident">enumerate</span>()
-    .<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">arg</span>)<span class="op">|</span> <span class="ident">arg</span>.<span class="ident">to_place</span>().<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">place</span><span class="op">|</span> (<span class="ident">i</span>, <span class="ident">place</span>)))
-    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+<span class="kw">pub fn </span>arg_places&lt;<span class="lifetime">&#39;tcx</span>&gt;(args: <span class="kw-2">&amp;</span>[Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;]) -&gt; Vec&lt;(usize, Place&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt; {
+  args
+    .iter()
+    .enumerate()
+    .filter_map(|(i, arg)| arg.to_place().map(<span class="kw">move </span>|place| (i, place)))
+    .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hashmap_merge</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>, <span class="ident">V</span><span class="op">&gt;</span>(
-  <span class="kw-2">mut</span> <span class="ident">h1</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>,
-  <span class="ident">h2</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>,
-  <span class="ident">conflict</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">V</span>, <span class="ident">V</span>),
-) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-  <span class="kw">for</span> (<span class="ident">k</span>, <span class="ident">v</span>) <span class="kw">in</span> <span class="ident">h2</span>.<span class="ident">into_iter</span>() {
-    <span class="kw">match</span> <span class="ident">h1</span>.<span class="ident">entry</span>(<span class="ident">k</span>) {
-      <span class="ident">Entry::Vacant</span>(<span class="ident">entry</span>) =&gt; {
-        <span class="ident">entry</span>.<span class="ident">insert</span>(<span class="ident">v</span>);
+<span class="kw">pub fn </span>hashmap_merge&lt;K: Eq + Hash, V&gt;(
+  <span class="kw-2">mut </span>h1: HashMap&lt;K, V&gt;,
+  h2: HashMap&lt;K, V&gt;,
+  conflict: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;mut </span>V, V),
+) -&gt; HashMap&lt;K, V&gt; {
+  <span class="kw">for </span>(k, v) <span class="kw">in </span>h2.into_iter() {
+    <span class="kw">match </span>h1.entry(k) {
+      Entry::Vacant(entry) =&gt; {
+        entry.insert(v);
       }
-      <span class="ident">Entry::Occupied</span>(<span class="kw-2">mut</span> <span class="ident">entry</span>) =&gt; {
-        <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">get_mut</span>();
-        <span class="ident">conflict</span>(<span class="ident">entry</span>, <span class="ident">v</span>);
+      Entry::Occupied(<span class="kw-2">mut </span>entry) =&gt; {
+        <span class="kw">let </span>entry = entry.get_mut();
+        conflict(entry, v);
       }
     }
   }
-  <span class="ident">h1</span>
+  h1
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PlaceRelation</span> {
-  <span class="ident">Super</span>,
-  <span class="ident">Sub</span>,
-  <span class="ident">Disjoint</span>,
+<span class="attribute">#[derive(PartialEq, Eq, Debug)]
+</span><span class="kw">pub enum </span>PlaceRelation {
+  Super,
+  Sub,
+  Disjoint,
 }
 
-<span class="kw">impl</span> <span class="ident">PlaceRelation</span> {
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overlaps</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw-2">*</span><span class="self">self</span> <span class="op">!</span><span class="op">=</span> <span class="ident">PlaceRelation::Disjoint</span>
+<span class="kw">impl </span>PlaceRelation {
+  <span class="kw">pub fn </span>overlaps(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw-2">*</span><span class="self">self </span>!= PlaceRelation::Disjoint
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">of</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(<span class="ident">part_place</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">whole_place</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-    <span class="kw">let</span> <span class="ident">locals_match</span> <span class="op">=</span> <span class="ident">part_place</span>.<span class="ident">local</span> <span class="op">==</span> <span class="ident">whole_place</span>.<span class="ident">local</span>;
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">locals_match</span> {
-      <span class="kw">return</span> <span class="ident">PlaceRelation::Disjoint</span>;
+  <span class="kw">pub fn </span>of&lt;<span class="lifetime">&#39;tcx</span>&gt;(part_place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, whole_place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">let </span>locals_match = part_place.local == whole_place.local;
+    <span class="kw">if </span>!locals_match {
+      <span class="kw">return </span>PlaceRelation::Disjoint;
     }
 
-    <span class="kw">let</span> <span class="ident">projections_match</span> <span class="op">=</span> <span class="ident">part_place</span>
-      .<span class="ident">projection</span>
-      .<span class="ident">iter</span>()
-      .<span class="ident">zip</span>(<span class="ident">whole_place</span>.<span class="ident">projection</span>.<span class="ident">iter</span>())
-      .<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">elem1</span>, <span class="ident">elem2</span>)<span class="op">|</span> {
-        <span class="kw">use</span> <span class="ident">ProjectionElem</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> (<span class="ident">elem1</span>, <span class="ident">elem2</span>) {
-          (<span class="ident">Deref</span>, <span class="ident">Deref</span>) =&gt; <span class="bool-val">true</span>,
-          (<span class="ident">Field</span>(<span class="ident">f1</span>, <span class="kw">_</span>), <span class="ident">Field</span>(<span class="ident">f2</span>, <span class="kw">_</span>)) =&gt; <span class="ident">f1</span> <span class="op">==</span> <span class="ident">f2</span>,
-          (<span class="ident">Index</span>(<span class="kw">_</span>), <span class="ident">Index</span>(<span class="kw">_</span>)) =&gt; <span class="bool-val">true</span>,
-          (<span class="ident">ConstantIndex</span> { .. }, <span class="ident">ConstantIndex</span> { .. }) =&gt; <span class="bool-val">true</span>,
-          (<span class="ident">Subslice</span> { .. }, <span class="ident">Subslice</span> { .. }) =&gt; <span class="bool-val">true</span>,
-          (<span class="ident">Downcast</span>(<span class="kw">_</span>, <span class="ident">v1</span>), <span class="ident">Downcast</span>(<span class="kw">_</span>, <span class="ident">v2</span>)) =&gt; <span class="ident">v1</span> <span class="op">==</span> <span class="ident">v2</span>,
-          <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+    <span class="kw">let </span>projections_match = part_place
+      .projection
+      .iter()
+      .zip(whole_place.projection.iter())
+      .all(|(elem1, elem2)| {
+        <span class="kw">use </span>ProjectionElem::<span class="kw-2">*</span>;
+        <span class="kw">match </span>(elem1, elem2) {
+          (Deref, Deref) =&gt; <span class="bool-val">true</span>,
+          (Field(f1, <span class="kw">_</span>), Field(f2, <span class="kw">_</span>)) =&gt; f1 == f2,
+          (Index(<span class="kw">_</span>), Index(<span class="kw">_</span>)) =&gt; <span class="bool-val">true</span>,
+          (ConstantIndex { .. }, ConstantIndex { .. }) =&gt; <span class="bool-val">true</span>,
+          (Subslice { .. }, Subslice { .. }) =&gt; <span class="bool-val">true</span>,
+          (Downcast(<span class="kw">_</span>, v1), Downcast(<span class="kw">_</span>, v2)) =&gt; v1 == v2,
+          <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
       });
 
-    <span class="kw">let</span> <span class="ident">is_sub_part</span> <span class="op">=</span> <span class="ident">part_place</span>.<span class="ident">projection</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">whole_place</span>.<span class="ident">projection</span>.<span class="ident">len</span>();
-    <span class="kw">let</span> <span class="ident">remaining_projection</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_sub_part</span> {
-      <span class="kw-2">&amp;</span><span class="ident">part_place</span>.<span class="ident">projection</span>[<span class="ident">whole_place</span>.<span class="ident">projection</span>.<span class="ident">len</span>() ..]
-    } <span class="kw">else</span> {
-      <span class="kw-2">&amp;</span><span class="ident">whole_place</span>.<span class="ident">projection</span>[<span class="ident">part_place</span>.<span class="ident">projection</span>.<span class="ident">len</span>() ..]
+    <span class="kw">let </span>is_sub_part = part_place.projection.len() &gt;= whole_place.projection.len();
+    <span class="kw">let </span>remaining_projection = <span class="kw">if </span>is_sub_part {
+      <span class="kw-2">&amp;</span>part_place.projection[whole_place.projection.len() ..]
+    } <span class="kw">else </span>{
+      <span class="kw-2">&amp;</span>whole_place.projection[part_place.projection.len() ..]
     };
 
-    <span class="kw">if</span> <span class="ident">remaining_projection</span>
-      .<span class="ident">iter</span>()
-      .<span class="ident">any</span>(<span class="op">|</span><span class="ident">elem</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">elem</span>, <span class="ident">ProjectionElem::Deref</span>))
+    <span class="kw">if </span>remaining_projection
+      .iter()
+      .any(|elem| <span class="macro">matches!</span>(elem, ProjectionElem::Deref))
     {
-      <span class="kw">return</span> <span class="ident">PlaceRelation::Disjoint</span>;
+      <span class="kw">return </span>PlaceRelation::Disjoint;
     }
 
-    <span class="kw">if</span> <span class="ident">projections_match</span> {
-      <span class="kw">if</span> <span class="ident">is_sub_part</span> {
-        <span class="ident">PlaceRelation::Sub</span>
-      } <span class="kw">else</span> {
-        <span class="ident">PlaceRelation::Super</span>
+    <span class="kw">if </span>projections_match {
+      <span class="kw">if </span>is_sub_part {
+        PlaceRelation::Sub
+      } <span class="kw">else </span>{
+        PlaceRelation::Super
       }
-    } <span class="kw">else</span> {
-      <span class="ident">PlaceRelation::Disjoint</span>
+    } <span class="kw">else </span>{
+      PlaceRelation::Disjoint
     }
   }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PlaceCollector</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">pub</span> <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="kw">pub</span> <span class="ident">places</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
+<span class="kw">pub struct </span>PlaceCollector&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">pub </span>tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  <span class="kw">pub </span>places: Vec&lt;(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;)&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PlaceCollector</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">fn</span> <span class="ident">visit_place</span>(
-    <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-    <span class="ident">place</span>: <span class="kw-2">&amp;</span><span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">_context</span>: <span class="ident">PlaceContext</span>,
-    <span class="ident">_location</span>: <span class="ident">Location</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; Visitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>PlaceCollector&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">fn </span>visit_place(
+    <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+    place: <span class="kw-2">&amp;</span>Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    _context: PlaceContext,
+    _location: Location,
   ) {
-    <span class="self">self</span>.<span class="ident">places</span>.<span class="ident">push</span>((<span class="kw-2">*</span><span class="ident">place</span>, <span class="prelude-val">None</span>));
+    <span class="self">self</span>.places.push((<span class="kw-2">*</span>place, <span class="prelude-val">None</span>));
   }
 
-  <span class="kw">fn</span> <span class="ident">visit_rvalue</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">rvalue</span>: <span class="kw-2">&amp;</span><span class="ident">Rvalue</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">location</span>: <span class="ident">Location</span>) {
-    <span class="kw">match</span> <span class="ident">rvalue</span> {
-      <span class="ident">Rvalue::Aggregate</span>(<span class="kw">box</span> <span class="ident">AggregateKind::Adt</span>(<span class="ident">def_id</span>, <span class="ident">idx</span>, <span class="ident">substs</span>, <span class="kw">_</span>, <span class="kw">_</span>), <span class="ident">ops</span>) =&gt; {
-        <span class="comment">// In the case of _1 = aggregate { field1: op1, field2: op2, ... }</span>
-        <span class="comment">// we want to remember which places correspond to which fields so the infoflow</span>
-        <span class="comment">// analysis can be field-sensitive for constructors.</span>
-        <span class="kw">let</span> <span class="ident">adt_def</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcx</span>.<span class="ident">adt_def</span>(<span class="kw-2">*</span><span class="ident">def_id</span>);
-        <span class="kw">let</span> <span class="ident">variant</span> <span class="op">=</span> <span class="ident">adt_def</span>.<span class="ident">variant</span>(<span class="kw-2">*</span><span class="ident">idx</span>);
-        <span class="kw">let</span> <span class="ident">places</span> <span class="op">=</span> <span class="ident">variant</span>
-          .<span class="ident">fields</span>
-          .<span class="ident">iter</span>()
-          .<span class="ident">enumerate</span>()
-          .<span class="ident">zip</span>(<span class="ident">ops</span>.<span class="ident">iter</span>())
-          .<span class="ident">filter_map</span>(<span class="op">|</span>((<span class="ident">i</span>, <span class="ident">field</span>), <span class="ident">op</span>)<span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">place</span> <span class="op">=</span> <span class="ident">op</span>.<span class="ident">to_place</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span>
-              <span class="ident">ProjectionElem::Field</span>(<span class="ident">Field::from_usize</span>(<span class="ident">i</span>), <span class="ident">field</span>.<span class="ident">ty</span>(<span class="self">self</span>.<span class="ident">tcx</span>, <span class="ident">substs</span>));
-            <span class="prelude-val">Some</span>((<span class="ident">place</span>, <span class="prelude-val">Some</span>(<span class="ident">field</span>)))
+  <span class="kw">fn </span>visit_rvalue(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rvalue: <span class="kw-2">&amp;</span>Rvalue&lt;<span class="lifetime">&#39;tcx</span>&gt;, location: Location) {
+    <span class="kw">match </span>rvalue {
+      Rvalue::Aggregate(<span class="kw">box </span>AggregateKind::Adt(def_id, idx, substs, <span class="kw">_</span>, <span class="kw">_</span>), ops) =&gt; {
+        <span class="comment">// In the case of _1 = aggregate { field1: op1, field2: op2, ... }
+        // we want to remember which places correspond to which fields so the infoflow
+        // analysis can be field-sensitive for constructors.
+        </span><span class="kw">let </span>adt_def = <span class="self">self</span>.tcx.adt_def(<span class="kw-2">*</span>def_id);
+        <span class="kw">let </span>variant = adt_def.variant(<span class="kw-2">*</span>idx);
+        <span class="kw">let </span>places = variant
+          .fields
+          .iter()
+          .enumerate()
+          .zip(ops.iter())
+          .filter_map(|((i, field), op)| {
+            <span class="kw">let </span>place = op.to_place()<span class="question-mark">?</span>;
+            <span class="kw">let </span>field =
+              ProjectionElem::Field(Field::from_usize(i), field.ty(<span class="self">self</span>.tcx, substs));
+            <span class="prelude-val">Some</span>((place, <span class="prelude-val">Some</span>(field)))
           });
-        <span class="self">self</span>.<span class="ident">places</span>.<span class="ident">extend</span>(<span class="ident">places</span>);
+        <span class="self">self</span>.places.extend(places);
       }
-      <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">super_rvalue</span>(<span class="ident">rvalue</span>, <span class="ident">location</span>),
+      <span class="kw">_ </span>=&gt; <span class="self">self</span>.super_rvalue(rvalue, location),
     }
   }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_dot</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">buf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-  <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">Command::new</span>(<span class="string">&quot;dot&quot;</span>)
-    .<span class="ident">args</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;-Tpdf&quot;</span>, <span class="string">&quot;-o&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">path</span>.<span class="ident">display</span>().<span class="ident">to_string</span>()])
-    .<span class="ident">stdin</span>(<span class="ident">Stdio::piped</span>())
-    .<span class="ident">spawn</span>()<span class="question-mark">?</span>;
+<span class="kw">pub fn </span>run_dot(path: <span class="kw-2">&amp;</span>Path, buf: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+  <span class="kw">let </span><span class="kw-2">mut </span>p = Command::new(<span class="string">&quot;dot&quot;</span>)
+    .args([<span class="string">&quot;-Tpdf&quot;</span>, <span class="string">&quot;-o&quot;</span>, <span class="kw-2">&amp;</span>path.display().to_string()])
+    .stdin(Stdio::piped())
+    .spawn()<span class="question-mark">?</span>;
 
-  <span class="ident">p</span>.<span class="ident">stdin</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>)<span class="question-mark">?</span>;
-  <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">wait</span>()<span class="question-mark">?</span>;
+  p.stdin.as_mut().unwrap().write_all(<span class="kw-2">&amp;</span>buf)<span class="question-mark">?</span>;
+  <span class="kw">let </span>status = p.wait()<span class="question-mark">?</span>;
 
-  <span class="kw">if</span> <span class="op">!</span><span class="ident">status</span>.<span class="ident">success</span>() {
-    <span class="macro">bail!</span>(<span class="string">&quot;dot for {} failed&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>())
+  <span class="kw">if </span>!status.success() {
+    <span class="macro">bail!</span>(<span class="string">&quot;dot for {} failed&quot;</span>, path.display())
   };
 
   <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dump_results</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">A</span><span class="op">&gt;</span>(
-  <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="ident">results</span>: <span class="kw-2">&amp;</span><span class="ident">Results</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">A</span><span class="op">&gt;</span>,
-  <span class="ident">_def_id</span>: <span class="ident">DefId</span>,
-  <span class="ident">_tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="ident">A</span>: <span class="ident">Analysis</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="ident">A::Domain</span>: <span class="ident">DebugWithContext</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>,
+<span class="kw">pub fn </span>dump_results&lt;<span class="lifetime">&#39;tcx</span>, A&gt;(
+  body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  results: <span class="kw-2">&amp;</span>Results&lt;<span class="lifetime">&#39;tcx</span>, A&gt;,
+  _def_id: DefId,
+  _tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+<span class="kw">where
+  </span>A: Analysis&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  A::Domain: DebugWithContext&lt;A&gt;,
 {
-  <span class="kw">let</span> <span class="ident">graphviz</span> <span class="op">=</span>
-    <span class="ident">graphviz::Formatter::new</span>(<span class="ident">body</span>, <span class="ident">results</span>, <span class="ident">graphviz::OutputStyle::AfterOnly</span>);
-  <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-  <span class="ident">dot::render</span>(<span class="kw-2">&amp;</span><span class="ident">graphviz</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>)<span class="question-mark">?</span>;
+  <span class="kw">let </span>graphviz =
+    graphviz::Formatter::new(body, results, graphviz::OutputStyle::AfterOnly);
+  <span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::new();
+  dot::render(<span class="kw-2">&amp;</span>graphviz, <span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
 
-  <span class="kw">let</span> <span class="ident">output_dir</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="string">&quot;target&quot;</span>);
-  <span class="comment">// let fname = tcx.def_path_debug_str(def_id);</span>
-  <span class="kw">let</span> <span class="ident">fname</span> <span class="op">=</span> <span class="string">&quot;results&quot;</span>;
-  <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">output_dir</span>.<span class="ident">join</span>(<span class="macro">format!</span>(<span class="string">&quot;{fname}.png&quot;</span>));
+  <span class="kw">let </span>output_dir = Path::new(<span class="string">&quot;target&quot;</span>);
+  <span class="comment">// let fname = tcx.def_path_debug_str(def_id);
+  </span><span class="kw">let </span>fname = <span class="string">&quot;results&quot;</span>;
+  <span class="kw">let </span>output_path = output_dir.join(<span class="macro">format!</span>(<span class="string">&quot;{fname}.png&quot;</span>));
 
-  <span class="ident">run_dot</span>(<span class="kw-2">&amp;</span><span class="ident">output_path</span>, <span class="ident">buf</span>)
+  run_dot(<span class="kw-2">&amp;</span>output_path, buf)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location_to_string</span>(<span class="ident">location</span>: <span class="ident">Location</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span> {
-  <span class="kw">if</span> <span class="ident">location</span>.<span class="ident">block</span>.<span class="ident">as_usize</span>() <span class="op">==</span> <span class="ident">body</span>.<span class="ident">basic_blocks</span>().<span class="ident">len</span>() {
-    <span class="macro">format!</span>(<span class="string">&quot;_{}&quot;</span>, <span class="ident">location</span>.<span class="ident">statement_index</span>)
-  } <span class="kw">else</span> {
-    <span class="kw">match</span> <span class="ident">body</span>.<span class="ident">stmt_at</span>(<span class="ident">location</span>) {
-      <span class="ident">Either::Left</span>(<span class="ident">stmt</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">stmt</span>.<span class="ident">kind</span>),
-      <span class="ident">Either::Right</span>(<span class="ident">terminator</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">terminator</span>.<span class="ident">kind</span>),
+<span class="kw">pub fn </span>location_to_string(location: Location, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; String {
+  <span class="kw">if </span>location.block.as_usize() == body.basic_blocks.len() {
+    <span class="macro">format!</span>(<span class="string">&quot;_{}&quot;</span>, location.statement_index)
+  } <span class="kw">else </span>{
+    <span class="kw">match </span>body.stmt_at(location) {
+      Either::Left(stmt) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, stmt.kind),
+      Either::Right(terminator) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, terminator.kind),
     }
   }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SimplifyMir</span>;
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">MirPass</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SimplifyMir</span> {
-  <span class="kw">fn</span> <span class="ident">run_pass</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">body</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> <span class="ident">return_blocks</span> <span class="op">=</span> <span class="ident">body</span>
-      .<span class="ident">all_returns</span>()
-      .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">loc</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">bb</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">body</span>.<span class="ident">basic_blocks</span>()[<span class="ident">loc</span>.<span class="ident">block</span>];
-        (<span class="ident">bb</span>.<span class="ident">statements</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">loc</span>.<span class="ident">block</span>)
+<span class="kw">pub struct </span>SimplifyMir;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; MirPass&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>SimplifyMir {
+  <span class="kw">fn </span>run_pass(<span class="kw-2">&amp;</span><span class="self">self</span>, _tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body: <span class="kw-2">&amp;mut </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
+    <span class="kw">let </span>return_blocks = body
+      .all_returns()
+      .filter_map(|loc| {
+        <span class="kw">let </span>bb = <span class="kw-2">&amp;</span>body.basic_blocks[loc.block];
+        (bb.statements.len() == <span class="number">0</span>).then_some(loc.block)
       })
-      .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+      .collect::&lt;HashSet&lt;<span class="kw">_</span>&gt;&gt;();
 
-    <span class="kw">for</span> <span class="ident">block</span> <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">basic_blocks_mut</span>() {
-      <span class="ident">block</span>.<span class="ident">statements</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">stmt</span><span class="op">|</span> {
-        <span class="op">!</span><span class="macro">matches!</span>(
-          <span class="ident">stmt</span>.<span class="ident">kind</span>,
-          <span class="ident">StatementKind::StorageLive</span>(..) <span class="op">|</span> <span class="ident">StatementKind::StorageDead</span>(..)
+    <span class="kw">for </span>block <span class="kw">in </span>body.basic_blocks_mut() {
+      block.statements.retain(|stmt| {
+        !<span class="macro">matches!</span>(
+          stmt.kind,
+          StatementKind::StorageLive(..) | StatementKind::StorageDead(..)
         )
       });
 
-      <span class="kw">let</span> <span class="ident">terminator</span> <span class="op">=</span> <span class="ident">block</span>.<span class="ident">terminator_mut</span>();
-      <span class="ident">terminator</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">terminator</span>.<span class="ident">kind</span> {
-        <span class="ident">TerminatorKind::FalseEdge</span> { <span class="ident">real_target</span>, .. } =&gt; <span class="ident">TerminatorKind::Goto</span> {
-          <span class="ident">target</span>: <span class="ident">real_target</span>,
+      <span class="kw">let </span>terminator = block.terminator_mut();
+      terminator.kind = <span class="kw">match </span>terminator.kind {
+        TerminatorKind::FalseEdge { real_target, .. } =&gt; TerminatorKind::Goto {
+          target: real_target,
         },
-        <span class="ident">TerminatorKind::FalseUnwind</span> { <span class="ident">real_target</span>, .. } =&gt; <span class="ident">TerminatorKind::Goto</span> {
-          <span class="ident">target</span>: <span class="ident">real_target</span>,
+        TerminatorKind::FalseUnwind { real_target, .. } =&gt; TerminatorKind::Goto {
+          target: real_target,
         },
-        <span class="comment">// Ensures that control dependencies can determine the independence of differnet</span>
-        <span class="comment">// return paths</span>
-        <span class="ident">TerminatorKind::Goto</span> { <span class="ident">target</span> } <span class="kw">if</span> <span class="ident">return_blocks</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">target</span>) =&gt; {
-          <span class="ident">TerminatorKind::Return</span>
+        <span class="comment">// Ensures that control dependencies can determine the independence of differnet
+        // return paths
+        </span>TerminatorKind::Goto { target } <span class="kw">if </span>return_blocks.contains(<span class="kw-2">&amp;</span>target) =&gt; {
+          TerminatorKind::Return
         }
-        <span class="kw">_</span> =&gt; <span class="kw">continue</span>,
+        <span class="kw">_ </span>=&gt; <span class="kw">continue</span>,
       }
     }
   }
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PlaceExt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">fn</span> <span class="ident">make</span>(<span class="ident">local</span>: <span class="ident">Local</span>, <span class="ident">projection</span>: <span class="kw-2">&amp;</span>[<span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>], <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span>;
-  <span class="kw">fn</span> <span class="ident">from_ref</span>(<span class="ident">place</span>: <span class="ident">PlaceRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span>;
-  <span class="kw">fn</span> <span class="ident">from_local</span>(<span class="ident">local</span>: <span class="ident">Local</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span>;
-  <span class="kw">fn</span> <span class="ident">is_arg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span>;
-  <span class="kw">fn</span> <span class="ident">is_direct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span>;
-  <span class="kw">fn</span> <span class="ident">refs_in_projection</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SmallVec</span><span class="op">&lt;</span>[(<span class="ident">PlaceRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span>[<span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>]); <span class="number">2</span>]<span class="op">&gt;</span>;
-  <span class="kw">fn</span> <span class="ident">place_and_refs_in_projection</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)
-    -&gt; <span class="ident">SmallVec</span><span class="op">&lt;</span>[<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>; <span class="number">2</span>]<span class="op">&gt;</span>;
-  <span class="kw">fn</span> <span class="ident">interior_pointers</span>(
+<span class="kw">pub trait </span>PlaceExt&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">fn </span>make(local: Local, projection: <span class="kw-2">&amp;</span>[PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;], tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self</span>;
+  <span class="kw">fn </span>from_ref(place: PlaceRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self</span>;
+  <span class="kw">fn </span>from_local(local: Local, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self</span>;
+  <span class="kw">fn </span>is_arg(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool;
+  <span class="kw">fn </span>is_direct(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool;
+  <span class="kw">fn </span>refs_in_projection(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SmallVec&lt;[(PlaceRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="kw-2">&amp;</span>[PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;]); <span class="number">2</span>]&gt;;
+  <span class="kw">fn </span>place_and_refs_in_projection(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;)
+    -&gt; SmallVec&lt;[Place&lt;<span class="lifetime">&#39;tcx</span>&gt;; <span class="number">2</span>]&gt;;
+  <span class="kw">fn </span>interior_pointers(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">def_id</span>: <span class="ident">DefId</span>,
-  ) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">RegionVid</span>, <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Mutability</span>)<span class="op">&gt;</span><span class="op">&gt;</span>;
-  <span class="kw">fn</span> <span class="ident">interior_places</span>(
+    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    def_id: DefId,
+  ) -&gt; HashMap&lt;RegionVid, Vec&lt;(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, Mutability)&gt;&gt;;
+  <span class="kw">fn </span>interior_places(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">def_id</span>: <span class="ident">DefId</span>,
-  ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>;
-  <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>;
-  <span class="kw">fn</span> <span class="ident">normalize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">def_id</span>: <span class="ident">DefId</span>) -&gt; <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>;
+    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    def_id: DefId,
+  ) -&gt; Vec&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;;
+  <span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt;;
+  <span class="kw">fn </span>normalize(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, def_id: DefId) -&gt; Place&lt;<span class="lifetime">&#39;tcx</span>&gt;;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">PlaceExt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">fn</span> <span class="ident">make</span>(<span class="ident">local</span>: <span class="ident">Local</span>, <span class="ident">projection</span>: <span class="kw-2">&amp;</span>[<span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>], <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-    <span class="ident">Place</span> {
-      <span class="ident">local</span>,
-      <span class="ident">projection</span>: <span class="ident">tcx</span>.<span class="ident">intern_place_elems</span>(<span class="ident">projection</span>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; PlaceExt&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>Place&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">fn </span>make(local: Local, projection: <span class="kw-2">&amp;</span>[PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;], tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
+    Place {
+      local,
+      projection: tcx.intern_place_elems(projection),
     }
   }
 
-  <span class="kw">fn</span> <span class="ident">from_ref</span>(<span class="ident">place</span>: <span class="ident">PlaceRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-    <span class="ident"><span class="self">Self</span>::make</span>(<span class="ident">place</span>.<span class="ident">local</span>, <span class="ident">place</span>.<span class="ident">projection</span>, <span class="ident">tcx</span>)
+  <span class="kw">fn </span>from_ref(place: PlaceRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
+    <span class="self">Self</span>::make(place.local, place.projection, tcx)
   }
 
-  <span class="kw">fn</span> <span class="ident">from_local</span>(<span class="ident">local</span>: <span class="ident">Local</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-    <span class="ident">Place::make</span>(<span class="ident">local</span>, <span class="kw-2">&amp;</span>[], <span class="ident">tcx</span>)
+  <span class="kw">fn </span>from_local(local: Local, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
+    Place::make(local, <span class="kw-2">&amp;</span>[], tcx)
   }
 
-  <span class="kw">fn</span> <span class="ident">is_arg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">local</span>.<span class="ident">as_usize</span>();
-    <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">i</span> <span class="op">-</span> <span class="number">1</span> <span class="op">&lt;</span> <span class="ident">body</span>.<span class="ident">arg_count</span>
+  <span class="kw">fn </span>is_arg(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool {
+    <span class="kw">let </span>i = <span class="self">self</span>.local.as_usize();
+    i &gt; <span class="number">0 </span>&amp;&amp; i - <span class="number">1 </span>&lt; body.arg_count
   }
 
-  <span class="kw">fn</span> <span class="ident">is_direct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
-    <span class="op">!</span><span class="self">self</span>.<span class="ident">is_indirect</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">is_arg</span>(<span class="ident">body</span>)
+  <span class="kw">fn </span>is_direct(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool {
+    !<span class="self">self</span>.is_indirect() || <span class="self">self</span>.is_arg(body)
   }
 
-  <span class="kw">fn</span> <span class="ident">refs_in_projection</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SmallVec</span><span class="op">&lt;</span>[(<span class="ident">PlaceRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span>[<span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>]); <span class="number">2</span>]<span class="op">&gt;</span> {
-    <span class="self">self</span>
-      .<span class="ident">projection</span>
-      .<span class="ident">iter</span>()
-      .<span class="ident">enumerate</span>()
-      .<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">elem</span>)<span class="op">|</span> <span class="kw">match</span> <span class="ident">elem</span> {
-        <span class="ident">ProjectionElem::Deref</span> =&gt; {
-          <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">PlaceRef</span> {
-            <span class="ident">local</span>: <span class="self">self</span>.<span class="ident">local</span>,
-            <span class="ident">projection</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">projection</span>[.. <span class="ident">i</span>],
+  <span class="kw">fn </span>refs_in_projection(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SmallVec&lt;[(PlaceRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="kw-2">&amp;</span>[PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;]); <span class="number">2</span>]&gt; {
+    <span class="self">self
+      </span>.projection
+      .iter()
+      .enumerate()
+      .filter_map(|(i, elem)| <span class="kw">match </span>elem {
+        ProjectionElem::Deref =&gt; {
+          <span class="kw">let </span>ptr = PlaceRef {
+            local: <span class="self">self</span>.local,
+            projection: <span class="kw-2">&amp;</span><span class="self">self</span>.projection[.. i],
           };
-          <span class="kw">let</span> <span class="ident">after</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">projection</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span> ..];
-          <span class="prelude-val">Some</span>((<span class="ident">ptr</span>, <span class="ident">after</span>))
+          <span class="kw">let </span>after = <span class="kw-2">&amp;</span><span class="self">self</span>.projection[i + <span class="number">1 </span>..];
+          <span class="prelude-val">Some</span>((ptr, after))
         }
-        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
       })
-      .<span class="ident">collect</span>()
+      .collect()
   }
 
-  <span class="kw">fn</span> <span class="ident">place_and_refs_in_projection</span>(
+  <span class="kw">fn </span>place_and_refs_in_projection(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  ) -&gt; <span class="ident">SmallVec</span><span class="op">&lt;</span>[<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>; <span class="number">2</span>]<span class="op">&gt;</span> {
-    <span class="ident">iter::once</span>(<span class="kw-2">*</span><span class="self">self</span>)
-      .<span class="ident">chain</span>(
-        <span class="self">self</span>
-          .<span class="ident">refs_in_projection</span>()
-          .<span class="ident">into_iter</span>()
-          .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">ptr</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">Place::from_ref</span>(<span class="ident">ptr</span>, <span class="ident">tcx</span>)),
+    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  ) -&gt; SmallVec&lt;[Place&lt;<span class="lifetime">&#39;tcx</span>&gt;; <span class="number">2</span>]&gt; {
+    iter::once(<span class="kw-2">*</span><span class="self">self</span>)
+      .chain(
+        <span class="self">self
+          </span>.refs_in_projection()
+          .into_iter()
+          .map(|(ptr, <span class="kw">_</span>)| Place::from_ref(ptr, tcx)),
       )
-      .<span class="ident">collect</span>()
+      .collect()
   }
 
-  <span class="kw">fn</span> <span class="ident">interior_pointers</span>(
+  <span class="kw">fn </span>interior_pointers(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">def_id</span>: <span class="ident">DefId</span>,
-  ) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">RegionVid</span>, <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Mutability</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ty</span>(<span class="ident">body</span>.<span class="ident">local_decls</span>(), <span class="ident">tcx</span>).<span class="ident">ty</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">region_collector</span> <span class="op">=</span> <span class="ident">CollectRegions</span> {
-      <span class="ident">tcx</span>,
-      <span class="ident">def_id</span>,
-      <span class="ident">local</span>: <span class="self">self</span>.<span class="ident">local</span>,
-      <span class="ident">place_stack</span>: <span class="self">self</span>.<span class="ident">projection</span>.<span class="ident">to_vec</span>(),
-      <span class="ident">ty_stack</span>: <span class="ident">Vec::new</span>(),
-      <span class="ident">regions</span>: <span class="ident">HashMap::default</span>(),
-      <span class="ident">places</span>: <span class="prelude-val">None</span>,
-      <span class="ident">types</span>: <span class="prelude-val">None</span>,
-      <span class="ident">stop_at</span>: <span class="kw">if</span>
-      <span class="comment">/*shallow*/</span>
-      <span class="bool-val">false</span> {
-        <span class="ident">StoppingCondition::AfterRefs</span>
-      } <span class="kw">else</span> {
-        <span class="ident">StoppingCondition::None</span>
+    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    def_id: DefId,
+  ) -&gt; HashMap&lt;RegionVid, Vec&lt;(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, Mutability)&gt;&gt; {
+    <span class="kw">let </span>ty = <span class="self">self</span>.ty(body.local_decls(), tcx).ty;
+    <span class="kw">let </span><span class="kw-2">mut </span>region_collector = CollectRegions {
+      tcx,
+      def_id,
+      local: <span class="self">self</span>.local,
+      place_stack: <span class="self">self</span>.projection.to_vec(),
+      ty_stack: Vec::new(),
+      regions: HashMap::default(),
+      places: <span class="prelude-val">None</span>,
+      types: <span class="prelude-val">None</span>,
+      stop_at: <span class="kw">if
+      </span><span class="comment">/*shallow*/
+      </span><span class="bool-val">false </span>{
+        StoppingCondition::AfterRefs
+      } <span class="kw">else </span>{
+        StoppingCondition::None
       },
     };
-    <span class="ident">region_collector</span>.<span class="ident">visit_ty</span>(<span class="ident">ty</span>);
-    <span class="ident">region_collector</span>.<span class="ident">regions</span>
+    region_collector.visit_ty(ty);
+    region_collector.regions
   }
 
-  <span class="kw">fn</span> <span class="ident">interior_places</span>(
+  <span class="kw">fn </span>interior_places(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">def_id</span>: <span class="ident">DefId</span>,
-  ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ty</span>(<span class="ident">body</span>.<span class="ident">local_decls</span>(), <span class="ident">tcx</span>).<span class="ident">ty</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">region_collector</span> <span class="op">=</span> <span class="ident">CollectRegions</span> {
-      <span class="ident">tcx</span>,
-      <span class="ident">def_id</span>,
-      <span class="ident">local</span>: <span class="self">self</span>.<span class="ident">local</span>,
-      <span class="ident">place_stack</span>: <span class="self">self</span>.<span class="ident">projection</span>.<span class="ident">to_vec</span>(),
-      <span class="ident">ty_stack</span>: <span class="ident">Vec::new</span>(),
-      <span class="ident">regions</span>: <span class="ident">HashMap::default</span>(),
-      <span class="ident">places</span>: <span class="prelude-val">Some</span>(<span class="ident">HashSet::default</span>()),
-      <span class="ident">types</span>: <span class="prelude-val">None</span>,
-      <span class="ident">stop_at</span>: <span class="ident">StoppingCondition::BeforeRefs</span>,
+    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    def_id: DefId,
+  ) -&gt; Vec&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
+    <span class="kw">let </span>ty = <span class="self">self</span>.ty(body.local_decls(), tcx).ty;
+    <span class="kw">let </span><span class="kw-2">mut </span>region_collector = CollectRegions {
+      tcx,
+      def_id,
+      local: <span class="self">self</span>.local,
+      place_stack: <span class="self">self</span>.projection.to_vec(),
+      ty_stack: Vec::new(),
+      regions: HashMap::default(),
+      places: <span class="prelude-val">Some</span>(HashSet::default()),
+      types: <span class="prelude-val">None</span>,
+      stop_at: StoppingCondition::BeforeRefs,
     };
-    <span class="ident">region_collector</span>.<span class="ident">visit_ty</span>(<span class="ident">ty</span>);
-    <span class="ident">region_collector</span>.<span class="ident">places</span>.<span class="ident">unwrap</span>().<span class="ident">into_iter</span>().<span class="ident">collect</span>()
+    region_collector.visit_ty(ty);
+    region_collector.places.unwrap().into_iter().collect()
   }
 
-  <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">local_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">local</span> <span class="op">==</span> <span class="ident">RETURN_PLACE</span> {
-      <span class="string">&quot;RETURN&quot;</span>.<span class="ident">into</span>()
-    } <span class="kw">else</span> {
-      <span class="ident">body</span>
-        .<span class="ident">var_debug_info</span>
-        .<span class="ident">iter</span>()
-        .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">info</span>.<span class="ident">value</span> {
-          <span class="ident">VarDebugInfoContents::Place</span>(<span class="ident">place</span>) <span class="kw">if</span> <span class="ident">place</span>.<span class="ident">local</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">local</span> =&gt; <span class="ident">info</span>
-            .<span class="ident">source_info</span>
-            .<span class="ident">span</span>
-            .<span class="ident">as_local</span>(<span class="ident">body</span>.<span class="ident">span</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">info</span>.<span class="ident">name</span>.<span class="ident">to_string</span>()),
-          <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+  <span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+    <span class="kw">let </span>local_name = <span class="kw">if </span><span class="self">self</span>.local == RETURN_PLACE {
+      <span class="string">&quot;RETURN&quot;</span>.into()
+    } <span class="kw">else </span>{
+      body
+        .var_debug_info
+        .iter()
+        .filter_map(|info| <span class="kw">match </span>info.value {
+          VarDebugInfoContents::Place(place) <span class="kw">if </span>place.local == <span class="self">self</span>.local =&gt; info
+            .source_info
+            .span
+            .as_local(body.span)
+            .map(|<span class="kw">_</span>| info.name.to_string()),
+          <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         })
-        .<span class="ident">next</span>()<span class="question-mark">?</span>
-    };
+        .next()<span class="question-mark">?
+    </span>};
 
-    <span class="kw">let</span> <span class="ident">projection_to_string</span> <span class="op">=</span>
-      <span class="op">|</span><span class="ident">s</span>: <span class="ident">String</span>, (<span class="ident">place</span>, <span class="ident">elem</span>): (<span class="ident">PlaceRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)<span class="op">|</span> <span class="kw">match</span> <span class="ident">elem</span> {
-        <span class="ident">ProjectionElem::Deref</span> =&gt; <span class="macro">format!</span>(<span class="string">&quot;*{s}&quot;</span>),
-        <span class="ident">ProjectionElem::Field</span>(<span class="ident">f</span>, <span class="kw">_</span>) =&gt; {
-          <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">place</span>.<span class="ident">ty</span>(<span class="kw-2">&amp;</span><span class="ident">body</span>.<span class="ident">local_decls</span>, <span class="ident">tcx</span>).<span class="ident">ty</span>;
-          <span class="kw">let</span> <span class="ident">default</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{s}.{}&quot;</span>, <span class="ident">f</span>.<span class="ident">as_usize</span>());
-          <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">def</span>) <span class="op">=</span> <span class="ident">ty</span>.<span class="ident">ty_adt_def</span>() {
-            <span class="kw">match</span> <span class="ident">def</span>.<span class="ident">adt_kind</span>() {
-              <span class="ident">AdtKind::Struct</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">def</span>.<span class="ident">non_enum_variant</span>().<span class="ident">fields</span>[<span class="ident">f</span>.<span class="ident">as_usize</span>()].<span class="ident">ident</span>(<span class="ident">tcx</span>);
+    <span class="kw">let </span>projection_to_string =
+      |s: String, (place, elem): (PlaceRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;)| <span class="kw">match </span>elem {
+        ProjectionElem::Deref =&gt; <span class="macro">format!</span>(<span class="string">&quot;*{s}&quot;</span>),
+        ProjectionElem::Field(f, <span class="kw">_</span>) =&gt; {
+          <span class="kw">let </span>ty = place.ty(<span class="kw-2">&amp;</span>body.local_decls, tcx).ty;
+          <span class="kw">let </span>default = || <span class="macro">format!</span>(<span class="string">&quot;{s}.{}&quot;</span>, f.as_usize());
+          <span class="kw">if let </span><span class="prelude-val">Some</span>(def) = ty.ty_adt_def() {
+            <span class="kw">match </span>def.adt_kind() {
+              AdtKind::Struct =&gt; {
+                <span class="kw">let </span>name = def.non_enum_variant().fields[f.as_usize()].ident(tcx);
                 <span class="macro">format!</span>(<span class="string">&quot;{s}.{name}&quot;</span>)
               }
-              <span class="kw">_</span> =&gt; <span class="ident">default</span>(),
+              <span class="kw">_ </span>=&gt; default(),
             }
-          } <span class="kw">else</span> {
-            <span class="ident">default</span>()
+          } <span class="kw">else </span>{
+            default()
           }
         }
-        <span class="ident">ProjectionElem::Downcast</span>(<span class="ident">sym</span>, <span class="kw">_</span>) =&gt; <span class="macro">format!</span>(
+        ProjectionElem::Downcast(sym, <span class="kw">_</span>) =&gt; <span class="macro">format!</span>(
           <span class="string">&quot;{s} as {}&quot;</span>,
-          <span class="ident">sym</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">to_string</span>()).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;??&quot;</span>.<span class="ident">into</span>())
+          sym.map(|s| s.to_string()).unwrap_or_else(|| <span class="string">&quot;??&quot;</span>.into())
         ),
-        <span class="ident">ProjectionElem::Index</span>(<span class="kw">_</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{s}[]&quot;</span>),
-        <span class="kw">_</span> =&gt; <span class="macro">unimplemented!</span>(),
+        ProjectionElem::Index(<span class="kw">_</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{s}[]&quot;</span>),
+        <span class="kw">_ </span>=&gt; <span class="macro">unimplemented!</span>(),
       };
 
     <span class="prelude-val">Some</span>(
-      <span class="self">self</span>
-        .<span class="ident">iter_projections</span>()
-        .<span class="ident">fold</span>(<span class="ident">local_name</span>, <span class="ident">projection_to_string</span>),
+      <span class="self">self
+        </span>.iter_projections()
+        .fold(local_name, projection_to_string),
     )
   }
 
-  <span class="kw">fn</span> <span class="ident">normalize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">def_id</span>: <span class="ident">DefId</span>) -&gt; <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="comment">// Consider a place _1: &amp;&#39;1 &lt;T as SomeTrait&gt;::Foo[2]</span>
-    <span class="comment">//   we might encounter this type with a different region, e.g. &amp;&#39;2</span>
-    <span class="comment">//   we might encounter this type with a more specific type for the associated type, e.g. &amp;&#39;1 [i32][0]</span>
-    <span class="comment">// to account for this variation, we normalize associated types,</span>
-    <span class="comment">//   erase regions, and normalize projections</span>
-    <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">param_env</span>(<span class="ident">def_id</span>);
-    <span class="kw">let</span> <span class="ident">place</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">erase_regions</span>(<span class="kw-2">*</span><span class="self">self</span>);
-    <span class="kw">let</span> <span class="ident">place</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">infer_ctxt</span>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span> {
-      <span class="ident">infcx</span>
-        .<span class="ident">partially_normalize_associated_types_in</span>(
-          <span class="ident">ObligationCause::dummy</span>(),
-          <span class="ident">param_env</span>,
-          <span class="ident">place</span>,
+  <span class="kw">fn </span>normalize(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, def_id: DefId) -&gt; Place&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="comment">// Consider a place _1: &amp;&#39;1 &lt;T as SomeTrait&gt;::Foo[2]
+    //   we might encounter this type with a different region, e.g. &amp;&#39;2
+    //   we might encounter this type with a more specific type for the associated type, e.g. &amp;&#39;1 [i32][0]
+    // to account for this variation, we normalize associated types,
+    //   erase regions, and normalize projections
+    </span><span class="kw">let </span>param_env = tcx.param_env(def_id);
+    <span class="kw">let </span>place = tcx.erase_regions(<span class="kw-2">*</span><span class="self">self</span>);
+    <span class="kw">let </span>place = tcx.infer_ctxt().enter(|infcx| {
+      infcx
+        .partially_normalize_associated_types_in(
+          ObligationCause::dummy(),
+          param_env,
+          place,
         )
-        .<span class="ident">value</span>
+        .value
     });
 
-    <span class="kw">let</span> <span class="ident">projection</span> <span class="op">=</span> <span class="ident">place</span>
-      .<span class="ident">projection</span>
-      .<span class="ident">into_iter</span>()
-      .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">elem</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">elem</span> {
-        <span class="comment">// Map all indexes [i] to [0] since they should be considered equal</span>
-        <span class="ident">ProjectionElem::Index</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ProjectionElem::ConstantIndex</span> { .. } =&gt; {
-          <span class="prelude-val">Some</span>(<span class="ident">ProjectionElem::Index</span>(<span class="ident">Local::from_usize</span>(<span class="number">0</span>)))
+    <span class="kw">let </span>projection = place
+      .projection
+      .into_iter()
+      .filter_map(|elem| <span class="kw">match </span>elem {
+        <span class="comment">// Map all indexes [i] to [0] since they should be considered equal
+        </span>ProjectionElem::Index(<span class="kw">_</span>) | ProjectionElem::ConstantIndex { .. } =&gt; {
+          <span class="prelude-val">Some</span>(ProjectionElem::Index(Local::from_usize(<span class="number">0</span>)))
         }
-        <span class="comment">// Ignore subslices, they should be treated the same as the</span>
-        <span class="comment">// full slice</span>
-        <span class="ident">ProjectionElem::Subslice</span> { .. } =&gt; <span class="prelude-val">None</span>,
-        <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">elem</span>),
+        <span class="comment">// Ignore subslices, they should be treated the same as the
+        // full slice
+        </span>ProjectionElem::Subslice { .. } =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(elem),
       })
-      .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+      .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-    <span class="ident">Place::make</span>(<span class="ident">place</span>.<span class="ident">local</span>, <span class="kw-2">&amp;</span><span class="ident">projection</span>, <span class="ident">tcx</span>)
+    Place::make(place.local, <span class="kw-2">&amp;</span>projection, tcx)
   }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">enum</span> <span class="ident">StoppingCondition</span> {
+<span class="attribute">#[derive(Copy, Clone)]
+</span><span class="kw">enum </span>StoppingCondition {
   <span class="prelude-val">None</span>,
-  <span class="ident">BeforeRefs</span>,
-  <span class="ident">AfterRefs</span>,
+  BeforeRefs,
+  AfterRefs,
 }
 
-<span class="kw">struct</span> <span class="ident">CollectRegions</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="ident">def_id</span>: <span class="ident">DefId</span>,
-  <span class="ident">local</span>: <span class="ident">Local</span>,
-  <span class="ident">place_stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PlaceElem</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-  <span class="ident">ty_stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-  <span class="ident">places</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-  <span class="ident">types</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-  <span class="ident">regions</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">RegionVid</span>, <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Mutability</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
-  <span class="ident">stop_at</span>: <span class="ident">StoppingCondition</span>,
+<span class="kw">struct </span>CollectRegions&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  def_id: DefId,
+  local: Local,
+  place_stack: Vec&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+  ty_stack: Vec&lt;Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+  places: <span class="prelude-ty">Option</span>&lt;HashSet&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;&gt;,
+  types: <span class="prelude-ty">Option</span>&lt;HashSet&lt;Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;&gt;,
+  regions: HashMap&lt;RegionVid, Vec&lt;(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, Mutability)&gt;&gt;,
+  stop_at: StoppingCondition,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">TypeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CollectRegions</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">fn</span> <span class="ident">visit_ty</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BreakTy</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">tcx</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcx</span>;
-    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ty_stack</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">visited_ty</span><span class="op">|</span> <span class="ident">ty</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">visited_ty</span>) {
-      <span class="kw">return</span> <span class="ident">ControlFlow::Continue</span>(());
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>CollectRegions&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">fn </span>visit_ty(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">let </span>tcx = <span class="self">self</span>.tcx;
+    <span class="kw">if </span><span class="self">self</span>.ty_stack.iter().any(|visited_ty| ty == <span class="kw-2">*</span>visited_ty) {
+      <span class="kw">return </span>ControlFlow::Continue(());
     }
 
     <span class="macro">trace!</span>(
       <span class="string">&quot;exploring {:?} with {ty:?}&quot;</span>,
-      <span class="ident">Place::make</span>(<span class="self">self</span>.<span class="ident">local</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">place_stack</span>, <span class="ident">tcx</span>)
+      Place::make(<span class="self">self</span>.local, <span class="kw-2">&amp;</span><span class="self">self</span>.place_stack, tcx)
     );
 
-    <span class="self">self</span>.<span class="ident">ty_stack</span>.<span class="ident">push</span>(<span class="ident">ty</span>);
+    <span class="self">self</span>.ty_stack.push(ty);
 
-    <span class="kw">match</span> <span class="ident">ty</span>.<span class="ident">kind</span>() {
-      <span class="kw">_</span> <span class="kw">if</span> <span class="ident">ty</span>.<span class="ident">is_box</span>() =&gt; {
-        <span class="self">self</span>.<span class="ident">visit_region</span>(<span class="ident">tcx</span>.<span class="ident">mk_region</span>(<span class="ident">RegionKind::ReVar</span>(<span class="ident">UNKNOWN_REGION</span>)));
-        <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">push</span>(<span class="ident">ProjectionElem::Deref</span>);
-        <span class="self">self</span>.<span class="ident">visit_ty</span>(<span class="ident">ty</span>.<span class="ident">boxed_ty</span>());
-        <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">pop</span>();
+    <span class="kw">match </span>ty.kind() {
+      <span class="kw">_ if </span>ty.is_box() =&gt; {
+        <span class="self">self</span>.visit_region(tcx.mk_region(RegionKind::ReVar(UNKNOWN_REGION)));
+        <span class="self">self</span>.place_stack.push(ProjectionElem::Deref);
+        <span class="self">self</span>.visit_ty(ty.boxed_ty());
+        <span class="self">self</span>.place_stack.pop();
       }
 
-      <span class="ident">TyKind::Tuple</span>(<span class="ident">fields</span>) =&gt; {
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">field</span>) <span class="kw">in</span> <span class="ident">fields</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-          <span class="self">self</span>
-            .<span class="ident">place_stack</span>
-            .<span class="ident">push</span>(<span class="ident">ProjectionElem::Field</span>(<span class="ident">Field::from_usize</span>(<span class="ident">i</span>), <span class="ident">field</span>));
-          <span class="self">self</span>.<span class="ident">visit_ty</span>(<span class="ident">field</span>);
-          <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">pop</span>();
+      TyKind::Tuple(fields) =&gt; {
+        <span class="kw">for </span>(i, field) <span class="kw">in </span>fields.iter().enumerate() {
+          <span class="self">self
+            </span>.place_stack
+            .push(ProjectionElem::Field(Field::from_usize(i), field));
+          <span class="self">self</span>.visit_ty(field);
+          <span class="self">self</span>.place_stack.pop();
         }
       }
 
-      <span class="ident">TyKind::Adt</span>(<span class="ident">adt_def</span>, <span class="ident">subst</span>) =&gt; <span class="kw">match</span> <span class="ident">adt_def</span>.<span class="ident">adt_kind</span>() {
-        <span class="ident">ty::AdtKind::Struct</span> =&gt; {
-          <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">field</span>) <span class="kw">in</span> <span class="ident">adt_def</span>.<span class="ident">all_fields</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">field</span>.<span class="ident">vis</span>.<span class="ident">is_accessible_from</span>(<span class="self">self</span>.<span class="ident">def_id</span>, <span class="ident">tcx</span>) {
+      TyKind::Adt(adt_def, subst) =&gt; <span class="kw">match </span>adt_def.adt_kind() {
+        ty::AdtKind::Struct =&gt; {
+          <span class="kw">for </span>(i, field) <span class="kw">in </span>adt_def.all_fields().enumerate() {
+            <span class="kw">if </span>!field.vis.is_accessible_from(<span class="self">self</span>.def_id, tcx) {
               <span class="kw">continue</span>;
             }
 
-            <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">ty</span>(<span class="ident">tcx</span>, <span class="ident">subst</span>);
-            <span class="self">self</span>
-              .<span class="ident">place_stack</span>
-              .<span class="ident">push</span>(<span class="ident">ProjectionElem::Field</span>(<span class="ident">Field::from_usize</span>(<span class="ident">i</span>), <span class="ident">ty</span>));
-            <span class="self">self</span>.<span class="ident">visit_ty</span>(<span class="ident">ty</span>);
-            <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">pop</span>();
+            <span class="kw">let </span>ty = field.ty(tcx, subst);
+            <span class="self">self
+              </span>.place_stack
+              .push(ProjectionElem::Field(Field::from_usize(i), ty));
+            <span class="self">self</span>.visit_ty(ty);
+            <span class="self">self</span>.place_stack.pop();
           }
         }
-        <span class="ident">ty::AdtKind::Union</span> =&gt; {
-          <span class="comment">// unsafe, so ignore</span>
-        }
-        <span class="ident">ty::AdtKind::Enum</span> =&gt; {
-          <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">variant</span>) <span class="kw">in</span> <span class="ident">adt_def</span>.<span class="ident">variants</span>().<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">let</span> <span class="ident">variant_index</span> <span class="op">=</span> <span class="ident">VariantIdx::from_usize</span>(<span class="ident">i</span>);
-            <span class="kw">let</span> <span class="ident">cast</span> <span class="op">=</span> <span class="ident">PlaceElem::Downcast</span>(
-              <span class="prelude-val">Some</span>(<span class="ident">adt_def</span>.<span class="ident">variant</span>(<span class="ident">variant_index</span>).<span class="ident">ident</span>(<span class="ident">tcx</span>).<span class="ident">name</span>),
-              <span class="ident">variant_index</span>,
+        ty::AdtKind::Union =&gt; {
+          <span class="comment">// unsafe, so ignore
+        </span>}
+        ty::AdtKind::Enum =&gt; {
+          <span class="kw">for </span>(i, variant) <span class="kw">in </span>adt_def.variants().iter().enumerate() {
+            <span class="kw">let </span>variant_index = VariantIdx::from_usize(i);
+            <span class="kw">let </span>cast = PlaceElem::Downcast(
+              <span class="prelude-val">Some</span>(adt_def.variant(variant_index).ident(tcx).name),
+              variant_index,
             );
-            <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">push</span>(<span class="ident">cast</span>);
-            <span class="kw">for</span> (<span class="ident">j</span>, <span class="ident">field</span>) <span class="kw">in</span> <span class="ident">variant</span>.<span class="ident">fields</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-              <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">ty</span>(<span class="ident">tcx</span>, <span class="ident">subst</span>);
-              <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">ProjectionElem::Field</span>(<span class="ident">Field::from_usize</span>(<span class="ident">j</span>), <span class="ident">ty</span>);
-              <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">push</span>(<span class="ident">field</span>);
-              <span class="self">self</span>.<span class="ident">visit_ty</span>(<span class="ident">ty</span>);
-              <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">pop</span>();
+            <span class="self">self</span>.place_stack.push(cast);
+            <span class="kw">for </span>(j, field) <span class="kw">in </span>variant.fields.iter().enumerate() {
+              <span class="kw">let </span>ty = field.ty(tcx, subst);
+              <span class="kw">let </span>field = ProjectionElem::Field(Field::from_usize(j), ty);
+              <span class="self">self</span>.place_stack.push(field);
+              <span class="self">self</span>.visit_ty(ty);
+              <span class="self">self</span>.place_stack.pop();
             }
-            <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">pop</span>();
+            <span class="self">self</span>.place_stack.pop();
           }
         }
       },
 
-      <span class="ident">TyKind::Array</span>(<span class="ident">elem_ty</span>, <span class="kw">_</span>) <span class="op">|</span> <span class="ident">TyKind::Slice</span>(<span class="ident">elem_ty</span>) =&gt; {
-        <span class="self">self</span>
-          .<span class="ident">place_stack</span>
-          .<span class="ident">push</span>(<span class="ident">ProjectionElem::Index</span>(<span class="ident">Local::from_usize</span>(<span class="number">0</span>)));
-        <span class="self">self</span>.<span class="ident">visit_ty</span>(<span class="kw-2">*</span><span class="ident">elem_ty</span>);
-        <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">pop</span>();
+      TyKind::Array(elem_ty, <span class="kw">_</span>) | TyKind::Slice(elem_ty) =&gt; {
+        <span class="self">self
+          </span>.place_stack
+          .push(ProjectionElem::Index(Local::from_usize(<span class="number">0</span>)));
+        <span class="self">self</span>.visit_ty(<span class="kw-2">*</span>elem_ty);
+        <span class="self">self</span>.place_stack.pop();
       }
 
-      <span class="ident">TyKind::Ref</span>(<span class="ident">region</span>, <span class="ident">elem_ty</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> <span class="self">self</span>.<span class="ident">stop_at</span> {
-        <span class="ident">StoppingCondition::None</span> =&gt; {
-          <span class="self">self</span>.<span class="ident">visit_region</span>(<span class="kw-2">*</span><span class="ident">region</span>);
-          <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">push</span>(<span class="ident">ProjectionElem::Deref</span>);
-          <span class="self">self</span>.<span class="ident">visit_ty</span>(<span class="kw-2">*</span><span class="ident">elem_ty</span>);
-          <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">pop</span>();
+      TyKind::Ref(region, elem_ty, <span class="kw">_</span>) =&gt; <span class="kw">match </span><span class="self">self</span>.stop_at {
+        StoppingCondition::None =&gt; {
+          <span class="self">self</span>.visit_region(<span class="kw-2">*</span>region);
+          <span class="self">self</span>.place_stack.push(ProjectionElem::Deref);
+          <span class="self">self</span>.visit_ty(<span class="kw-2">*</span>elem_ty);
+          <span class="self">self</span>.place_stack.pop();
         }
-        <span class="ident">StoppingCondition::AfterRefs</span> =&gt; {
-          <span class="self">self</span>.<span class="ident">visit_region</span>(<span class="kw-2">*</span><span class="ident">region</span>);
+        StoppingCondition::AfterRefs =&gt; {
+          <span class="self">self</span>.visit_region(<span class="kw-2">*</span>region);
         }
-        <span class="ident">StoppingCondition::BeforeRefs</span> =&gt; {}
+        StoppingCondition::BeforeRefs =&gt; {}
       },
 
-      <span class="ident">TyKind::Closure</span>(<span class="kw">_</span>, <span class="ident">substs</span>) =&gt; {
-        <span class="self">self</span>.<span class="ident">visit_ty</span>(<span class="ident">substs</span>.<span class="ident">as_closure</span>().<span class="ident">tupled_upvars_ty</span>());
+      TyKind::Closure(<span class="kw">_</span>, substs) =&gt; {
+        <span class="self">self</span>.visit_ty(substs.as_closure().tupled_upvars_ty());
       }
 
-      <span class="ident">TyKind::RawPtr</span>(<span class="ident">TypeAndMut</span> { <span class="ident">ty</span>, .. }) =&gt; {
-        <span class="self">self</span>.<span class="ident">visit_region</span>(<span class="ident">tcx</span>.<span class="ident">mk_region</span>(<span class="ident">RegionKind::ReVar</span>(<span class="ident">UNKNOWN_REGION</span>)));
-        <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">push</span>(<span class="ident">ProjectionElem::Deref</span>);
-        <span class="self">self</span>.<span class="ident">visit_ty</span>(<span class="kw-2">*</span><span class="ident">ty</span>);
-        <span class="self">self</span>.<span class="ident">place_stack</span>.<span class="ident">pop</span>();
+      TyKind::RawPtr(TypeAndMut { ty, .. }) =&gt; {
+        <span class="self">self</span>.visit_region(tcx.mk_region(RegionKind::ReVar(UNKNOWN_REGION)));
+        <span class="self">self</span>.place_stack.push(ProjectionElem::Deref);
+        <span class="self">self</span>.visit_ty(<span class="kw-2">*</span>ty);
+        <span class="self">self</span>.place_stack.pop();
       }
 
-      <span class="ident">TyKind::Projection</span>(<span class="kw">_</span>)
-      <span class="op">|</span> <span class="ident">TyKind::FnDef</span>(<span class="kw">_</span>, <span class="kw">_</span>)
-      <span class="op">|</span> <span class="ident">TyKind::FnPtr</span>(<span class="kw">_</span>)
-      <span class="op">|</span> <span class="ident">TyKind::Opaque</span>(<span class="kw">_</span>, <span class="kw">_</span>)
-      <span class="op">|</span> <span class="ident">TyKind::Foreign</span>(<span class="kw">_</span>)
-      <span class="op">|</span> <span class="ident">TyKind::Dynamic</span>(<span class="kw">_</span>, <span class="kw">_</span>)
-      <span class="op">|</span> <span class="ident">TyKind::Param</span>(<span class="kw">_</span>)
-      <span class="op">|</span> <span class="ident">TyKind::Never</span> =&gt; {}
+      TyKind::Projection(<span class="kw">_</span>)
+      | TyKind::FnDef(<span class="kw">_</span>, <span class="kw">_</span>)
+      | TyKind::FnPtr(<span class="kw">_</span>)
+      | TyKind::Opaque(<span class="kw">_</span>, <span class="kw">_</span>)
+      | TyKind::Foreign(<span class="kw">_</span>)
+      | TyKind::Dynamic(<span class="kw">_</span>, <span class="kw">_</span>)
+      | TyKind::Param(<span class="kw">_</span>)
+      | TyKind::Never =&gt; {}
 
-      <span class="kw">_</span> <span class="kw">if</span> <span class="ident">ty</span>.<span class="ident">is_primitive_ty</span>() =&gt; {}
+      <span class="kw">_ if </span>ty.is_primitive_ty() =&gt; {}
 
-      <span class="kw">_</span> =&gt; {
-        <span class="macro">warn!</span>(<span class="string">&quot;unimplemented {ty:?} ({:?})&quot;</span>, <span class="ident">ty</span>.<span class="ident">kind</span>());
+      <span class="kw">_ </span>=&gt; {
+        <span class="macro">warn!</span>(<span class="string">&quot;unimplemented {ty:?} ({:?})&quot;</span>, ty.kind());
       }
     };
 
-    <span class="comment">// let inherent_impls = tcx.inherent_impls(self.def_id);</span>
-    <span class="comment">// let traits = tcx.infer_ctxt().enter(|infcx| {</span>
-    <span class="comment">//   let param_env = tcx.param_env(self.def_id);</span>
-    <span class="comment">//   self</span>
-    <span class="comment">//     .tcx</span>
-    <span class="comment">//     .all_traits()</span>
-    <span class="comment">//     .filter(|trait_def_id| {</span>
-    <span class="comment">//       let result = infcx.type_implements_trait(*trait_def_id, ty, params, param_env);</span>
-    <span class="comment">//       matches!(</span>
-    <span class="comment">//         result,</span>
-    <span class="comment">//         EvaluationResult::EvaluatedToOk</span>
-    <span class="comment">//           | EvaluationResult::EvaluatedToOkModuloRegions</span>
-    <span class="comment">//       )</span>
-    <span class="comment">//     })</span>
-    <span class="comment">//     .collect::&lt;Vec&lt;_&gt;&gt;()</span>
-    <span class="comment">// });</span>
+    <span class="comment">// let inherent_impls = tcx.inherent_impls(self.def_id);
+    // let traits = tcx.infer_ctxt().enter(|infcx| {
+    //   let param_env = tcx.param_env(self.def_id);
+    //   self
+    //     .tcx
+    //     .all_traits()
+    //     .filter(|trait_def_id| {
+    //       let result = infcx.type_implements_trait(*trait_def_id, ty, params, param_env);
+    //       matches!(
+    //         result,
+    //         EvaluationResult::EvaluatedToOk
+    //           | EvaluationResult::EvaluatedToOkModuloRegions
+    //       )
+    //     })
+    //     .collect::&lt;Vec&lt;_&gt;&gt;()
+    // });
 
-    <span class="comment">// let fns = inherent_impls.iter().chain(&amp;traits).flat_map(|def_id| {</span>
-    <span class="comment">//   let items = tcx.associated_items(def_id).in_definition_order();</span>
-    <span class="comment">//   items.filter_map(|item| match item.kind {</span>
-    <span class="comment">//     AssocKind::Fn =&gt; Some(tcx.fn_sig(item.def_id)),</span>
-    <span class="comment">//     _ =&gt; None,</span>
-    <span class="comment">//   })</span>
-    <span class="comment">// });</span>
+    // let fns = inherent_impls.iter().chain(&amp;traits).flat_map(|def_id| {
+    //   let items = tcx.associated_items(def_id).in_definition_order();
+    //   items.filter_map(|item| match item.kind {
+    //     AssocKind::Fn =&gt; Some(tcx.fn_sig(item.def_id)),
+    //     _ =&gt; None,
+    //   })
+    // });
 
-    <span class="comment">// // for f in fns {</span>
-    <span class="comment">// //   f.</span>
-    <span class="comment">// // }</span>
+    // // for f in fns {
+    // //   f.
+    // // }
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">places</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">places</span>.<span class="ident">as_mut</span>() {
-      <span class="ident">places</span>.<span class="ident">insert</span>(<span class="ident">Place::make</span>(<span class="self">self</span>.<span class="ident">local</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">place_stack</span>, <span class="ident">tcx</span>));
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(places) = <span class="self">self</span>.places.as_mut() {
+      places.insert(Place::make(<span class="self">self</span>.local, <span class="kw-2">&amp;</span><span class="self">self</span>.place_stack, tcx));
     }
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">types</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">types</span>.<span class="ident">as_mut</span>() {
-      <span class="ident">types</span>.<span class="ident">insert</span>(<span class="ident">ty</span>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(types) = <span class="self">self</span>.types.as_mut() {
+      types.insert(ty);
     }
 
-    <span class="self">self</span>.<span class="ident">ty_stack</span>.<span class="ident">pop</span>();
-    <span class="ident">ControlFlow::Continue</span>(())
+    <span class="self">self</span>.ty_stack.pop();
+    ControlFlow::Continue(())
   }
 
-  <span class="kw">fn</span> <span class="ident">visit_region</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">region</span>: <span class="ident">ty::Region</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BreakTy</span><span class="op">&gt;</span> {
+  <span class="kw">fn </span>visit_region(<span class="kw-2">&amp;mut </span><span class="self">self</span>, region: ty::Region&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
     <span class="macro">trace!</span>(<span class="string">&quot;visiting region {region:?}&quot;</span>);
-    <span class="kw">let</span> <span class="ident">region</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">region</span>.<span class="ident">kind</span>() {
-      <span class="ident">RegionKind::ReVar</span>(<span class="ident">region</span>) =&gt; <span class="ident">region</span>,
-      <span class="ident">RegionKind::ReStatic</span> =&gt; <span class="ident">RegionVid::from_usize</span>(<span class="number">0</span>),
-      <span class="ident">RegionKind::ReErased</span> <span class="op">|</span> <span class="ident">RegionKind::ReLateBound</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-        <span class="kw">return</span> <span class="ident">ControlFlow::Continue</span>(());
+    <span class="kw">let </span>region = <span class="kw">match </span>region.kind() {
+      RegionKind::ReVar(region) =&gt; region,
+      RegionKind::ReStatic =&gt; RegionVid::from_usize(<span class="number">0</span>),
+      RegionKind::ReErased | RegionKind::ReLateBound(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+        <span class="kw">return </span>ControlFlow::Continue(());
       }
-      <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;{:?}: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">ty_stack</span>.<span class="ident">first</span>().<span class="ident">unwrap</span>(), <span class="ident">region</span>),
+      <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;{:?}: {:?}&quot;</span>, <span class="self">self</span>.ty_stack.first().unwrap(), region),
     };
 
-    <span class="kw">let</span> <span class="ident">mutability</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>
-      .<span class="ident">ty_stack</span>
-      .<span class="ident">iter</span>()
-      .<span class="ident">any</span>(<span class="op">|</span><span class="ident">ty</span><span class="op">|</span> <span class="ident">ty</span>.<span class="ident">is_ref</span>() <span class="op">&amp;&amp;</span> <span class="ident">ty</span>.<span class="ident">ref_mutability</span>().<span class="ident">unwrap</span>() <span class="op">==</span> <span class="ident">Mutability::Not</span>)
+    <span class="kw">let </span>mutability = <span class="kw">if </span><span class="self">self
+      </span>.ty_stack
+      .iter()
+      .any(|ty| ty.is_ref() &amp;&amp; ty.ref_mutability().unwrap() == Mutability::Not)
     {
-      <span class="ident">Mutability::Not</span>
-    } <span class="kw">else</span> {
-      <span class="ident">Mutability::Mut</span>
+      Mutability::Not
+    } <span class="kw">else </span>{
+      Mutability::Mut
     };
 
-    <span class="kw">let</span> <span class="ident">place</span> <span class="op">=</span> <span class="ident">Place::make</span>(<span class="self">self</span>.<span class="ident">local</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">place_stack</span>, <span class="self">self</span>.<span class="ident">tcx</span>);
+    <span class="kw">let </span>place = Place::make(<span class="self">self</span>.local, <span class="kw-2">&amp;</span><span class="self">self</span>.place_stack, <span class="self">self</span>.tcx);
 
-    <span class="self">self</span>
-      .<span class="ident">regions</span>
-      .<span class="ident">entry</span>(<span class="ident">region</span>)
-      .<span class="ident">or_default</span>()
-      .<span class="ident">push</span>((<span class="ident">place</span>, <span class="ident">mutability</span>));
+    <span class="self">self
+      </span>.regions
+      .entry(region)
+      .or_default()
+      .push((place, mutability));
 
-    <span class="comment">// for initialization setup of Aliases::build</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">places</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">places</span>.<span class="ident">as_mut</span>() {
-      <span class="ident">places</span>.<span class="ident">insert</span>(<span class="self">self</span>.<span class="ident">tcx</span>.<span class="ident">mk_place_deref</span>(<span class="ident">place</span>));
+    <span class="comment">// for initialization setup of Aliases::build
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(places) = <span class="self">self</span>.places.as_mut() {
+      places.insert(<span class="self">self</span>.tcx.mk_place_deref(place));
     }
 
-    <span class="ident">ControlFlow::Continue</span>(())
+    ControlFlow::Continue(())
   }
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">BodyExt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">type</span> <span class="ident">AllReturnsIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Location</span><span class="op">&gt;</span>
-  <span class="kw">where</span>
-    <span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
-  <span class="kw">fn</span> <span class="ident">all_returns</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::AllReturnsIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
+<span class="kw">pub trait </span>BodyExt&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">type </span>AllReturnsIter&lt;<span class="lifetime">&#39;a</span>&gt;: Iterator&lt;Item = Location&gt;
+  <span class="kw">where
+    </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
+  <span class="kw">fn </span>all_returns(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::AllReturnsIter&lt;<span class="lifetime">&#39;_</span>&gt;;
 
-  <span class="kw">type</span> <span class="ident">AllLocationsIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Location</span><span class="op">&gt;</span>
-  <span class="kw">where</span>
-    <span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
-  <span class="kw">fn</span> <span class="ident">all_locations</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::AllLocationsIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
+  <span class="kw">type </span>AllLocationsIter&lt;<span class="lifetime">&#39;a</span>&gt;: Iterator&lt;Item = Location&gt;
+  <span class="kw">where
+    </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
+  <span class="kw">fn </span>all_locations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::AllLocationsIter&lt;<span class="lifetime">&#39;_</span>&gt;;
 
-  <span class="kw">type</span> <span class="ident">LocationsIter</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Location</span><span class="op">&gt;</span>;
-  <span class="kw">fn</span> <span class="ident">locations_in_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">block</span>: <span class="ident">BasicBlock</span>) -&gt; <span class="ident"><span class="self">Self</span>::LocationsIter</span>;
+  <span class="kw">type </span>LocationsIter: Iterator&lt;Item = Location&gt;;
+  <span class="kw">fn </span>locations_in_block(<span class="kw-2">&amp;</span><span class="self">self</span>, block: BasicBlock) -&gt; <span class="self">Self</span>::LocationsIter;
 
-  <span class="kw">fn</span> <span class="ident">debug_info_name_map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Local</span>, <span class="ident">Symbol</span><span class="op">&gt;</span>;
+  <span class="kw">fn </span>debug_info_name_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HashMap&lt;Local, Symbol&gt;;
 
-  <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>;
+  <span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt;;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">BodyExt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">type</span> <span class="ident">AllReturnsIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Location</span><span class="op">&gt;</span>   <span class="kw">where</span> <span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
-  <span class="kw">fn</span> <span class="ident">all_returns</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::AllReturnsIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="self">self</span>
-      .<span class="ident">basic_blocks</span>()
-      .<span class="ident">iter_enumerated</span>()
-      .<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="ident">block</span>, <span class="ident">data</span>)<span class="op">|</span> <span class="kw">match</span> <span class="ident">data</span>.<span class="ident">terminator</span>().<span class="ident">kind</span> {
-        <span class="ident">TerminatorKind::Return</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Location</span> {
-          <span class="ident">block</span>,
-          <span class="ident">statement_index</span>: <span class="ident">data</span>.<span class="ident">statements</span>.<span class="ident">len</span>(),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; BodyExt&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">type </span>AllReturnsIter&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">impl </span>Iterator&lt;Item = Location&gt;   <span class="kw">where </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
+  <span class="kw">fn </span>all_returns(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::AllReturnsIter&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="self">self
+      </span>.basic_blocks
+      .iter_enumerated()
+      .filter_map(|(block, data)| <span class="kw">match </span>data.terminator().kind {
+        TerminatorKind::Return =&gt; <span class="prelude-val">Some</span>(Location {
+          block,
+          statement_index: data.statements.len(),
         }),
-        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
       })
   }
 
-  <span class="kw">type</span> <span class="ident">AllLocationsIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Location</span><span class="op">&gt;</span>   <span class="kw">where</span> <span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
-  <span class="kw">fn</span> <span class="ident">all_locations</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::AllLocationsIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="self">self</span>
-      .<span class="ident">basic_blocks</span>()
-      .<span class="ident">iter_enumerated</span>()
-      .<span class="ident">flat_map</span>(<span class="op">|</span>(<span class="ident">block</span>, <span class="ident">data</span>)<span class="op">|</span> {
-        (<span class="number">0</span> .. <span class="ident">data</span>.<span class="ident">statements</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">statement_index</span><span class="op">|</span> <span class="ident">Location</span> {
-          <span class="ident">block</span>,
-          <span class="ident">statement_index</span>,
+  <span class="kw">type </span>AllLocationsIter&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">impl </span>Iterator&lt;Item = Location&gt;   <span class="kw">where </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
+  <span class="kw">fn </span>all_locations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::AllLocationsIter&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="self">self
+      </span>.basic_blocks
+      .iter_enumerated()
+      .flat_map(|(block, data)| {
+        (<span class="number">0 </span>.. data.statements.len() + <span class="number">1</span>).map(<span class="kw">move </span>|statement_index| Location {
+          block,
+          statement_index,
         })
       })
   }
 
-  <span class="kw">type</span> <span class="ident">LocationsIter</span> <span class="op">=</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Location</span><span class="op">&gt;</span>;
-  <span class="kw">fn</span> <span class="ident">locations_in_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">block</span>: <span class="ident">BasicBlock</span>) -&gt; <span class="ident"><span class="self">Self</span>::LocationsIter</span> {
-    <span class="kw">let</span> <span class="ident">num_stmts</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">basic_blocks</span>()[<span class="ident">block</span>].<span class="ident">statements</span>.<span class="ident">len</span>();
-    (<span class="number">0</span> ..<span class="op">=</span> <span class="ident">num_stmts</span>).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">statement_index</span><span class="op">|</span> <span class="ident">Location</span> {
-      <span class="ident">block</span>,
-      <span class="ident">statement_index</span>,
+  <span class="kw">type </span>LocationsIter = <span class="kw">impl </span>Iterator&lt;Item = Location&gt;;
+  <span class="kw">fn </span>locations_in_block(<span class="kw-2">&amp;</span><span class="self">self</span>, block: BasicBlock) -&gt; <span class="self">Self</span>::LocationsIter {
+    <span class="kw">let </span>num_stmts = <span class="self">self</span>.basic_blocks[block].statements.len();
+    (<span class="number">0 </span>..= num_stmts).map(<span class="kw">move </span>|statement_index| Location {
+      block,
+      statement_index,
     })
   }
 
-  <span class="kw">fn</span> <span class="ident">debug_info_name_map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Local</span>, <span class="ident">Symbol</span><span class="op">&gt;</span> {
-    <span class="self">self</span>
-      .<span class="ident">var_debug_info</span>
-      .<span class="ident">iter</span>()
-      .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">info</span>.<span class="ident">value</span> {
-        <span class="ident">VarDebugInfoContents::Place</span>(<span class="ident">place</span>) =&gt; <span class="prelude-val">Some</span>((<span class="ident">place</span>.<span class="ident">local</span>, <span class="ident">info</span>.<span class="ident">name</span>)),
-        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+  <span class="kw">fn </span>debug_info_name_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HashMap&lt;Local, Symbol&gt; {
+    <span class="self">self
+      </span>.var_debug_info
+      .iter()
+      .filter_map(|info| <span class="kw">match </span>info.value {
+        VarDebugInfoContents::Place(place) =&gt; <span class="prelude-val">Some</span>((place.local, info.name)),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
       })
-      .<span class="ident">collect</span>()
+      .collect()
   }
 
-  <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="ident">write_mir_fn</span>(<span class="ident">tcx</span>, <span class="self">self</span>, <span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(()), <span class="kw-2">&amp;mut</span> <span class="ident">buffer</span>)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<span class="ident">String::from_utf8</span>(<span class="ident">buffer</span>)<span class="question-mark">?</span>)
+  <span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>buffer = Vec::new();
+    write_mir_fn(tcx, <span class="self">self</span>, <span class="kw-2">&amp;mut </span>|<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(()), <span class="kw-2">&amp;mut </span>buffer)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(String::from_utf8(buffer)<span class="question-mark">?</span>)
   }
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SpanExt</span> {
-  <span class="kw">fn</span> <span class="ident">subtract</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">child_spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>;
-  <span class="kw">fn</span> <span class="ident">as_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">outer_span</span>: <span class="ident">Span</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>;
-  <span class="kw">fn</span> <span class="ident">overlaps_inclusive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) -&gt; <span class="ident">bool</span>;
-  <span class="kw">fn</span> <span class="ident">trim_end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>;
-  <span class="kw">fn</span> <span class="ident">merge_overlaps</span>(<span class="ident">spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>;
-  <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span>;
-  <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span>;
-  <span class="kw">fn</span> <span class="ident">trim_leading_whitespace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source_map</span>: <span class="kw-2">&amp;</span><span class="ident">SourceMap</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="kw">pub trait </span>SpanExt {
+  <span class="kw">fn </span>subtract(<span class="kw-2">&amp;</span><span class="self">self</span>, child_spans: Vec&lt;Span&gt;) -&gt; Vec&lt;Span&gt;;
+  <span class="kw">fn </span>as_local(<span class="kw-2">&amp;</span><span class="self">self</span>, outer_span: Span) -&gt; <span class="prelude-ty">Option</span>&lt;Span&gt;;
+  <span class="kw">fn </span>overlaps_inclusive(<span class="kw-2">&amp;</span><span class="self">self</span>, other: Span) -&gt; bool;
+  <span class="kw">fn </span>trim_end(<span class="kw-2">&amp;</span><span class="self">self</span>, other: Span) -&gt; <span class="prelude-ty">Option</span>&lt;Span&gt;;
+  <span class="kw">fn </span>merge_overlaps(spans: Vec&lt;Span&gt;) -&gt; Vec&lt;Span&gt;;
+  <span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; String;
+  <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32;
+  <span class="kw">fn </span>trim_leading_whitespace(<span class="kw-2">&amp;</span><span class="self">self</span>, source_map: <span class="kw-2">&amp;</span>SourceMap) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;Span&gt;&gt;;
 }
 
-<span class="kw">impl</span> <span class="ident">SpanExt</span> <span class="kw">for</span> <span class="ident">Span</span> {
-  <span class="kw">fn</span> <span class="ident">trim_end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>();
-    <span class="kw">let</span> <span class="ident">other</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">data</span>();
-    <span class="kw">if</span> <span class="ident">span</span>.<span class="ident">lo</span> <span class="op">&lt;</span> <span class="ident">other</span>.<span class="ident">lo</span> {
-      <span class="prelude-val">Some</span>(<span class="ident">span</span>.<span class="ident">with_hi</span>(<span class="ident">cmp::min</span>(<span class="ident">span</span>.<span class="ident">hi</span>, <span class="ident">other</span>.<span class="ident">lo</span>)))
-    } <span class="kw">else</span> {
-      <span class="prelude-val">None</span>
-    }
+<span class="kw">impl </span>SpanExt <span class="kw">for </span>Span {
+  <span class="kw">fn </span>trim_end(<span class="kw-2">&amp;</span><span class="self">self</span>, other: Span) -&gt; <span class="prelude-ty">Option</span>&lt;Span&gt; {
+    <span class="kw">let </span>span = <span class="self">self</span>.data();
+    <span class="kw">let </span>other = other.data();
+    <span class="kw">if </span>span.lo &lt; other.lo {
+      <span class="prelude-val">Some</span>(span.with_hi(cmp::min(span.hi, other.lo)))
+    } <span class="kw">else </span>{
+      <span class="prelude-val">None
+    </span>}
   }
 
-  <span class="doccomment">/// Get spans for regions in `self` not in `child_spans`.</span>
-  <span class="doccomment">///</span>
-  <span class="doccomment">/// Example:</span>
-  <span class="doccomment">///  self:          ---------------</span>
-  <span class="doccomment">///  child_spans:    ---      --  -</span>
-  <span class="doccomment">///  output:        -   ------  --</span>
-  <span class="kw">fn</span> <span class="ident">subtract</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">child_spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
-    <span class="ident">child_spans</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">overlaps_inclusive</span>(<span class="kw-2">*</span><span class="self">self</span>));
+  <span class="doccomment">/// Get spans for regions in `self` not in `child_spans`.
+  ///
+  /// Example:
+  ///  self:          ---------------
+  ///  child_spans:    ---      --  -
+  ///  output:        -   ------  --
+  </span><span class="kw">fn </span>subtract(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>child_spans: Vec&lt;Span&gt;) -&gt; Vec&lt;Span&gt; {
+    child_spans.retain(|s| s.overlaps_inclusive(<span class="kw-2">*</span><span class="self">self</span>));
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">outer_spans</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">child_spans</span>.<span class="ident">is_empty</span>() {
-      <span class="comment">// Output will be sorted</span>
-      <span class="ident">child_spans</span> <span class="op">=</span> <span class="ident">Span::merge_overlaps</span>(<span class="ident">child_spans</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>outer_spans = <span class="macro">vec!</span>[];
+    <span class="kw">if </span>!child_spans.is_empty() {
+      <span class="comment">// Output will be sorted
+      </span>child_spans = Span::merge_overlaps(child_spans);
 
-      <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">start</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">trim_end</span>(<span class="kw-2">*</span><span class="ident">child_spans</span>.<span class="ident">first</span>().<span class="ident">unwrap</span>()) {
-        <span class="ident">outer_spans</span>.<span class="ident">push</span>(<span class="ident">start</span>);
+      <span class="kw">if let </span><span class="prelude-val">Some</span>(start) = <span class="self">self</span>.trim_end(<span class="kw-2">*</span>child_spans.first().unwrap()) {
+        outer_spans.push(start);
       }
 
-      <span class="kw">for</span> <span class="ident">children</span> <span class="kw">in</span> <span class="ident">child_spans</span>.<span class="ident">windows</span>(<span class="number">2</span>) {
-        <span class="ident">outer_spans</span>.<span class="ident">push</span>(<span class="ident">children</span>[<span class="number">0</span>].<span class="ident">between</span>(<span class="ident">children</span>[<span class="number">1</span>]));
+      <span class="kw">for </span>children <span class="kw">in </span>child_spans.windows(<span class="number">2</span>) {
+        outer_spans.push(children[<span class="number">0</span>].between(children[<span class="number">1</span>]));
       }
 
-      <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">end</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">trim_start</span>(<span class="kw-2">*</span><span class="ident">child_spans</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>()) {
-        <span class="ident">outer_spans</span>.<span class="ident">push</span>(<span class="ident">end</span>);
+      <span class="kw">if let </span><span class="prelude-val">Some</span>(end) = <span class="self">self</span>.trim_start(<span class="kw-2">*</span>child_spans.last().unwrap()) {
+        outer_spans.push(end);
       }
-    } <span class="kw">else</span> {
-      <span class="ident">outer_spans</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="self">self</span>);
+    } <span class="kw">else </span>{
+      outer_spans.push(<span class="kw-2">*</span><span class="self">self</span>);
     };
 
     <span class="macro">trace!</span>(<span class="string">&quot;outer span for {self:?} with inner spans {child_spans:?} is {outer_spans:?}&quot;</span>);
 
-    <span class="ident">outer_spans</span>
+    outer_spans
   }
 
-  <span class="kw">fn</span> <span class="ident">as_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">outer_span</span>: <span class="ident">Span</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
-    <span class="comment">// Before we call source_callsite, we check and see if the span is already local.</span>
-    <span class="comment">// This is important b/c in print!(&quot;{}&quot;, y) if the user selects `y`, the source_callsite</span>
-    <span class="comment">// of that span is the entire macro.</span>
-    <span class="kw">if</span> <span class="ident">outer_span</span>.<span class="ident">contains</span>(<span class="kw-2">*</span><span class="self">self</span>) {
-      <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span>);
-    } <span class="kw">else</span> {
-      <span class="kw">let</span> <span class="ident">sp</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">source_callsite</span>();
-      <span class="kw">if</span> <span class="ident">outer_span</span>.<span class="ident">contains</span>(<span class="ident">sp</span>) {
-        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">sp</span>);
+  <span class="kw">fn </span>as_local(<span class="kw-2">&amp;</span><span class="self">self</span>, outer_span: Span) -&gt; <span class="prelude-ty">Option</span>&lt;Span&gt; {
+    <span class="comment">// Before we call source_callsite, we check and see if the span is already local.
+    // This is important b/c in print!(&quot;{}&quot;, y) if the user selects `y`, the source_callsite
+    // of that span is the entire macro.
+    </span><span class="kw">if </span>outer_span.contains(<span class="kw-2">*</span><span class="self">self</span>) {
+      <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span>);
+    } <span class="kw">else </span>{
+      <span class="kw">let </span>sp = <span class="self">self</span>.source_callsite();
+      <span class="kw">if </span>outer_span.contains(sp) {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(sp);
       }
     }
 
-    <span class="prelude-val">None</span>
+    <span class="prelude-val">None
+  </span>}
+
+  <span class="kw">fn </span>overlaps_inclusive(<span class="kw-2">&amp;</span><span class="self">self</span>, other: Span) -&gt; bool {
+    <span class="kw">let </span>s1 = <span class="self">self</span>.data();
+    <span class="kw">let </span>s2 = other.data();
+    s1.lo &lt;= s2.hi &amp;&amp; s2.lo &lt;= s1.hi
   }
 
-  <span class="kw">fn</span> <span class="ident">overlaps_inclusive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">let</span> <span class="ident">s1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>();
-    <span class="kw">let</span> <span class="ident">s2</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">data</span>();
-    <span class="ident">s1</span>.<span class="ident">lo</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">s2</span>.<span class="ident">hi</span> <span class="op">&amp;&amp;</span> <span class="ident">s2</span>.<span class="ident">lo</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">s1</span>.<span class="ident">hi</span>
-  }
+  <span class="kw">fn </span>merge_overlaps(<span class="kw-2">mut </span>spans: Vec&lt;Span&gt;) -&gt; Vec&lt;Span&gt; {
+    spans.sort_by_key(|s| (s.lo(), s.hi()));
 
-  <span class="kw">fn</span> <span class="ident">merge_overlaps</span>(<span class="kw-2">mut</span> <span class="ident">spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
-    <span class="ident">spans</span>.<span class="ident">sort_by_key</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> (<span class="ident">s</span>.<span class="ident">lo</span>(), <span class="ident">s</span>.<span class="ident">hi</span>()));
-
-    <span class="comment">// See note in Span::subtract</span>
-    <span class="kw">for</span> <span class="ident">span</span> <span class="kw">in</span> <span class="ident">spans</span>.<span class="ident">iter_mut</span>() {
-      <span class="kw-2">*</span><span class="ident">span</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">with_ctxt</span>(<span class="ident">SyntaxContext::root</span>());
+    <span class="comment">// See note in Span::subtract
+    </span><span class="kw">for </span>span <span class="kw">in </span>spans.iter_mut() {
+      <span class="kw-2">*</span>span = span.with_ctxt(SyntaxContext::root());
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">for</span> <span class="ident">span</span> <span class="kw">in</span> <span class="ident">spans</span> {
-      <span class="kw">match</span> <span class="ident">output</span>
-        .<span class="ident">iter_mut</span>()
-        .<span class="ident">find</span>(<span class="op">|</span><span class="ident">other</span><span class="op">|</span> <span class="ident">span</span>.<span class="ident">overlaps_inclusive</span>(<span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">other</span>))
+    <span class="kw">let </span><span class="kw-2">mut </span>output = Vec::new();
+    <span class="kw">for </span>span <span class="kw">in </span>spans {
+      <span class="kw">match </span>output
+        .iter_mut()
+        .find(|other| span.overlaps_inclusive(<span class="kw-2">**</span>other))
       {
-        <span class="prelude-val">Some</span>(<span class="ident">other</span>) =&gt; {
-          <span class="kw-2">*</span><span class="ident">other</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">to</span>(<span class="kw-2">*</span><span class="ident">other</span>);
+        <span class="prelude-val">Some</span>(other) =&gt; {
+          <span class="kw-2">*</span>other = span.to(<span class="kw-2">*</span>other);
         }
-        <span class="prelude-val">None</span> =&gt; {
-          <span class="ident">output</span>.<span class="ident">push</span>(<span class="ident">span</span>);
+        <span class="prelude-val">None </span>=&gt; {
+          output.push(span);
         }
       }
     }
-    <span class="ident">output</span>
+    output
   }
 
-  <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span> {
-    <span class="kw">let</span> <span class="ident">source_map</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>();
-    <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="ident">source_map</span>.<span class="ident">lookup_char_pos</span>(<span class="self">self</span>.<span class="ident">lo</span>());
-    <span class="kw">let</span> <span class="ident">hi</span> <span class="op">=</span> <span class="ident">source_map</span>.<span class="ident">lookup_char_pos</span>(<span class="self">self</span>.<span class="ident">hi</span>());
-    <span class="kw">let</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="ident">source_map</span>.<span class="ident">span_to_snippet</span>(<span class="kw-2">*</span><span class="self">self</span>).<span class="ident">unwrap</span>();
+  <span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; String {
+    <span class="kw">let </span>source_map = tcx.sess.source_map();
+    <span class="kw">let </span>lo = source_map.lookup_char_pos(<span class="self">self</span>.lo());
+    <span class="kw">let </span>hi = source_map.lookup_char_pos(<span class="self">self</span>.hi());
+    <span class="kw">let </span>snippet = source_map.span_to_snippet(<span class="kw-2">*</span><span class="self">self</span>).unwrap();
     <span class="macro">format!</span>(
       <span class="string">&quot;{snippet} ({}:{}-{}:{})&quot;</span>,
-      <span class="ident">lo</span>.<span class="ident">line</span>,
-      <span class="ident">lo</span>.<span class="ident">col</span>.<span class="ident">to_usize</span>() <span class="op">+</span> <span class="number">1</span>,
-      <span class="ident">hi</span>.<span class="ident">line</span>,
-      <span class="ident">hi</span>.<span class="ident">col</span>.<span class="ident">to_usize</span>() <span class="op">+</span> <span class="number">1</span>
-    )
+      lo.line,
+      lo.col.to_usize() + <span class="number">1</span>,
+      hi.line,
+      hi.col.to_usize() + <span class="number">1
+    </span>)
   }
 
-  <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-    <span class="self">self</span>.<span class="ident">hi</span>().<span class="number">0</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">lo</span>().<span class="number">0</span>
-  }
+  <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+    <span class="self">self</span>.hi().<span class="number">0 </span>- <span class="self">self</span>.lo().<span class="number">0
+  </span>}
 
-  <span class="kw">fn</span> <span class="ident">trim_leading_whitespace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source_map</span>: <span class="kw-2">&amp;</span><span class="ident">SourceMap</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="ident">source_map</span>.<span class="ident">span_to_snippet</span>(<span class="kw-2">*</span><span class="self">self</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spans</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lo</span>();
-    <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">snippet</span>.<span class="ident">split</span>(<span class="string">&#39;\n&#39;</span>) {
-      <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">line</span>
-        .<span class="ident">chars</span>()
-        .<span class="ident">take_while</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">is_whitespace</span>())
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">len_utf8</span>())
-        .<span class="ident">sum</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>();
-      <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> (<span class="ident">start</span> <span class="op">+</span> <span class="ident">BytePos</span>(<span class="ident">line</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)).<span class="ident">min</span>(<span class="self">self</span>.<span class="ident">hi</span>());
-      <span class="ident">spans</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">with_lo</span>(<span class="ident">start</span> <span class="op">+</span> <span class="ident">BytePos</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u32</span>)).<span class="ident">with_hi</span>(<span class="ident">end</span>));
-      <span class="ident">start</span> <span class="op">=</span> <span class="ident">end</span> <span class="op">+</span> <span class="ident">BytePos</span>(<span class="number">1</span>);
+  <span class="kw">fn </span>trim_leading_whitespace(<span class="kw-2">&amp;</span><span class="self">self</span>, source_map: <span class="kw-2">&amp;</span>SourceMap) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;Span&gt;&gt; {
+    <span class="kw">let </span>snippet = source_map.span_to_snippet(<span class="kw-2">*</span><span class="self">self</span>).ok()<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>spans = Vec::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>start = <span class="self">self</span>.lo();
+    <span class="kw">for </span>line <span class="kw">in </span>snippet.split(<span class="string">&#39;\n&#39;</span>) {
+      <span class="kw">let </span>offset = line
+        .chars()
+        .take_while(|c| c.is_whitespace())
+        .map(|c| c.len_utf8())
+        .sum::&lt;usize&gt;();
+      <span class="kw">let </span>end = (start + BytePos(line.len() <span class="kw">as </span>u32)).min(<span class="self">self</span>.hi());
+      spans.push(<span class="self">self</span>.with_lo(start + BytePos(offset <span class="kw">as </span>u32)).with_hi(end));
+      start = end + BytePos(<span class="number">1</span>);
     }
-    <span class="prelude-val">Some</span>(<span class="ident">spans</span>)
+    <span class="prelude-val">Some</span>(spans)
   }
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SpanDataExt</span> {
-  <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span>;
+<span class="kw">pub trait </span>SpanDataExt {
+  <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32;
 }
 
-<span class="kw">impl</span> <span class="ident">SpanDataExt</span> <span class="kw">for</span> <span class="ident">SpanData</span> {
-  <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-    <span class="self">self</span>.<span class="ident">hi</span>.<span class="number">0</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">lo</span>.<span class="number">0</span>
+<span class="kw">impl </span>SpanDataExt <span class="kw">for </span>SpanData {
+  <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+    <span class="self">self</span>.hi.<span class="number">0 </span>- <span class="self">self</span>.lo.<span class="number">0
+  </span>}
+}
+
+<span class="kw">pub trait </span>MutabilityExt {
+  <span class="kw">fn </span>more_permissive_than(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; bool;
+}
+
+<span class="kw">impl </span>MutabilityExt <span class="kw">for </span>Mutability {
+  <span class="kw">fn </span>more_permissive_than(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; bool {
+    !<span class="macro">matches!</span>((<span class="self">self</span>, other), (Mutability::Not, Mutability::Mut))
   }
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">MutabilityExt</span> {
-  <span class="kw">fn</span> <span class="ident">more_permissive_than</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="ident">bool</span>;
-}
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+  <span class="kw">use </span>rustc_span::BytePos;
 
-<span class="kw">impl</span> <span class="ident">MutabilityExt</span> <span class="kw">for</span> <span class="ident">Mutability</span> {
-  <span class="kw">fn</span> <span class="ident">more_permissive_than</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-    <span class="op">!</span><span class="macro">matches!</span>((<span class="self">self</span>, <span class="ident">other</span>), (<span class="ident">Mutability::Not</span>, <span class="ident">Mutability::Mut</span>))
-  }
-}
+  <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-  <span class="kw">use</span> <span class="ident">rustc_span::BytePos</span>;
-
-  <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">test_span_subtract</span>() {
-    <span class="ident">rustc_span::create_default_session_if_not_set_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-      <span class="kw">let</span> <span class="ident">mk</span> <span class="op">=</span> <span class="op">|</span><span class="ident">lo</span>, <span class="ident">hi</span><span class="op">|</span> <span class="ident">Span::with_root_ctxt</span>(<span class="ident">BytePos</span>(<span class="ident">lo</span>), <span class="ident">BytePos</span>(<span class="ident">hi</span>));
-      <span class="kw">let</span> <span class="ident">outer</span> <span class="op">=</span> <span class="ident">mk</span>(<span class="number">1</span>, <span class="number">10</span>);
-      <span class="kw">let</span> <span class="ident">inner</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">mk</span>(<span class="number">0</span>, <span class="number">2</span>), <span class="ident">mk</span>(<span class="number">3</span>, <span class="number">4</span>), <span class="ident">mk</span>(<span class="number">3</span>, <span class="number">5</span>), <span class="ident">mk</span>(<span class="number">7</span>, <span class="number">8</span>), <span class="ident">mk</span>(<span class="number">9</span>, <span class="number">13</span>)];
-      <span class="kw">let</span> <span class="ident">desired</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">mk</span>(<span class="number">2</span>, <span class="number">3</span>), <span class="ident">mk</span>(<span class="number">5</span>, <span class="number">7</span>), <span class="ident">mk</span>(<span class="number">8</span>, <span class="number">9</span>)];
-      <span class="macro">assert_eq!</span>(<span class="ident">outer</span>.<span class="ident">subtract</span>(<span class="ident">inner</span>), <span class="ident">desired</span>);
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>test_span_subtract() {
+    rustc_span::create_default_session_if_not_set_then(|<span class="kw">_</span>| {
+      <span class="kw">let </span>mk = |lo, hi| Span::with_root_ctxt(BytePos(lo), BytePos(hi));
+      <span class="kw">let </span>outer = mk(<span class="number">1</span>, <span class="number">10</span>);
+      <span class="kw">let </span>inner: Vec&lt;Span&gt; = <span class="macro">vec!</span>[mk(<span class="number">0</span>, <span class="number">2</span>), mk(<span class="number">3</span>, <span class="number">4</span>), mk(<span class="number">3</span>, <span class="number">5</span>), mk(<span class="number">7</span>, <span class="number">8</span>), mk(<span class="number">9</span>, <span class="number">13</span>)];
+      <span class="kw">let </span>desired: Vec&lt;Span&gt; = <span class="macro">vec!</span>[mk(<span class="number">2</span>, <span class="number">3</span>), mk(<span class="number">5</span>, <span class="number">7</span>), mk(<span class="number">8</span>, <span class="number">9</span>)];
+      <span class="macro">assert_eq!</span>(outer.subtract(inner), desired);
     });
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

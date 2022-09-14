@@ -1,13 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-segmentation-1.9.0/src/sentence.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sentence.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unicode_segmentation/index.html"><div class="logo-container"><img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../unicode_segmentation/index.html"><div class="logo-container">
-                    <img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../unicode_segmentation/index.html">
-                        <img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-segmentation-1.10.0/src/sentence.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sentence.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unicode_segmentation/index.html"><div class="logo-container"><img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../unicode_segmentation/index.html"><div class="logo-container">
+                    <img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../unicode_segmentation/index.html">
+                        <img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -422,421 +415,420 @@
 <span id="413">413</span>
 <span id="414">414</span>
 <span id="415">415</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2012-2014 The Rust Project Developers. See the COPYRIGHT</span>
-<span class="comment">// file at the top-level directory of this distribution and at</span>
-<span class="comment">// http://rust-lang.org/COPYRIGHT.</span>
-<span class="comment">//</span>
-<span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or</span>
-<span class="comment">// http://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license</span>
-<span class="comment">// &lt;LICENSE-MIT or http://opensource.org/licenses/MIT&gt;, at your</span>
-<span class="comment">// option. This file may not be copied, modified, or distributed</span>
-<span class="comment">// except according to those terms.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2012-2014 The Rust Project Developers. See the COPYRIGHT
+// file at the top-level directory of this distribution and at
+// http://rust-lang.org/COPYRIGHT.
+//
+// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license
+// &lt;LICENSE-MIT or http://opensource.org/licenses/MIT&gt;, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
 
-<span class="kw">use</span> <span class="ident">core::cmp</span>;
-<span class="kw">use</span> <span class="ident">core::iter::Filter</span>;
+</span><span class="kw">use </span>core::cmp;
+<span class="kw">use </span>core::iter::Filter;
 
-<span class="comment">// All of the logic for forward iteration over sentences</span>
-<span class="kw">mod</span> <span class="ident">fwd</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tables::sentence::SentenceCat</span>;
-    <span class="kw">use</span> <span class="ident">core::cmp</span>;
+<span class="comment">// All of the logic for forward iteration over sentences
+</span><span class="kw">mod </span>fwd {
+    <span class="kw">use </span><span class="kw">crate</span>::tables::sentence::SentenceCat;
+    <span class="kw">use </span>core::cmp;
 
-    <span class="comment">// Describe a parsed part of source string as described in this table:</span>
-    <span class="comment">// https://unicode.org/reports/tr29/#Default_Sentence_Boundaries</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-    <span class="kw">enum</span> <span class="ident">StatePart</span> {
-        <span class="ident">Sot</span>,
-        <span class="ident">Eot</span>,
-        <span class="ident">Other</span>,
-        <span class="ident">CR</span>,
-        <span class="ident">LF</span>,
-        <span class="ident">Sep</span>,
-        <span class="ident">ATerm</span>,
-        <span class="ident">UpperLower</span>,
-        <span class="ident">ClosePlus</span>,
-        <span class="ident">SpPlus</span>,
-        <span class="ident">STerm</span>,
+    <span class="comment">// Describe a parsed part of source string as described in this table:
+    // https://unicode.org/reports/tr29/#Default_Sentence_Boundaries
+    </span><span class="attribute">#[derive(Clone, Copy, PartialEq, Eq)]
+    </span><span class="kw">enum </span>StatePart {
+        Sot,
+        Eot,
+        Other,
+        CR,
+        LF,
+        Sep,
+        ATerm,
+        UpperLower,
+        ClosePlus,
+        SpPlus,
+        STerm,
     }
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-    <span class="kw">struct</span> <span class="ident">SentenceBreaksState</span>(<span class="kw">pub</span> [<span class="ident">StatePart</span>; <span class="number">4</span>]);
+    <span class="attribute">#[derive(Clone, PartialEq, Eq)]
+    </span><span class="kw">struct </span>SentenceBreaksState(<span class="kw">pub </span>[StatePart; <span class="number">4</span>]);
 
-    <span class="kw">const</span> <span class="ident">INITIAL_STATE</span>: <span class="ident">SentenceBreaksState</span> <span class="op">=</span> <span class="ident">SentenceBreaksState</span>([
-        <span class="ident">StatePart::Sot</span>,
-        <span class="ident">StatePart::Sot</span>,
-        <span class="ident">StatePart::Sot</span>,
-        <span class="ident">StatePart::Sot</span>,
+    <span class="kw">const </span>INITIAL_STATE: SentenceBreaksState = SentenceBreaksState([
+        StatePart::Sot,
+        StatePart::Sot,
+        StatePart::Sot,
+        StatePart::Sot,
     ]);
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SentenceBreaks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">pub</span> <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
-        <span class="ident">pos</span>: <span class="ident">usize</span>,
-        <span class="ident">state</span>: <span class="ident">SentenceBreaksState</span>,
+    <span class="attribute">#[derive(Clone)]
+    </span><span class="kw">pub struct </span>SentenceBreaks&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">pub </span>string: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+        pos: usize,
+        state: SentenceBreaksState,
     }
 
-    <span class="kw">impl</span> <span class="ident">SentenceBreaksState</span> {
-        <span class="comment">// Attempt to advance the internal state by one part</span>
-        <span class="comment">// Whitespace and some punctutation will be collapsed</span>
-        <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cat</span>: <span class="ident">SentenceCat</span>) -&gt; <span class="ident">SentenceBreaksState</span> {
-            <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="self">self</span>;
-            <span class="kw">let</span> <span class="ident">parts</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">parts</span>[<span class="number">3</span>], <span class="ident">cat</span>) {
-                (<span class="ident">StatePart::ClosePlus</span>, <span class="ident">SentenceCat::SC_Close</span>) =&gt; <span class="ident">parts</span>,
-                (<span class="ident">StatePart::SpPlus</span>, <span class="ident">SentenceCat::SC_Sp</span>) =&gt; <span class="ident">parts</span>,
-                <span class="kw">_</span> =&gt; [
-                    <span class="ident">parts</span>[<span class="number">1</span>],
-                    <span class="ident">parts</span>[<span class="number">2</span>],
-                    <span class="ident">parts</span>[<span class="number">3</span>],
-                    <span class="kw">match</span> <span class="ident">cat</span> {
-                        <span class="ident">SentenceCat::SC_CR</span> =&gt; <span class="ident">StatePart::CR</span>,
-                        <span class="ident">SentenceCat::SC_LF</span> =&gt; <span class="ident">StatePart::LF</span>,
-                        <span class="ident">SentenceCat::SC_Sep</span> =&gt; <span class="ident">StatePart::Sep</span>,
-                        <span class="ident">SentenceCat::SC_ATerm</span> =&gt; <span class="ident">StatePart::ATerm</span>,
-                        <span class="ident">SentenceCat::SC_Upper</span> <span class="op">|</span> <span class="ident">SentenceCat::SC_Lower</span> =&gt; <span class="ident">StatePart::UpperLower</span>,
-                        <span class="ident">SentenceCat::SC_Close</span> =&gt; <span class="ident">StatePart::ClosePlus</span>,
-                        <span class="ident">SentenceCat::SC_Sp</span> =&gt; <span class="ident">StatePart::SpPlus</span>,
-                        <span class="ident">SentenceCat::SC_STerm</span> =&gt; <span class="ident">StatePart::STerm</span>,
-                        <span class="kw">_</span> =&gt; <span class="ident">StatePart::Other</span>,
+    <span class="kw">impl </span>SentenceBreaksState {
+        <span class="comment">// Attempt to advance the internal state by one part
+        // Whitespace and some punctutation will be collapsed
+        </span><span class="kw">fn </span>next(<span class="kw-2">&amp;</span><span class="self">self</span>, cat: SentenceCat) -&gt; SentenceBreaksState {
+            <span class="kw">let </span><span class="kw-2">&amp;</span>SentenceBreaksState(parts) = <span class="self">self</span>;
+            <span class="kw">let </span>parts = <span class="kw">match </span>(parts[<span class="number">3</span>], cat) {
+                (StatePart::ClosePlus, SentenceCat::SC_Close) =&gt; parts,
+                (StatePart::SpPlus, SentenceCat::SC_Sp) =&gt; parts,
+                <span class="kw">_ </span>=&gt; [
+                    parts[<span class="number">1</span>],
+                    parts[<span class="number">2</span>],
+                    parts[<span class="number">3</span>],
+                    <span class="kw">match </span>cat {
+                        SentenceCat::SC_CR =&gt; StatePart::CR,
+                        SentenceCat::SC_LF =&gt; StatePart::LF,
+                        SentenceCat::SC_Sep =&gt; StatePart::Sep,
+                        SentenceCat::SC_ATerm =&gt; StatePart::ATerm,
+                        SentenceCat::SC_Upper | SentenceCat::SC_Lower =&gt; StatePart::UpperLower,
+                        SentenceCat::SC_Close =&gt; StatePart::ClosePlus,
+                        SentenceCat::SC_Sp =&gt; StatePart::SpPlus,
+                        SentenceCat::SC_STerm =&gt; StatePart::STerm,
+                        <span class="kw">_ </span>=&gt; StatePart::Other,
                     },
                 ],
             };
-            <span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>)
+            SentenceBreaksState(parts)
         }
 
-        <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SentenceBreaksState</span> {
-            <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="self">self</span>;
-            <span class="ident">SentenceBreaksState</span>([<span class="ident">parts</span>[<span class="number">1</span>], <span class="ident">parts</span>[<span class="number">2</span>], <span class="ident">parts</span>[<span class="number">3</span>], <span class="ident">StatePart::Eot</span>])
+        <span class="kw">fn </span>end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SentenceBreaksState {
+            <span class="kw">let </span><span class="kw-2">&amp;</span>SentenceBreaksState(parts) = <span class="self">self</span>;
+            SentenceBreaksState([parts[<span class="number">1</span>], parts[<span class="number">2</span>], parts[<span class="number">3</span>], StatePart::Eot])
         }
 
-        <span class="comment">// Helper function to check if state head matches a single `StatePart`</span>
-        <span class="kw">fn</span> <span class="ident">match1</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">part</span>: <span class="ident">StatePart</span>) -&gt; <span class="ident">bool</span> {
-            <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="self">self</span>;
-            <span class="ident">part</span> <span class="op">==</span> <span class="ident">parts</span>[<span class="number">3</span>]
+        <span class="comment">// Helper function to check if state head matches a single `StatePart`
+        </span><span class="kw">fn </span>match1(<span class="kw-2">&amp;</span><span class="self">self</span>, part: StatePart) -&gt; bool {
+            <span class="kw">let </span><span class="kw-2">&amp;</span>SentenceBreaksState(parts) = <span class="self">self</span>;
+            part == parts[<span class="number">3</span>]
         }
 
-        <span class="comment">// Helper function to check if first two `StateParts` in state match</span>
-        <span class="comment">// the given two</span>
-        <span class="kw">fn</span> <span class="ident">match2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">part1</span>: <span class="ident">StatePart</span>, <span class="ident">part2</span>: <span class="ident">StatePart</span>) -&gt; <span class="ident">bool</span> {
-            <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="self">self</span>;
-            <span class="ident">part1</span> <span class="op">==</span> <span class="ident">parts</span>[<span class="number">2</span>] <span class="op">&amp;&amp;</span> <span class="ident">part2</span> <span class="op">==</span> <span class="ident">parts</span>[<span class="number">3</span>]
+        <span class="comment">// Helper function to check if first two `StateParts` in state match
+        // the given two
+        </span><span class="kw">fn </span>match2(<span class="kw-2">&amp;</span><span class="self">self</span>, part1: StatePart, part2: StatePart) -&gt; bool {
+            <span class="kw">let </span><span class="kw-2">&amp;</span>SentenceBreaksState(parts) = <span class="self">self</span>;
+            part1 == parts[<span class="number">2</span>] &amp;&amp; part2 == parts[<span class="number">3</span>]
         }
     }
 
-    <span class="comment">// https://unicode.org/reports/tr29/#SB8</span>
-    <span class="comment">// TODO cache this, it is currently quadratic</span>
-    <span class="kw">fn</span> <span class="ident">match_sb8</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>, <span class="ident">ahead</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="ident">state</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parts</span>[<span class="number">3</span>] <span class="op">==</span> <span class="ident">StatePart::SpPlus</span> { <span class="number">2</span> } <span class="kw">else</span> { <span class="number">3</span> };
-        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart::ClosePlus</span> {
-            <span class="ident">idx</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>
-        }
+    <span class="comment">// https://unicode.org/reports/tr29/#SB8
+    // TODO cache this, it is currently quadratic
+    </span><span class="kw">fn </span>match_sb8(state: <span class="kw-2">&amp;</span>SentenceBreaksState, ahead: <span class="kw-2">&amp;</span>str) -&gt; bool {
+        <span class="kw">let </span><span class="kw-2">&amp;</span>SentenceBreaksState(parts) = state;
+        <span class="kw">let </span><span class="kw-2">mut </span>idx = <span class="kw">if </span>parts[<span class="number">3</span>] == StatePart::SpPlus { <span class="number">2 </span>} <span class="kw">else </span>{ <span class="number">3 </span>};
+        <span class="kw">if </span>parts[idx] == StatePart::ClosePlus {
+            idx -= <span class="number">1
+        </span>}
 
-        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart::ATerm</span> {
-            <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tables::sentence</span> <span class="kw">as</span> <span class="ident">se</span>;
+        <span class="kw">if </span>parts[idx] == StatePart::ATerm {
+            <span class="kw">use </span><span class="kw">crate</span>::tables::sentence <span class="kw">as </span>se;
 
-            <span class="kw">for</span> <span class="ident">next_char</span> <span class="kw">in</span> <span class="ident">ahead</span>.<span class="ident">chars</span>() {
-                <span class="comment">//( ¬(OLetter | Upper | Lower | ParaSep | SATerm) )* Lower</span>
-                <span class="kw">match</span> <span class="ident">se::sentence_category</span>(<span class="ident">next_char</span>).<span class="number">2</span> {
-                    <span class="ident">se::SC_Lower</span> =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
-                    <span class="ident">se::SC_OLetter</span>
-                    <span class="op">|</span> <span class="ident">se::SC_Upper</span>
-                    <span class="op">|</span> <span class="ident">se::SC_Sep</span>
-                    <span class="op">|</span> <span class="ident">se::SC_CR</span>
-                    <span class="op">|</span> <span class="ident">se::SC_LF</span>
-                    <span class="op">|</span> <span class="ident">se::SC_STerm</span>
-                    <span class="op">|</span> <span class="ident">se::SC_ATerm</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
-                    <span class="kw">_</span> =&gt; <span class="kw">continue</span>,
+            <span class="kw">for </span>next_char <span class="kw">in </span>ahead.chars() {
+                <span class="comment">//( ¬(OLetter | Upper | Lower | ParaSep | SATerm) )* Lower
+                </span><span class="kw">match </span>se::sentence_category(next_char).<span class="number">2 </span>{
+                    se::SC_Lower =&gt; <span class="kw">return </span><span class="bool-val">true</span>,
+                    se::SC_OLetter
+                    | se::SC_Upper
+                    | se::SC_Sep
+                    | se::SC_CR
+                    | se::SC_LF
+                    | se::SC_STerm
+                    | se::SC_ATerm =&gt; <span class="kw">return </span><span class="bool-val">false</span>,
+                    <span class="kw">_ </span>=&gt; <span class="kw">continue</span>,
                 }
             }
         }
 
-        <span class="bool-val">false</span>
+        <span class="bool-val">false
+    </span>}
+
+    <span class="comment">// https://unicode.org/reports/tr29/#SB8a
+    </span><span class="kw">fn </span>match_sb8a(state: <span class="kw-2">&amp;</span>SentenceBreaksState) -&gt; bool {
+        <span class="comment">// SATerm Close* Sp*
+        </span><span class="kw">let </span><span class="kw-2">&amp;</span>SentenceBreaksState(parts) = state;
+        <span class="kw">let </span><span class="kw-2">mut </span>idx = <span class="kw">if </span>parts[<span class="number">3</span>] == StatePart::SpPlus { <span class="number">2 </span>} <span class="kw">else </span>{ <span class="number">3 </span>};
+        <span class="kw">if </span>parts[idx] == StatePart::ClosePlus {
+            idx -= <span class="number">1
+        </span>}
+        parts[idx] == StatePart::STerm || parts[idx] == StatePart::ATerm
     }
 
-    <span class="comment">// https://unicode.org/reports/tr29/#SB8a</span>
-    <span class="kw">fn</span> <span class="ident">match_sb8a</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// SATerm Close* Sp*</span>
-        <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="ident">state</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parts</span>[<span class="number">3</span>] <span class="op">==</span> <span class="ident">StatePart::SpPlus</span> { <span class="number">2</span> } <span class="kw">else</span> { <span class="number">3</span> };
-        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart::ClosePlus</span> {
-            <span class="ident">idx</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>
-        }
-        <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart::STerm</span> <span class="op">|</span><span class="op">|</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart::ATerm</span>
+    <span class="comment">// https://unicode.org/reports/tr29/#SB9
+    </span><span class="kw">fn </span>match_sb9(state: <span class="kw-2">&amp;</span>SentenceBreaksState) -&gt; bool {
+        <span class="comment">// SATerm Close*
+        </span><span class="kw">let </span><span class="kw-2">&amp;</span>SentenceBreaksState(parts) = state;
+        <span class="kw">let </span>idx = <span class="kw">if </span>parts[<span class="number">3</span>] == StatePart::ClosePlus {
+            <span class="number">2
+        </span>} <span class="kw">else </span>{
+            <span class="number">3
+        </span>};
+        parts[idx] == StatePart::STerm || parts[idx] == StatePart::ATerm
     }
 
-    <span class="comment">// https://unicode.org/reports/tr29/#SB9</span>
-    <span class="kw">fn</span> <span class="ident">match_sb9</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// SATerm Close*</span>
-        <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="ident">state</span>;
-        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parts</span>[<span class="number">3</span>] <span class="op">==</span> <span class="ident">StatePart::ClosePlus</span> {
-            <span class="number">2</span>
-        } <span class="kw">else</span> {
-            <span class="number">3</span>
+    <span class="comment">// https://unicode.org/reports/tr29/#SB11
+    </span><span class="kw">fn </span>match_sb11(state: <span class="kw-2">&amp;</span>SentenceBreaksState) -&gt; bool {
+        <span class="comment">// SATerm Close* Sp* ParaSep?
+        </span><span class="kw">let </span><span class="kw-2">&amp;</span>SentenceBreaksState(parts) = state;
+        <span class="kw">let </span><span class="kw-2">mut </span>idx = <span class="kw">match </span>parts[<span class="number">3</span>] {
+            StatePart::Sep | StatePart::CR | StatePart::LF =&gt; <span class="number">2</span>,
+            <span class="kw">_ </span>=&gt; <span class="number">3</span>,
         };
-        <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart::STerm</span> <span class="op">|</span><span class="op">|</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart::ATerm</span>
+
+        <span class="kw">if </span>parts[idx] == StatePart::SpPlus {
+            idx -= <span class="number">1
+        </span>}
+        <span class="kw">if </span>parts[idx] == StatePart::ClosePlus {
+            idx -= <span class="number">1
+        </span>}
+
+        parts[idx] == StatePart::STerm || parts[idx] == StatePart::ATerm
     }
 
-    <span class="comment">// https://unicode.org/reports/tr29/#SB11</span>
-    <span class="kw">fn</span> <span class="ident">match_sb11</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// SATerm Close* Sp* ParaSep?</span>
-        <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="ident">state</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">parts</span>[<span class="number">3</span>] {
-            <span class="ident">StatePart::Sep</span> <span class="op">|</span> <span class="ident">StatePart::CR</span> <span class="op">|</span> <span class="ident">StatePart::LF</span> =&gt; <span class="number">2</span>,
-            <span class="kw">_</span> =&gt; <span class="number">3</span>,
-        };
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>SentenceBreaks&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="comment">// Returns the index of the character which follows a break
+        </span><span class="kw">type </span>Item = usize;
 
-        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart::SpPlus</span> {
-            <span class="ident">idx</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>
-        }
-        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart::ClosePlus</span> {
-            <span class="ident">idx</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>
+        <span class="attribute">#[inline]
+        </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+            <span class="kw">let </span>slen = <span class="self">self</span>.string.len();
+            <span class="comment">// A sentence could be one character
+            </span>(cmp::min(slen, <span class="number">2</span>), <span class="prelude-val">Some</span>(slen + <span class="number">1</span>))
         }
 
-        <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart::STerm</span> <span class="op">|</span><span class="op">|</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart::ATerm</span>
-    }
+        <span class="attribute">#[inline]
+        </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+            <span class="kw">use </span><span class="kw">crate</span>::tables::sentence <span class="kw">as </span>se;
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">SentenceBreaks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="comment">// Returns the index of the character which follows a break</span>
-        <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">usize</span>;
+            <span class="kw">for </span>next_char <span class="kw">in </span><span class="self">self</span>.string[<span class="self">self</span>.pos..].chars() {
+                <span class="kw">let </span>position_before = <span class="self">self</span>.pos;
+                <span class="kw">let </span>state_before = <span class="self">self</span>.state.clone();
 
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-            <span class="kw">let</span> <span class="ident">slen</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">string</span>.<span class="ident">len</span>();
-            <span class="comment">// A sentence could be one character</span>
-            (<span class="ident">cmp::min</span>(<span class="ident">slen</span>, <span class="number">2</span>), <span class="prelude-val">Some</span>(<span class="ident">slen</span> <span class="op">+</span> <span class="number">1</span>))
-        }
+                <span class="kw">let </span>next_cat = se::sentence_category(next_char).<span class="number">2</span>;
 
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-            <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tables::sentence</span> <span class="kw">as</span> <span class="ident">se</span>;
+                <span class="self">self</span>.pos += next_char.len_utf8();
+                <span class="self">self</span>.state = <span class="self">self</span>.state.next(next_cat);
 
-            <span class="kw">for</span> <span class="ident">next_char</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">string</span>[<span class="self">self</span>.<span class="ident">pos</span>..].<span class="ident">chars</span>() {
-                <span class="kw">let</span> <span class="ident">position_before</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pos</span>;
-                <span class="kw">let</span> <span class="ident">state_before</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">clone</span>();
+                <span class="kw">match </span>next_cat {
+                    <span class="comment">// SB1 https://unicode.org/reports/tr29/#SB1
+                    </span><span class="kw">_ if </span>state_before.match1(StatePart::Sot) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(position_before),
 
-                <span class="kw">let</span> <span class="ident">next_cat</span> <span class="op">=</span> <span class="ident">se::sentence_category</span>(<span class="ident">next_char</span>).<span class="number">2</span>;
+                    <span class="comment">// SB2 is handled when inner iterator (chars) is finished
 
-                <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">next_char</span>.<span class="ident">len_utf8</span>();
-                <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">next</span>(<span class="ident">next_cat</span>);
+                    // SB3 https://unicode.org/reports/tr29/#SB3
+                    </span>SentenceCat::SC_LF <span class="kw">if </span>state_before.match1(StatePart::CR) =&gt; <span class="kw">continue</span>,
 
-                <span class="kw">match</span> <span class="ident">next_cat</span> {
-                    <span class="comment">// SB1 https://unicode.org/reports/tr29/#SB1</span>
-                    <span class="kw">_</span> <span class="kw">if</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart::Sot</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">position_before</span>),
-
-                    <span class="comment">// SB2 is handled when inner iterator (chars) is finished</span>
-
-                    <span class="comment">// SB3 https://unicode.org/reports/tr29/#SB3</span>
-                    <span class="ident">SentenceCat::SC_LF</span> <span class="kw">if</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart::CR</span>) =&gt; <span class="kw">continue</span>,
-
-                    <span class="comment">// SB4 https://unicode.org/reports/tr29/#SB4</span>
-                    <span class="kw">_</span> <span class="kw">if</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart::Sep</span>)
-                        <span class="op">|</span><span class="op">|</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart::CR</span>)
-                        <span class="op">|</span><span class="op">|</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart::LF</span>) =&gt;
+                    <span class="comment">// SB4 https://unicode.org/reports/tr29/#SB4
+                    </span><span class="kw">_ if </span>state_before.match1(StatePart::Sep)
+                        || state_before.match1(StatePart::CR)
+                        || state_before.match1(StatePart::LF) =&gt;
                     {
-                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">position_before</span>)
+                        <span class="kw">return </span><span class="prelude-val">Some</span>(position_before)
                     }
 
-                    <span class="comment">// SB5 https://unicode.org/reports/tr29/#SB5</span>
-                    <span class="ident">SentenceCat::SC_Extend</span> <span class="op">|</span> <span class="ident">SentenceCat::SC_Format</span> =&gt; <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">state_before</span>,
+                    <span class="comment">// SB5 https://unicode.org/reports/tr29/#SB5
+                    </span>SentenceCat::SC_Extend | SentenceCat::SC_Format =&gt; <span class="self">self</span>.state = state_before,
 
-                    <span class="comment">// SB6 https://unicode.org/reports/tr29/#SB6</span>
-                    <span class="ident">SentenceCat::SC_Numeric</span> <span class="kw">if</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart::ATerm</span>) =&gt; <span class="kw">continue</span>,
+                    <span class="comment">// SB6 https://unicode.org/reports/tr29/#SB6
+                    </span>SentenceCat::SC_Numeric <span class="kw">if </span>state_before.match1(StatePart::ATerm) =&gt; <span class="kw">continue</span>,
 
-                    <span class="comment">// SB7 https://unicode.org/reports/tr29/#SB7</span>
-                    <span class="ident">SentenceCat::SC_Upper</span>
-                        <span class="kw">if</span> <span class="ident">state_before</span>.<span class="ident">match2</span>(<span class="ident">StatePart::UpperLower</span>, <span class="ident">StatePart::ATerm</span>) =&gt;
+                    <span class="comment">// SB7 https://unicode.org/reports/tr29/#SB7
+                    </span>SentenceCat::SC_Upper
+                        <span class="kw">if </span>state_before.match2(StatePart::UpperLower, StatePart::ATerm) =&gt;
                     {
-                        <span class="kw">continue</span>
-                    }
+                        <span class="kw">continue
+                    </span>}
 
-                    <span class="comment">// SB8 https://unicode.org/reports/tr29/#SB8</span>
-                    <span class="kw">_</span> <span class="kw">if</span> <span class="ident">match_sb8</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">string</span>[<span class="ident">position_before</span>..]) =&gt; <span class="kw">continue</span>,
+                    <span class="comment">// SB8 https://unicode.org/reports/tr29/#SB8
+                    </span><span class="kw">_ if </span>match_sb8(<span class="kw-2">&amp;</span>state_before, <span class="kw-2">&amp;</span><span class="self">self</span>.string[position_before..]) =&gt; <span class="kw">continue</span>,
 
-                    <span class="comment">// SB8a https://unicode.org/reports/tr29/#SB8a</span>
-                    <span class="ident">SentenceCat::SC_SContinue</span> <span class="op">|</span> <span class="ident">SentenceCat::SC_STerm</span> <span class="op">|</span> <span class="ident">SentenceCat::SC_ATerm</span>
-                        <span class="kw">if</span> <span class="ident">match_sb8a</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>) =&gt;
+                    <span class="comment">// SB8a https://unicode.org/reports/tr29/#SB8a
+                    </span>SentenceCat::SC_SContinue | SentenceCat::SC_STerm | SentenceCat::SC_ATerm
+                        <span class="kw">if </span>match_sb8a(<span class="kw-2">&amp;</span>state_before) =&gt;
                     {
-                        <span class="kw">continue</span>
-                    }
+                        <span class="kw">continue
+                    </span>}
 
-                    <span class="comment">// SB9 https://unicode.org/reports/tr29/#SB9</span>
-                    <span class="ident">SentenceCat::SC_Close</span>
-                    <span class="op">|</span> <span class="ident">SentenceCat::SC_Sp</span>
-                    <span class="op">|</span> <span class="ident">SentenceCat::SC_Sep</span>
-                    <span class="op">|</span> <span class="ident">SentenceCat::SC_CR</span>
-                    <span class="op">|</span> <span class="ident">SentenceCat::SC_LF</span>
-                        <span class="kw">if</span> <span class="ident">match_sb9</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>) =&gt;
+                    <span class="comment">// SB9 https://unicode.org/reports/tr29/#SB9
+                    </span>SentenceCat::SC_Close
+                    | SentenceCat::SC_Sp
+                    | SentenceCat::SC_Sep
+                    | SentenceCat::SC_CR
+                    | SentenceCat::SC_LF
+                        <span class="kw">if </span>match_sb9(<span class="kw-2">&amp;</span>state_before) =&gt;
                     {
-                        <span class="kw">continue</span>
-                    }
+                        <span class="kw">continue
+                    </span>}
 
-                    <span class="comment">// SB10 https://unicode.org/reports/tr29/#SB10</span>
-                    <span class="ident">SentenceCat::SC_Sp</span>
-                    <span class="op">|</span> <span class="ident">SentenceCat::SC_Sep</span>
-                    <span class="op">|</span> <span class="ident">SentenceCat::SC_CR</span>
-                    <span class="op">|</span> <span class="ident">SentenceCat::SC_LF</span>
-                        <span class="kw">if</span> <span class="ident">match_sb8a</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>) =&gt;
+                    <span class="comment">// SB10 https://unicode.org/reports/tr29/#SB10
+                    </span>SentenceCat::SC_Sp
+                    | SentenceCat::SC_Sep
+                    | SentenceCat::SC_CR
+                    | SentenceCat::SC_LF
+                        <span class="kw">if </span>match_sb8a(<span class="kw-2">&amp;</span>state_before) =&gt;
                     {
-                        <span class="kw">continue</span>
-                    }
+                        <span class="kw">continue
+                    </span>}
 
-                    <span class="comment">// SB11 https://unicode.org/reports/tr29/#SB11</span>
-                    <span class="kw">_</span> <span class="kw">if</span> <span class="ident">match_sb11</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">position_before</span>),
+                    <span class="comment">// SB11 https://unicode.org/reports/tr29/#SB11
+                    </span><span class="kw">_ if </span>match_sb11(<span class="kw-2">&amp;</span>state_before) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(position_before),
 
-                    <span class="comment">// SB998 https://unicode.org/reports/tr29/#SB998</span>
-                    <span class="kw">_</span> =&gt; <span class="kw">continue</span>,
+                    <span class="comment">// SB998 https://unicode.org/reports/tr29/#SB998
+                    </span><span class="kw">_ </span>=&gt; <span class="kw">continue</span>,
                 }
             }
 
-            <span class="comment">// SB2 https://unicode.org/reports/tr29/#SB2</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">match1</span>(<span class="ident">StatePart::Sot</span>) {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">match1</span>(<span class="ident">StatePart::Eot</span>) {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> {
-                <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">end</span>();
-                <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">pos</span>)
+            <span class="comment">// SB2 https://unicode.org/reports/tr29/#SB2
+            </span><span class="kw">if </span><span class="self">self</span>.state.match1(StatePart::Sot) {
+                <span class="prelude-val">None
+            </span>} <span class="kw">else if </span><span class="self">self</span>.state.match1(StatePart::Eot) {
+                <span class="prelude-val">None
+            </span>} <span class="kw">else </span>{
+                <span class="self">self</span>.state = <span class="self">self</span>.state.end();
+                <span class="prelude-val">Some</span>(<span class="self">self</span>.pos)
             }
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_sentence_breaks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="ident">SentenceBreaks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">SentenceBreaks</span> {
-            <span class="ident">string</span>: <span class="ident">source</span>,
-            <span class="ident">pos</span>: <span class="number">0</span>,
-            <span class="ident">state</span>: <span class="ident">INITIAL_STATE</span>,
+    <span class="kw">pub fn </span>new_sentence_breaks&lt;<span class="lifetime">&#39;a</span>&gt;(source: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; SentenceBreaks&lt;<span class="lifetime">&#39;a</span>&gt; {
+        SentenceBreaks {
+            string: source,
+            pos: <span class="number">0</span>,
+            state: INITIAL_STATE,
         }
     }
 }
 
-<span class="doccomment">/// An iterator over the substrings of a string which, after splitting the string on</span>
-<span class="doccomment">/// [sentence boundaries](http://www.unicode.org/reports/tr29/#Sentence_Boundaries),</span>
-<span class="doccomment">/// contain any characters with the</span>
-<span class="doccomment">/// [Alphabetic](http://unicode.org/reports/tr44/#Alphabetic)</span>
-<span class="doccomment">/// property, or with</span>
-<span class="doccomment">/// [General_Category=Number](http://unicode.org/reports/tr44/#General_Category_Values).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This struct is created by the [`unicode_sentences`] method on the [`UnicodeSegmentation`]</span>
-<span class="doccomment">/// trait. See its documentation for more.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`unicode_sentences`]: trait.UnicodeSegmentation.html#tymethod.unicode_sentences</span>
-<span class="doccomment">/// [`UnicodeSegmentation`]: trait.UnicodeSegmentation.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnicodeSentences</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">USentenceBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="kw">fn</span>(<span class="op">&amp;&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An iterator over the substrings of a string which, after splitting the string on
+/// [sentence boundaries](http://www.unicode.org/reports/tr29/#Sentence_Boundaries),
+/// contain any characters with the
+/// [Alphabetic](http://unicode.org/reports/tr44/#Alphabetic)
+/// property, or with
+/// [General_Category=Number](http://unicode.org/reports/tr44/#General_Category_Values).
+///
+/// This struct is created by the [`unicode_sentences`] method on the [`UnicodeSegmentation`]
+/// trait. See its documentation for more.
+///
+/// [`unicode_sentences`]: trait.UnicodeSegmentation.html#tymethod.unicode_sentences
+/// [`UnicodeSegmentation`]: trait.UnicodeSegmentation.html
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>UnicodeSentences&lt;<span class="lifetime">&#39;a</span>&gt; {
+    inner: Filter&lt;USentenceBounds&lt;<span class="lifetime">&#39;a</span>&gt;, <span class="kw">fn</span>(&amp;&amp;str) -&gt; bool&gt;,
 }
 
-<span class="doccomment">/// External iterator for a string&#39;s</span>
-<span class="doccomment">/// [sentence boundaries](http://www.unicode.org/reports/tr29/#Sentence_Boundaries).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This struct is created by the [`split_sentence_bounds`] method on the [`UnicodeSegmentation`]</span>
-<span class="doccomment">/// trait. See its documentation for more.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`split_sentence_bounds`]: trait.UnicodeSegmentation.html#tymethod.split_sentence_bounds</span>
-<span class="doccomment">/// [`UnicodeSegmentation`]: trait.UnicodeSegmentation.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">USentenceBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">iter</span>: <span class="ident">fwd::SentenceBreaks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">sentence_start</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+<span class="doccomment">/// External iterator for a string&#39;s
+/// [sentence boundaries](http://www.unicode.org/reports/tr29/#Sentence_Boundaries).
+///
+/// This struct is created by the [`split_sentence_bounds`] method on the [`UnicodeSegmentation`]
+/// trait. See its documentation for more.
+///
+/// [`split_sentence_bounds`]: trait.UnicodeSegmentation.html#tymethod.split_sentence_bounds
+/// [`UnicodeSegmentation`]: trait.UnicodeSegmentation.html
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>USentenceBounds&lt;<span class="lifetime">&#39;a</span>&gt; {
+    iter: fwd::SentenceBreaks&lt;<span class="lifetime">&#39;a</span>&gt;,
+    sentence_start: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 }
 
-<span class="doccomment">/// External iterator for sentence boundaries and byte offsets.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This struct is created by the [`split_sentence_bound_indices`] method on the</span>
-<span class="doccomment">/// [`UnicodeSegmentation`] trait. See its documentation for more.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`split_sentence_bound_indices`]: trait.UnicodeSegmentation.html#tymethod.split_sentence_bound_indices</span>
-<span class="doccomment">/// [`UnicodeSegmentation`]: trait.UnicodeSegmentation.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">USentenceBoundIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">start_offset</span>: <span class="ident">usize</span>,
-    <span class="ident">iter</span>: <span class="ident">USentenceBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="doccomment">/// External iterator for sentence boundaries and byte offsets.
+///
+/// This struct is created by the [`split_sentence_bound_indices`] method on the
+/// [`UnicodeSegmentation`] trait. See its documentation for more.
+///
+/// [`split_sentence_bound_indices`]: trait.UnicodeSegmentation.html#tymethod.split_sentence_bound_indices
+/// [`UnicodeSegmentation`]: trait.UnicodeSegmentation.html
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>USentenceBoundIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
+    start_offset: usize,
+    iter: USentenceBounds&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_sentence_bounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="ident">USentenceBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">USentenceBounds</span> {
-        <span class="ident">iter</span>: <span class="ident">fwd::new_sentence_breaks</span>(<span class="ident">source</span>),
-        <span class="ident">sentence_start</span>: <span class="prelude-val">None</span>,
+<span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>new_sentence_bounds&lt;<span class="lifetime">&#39;a</span>&gt;(source: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; USentenceBounds&lt;<span class="lifetime">&#39;a</span>&gt; {
+    USentenceBounds {
+        iter: fwd::new_sentence_breaks(source),
+        sentence_start: <span class="prelude-val">None</span>,
     }
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_sentence_bound_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="ident">USentenceBoundIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">USentenceBoundIndices</span> {
-        <span class="ident">start_offset</span>: <span class="ident">source</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>,
-        <span class="ident">iter</span>: <span class="ident">new_sentence_bounds</span>(<span class="ident">source</span>),
+<span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>new_sentence_bound_indices&lt;<span class="lifetime">&#39;a</span>&gt;(source: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; USentenceBoundIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
+    USentenceBoundIndices {
+        start_offset: source.as_ptr() <span class="kw">as </span>usize,
+        iter: new_sentence_bounds(source),
     }
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_unicode_sentences</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) -&gt; <span class="ident">UnicodeSentences</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::UnicodeSegmentation</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tables::util::is_alphanumeric</span>;
+<span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>new_unicode_sentences&lt;<span class="lifetime">&#39;b</span>&gt;(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>str) -&gt; UnicodeSentences&lt;<span class="lifetime">&#39;b</span>&gt; {
+    <span class="kw">use </span><span class="kw">super</span>::UnicodeSegmentation;
+    <span class="kw">use </span><span class="kw">crate</span>::tables::util::is_alphanumeric;
 
-    <span class="kw">fn</span> <span class="ident">has_alphanumeric</span>(<span class="ident">s</span>: <span class="op">&amp;&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">is_alphanumeric</span>(<span class="ident">c</span>))
+    <span class="kw">fn </span>has_alphanumeric(s: &amp;&amp;str) -&gt; bool {
+        s.chars().any(|c| is_alphanumeric(c))
     }
-    <span class="kw">let</span> <span class="ident">has_alphanumeric</span>: <span class="kw">fn</span>(<span class="op">&amp;&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> <span class="op">=</span> <span class="ident">has_alphanumeric</span>; <span class="comment">// coerce to fn pointer</span>
+    <span class="kw">let </span>has_alphanumeric: <span class="kw">fn</span>(&amp;&amp;str) -&gt; bool = has_alphanumeric; <span class="comment">// coerce to fn pointer
 
-    <span class="ident">UnicodeSentences</span> {
-        <span class="ident">inner</span>: <span class="ident">s</span>.<span class="ident">split_sentence_bounds</span>().<span class="ident">filter</span>(<span class="ident">has_alphanumeric</span>),
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">UnicodeSentences</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>;
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">next</span>()
+    </span>UnicodeSentences {
+        inner: s.split_sentence_bounds().filter(has_alphanumeric),
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">USentenceBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>UnicodeSentences&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> (<span class="ident">lower</span>, <span class="ident">upper</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">size_hint</span>();
-        (<span class="ident">cmp::max</span>(<span class="number">0</span>, <span class="ident">lower</span> <span class="op">-</span> <span class="number">1</span>), <span class="ident">upper</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">u</span><span class="op">|</span> <span class="ident">cmp::max</span>(<span class="number">0</span>, <span class="ident">u</span> <span class="op">-</span> <span class="number">1</span>)))
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; {
+        <span class="self">self</span>.inner.next()
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>USentenceBounds&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str;
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">let </span>(lower, upper) = <span class="self">self</span>.iter.size_hint();
+        (cmp::max(<span class="number">0</span>, lower - <span class="number">1</span>), upper.map(|u| cmp::max(<span class="number">0</span>, u - <span class="number">1</span>)))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sentence_start</span> <span class="op">==</span> <span class="prelude-val">None</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">start_pos</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>() {
-                <span class="self">self</span>.<span class="ident">sentence_start</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">start_pos</span>)
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; {
+        <span class="kw">if </span><span class="self">self</span>.sentence_start == <span class="prelude-val">None </span>{
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(start_pos) = <span class="self">self</span>.iter.next() {
+                <span class="self">self</span>.sentence_start = <span class="prelude-val">Some</span>(start_pos)
+            } <span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">None</span>;
             }
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">break_pos</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>() {
-            <span class="kw">let</span> <span class="ident">start_pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sentence_start</span>.<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">sentence</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">string</span>[<span class="ident">start_pos</span>..<span class="ident">break_pos</span>];
-            <span class="self">self</span>.<span class="ident">sentence_start</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">break_pos</span>);
-            <span class="prelude-val">Some</span>(<span class="ident">sentence</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(break_pos) = <span class="self">self</span>.iter.next() {
+            <span class="kw">let </span>start_pos = <span class="self">self</span>.sentence_start.unwrap();
+            <span class="kw">let </span>sentence = <span class="kw-2">&amp;</span><span class="self">self</span>.iter.string[start_pos..break_pos];
+            <span class="self">self</span>.sentence_start = <span class="prelude-val">Some</span>(break_pos);
+            <span class="prelude-val">Some</span>(sentence)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">USentenceBoundIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>USentenceBoundIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = (usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str);
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>
-            .<span class="ident">next</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> (<span class="ident">s</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">start_offset</span>, <span class="ident">s</span>))
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str)&gt; {
+        <span class="self">self</span>.iter
+            .next()
+            .map(|s| (s.as_ptr() <span class="kw">as </span>usize - <span class="self">self</span>.start_offset, s))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">size_hint</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.iter.size_hint()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_segmentation" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_segmentation" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

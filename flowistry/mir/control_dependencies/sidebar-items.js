@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ControlDependencies",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["ControlDependencies",""]]};

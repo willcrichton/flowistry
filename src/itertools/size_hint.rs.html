@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.3/src/size_hint.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>size_hint.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.4/src/size_hint.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>size_hint.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -124,125 +117,124 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Arithmetic on **Iterator** *.size_hint()* values.</span>
-<span class="doccomment">//!</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Arithmetic on `Iterator.size_hint()` values.
+//!
 
-<span class="kw">use</span> <span class="ident">std::usize</span>;
-<span class="kw">use</span> <span class="ident">std::cmp</span>;
-<span class="kw">use</span> <span class="ident">std::u32</span>;
+</span><span class="kw">use </span>std::usize;
+<span class="kw">use </span>std::cmp;
+<span class="kw">use </span>std::u32;
 
-<span class="doccomment">/// **SizeHint** is the return type of **Iterator::size_hint()**.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">SizeHint</span> <span class="op">=</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>);
+<span class="doccomment">/// `SizeHint` is the return type of `Iterator::size_hint()`.
+</span><span class="kw">pub type </span>SizeHint = (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;);
 
-<span class="doccomment">/// Add **SizeHint** correctly.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="ident">a</span>: <span class="ident">SizeHint</span>, <span class="ident">b</span>: <span class="ident">SizeHint</span>) -&gt; <span class="ident">SizeHint</span> {
-    <span class="kw">let</span> <span class="ident">min</span> <span class="op">=</span> <span class="ident">a</span>.<span class="number">0</span>.<span class="ident">saturating_add</span>(<span class="ident">b</span>.<span class="number">0</span>);
-    <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">a</span>.<span class="number">1</span>, <span class="ident">b</span>.<span class="number">1</span>) {
-        (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span>.<span class="ident">checked_add</span>(<span class="ident">y</span>),
-        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+<span class="doccomment">/// Add `SizeHint` correctly.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>add(a: SizeHint, b: SizeHint) -&gt; SizeHint {
+    <span class="kw">let </span>min = a.<span class="number">0</span>.saturating_add(b.<span class="number">0</span>);
+    <span class="kw">let </span>max = <span class="kw">match </span>(a.<span class="number">1</span>, b.<span class="number">1</span>) {
+        (<span class="prelude-val">Some</span>(x), <span class="prelude-val">Some</span>(y)) =&gt; x.checked_add(y),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     };
 
-    (<span class="ident">min</span>, <span class="ident">max</span>)
+    (min, max)
 }
 
-<span class="doccomment">/// Add **x** correctly to a **SizeHint**.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_scalar</span>(<span class="ident">sh</span>: <span class="ident">SizeHint</span>, <span class="ident">x</span>: <span class="ident">usize</span>) -&gt; <span class="ident">SizeHint</span> {
-    <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">low</span>, <span class="kw-2">mut</span> <span class="ident">hi</span>) <span class="op">=</span> <span class="ident">sh</span>;
-    <span class="ident">low</span> <span class="op">=</span> <span class="ident">low</span>.<span class="ident">saturating_add</span>(<span class="ident">x</span>);
-    <span class="ident">hi</span> <span class="op">=</span> <span class="ident">hi</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">elt</span><span class="op">|</span> <span class="ident">elt</span>.<span class="ident">checked_add</span>(<span class="ident">x</span>));
-    (<span class="ident">low</span>, <span class="ident">hi</span>)
+<span class="doccomment">/// Add `x` correctly to a `SizeHint`.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>add_scalar(sh: SizeHint, x: usize) -&gt; SizeHint {
+    <span class="kw">let </span>(<span class="kw-2">mut </span>low, <span class="kw-2">mut </span>hi) = sh;
+    low = low.saturating_add(x);
+    hi = hi.and_then(|elt| elt.checked_add(x));
+    (low, hi)
 }
 
-<span class="doccomment">/// Sbb **x** correctly to a **SizeHint**.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sub_scalar</span>(<span class="ident">sh</span>: <span class="ident">SizeHint</span>, <span class="ident">x</span>: <span class="ident">usize</span>) -&gt; <span class="ident">SizeHint</span> {
-    <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">low</span>, <span class="kw-2">mut</span> <span class="ident">hi</span>) <span class="op">=</span> <span class="ident">sh</span>;
-    <span class="ident">low</span> <span class="op">=</span> <span class="ident">low</span>.<span class="ident">saturating_sub</span>(<span class="ident">x</span>);
-    <span class="ident">hi</span> <span class="op">=</span> <span class="ident">hi</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">elt</span><span class="op">|</span> <span class="ident">elt</span>.<span class="ident">saturating_sub</span>(<span class="ident">x</span>));
-    (<span class="ident">low</span>, <span class="ident">hi</span>)
+<span class="doccomment">/// Subtract `x` correctly from a `SizeHint`.
+</span><span class="attribute">#[inline]
+#[allow(dead_code)]
+</span><span class="kw">pub fn </span>sub_scalar(sh: SizeHint, x: usize) -&gt; SizeHint {
+    <span class="kw">let </span>(<span class="kw-2">mut </span>low, <span class="kw-2">mut </span>hi) = sh;
+    low = low.saturating_sub(x);
+    hi = hi.map(|elt| elt.saturating_sub(x));
+    (low, hi)
 }
 
 
-<span class="doccomment">/// Multiply **SizeHint** correctly</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```ignore</span>
-<span class="doccomment">/// use std::usize;</span>
-<span class="doccomment">/// use itertools::size_hint;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(size_hint::mul((3, Some(4)), (3, Some(4))),</span>
-<span class="doccomment">///            (9, Some(16)));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(size_hint::mul((3, Some(4)), (usize::MAX, None)),</span>
-<span class="doccomment">///            (usize::MAX, None));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(size_hint::mul((3, None), (0, Some(0))),</span>
-<span class="doccomment">///            (0, Some(0)));</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mul</span>(<span class="ident">a</span>: <span class="ident">SizeHint</span>, <span class="ident">b</span>: <span class="ident">SizeHint</span>) -&gt; <span class="ident">SizeHint</span> {
-    <span class="kw">let</span> <span class="ident">low</span> <span class="op">=</span> <span class="ident">a</span>.<span class="number">0</span>.<span class="ident">saturating_mul</span>(<span class="ident">b</span>.<span class="number">0</span>);
-    <span class="kw">let</span> <span class="ident">hi</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">a</span>.<span class="number">1</span>, <span class="ident">b</span>.<span class="number">1</span>) {
-        (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span>.<span class="ident">checked_mul</span>(<span class="ident">y</span>),
-        (<span class="prelude-val">Some</span>(<span class="number">0</span>), <span class="prelude-val">None</span>) <span class="op">|</span> (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">0</span>),
-        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+<span class="doccomment">/// Multiply `SizeHint` correctly
+///
+/// ```ignore
+/// use std::usize;
+/// use itertools::size_hint;
+///
+/// assert_eq!(size_hint::mul((3, Some(4)), (3, Some(4))),
+///            (9, Some(16)));
+///
+/// assert_eq!(size_hint::mul((3, Some(4)), (usize::MAX, None)),
+///            (usize::MAX, None));
+///
+/// assert_eq!(size_hint::mul((3, None), (0, Some(0))),
+///            (0, Some(0)));
+/// ```
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>mul(a: SizeHint, b: SizeHint) -&gt; SizeHint {
+    <span class="kw">let </span>low = a.<span class="number">0</span>.saturating_mul(b.<span class="number">0</span>);
+    <span class="kw">let </span>hi = <span class="kw">match </span>(a.<span class="number">1</span>, b.<span class="number">1</span>) {
+        (<span class="prelude-val">Some</span>(x), <span class="prelude-val">Some</span>(y)) =&gt; x.checked_mul(y),
+        (<span class="prelude-val">Some</span>(<span class="number">0</span>), <span class="prelude-val">None</span>) | (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">0</span>),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     };
-    (<span class="ident">low</span>, <span class="ident">hi</span>)
+    (low, hi)
 }
 
-<span class="doccomment">/// Multiply **x** correctly with a **SizeHint**.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mul_scalar</span>(<span class="ident">sh</span>: <span class="ident">SizeHint</span>, <span class="ident">x</span>: <span class="ident">usize</span>) -&gt; <span class="ident">SizeHint</span> {
-    <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">low</span>, <span class="kw-2">mut</span> <span class="ident">hi</span>) <span class="op">=</span> <span class="ident">sh</span>;
-    <span class="ident">low</span> <span class="op">=</span> <span class="ident">low</span>.<span class="ident">saturating_mul</span>(<span class="ident">x</span>);
-    <span class="ident">hi</span> <span class="op">=</span> <span class="ident">hi</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">elt</span><span class="op">|</span> <span class="ident">elt</span>.<span class="ident">checked_mul</span>(<span class="ident">x</span>));
-    (<span class="ident">low</span>, <span class="ident">hi</span>)
+<span class="doccomment">/// Multiply `x` correctly with a `SizeHint`.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>mul_scalar(sh: SizeHint, x: usize) -&gt; SizeHint {
+    <span class="kw">let </span>(<span class="kw-2">mut </span>low, <span class="kw-2">mut </span>hi) = sh;
+    low = low.saturating_mul(x);
+    hi = hi.and_then(|elt| elt.checked_mul(x));
+    (low, hi)
 }
 
-<span class="doccomment">/// Raise `base` correctly by a **`SizeHint`** exponent.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pow_scalar_base</span>(<span class="ident">base</span>: <span class="ident">usize</span>, <span class="ident">exp</span>: <span class="ident">SizeHint</span>) -&gt; <span class="ident">SizeHint</span> {
-    <span class="kw">let</span> <span class="ident">exp_low</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<span class="ident">exp</span>.<span class="number">0</span>, <span class="ident">u32::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="kw">as</span> <span class="ident">u32</span>;
-    <span class="kw">let</span> <span class="ident">low</span> <span class="op">=</span> <span class="ident">base</span>.<span class="ident">saturating_pow</span>(<span class="ident">exp_low</span>);
+<span class="doccomment">/// Raise `base` correctly by a `SizeHint` exponent.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>pow_scalar_base(base: usize, exp: SizeHint) -&gt; SizeHint {
+    <span class="kw">let </span>exp_low = cmp::min(exp.<span class="number">0</span>, u32::MAX <span class="kw">as </span>usize) <span class="kw">as </span>u32;
+    <span class="kw">let </span>low = base.saturating_pow(exp_low);
 
-    <span class="kw">let</span> <span class="ident">hi</span> <span class="op">=</span> <span class="ident">exp</span>.<span class="number">1</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">exp</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">exp_hi</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<span class="ident">exp</span>, <span class="ident">u32::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="kw">as</span> <span class="ident">u32</span>;
-        <span class="ident">base</span>.<span class="ident">checked_pow</span>(<span class="ident">exp_hi</span>)
+    <span class="kw">let </span>hi = exp.<span class="number">1</span>.and_then(|exp| {
+        <span class="kw">let </span>exp_hi = cmp::min(exp, u32::MAX <span class="kw">as </span>usize) <span class="kw">as </span>u32;
+        base.checked_pow(exp_hi)
     });
 
-    (<span class="ident">low</span>, <span class="ident">hi</span>)
+    (low, hi)
 }
 
-<span class="doccomment">/// Return the maximum</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max</span>(<span class="ident">a</span>: <span class="ident">SizeHint</span>, <span class="ident">b</span>: <span class="ident">SizeHint</span>) -&gt; <span class="ident">SizeHint</span> {
-    <span class="kw">let</span> (<span class="ident">a_lower</span>, <span class="ident">a_upper</span>) <span class="op">=</span> <span class="ident">a</span>;
-    <span class="kw">let</span> (<span class="ident">b_lower</span>, <span class="ident">b_upper</span>) <span class="op">=</span> <span class="ident">b</span>;
+<span class="doccomment">/// Return the maximum
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>max(a: SizeHint, b: SizeHint) -&gt; SizeHint {
+    <span class="kw">let </span>(a_lower, a_upper) = a;
+    <span class="kw">let </span>(b_lower, b_upper) = b;
 
-    <span class="kw">let</span> <span class="ident">lower</span> <span class="op">=</span> <span class="ident">cmp::max</span>(<span class="ident">a_lower</span>, <span class="ident">b_lower</span>);
+    <span class="kw">let </span>lower = cmp::max(a_lower, b_lower);
 
-    <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">a_upper</span>, <span class="ident">b_upper</span>) {
-        (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">cmp::max</span>(<span class="ident">x</span>, <span class="ident">y</span>)),
-        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">let </span>upper = <span class="kw">match </span>(a_upper, b_upper) {
+        (<span class="prelude-val">Some</span>(x), <span class="prelude-val">Some</span>(y)) =&gt; <span class="prelude-val">Some</span>(cmp::max(x, y)),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     };
 
-    (<span class="ident">lower</span>, <span class="ident">upper</span>)
+    (lower, upper)
 }
 
-<span class="doccomment">/// Return the minimum</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min</span>(<span class="ident">a</span>: <span class="ident">SizeHint</span>, <span class="ident">b</span>: <span class="ident">SizeHint</span>) -&gt; <span class="ident">SizeHint</span> {
-    <span class="kw">let</span> (<span class="ident">a_lower</span>, <span class="ident">a_upper</span>) <span class="op">=</span> <span class="ident">a</span>;
-    <span class="kw">let</span> (<span class="ident">b_lower</span>, <span class="ident">b_upper</span>) <span class="op">=</span> <span class="ident">b</span>;
-    <span class="kw">let</span> <span class="ident">lower</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<span class="ident">a_lower</span>, <span class="ident">b_lower</span>);
-    <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">a_upper</span>, <span class="ident">b_upper</span>) {
-        (<span class="prelude-val">Some</span>(<span class="ident">u1</span>), <span class="prelude-val">Some</span>(<span class="ident">u2</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">cmp::min</span>(<span class="ident">u1</span>, <span class="ident">u2</span>)),
-        <span class="kw">_</span> =&gt; <span class="ident">a_upper</span>.<span class="ident">or</span>(<span class="ident">b_upper</span>),
+<span class="doccomment">/// Return the minimum
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>min(a: SizeHint, b: SizeHint) -&gt; SizeHint {
+    <span class="kw">let </span>(a_lower, a_upper) = a;
+    <span class="kw">let </span>(b_lower, b_upper) = b;
+    <span class="kw">let </span>lower = cmp::min(a_lower, b_lower);
+    <span class="kw">let </span>upper = <span class="kw">match </span>(a_upper, b_upper) {
+        (<span class="prelude-val">Some</span>(u1), <span class="prelude-val">Some</span>(u2)) =&gt; <span class="prelude-val">Some</span>(cmp::min(u1, u2)),
+        <span class="kw">_ </span>=&gt; a_upper.or(b_upper),
     };
-    (<span class="ident">lower</span>, <span class="ident">upper</span>)
+    (lower, upper)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

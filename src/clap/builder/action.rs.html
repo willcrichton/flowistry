@@ -1,13 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.6/src/builder/action.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>action.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.21/src/builder/action.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>action.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -332,331 +325,370 @@
 <span id="323">323</span>
 <span id="324">324</span>
 <span id="325">325</span>
-</pre><pre class="rust"><code><span class="doccomment">/// Behavior of arguments when they are encountered while parsing</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use clap::Command;</span>
-<span class="doccomment">/// # use clap::Arg;</span>
-<span class="doccomment">/// let cmd = Command::new(&quot;mycmd&quot;)</span>
-<span class="doccomment">///     .arg(</span>
-<span class="doccomment">///         Arg::new(&quot;special-help&quot;)</span>
-<span class="doccomment">///             .short(&#39;?&#39;)</span>
-<span class="doccomment">///             .action(clap::ArgAction::Help)</span>
-<span class="doccomment">///     );</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Existing help still exists</span>
-<span class="doccomment">/// let err = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;-h&quot;]).unwrap_err();</span>
-<span class="doccomment">/// assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // New help available</span>
-<span class="doccomment">/// let err = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;-?&quot;]).unwrap_err();</span>
-<span class="doccomment">/// assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_copy_implementations</span>)]</span> <span class="comment">// In the future, we may accept `Box&lt;dyn ...&gt;`</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ArgAction</span> {
-    <span class="doccomment">/// When encountered, store the associated value(s) in [`ArgMatches`][crate::ArgMatches]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::Command;</span>
-    <span class="doccomment">/// # use clap::Arg;</span>
-    <span class="doccomment">/// let cmd = Command::new(&quot;mycmd&quot;)</span>
-    <span class="doccomment">///     .arg(</span>
-    <span class="doccomment">///         Arg::new(&quot;flag&quot;)</span>
-    <span class="doccomment">///             .long(&quot;flag&quot;)</span>
-    <span class="doccomment">///             .action(clap::ArgAction::Set)</span>
-    <span class="doccomment">///     );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;value&quot;]).unwrap();</span>
-    <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
-    <span class="doccomment">/// assert_eq!(</span>
-    <span class="doccomment">///     matches.get_many::&lt;String&gt;(&quot;flag&quot;).unwrap_or_default().map(|v| v.as_str()).collect::&lt;Vec&lt;_&gt;&gt;(),</span>
-    <span class="doccomment">///     vec![&quot;value&quot;]</span>
-    <span class="doccomment">/// );</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">Set</span>,
-    <span class="doccomment">/// When encountered, store the associated value(s) in [`ArgMatches`][crate::ArgMatches]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::Command;</span>
-    <span class="doccomment">/// # use clap::Arg;</span>
-    <span class="doccomment">/// let cmd = Command::new(&quot;mycmd&quot;)</span>
-    <span class="doccomment">///     .arg(</span>
-    <span class="doccomment">///         Arg::new(&quot;flag&quot;)</span>
-    <span class="doccomment">///             .long(&quot;flag&quot;)</span>
-    <span class="doccomment">///             .action(clap::ArgAction::Append)</span>
-    <span class="doccomment">///     );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;value1&quot;, &quot;--flag&quot;, &quot;value2&quot;]).unwrap();</span>
-    <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
-    <span class="doccomment">/// assert_eq!(</span>
-    <span class="doccomment">///     matches.get_many::&lt;String&gt;(&quot;flag&quot;).unwrap_or_default().map(|v| v.as_str()).collect::&lt;Vec&lt;_&gt;&gt;(),</span>
-    <span class="doccomment">///     vec![&quot;value1&quot;, &quot;value2&quot;]</span>
-    <span class="doccomment">/// );</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">Append</span>,
-    <span class="doccomment">/// Deprecated, replaced with [`ArgAction::Set`] or [`ArgAction::Append`]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(
-            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `ArgAction::Set` or `ArgAction::Append`&quot;</span>
-        )
-    )]</span>
-    <span class="ident">StoreValue</span>,
-    <span class="doccomment">/// Deprecated, replaced with [`ArgAction::SetTrue`] or [`ArgAction::Count`]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(
-            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `ArgAction::SetTrue` or `ArgAction::Count`&quot;</span>
-        )
-    )]</span>
-    <span class="ident">IncOccurrence</span>,
-    <span class="doccomment">/// When encountered, act as if `&quot;true&quot;` was encountered on the command-line</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If no [`default_value`][super::Arg::default_value] is set, it will be `false`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// No value is allowed. To optionally accept a value, see</span>
-    <span class="doccomment">/// [`Arg::default_missing_value`][super::Arg::default_missing_value]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::Command;</span>
-    <span class="doccomment">/// # use clap::Arg;</span>
-    <span class="doccomment">/// let cmd = Command::new(&quot;mycmd&quot;)</span>
-    <span class="doccomment">///     .arg(</span>
-    <span class="doccomment">///         Arg::new(&quot;flag&quot;)</span>
-    <span class="doccomment">///             .long(&quot;flag&quot;)</span>
-    <span class="doccomment">///             .action(clap::ArgAction::SetTrue)</span>
-    <span class="doccomment">///     );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;--flag&quot;]).unwrap();</span>
-    <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
-    <span class="doccomment">/// assert_eq!(</span>
-    <span class="doccomment">///     matches.get_one::&lt;bool&gt;(&quot;flag&quot;).copied(),</span>
-    <span class="doccomment">///     Some(true)</span>
-    <span class="doccomment">/// );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;]).unwrap();</span>
-    <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
-    <span class="doccomment">/// assert_eq!(</span>
-    <span class="doccomment">///     matches.get_one::&lt;bool&gt;(&quot;flag&quot;).copied(),</span>
-    <span class="doccomment">///     Some(false)</span>
-    <span class="doccomment">/// );</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">SetTrue</span>,
-    <span class="doccomment">/// When encountered, act as if `&quot;false&quot;` was encountered on the command-line</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If no [`default_value`][super::Arg::default_value] is set, it will be `true`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// No value is allowed. To optionally accept a value, see</span>
-    <span class="doccomment">/// [`Arg::default_missing_value`][super::Arg::default_missing_value]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::Command;</span>
-    <span class="doccomment">/// # use clap::Arg;</span>
-    <span class="doccomment">/// let cmd = Command::new(&quot;mycmd&quot;)</span>
-    <span class="doccomment">///     .arg(</span>
-    <span class="doccomment">///         Arg::new(&quot;flag&quot;)</span>
-    <span class="doccomment">///             .long(&quot;flag&quot;)</span>
-    <span class="doccomment">///             .action(clap::ArgAction::SetFalse)</span>
-    <span class="doccomment">///     );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;--flag&quot;]).unwrap();</span>
-    <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
-    <span class="doccomment">/// assert_eq!(</span>
-    <span class="doccomment">///     matches.get_one::&lt;bool&gt;(&quot;flag&quot;).copied(),</span>
-    <span class="doccomment">///     Some(false)</span>
-    <span class="doccomment">/// );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;]).unwrap();</span>
-    <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
-    <span class="doccomment">/// assert_eq!(</span>
-    <span class="doccomment">///     matches.get_one::&lt;bool&gt;(&quot;flag&quot;).copied(),</span>
-    <span class="doccomment">///     Some(true)</span>
-    <span class="doccomment">/// );</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">SetFalse</span>,
-    <span class="doccomment">/// When encountered, increment a `u8` counter</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If no [`default_value`][super::Arg::default_value] is set, it will be `0`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// No value is allowed. To optionally accept a value, see</span>
-    <span class="doccomment">/// [`Arg::default_missing_value`][super::Arg::default_missing_value]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::Command;</span>
-    <span class="doccomment">/// # use clap::Arg;</span>
-    <span class="doccomment">/// let cmd = Command::new(&quot;mycmd&quot;)</span>
-    <span class="doccomment">///     .arg(</span>
-    <span class="doccomment">///         Arg::new(&quot;flag&quot;)</span>
-    <span class="doccomment">///             .long(&quot;flag&quot;)</span>
-    <span class="doccomment">///             .action(clap::ArgAction::Count)</span>
-    <span class="doccomment">///     );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;--flag&quot;]).unwrap();</span>
-    <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
-    <span class="doccomment">/// assert_eq!(</span>
-    <span class="doccomment">///     matches.get_one::&lt;u8&gt;(&quot;flag&quot;).copied(),</span>
-    <span class="doccomment">///     Some(2)</span>
-    <span class="doccomment">/// );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;]).unwrap();</span>
-    <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
-    <span class="doccomment">/// assert_eq!(</span>
-    <span class="doccomment">///     matches.get_one::&lt;u8&gt;(&quot;flag&quot;).copied(),</span>
-    <span class="doccomment">///     Some(0)</span>
-    <span class="doccomment">/// );</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">Count</span>,
-    <span class="doccomment">/// When encountered, display [`Command::print_help`][super::App::print_help]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Depending on the flag, [`Command::print_long_help`][super::App::print_long_help] may be shown</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::Command;</span>
-    <span class="doccomment">/// # use clap::Arg;</span>
-    <span class="doccomment">/// let cmd = Command::new(&quot;mycmd&quot;)</span>
-    <span class="doccomment">///     .arg(</span>
-    <span class="doccomment">///         Arg::new(&quot;special-help&quot;)</span>
-    <span class="doccomment">///             .short(&#39;?&#39;)</span>
-    <span class="doccomment">///             .action(clap::ArgAction::Help)</span>
-    <span class="doccomment">///     );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Existing help still exists</span>
-    <span class="doccomment">/// let err = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;-h&quot;]).unwrap_err();</span>
-    <span class="doccomment">/// assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // New help available</span>
-    <span class="doccomment">/// let err = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;-?&quot;]).unwrap_err();</span>
-    <span class="doccomment">/// assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">Help</span>,
-    <span class="doccomment">/// When encountered, display [`Command::version`][super::App::version]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Depending on the flag, [`Command::long_version`][super::App::long_version] may be shown</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::Command;</span>
-    <span class="doccomment">/// # use clap::Arg;</span>
-    <span class="doccomment">/// let cmd = Command::new(&quot;mycmd&quot;)</span>
-    <span class="doccomment">///     .version(&quot;1.0.0&quot;)</span>
-    <span class="doccomment">///     .arg(</span>
-    <span class="doccomment">///         Arg::new(&quot;special-version&quot;)</span>
-    <span class="doccomment">///             .long(&quot;special-version&quot;)</span>
-    <span class="doccomment">///             .action(clap::ArgAction::Version)</span>
-    <span class="doccomment">///     );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Existing help still exists</span>
-    <span class="doccomment">/// let err = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--version&quot;]).unwrap_err();</span>
-    <span class="doccomment">/// assert_eq!(err.kind(), clap::error::ErrorKind::DisplayVersion);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // New help available</span>
-    <span class="doccomment">/// let err = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;--special-version&quot;]).unwrap_err();</span>
-    <span class="doccomment">/// assert_eq!(err.kind(), clap::error::ErrorKind::DisplayVersion);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">Version</span>,
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+</pre><pre class="rust"><code><span class="doccomment">/// Behavior of arguments when they are encountered while parsing
+///
+/// # Examples
+///
+/// ```rust
+/// # use clap::Command;
+/// # use clap::Arg;
+/// let cmd = Command::new(&quot;mycmd&quot;)
+///     .arg(
+///         Arg::new(&quot;special-help&quot;)
+///             .short(&#39;?&#39;)
+///             .action(clap::ArgAction::Help)
+///     );
+///
+/// // Existing help still exists
+/// let err = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;-h&quot;]).unwrap_err();
+/// assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);
+///
+/// // New help available
+/// let err = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;-?&quot;]).unwrap_err();
+/// assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);
+/// ```
+</span><span class="attribute">#[derive(Clone, Debug)]
+#[non_exhaustive]
+#[allow(missing_copy_implementations)] </span><span class="comment">// In the future, we may accept `Box&lt;dyn ...&gt;`
+</span><span class="kw">pub enum </span>ArgAction {
+    <span class="doccomment">/// When encountered, store the associated value(s) in [`ArgMatches`][crate::ArgMatches]
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use clap::Command;
+    /// # use clap::Arg;
+    /// let cmd = Command::new(&quot;mycmd&quot;)
+    ///     .arg(
+    ///         Arg::new(&quot;flag&quot;)
+    ///             .long(&quot;flag&quot;)
+    ///             .action(clap::ArgAction::Set)
+    ///     );
+    ///
+    /// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;value&quot;]).unwrap();
+    /// assert!(matches.contains_id(&quot;flag&quot;));
+    /// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);
+    /// assert_eq!(
+    ///     matches.get_many::&lt;String&gt;(&quot;flag&quot;).unwrap_or_default().map(|v| v.as_str()).collect::&lt;Vec&lt;_&gt;&gt;(),
+    ///     vec![&quot;value&quot;]
+    /// );
+    /// ```
+    </span>Set,
+    <span class="doccomment">/// When encountered, store the associated value(s) in [`ArgMatches`][crate::ArgMatches]
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use clap::Command;
+    /// # use clap::Arg;
+    /// let cmd = Command::new(&quot;mycmd&quot;)
+    ///     .arg(
+    ///         Arg::new(&quot;flag&quot;)
+    ///             .long(&quot;flag&quot;)
+    ///             .action(clap::ArgAction::Append)
+    ///     );
+    ///
+    /// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;value1&quot;, &quot;--flag&quot;, &quot;value2&quot;]).unwrap();
+    /// assert!(matches.contains_id(&quot;flag&quot;));
+    /// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);
+    /// assert_eq!(
+    ///     matches.get_many::&lt;String&gt;(&quot;flag&quot;).unwrap_or_default().map(|v| v.as_str()).collect::&lt;Vec&lt;_&gt;&gt;(),
+    ///     vec![&quot;value1&quot;, &quot;value2&quot;]
+    /// );
+    /// ```
+    </span>Append,
+    <span class="doccomment">/// Deprecated, replaced with [`ArgAction::Set`] or [`ArgAction::Append`]
+    ///
+    /// Builder: Instead of `arg.action(ArgAction::StoreValue)`,
+    /// - Use `arg.action(ArgAction::Set)` for single-occurrence arguments
+    /// - Use `arg.action(ArgAction::Append)` for multiple-occurrence arguments
+    ///
+    /// Derive: opt-in to the new behavior with `#[clap(action)]`
+    </span><span class="attribute">#[cfg_attr(
+        feature = <span class="string">&quot;deprecated&quot;</span>,
+        deprecated(
+            since = <span class="string">&quot;3.2.0&quot;</span>,
+            note = <span class="string">&quot;Replaced with `ArgAction::Set` or `ArgAction::Append`
+
+Derive: opt-in to the new behavior with `#[clap(action)]`
+
+Builder: Instead of `arg.action(ArgAction::StoreValue)`,
+- Use `arg.action(ArgAction::Set)` for single-occurrence arguments
+- Use `arg.action(ArgAction::Append)` for multiple-occurrence arguments
+&quot;
+        </span>)
+    )]
+    </span>StoreValue,
+    <span class="doccomment">/// Deprecated, replaced with [`ArgAction::SetTrue`] or [`ArgAction::Count`]
+    </span><span class="attribute">#[cfg_attr(
+        feature = <span class="string">&quot;deprecated&quot;</span>,
+        deprecated(
+            since = <span class="string">&quot;3.2.0&quot;</span>,
+            note = <span class="string">&quot;Replaced with `ArgAction::SetTrue` or `ArgAction::Count`
+
+Derive: opt-in to the new behavior with `#[clap(action)]`
+
+Builder: Instead of `arg.action(ArgAction::IncOccurrence)`,
+- Use `arg.action(ArgAction::SetTrue)` if you just care if its set, then switch `matches.is_present` to `matches.get_flag`
+- Use `arg.action(ArgAction::Count)` if you care how many times its set, then switch `matches.occurrences_of` to `matches.get_count`
+&quot;
+        </span>)
+    )]
+    </span>IncOccurrence,
+    <span class="doccomment">/// When encountered, act as if `&quot;true&quot;` was encountered on the command-line
+    ///
+    /// If no [`default_value`][super::Arg::default_value] is set, it will be `false`.
+    ///
+    /// No value is allowed. To optionally accept a value, see
+    /// [`Arg::default_missing_value`][super::Arg::default_missing_value]
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use clap::Command;
+    /// # use clap::Arg;
+    /// let cmd = Command::new(&quot;mycmd&quot;)
+    ///     .arg(
+    ///         Arg::new(&quot;flag&quot;)
+    ///             .long(&quot;flag&quot;)
+    ///             .action(clap::ArgAction::SetTrue)
+    ///     );
+    ///
+    /// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;--flag&quot;]).unwrap();
+    /// assert!(matches.contains_id(&quot;flag&quot;));
+    /// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);
+    /// assert_eq!(
+    ///     matches.get_one::&lt;bool&gt;(&quot;flag&quot;).copied(),
+    ///     Some(true)
+    /// );
+    ///
+    /// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;]).unwrap();
+    /// assert!(matches.contains_id(&quot;flag&quot;));
+    /// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);
+    /// assert_eq!(
+    ///     matches.get_one::&lt;bool&gt;(&quot;flag&quot;).copied(),
+    ///     Some(false)
+    /// );
+    /// ```
+    </span>SetTrue,
+    <span class="doccomment">/// When encountered, act as if `&quot;false&quot;` was encountered on the command-line
+    ///
+    /// If no [`default_value`][super::Arg::default_value] is set, it will be `true`.
+    ///
+    /// No value is allowed. To optionally accept a value, see
+    /// [`Arg::default_missing_value`][super::Arg::default_missing_value]
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use clap::Command;
+    /// # use clap::Arg;
+    /// let cmd = Command::new(&quot;mycmd&quot;)
+    ///     .arg(
+    ///         Arg::new(&quot;flag&quot;)
+    ///             .long(&quot;flag&quot;)
+    ///             .action(clap::ArgAction::SetFalse)
+    ///     );
+    ///
+    /// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;--flag&quot;]).unwrap();
+    /// assert!(matches.contains_id(&quot;flag&quot;));
+    /// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);
+    /// assert_eq!(
+    ///     matches.get_one::&lt;bool&gt;(&quot;flag&quot;).copied(),
+    ///     Some(false)
+    /// );
+    ///
+    /// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;]).unwrap();
+    /// assert!(matches.contains_id(&quot;flag&quot;));
+    /// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);
+    /// assert_eq!(
+    ///     matches.get_one::&lt;bool&gt;(&quot;flag&quot;).copied(),
+    ///     Some(true)
+    /// );
+    /// ```
+    </span>SetFalse,
+    <span class="doccomment">/// When encountered, increment a `u8` counter
+    ///
+    /// If no [`default_value`][super::Arg::default_value] is set, it will be `0`.
+    ///
+    /// No value is allowed. To optionally accept a value, see
+    /// [`Arg::default_missing_value`][super::Arg::default_missing_value]
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use clap::Command;
+    /// # use clap::Arg;
+    /// let cmd = Command::new(&quot;mycmd&quot;)
+    ///     .arg(
+    ///         Arg::new(&quot;flag&quot;)
+    ///             .long(&quot;flag&quot;)
+    ///             .action(clap::ArgAction::Count)
+    ///     );
+    ///
+    /// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;--flag&quot;]).unwrap();
+    /// assert!(matches.contains_id(&quot;flag&quot;));
+    /// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);
+    /// assert_eq!(
+    ///     matches.get_count(&quot;flag&quot;),
+    ///     2
+    /// );
+    ///
+    /// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;]).unwrap();
+    /// assert!(matches.contains_id(&quot;flag&quot;));
+    /// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);
+    /// assert_eq!(
+    ///     matches.get_count(&quot;flag&quot;),
+    ///     0
+    /// );
+    /// ```
+    </span>Count,
+    <span class="doccomment">/// When encountered, display [`Command::print_help`][super::App::print_help]
+    ///
+    /// Depending on the flag, [`Command::print_long_help`][super::App::print_long_help] may be shown
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use clap::Command;
+    /// # use clap::Arg;
+    /// let cmd = Command::new(&quot;mycmd&quot;)
+    ///     .arg(
+    ///         Arg::new(&quot;special-help&quot;)
+    ///             .short(&#39;?&#39;)
+    ///             .action(clap::ArgAction::Help)
+    ///     );
+    ///
+    /// // Existing help still exists
+    /// let err = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;-h&quot;]).unwrap_err();
+    /// assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);
+    ///
+    /// // New help available
+    /// let err = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;-?&quot;]).unwrap_err();
+    /// assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);
+    /// ```
+    </span>Help,
+    <span class="doccomment">/// When encountered, display [`Command::version`][super::App::version]
+    ///
+    /// Depending on the flag, [`Command::long_version`][super::App::long_version] may be shown
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use clap::Command;
+    /// # use clap::Arg;
+    /// let cmd = Command::new(&quot;mycmd&quot;)
+    ///     .version(&quot;1.0.0&quot;)
+    ///     .arg(
+    ///         Arg::new(&quot;special-version&quot;)
+    ///             .long(&quot;special-version&quot;)
+    ///             .action(clap::ArgAction::Version)
+    ///     );
+    ///
+    /// // Existing help still exists
+    /// let err = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--version&quot;]).unwrap_err();
+    /// assert_eq!(err.kind(), clap::error::ErrorKind::DisplayVersion);
+    ///
+    /// // New help available
+    /// let err = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;--special-version&quot;]).unwrap_err();
+    /// assert_eq!(err.kind(), clap::error::ErrorKind::DisplayVersion);
+    /// ```
+    </span>Version,
 }
 
-<span class="kw">impl</span> <span class="ident">ArgAction</span> {
-    <span class="doccomment">/// Returns whether this action accepts values on the command-line</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`default_values`][super::Arg::default_values] and [`env`][super::Arg::env] may still be</span>
-    <span class="doccomment">/// processed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">takes_values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Set</span> =&gt; <span class="bool-val">true</span>,
-            <span class="ident"><span class="self">Self</span>::Append</span> =&gt; <span class="bool-val">true</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::StoreValue</span> =&gt; <span class="bool-val">true</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::IncOccurrence</span> =&gt; <span class="bool-val">false</span>,
-            <span class="ident"><span class="self">Self</span>::SetTrue</span> =&gt; <span class="bool-val">false</span>,
-            <span class="ident"><span class="self">Self</span>::SetFalse</span> =&gt; <span class="bool-val">false</span>,
-            <span class="ident"><span class="self">Self</span>::Count</span> =&gt; <span class="bool-val">false</span>,
-            <span class="ident"><span class="self">Self</span>::Help</span> =&gt; <span class="bool-val">false</span>,
-            <span class="ident"><span class="self">Self</span>::Version</span> =&gt; <span class="bool-val">false</span>,
+<span class="kw">impl </span>ArgAction {
+    <span class="doccomment">/// Returns whether this action accepts values on the command-line
+    ///
+    /// [`default_values`][super::Arg::default_values] and [`env`][super::Arg::env] may still be
+    /// processed.
+    </span><span class="kw">pub fn </span>takes_values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Set =&gt; <span class="bool-val">true</span>,
+            <span class="self">Self</span>::Append =&gt; <span class="bool-val">true</span>,
+            <span class="attribute">#[allow(deprecated)]
+            </span><span class="self">Self</span>::StoreValue =&gt; <span class="bool-val">true</span>,
+            <span class="attribute">#[allow(deprecated)]
+            </span><span class="self">Self</span>::IncOccurrence =&gt; <span class="bool-val">false</span>,
+            <span class="self">Self</span>::SetTrue =&gt; <span class="bool-val">false</span>,
+            <span class="self">Self</span>::SetFalse =&gt; <span class="bool-val">false</span>,
+            <span class="self">Self</span>::Count =&gt; <span class="bool-val">false</span>,
+            <span class="self">Self</span>::Help =&gt; <span class="bool-val">false</span>,
+            <span class="self">Self</span>::Version =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">default_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">std::ffi::OsStr</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Set</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident"><span class="self">Self</span>::Append</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::StoreValue</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::IncOccurrence</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident"><span class="self">Self</span>::SetTrue</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">std::ffi::OsStr::new</span>(<span class="string">&quot;false&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::SetFalse</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">std::ffi::OsStr::new</span>(<span class="string">&quot;true&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Count</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">std::ffi::OsStr::new</span>(<span class="string">&quot;0&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Help</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident"><span class="self">Self</span>::Version</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>default_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>std::ffi::OsStr&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Set =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::Append =&gt; <span class="prelude-val">None</span>,
+            <span class="attribute">#[allow(deprecated)]
+            </span><span class="self">Self</span>::StoreValue =&gt; <span class="prelude-val">None</span>,
+            <span class="attribute">#[allow(deprecated)]
+            </span><span class="self">Self</span>::IncOccurrence =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::SetTrue =&gt; <span class="prelude-val">Some</span>(std::ffi::OsStr::new(<span class="string">&quot;false&quot;</span>)),
+            <span class="self">Self</span>::SetFalse =&gt; <span class="prelude-val">Some</span>(std::ffi::OsStr::new(<span class="string">&quot;true&quot;</span>)),
+            <span class="self">Self</span>::Count =&gt; <span class="prelude-val">Some</span>(std::ffi::OsStr::new(<span class="string">&quot;0&quot;</span>)),
+            <span class="self">Self</span>::Help =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::Version =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">default_value_parser</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="kw">super</span>::ValueParser</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Set</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident"><span class="self">Self</span>::Append</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::StoreValue</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::IncOccurrence</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident"><span class="self">Self</span>::SetTrue</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">super</span>::ValueParser::bool</span>()),
-            <span class="ident"><span class="self">Self</span>::SetFalse</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">super</span>::ValueParser::bool</span>()),
-            <span class="ident"><span class="self">Self</span>::Count</span> =&gt; <span class="prelude-val">Some</span>(<span class="macro">crate::value_parser!</span>(<span class="ident">u8</span>).<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::Help</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident"><span class="self">Self</span>::Version</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>default_value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">super</span>::ValueParser&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Set =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::Append =&gt; <span class="prelude-val">None</span>,
+            <span class="attribute">#[allow(deprecated)]
+            </span><span class="self">Self</span>::StoreValue =&gt; <span class="prelude-val">None</span>,
+            <span class="attribute">#[allow(deprecated)]
+            </span><span class="self">Self</span>::IncOccurrence =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::SetTrue =&gt; <span class="prelude-val">Some</span>(<span class="kw">super</span>::ValueParser::bool()),
+            <span class="self">Self</span>::SetFalse =&gt; <span class="prelude-val">Some</span>(<span class="kw">super</span>::ValueParser::bool()),
+            <span class="self">Self</span>::Count =&gt; <span class="prelude-val">Some</span>(<span class="macro">crate::value_parser!</span>(u8).into()),
+            <span class="self">Self</span>::Help =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::Version =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_type_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::parser::AnyValueId</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parser::AnyValueId</span>;
+    <span class="attribute">#[cfg(debug_assertions)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>value_type_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::parser::AnyValueId&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::parser::AnyValueId;
 
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Set</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident"><span class="self">Self</span>::Append</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::StoreValue</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::IncOccurrence</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident"><span class="self">Self</span>::SetTrue</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AnyValueId::of</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>()),
-            <span class="ident"><span class="self">Self</span>::SetFalse</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AnyValueId::of</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>()),
-            <span class="ident"><span class="self">Self</span>::Count</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AnyValueId::of</span>::<span class="op">&lt;</span><span class="ident">CountType</span><span class="op">&gt;</span>()),
-            <span class="ident"><span class="self">Self</span>::Help</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident"><span class="self">Self</span>::Version</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Set =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::Append =&gt; <span class="prelude-val">None</span>,
+            <span class="attribute">#[allow(deprecated)]
+            </span><span class="self">Self</span>::StoreValue =&gt; <span class="prelude-val">None</span>,
+            <span class="attribute">#[allow(deprecated)]
+            </span><span class="self">Self</span>::IncOccurrence =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::SetTrue =&gt; <span class="prelude-val">Some</span>(AnyValueId::of::&lt;bool&gt;()),
+            <span class="self">Self</span>::SetFalse =&gt; <span class="prelude-val">Some</span>(AnyValueId::of::&lt;bool&gt;()),
+            <span class="self">Self</span>::Count =&gt; <span class="prelude-val">Some</span>(AnyValueId::of::&lt;CountType&gt;()),
+            <span class="self">Self</span>::Help =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::Version =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">CountType</span> <span class="op">=</span> <span class="ident">u8</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>CountType = u8;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

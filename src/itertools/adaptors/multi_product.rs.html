@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.3/src/adaptors/multi_product.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multi_product.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../itertools/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.4/src/adaptors/multi_product.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multi_product.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../itertools/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -235,236 +228,235 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;use_alloc&quot;</span>)]</span>
+</pre><pre class="rust"><code><span class="attribute">#![cfg(feature = <span class="string">&quot;use_alloc&quot;</span>)]
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::size_hint</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Itertools</span>;
+</span><span class="kw">use </span><span class="kw">crate</span>::size_hint;
+<span class="kw">use </span><span class="kw">crate</span>::Itertools;
 
-<span class="kw">use</span> <span class="ident">alloc::vec::Vec</span>;
+<span class="kw">use </span>alloc::vec::Vec;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="doccomment">/// An iterator adaptor that iterates over the cartesian product of</span>
-<span class="doccomment">/// multiple iterators of type `I`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An iterator element type is `Vec&lt;I&gt;`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.multi_cartesian_product()`](crate::Itertools::multi_cartesian_product)</span>
-<span class="doccomment">/// for more information.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MultiProduct</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MultiProductIter</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span><span class="op">&gt;</span>)
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span> <span class="op">+</span> <span class="ident">Clone</span>,
-          <span class="ident">I::Item</span>: <span class="ident">Clone</span>;
+<span class="attribute">#[derive(Clone)]
+</span><span class="doccomment">/// An iterator adaptor that iterates over the cartesian product of
+/// multiple iterators of type `I`.
+///
+/// An iterator element type is `Vec&lt;I&gt;`.
+///
+/// See [`.multi_cartesian_product()`](crate::Itertools::multi_cartesian_product)
+/// for more information.
+</span><span class="attribute">#[must_use = <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]
+</span><span class="kw">pub struct </span>MultiProduct&lt;I&gt;(Vec&lt;MultiProductIter&lt;I&gt;&gt;)
+    <span class="kw">where </span>I: Iterator + Clone,
+          I::Item: Clone;
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">MultiProduct</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">std::fmt::Debug</span>,
-    <span class="ident">I::Item</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">std::fmt::Debug</span>,
+<span class="kw">impl</span>&lt;I&gt; std::fmt::Debug <span class="kw">for </span>MultiProduct&lt;I&gt;
+<span class="kw">where
+    </span>I: Iterator + Clone + std::fmt::Debug,
+    I::Item: Clone + std::fmt::Debug,
 {
-    <span class="macro">debug_fmt_fields!</span>(<span class="ident">CoalesceBy</span>, <span class="number">0</span>);
+    <span class="macro">debug_fmt_fields!</span>(CoalesceBy, <span class="number">0</span>);
 }
 
-<span class="doccomment">/// Create a new cartesian product iterator over an arbitrary number</span>
-<span class="doccomment">/// of iterators of the same type.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Iterator element is of type `Vec&lt;H::Item::Item&gt;`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multi_cartesian_product</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">iters</span>: <span class="ident">H</span>) -&gt; <span class="ident">MultiProduct</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">H::Item</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::IntoIter</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">H</span>: <span class="ident">Iterator</span>,
-          <span class="ident">H::Item</span>: <span class="ident">IntoIterator</span>,
-          <span class="op">&lt;</span><span class="ident">H::Item</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::IntoIter</span>: <span class="ident">Clone</span>,
-          <span class="op">&lt;</span><span class="ident">H::Item</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::Item</span>: <span class="ident">Clone</span>
+<span class="doccomment">/// Create a new cartesian product iterator over an arbitrary number
+/// of iterators of the same type.
+///
+/// Iterator element is of type `Vec&lt;H::Item::Item&gt;`.
+</span><span class="kw">pub fn </span>multi_cartesian_product&lt;H&gt;(iters: H) -&gt; MultiProduct&lt;&lt;H::Item <span class="kw">as </span>IntoIterator&gt;::IntoIter&gt;
+    <span class="kw">where </span>H: Iterator,
+          H::Item: IntoIterator,
+          &lt;H::Item <span class="kw">as </span>IntoIterator&gt;::IntoIter: Clone,
+          &lt;H::Item <span class="kw">as </span>IntoIterator&gt;::Item: Clone
 {
-    <span class="ident">MultiProduct</span>(<span class="ident">iters</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">MultiProductIter::new</span>(<span class="ident">i</span>.<span class="ident">into_iter</span>())).<span class="ident">collect</span>())
+    MultiProduct(iters.map(|i| MultiProductIter::new(i.into_iter())).collect())
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="doccomment">/// Holds the state of a single iterator within a MultiProduct.</span>
-<span class="kw">struct</span> <span class="ident">MultiProductIter</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span> <span class="op">+</span> <span class="ident">Clone</span>,
-          <span class="ident">I::Item</span>: <span class="ident">Clone</span>
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="doccomment">/// Holds the state of a single iterator within a `MultiProduct`.
+</span><span class="kw">struct </span>MultiProductIter&lt;I&gt;
+    <span class="kw">where </span>I: Iterator + Clone,
+          I::Item: Clone
 {
-    <span class="ident">cur</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
-    <span class="ident">iter</span>: <span class="ident">I</span>,
-    <span class="ident">iter_orig</span>: <span class="ident">I</span>,
+    cur: <span class="prelude-ty">Option</span>&lt;I::Item&gt;,
+    iter: I,
+    iter_orig: I,
 }
 
-<span class="doccomment">/// Holds the current state during an iteration of a MultiProduct.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">MultiProductIterState</span> {
-    <span class="ident">StartOfIter</span>,
-    <span class="ident">MidIter</span> { <span class="ident">on_first_iter</span>: <span class="ident">bool</span> },
+<span class="doccomment">/// Holds the current state during an iteration of a `MultiProduct`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">enum </span>MultiProductIterState {
+    StartOfIter,
+    MidIter { on_first_iter: bool },
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">MultiProduct</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span> <span class="op">+</span> <span class="ident">Clone</span>,
-          <span class="ident">I::Item</span>: <span class="ident">Clone</span>
+<span class="kw">impl</span>&lt;I&gt; MultiProduct&lt;I&gt;
+    <span class="kw">where </span>I: Iterator + Clone,
+          I::Item: Clone
 {
-    <span class="doccomment">/// Iterates the rightmost iterator, then recursively iterates iterators</span>
-    <span class="doccomment">/// to the left if necessary.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns true if the iteration succeeded, else false.</span>
-    <span class="kw">fn</span> <span class="ident">iterate_last</span>(
-        <span class="ident">multi_iters</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">MultiProductIter</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>],
-        <span class="kw-2">mut</span> <span class="ident">state</span>: <span class="ident">MultiProductIterState</span>
-    ) -&gt; <span class="ident">bool</span> {
-        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::MultiProductIterState</span>::<span class="kw-2">*</span>;
+    <span class="doccomment">/// Iterates the rightmost iterator, then recursively iterates iterators
+    /// to the left if necessary.
+    ///
+    /// Returns true if the iteration succeeded, else false.
+    </span><span class="kw">fn </span>iterate_last(
+        multi_iters: <span class="kw-2">&amp;mut </span>[MultiProductIter&lt;I&gt;],
+        <span class="kw-2">mut </span>state: MultiProductIterState
+    ) -&gt; bool {
+        <span class="kw">use </span><span class="self">self</span>::MultiProductIterState::<span class="kw-2">*</span>;
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">last</span>, <span class="ident">rest</span>)) <span class="op">=</span> <span class="ident">multi_iters</span>.<span class="ident">split_last_mut</span>() {
-            <span class="kw">let</span> <span class="ident">on_first_iter</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">state</span> {
-                <span class="ident">StartOfIter</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">on_first_iter</span> <span class="op">=</span> <span class="op">!</span><span class="ident">last</span>.<span class="ident">in_progress</span>();
-                    <span class="ident">state</span> <span class="op">=</span> <span class="ident">MidIter</span> { <span class="ident">on_first_iter</span> };
-                    <span class="ident">on_first_iter</span>
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((last, rest)) = multi_iters.split_last_mut() {
+            <span class="kw">let </span>on_first_iter = <span class="kw">match </span>state {
+                StartOfIter =&gt; {
+                    <span class="kw">let </span>on_first_iter = !last.in_progress();
+                    state = MidIter { on_first_iter };
+                    on_first_iter
                 },
-                <span class="ident">MidIter</span> { <span class="ident">on_first_iter</span> } =&gt; <span class="ident">on_first_iter</span>
+                MidIter { on_first_iter } =&gt; on_first_iter
             };
 
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">on_first_iter</span> {
-                <span class="ident">last</span>.<span class="ident">iterate</span>();
+            <span class="kw">if </span>!on_first_iter {
+                last.iterate();
             }
 
-            <span class="kw">if</span> <span class="ident">last</span>.<span class="ident">in_progress</span>() {
-                <span class="bool-val">true</span>
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">MultiProduct::iterate_last</span>(<span class="ident">rest</span>, <span class="ident">state</span>) {
-                <span class="ident">last</span>.<span class="ident">reset</span>();
-                <span class="ident">last</span>.<span class="ident">iterate</span>();
-                <span class="comment">// If iterator is None twice consecutively, then iterator is</span>
-                <span class="comment">// empty; whole product is empty.</span>
-                <span class="ident">last</span>.<span class="ident">in_progress</span>()
-            } <span class="kw">else</span> {
-                <span class="bool-val">false</span>
-            }
-        } <span class="kw">else</span> {
-            <span class="comment">// Reached end of iterator list. On initialisation, return true.</span>
-            <span class="comment">// At end of iteration (final iterator finishes), finish.</span>
-            <span class="kw">match</span> <span class="ident">state</span> {
-                <span class="ident">StartOfIter</span> =&gt; <span class="bool-val">false</span>,
-                <span class="ident">MidIter</span> { <span class="ident">on_first_iter</span> } =&gt; <span class="ident">on_first_iter</span>
+            <span class="kw">if </span>last.in_progress() {
+                <span class="bool-val">true
+            </span>} <span class="kw">else if </span>MultiProduct::iterate_last(rest, state) {
+                last.reset();
+                last.iterate();
+                <span class="comment">// If iterator is None twice consecutively, then iterator is
+                // empty; whole product is empty.
+                </span>last.in_progress()
+            } <span class="kw">else </span>{
+                <span class="bool-val">false
+            </span>}
+        } <span class="kw">else </span>{
+            <span class="comment">// Reached end of iterator list. On initialisation, return true.
+            // At end of iteration (final iterator finishes), finish.
+            </span><span class="kw">match </span>state {
+                StartOfIter =&gt; <span class="bool-val">false</span>,
+                MidIter { on_first_iter } =&gt; on_first_iter
             }
         }
     }
 
-    <span class="doccomment">/// Returns the unwrapped value of the next iteration.</span>
-    <span class="kw">fn</span> <span class="ident">curr_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">multi_iter</span><span class="op">|</span> {
-            <span class="ident">multi_iter</span>.<span class="ident">cur</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>()
-        }).<span class="ident">collect</span>()
+    <span class="doccomment">/// Returns the unwrapped value of the next iteration.
+    </span><span class="kw">fn </span>curr_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;I::Item&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.iter().map(|multi_iter| {
+            multi_iter.cur.clone().unwrap()
+        }).collect()
     }
 
-    <span class="doccomment">/// Returns true if iteration has started and has not yet finished; false</span>
-    <span class="doccomment">/// otherwise.</span>
-    <span class="kw">fn</span> <span class="ident">in_progress</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">last</span>() {
-            <span class="ident">last</span>.<span class="ident">in_progress</span>()
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        }
+    <span class="doccomment">/// Returns true if iteration has started and has not yet finished; false
+    /// otherwise.
+    </span><span class="kw">fn </span>in_progress(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(last) = <span class="self">self</span>.<span class="number">0</span>.last() {
+            last.in_progress()
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>}
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">MultiProductIter</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span> <span class="op">+</span> <span class="ident">Clone</span>,
-          <span class="ident">I::Item</span>: <span class="ident">Clone</span>
+<span class="kw">impl</span>&lt;I&gt; MultiProductIter&lt;I&gt;
+    <span class="kw">where </span>I: Iterator + Clone,
+          I::Item: Clone
 {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">MultiProductIter</span> {
-            <span class="ident">cur</span>: <span class="prelude-val">None</span>,
-            <span class="ident">iter</span>: <span class="ident">iter</span>.<span class="ident">clone</span>(),
-            <span class="ident">iter_orig</span>: <span class="ident">iter</span>
+    <span class="kw">fn </span>new(iter: I) -&gt; <span class="self">Self </span>{
+        MultiProductIter {
+            cur: <span class="prelude-val">None</span>,
+            iter: iter.clone(),
+            iter_orig: iter
         }
     }
 
-    <span class="doccomment">/// Iterate the managed iterator.</span>
-    <span class="kw">fn</span> <span class="ident">iterate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">cur</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>();
+    <span class="doccomment">/// Iterate the managed iterator.
+    </span><span class="kw">fn </span>iterate(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.cur = <span class="self">self</span>.iter.next();
     }
 
-    <span class="doccomment">/// Reset the managed iterator.</span>
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter_orig</span>.<span class="ident">clone</span>();
+    <span class="doccomment">/// Reset the managed iterator.
+    </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.iter = <span class="self">self</span>.iter_orig.clone();
     }
 
-    <span class="doccomment">/// Returns true if the current iterator has been started and has not yet</span>
-    <span class="doccomment">/// finished; false otherwise.</span>
-    <span class="kw">fn</span> <span class="ident">in_progress</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">cur</span>.<span class="ident">is_some</span>()
+    <span class="doccomment">/// Returns true if the current iterator has been started and has not yet
+    /// finished; false otherwise.
+    </span><span class="kw">fn </span>in_progress(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.cur.is_some()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">MultiProduct</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span> <span class="op">+</span> <span class="ident">Clone</span>,
-          <span class="ident">I::Item</span>: <span class="ident">Clone</span>
+<span class="kw">impl</span>&lt;I&gt; Iterator <span class="kw">for </span>MultiProduct&lt;I&gt;
+    <span class="kw">where </span>I: Iterator + Clone,
+          I::Item: Clone
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Item = Vec&lt;I::Item&gt;;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">MultiProduct::iterate_last</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="number">0</span>,
-            <span class="ident">MultiProductIterState::StartOfIter</span>
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">if </span>MultiProduct::iterate_last(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>,
+            MultiProductIterState::StartOfIter
         ) {
-            <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">curr_iterator</span>())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.curr_iterator())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="kw">fn</span> <span class="ident">count</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="number">0</span>;
+    <span class="kw">fn </span>count(<span class="self">self</span>) -&gt; usize {
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.is_empty() {
+            <span class="kw">return </span><span class="number">0</span>;
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">in_progress</span>() {
-            <span class="kw">return</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">into_iter</span>().<span class="ident">fold</span>(<span class="number">1</span>, <span class="op">|</span><span class="ident">acc</span>, <span class="ident">multi_iter</span><span class="op">|</span> {
-                <span class="ident">acc</span> <span class="op">*</span> <span class="ident">multi_iter</span>.<span class="ident">iter</span>.<span class="ident">count</span>()
+        <span class="kw">if </span>!<span class="self">self</span>.in_progress() {
+            <span class="kw">return </span><span class="self">self</span>.<span class="number">0</span>.into_iter().fold(<span class="number">1</span>, |acc, multi_iter| {
+                acc * multi_iter.iter.count()
             });
         }
 
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">into_iter</span>().<span class="ident">fold</span>(
+        <span class="self">self</span>.<span class="number">0</span>.into_iter().fold(
             <span class="number">0</span>,
-            <span class="op">|</span><span class="ident">acc</span>, <span class="ident">MultiProductIter</span> { <span class="ident">iter</span>, <span class="ident">iter_orig</span>, <span class="ident">cur</span>: <span class="kw">_</span> }<span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">total_count</span> <span class="op">=</span> <span class="ident">iter_orig</span>.<span class="ident">count</span>();
-                <span class="kw">let</span> <span class="ident">cur_count</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">count</span>();
-                <span class="ident">acc</span> <span class="op">*</span> <span class="ident">total_count</span> <span class="op">+</span> <span class="ident">cur_count</span>
+            |acc, MultiProductIter { iter, iter_orig, cur: <span class="kw">_ </span>}| {
+                <span class="kw">let </span>total_count = iter_orig.count();
+                <span class="kw">let </span>cur_count = iter.count();
+                acc * total_count + cur_count
             }
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-        <span class="comment">// Not ExactSizeIterator because size may be larger than usize</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>));
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="comment">// Not ExactSizeIterator because size may be larger than usize
+        </span><span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.is_empty() {
+            <span class="kw">return </span>(<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>));
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">in_progress</span>() {
-            <span class="kw">return</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">fold</span>((<span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>)), <span class="op">|</span><span class="ident">acc</span>, <span class="ident">multi_iter</span><span class="op">|</span> {
-                <span class="ident">size_hint::mul</span>(<span class="ident">acc</span>, <span class="ident">multi_iter</span>.<span class="ident">iter</span>.<span class="ident">size_hint</span>())
+        <span class="kw">if </span>!<span class="self">self</span>.in_progress() {
+            <span class="kw">return </span><span class="self">self</span>.<span class="number">0</span>.iter().fold((<span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>)), |acc, multi_iter| {
+                size_hint::mul(acc, multi_iter.iter.size_hint())
             });
         }
 
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">fold</span>(
+        <span class="self">self</span>.<span class="number">0</span>.iter().fold(
             (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>)),
-            <span class="op">|</span><span class="ident">acc</span>, <span class="kw-2">&amp;</span><span class="ident">MultiProductIter</span> { <span class="kw-2">ref</span> <span class="ident">iter</span>, <span class="kw-2">ref</span> <span class="ident">iter_orig</span>, <span class="ident">cur</span>: <span class="kw">_</span> }<span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">cur_size</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">size_hint</span>();
-                <span class="kw">let</span> <span class="ident">total_size</span> <span class="op">=</span> <span class="ident">iter_orig</span>.<span class="ident">size_hint</span>();
-                <span class="ident">size_hint::add</span>(<span class="ident">size_hint::mul</span>(<span class="ident">acc</span>, <span class="ident">total_size</span>), <span class="ident">cur_size</span>)
+            |acc, <span class="kw-2">&amp;</span>MultiProductIter { <span class="kw-2">ref </span>iter, <span class="kw-2">ref </span>iter_orig, cur: <span class="kw">_ </span>}| {
+                <span class="kw">let </span>cur_size = iter.size_hint();
+                <span class="kw">let </span>total_size = iter_orig.size_hint();
+                size_hint::add(size_hint::mul(acc, total_size), cur_size)
             }
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">iter_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">len</span>();
+    <span class="kw">fn </span>last(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">let </span>iter_count = <span class="self">self</span>.<span class="number">0</span>.len();
 
-        <span class="kw">let</span> <span class="ident">lasts</span>: <span class="ident"><span class="self">Self</span>::Item</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">into_iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">multi_iter</span><span class="op">|</span> <span class="ident">multi_iter</span>.<span class="ident">iter</span>.<span class="ident">last</span>())
-            .<span class="ident">while_some</span>()
-            .<span class="ident">collect</span>();
+        <span class="kw">let </span>lasts: <span class="self">Self</span>::Item = <span class="self">self</span>.<span class="number">0</span>.into_iter()
+            .map(|multi_iter| multi_iter.iter.last())
+            .while_some()
+            .collect();
 
-        <span class="kw">if</span> <span class="ident">lasts</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">iter_count</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">lasts</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+        <span class="kw">if </span>lasts.len() == iter_count {
+            <span class="prelude-val">Some</span>(lasts)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

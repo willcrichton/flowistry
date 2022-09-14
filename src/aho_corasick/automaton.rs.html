@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.18/src/automaton.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>automaton.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/automaton.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>automaton.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -578,579 +571,578 @@
 <span id="571">571</span>
 <span id="572">572</span>
 <span id="573">573</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ahocorasick::MatchKind</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::prefilter</span>::{<span class="self">self</span>, <span class="ident">Candidate</span>, <span class="ident">Prefilter</span>, <span class="ident">PrefilterState</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::state_id</span>::{<span class="ident">dead_id</span>, <span class="ident">fail_id</span>, <span class="ident">StateID</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Match</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::ahocorasick::MatchKind;
+<span class="kw">use </span><span class="kw">crate</span>::prefilter::{<span class="self">self</span>, Candidate, Prefilter, PrefilterState};
+<span class="kw">use </span><span class="kw">crate</span>::state_id::{dead_id, fail_id, StateID};
+<span class="kw">use </span><span class="kw">crate</span>::Match;
 
-<span class="comment">// NOTE: This trait essentially started as a copy of the same trait from from</span>
-<span class="comment">// regex-automata, with some wording changed since we use this trait for</span>
-<span class="comment">// NFAs in addition to DFAs in this crate. Additionally, we do not export</span>
-<span class="comment">// this trait. It&#39;s only used internally to reduce code duplication. The</span>
-<span class="comment">// regex-automata crate needs to expose it because its Regex type is generic</span>
-<span class="comment">// over implementations of this trait. In this crate, we encapsulate everything</span>
-<span class="comment">// behind the AhoCorasick type.</span>
-<span class="comment">//</span>
-<span class="comment">// This trait is a bit of a mess, but it&#39;s not quite clear how to fix it.</span>
-<span class="comment">// Basically, there are several competing concerns:</span>
-<span class="comment">//</span>
-<span class="comment">// * We need performance, so everything effectively needs to get monomorphized.</span>
-<span class="comment">// * There are several variations on searching Aho-Corasick automatons:</span>
-<span class="comment">//   overlapping, standard and leftmost. Overlapping and standard are somewhat</span>
-<span class="comment">//   combined together below, but there is no real way to combine standard with</span>
-<span class="comment">//   leftmost. Namely, leftmost requires continuing a search even after a match</span>
-<span class="comment">//   is found, in order to correctly disambiguate a match.</span>
-<span class="comment">// * On top of that, *sometimes* callers want to know which state the automaton</span>
-<span class="comment">//   is in after searching. This is principally useful for overlapping and</span>
-<span class="comment">//   stream searches. However, when callers don&#39;t care about this, we really</span>
-<span class="comment">//   do not want to be forced to compute it, since it sometimes requires extra</span>
-<span class="comment">//   work. Thus, there are effectively two copies of leftmost searching: one</span>
-<span class="comment">//   for tracking the state ID and one that doesn&#39;t. We should ideally do the</span>
-<span class="comment">//   same for standard searching, but my sanity stopped me.</span>
+<span class="comment">// NOTE: This trait essentially started as a copy of the same trait from from
+// regex-automata, with some wording changed since we use this trait for
+// NFAs in addition to DFAs in this crate. Additionally, we do not export
+// this trait. It&#39;s only used internally to reduce code duplication. The
+// regex-automata crate needs to expose it because its Regex type is generic
+// over implementations of this trait. In this crate, we encapsulate everything
+// behind the AhoCorasick type.
+//
+// This trait is a bit of a mess, but it&#39;s not quite clear how to fix it.
+// Basically, there are several competing concerns:
+//
+// * We need performance, so everything effectively needs to get monomorphized.
+// * There are several variations on searching Aho-Corasick automatons:
+//   overlapping, standard and leftmost. Overlapping and standard are somewhat
+//   combined together below, but there is no real way to combine standard with
+//   leftmost. Namely, leftmost requires continuing a search even after a match
+//   is found, in order to correctly disambiguate a match.
+// * On top of that, *sometimes* callers want to know which state the automaton
+//   is in after searching. This is principally useful for overlapping and
+//   stream searches. However, when callers don&#39;t care about this, we really
+//   do not want to be forced to compute it, since it sometimes requires extra
+//   work. Thus, there are effectively two copies of leftmost searching: one
+//   for tracking the state ID and one that doesn&#39;t. We should ideally do the
+//   same for standard searching, but my sanity stopped me.
 
-<span class="comment">// SAFETY RATIONALE: Previously, the code below went to some length to remove</span>
-<span class="comment">// all bounds checks. This generally produced tighter assembly and lead to</span>
-<span class="comment">// 20-50% improvements in micro-benchmarks on corpora made up of random</span>
-<span class="comment">// characters. This somewhat makes sense, since the branch predictor is going</span>
-<span class="comment">// to be at its worse on random text.</span>
-<span class="comment">//</span>
-<span class="comment">// However, using the aho-corasick-debug tool and manually benchmarking</span>
-<span class="comment">// different inputs, the code *with* bounds checks actually wound up being</span>
-<span class="comment">// slightly faster:</span>
-<span class="comment">//</span>
-<span class="comment">//     $ cat input</span>
-<span class="comment">//     Sherlock Holmes</span>
-<span class="comment">//     John Watson</span>
-<span class="comment">//     Professor Moriarty</span>
-<span class="comment">//     Irene Adler</span>
-<span class="comment">//     Mary Watson</span>
-<span class="comment">//</span>
-<span class="comment">//     $ aho-corasick-debug-safe \</span>
-<span class="comment">//         input OpenSubtitles2018.raw.sample.en --kind leftmost-first --dfa</span>
-<span class="comment">//     pattern read time: 32.824µs</span>
-<span class="comment">//     automaton build time: 444.687µs</span>
-<span class="comment">//     automaton heap usage: 72392 bytes</span>
-<span class="comment">//     match count: 639</span>
-<span class="comment">//     count time: 1.809961702s</span>
-<span class="comment">//</span>
-<span class="comment">//     $ aho-corasick-debug-master \</span>
-<span class="comment">//         input OpenSubtitles2018.raw.sample.en --kind leftmost-first --dfa</span>
-<span class="comment">//     pattern read time: 31.425µs</span>
-<span class="comment">//     automaton build time: 317.434µs</span>
-<span class="comment">//     automaton heap usage: 72392 bytes</span>
-<span class="comment">//     match count: 639</span>
-<span class="comment">//     count time: 2.059157705s</span>
-<span class="comment">//</span>
-<span class="comment">// I was able to reproduce this result on two different machines (an i5 and</span>
-<span class="comment">// an i7). Therefore, we go the route of safe code for now.</span>
+// SAFETY RATIONALE: Previously, the code below went to some length to remove
+// all bounds checks. This generally produced tighter assembly and lead to
+// 20-50% improvements in micro-benchmarks on corpora made up of random
+// characters. This somewhat makes sense, since the branch predictor is going
+// to be at its worse on random text.
+//
+// However, using the aho-corasick-debug tool and manually benchmarking
+// different inputs, the code *with* bounds checks actually wound up being
+// slightly faster:
+//
+//     $ cat input
+//     Sherlock Holmes
+//     John Watson
+//     Professor Moriarty
+//     Irene Adler
+//     Mary Watson
+//
+//     $ aho-corasick-debug-safe \
+//         input OpenSubtitles2018.raw.sample.en --kind leftmost-first --dfa
+//     pattern read time: 32.824µs
+//     automaton build time: 444.687µs
+//     automaton heap usage: 72392 bytes
+//     match count: 639
+//     count time: 1.809961702s
+//
+//     $ aho-corasick-debug-master \
+//         input OpenSubtitles2018.raw.sample.en --kind leftmost-first --dfa
+//     pattern read time: 31.425µs
+//     automaton build time: 317.434µs
+//     automaton heap usage: 72392 bytes
+//     match count: 639
+//     count time: 2.059157705s
+//
+// I was able to reproduce this result on two different machines (an i5 and
+// an i7). Therefore, we go the route of safe code for now.
 
-<span class="doccomment">/// A trait describing the interface of an Aho-Corasick finite state machine.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Every automaton has exactly one fail state, one dead state and exactly one</span>
-<span class="doccomment">/// start state. Generally, these correspond to the first, second and third</span>
-<span class="doccomment">/// states, respectively. The failure state is always treated as a sentinel.</span>
-<span class="doccomment">/// That is, no correct Aho-Corasick automaton will ever transition into the</span>
-<span class="doccomment">/// fail state. The dead state, however, can be transitioned into, but only</span>
-<span class="doccomment">/// when leftmost-first or leftmost-longest match semantics are enabled and</span>
-<span class="doccomment">/// only when at least one match has been observed.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Every automaton also has one or more match states, such that</span>
-<span class="doccomment">/// `Automaton::is_match_state(id)` returns `true` if and only if `id`</span>
-<span class="doccomment">/// corresponds to a match state.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Automaton</span> {
-    <span class="doccomment">/// The representation used for state identifiers in this automaton.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Typically, this is one of `u8`, `u16`, `u32`, `u64` or `usize`.</span>
-    <span class="kw">type</span> <span class="ident">ID</span>: <span class="ident">StateID</span>;
+</span><span class="doccomment">/// A trait describing the interface of an Aho-Corasick finite state machine.
+///
+/// Every automaton has exactly one fail state, one dead state and exactly one
+/// start state. Generally, these correspond to the first, second and third
+/// states, respectively. The failure state is always treated as a sentinel.
+/// That is, no correct Aho-Corasick automaton will ever transition into the
+/// fail state. The dead state, however, can be transitioned into, but only
+/// when leftmost-first or leftmost-longest match semantics are enabled and
+/// only when at least one match has been observed.
+///
+/// Every automaton also has one or more match states, such that
+/// `Automaton::is_match_state(id)` returns `true` if and only if `id`
+/// corresponds to a match state.
+</span><span class="kw">pub trait </span>Automaton {
+    <span class="doccomment">/// The representation used for state identifiers in this automaton.
+    ///
+    /// Typically, this is one of `u8`, `u16`, `u32`, `u64` or `usize`.
+    </span><span class="kw">type </span>ID: StateID;
 
-    <span class="doccomment">/// The type of matching that should be done.</span>
-    <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">MatchKind</span>;
+    <span class="doccomment">/// The type of matching that should be done.
+    </span><span class="kw">fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>MatchKind;
 
-    <span class="doccomment">/// Returns true if and only if this automaton uses anchored searches.</span>
-    <span class="kw">fn</span> <span class="ident">anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>;
+    <span class="doccomment">/// Returns true if and only if this automaton uses anchored searches.
+    </span><span class="kw">fn </span>anchored(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
 
-    <span class="doccomment">/// An optional prefilter for quickly skipping to the next candidate match.</span>
-    <span class="doccomment">/// A prefilter must report at least every match, although it may report</span>
-    <span class="doccomment">/// positions that do not correspond to a match. That is, it must not allow</span>
-    <span class="doccomment">/// false negatives, but can allow false positives.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Currently, a prefilter only runs when the automaton is in the start</span>
-    <span class="doccomment">/// state. That is, the position reported by a prefilter should always</span>
-    <span class="doccomment">/// correspond to the start of a potential match.</span>
-    <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// An optional prefilter for quickly skipping to the next candidate match.
+    /// A prefilter must report at least every match, although it may report
+    /// positions that do not correspond to a match. That is, it must not allow
+    /// false negatives, but can allow false positives.
+    ///
+    /// Currently, a prefilter only runs when the automaton is in the start
+    /// state. That is, the position reported by a prefilter should always
+    /// correspond to the start of a potential match.
+    </span><span class="kw">fn </span>prefilter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Prefilter&gt;;
 
-    <span class="doccomment">/// Return the identifier of this automaton&#39;s start state.</span>
-    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::ID</span>;
+    <span class="doccomment">/// Return the identifier of this automaton&#39;s start state.
+    </span><span class="kw">fn </span>start_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::ID;
 
-    <span class="doccomment">/// Returns true if and only if the given state identifier refers to a</span>
-    <span class="doccomment">/// valid state.</span>
-    <span class="kw">fn</span> <span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident"><span class="self">Self</span>::ID</span>) -&gt; <span class="ident">bool</span>;
+    <span class="doccomment">/// Returns true if and only if the given state identifier refers to a
+    /// valid state.
+    </span><span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="self">Self</span>::ID) -&gt; bool;
 
-    <span class="doccomment">/// Returns true if and only if the given identifier corresponds to a match</span>
-    <span class="doccomment">/// state.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The state ID given must be valid, or else implementors may panic.</span>
-    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident"><span class="self">Self</span>::ID</span>) -&gt; <span class="ident">bool</span>;
+    <span class="doccomment">/// Returns true if and only if the given identifier corresponds to a match
+    /// state.
+    ///
+    /// The state ID given must be valid, or else implementors may panic.
+    </span><span class="kw">fn </span>is_match_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="self">Self</span>::ID) -&gt; bool;
 
-    <span class="doccomment">/// Returns true if and only if the given identifier corresponds to a state</span>
-    <span class="doccomment">/// that is either the dead state or a match state.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Depending on the implementation of the automaton, this routine can</span>
-    <span class="doccomment">/// be used to save a branch in the core matching loop. Nevertheless,</span>
-    <span class="doccomment">/// `is_match_state(id) || id == dead_id()` is always a valid</span>
-    <span class="doccomment">/// implementation. Indeed, this is the default implementation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The state ID given must be valid, or else implementors may panic.</span>
-    <span class="kw">fn</span> <span class="ident">is_match_or_dead_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident"><span class="self">Self</span>::ID</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">id</span> <span class="op">==</span> <span class="ident">dead_id</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">is_match_state</span>(<span class="ident">id</span>)
+    <span class="doccomment">/// Returns true if and only if the given identifier corresponds to a state
+    /// that is either the dead state or a match state.
+    ///
+    /// Depending on the implementation of the automaton, this routine can
+    /// be used to save a branch in the core matching loop. Nevertheless,
+    /// `is_match_state(id) || id == dead_id()` is always a valid
+    /// implementation. Indeed, this is the default implementation.
+    ///
+    /// The state ID given must be valid, or else implementors may panic.
+    </span><span class="kw">fn </span>is_match_or_dead_state(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="self">Self</span>::ID) -&gt; bool {
+        id == dead_id() || <span class="self">self</span>.is_match_state(id)
     }
 
-    <span class="doccomment">/// If the given state is a match state, return the match corresponding</span>
-    <span class="doccomment">/// to the given match index. `end` must be the ending position of the</span>
-    <span class="doccomment">/// detected match. If no match exists or if `match_index` exceeds the</span>
-    <span class="doccomment">/// number of matches in this state, then `None` is returned.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The state ID given must be valid, or else implementors may panic.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the given state ID is correct and if the `match_index` is less than</span>
-    <span class="doccomment">/// the number of matches for that state, then this is guaranteed to return</span>
-    <span class="doccomment">/// a match.</span>
-    <span class="kw">fn</span> <span class="ident">get_match</span>(
+    <span class="doccomment">/// If the given state is a match state, return the match corresponding
+    /// to the given match index. `end` must be the ending position of the
+    /// detected match. If no match exists or if `match_index` exceeds the
+    /// number of matches in this state, then `None` is returned.
+    ///
+    /// The state ID given must be valid, or else implementors may panic.
+    ///
+    /// If the given state ID is correct and if the `match_index` is less than
+    /// the number of matches for that state, then this is guaranteed to return
+    /// a match.
+    </span><span class="kw">fn </span>get_match(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">id</span>: <span class="ident"><span class="self">Self</span>::ID</span>,
-        <span class="ident">match_index</span>: <span class="ident">usize</span>,
-        <span class="ident">end</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span>;
+        id: <span class="self">Self</span>::ID,
+        match_index: usize,
+        end: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt;;
 
-    <span class="doccomment">/// Returns the number of matches for the given state. If the given state</span>
-    <span class="doccomment">/// is not a match state, then this returns 0.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The state ID given must be valid, or else implementors must panic.</span>
-    <span class="kw">fn</span> <span class="ident">match_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident"><span class="self">Self</span>::ID</span>) -&gt; <span class="ident">usize</span>;
+    <span class="doccomment">/// Returns the number of matches for the given state. If the given state
+    /// is not a match state, then this returns 0.
+    ///
+    /// The state ID given must be valid, or else implementors must panic.
+    </span><span class="kw">fn </span>match_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="self">Self</span>::ID) -&gt; usize;
 
-    <span class="doccomment">/// Given the current state that this automaton is in and the next input</span>
-    <span class="doccomment">/// byte, this method returns the identifier of the next state. The</span>
-    <span class="doccomment">/// identifier returned must always be valid and may never correspond to</span>
-    <span class="doccomment">/// the fail state. The returned identifier may, however, point to the</span>
-    <span class="doccomment">/// dead state.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is not safe so that implementors may look up the next state</span>
-    <span class="doccomment">/// without memory safety checks such as bounds checks. As such, callers</span>
-    <span class="doccomment">/// must ensure that the given identifier corresponds to a valid automaton</span>
-    <span class="doccomment">/// state. Implementors must, in turn, ensure that this routine is safe for</span>
-    <span class="doccomment">/// all valid state identifiers and for all possible `u8` values.</span>
-    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident"><span class="self">Self</span>::ID</span>, <span class="ident">input</span>: <span class="ident">u8</span>) -&gt; <span class="ident"><span class="self">Self</span>::ID</span>;
+    <span class="doccomment">/// Given the current state that this automaton is in and the next input
+    /// byte, this method returns the identifier of the next state. The
+    /// identifier returned must always be valid and may never correspond to
+    /// the fail state. The returned identifier may, however, point to the
+    /// dead state.
+    ///
+    /// This is not safe so that implementors may look up the next state
+    /// without memory safety checks such as bounds checks. As such, callers
+    /// must ensure that the given identifier corresponds to a valid automaton
+    /// state. Implementors must, in turn, ensure that this routine is safe for
+    /// all valid state identifiers and for all possible `u8` values.
+    </span><span class="kw">fn </span>next_state(<span class="kw-2">&amp;</span><span class="self">self</span>, current: <span class="self">Self</span>::ID, input: u8) -&gt; <span class="self">Self</span>::ID;
 
-    <span class="doccomment">/// Like next_state, but debug_asserts that the underlying</span>
-    <span class="doccomment">/// implementation never returns a `fail_id()` for the next state.</span>
-    <span class="kw">fn</span> <span class="ident">next_state_no_fail</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident"><span class="self">Self</span>::ID</span>, <span class="ident">input</span>: <span class="ident">u8</span>) -&gt; <span class="ident"><span class="self">Self</span>::ID</span> {
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_state</span>(<span class="ident">current</span>, <span class="ident">input</span>);
-        <span class="comment">// We should never see a transition to the failure state.</span>
-        <span class="macro">debug_assert!</span>(
-            <span class="ident">next</span> <span class="op">!</span><span class="op">=</span> <span class="ident">fail_id</span>(),
-            <span class="string">&quot;automaton should never return fail_id for next state&quot;</span>
-        );
-        <span class="ident">next</span>
+    <span class="doccomment">/// Like next_state, but debug_asserts that the underlying
+    /// implementation never returns a `fail_id()` for the next state.
+    </span><span class="kw">fn </span>next_state_no_fail(<span class="kw-2">&amp;</span><span class="self">self</span>, current: <span class="self">Self</span>::ID, input: u8) -&gt; <span class="self">Self</span>::ID {
+        <span class="kw">let </span>next = <span class="self">self</span>.next_state(current, input);
+        <span class="comment">// We should never see a transition to the failure state.
+        </span><span class="macro">debug_assert!</span>(
+            next != fail_id(),
+            <span class="string">&quot;automaton should never return fail_id for next state&quot;
+        </span>);
+        next
     }
 
-    <span class="doccomment">/// Execute a search using standard match semantics.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This can be used even when the automaton was constructed with leftmost</span>
-    <span class="doccomment">/// match semantics when you want to find the earliest possible match. This</span>
-    <span class="doccomment">/// can also be used as part of an overlapping search implementation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// N.B. This does not report a match if `state_id` is given as a matching</span>
-    <span class="doccomment">/// state. As such, this should not be used directly.</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">standard_find_at</span>(
+    <span class="doccomment">/// Execute a search using standard match semantics.
+    ///
+    /// This can be used even when the automaton was constructed with leftmost
+    /// match semantics when you want to find the earliest possible match. This
+    /// can also be used as part of an overlapping search implementation.
+    ///
+    /// N.B. This does not report a match if `state_id` is given as a matching
+    /// state. As such, this should not be used directly.
+    </span><span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>standard_find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PrefilterState</span>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">at</span>: <span class="ident">usize</span>,
-        <span class="ident">state_id</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::ID</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pre</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">prefilter</span>() {
-            <span class="self">self</span>.<span class="ident">standard_find_at_imp</span>(
-                <span class="ident">prestate</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">pre</span>),
-                <span class="ident">haystack</span>,
-                <span class="ident">at</span>,
-                <span class="ident">state_id</span>,
+        prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        state_id: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::ID,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = <span class="self">self</span>.prefilter() {
+            <span class="self">self</span>.standard_find_at_imp(
+                prestate,
+                <span class="prelude-val">Some</span>(pre),
+                haystack,
+                at,
+                state_id,
             )
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">standard_find_at_imp</span>(<span class="ident">prestate</span>, <span class="prelude-val">None</span>, <span class="ident">haystack</span>, <span class="ident">at</span>, <span class="ident">state_id</span>)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.standard_find_at_imp(prestate, <span class="prelude-val">None</span>, haystack, at, state_id)
         }
     }
 
-    <span class="comment">// It&#39;s important for this to always be inlined. Namely, its only caller</span>
-    <span class="comment">// is standard_find_at, and the inlining should remove the case analysis</span>
-    <span class="comment">// for prefilter scanning when there is no prefilter available.</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">standard_find_at_imp</span>(
+    <span class="comment">// It&#39;s important for this to always be inlined. Namely, its only caller
+    // is standard_find_at, and the inlining should remove the case analysis
+    // for prefilter scanning when there is no prefilter available.
+    </span><span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>standard_find_at_imp(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PrefilterState</span>,
-        <span class="ident">prefilter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">usize</span>,
-        <span class="ident">state_id</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::ID</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
-        <span class="kw">while</span> <span class="ident">at</span> <span class="op">&lt;</span> <span class="ident">haystack</span>.<span class="ident">len</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pre</span>) <span class="op">=</span> <span class="ident">prefilter</span> {
-                <span class="kw">if</span> <span class="ident">prestate</span>.<span class="ident">is_effective</span>(<span class="ident">at</span>) <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">state_id</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">start_state</span>()
+        prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+        prefilter: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Prefilter&gt;,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        <span class="kw-2">mut </span>at: usize,
+        state_id: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::ID,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="kw">while </span>at &lt; haystack.len() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = prefilter {
+                <span class="kw">if </span>prestate.is_effective(at) &amp;&amp; <span class="kw-2">*</span>state_id == <span class="self">self</span>.start_state()
                 {
-                    <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">prefilter::next</span>(<span class="ident">prestate</span>, <span class="ident">pre</span>, <span class="ident">haystack</span>, <span class="ident">at</span>)
-                        .<span class="ident">into_option</span>();
-                    <span class="kw">match</span> <span class="ident">c</span> {
-                        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
-                        <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; {
-                            <span class="ident">at</span> <span class="op">=</span> <span class="ident">i</span>;
+                    <span class="kw">let </span>c = prefilter::next(prestate, pre, haystack, at)
+                        .into_option();
+                    <span class="kw">match </span>c {
+                        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+                        <span class="prelude-val">Some</span>(i) =&gt; {
+                            at = i;
                         }
                     }
                 }
             }
-            <span class="comment">// CORRECTNESS: next_state is correct for all possible u8 values,</span>
-            <span class="comment">// so the only thing we&#39;re concerned about is the validity of</span>
-            <span class="comment">// `state_id`. `state_id` either comes from the caller (in which</span>
-            <span class="comment">// case, we assume it is correct), or it comes from the return</span>
-            <span class="comment">// value of next_state, which is guaranteed to be correct.</span>
-            <span class="kw-2">*</span><span class="ident">state_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_state_no_fail</span>(<span class="kw-2">*</span><span class="ident">state_id</span>, <span class="ident">haystack</span>[<span class="ident">at</span>]);
-            <span class="ident">at</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="comment">// This routine always quits immediately after seeing a</span>
-            <span class="comment">// match, and since dead states can only come after seeing</span>
-            <span class="comment">// a match, seeing a dead state here is impossible. (Unless</span>
-            <span class="comment">// we have an anchored automaton, in which case, dead states</span>
-            <span class="comment">// are used to stop a search.)</span>
-            <span class="macro">debug_assert!</span>(
-                <span class="kw-2">*</span><span class="ident">state_id</span> <span class="op">!</span><span class="op">=</span> <span class="ident">dead_id</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">anchored</span>(),
-                <span class="string">&quot;standard find should never see a dead state&quot;</span>
-            );
+            <span class="comment">// CORRECTNESS: next_state is correct for all possible u8 values,
+            // so the only thing we&#39;re concerned about is the validity of
+            // `state_id`. `state_id` either comes from the caller (in which
+            // case, we assume it is correct), or it comes from the return
+            // value of next_state, which is guaranteed to be correct.
+            </span><span class="kw-2">*</span>state_id = <span class="self">self</span>.next_state_no_fail(<span class="kw-2">*</span>state_id, haystack[at]);
+            at += <span class="number">1</span>;
+            <span class="comment">// This routine always quits immediately after seeing a
+            // match, and since dead states can only come after seeing
+            // a match, seeing a dead state here is impossible. (Unless
+            // we have an anchored automaton, in which case, dead states
+            // are used to stop a search.)
+            </span><span class="macro">debug_assert!</span>(
+                <span class="kw-2">*</span>state_id != dead_id() || <span class="self">self</span>.anchored(),
+                <span class="string">&quot;standard find should never see a dead state&quot;
+            </span>);
 
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_match_or_dead_state</span>(<span class="kw-2">*</span><span class="ident">state_id</span>) {
-                <span class="kw">return</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">state_id</span> <span class="op">==</span> <span class="ident">dead_id</span>() {
-                    <span class="prelude-val">None</span>
-                } <span class="kw">else</span> {
-                    <span class="self">self</span>.<span class="ident">get_match</span>(<span class="kw-2">*</span><span class="ident">state_id</span>, <span class="number">0</span>, <span class="ident">at</span>)
+            <span class="kw">if </span><span class="self">self</span>.is_match_or_dead_state(<span class="kw-2">*</span>state_id) {
+                <span class="kw">return if </span><span class="kw-2">*</span>state_id == dead_id() {
+                    <span class="prelude-val">None
+                </span>} <span class="kw">else </span>{
+                    <span class="self">self</span>.get_match(<span class="kw-2">*</span>state_id, <span class="number">0</span>, at)
                 };
             }
         }
-        <span class="prelude-val">None</span>
-    }
+        <span class="prelude-val">None
+    </span>}
 
-    <span class="doccomment">/// Execute a search using leftmost (either first or longest) match</span>
-    <span class="doccomment">/// semantics.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The principle difference between searching with standard semantics and</span>
-    <span class="doccomment">/// searching with leftmost semantics is that leftmost searching will</span>
-    <span class="doccomment">/// continue searching even after a match has been found. Once a match</span>
-    <span class="doccomment">/// is found, the search does not stop until either the haystack has been</span>
-    <span class="doccomment">/// exhausted or a dead state is observed in the automaton. (Dead states</span>
-    <span class="doccomment">/// only exist in automatons constructed with leftmost semantics.) That is,</span>
-    <span class="doccomment">/// we rely on the construction of the automaton to tell us when to quit.</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">leftmost_find_at</span>(
+    <span class="doccomment">/// Execute a search using leftmost (either first or longest) match
+    /// semantics.
+    ///
+    /// The principle difference between searching with standard semantics and
+    /// searching with leftmost semantics is that leftmost searching will
+    /// continue searching even after a match has been found. Once a match
+    /// is found, the search does not stop until either the haystack has been
+    /// exhausted or a dead state is observed in the automaton. (Dead states
+    /// only exist in automatons constructed with leftmost semantics.) That is,
+    /// we rely on the construction of the automaton to tell us when to quit.
+    </span><span class="attribute">#[inline(never)]
+    </span><span class="kw">fn </span>leftmost_find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PrefilterState</span>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">at</span>: <span class="ident">usize</span>,
-        <span class="ident">state_id</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::ID</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pre</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">prefilter</span>() {
-            <span class="self">self</span>.<span class="ident">leftmost_find_at_imp</span>(
-                <span class="ident">prestate</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">pre</span>),
-                <span class="ident">haystack</span>,
-                <span class="ident">at</span>,
-                <span class="ident">state_id</span>,
+        prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        state_id: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::ID,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = <span class="self">self</span>.prefilter() {
+            <span class="self">self</span>.leftmost_find_at_imp(
+                prestate,
+                <span class="prelude-val">Some</span>(pre),
+                haystack,
+                at,
+                state_id,
             )
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">leftmost_find_at_imp</span>(<span class="ident">prestate</span>, <span class="prelude-val">None</span>, <span class="ident">haystack</span>, <span class="ident">at</span>, <span class="ident">state_id</span>)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.leftmost_find_at_imp(prestate, <span class="prelude-val">None</span>, haystack, at, state_id)
         }
     }
 
-    <span class="comment">// It&#39;s important for this to always be inlined. Namely, its only caller</span>
-    <span class="comment">// is leftmost_find_at, and the inlining should remove the case analysis</span>
-    <span class="comment">// for prefilter scanning when there is no prefilter available.</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">leftmost_find_at_imp</span>(
+    <span class="comment">// It&#39;s important for this to always be inlined. Namely, its only caller
+    // is leftmost_find_at, and the inlining should remove the case analysis
+    // for prefilter scanning when there is no prefilter available.
+    </span><span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>leftmost_find_at_imp(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PrefilterState</span>,
-        <span class="ident">prefilter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">usize</span>,
-        <span class="ident">state_id</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::ID</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">match_kind</span>().<span class="ident">is_leftmost</span>());
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">anchored</span>() <span class="op">&amp;&amp;</span> <span class="ident">at</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">state_id</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">start_state</span>() {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+        prefilter: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Prefilter&gt;,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        <span class="kw-2">mut </span>at: usize,
+        state_id: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::ID,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.match_kind().is_leftmost());
+        <span class="kw">if </span><span class="self">self</span>.anchored() &amp;&amp; at &gt; <span class="number">0 </span>&amp;&amp; <span class="kw-2">*</span>state_id == <span class="self">self</span>.start_state() {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_match</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_match</span>(<span class="kw-2">*</span><span class="ident">state_id</span>, <span class="number">0</span>, <span class="ident">at</span>);
-        <span class="kw">while</span> <span class="ident">at</span> <span class="op">&lt;</span> <span class="ident">haystack</span>.<span class="ident">len</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pre</span>) <span class="op">=</span> <span class="ident">prefilter</span> {
-                <span class="kw">if</span> <span class="ident">prestate</span>.<span class="ident">is_effective</span>(<span class="ident">at</span>) <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">state_id</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">start_state</span>()
+        <span class="kw">let </span><span class="kw-2">mut </span>last_match = <span class="self">self</span>.get_match(<span class="kw-2">*</span>state_id, <span class="number">0</span>, at);
+        <span class="kw">while </span>at &lt; haystack.len() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = prefilter {
+                <span class="kw">if </span>prestate.is_effective(at) &amp;&amp; <span class="kw-2">*</span>state_id == <span class="self">self</span>.start_state()
                 {
-                    <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">prefilter::next</span>(<span class="ident">prestate</span>, <span class="ident">pre</span>, <span class="ident">haystack</span>, <span class="ident">at</span>)
-                        .<span class="ident">into_option</span>();
-                    <span class="kw">match</span> <span class="ident">c</span> {
-                        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
-                        <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; {
-                            <span class="ident">at</span> <span class="op">=</span> <span class="ident">i</span>;
+                    <span class="kw">let </span>c = prefilter::next(prestate, pre, haystack, at)
+                        .into_option();
+                    <span class="kw">match </span>c {
+                        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+                        <span class="prelude-val">Some</span>(i) =&gt; {
+                            at = i;
                         }
                     }
                 }
             }
-            <span class="comment">// CORRECTNESS: next_state is correct for all possible u8 values,</span>
-            <span class="comment">// so the only thing we&#39;re concerned about is the validity of</span>
-            <span class="comment">// `state_id`. `state_id` either comes from the caller (in which</span>
-            <span class="comment">// case, we assume it is correct), or it comes from the return</span>
-            <span class="comment">// value of next_state, which is guaranteed to be correct.</span>
-            <span class="kw-2">*</span><span class="ident">state_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_state_no_fail</span>(<span class="kw-2">*</span><span class="ident">state_id</span>, <span class="ident">haystack</span>[<span class="ident">at</span>]);
-            <span class="ident">at</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_match_or_dead_state</span>(<span class="kw-2">*</span><span class="ident">state_id</span>) {
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">state_id</span> <span class="op">==</span> <span class="ident">dead_id</span>() {
-                    <span class="comment">// The only way to enter into a dead state is if a match</span>
-                    <span class="comment">// has been found, so we assert as much. This is different</span>
-                    <span class="comment">// from normal automata, where you might enter a dead state</span>
-                    <span class="comment">// if you know a subsequent match will never be found</span>
-                    <span class="comment">// (regardless of whether a match has already been found).</span>
-                    <span class="comment">// For Aho-Corasick, it is built so that we can match at</span>
-                    <span class="comment">// any position, so the possibility of a match always</span>
-                    <span class="comment">// exists.</span>
-                    <span class="comment">//</span>
-                    <span class="comment">// (Unless we have an anchored automaton, in which case,</span>
-                    <span class="comment">// dead states are used to stop a search.)</span>
-                    <span class="macro">debug_assert!</span>(
-                        <span class="ident">last_match</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">anchored</span>(),
-                        <span class="string">&quot;failure state should only be seen after match&quot;</span>
-                    );
-                    <span class="kw">return</span> <span class="ident">last_match</span>;
+            <span class="comment">// CORRECTNESS: next_state is correct for all possible u8 values,
+            // so the only thing we&#39;re concerned about is the validity of
+            // `state_id`. `state_id` either comes from the caller (in which
+            // case, we assume it is correct), or it comes from the return
+            // value of next_state, which is guaranteed to be correct.
+            </span><span class="kw-2">*</span>state_id = <span class="self">self</span>.next_state_no_fail(<span class="kw-2">*</span>state_id, haystack[at]);
+            at += <span class="number">1</span>;
+            <span class="kw">if </span><span class="self">self</span>.is_match_or_dead_state(<span class="kw-2">*</span>state_id) {
+                <span class="kw">if </span><span class="kw-2">*</span>state_id == dead_id() {
+                    <span class="comment">// The only way to enter into a dead state is if a match
+                    // has been found, so we assert as much. This is different
+                    // from normal automata, where you might enter a dead state
+                    // if you know a subsequent match will never be found
+                    // (regardless of whether a match has already been found).
+                    // For Aho-Corasick, it is built so that we can match at
+                    // any position, so the possibility of a match always
+                    // exists.
+                    //
+                    // (Unless we have an anchored automaton, in which case,
+                    // dead states are used to stop a search.)
+                    </span><span class="macro">debug_assert!</span>(
+                        last_match.is_some() || <span class="self">self</span>.anchored(),
+                        <span class="string">&quot;failure state should only be seen after match&quot;
+                    </span>);
+                    <span class="kw">return </span>last_match;
                 }
-                <span class="ident">last_match</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_match</span>(<span class="kw-2">*</span><span class="ident">state_id</span>, <span class="number">0</span>, <span class="ident">at</span>);
+                last_match = <span class="self">self</span>.get_match(<span class="kw-2">*</span>state_id, <span class="number">0</span>, at);
             }
         }
-        <span class="ident">last_match</span>
+        last_match
     }
 
-    <span class="doccomment">/// This is like leftmost_find_at, but does not need to track a caller</span>
-    <span class="doccomment">/// provided state id. In other words, the only output of this routine is a</span>
-    <span class="doccomment">/// match, if one exists.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is regrettable that we need to effectively copy a chunk of</span>
-    <span class="doccomment">/// implementation twice, but when we don&#39;t need to track the state ID, we</span>
-    <span class="doccomment">/// can allow the prefilter to report matches immediately without having</span>
-    <span class="doccomment">/// to re-confirm them with the automaton. The re-confirmation step is</span>
-    <span class="doccomment">/// necessary in leftmost_find_at because tracing through the automaton is</span>
-    <span class="doccomment">/// the only way to correctly set the state ID. (Perhaps an alternative</span>
-    <span class="doccomment">/// would be to keep a map from pattern ID to matching state ID, but that</span>
-    <span class="doccomment">/// complicates the code and still doesn&#39;t permit us to defer to the</span>
-    <span class="doccomment">/// prefilter entirely when possible.)</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// I did try a few things to avoid the code duplication here, but nothing</span>
-    <span class="doccomment">/// optimized as well as this approach. (In microbenchmarks, there was</span>
-    <span class="doccomment">/// about a 25% difference.)</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">leftmost_find_at_no_state</span>(
+    <span class="doccomment">/// This is like leftmost_find_at, but does not need to track a caller
+    /// provided state id. In other words, the only output of this routine is a
+    /// match, if one exists.
+    ///
+    /// It is regrettable that we need to effectively copy a chunk of
+    /// implementation twice, but when we don&#39;t need to track the state ID, we
+    /// can allow the prefilter to report matches immediately without having
+    /// to re-confirm them with the automaton. The re-confirmation step is
+    /// necessary in leftmost_find_at because tracing through the automaton is
+    /// the only way to correctly set the state ID. (Perhaps an alternative
+    /// would be to keep a map from pattern ID to matching state ID, but that
+    /// complicates the code and still doesn&#39;t permit us to defer to the
+    /// prefilter entirely when possible.)
+    ///
+    /// I did try a few things to avoid the code duplication here, but nothing
+    /// optimized as well as this approach. (In microbenchmarks, there was
+    /// about a 25% difference.)
+    </span><span class="attribute">#[inline(never)]
+    </span><span class="kw">fn </span>leftmost_find_at_no_state(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PrefilterState</span>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pre</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">prefilter</span>() {
-            <span class="self">self</span>.<span class="ident">leftmost_find_at_no_state_imp</span>(
-                <span class="ident">prestate</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">pre</span>),
-                <span class="ident">haystack</span>,
-                <span class="ident">at</span>,
+        prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = <span class="self">self</span>.prefilter() {
+            <span class="self">self</span>.leftmost_find_at_no_state_imp(
+                prestate,
+                <span class="prelude-val">Some</span>(pre),
+                haystack,
+                at,
             )
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">leftmost_find_at_no_state_imp</span>(<span class="ident">prestate</span>, <span class="prelude-val">None</span>, <span class="ident">haystack</span>, <span class="ident">at</span>)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.leftmost_find_at_no_state_imp(prestate, <span class="prelude-val">None</span>, haystack, at)
         }
     }
 
-    <span class="comment">// It&#39;s important for this to always be inlined. Namely, its only caller</span>
-    <span class="comment">// is leftmost_find_at_no_state, and the inlining should remove the case</span>
-    <span class="comment">// analysis for prefilter scanning when there is no prefilter available.</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">leftmost_find_at_no_state_imp</span>(
+    <span class="comment">// It&#39;s important for this to always be inlined. Namely, its only caller
+    // is leftmost_find_at_no_state, and the inlining should remove the case
+    // analysis for prefilter scanning when there is no prefilter available.
+    </span><span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>leftmost_find_at_no_state_imp(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PrefilterState</span>,
-        <span class="ident">prefilter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">match_kind</span>().<span class="ident">is_leftmost</span>());
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">anchored</span>() <span class="op">&amp;&amp;</span> <span class="ident">at</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+        prefilter: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Prefilter&gt;,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        <span class="kw-2">mut </span>at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.match_kind().is_leftmost());
+        <span class="kw">if </span><span class="self">self</span>.anchored() &amp;&amp; at &gt; <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="comment">// If our prefilter handles confirmation of matches 100% of the</span>
-        <span class="comment">// time, and since we don&#39;t need to track state IDs, we can avoid</span>
-        <span class="comment">// Aho-Corasick completely.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pre</span>) <span class="op">=</span> <span class="ident">prefilter</span> {
-            <span class="comment">// We should never have a prefilter during an anchored search.</span>
-            <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">anchored</span>());
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">pre</span>.<span class="ident">reports_false_positives</span>() {
-                <span class="kw">return</span> <span class="kw">match</span> <span class="ident">pre</span>.<span class="ident">next_candidate</span>(<span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">at</span>) {
-                    <span class="ident">Candidate::None</span> =&gt; <span class="prelude-val">None</span>,
-                    <span class="ident">Candidate::Match</span>(<span class="ident">m</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">m</span>),
-                    <span class="ident">Candidate::PossibleStartOfMatch</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+        <span class="comment">// If our prefilter handles confirmation of matches 100% of the
+        // time, and since we don&#39;t need to track state IDs, we can avoid
+        // Aho-Corasick completely.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = prefilter {
+            <span class="comment">// We should never have a prefilter during an anchored search.
+            </span><span class="macro">debug_assert!</span>(!<span class="self">self</span>.anchored());
+            <span class="kw">if </span>!pre.reports_false_positives() {
+                <span class="kw">return match </span>pre.next_candidate(prestate, haystack, at) {
+                    Candidate::None =&gt; <span class="prelude-val">None</span>,
+                    Candidate::Match(m) =&gt; <span class="prelude-val">Some</span>(m),
+                    Candidate::PossibleStartOfMatch(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
                 };
             }
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">start_state</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_match</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_match</span>(<span class="ident">state_id</span>, <span class="number">0</span>, <span class="ident">at</span>);
-        <span class="kw">while</span> <span class="ident">at</span> <span class="op">&lt;</span> <span class="ident">haystack</span>.<span class="ident">len</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pre</span>) <span class="op">=</span> <span class="ident">prefilter</span> {
-                <span class="kw">if</span> <span class="ident">prestate</span>.<span class="ident">is_effective</span>(<span class="ident">at</span>) <span class="op">&amp;&amp;</span> <span class="ident">state_id</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">start_state</span>()
+        <span class="kw">let </span><span class="kw-2">mut </span>state_id = <span class="self">self</span>.start_state();
+        <span class="kw">let </span><span class="kw-2">mut </span>last_match = <span class="self">self</span>.get_match(state_id, <span class="number">0</span>, at);
+        <span class="kw">while </span>at &lt; haystack.len() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = prefilter {
+                <span class="kw">if </span>prestate.is_effective(at) &amp;&amp; state_id == <span class="self">self</span>.start_state()
                 {
-                    <span class="kw">match</span> <span class="ident">prefilter::next</span>(<span class="ident">prestate</span>, <span class="ident">pre</span>, <span class="ident">haystack</span>, <span class="ident">at</span>) {
-                        <span class="ident">Candidate::None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
-                        <span class="comment">// Since we aren&#39;t tracking a state ID, we can</span>
-                        <span class="comment">// quit early once we know we have a match.</span>
-                        <span class="ident">Candidate::Match</span>(<span class="ident">m</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>),
-                        <span class="ident">Candidate::PossibleStartOfMatch</span>(<span class="ident">i</span>) =&gt; {
-                            <span class="ident">at</span> <span class="op">=</span> <span class="ident">i</span>;
+                    <span class="kw">match </span>prefilter::next(prestate, pre, haystack, at) {
+                        Candidate::None =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+                        <span class="comment">// Since we aren&#39;t tracking a state ID, we can
+                        // quit early once we know we have a match.
+                        </span>Candidate::Match(m) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(m),
+                        Candidate::PossibleStartOfMatch(i) =&gt; {
+                            at = i;
                         }
                     }
                 }
             }
-            <span class="comment">// CORRECTNESS: next_state is correct for all possible u8 values,</span>
-            <span class="comment">// so the only thing we&#39;re concerned about is the validity of</span>
-            <span class="comment">// `state_id`. `state_id` either comes from the caller (in which</span>
-            <span class="comment">// case, we assume it is correct), or it comes from the return</span>
-            <span class="comment">// value of next_state, which is guaranteed to be correct.</span>
-            <span class="ident">state_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_state_no_fail</span>(<span class="ident">state_id</span>, <span class="ident">haystack</span>[<span class="ident">at</span>]);
-            <span class="ident">at</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_match_or_dead_state</span>(<span class="ident">state_id</span>) {
-                <span class="kw">if</span> <span class="ident">state_id</span> <span class="op">==</span> <span class="ident">dead_id</span>() {
-                    <span class="comment">// The only way to enter into a dead state is if a</span>
-                    <span class="comment">// match has been found, so we assert as much. This</span>
-                    <span class="comment">// is different from normal automata, where you might</span>
-                    <span class="comment">// enter a dead state if you know a subsequent match</span>
-                    <span class="comment">// will never be found (regardless of whether a match</span>
-                    <span class="comment">// has already been found). For Aho-Corasick, it is</span>
-                    <span class="comment">// built so that we can match at any position, so the</span>
-                    <span class="comment">// possibility of a match always exists.</span>
-                    <span class="comment">//</span>
-                    <span class="comment">// (Unless we have an anchored automaton, in which</span>
-                    <span class="comment">// case, dead states are used to stop a search.)</span>
-                    <span class="macro">debug_assert!</span>(
-                        <span class="ident">last_match</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">anchored</span>(),
-                        <span class="string">&quot;failure state should only be seen after match&quot;</span>
-                    );
-                    <span class="kw">return</span> <span class="ident">last_match</span>;
+            <span class="comment">// CORRECTNESS: next_state is correct for all possible u8 values,
+            // so the only thing we&#39;re concerned about is the validity of
+            // `state_id`. `state_id` either comes from the caller (in which
+            // case, we assume it is correct), or it comes from the return
+            // value of next_state, which is guaranteed to be correct.
+            </span>state_id = <span class="self">self</span>.next_state_no_fail(state_id, haystack[at]);
+            at += <span class="number">1</span>;
+            <span class="kw">if </span><span class="self">self</span>.is_match_or_dead_state(state_id) {
+                <span class="kw">if </span>state_id == dead_id() {
+                    <span class="comment">// The only way to enter into a dead state is if a
+                    // match has been found, so we assert as much. This
+                    // is different from normal automata, where you might
+                    // enter a dead state if you know a subsequent match
+                    // will never be found (regardless of whether a match
+                    // has already been found). For Aho-Corasick, it is
+                    // built so that we can match at any position, so the
+                    // possibility of a match always exists.
+                    //
+                    // (Unless we have an anchored automaton, in which
+                    // case, dead states are used to stop a search.)
+                    </span><span class="macro">debug_assert!</span>(
+                        last_match.is_some() || <span class="self">self</span>.anchored(),
+                        <span class="string">&quot;failure state should only be seen after match&quot;
+                    </span>);
+                    <span class="kw">return </span>last_match;
                 }
-                <span class="ident">last_match</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_match</span>(<span class="ident">state_id</span>, <span class="number">0</span>, <span class="ident">at</span>);
+                last_match = <span class="self">self</span>.get_match(state_id, <span class="number">0</span>, at);
             }
         }
-        <span class="ident">last_match</span>
+        last_match
     }
 
-    <span class="doccomment">/// Execute an overlapping search.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When executing an overlapping match, the previous state ID in addition</span>
-    <span class="doccomment">/// to the previous match index should be given. If there are more matches</span>
-    <span class="doccomment">/// at the given state, then the match is reported and the given index is</span>
-    <span class="doccomment">/// incremented.</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">overlapping_find_at</span>(
+    <span class="doccomment">/// Execute an overlapping search.
+    ///
+    /// When executing an overlapping match, the previous state ID in addition
+    /// to the previous match index should be given. If there are more matches
+    /// at the given state, then the match is reported and the given index is
+    /// incremented.
+    </span><span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>overlapping_find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PrefilterState</span>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">at</span>: <span class="ident">usize</span>,
-        <span class="ident">state_id</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::ID</span>,
-        <span class="ident">match_index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">anchored</span>() <span class="op">&amp;&amp;</span> <span class="ident">at</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">state_id</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">start_state</span>() {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        state_id: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::ID,
+        match_index: <span class="kw-2">&amp;mut </span>usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="kw">if </span><span class="self">self</span>.anchored() &amp;&amp; at &gt; <span class="number">0 </span>&amp;&amp; <span class="kw-2">*</span>state_id == <span class="self">self</span>.start_state() {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">match_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">match_count</span>(<span class="kw-2">*</span><span class="ident">state_id</span>);
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">match_index</span> <span class="op">&lt;</span> <span class="ident">match_count</span> {
-            <span class="comment">// This is guaranteed to return a match since</span>
-            <span class="comment">// match_index &lt; match_count.</span>
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_match</span>(<span class="kw-2">*</span><span class="ident">state_id</span>, <span class="kw-2">*</span><span class="ident">match_index</span>, <span class="ident">at</span>);
-            <span class="macro">debug_assert!</span>(<span class="ident">result</span>.<span class="ident">is_some</span>(), <span class="string">&quot;must be a match&quot;</span>);
-            <span class="kw-2">*</span><span class="ident">match_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">return</span> <span class="ident">result</span>;
+        <span class="kw">let </span>match_count = <span class="self">self</span>.match_count(<span class="kw-2">*</span>state_id);
+        <span class="kw">if </span><span class="kw-2">*</span>match_index &lt; match_count {
+            <span class="comment">// This is guaranteed to return a match since
+            // match_index &lt; match_count.
+            </span><span class="kw">let </span>result = <span class="self">self</span>.get_match(<span class="kw-2">*</span>state_id, <span class="kw-2">*</span>match_index, at);
+            <span class="macro">debug_assert!</span>(result.is_some(), <span class="string">&quot;must be a match&quot;</span>);
+            <span class="kw-2">*</span>match_index += <span class="number">1</span>;
+            <span class="kw">return </span>result;
         }
 
-        <span class="kw-2">*</span><span class="ident">match_index</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">standard_find_at</span>(<span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">at</span>, <span class="ident">state_id</span>) {
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">m</span>) =&gt; {
-                <span class="kw-2">*</span><span class="ident">match_index</span> <span class="op">=</span> <span class="number">1</span>;
-                <span class="prelude-val">Some</span>(<span class="ident">m</span>)
+        <span class="kw-2">*</span>match_index = <span class="number">0</span>;
+        <span class="kw">match </span><span class="self">self</span>.standard_find_at(prestate, haystack, at, state_id) {
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(m) =&gt; {
+                <span class="kw-2">*</span>match_index = <span class="number">1</span>;
+                <span class="prelude-val">Some</span>(m)
             }
-        }
-    }
-
-    <span class="doccomment">/// Return the earliest match found. This returns as soon as we know that</span>
-    <span class="doccomment">/// we have a match. As such, this does not necessarily correspond to the</span>
-    <span class="doccomment">/// leftmost starting match, but rather, the leftmost position at which a</span>
-    <span class="doccomment">/// match ends.</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">earliest_find_at</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PrefilterState</span>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">at</span>: <span class="ident">usize</span>,
-        <span class="ident">state_id</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::ID</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">state_id</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">start_state</span>() {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">anchored</span>() <span class="op">&amp;&amp;</span> <span class="ident">at</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="kw">return</span> <span class="prelude-val">None</span>;
-            }
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_match</span>(<span class="kw-2">*</span><span class="ident">state_id</span>, <span class="number">0</span>, <span class="ident">at</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>);
-            }
-        }
-        <span class="self">self</span>.<span class="ident">standard_find_at</span>(<span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">at</span>, <span class="ident">state_id</span>)
-    }
-
-    <span class="doccomment">/// A convenience function for finding the next match according to the</span>
-    <span class="doccomment">/// match semantics of this automaton. For standard match semantics, this</span>
-    <span class="doccomment">/// finds the earliest match. Otherwise, the leftmost match is found.</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">find_at</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PrefilterState</span>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">at</span>: <span class="ident">usize</span>,
-        <span class="ident">state_id</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::ID</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">match_kind</span>() {
-            <span class="ident">MatchKind::Standard</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">earliest_find_at</span>(<span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">at</span>, <span class="ident">state_id</span>)
-            }
-            <span class="ident">MatchKind::LeftmostFirst</span> <span class="op">|</span> <span class="ident">MatchKind::LeftmostLongest</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">leftmost_find_at</span>(<span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">at</span>, <span class="ident">state_id</span>)
-            }
-            <span class="ident">MatchKind::__Nonexhaustive</span> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
-    <span class="doccomment">/// Like find_at, but does not track state identifiers. This permits some</span>
-    <span class="doccomment">/// optimizations when a prefilter that confirms its own matches is</span>
-    <span class="doccomment">/// present.</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">find_at_no_state</span>(
+    <span class="doccomment">/// Return the earliest match found. This returns as soon as we know that
+    /// we have a match. As such, this does not necessarily correspond to the
+    /// leftmost starting match, but rather, the leftmost position at which a
+    /// match ends.
+    </span><span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>earliest_find_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">prestate</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PrefilterState</span>,
-        <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">match_kind</span>() {
-            <span class="ident">MatchKind::Standard</span> =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">start_state</span>();
-                <span class="self">self</span>.<span class="ident">earliest_find_at</span>(<span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;mut</span> <span class="ident">state</span>)
+        prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        state_id: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::ID,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="kw">if </span><span class="kw-2">*</span>state_id == <span class="self">self</span>.start_state() {
+            <span class="kw">if </span><span class="self">self</span>.anchored() &amp;&amp; at &gt; <span class="number">0 </span>{
+                <span class="kw">return </span><span class="prelude-val">None</span>;
             }
-            <span class="ident">MatchKind::LeftmostFirst</span> <span class="op">|</span> <span class="ident">MatchKind::LeftmostLongest</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">leftmost_find_at_no_state</span>(<span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">at</span>)
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = <span class="self">self</span>.get_match(<span class="kw-2">*</span>state_id, <span class="number">0</span>, at) {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(m);
             }
-            <span class="ident">MatchKind::__Nonexhaustive</span> =&gt; <span class="macro">unreachable!</span>(),
+        }
+        <span class="self">self</span>.standard_find_at(prestate, haystack, at, state_id)
+    }
+
+    <span class="doccomment">/// A convenience function for finding the next match according to the
+    /// match semantics of this automaton. For standard match semantics, this
+    /// finds the earliest match. Otherwise, the leftmost match is found.
+    </span><span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>find_at(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+        state_id: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::ID,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self</span>.match_kind() {
+            MatchKind::Standard =&gt; {
+                <span class="self">self</span>.earliest_find_at(prestate, haystack, at, state_id)
+            }
+            MatchKind::LeftmostFirst | MatchKind::LeftmostLongest =&gt; {
+                <span class="self">self</span>.leftmost_find_at(prestate, haystack, at, state_id)
+            }
+            MatchKind::__Nonexhaustive =&gt; <span class="macro">unreachable!</span>(),
+        }
+    }
+
+    <span class="doccomment">/// Like find_at, but does not track state identifiers. This permits some
+    /// optimizations when a prefilter that confirms its own matches is
+    /// present.
+    </span><span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>find_at_no_state(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
+        haystack: <span class="kw-2">&amp;</span>[u8],
+        at: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self</span>.match_kind() {
+            MatchKind::Standard =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>state = <span class="self">self</span>.start_state();
+                <span class="self">self</span>.earliest_find_at(prestate, haystack, at, <span class="kw-2">&amp;mut </span>state)
+            }
+            MatchKind::LeftmostFirst | MatchKind::LeftmostLongest =&gt; {
+                <span class="self">self</span>.leftmost_find_at_no_state(prestate, haystack, at)
+            }
+            MatchKind::__Nonexhaustive =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

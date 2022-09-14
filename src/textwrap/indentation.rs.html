@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/textwrap-0.15.0/src/indentation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>indentation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../textwrap/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/textwrap-0.15.0/src/indentation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>indentation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../textwrap/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -352,353 +345,352 @@
 <span id="345">345</span>
 <span id="346">346</span>
 <span id="347">347</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Functions related to adding and removing indentation from lines of</span>
-<span class="doccomment">//! text.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The functions here can be used to uniformly indent or dedent</span>
-<span class="doccomment">//! (unindent) word wrapped lines of text.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Functions related to adding and removing indentation from lines of
+//! text.
+//!
+//! The functions here can be used to uniformly indent or dedent
+//! (unindent) word wrapped lines of text.
 
-<span class="doccomment">/// Indent each line by the given prefix.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use textwrap::indent;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(indent(&quot;First line.\nSecond line.\n&quot;, &quot;  &quot;),</span>
-<span class="doccomment">///            &quot;  First line.\n  Second line.\n&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When indenting, trailing whitespace is stripped from the prefix.</span>
-<span class="doccomment">/// This means that empty lines remain empty afterwards:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use textwrap::indent;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(indent(&quot;First line.\n\n\nSecond line.\n&quot;, &quot;  &quot;),</span>
-<span class="doccomment">///            &quot;  First line.\n\n\n  Second line.\n&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Notice how `&quot;\n\n\n&quot;` remained as `&quot;\n\n\n&quot;`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This feature is useful when you want to indent text and have a</span>
-<span class="doccomment">/// space between your prefix and the text. In this case, you _don&#39;t_</span>
-<span class="doccomment">/// want a trailing space on empty lines:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use textwrap::indent;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(indent(&quot;foo = 123\n\nprint(foo)\n&quot;, &quot;# &quot;),</span>
-<span class="doccomment">///            &quot;# foo = 123\n#\n# print(foo)\n&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Notice how `&quot;\n\n&quot;` became `&quot;\n#\n&quot;` instead of `&quot;\n# \n&quot;` which</span>
-<span class="doccomment">/// would have trailing whitespace.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Leading and trailing whitespace coming from the text itself is</span>
-<span class="doccomment">/// kept unchanged:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use textwrap::indent;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(indent(&quot; \t  Foo   &quot;, &quot;-&gt;&quot;), &quot;-&gt; \t  Foo   &quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">indent</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">prefix</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
-    <span class="comment">// We know we&#39;ll need more than s.len() bytes for the output, but</span>
-    <span class="comment">// without counting &#39;\n&#39; characters (which is somewhat slow), we</span>
-    <span class="comment">// don&#39;t know exactly how much. However, we can preemptively do</span>
-    <span class="comment">// the first doubling of the output size.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">s</span>.<span class="ident">len</span>());
-    <span class="kw">let</span> <span class="ident">trimmed_prefix</span> <span class="op">=</span> <span class="ident">prefix</span>.<span class="ident">trim_end</span>();
-    <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">line</span>) <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">split_terminator</span>(<span class="string">&#39;\n&#39;</span>).<span class="ident">enumerate</span>() {
-        <span class="kw">if</span> <span class="ident">idx</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+/// Indent each line by the given prefix.
+///
+/// # Examples
+///
+/// ```
+/// use textwrap::indent;
+///
+/// assert_eq!(indent(&quot;First line.\nSecond line.\n&quot;, &quot;  &quot;),
+///            &quot;  First line.\n  Second line.\n&quot;);
+/// ```
+///
+/// When indenting, trailing whitespace is stripped from the prefix.
+/// This means that empty lines remain empty afterwards:
+///
+/// ```
+/// use textwrap::indent;
+///
+/// assert_eq!(indent(&quot;First line.\n\n\nSecond line.\n&quot;, &quot;  &quot;),
+///            &quot;  First line.\n\n\n  Second line.\n&quot;);
+/// ```
+///
+/// Notice how `&quot;\n\n\n&quot;` remained as `&quot;\n\n\n&quot;`.
+///
+/// This feature is useful when you want to indent text and have a
+/// space between your prefix and the text. In this case, you _don&#39;t_
+/// want a trailing space on empty lines:
+///
+/// ```
+/// use textwrap::indent;
+///
+/// assert_eq!(indent(&quot;foo = 123\n\nprint(foo)\n&quot;, &quot;# &quot;),
+///            &quot;# foo = 123\n#\n# print(foo)\n&quot;);
+/// ```
+///
+/// Notice how `&quot;\n\n&quot;` became `&quot;\n#\n&quot;` instead of `&quot;\n# \n&quot;` which
+/// would have trailing whitespace.
+///
+/// Leading and trailing whitespace coming from the text itself is
+/// kept unchanged:
+///
+/// ```
+/// use textwrap::indent;
+///
+/// assert_eq!(indent(&quot; \t  Foo   &quot;, &quot;-&gt;&quot;), &quot;-&gt; \t  Foo   &quot;);
+/// ```
+</span><span class="kw">pub fn </span>indent(s: <span class="kw-2">&amp;</span>str, prefix: <span class="kw-2">&amp;</span>str) -&gt; String {
+    <span class="comment">// We know we&#39;ll need more than s.len() bytes for the output, but
+    // without counting &#39;\n&#39; characters (which is somewhat slow), we
+    // don&#39;t know exactly how much. However, we can preemptively do
+    // the first doubling of the output size.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>result = String::with_capacity(<span class="number">2 </span>* s.len());
+    <span class="kw">let </span>trimmed_prefix = prefix.trim_end();
+    <span class="kw">for </span>(idx, line) <span class="kw">in </span>s.split_terminator(<span class="string">&#39;\n&#39;</span>).enumerate() {
+        <span class="kw">if </span>idx &gt; <span class="number">0 </span>{
+            result.push(<span class="string">&#39;\n&#39;</span>);
         }
-        <span class="kw">if</span> <span class="ident">line</span>.<span class="ident">trim</span>().<span class="ident">is_empty</span>() {
-            <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">trimmed_prefix</span>);
-        } <span class="kw">else</span> {
-            <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">prefix</span>);
+        <span class="kw">if </span>line.trim().is_empty() {
+            result.push_str(trimmed_prefix);
+        } <span class="kw">else </span>{
+            result.push_str(prefix);
         }
-        <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">line</span>);
+        result.push_str(line);
     }
-    <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">ends_with</span>(<span class="string">&#39;\n&#39;</span>) {
-        <span class="comment">// split_terminator will have eaten the final &#39;\n&#39;.</span>
-        <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+    <span class="kw">if </span>s.ends_with(<span class="string">&#39;\n&#39;</span>) {
+        <span class="comment">// split_terminator will have eaten the final &#39;\n&#39;.
+        </span>result.push(<span class="string">&#39;\n&#39;</span>);
     }
-    <span class="ident">result</span>
+    result
 }
 
-<span class="doccomment">/// Removes common leading whitespace from each line.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function will look at each non-empty line and determine the</span>
-<span class="doccomment">/// maximum amount of whitespace that can be removed from all lines:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use textwrap::dedent;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(dedent(&quot;</span>
-<span class="doccomment">///     1st line</span>
-<span class="doccomment">///       2nd line</span>
-<span class="doccomment">///     3rd line</span>
-<span class="doccomment">/// &quot;), &quot;</span>
-<span class="doccomment">/// 1st line</span>
-<span class="doccomment">///   2nd line</span>
-<span class="doccomment">/// 3rd line</span>
-<span class="doccomment">/// &quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dedent</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lines</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">lines</span>();
+<span class="doccomment">/// Removes common leading whitespace from each line.
+///
+/// This function will look at each non-empty line and determine the
+/// maximum amount of whitespace that can be removed from all lines:
+///
+/// ```
+/// use textwrap::dedent;
+///
+/// assert_eq!(dedent(&quot;
+///     1st line
+///       2nd line
+///     3rd line
+/// &quot;), &quot;
+/// 1st line
+///   2nd line
+/// 3rd line
+/// &quot;);
+/// ```
+</span><span class="kw">pub fn </span>dedent(s: <span class="kw-2">&amp;</span>str) -&gt; String {
+    <span class="kw">let </span><span class="kw-2">mut </span>prefix = <span class="string">&quot;&quot;</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>lines = s.lines();
 
-    <span class="comment">// We first search for a non-empty line to find a prefix.</span>
-    <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">lines</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">whitespace_idx</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">len</span>();
-        <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="ident">line</span>.<span class="ident">char_indices</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">ch</span>.<span class="ident">is_whitespace</span>() {
-                <span class="ident">whitespace_idx</span> <span class="op">=</span> <span class="ident">idx</span>;
+    <span class="comment">// We first search for a non-empty line to find a prefix.
+    </span><span class="kw">for </span>line <span class="kw">in </span><span class="kw-2">&amp;mut </span>lines {
+        <span class="kw">let </span><span class="kw-2">mut </span>whitespace_idx = line.len();
+        <span class="kw">for </span>(idx, ch) <span class="kw">in </span>line.char_indices() {
+            <span class="kw">if </span>!ch.is_whitespace() {
+                whitespace_idx = idx;
                 <span class="kw">break</span>;
             }
         }
 
-        <span class="comment">// Check if the line had anything but whitespace</span>
-        <span class="kw">if</span> <span class="ident">whitespace_idx</span> <span class="op">&lt;</span> <span class="ident">line</span>.<span class="ident">len</span>() {
-            <span class="ident">prefix</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">line</span>[..<span class="ident">whitespace_idx</span>];
+        <span class="comment">// Check if the line had anything but whitespace
+        </span><span class="kw">if </span>whitespace_idx &lt; line.len() {
+            prefix = <span class="kw-2">&amp;</span>line[..whitespace_idx];
             <span class="kw">break</span>;
         }
     }
 
-    <span class="comment">// We then continue looking through the remaining lines to</span>
-    <span class="comment">// possibly shorten the prefix.</span>
-    <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">lines</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">whitespace_idx</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">len</span>();
-        <span class="kw">for</span> ((<span class="ident">idx</span>, <span class="ident">a</span>), <span class="ident">b</span>) <span class="kw">in</span> <span class="ident">line</span>.<span class="ident">char_indices</span>().<span class="ident">zip</span>(<span class="ident">prefix</span>.<span class="ident">chars</span>()) {
-            <span class="kw">if</span> <span class="ident">a</span> <span class="op">!</span><span class="op">=</span> <span class="ident">b</span> {
-                <span class="ident">whitespace_idx</span> <span class="op">=</span> <span class="ident">idx</span>;
+    <span class="comment">// We then continue looking through the remaining lines to
+    // possibly shorten the prefix.
+    </span><span class="kw">for </span>line <span class="kw">in </span><span class="kw-2">&amp;mut </span>lines {
+        <span class="kw">let </span><span class="kw-2">mut </span>whitespace_idx = line.len();
+        <span class="kw">for </span>((idx, a), b) <span class="kw">in </span>line.char_indices().zip(prefix.chars()) {
+            <span class="kw">if </span>a != b {
+                whitespace_idx = idx;
                 <span class="kw">break</span>;
             }
         }
 
-        <span class="comment">// Check if the line had anything but whitespace and if we</span>
-        <span class="comment">// have found a shorter prefix</span>
-        <span class="kw">if</span> <span class="ident">whitespace_idx</span> <span class="op">&lt;</span> <span class="ident">line</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">whitespace_idx</span> <span class="op">&lt;</span> <span class="ident">prefix</span>.<span class="ident">len</span>() {
-            <span class="ident">prefix</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">line</span>[..<span class="ident">whitespace_idx</span>];
+        <span class="comment">// Check if the line had anything but whitespace and if we
+        // have found a shorter prefix
+        </span><span class="kw">if </span>whitespace_idx &lt; line.len() &amp;&amp; whitespace_idx &lt; prefix.len() {
+            prefix = <span class="kw-2">&amp;</span>line[..whitespace_idx];
         }
     }
 
-    <span class="comment">// We now go over the lines a second time to build the result.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String::new</span>();
-    <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">lines</span>() {
-        <span class="kw">if</span> <span class="ident">line</span>.<span class="ident">starts_with</span>(<span class="kw-2">&amp;</span><span class="ident">prefix</span>) <span class="op">&amp;&amp;</span> <span class="ident">line</span>.<span class="ident">chars</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="op">!</span><span class="ident">c</span>.<span class="ident">is_whitespace</span>()) {
-            <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">tail</span>) <span class="op">=</span> <span class="ident">line</span>.<span class="ident">split_at</span>(<span class="ident">prefix</span>.<span class="ident">len</span>());
-            <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">tail</span>);
+    <span class="comment">// We now go over the lines a second time to build the result.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
+    <span class="kw">for </span>line <span class="kw">in </span>s.lines() {
+        <span class="kw">if </span>line.starts_with(<span class="kw-2">&amp;</span>prefix) &amp;&amp; line.chars().any(|c| !c.is_whitespace()) {
+            <span class="kw">let </span>(<span class="kw">_</span>, tail) = line.split_at(prefix.len());
+            result.push_str(tail);
         }
-        <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+        result.push(<span class="string">&#39;\n&#39;</span>);
     }
 
-    <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">ends_with</span>(<span class="string">&#39;\n&#39;</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">ends_with</span>(<span class="string">&#39;\n&#39;</span>) {
-        <span class="kw">let</span> <span class="ident">new_len</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
-        <span class="ident">result</span>.<span class="ident">truncate</span>(<span class="ident">new_len</span>);
+    <span class="kw">if </span>result.ends_with(<span class="string">&#39;\n&#39;</span>) &amp;&amp; !s.ends_with(<span class="string">&#39;\n&#39;</span>) {
+        <span class="kw">let </span>new_len = result.len() - <span class="number">1</span>;
+        result.truncate(new_len);
     }
 
-    <span class="ident">result</span>
+    result
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">indent_empty</span>() {
-        <span class="macro">assert_eq!</span>(<span class="ident">indent</span>(<span class="string">&quot;\n&quot;</span>, <span class="string">&quot;  &quot;</span>), <span class="string">&quot;\n&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>indent_empty() {
+        <span class="macro">assert_eq!</span>(indent(<span class="string">&quot;\n&quot;</span>, <span class="string">&quot;  &quot;</span>), <span class="string">&quot;\n&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-    <span class="kw">fn</span> <span class="ident">indent_nonempty</span>() {
-        <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> [
+    <span class="attribute">#[test]
+    #[rustfmt::skip]
+    </span><span class="kw">fn </span>indent_nonempty() {
+        <span class="kw">let </span>text = [
             <span class="string">&quot;  foo\n&quot;</span>,
             <span class="string">&quot;bar\n&quot;</span>,
             <span class="string">&quot;  baz\n&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;&quot;</span>);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> [
+        ].join(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>expected = [
             <span class="string">&quot;//   foo\n&quot;</span>,
             <span class="string">&quot;// bar\n&quot;</span>,
             <span class="string">&quot;//   baz\n&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">indent</span>(<span class="kw-2">&amp;</span><span class="ident">text</span>, <span class="string">&quot;// &quot;</span>), <span class="ident">expected</span>);
+        ].join(<span class="string">&quot;&quot;</span>);
+        <span class="macro">assert_eq!</span>(indent(<span class="kw-2">&amp;</span>text, <span class="string">&quot;// &quot;</span>), expected);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-    <span class="kw">fn</span> <span class="ident">indent_empty_line</span>() {
-        <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> [
+    <span class="attribute">#[test]
+    #[rustfmt::skip]
+    </span><span class="kw">fn </span>indent_empty_line() {
+        <span class="kw">let </span>text = [
             <span class="string">&quot;  foo&quot;</span>,
             <span class="string">&quot;bar&quot;</span>,
             <span class="string">&quot;&quot;</span>,
             <span class="string">&quot;  baz&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> [
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="kw">let </span>expected = [
             <span class="string">&quot;//   foo&quot;</span>,
             <span class="string">&quot;// bar&quot;</span>,
             <span class="string">&quot;//&quot;</span>,
             <span class="string">&quot;//   baz&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">indent</span>(<span class="kw-2">&amp;</span><span class="ident">text</span>, <span class="string">&quot;// &quot;</span>), <span class="ident">expected</span>);
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="macro">assert_eq!</span>(indent(<span class="kw-2">&amp;</span>text, <span class="string">&quot;// &quot;</span>), expected);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dedent_empty</span>() {
-        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="string">&quot;&quot;</span>), <span class="string">&quot;&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>dedent_empty() {
+        <span class="macro">assert_eq!</span>(dedent(<span class="string">&quot;&quot;</span>), <span class="string">&quot;&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dedent_multi_line</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> [
+    <span class="attribute">#[test]
+    #[rustfmt::skip]
+    </span><span class="kw">fn </span>dedent_multi_line() {
+        <span class="kw">let </span>x = [
             <span class="string">&quot;    foo&quot;</span>,
             <span class="string">&quot;  bar&quot;</span>,
             <span class="string">&quot;    baz&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> [
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="kw">let </span>y = [
             <span class="string">&quot;  foo&quot;</span>,
             <span class="string">&quot;bar&quot;</span>,
-            <span class="string">&quot;  baz&quot;</span>
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">y</span>);
+            <span class="string">&quot;  baz&quot;
+        </span>].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="macro">assert_eq!</span>(dedent(<span class="kw-2">&amp;</span>x), y);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dedent_empty_line</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> [
+    <span class="attribute">#[test]
+    #[rustfmt::skip]
+    </span><span class="kw">fn </span>dedent_empty_line() {
+        <span class="kw">let </span>x = [
             <span class="string">&quot;    foo&quot;</span>,
             <span class="string">&quot;  bar&quot;</span>,
             <span class="string">&quot;   &quot;</span>,
-            <span class="string">&quot;    baz&quot;</span>
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> [
+            <span class="string">&quot;    baz&quot;
+        </span>].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="kw">let </span>y = [
             <span class="string">&quot;  foo&quot;</span>,
             <span class="string">&quot;bar&quot;</span>,
             <span class="string">&quot;&quot;</span>,
-            <span class="string">&quot;  baz&quot;</span>
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">y</span>);
+            <span class="string">&quot;  baz&quot;
+        </span>].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="macro">assert_eq!</span>(dedent(<span class="kw-2">&amp;</span>x), y);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dedent_blank_line</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> [
+    <span class="attribute">#[test]
+    #[rustfmt::skip]
+    </span><span class="kw">fn </span>dedent_blank_line() {
+        <span class="kw">let </span>x = [
             <span class="string">&quot;      foo&quot;</span>,
             <span class="string">&quot;&quot;</span>,
             <span class="string">&quot;        bar&quot;</span>,
             <span class="string">&quot;          foo&quot;</span>,
             <span class="string">&quot;          bar&quot;</span>,
             <span class="string">&quot;          baz&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> [
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="kw">let </span>y = [
             <span class="string">&quot;foo&quot;</span>,
             <span class="string">&quot;&quot;</span>,
             <span class="string">&quot;  bar&quot;</span>,
             <span class="string">&quot;    foo&quot;</span>,
             <span class="string">&quot;    bar&quot;</span>,
             <span class="string">&quot;    baz&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">y</span>);
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="macro">assert_eq!</span>(dedent(<span class="kw-2">&amp;</span>x), y);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dedent_whitespace_line</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> [
+    <span class="attribute">#[test]
+    #[rustfmt::skip]
+    </span><span class="kw">fn </span>dedent_whitespace_line() {
+        <span class="kw">let </span>x = [
             <span class="string">&quot;      foo&quot;</span>,
             <span class="string">&quot; &quot;</span>,
             <span class="string">&quot;        bar&quot;</span>,
             <span class="string">&quot;          foo&quot;</span>,
             <span class="string">&quot;          bar&quot;</span>,
             <span class="string">&quot;          baz&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> [
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="kw">let </span>y = [
             <span class="string">&quot;foo&quot;</span>,
             <span class="string">&quot;&quot;</span>,
             <span class="string">&quot;  bar&quot;</span>,
             <span class="string">&quot;    foo&quot;</span>,
             <span class="string">&quot;    bar&quot;</span>,
             <span class="string">&quot;    baz&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">y</span>);
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="macro">assert_eq!</span>(dedent(<span class="kw-2">&amp;</span>x), y);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dedent_mixed_whitespace</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> [
+    <span class="attribute">#[test]
+    #[rustfmt::skip]
+    </span><span class="kw">fn </span>dedent_mixed_whitespace() {
+        <span class="kw">let </span>x = [
             <span class="string">&quot;\tfoo&quot;</span>,
             <span class="string">&quot;  bar&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> [
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="kw">let </span>y = [
             <span class="string">&quot;\tfoo&quot;</span>,
             <span class="string">&quot;  bar&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">y</span>);
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="macro">assert_eq!</span>(dedent(<span class="kw-2">&amp;</span>x), y);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dedent_tabbed_whitespace</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> [
+    <span class="attribute">#[test]
+    #[rustfmt::skip]
+    </span><span class="kw">fn </span>dedent_tabbed_whitespace() {
+        <span class="kw">let </span>x = [
             <span class="string">&quot;\t\tfoo&quot;</span>,
             <span class="string">&quot;\t\t\tbar&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> [
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="kw">let </span>y = [
             <span class="string">&quot;foo&quot;</span>,
             <span class="string">&quot;\tbar&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">y</span>);
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="macro">assert_eq!</span>(dedent(<span class="kw-2">&amp;</span>x), y);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dedent_mixed_tabbed_whitespace</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> [
+    <span class="attribute">#[test]
+    #[rustfmt::skip]
+    </span><span class="kw">fn </span>dedent_mixed_tabbed_whitespace() {
+        <span class="kw">let </span>x = [
             <span class="string">&quot;\t  \tfoo&quot;</span>,
             <span class="string">&quot;\t  \t\tbar&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> [
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="kw">let </span>y = [
             <span class="string">&quot;foo&quot;</span>,
             <span class="string">&quot;\tbar&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">y</span>);
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="macro">assert_eq!</span>(dedent(<span class="kw-2">&amp;</span>x), y);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dedent_mixed_tabbed_whitespace2</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> [
+    <span class="attribute">#[test]
+    #[rustfmt::skip]
+    </span><span class="kw">fn </span>dedent_mixed_tabbed_whitespace2() {
+        <span class="kw">let </span>x = [
             <span class="string">&quot;\t  \tfoo&quot;</span>,
             <span class="string">&quot;\t    \tbar&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> [
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="kw">let </span>y = [
             <span class="string">&quot;\tfoo&quot;</span>,
             <span class="string">&quot;  \tbar&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">y</span>);
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="macro">assert_eq!</span>(dedent(<span class="kw-2">&amp;</span>x), y);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-    <span class="kw">fn</span> <span class="ident">dedent_preserve_no_terminating_newline</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> [
+    <span class="attribute">#[test]
+    #[rustfmt::skip]
+    </span><span class="kw">fn </span>dedent_preserve_no_terminating_newline() {
+        <span class="kw">let </span>x = [
             <span class="string">&quot;  foo&quot;</span>,
             <span class="string">&quot;    bar&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> [
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="kw">let </span>y = [
             <span class="string">&quot;foo&quot;</span>,
             <span class="string">&quot;  bar&quot;</span>,
-        ].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">y</span>);
+        ].join(<span class="string">&quot;\n&quot;</span>);
+        <span class="macro">assert_eq!</span>(dedent(<span class="kw-2">&amp;</span>x), y);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="textwrap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="textwrap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

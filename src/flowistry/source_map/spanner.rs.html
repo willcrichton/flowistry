@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/source_map/spanner.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spanner.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/source_map/spanner.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spanner.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -15,13 +14,7 @@
     });
 </script>
 
-</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -511,304 +504,304 @@
 <span id="488">488</span>
 <span id="489">489</span>
 <span id="490">490</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Mapping source ranges to/from the HIR and MIR.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Mapping source ranges to/from the HIR and MIR.
 
-<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
+</span><span class="kw">use </span>std::rc::Rc;
 
-<span class="kw">use</span> <span class="ident">either::Either</span>;
-<span class="kw">use</span> <span class="ident">log::trace</span>;
-<span class="kw">use</span> <span class="ident">rustc_hir</span>::{
-  <span class="self">self</span> <span class="kw">as</span> <span class="ident">hir</span>, <span class="ident">intravisit::Visitor</span> <span class="kw">as</span> <span class="ident">HirVisitor</span>, <span class="ident">BodyId</span>, <span class="ident">ExprKind</span>, <span class="ident">MatchSource</span>, <span class="ident">Node</span>,
+<span class="kw">use </span>either::Either;
+<span class="kw">use </span>log::trace;
+<span class="kw">use </span>rustc_hir::{
+  <span class="self">self </span><span class="kw">as </span>hir, intravisit::Visitor <span class="kw">as </span>HirVisitor, BodyId, ExprKind, MatchSource, Node,
 };
-<span class="kw">use</span> <span class="ident">rustc_middle</span>::{
-  <span class="ident">mir</span>::{
-    <span class="self">self</span>, <span class="ident">visit::Visitor</span> <span class="kw">as</span> <span class="ident">MirVisitor</span>, <span class="ident">Body</span>, <span class="ident">StatementKind</span>, <span class="ident">TerminatorKind</span>, <span class="ident">RETURN_PLACE</span>,
+<span class="kw">use </span>rustc_middle::{
+  mir::{
+    <span class="self">self</span>, visit::Visitor <span class="kw">as </span>MirVisitor, Body, StatementKind, TerminatorKind, RETURN_PLACE,
   },
-  <span class="ident">ty::TyCtxt</span>,
+  ty::TyCtxt,
 };
-<span class="kw">use</span> <span class="ident">rustc_span</span>::{<span class="ident">source_map::Spanned</span>, <span class="ident">Span</span>, <span class="ident">SpanData</span>};
+<span class="kw">use </span>rustc_span::{source_map::Spanned, Span, SpanData};
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-  <span class="ident">hir_span</span>::{<span class="ident">EnclosingHirSpans</span>, <span class="ident">HirSpanCollector</span>, <span class="ident">HirSpannedNode</span>},
-  <span class="ident">mir_span</span>::{<span class="ident">MirSpanCollector</span>, <span class="ident">MirSpannedPlace</span>},
-  <span class="ident">span_tree::SpanTree</span>,
+<span class="kw">use super</span>::{
+  hir_span::{EnclosingHirSpans, HirSpanCollector, HirSpannedNode},
+  mir_span::{MirSpanCollector, MirSpannedPlace},
+  span_tree::SpanTree,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{
-  <span class="ident">indexed::impls::LocationDomain</span>,
-  <span class="ident">mir::utils</span>::{<span class="self">self</span>, <span class="ident">SpanDataExt</span>, <span class="ident">SpanExt</span>},
+<span class="kw">use crate</span>::{
+  indexed::impls::LocationDomain,
+  mir::utils::{<span class="self">self</span>, SpanDataExt, SpanExt},
 };
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Spanner</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">pub</span> <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">hir_spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirSpannedNode</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-  <span class="kw">pub</span> <span class="ident">hir_span_tree</span>: <span class="ident">SpanTree</span><span class="op">&lt;</span><span class="ident">HirSpannedNode</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-  <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">mir_spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirSpannedPlace</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-  <span class="kw">pub</span> <span class="ident">mir_span_tree</span>: <span class="ident">SpanTree</span><span class="op">&lt;</span><span class="ident">MirSpannedPlace</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-  <span class="kw">pub</span> <span class="ident">body_span</span>: <span class="ident">Span</span>,
-  <span class="kw">pub</span> <span class="ident">item_span</span>: <span class="ident">Span</span>,
-  <span class="kw">pub</span> <span class="ident">ret_span</span>: <span class="ident">Span</span>,
+<span class="kw">pub struct </span>Spanner&lt;<span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">pub </span>tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  <span class="kw">pub</span>(<span class="kw">super</span>) hir_spans: Vec&lt;HirSpannedNode&lt;<span class="lifetime">&#39;hir</span>&gt;&gt;,
+  <span class="kw">pub </span>hir_span_tree: SpanTree&lt;HirSpannedNode&lt;<span class="lifetime">&#39;hir</span>&gt;&gt;,
+  <span class="kw">pub</span>(<span class="kw">super</span>) mir_spans: Vec&lt;MirSpannedPlace&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+  <span class="kw">pub </span>mir_span_tree: SpanTree&lt;MirSpannedPlace&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+  <span class="kw">pub </span>body_span: Span,
+  <span class="kw">pub </span>item_span: Span,
+  <span class="kw">pub </span>ret_span: Span,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">Spanner</span><span class="op">&lt;</span><span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-  <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;hir</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span>&gt; Spanner&lt;<span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span>&gt;
+<span class="kw">where
+  </span><span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;hir</span>,
 {
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">body_id</span>: <span class="ident">BodyId</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-    <span class="kw">let</span> <span class="ident">hir</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">hir</span>();
-    <span class="kw">let</span> <span class="ident">hir_body</span> <span class="op">=</span> <span class="ident">hir</span>.<span class="ident">body</span>(<span class="ident">body_id</span>);
-    <span class="kw">let</span> <span class="ident">owner</span> <span class="op">=</span> <span class="ident">hir</span>.<span class="ident">body_owner</span>(<span class="ident">body_id</span>);
-    <span class="kw">let</span> <span class="ident">item_span</span> <span class="op">=</span> <span class="ident">hir</span>.<span class="ident">span_with_body</span>(<span class="ident">owner</span>);
-    <span class="kw">let</span> <span class="ident">ret_span</span> <span class="op">=</span> <span class="ident">hir</span>.<span class="ident">fn_decl_by_hir_id</span>(<span class="ident">owner</span>).<span class="ident">unwrap</span>().<span class="ident">output</span>.<span class="ident">span</span>();
+  <span class="kw">pub fn </span>new(tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body_id: BodyId, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">let </span>hir = tcx.hir();
+    <span class="kw">let </span>hir_body = hir.body(body_id);
+    <span class="kw">let </span>owner = hir.body_owner(body_id);
+    <span class="kw">let </span>item_span = hir.span_with_body(owner);
+    <span class="kw">let </span>ret_span = hir.fn_decl_by_hir_id(owner).unwrap().output.span();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spanner</span> <span class="op">=</span> <span class="ident">Spanner</span> {
-      <span class="ident">hir_spans</span>: <span class="ident">Vec::new</span>(),
-      <span class="ident">mir_spans</span>: <span class="ident">Vec::new</span>(),
-      <span class="ident">hir_span_tree</span>: <span class="ident">SpanTree::new</span>([]),
-      <span class="ident">mir_span_tree</span>: <span class="ident">SpanTree::new</span>([]),
-      <span class="ident">body_span</span>: <span class="ident">hir_body</span>.<span class="ident">value</span>.<span class="ident">span</span>,
-      <span class="ident">item_span</span>,
-      <span class="ident">ret_span</span>,
-      <span class="ident">tcx</span>,
+    <span class="kw">let </span><span class="kw-2">mut </span>spanner = Spanner {
+      hir_spans: Vec::new(),
+      mir_spans: Vec::new(),
+      hir_span_tree: SpanTree::new([]),
+      mir_span_tree: SpanTree::new([]),
+      body_span: hir_body.value.span,
+      item_span,
+      ret_span,
+      tcx,
     };
     <span class="macro">trace!</span>(
       <span class="string">&quot;Body span: {:?}, item span: {:?}&quot;</span>,
-      <span class="ident">spanner</span>.<span class="ident">body_span</span>,
-      <span class="ident">spanner</span>.<span class="ident">item_span</span>
+      spanner.body_span,
+      spanner.item_span
     );
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hir_collector</span> <span class="op">=</span> <span class="ident">HirSpanCollector</span>(<span class="kw-2">&amp;mut</span> <span class="ident">spanner</span>);
-    <span class="ident">hir_collector</span>.<span class="ident">visit_body</span>(<span class="ident">hir_body</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>hir_collector = HirSpanCollector(<span class="kw-2">&amp;mut </span>spanner);
+    hir_collector.visit_body(hir_body);
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mir_collector</span> <span class="op">=</span> <span class="ident">MirSpanCollector</span>(<span class="kw-2">&amp;mut</span> <span class="ident">spanner</span>, <span class="ident">body</span>);
-    <span class="ident">mir_collector</span>.<span class="ident">visit_body</span>(<span class="ident">body</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>mir_collector = MirSpanCollector(<span class="kw-2">&amp;mut </span>spanner, body);
+    mir_collector.visit_body(body);
 
-    <span class="ident">spanner</span>.<span class="ident">hir_span_tree</span> <span class="op">=</span>
-      <span class="ident">SpanTree::new</span>(<span class="ident">spanner</span>.<span class="ident">hir_spans</span>.<span class="ident">drain</span>(..).<span class="ident">map</span>(<span class="op">|</span><span class="ident">node</span><span class="op">|</span> <span class="ident">Spanned</span> {
-        <span class="ident">span</span>: <span class="ident">node</span>.<span class="ident">full</span>.<span class="ident">span</span>(),
-        <span class="ident">node</span>,
+    spanner.hir_span_tree =
+      SpanTree::new(spanner.hir_spans.drain(..).map(|node| Spanned {
+        span: node.full.span(),
+        node,
       }));
-    <span class="ident">spanner</span>.<span class="ident">mir_span_tree</span> <span class="op">=</span>
-      <span class="ident">SpanTree::new</span>(<span class="ident">spanner</span>.<span class="ident">mir_spans</span>.<span class="ident">drain</span>(..).<span class="ident">map</span>(<span class="op">|</span><span class="ident">node</span><span class="op">|</span> <span class="ident">Spanned</span> {
-        <span class="ident">span</span>: <span class="ident">node</span>.<span class="ident">span</span>.<span class="ident">span</span>(),
-        <span class="ident">node</span>,
+    spanner.mir_span_tree =
+      SpanTree::new(spanner.mir_spans.drain(..).map(|node| Spanned {
+        span: node.span.span(),
+        node,
       }));
 
-    <span class="ident">spanner</span>
+    spanner
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">invalid_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="ident">bool</span> {
-    <span class="ident">span</span>.<span class="ident">is_dummy</span>()
-      <span class="op">|</span><span class="op">|</span> <span class="ident">span</span>.<span class="ident">source_equal</span>(<span class="self">self</span>.<span class="ident">body_span</span>)
-      <span class="op">|</span><span class="op">|</span> <span class="ident">span</span>.<span class="ident">source_equal</span>(<span class="self">self</span>.<span class="ident">item_span</span>)
+  <span class="kw">pub fn </span>invalid_span(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span) -&gt; bool {
+    span.is_dummy()
+      || span.source_equal(<span class="self">self</span>.body_span)
+      || span.source_equal(<span class="self">self</span>.item_span)
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_matching</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">T</span><span class="op">&gt;</span>(
-    <span class="ident">predicate</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">SpanData</span>) -&gt; <span class="ident">bool</span>,
-    <span class="ident">query</span>: <span class="ident">SpanData</span>,
-    <span class="ident">spans</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">SpanTree</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-  ) -&gt; <span class="kw">impl</span> <span class="ident">ExactSizeIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;b</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matching</span> <span class="op">=</span> <span class="ident">spans</span>
-      .<span class="ident">overlapping</span>(<span class="ident">query</span>)
-      .<span class="ident">filter</span>(<span class="op">|</span>(<span class="ident">span</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">predicate</span>(<span class="kw-2">*</span><span class="ident">span</span>))
-      .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">matching</span>.<span class="ident">sort_by_key</span>(<span class="op">|</span>(<span class="ident">span</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">span</span>.<span class="ident">size</span>());
-    <span class="ident">matching</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">t</span>)<span class="op">|</span> <span class="ident">t</span>)
+  <span class="kw">pub fn </span>find_matching&lt;<span class="lifetime">&#39;b</span>, T&gt;(
+    predicate: <span class="kw">impl </span>Fn(SpanData) -&gt; bool,
+    query: SpanData,
+    spans: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>SpanTree&lt;T&gt;,
+  ) -&gt; <span class="kw">impl </span>ExactSizeIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>T&gt; + <span class="lifetime">&#39;b </span>{
+    <span class="kw">let </span><span class="kw-2">mut </span>matching = spans
+      .overlapping(query)
+      .filter(|(span, <span class="kw">_</span>)| predicate(<span class="kw-2">*</span>span))
+      .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+    matching.sort_by_key(|(span, <span class="kw">_</span>)| span.size());
+    matching.into_iter().map(|(<span class="kw">_</span>, t)| t)
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location_to_spans</span>(
+  <span class="kw">pub fn </span>location_to_spans(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    <span class="ident">location</span>: <span class="ident">mir::Location</span>,
-    <span class="ident">location_domain</span>: <span class="kw-2">&amp;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">LocationDomain</span><span class="op">&gt;</span>,
-    <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span>,
-    <span class="ident">span_type</span>: <span class="ident">EnclosingHirSpans</span>,
-  ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="ident">target_span</span>, <span class="ident">stmt</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">location_domain</span>.<span class="ident">location_to_local</span>(<span class="ident">location</span>) {
-      <span class="prelude-val">Some</span>(<span class="ident">local</span>) =&gt; (<span class="ident">body</span>.<span class="ident">local_decls</span>[<span class="ident">local</span>].<span class="ident">source_info</span>.<span class="ident">span</span>, <span class="prelude-val">None</span>),
-      <span class="prelude-val">None</span> =&gt; (
-        <span class="ident">body</span>.<span class="ident">source_info</span>(<span class="ident">location</span>).<span class="ident">span</span>,
-        <span class="prelude-val">Some</span>(<span class="ident">body</span>.<span class="ident">stmt_at</span>(<span class="ident">location</span>)),
+    location: mir::Location,
+    location_domain: <span class="kw-2">&amp;</span>Rc&lt;LocationDomain&gt;,
+    body: <span class="kw-2">&amp;</span>Body,
+    span_type: EnclosingHirSpans,
+  ) -&gt; Vec&lt;Span&gt; {
+    <span class="kw">let </span>(target_span, stmt) = <span class="kw">match </span>location_domain.location_to_local(location) {
+      <span class="prelude-val">Some</span>(local) =&gt; (body.local_decls[local].source_info.span, <span class="prelude-val">None</span>),
+      <span class="prelude-val">None </span>=&gt; (
+        body.source_info(location).span,
+        <span class="prelude-val">Some</span>(body.stmt_at(location)),
       ),
     };
 
-    <span class="kw">let</span> <span class="ident">target_span</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">target_span</span>.<span class="ident">as_local</span>(<span class="self">self</span>.<span class="ident">item_span</span>) {
-      <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">invalid_span</span>(<span class="ident">span</span>) =&gt; <span class="ident">span</span>,
-      <span class="kw">_</span> =&gt; {
-        <span class="kw">return</span> <span class="macro">vec!</span>[];
+    <span class="kw">let </span>target_span = <span class="kw">match </span>target_span.as_local(<span class="self">self</span>.item_span) {
+      <span class="prelude-val">Some</span>(span) <span class="kw">if </span>!<span class="self">self</span>.invalid_span(span) =&gt; span,
+      <span class="kw">_ </span>=&gt; {
+        <span class="kw">return </span><span class="macro">vec!</span>[];
       }
     };
 
-    <span class="kw">let</span> <span class="ident">target_span_data</span> <span class="op">=</span> <span class="ident">target_span</span>.<span class="ident">data</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">enclosing_hir</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::find_matching</span>(
-      <span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="ident">span</span>.<span class="ident">contains</span>(<span class="ident">target_span_data</span>),
-      <span class="ident">target_span_data</span>,
-      <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">hir_span_tree</span>,
+    <span class="kw">let </span>target_span_data = target_span.data();
+    <span class="kw">let </span><span class="kw-2">mut </span>enclosing_hir = <span class="self">Self</span>::find_matching(
+      |span| span.contains(target_span_data),
+      target_span_data,
+      <span class="kw-2">&amp;</span><span class="self">self</span>.hir_span_tree,
     )
-    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="comment">// trace!(&quot;enclosing_hir={enclosing_hir:?}&quot;);</span>
+    .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+    <span class="comment">// trace!(&quot;enclosing_hir={enclosing_hir:?}&quot;);
 
-    <span class="kw">if</span> <span class="ident">enclosing_hir</span>.<span class="ident">is_empty</span>() {
+    </span><span class="kw">if </span>enclosing_hir.is_empty() {
       <span class="macro">log::warn!</span>(
-        <span class="string">&quot;Location {location:?} (span {target_span:?}) had no enclosing HIR nodes&quot;</span>
-      );
-      <span class="kw">return</span> <span class="macro">vec!</span>[];
+        <span class="string">&quot;Location {location:?} (span {target_span:?}) had no enclosing HIR nodes&quot;
+      </span>);
+      <span class="kw">return </span><span class="macro">vec!</span>[];
     }
 
-    <span class="comment">// Get the spans of the immediately enclosing HIR node</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hir_spans</span> <span class="op">=</span> <span class="ident">enclosing_hir</span>.<span class="ident">remove</span>(<span class="number">0</span>).<span class="ident">get_spans</span>(<span class="ident">span_type</span>);
+    <span class="comment">// Get the spans of the immediately enclosing HIR node
+    </span><span class="kw">let </span><span class="kw-2">mut </span>hir_spans = enclosing_hir.remove(<span class="number">0</span>).get_spans(span_type);
 
-    <span class="comment">// Include the MIR span</span>
-    <span class="ident">hir_spans</span>.<span class="ident">push</span>(<span class="ident">target_span</span>);
+    <span class="comment">// Include the MIR span
+    </span>hir_spans.push(target_span);
 
-    <span class="macro">macro_rules!</span> <span class="ident">add_first_where</span> {
-      (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">enclosing_hir</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>) {
-          <span class="ident">hir_spans</span>.<span class="ident">extend</span>(<span class="ident">node</span>.<span class="ident">get_spans</span>(<span class="ident">span_type</span>));
+    <span class="macro">macro_rules! </span>add_first_where {
+      (<span class="macro-nonterminal">$f</span>:expr) =&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = enclosing_hir.iter().find(<span class="macro-nonterminal">$f</span>) {
+          hir_spans.extend(node.get_spans(span_type));
         }
       };
     }
 
-    <span class="comment">// Add the spans of the first enclosing statement</span>
-    <span class="macro">add_first_where!</span>(<span class="op">|</span><span class="ident">node</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">node</span>.<span class="ident">node</span>, <span class="ident">Node::Stmt</span>(<span class="kw">_</span>)));
+    <span class="comment">// Add the spans of the first enclosing statement
+    </span><span class="macro">add_first_where!</span>(|node| <span class="macro">matches!</span>(node.node, Node::Stmt(<span class="kw">_</span>)));
 
-    <span class="comment">// Include `return` keyword if the location is an expression under a return.</span>
-    <span class="macro">add_first_where!</span>(<span class="op">|</span><span class="ident">node</span><span class="op">|</span> {
+    <span class="comment">// Include `return` keyword if the location is an expression under a return.
+    </span><span class="macro">add_first_where!</span>(|node| {
       <span class="macro">matches!</span>(
-        <span class="ident">node</span>.<span class="ident">node</span>,
-        <span class="ident">Node::Expr</span>(<span class="ident">hir::Expr</span> {
-          <span class="ident">kind</span>: <span class="ident">hir::ExprKind::Ret</span>(<span class="kw">_</span>),
+        node.node,
+        Node::Expr(hir::Expr {
+          kind: hir::ExprKind::Ret(<span class="kw">_</span>),
           ..
         })
       )
     });
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Either::Right</span>(<span class="ident">mir::Terminator</span> {
-      <span class="ident">kind</span>: <span class="ident">TerminatorKind::SwitchInt</span> { .. },
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(Either::Right(mir::Terminator {
+      kind: TerminatorKind::SwitchInt { .. },
       ..
-    })) <span class="op">=</span> <span class="ident">stmt</span>
+    })) = stmt
     {
-      <span class="comment">// If the location is a switch, then include the closest enclosing if or match</span>
-      <span class="macro">add_first_where!</span>(<span class="op">|</span><span class="ident">node</span><span class="op">|</span> {
+      <span class="comment">// If the location is a switch, then include the closest enclosing if or match
+      </span><span class="macro">add_first_where!</span>(|node| {
         <span class="macro">matches!</span>(
-          <span class="ident">node</span>.<span class="ident">node</span>,
-          <span class="ident">Node::Expr</span>(<span class="ident">hir::Expr</span> {
-            <span class="ident">kind</span>: <span class="ident">ExprKind::If</span>(..) <span class="op">|</span> <span class="ident">ExprKind::Match</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">MatchSource::Normal</span>),
+          node.node,
+          Node::Expr(hir::Expr {
+            kind: ExprKind::If(..) | ExprKind::Match(<span class="kw">_</span>, <span class="kw">_</span>, MatchSource::Normal),
             ..
           })
         )
       });
 
-      <span class="comment">// Also include enclosing loops</span>
-      <span class="macro">add_first_where!</span>(<span class="op">|</span><span class="ident">node</span><span class="op">|</span> {
+      <span class="comment">// Also include enclosing loops
+      </span><span class="macro">add_first_where!</span>(|node| {
         <span class="macro">matches!</span>(
-          <span class="ident">node</span>.<span class="ident">node</span>,
-          <span class="ident">Node::Expr</span>(<span class="ident">hir::Expr</span> {
-            <span class="ident">kind</span>: <span class="ident">ExprKind::Loop</span>(..),
+          node.node,
+          Node::Expr(hir::Expr {
+            kind: ExprKind::Loop(..),
             ..
           })
         )
       });
     }
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Either::Left</span>(<span class="ident">mir::Statement</span> {
-      <span class="ident">kind</span>: <span class="ident">StatementKind::Assign</span>(<span class="kw">box</span> (<span class="ident">lhs</span>, <span class="kw">_</span>)),
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(Either::Left(mir::Statement {
+      kind: StatementKind::Assign(<span class="kw">box </span>(lhs, <span class="kw">_</span>)),
       ..
-    })) <span class="op">=</span> <span class="ident">stmt</span>
+    })) = stmt
     {
-      <span class="kw">if</span> <span class="ident">lhs</span>.<span class="ident">local</span> <span class="op">==</span> <span class="ident">RETURN_PLACE</span> {
-        <span class="ident">hir_spans</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">ret_span</span>);
+      <span class="kw">if </span>lhs.local == RETURN_PLACE {
+        hir_spans.push(<span class="self">self</span>.ret_span);
       }
     }
 
-    <span class="kw">let</span> <span class="ident">format_spans</span> <span class="op">=</span> <span class="op">|</span><span class="ident">spans</span>: <span class="kw-2">&amp;</span>[<span class="ident">Span</span>]<span class="op">|</span> -&gt; <span class="ident">String</span> {
-      <span class="ident">spans</span>
-        .<span class="ident">iter</span>()
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="ident">span</span>.<span class="ident">to_string</span>(<span class="self">self</span>.<span class="ident">tcx</span>))
-        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-        .<span class="ident">join</span>(<span class="string">&quot; -- &quot;</span>)
+    <span class="kw">let </span>format_spans = |spans: <span class="kw-2">&amp;</span>[Span]| -&gt; String {
+      spans
+        .iter()
+        .map(|span| span.to_string(<span class="self">self</span>.tcx))
+        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+        .join(<span class="string">&quot; -- &quot;</span>)
     };
 
     <span class="macro">trace!</span>(
       <span class="string">&quot;Location {location:?} ({})\n  has loc span:\n  {}\n  and HIR spans:\n  {}&quot;</span>,
-      <span class="ident">utils::location_to_string</span>(<span class="ident">location</span>, <span class="ident">body</span>),
-      <span class="ident">format_spans</span>(<span class="kw-2">&amp;</span>[<span class="ident">target_span</span>]),
-      <span class="ident">format_spans</span>(<span class="kw-2">&amp;</span><span class="ident">hir_spans</span>)
+      utils::location_to_string(location, body),
+      format_spans(<span class="kw-2">&amp;</span>[target_span]),
+      format_spans(<span class="kw-2">&amp;</span>hir_spans)
     );
 
-    <span class="ident">hir_spans</span>
+    hir_spans
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_to_places</span><span class="op">&lt;</span><span class="lifetime">&#39;this</span><span class="op">&gt;</span>(
-    <span class="kw-2">&amp;</span><span class="lifetime">&#39;this</span> <span class="self">self</span>,
-    <span class="ident">span</span>: <span class="ident">Span</span>,
-  ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;this</span> <span class="ident">MirSpannedPlace</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="comment">// Note that MIR does not have granular source maps around projections.</span>
-    <span class="comment">// So in the expression `let x = z.0`, the MIR Body only contains the place</span>
-    <span class="comment">// z.0 with a span for the string &quot;z.0&quot;. If the user selects only &quot;z&quot;, there</span>
-    <span class="comment">// is no way to determine map that selection back to a subset of the projection.</span>
-    <span class="comment">//</span>
-    <span class="comment">// At least, we can conservatively include the containing span &quot;z.0&quot; and slice on that.</span>
+  <span class="kw">pub fn </span>span_to_places&lt;<span class="lifetime">&#39;this</span>&gt;(
+    <span class="kw-2">&amp;</span><span class="lifetime">&#39;this </span><span class="self">self</span>,
+    span: Span,
+  ) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;this </span>MirSpannedPlace&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
+    <span class="comment">// Note that MIR does not have granular source maps around projections.
+    // So in the expression `let x = z.0`, the MIR Body only contains the place
+    // z.0 with a span for the string &quot;z.0&quot;. If the user selects only &quot;z&quot;, there
+    // is no way to determine map that selection back to a subset of the projection.
+    //
+    // At least, we can conservatively include the containing span &quot;z.0&quot; and slice on that.
 
-    <span class="kw">let</span> <span class="ident">span_data</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">data</span>();
+    </span><span class="kw">let </span>span_data = span.data();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contained</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::find_matching</span>(
-      <span class="kw">move</span> <span class="op">|</span><span class="ident">mir_span</span><span class="op">|</span> <span class="ident">span_data</span>.<span class="ident">contains</span>(<span class="ident">mir_span</span>),
-      <span class="ident">span_data</span>,
-      <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">mir_span_tree</span>,
+    <span class="kw">let </span><span class="kw-2">mut </span>contained = <span class="self">Self</span>::find_matching(
+      <span class="kw">move </span>|mir_span| span_data.contains(mir_span),
+      span_data,
+      <span class="kw-2">&amp;</span><span class="self">self</span>.mir_span_tree,
     );
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vec</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <span class="ident">contained</span>.<span class="ident">next</span>() {
-      <span class="ident">contained</span>
-        .<span class="ident">take_while</span>(<span class="op">|</span><span class="ident">other</span><span class="op">|</span> <span class="ident">other</span>.<span class="ident">span</span>.<span class="ident">size</span>() <span class="op">==</span> <span class="ident">first</span>.<span class="ident">span</span>.<span class="ident">size</span>())
-        .<span class="ident">chain</span>([<span class="ident">first</span>])
-        .<span class="ident">collect</span>()
-    } <span class="kw">else</span> {
-      <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">containing</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::find_matching</span>(
-        <span class="kw">move</span> <span class="op">|</span><span class="ident">mir_span</span><span class="op">|</span> <span class="ident">mir_span</span>.<span class="ident">contains</span>(<span class="ident">span_data</span>),
-        <span class="ident">span_data</span>,
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">mir_span_tree</span>,
+    <span class="kw">let </span><span class="kw-2">mut </span>vec = <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = contained.next() {
+      contained
+        .take_while(|other| other.span.size() == first.span.size())
+        .chain([first])
+        .collect()
+    } <span class="kw">else </span>{
+      <span class="kw">let </span><span class="kw-2">mut </span>containing = <span class="self">Self</span>::find_matching(
+        <span class="kw">move </span>|mir_span| mir_span.contains(span_data),
+        span_data,
+        <span class="kw-2">&amp;</span><span class="self">self</span>.mir_span_tree,
       );
-      <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <span class="ident">containing</span>.<span class="ident">next</span>() {
-        <span class="ident">containing</span>
-          .<span class="ident">take_while</span>(<span class="op">|</span><span class="ident">other</span><span class="op">|</span> <span class="ident">other</span>.<span class="ident">span</span>.<span class="ident">size</span>() <span class="op">==</span> <span class="ident">first</span>.<span class="ident">span</span>.<span class="ident">size</span>())
-          .<span class="ident">chain</span>([<span class="ident">first</span>])
-          .<span class="ident">collect</span>()
-      } <span class="kw">else</span> {
-        <span class="ident">Vec::new</span>()
+      <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = containing.next() {
+        containing
+          .take_while(|other| other.span.size() == first.span.size())
+          .chain([first])
+          .collect()
+      } <span class="kw">else </span>{
+        Vec::new()
       }
     };
 
-    <span class="ident">vec</span>.<span class="ident">dedup</span>();
-    <span class="ident">vec</span>
+    vec.dedup();
+    vec
   }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-  <span class="kw">use</span> <span class="ident">rustc_data_structures::fx::FxHashSet</span> <span class="kw">as</span> <span class="ident">HashSet</span>;
-  <span class="kw">use</span> <span class="ident">rustc_middle::mir::BasicBlock</span>;
-  <span class="kw">use</span> <span class="ident">test_log::test</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+  <span class="kw">use </span>rustc_data_structures::fx::FxHashSet <span class="kw">as </span>HashSet;
+  <span class="kw">use </span>rustc_middle::mir::BasicBlock;
+  <span class="kw">use </span>test_log::test;
 
-  <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-  <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::test_utils</span>;
+  <span class="kw">use super</span>::<span class="kw-2">*</span>;
+  <span class="kw">use </span><span class="kw">crate</span>::test_utils;
 
-  <span class="kw">fn</span> <span class="ident">harness</span>(
-    <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">f</span>: <span class="kw">impl</span> <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">FnOnce</span>(<span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">BodyId</span>, <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>) <span class="op">+</span> <span class="ident">Send</span>,
+  <span class="kw">fn </span>harness(
+    src: <span class="kw-2">&amp;</span>str,
+    f: <span class="kw">impl for</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; FnOnce(TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, BodyId, <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, Vec&lt;Span&gt;) + Send,
   ) {
-    <span class="kw">let</span> (<span class="ident">input</span>, <span class="kw-2">mut</span> <span class="ident">ranges</span>) <span class="op">=</span> <span class="ident">test_utils::parse_ranges</span>(<span class="ident">src</span>, [(<span class="string">&quot;`(&quot;</span>, <span class="string">&quot;)`&quot;</span>)]).<span class="ident">unwrap</span>();
-    <span class="ident">test_utils::compile_body</span>(<span class="ident">input</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body_with_facts</span><span class="op">|</span> {
-      <span class="kw">let</span> <span class="ident">spans</span> <span class="op">=</span> <span class="ident">ranges</span>
-        .<span class="ident">remove</span>(<span class="string">&quot;`(&quot;</span>)
-        .<span class="ident">unwrap</span>()
-        .<span class="ident">into_iter</span>()
-        .<span class="ident">map</span>(<span class="ident">test_utils::make_span</span>)
-        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-      <span class="ident">f</span>(<span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="kw-2">&amp;</span><span class="ident">body_with_facts</span>.<span class="ident">body</span>, <span class="ident">spans</span>);
+    <span class="kw">let </span>(input, <span class="kw-2">mut </span>ranges) = test_utils::parse_ranges(src, [(<span class="string">&quot;`(&quot;</span>, <span class="string">&quot;)`&quot;</span>)]).unwrap();
+    test_utils::compile_body(input, <span class="kw">move </span>|tcx, body_id, body_with_facts| {
+      <span class="kw">let </span>spans = ranges
+        .remove(<span class="string">&quot;`(&quot;</span>)
+        .unwrap()
+        .into_iter()
+        .map(test_utils::make_span)
+        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+      f(tcx, body_id, <span class="kw-2">&amp;</span>body_with_facts.body, spans);
     });
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">test_span_to_places</span>() {
-    <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="string">r#&quot;fn foo(`(z)`: i32){
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>test_span_to_places() {
+    <span class="kw">let </span>src = <span class="string">r#&quot;fn foo(`(z)`: i32){
       let `(x)` = 1;
       let y = 1;
       `(x + y)`;
@@ -820,10 +813,10 @@
       `(w.0)`;
       `(w.)`0;
     }&quot;#</span>;
-    <span class="ident">harness</span>(<span class="ident">src</span>, <span class="op">|</span><span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body</span>, <span class="ident">spans</span><span class="op">|</span> {
-      <span class="kw">let</span> <span class="ident">source_map</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>();
-      <span class="kw">let</span> <span class="ident">spanner</span> <span class="op">=</span> <span class="ident">Spanner::new</span>(<span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body</span>);
-      <span class="kw">let</span> <span class="ident">expected</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="kw">_</span>]] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+    harness(src, |tcx, body_id, body, spans| {
+      <span class="kw">let </span>source_map = tcx.sess.source_map();
+      <span class="kw">let </span>spanner = Spanner::new(tcx, body_id, body);
+      <span class="kw">let </span>expected: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="kw">_</span>]] = <span class="kw-2">&amp;</span>[
         <span class="kw-2">&amp;</span>[<span class="string">&quot;z&quot;</span>],
         <span class="kw-2">&amp;</span>[<span class="string">&quot;x&quot;</span>],
         <span class="kw-2">&amp;</span>[<span class="string">&quot;x&quot;</span>, <span class="string">&quot;y&quot;</span>],
@@ -834,90 +827,90 @@
         <span class="kw-2">&amp;</span>[<span class="string">&quot;w.0&quot;</span>],
         <span class="kw-2">&amp;</span>[<span class="string">&quot;w.0&quot;</span>],
       ];
-      <span class="kw">for</span> (<span class="ident">input_span</span>, <span class="ident">desired</span>) <span class="kw">in</span> <span class="ident">spans</span>.<span class="ident">into_iter</span>().<span class="ident">zip</span>(<span class="ident">expected</span>.<span class="ident">into_iter</span>()) {
-        <span class="kw">let</span> <span class="ident">outputs</span> <span class="op">=</span> <span class="ident">spanner</span>.<span class="ident">span_to_places</span>(<span class="ident">input_span</span>);
-        <span class="kw">let</span> <span class="ident">snippets</span> <span class="op">=</span> <span class="ident">outputs</span>
-          .<span class="ident">into_iter</span>()
-          .<span class="ident">map</span>(<span class="op">|</span><span class="ident">spanned</span><span class="op">|</span> <span class="ident">source_map</span>.<span class="ident">span_to_snippet</span>(<span class="ident">spanned</span>.<span class="ident">span</span>.<span class="ident">span</span>()).<span class="ident">unwrap</span>())
-          .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+      <span class="kw">for </span>(input_span, desired) <span class="kw">in </span>spans.into_iter().zip(expected.into_iter()) {
+        <span class="kw">let </span>outputs = spanner.span_to_places(input_span);
+        <span class="kw">let </span>snippets = outputs
+          .into_iter()
+          .map(|spanned| source_map.span_to_snippet(spanned.span.span()).unwrap())
+          .collect::&lt;HashSet&lt;<span class="kw">_</span>&gt;&gt;();
 
         <span class="macro">println!</span>(<span class="string">&quot;input_span={input_span:?}&quot;</span>);
-        <span class="ident">compare_sets</span>(<span class="kw-2">&amp;</span><span class="ident">desired</span>.<span class="ident">iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(), <span class="kw-2">&amp;</span><span class="ident">snippets</span>);
+        compare_sets(<span class="kw-2">&amp;</span>desired.iter().collect::&lt;HashSet&lt;<span class="kw">_</span>&gt;&gt;(), <span class="kw-2">&amp;</span>snippets);
       }
     });
   }
 
-  <span class="kw">fn</span> <span class="ident">compare_sets</span>(<span class="ident">desired</span>: <span class="kw-2">&amp;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">actual</span>: <span class="kw-2">&amp;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> <span class="ident">desired</span> <span class="op">=</span> <span class="ident">desired</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">as_ref</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">actual</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">as_ref</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="kw">let</span> <span class="ident">missing_desired</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">desired</span> <span class="op">-</span> <span class="kw-2">&amp;</span><span class="ident">actual</span>;
-    <span class="kw">let</span> <span class="ident">missing_actual</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">actual</span> <span class="op">-</span> <span class="kw-2">&amp;</span><span class="ident">desired</span>;
+  <span class="kw">fn </span>compare_sets(desired: <span class="kw-2">&amp;</span>HashSet&lt;<span class="kw">impl </span>AsRef&lt;str&gt;&gt;, actual: <span class="kw-2">&amp;</span>HashSet&lt;<span class="kw">impl </span>AsRef&lt;str&gt;&gt;) {
+    <span class="kw">let </span>desired = desired.iter().map(|s| s.as_ref()).collect::&lt;HashSet&lt;<span class="kw">_</span>&gt;&gt;();
+    <span class="kw">let </span>actual = actual.iter().map(|s| s.as_ref()).collect::&lt;HashSet&lt;<span class="kw">_</span>&gt;&gt;();
+    <span class="kw">let </span>missing_desired = <span class="kw-2">&amp;</span>desired - <span class="kw-2">&amp;</span>actual;
+    <span class="kw">let </span>missing_actual = <span class="kw-2">&amp;</span>actual - <span class="kw-2">&amp;</span>desired;
 
-    <span class="kw">let</span> <span class="ident">check</span> <span class="op">=</span> <span class="op">|</span><span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">set</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">|</span> {
-      <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">el</span>) <span class="op">=</span> <span class="ident">set</span>.<span class="ident">iter</span>().<span class="ident">next</span>() {
+    <span class="kw">let </span>check = |key: <span class="kw-2">&amp;</span>str, set: HashSet&lt;<span class="kw-2">&amp;</span>str&gt;| {
+      <span class="kw">if let </span><span class="prelude-val">Some</span>(el) = set.iter().next() {
         <span class="macro">panic!</span>(<span class="string">&quot;Missing {key}: {el}. Actual = {actual:?}. Desired = {desired:?}&quot;</span>,);
       }
     };
 
-    <span class="ident">check</span>(<span class="string">&quot;desired&quot;</span>, <span class="ident">missing_desired</span>);
-    <span class="ident">check</span>(<span class="string">&quot;actual&quot;</span>, <span class="ident">missing_actual</span>);
+    check(<span class="string">&quot;desired&quot;</span>, missing_desired);
+    check(<span class="string">&quot;actual&quot;</span>, missing_actual);
   }
 
-  <span class="kw">fn</span> <span class="ident">hir_spanner_harness</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">expected</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]], <span class="ident">span_type</span>: <span class="ident">EnclosingHirSpans</span>) {
-    <span class="ident">harness</span>(<span class="ident">src</span>, <span class="op">|</span><span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body</span>, <span class="ident">spans</span><span class="op">|</span> {
-      <span class="kw">let</span> <span class="ident">spanner</span> <span class="op">=</span> <span class="ident">Spanner::new</span>(<span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body</span>);
-      <span class="kw">let</span> <span class="ident">source_map</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>();
-      <span class="kw">for</span> (<span class="ident">input_span</span>, <span class="ident">desired</span>) <span class="kw">in</span> <span class="ident">spans</span>.<span class="ident">into_iter</span>().<span class="ident">zip</span>(<span class="ident">expected</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">enclosing</span> <span class="op">=</span> <span class="ident">Spanner::find_matching</span>(
-          <span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="ident">span</span>.<span class="ident">contains</span>(<span class="ident">input_span</span>.<span class="ident">data</span>()),
-          <span class="ident">input_span</span>.<span class="ident">data</span>(),
-          <span class="kw-2">&amp;</span><span class="ident">spanner</span>.<span class="ident">hir_span_tree</span>,
+  <span class="kw">fn </span>hir_spanner_harness(src: <span class="kw-2">&amp;</span>str, expected: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]], span_type: EnclosingHirSpans) {
+    harness(src, |tcx, body_id, body, spans| {
+      <span class="kw">let </span>spanner = Spanner::new(tcx, body_id, body);
+      <span class="kw">let </span>source_map = tcx.sess.source_map();
+      <span class="kw">for </span>(input_span, desired) <span class="kw">in </span>spans.into_iter().zip(expected) {
+        <span class="kw">let </span><span class="kw-2">mut </span>enclosing = Spanner::find_matching(
+          |span| span.contains(input_span.data()),
+          input_span.data(),
+          <span class="kw-2">&amp;</span>spanner.hir_span_tree,
         )
-        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">desired_set</span> <span class="op">=</span> <span class="ident">desired</span>.<span class="ident">into_iter</span>().<span class="ident">copied</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">output_snippets</span> <span class="op">=</span> <span class="ident">enclosing</span>
-          .<span class="ident">remove</span>(<span class="number">0</span>)
-          .<span class="ident">get_spans</span>(<span class="ident">span_type</span>)
-          .<span class="ident">into_iter</span>()
-          .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">source_map</span>.<span class="ident">span_to_snippet</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>())
-          .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="ident">compare_sets</span>(<span class="kw-2">&amp;</span><span class="ident">desired_set</span>, <span class="kw-2">&amp;</span><span class="ident">output_snippets</span>);
+        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="kw">let </span>desired_set = desired.into_iter().copied().collect::&lt;HashSet&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="kw">let </span>output_snippets = enclosing
+          .remove(<span class="number">0</span>)
+          .get_spans(span_type)
+          .into_iter()
+          .map(|s| source_map.span_to_snippet(s).unwrap())
+          .collect::&lt;HashSet&lt;<span class="kw">_</span>&gt;&gt;();
+        compare_sets(<span class="kw-2">&amp;</span>desired_set, <span class="kw-2">&amp;</span>output_snippets);
       }
     });
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">test_hir_spanner_outer</span>() {
-    <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="string">r#&quot;fn foo() {
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>test_hir_spanner_outer() {
+    <span class="kw">let </span>src = <span class="string">r#&quot;fn foo() {
       let x = `(1)`;
       let `(y)` = x + 1;
       if `(true)``( )`{ let z = 1; }
       x `(+)` y;
     }&quot;#</span>;
-    <span class="kw">let</span> <span class="ident">expected</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+    <span class="kw">let </span>expected: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]] = <span class="kw-2">&amp;</span>[
       <span class="kw-2">&amp;</span>[<span class="string">&quot;1&quot;</span>],
       <span class="kw-2">&amp;</span>[<span class="string">&quot;let y = &quot;</span>, <span class="string">&quot;;&quot;</span>],
       <span class="kw-2">&amp;</span>[<span class="string">&quot;true&quot;</span>],
       <span class="kw-2">&amp;</span>[<span class="string">&quot;if &quot;</span>, <span class="string">&quot; { &quot;</span>, <span class="string">&quot; }&quot;</span>],
       <span class="kw-2">&amp;</span>[<span class="string">&quot; + &quot;</span>],
     ];
-    <span class="ident">hir_spanner_harness</span>(<span class="ident">src</span>, <span class="ident">expected</span>, <span class="ident">EnclosingHirSpans::OuterOnly</span>)
+    hir_spanner_harness(src, expected, EnclosingHirSpans::OuterOnly)
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">test_hir_spanner_full</span>() {
-    <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="string">r#&quot;fn foo() {
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>test_hir_spanner_full() {
+    <span class="kw">let </span>src = <span class="string">r#&quot;fn foo() {
       `(let mut x: Vec&lt;()&gt; = Vec::new();)`
       `(x = Vec::new();)`
     }&quot;#</span>;
-    <span class="kw">let</span> <span class="ident">expected</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]] <span class="op">=</span>
+    <span class="kw">let </span>expected: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]] =
       <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="string">&quot;let mut x: Vec&lt;()&gt; = Vec::new();&quot;</span>], <span class="kw-2">&amp;</span>[<span class="string">&quot;x = Vec::new();&quot;</span>]];
-    <span class="ident">hir_spanner_harness</span>(<span class="ident">src</span>, <span class="ident">expected</span>, <span class="ident">EnclosingHirSpans::Full</span>)
+    hir_spanner_harness(src, expected, EnclosingHirSpans::Full)
   }
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">test_location_to_spans</span>() {
-    <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="string">r#&quot;fn foo() {
+  <span class="attribute">#[test]
+  </span><span class="kw">fn </span>test_location_to_spans() {
+    <span class="kw">let </span>src = <span class="string">r#&quot;fn foo() {
   let mut x: i32 = 1;
   let y = x + 2;
   let w = if true {
@@ -932,24 +925,24 @@
     .leading_ones()
     .trailing_zeros();
 }&quot;#</span>;
-    <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">_ranges</span>) <span class="op">=</span> <span class="ident">test_utils::parse_ranges</span>(<span class="ident">src</span>, [(<span class="string">&quot;`(&quot;</span>, <span class="string">&quot;)`&quot;</span>)]).<span class="ident">unwrap</span>();
-    <span class="ident">test_utils::compile_body</span>(<span class="ident">input</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body_with_facts</span><span class="op">|</span> {
-      <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">body_with_facts</span>.<span class="ident">body</span>;
-      <span class="kw">let</span> <span class="ident">location_domain</span> <span class="op">=</span> <span class="ident">LocationDomain::new</span>(<span class="ident">body</span>);
-      <span class="kw">let</span> <span class="ident">source_map</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>();
+    <span class="kw">let </span>(input, _ranges) = test_utils::parse_ranges(src, [(<span class="string">&quot;`(&quot;</span>, <span class="string">&quot;)`&quot;</span>)]).unwrap();
+    test_utils::compile_body(input, <span class="kw">move </span>|tcx, body_id, body_with_facts| {
+      <span class="kw">let </span>body = <span class="kw-2">&amp;</span>body_with_facts.body;
+      <span class="kw">let </span>location_domain = LocationDomain::new(body);
+      <span class="kw">let </span>source_map = tcx.sess.source_map();
 
-      <span class="kw">let</span> <span class="ident">spanner</span> <span class="op">=</span> <span class="ident">Spanner::new</span>(<span class="ident">tcx</span>, <span class="ident">body_id</span>, <span class="ident">body</span>);
+      <span class="kw">let </span>spanner = Spanner::new(tcx, body_id, body);
 
-      <span class="comment">// These locations are just selected by inspecting the actual body, so this test might break</span>
-      <span class="comment">// if the compiler is updated. Run with RUST_LOG=debug to see the body.</span>
-      <span class="kw">let</span> <span class="ident">pairs</span>: <span class="kw-2">&amp;</span>[(<span class="kw">_</span>, <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>])] <span class="op">=</span> <span class="kw-2">&amp;</span>[
-        <span class="comment">// Variable assignment</span>
-        ((<span class="number">0</span>, <span class="number">0</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let mut x: i32 = &quot;</span>, <span class="string">&quot;1&quot;</span>, <span class="string">&quot;;&quot;</span>]),
-        <span class="comment">// Expression RHS</span>
-        ((<span class="number">0</span>, <span class="number">3</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let y = &quot;</span>, <span class="string">&quot;x&quot;</span>, <span class="string">&quot;;&quot;</span>]),
+      <span class="comment">// These locations are just selected by inspecting the actual body, so this test might break
+      // if the compiler is updated. Run with RUST_LOG=debug to see the body.
+      </span><span class="kw">let </span>pairs: <span class="kw-2">&amp;</span>[(<span class="kw">_</span>, <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str])] = <span class="kw-2">&amp;</span>[
+        <span class="comment">// Variable assignment
+        </span>((<span class="number">0</span>, <span class="number">0</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let mut x: i32 = &quot;</span>, <span class="string">&quot;1&quot;</span>, <span class="string">&quot;;&quot;</span>]),
+        <span class="comment">// Expression RHS
+        </span>((<span class="number">0</span>, <span class="number">3</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let y = &quot;</span>, <span class="string">&quot;x&quot;</span>, <span class="string">&quot;;&quot;</span>]),
         ((<span class="number">0</span>, <span class="number">4</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let y = &quot;</span>, <span class="string">&quot; + &quot;</span>, <span class="string">&quot;x + 2&quot;</span>, <span class="string">&quot;;&quot;</span>]),
-        <span class="comment">// If expression</span>
-        ((<span class="number">1</span>, <span class="number">2</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let w = &quot;</span>, <span class="string">&quot;true&quot;</span>, <span class="string">&quot;;&quot;</span>]),
+        <span class="comment">// If expression
+        </span>((<span class="number">1</span>, <span class="number">2</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let w = &quot;</span>, <span class="string">&quot;true&quot;</span>, <span class="string">&quot;;&quot;</span>]),
         ((<span class="number">1</span>, <span class="number">3</span>), <span class="kw-2">&amp;</span>[
           <span class="string">&quot;let w = &quot;</span>,
           <span class="string">&quot;if &quot;</span>,
@@ -960,12 +953,12 @@
           <span class="string">&quot;\n  }&quot;</span>,
           <span class="string">&quot;;&quot;</span>,
         ]),
-        <span class="comment">// Reference</span>
-        ((<span class="number">4</span>, <span class="number">1</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let z = &quot;</span>, <span class="string">&quot;&amp;mut &quot;</span>, <span class="string">&quot;&amp;mut x&quot;</span>, <span class="string">&quot;;&quot;</span>]),
-        <span class="comment">// Reference assignment</span>
-        ((<span class="number">4</span>, <span class="number">3</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot; = &quot;</span>, <span class="string">&quot;;&quot;</span>, <span class="string">&quot;*z = 4&quot;</span>]),
-        <span class="comment">// Method chain</span>
-        ((<span class="number">4</span>, <span class="number">4</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let q = &quot;</span>, <span class="string">&quot;x&quot;</span>, <span class="string">&quot;;&quot;</span>]),
+        <span class="comment">// Reference
+        </span>((<span class="number">4</span>, <span class="number">1</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let z = &quot;</span>, <span class="string">&quot;&amp;mut &quot;</span>, <span class="string">&quot;&amp;mut x&quot;</span>, <span class="string">&quot;;&quot;</span>]),
+        <span class="comment">// Reference assignment
+        </span>((<span class="number">4</span>, <span class="number">3</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot; = &quot;</span>, <span class="string">&quot;;&quot;</span>, <span class="string">&quot;*z = 4&quot;</span>]),
+        <span class="comment">// Method chain
+        </span>((<span class="number">4</span>, <span class="number">4</span>), <span class="kw-2">&amp;</span>[<span class="string">&quot;let q = &quot;</span>, <span class="string">&quot;x&quot;</span>, <span class="string">&quot;;&quot;</span>]),
         ((<span class="number">4</span>, <span class="number">5</span>), <span class="kw-2">&amp;</span>[
           <span class="string">&quot;let q = &quot;</span>,
           <span class="string">&quot;x\n    .leading_ones()&quot;</span>,
@@ -980,27 +973,26 @@
         ]),
       ];
 
-      <span class="kw">for</span> ((<span class="ident">i</span>, <span class="ident">j</span>), <span class="ident">outp</span>) <span class="kw">in</span> <span class="ident">pairs</span> {
-        <span class="kw">let</span> <span class="ident">loc</span> <span class="op">=</span> <span class="ident">mir::Location</span> {
-          <span class="ident">block</span>: <span class="ident">BasicBlock::from_usize</span>(<span class="kw-2">*</span><span class="ident">i</span>),
-          <span class="ident">statement_index</span>: <span class="kw-2">*</span><span class="ident">j</span>,
+      <span class="kw">for </span>((i, j), outp) <span class="kw">in </span>pairs {
+        <span class="kw">let </span>loc = mir::Location {
+          block: BasicBlock::from_usize(<span class="kw-2">*</span>i),
+          statement_index: <span class="kw-2">*</span>j,
         };
-        <span class="kw">let</span> <span class="ident">spans</span> <span class="op">=</span> <span class="ident">spanner</span>.<span class="ident">location_to_spans</span>(
-          <span class="ident">loc</span>,
-          <span class="kw-2">&amp;</span><span class="ident">location_domain</span>,
-          <span class="ident">body</span>,
-          <span class="ident">EnclosingHirSpans::OuterOnly</span>,
+        <span class="kw">let </span>spans = spanner.location_to_spans(
+          loc,
+          <span class="kw-2">&amp;</span>location_domain,
+          body,
+          EnclosingHirSpans::OuterOnly,
         );
-        <span class="kw">let</span> <span class="ident">desired</span> <span class="op">=</span> <span class="ident">outp</span>.<span class="ident">iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">spans</span>
-          .<span class="ident">into_iter</span>()
-          .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">source_map</span>.<span class="ident">span_to_snippet</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>())
-          .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="ident">compare_sets</span>(<span class="kw-2">&amp;</span><span class="ident">desired</span>, <span class="kw-2">&amp;</span><span class="ident">actual</span>);
+        <span class="kw">let </span>desired = outp.iter().collect::&lt;HashSet&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="kw">let </span>actual = spans
+          .into_iter()
+          .map(|s| source_map.span_to_snippet(s).unwrap())
+          .collect::&lt;HashSet&lt;<span class="kw">_</span>&gt;&gt;();
+        compare_sets(<span class="kw-2">&amp;</span>desired, <span class="kw-2">&amp;</span>actual);
       }
     });
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

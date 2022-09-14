@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/cargo_metadata-0.14.2/src/errors.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>errors.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../cargo_metadata/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../cargo_metadata/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../cargo_metadata/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/cargo_metadata-0.14.2/src/errors.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>errors.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../cargo_metadata/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../cargo_metadata/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../cargo_metadata/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -115,116 +108,115 @@
 <span id="108">108</span>
 <span id="109">109</span>
 <span id="110">110</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>;
-<span class="kw">use</span> <span class="ident">std::str::Utf8Error</span>;
-<span class="kw">use</span> <span class="ident">std::string::FromUtf8Error</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::str::Utf8Error;
+<span class="kw">use </span>std::string::FromUtf8Error;
 
-<span class="doccomment">/// Custom result type for `cargo_metadata::Error`</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">::std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Custom result type for `cargo_metadata::Error`
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = ::std::result::Result&lt;T, Error&gt;;
 
-<span class="doccomment">/// Error returned when executing/parsing `cargo metadata` fails.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Note about Backtraces</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This error type does not contain backtraces, but each error variant</span>
-<span class="doccomment">/// comes from _one_ specific place, so it&#39;s not really needed for the</span>
-<span class="doccomment">/// inside of this crate. If you need a backtrace down to, but not inside</span>
-<span class="doccomment">/// of, a failed call of `cargo_metadata` you can do one of multiple thinks:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// 1. Convert it to a `failure::Error` (possible using the `?` operator),</span>
-<span class="doccomment">///    which is similar to a `Box&lt;::std::error::Error + &#39;static + Send  + Sync&gt;`.</span>
-<span class="doccomment">/// 2. Have appropriate variants in your own error type. E.g. you could wrap</span>
-<span class="doccomment">///    a `failure::Context&lt;Error&gt;` or add a `failure::Backtrace` field (which</span>
-<span class="doccomment">///    is empty if `RUST_BACKTRACE` is not set, so it&#39;s simple to use).</span>
-<span class="doccomment">/// 3. You still can place a failure based error into a `error_chain` if you</span>
-<span class="doccomment">///    really want to. (Either through foreign_links or by making it a field</span>
-<span class="doccomment">///    value of a `ErrorKind` variant).</span>
-<span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
-    <span class="doccomment">/// Error during execution of `cargo metadata`</span>
-    <span class="ident">CargoMetadata</span> {
-        <span class="doccomment">/// stderr returned by the `cargo metadata` command</span>
-        <span class="ident">stderr</span>: <span class="ident">String</span>,
+<span class="doccomment">/// Error returned when executing/parsing `cargo metadata` fails.
+///
+/// # Note about Backtraces
+///
+/// This error type does not contain backtraces, but each error variant
+/// comes from _one_ specific place, so it&#39;s not really needed for the
+/// inside of this crate. If you need a backtrace down to, but not inside
+/// of, a failed call of `cargo_metadata` you can do one of multiple thinks:
+///
+/// 1. Convert it to a `failure::Error` (possible using the `?` operator),
+///    which is similar to a `Box&lt;::std::error::Error + &#39;static + Send  + Sync&gt;`.
+/// 2. Have appropriate variants in your own error type. E.g. you could wrap
+///    a `failure::Context&lt;Error&gt;` or add a `failure::Backtrace` field (which
+///    is empty if `RUST_BACKTRACE` is not set, so it&#39;s simple to use).
+/// 3. You still can place a failure based error into a `error_chain` if you
+///    really want to. (Either through foreign_links or by making it a field
+///    value of a `ErrorKind` variant).
+///
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Error {
+    <span class="doccomment">/// Error during execution of `cargo metadata`
+    </span>CargoMetadata {
+        <span class="doccomment">/// stderr returned by the `cargo metadata` command
+        </span>stderr: String,
     },
 
-    <span class="doccomment">/// IO Error during execution of `cargo metadata`</span>
-    <span class="ident">Io</span>(<span class="ident">io::Error</span>),
+    <span class="doccomment">/// IO Error during execution of `cargo metadata`
+    </span>Io(io::Error),
 
-    <span class="doccomment">/// Output of `cargo metadata` was not valid utf8</span>
-    <span class="ident">Utf8</span>(<span class="ident">Utf8Error</span>),
+    <span class="doccomment">/// Output of `cargo metadata` was not valid utf8
+    </span>Utf8(Utf8Error),
 
-    <span class="doccomment">/// Error output of `cargo metadata` was not valid utf8</span>
-    <span class="ident">ErrUtf8</span>(<span class="ident">FromUtf8Error</span>),
+    <span class="doccomment">/// Error output of `cargo metadata` was not valid utf8
+    </span>ErrUtf8(FromUtf8Error),
 
-    <span class="doccomment">/// Deserialization error (structure of json did not match expected structure)</span>
-    <span class="ident">Json</span>(<span class="ident">::serde_json::Error</span>),
+    <span class="doccomment">/// Deserialization error (structure of json did not match expected structure)
+    </span>Json(::serde_json::Error),
 
-    <span class="doccomment">/// The output did not contain any json</span>
-    <span class="ident">NoJson</span>,
+    <span class="doccomment">/// The output did not contain any json
+    </span>NoJson,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">io::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">io::Error</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Error::Io</span>(<span class="ident">v</span>)
+<span class="kw">impl </span>From&lt;io::Error&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(v: io::Error) -&gt; <span class="self">Self </span>{
+        Error::Io(v)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Utf8Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">Utf8Error</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Error::Utf8</span>(<span class="ident">v</span>)
+<span class="kw">impl </span>From&lt;Utf8Error&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(v: Utf8Error) -&gt; <span class="self">Self </span>{
+        Error::Utf8(v)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">FromUtf8Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">FromUtf8Error</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Error::ErrUtf8</span>(<span class="ident">v</span>)
+<span class="kw">impl </span>From&lt;FromUtf8Error&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(v: FromUtf8Error) -&gt; <span class="self">Self </span>{
+        Error::ErrUtf8(v)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">::serde_json::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">::serde_json::Error</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Error::Json</span>(<span class="ident">v</span>)
+<span class="kw">impl </span>From&lt;::serde_json::Error&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(v: ::serde_json::Error) -&gt; <span class="self">Self </span>{
+        Error::Json(v)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Error::CargoMetadata</span> { <span class="ident">stderr</span> } =&gt; {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            Error::CargoMetadata { stderr } =&gt; {
                 <span class="macro">write!</span>(
-                    <span class="ident">f</span>,
+                    f,
                     <span class="string">&quot;`cargo metadata` exited with an error: {}&quot;</span>,
-                    <span class="ident">stderr</span>.<span class="ident">trim_end</span>()
+                    stderr.trim_end()
                 )
             }
-            <span class="ident">Error::Io</span>(<span class="ident">err</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;failed to start `cargo metadata`: {}&quot;</span>, <span class="ident">err</span>),
-            <span class="ident">Error::Utf8</span>(<span class="ident">err</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;cannot convert the stdout of `cargo metadata`: {}&quot;</span>, <span class="ident">err</span>),
-            <span class="ident">Error::ErrUtf8</span>(<span class="ident">err</span>) =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;cannot convert the stderr of `cargo metadata`: {}&quot;</span>, <span class="ident">err</span>)
+            Error::Io(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;failed to start `cargo metadata`: {}&quot;</span>, err),
+            Error::Utf8(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;cannot convert the stdout of `cargo metadata`: {}&quot;</span>, err),
+            Error::ErrUtf8(err) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;cannot convert the stderr of `cargo metadata`: {}&quot;</span>, err)
             }
-            <span class="ident">Error::Json</span>(<span class="ident">err</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;failed to interpret `cargo metadata`&#39;s json: {}&quot;</span>, <span class="ident">err</span>),
-            <span class="ident">Error::NoJson</span> =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
-                <span class="string">&quot;could not find any json in the output of `cargo metadata`&quot;</span>
-            ),
+            Error::Json(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;failed to interpret `cargo metadata`&#39;s json: {}&quot;</span>, err),
+            Error::NoJson =&gt; <span class="macro">write!</span>(
+                f,
+                <span class="string">&quot;could not find any json in the output of `cargo metadata`&quot;
+            </span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">::std::error::Error</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Error::CargoMetadata</span> { .. } =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Error::Io</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">err</span>),
-            <span class="ident">Error::Utf8</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">err</span>),
-            <span class="ident">Error::ErrUtf8</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">err</span>),
-            <span class="ident">Error::Json</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">err</span>),
-            <span class="ident">Error::NoJson</span> =&gt; <span class="prelude-val">None</span>,
+<span class="kw">impl </span>::std::error::Error <span class="kw">for </span>Error {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>std::error::Error + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Error::CargoMetadata { .. } =&gt; <span class="prelude-val">None</span>,
+            Error::Io(err) =&gt; <span class="prelude-val">Some</span>(err),
+            Error::Utf8(err) =&gt; <span class="prelude-val">Some</span>(err),
+            Error::ErrUtf8(err) =&gt; <span class="prelude-val">Some</span>(err),
+            Error::Json(err) =&gt; <span class="prelude-val">Some</span>(err),
+            Error::NoJson =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="cargo_metadata" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="cargo_metadata" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

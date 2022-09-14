@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry_ide/src/plugin.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>plugin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry_ide/src/plugin.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>plugin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -15,13 +14,7 @@
     });
 </script>
 
-</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../flowistry_ide/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../flowistry_ide/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../flowistry_ide/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../flowistry_ide/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../flowistry_ide/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../flowistry_ide/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -324,311 +317,308 @@
 <span id="301">301</span>
 <span id="302">302</span>
 <span id="303">303</span>
-<span id="304">304</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
-  <span class="ident">env</span>,
-  <span class="ident">path::PathBuf</span>,
-  <span class="ident">process</span>::{<span class="ident">exit</span>, <span class="ident">Command</span>},
-  <span class="ident">time::Instant</span>,
+</pre><pre class="rust"><code><span class="kw">use </span>std::{
+  env,
+  path::PathBuf,
+  process::{exit, Command},
+  time::Instant,
 };
 
-<span class="kw">use</span> <span class="ident">anyhow::Context</span>;
-<span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">Parser</span>, <span class="ident">Subcommand</span>};
-<span class="kw">use</span> <span class="ident">flowistry</span>::{
-  <span class="ident">extensions</span>::{<span class="ident">ContextMode</span>, <span class="ident">EvalMode</span>, <span class="ident">MutabilityMode</span>, <span class="ident">PointerMode</span>, <span class="ident">EVAL_MODE</span>},
-  <span class="ident">mir::borrowck_facts</span>,
-  <span class="ident">source_map</span>::{<span class="self">self</span>, <span class="ident">FunctionIdentifier</span>, <span class="ident">GraphemeIndices</span>, <span class="ident">Range</span>, <span class="ident">ToSpan</span>},
-  <span class="ident">timer::elapsed</span>,
+<span class="kw">use </span>anyhow::Context;
+<span class="kw">use </span>clap::{Parser, Subcommand};
+<span class="kw">use </span>flowistry::{
+  extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
+  mir::borrowck_facts,
+  source_map::{<span class="self">self</span>, FunctionIdentifier, GraphemeIndices, Range, ToSpan},
+  timer::elapsed,
 };
-<span class="kw">use</span> <span class="ident">fluid_let::fluid_set</span>;
-<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">info</span>};
-<span class="kw">use</span> <span class="ident">rustc_hir::BodyId</span>;
-<span class="kw">use</span> <span class="ident">rustc_interface::interface::Result</span> <span class="kw">as</span> <span class="ident">RustcResult</span>;
-<span class="kw">use</span> <span class="ident">rustc_middle::ty::TyCtxt</span>;
-<span class="kw">use</span> <span class="ident">rustc_plugin</span>::{<span class="ident">RustcPlugin</span>, <span class="ident">RustcPluginArgs</span>, <span class="ident">Utf8Path</span>};
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+<span class="kw">use </span>fluid_let::fluid_set;
+<span class="kw">use </span>log::{debug, info};
+<span class="kw">use </span>rustc_hir::BodyId;
+<span class="kw">use </span>rustc_interface::interface::Result <span class="kw">as </span>RustcResult;
+<span class="kw">use </span>rustc_middle::ty::TyCtxt;
+<span class="kw">use </span>rustc_plugin::{RustcPlugin, RustcPluginArgs, Utf8Path};
+<span class="kw">use </span>serde::{Deserialize, Serialize};
 
-<span class="kw">const</span> <span class="ident">VERSION</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>);
+<span class="kw">const </span>VERSION: <span class="kw-2">&amp;</span>str = <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>);
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Parser</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">version</span> <span class="op">=</span> <span class="ident">VERSION</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FlowistryPluginArgs</span> {
-  <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
-  <span class="ident">bench</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Parser, Serialize, Deserialize)]
+#[clap(version = VERSION)]
+</span><span class="kw">pub struct </span>FlowistryPluginArgs {
+  <span class="attribute">#[clap(long)]
+  </span>bench: <span class="prelude-ty">Option</span>&lt;bool&gt;,
 
-  <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
-  <span class="ident">context_mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ContextMode</span><span class="op">&gt;</span>,
-  <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
-  <span class="ident">mutability_mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MutabilityMode</span><span class="op">&gt;</span>,
-  <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
-  <span class="ident">pointer_mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PointerMode</span><span class="op">&gt;</span>,
+  <span class="attribute">#[clap(long)]
+  </span>context_mode: <span class="prelude-ty">Option</span>&lt;ContextMode&gt;,
+  <span class="attribute">#[clap(long)]
+  </span>mutability_mode: <span class="prelude-ty">Option</span>&lt;MutabilityMode&gt;,
+  <span class="attribute">#[clap(long)]
+  </span>pointer_mode: <span class="prelude-ty">Option</span>&lt;PointerMode&gt;,
 
-  <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
-  <span class="ident">command</span>: <span class="ident">FlowistryCommand</span>,
+  <span class="attribute">#[clap(subcommand)]
+  </span>command: FlowistryCommand,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Subcommand</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">enum</span> <span class="ident">FlowistryCommand</span> {
-  <span class="ident">Spans</span> {
-    <span class="ident">file</span>: <span class="ident">String</span>,
+<span class="attribute">#[derive(Subcommand, Serialize, Deserialize)]
+</span><span class="kw">enum </span>FlowistryCommand {
+  Spans {
+    file: String,
 
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">last</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
-    <span class="ident">flags</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="attribute">#[clap(last = <span class="bool-val">true</span>)]
+    </span>flags: Vec&lt;String&gt;,
   },
 
-  <span class="ident">Focus</span> {
-    <span class="ident">file</span>: <span class="ident">String</span>,
-    <span class="ident">pos</span>: <span class="ident">usize</span>,
+  Focus {
+    file: String,
+    pos: usize,
 
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">last</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
-    <span class="ident">flags</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="attribute">#[clap(last = <span class="bool-val">true</span>)]
+    </span>flags: Vec&lt;String&gt;,
   },
 
-  <span class="ident">Decompose</span> {
-    <span class="ident">file</span>: <span class="ident">String</span>,
-    <span class="ident">pos</span>: <span class="ident">usize</span>,
+  Decompose {
+    file: String,
+    pos: usize,
 
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">last</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
-    <span class="ident">flags</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="attribute">#[clap(last = <span class="bool-val">true</span>)]
+    </span>flags: Vec&lt;String&gt;,
   },
 
-  <span class="ident">Playground</span> {
-    <span class="ident">file</span>: <span class="ident">String</span>,
-    <span class="ident">start</span>: <span class="ident">usize</span>,
-    <span class="ident">end</span>: <span class="ident">usize</span>,
+  Playground {
+    file: String,
+    start: usize,
+    end: usize,
 
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">last</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
-    <span class="ident">flags</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="attribute">#[clap(last = <span class="bool-val">true</span>)]
+    </span>flags: Vec&lt;String&gt;,
   },
 
-  <span class="ident">Preload</span>,
+  Preload,
 
-  <span class="ident">RustcVersion</span>,
+  RustcVersion,
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FlowistryPlugin</span>;
-<span class="kw">impl</span> <span class="ident">RustcPlugin</span> <span class="kw">for</span> <span class="ident">FlowistryPlugin</span> {
-  <span class="kw">type</span> <span class="ident">Args</span> <span class="op">=</span> <span class="ident">FlowistryPluginArgs</span>;
+<span class="kw">pub struct </span>FlowistryPlugin;
+<span class="kw">impl </span>RustcPlugin <span class="kw">for </span>FlowistryPlugin {
+  <span class="kw">type </span>Args = FlowistryPluginArgs;
 
-  <span class="kw">fn</span> <span class="ident">bin_name</span>() -&gt; <span class="ident">String</span> {
-    <span class="string">&quot;flowistry-driver&quot;</span>.<span class="ident">into</span>()
+  <span class="kw">fn </span>bin_name() -&gt; String {
+    <span class="string">&quot;flowistry-driver&quot;</span>.into()
   }
 
-  <span class="kw">fn</span> <span class="ident">args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">target_dir</span>: <span class="kw-2">&amp;</span><span class="ident">Utf8Path</span>) -&gt; <span class="ident">RustcPluginArgs</span><span class="op">&lt;</span><span class="ident">FlowistryPluginArgs</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">FlowistryPluginArgs::parse_from</span>(<span class="ident">env::args</span>().<span class="ident">skip</span>(<span class="number">1</span>));
+  <span class="kw">fn </span>args(<span class="kw-2">&amp;</span><span class="self">self</span>, target_dir: <span class="kw-2">&amp;</span>Utf8Path) -&gt; RustcPluginArgs&lt;FlowistryPluginArgs&gt; {
+    <span class="kw">let </span>args = FlowistryPluginArgs::parse_from(env::args().skip(<span class="number">1</span>));
 
-    <span class="kw">let</span> <span class="ident">cargo_path</span> <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;CARGO_PATH&quot;</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;cargo&quot;</span>.<span class="ident">to_string</span>());
+    <span class="kw">let </span>cargo_path = env::var(<span class="string">&quot;CARGO_PATH&quot;</span>).unwrap_or_else(|<span class="kw">_</span>| <span class="string">&quot;cargo&quot;</span>.to_string());
 
-    <span class="kw">use</span> <span class="ident">FlowistryCommand</span>::<span class="kw-2">*</span>;
-    <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">args</span>.<span class="ident">command</span> {
-      <span class="ident">Preload</span> =&gt; {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cmd</span> <span class="op">=</span> <span class="ident">Command::new</span>(<span class="ident">cargo_path</span>);
-        <span class="comment">// Note: this command must share certain parameters with rustc_plugin so Cargo will not recompute</span>
-        <span class="comment">// dependencies when actually running the driver, e.g. RUSTFLAGS.</span>
-        <span class="ident">cmd</span>
-          .<span class="ident">args</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;check&quot;</span>, <span class="string">&quot;--all&quot;</span>, <span class="string">&quot;--all-features&quot;</span>, <span class="string">&quot;--target-dir&quot;</span>])
-          .<span class="ident">arg</span>(<span class="ident">target_dir</span>)
-          .<span class="ident">env</span>(<span class="string">&quot;RUSTFLAGS&quot;</span>, <span class="string">&quot;-Awarnings&quot;</span>);
-        <span class="kw">let</span> <span class="ident">exit_status</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">status</span>().<span class="ident">expect</span>(<span class="string">&quot;could not run cargo&quot;</span>);
-        <span class="ident">exit</span>(<span class="ident">exit_status</span>.<span class="ident">code</span>().<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>));
+    <span class="kw">use </span>FlowistryCommand::<span class="kw-2">*</span>;
+    <span class="kw">match </span><span class="kw-2">&amp;</span>args.command {
+      Preload =&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(cargo_path);
+        <span class="comment">// Note: this command must share certain parameters with rustc_plugin so Cargo will not recompute
+        // dependencies when actually running the driver, e.g. RUSTFLAGS.
+        </span>cmd
+          .args([<span class="string">&quot;check&quot;</span>, <span class="string">&quot;--all&quot;</span>, <span class="string">&quot;--all-features&quot;</span>, <span class="string">&quot;--target-dir&quot;</span>])
+          .arg(target_dir);
+        <span class="kw">let </span>exit_status = cmd.status().expect(<span class="string">&quot;could not run cargo&quot;</span>);
+        exit(exit_status.code().unwrap_or(-<span class="number">1</span>));
       }
-      <span class="ident">RustcVersion</span> =&gt; {
-        <span class="kw">let</span> <span class="ident">commit_hash</span> <span class="op">=</span> <span class="ident">rustc_interface::util::commit_hash_str</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot;unknown&quot;</span>);
+      RustcVersion =&gt; {
+        <span class="kw">let </span>commit_hash = rustc_interface::util::commit_hash_str().unwrap_or(<span class="string">&quot;unknown&quot;</span>);
         <span class="macro">println!</span>(<span class="string">&quot;{commit_hash}&quot;</span>);
-        <span class="ident">exit</span>(<span class="number">0</span>);
+        exit(<span class="number">0</span>);
       }
-      <span class="kw">_</span> =&gt; {}
+      <span class="kw">_ </span>=&gt; {}
     };
 
-    <span class="kw">let</span> (<span class="ident">file</span>, <span class="ident">flags</span>) <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">args</span>.<span class="ident">command</span> {
-      <span class="ident">Spans</span> { <span class="ident">file</span>, <span class="ident">flags</span> } =&gt; (<span class="ident">file</span>, <span class="ident">flags</span>),
-      <span class="ident">Focus</span> { <span class="ident">file</span>, <span class="ident">flags</span>, .. } =&gt; (<span class="ident">file</span>, <span class="ident">flags</span>),
-      <span class="ident">Decompose</span> { <span class="ident">file</span>, <span class="ident">flags</span>, .. } =&gt; (<span class="ident">file</span>, <span class="ident">flags</span>),
-      <span class="ident">Playground</span> { <span class="ident">file</span>, <span class="ident">flags</span>, .. } =&gt; (<span class="ident">file</span>, <span class="ident">flags</span>),
-      <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+    <span class="kw">let </span>(file, flags) = <span class="kw">match </span><span class="kw-2">&amp;</span>args.command {
+      Spans { file, flags } =&gt; (file, flags),
+      Focus { file, flags, .. } =&gt; (file, flags),
+      Decompose { file, flags, .. } =&gt; (file, flags),
+      Playground { file, flags, .. } =&gt; (file, flags),
+      <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
     };
 
-    <span class="ident">RustcPluginArgs</span> {
-      <span class="ident">flags</span>: <span class="prelude-val">Some</span>(<span class="ident">flags</span>.<span class="ident">clone</span>()),
-      <span class="ident">file</span>: <span class="prelude-val">Some</span>(<span class="ident">PathBuf::from</span>(<span class="ident">file</span>)),
-      <span class="ident">args</span>,
+    RustcPluginArgs {
+      flags: <span class="prelude-val">Some</span>(flags.clone()),
+      file: <span class="prelude-val">Some</span>(PathBuf::from(file)),
+      args,
     }
   }
 
-  <span class="kw">fn</span> <span class="ident">run</span>(
+  <span class="kw">fn </span>run(
     <span class="self">self</span>,
-    <span class="ident">compiler_args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="ident">plugin_args</span>: <span class="ident">FlowistryPluginArgs</span>,
-  ) -&gt; <span class="ident">RustcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">eval_mode</span> <span class="op">=</span> <span class="ident">EvalMode</span> {
-      <span class="ident">context_mode</span>: <span class="ident">plugin_args</span>.<span class="ident">context_mode</span>.<span class="ident">unwrap_or</span>(<span class="ident">ContextMode::SigOnly</span>),
-      <span class="ident">mutability_mode</span>: <span class="ident">plugin_args</span>
-        .<span class="ident">mutability_mode</span>
-        .<span class="ident">unwrap_or</span>(<span class="ident">MutabilityMode::DistinguishMut</span>),
-      <span class="ident">pointer_mode</span>: <span class="ident">plugin_args</span>.<span class="ident">pointer_mode</span>.<span class="ident">unwrap_or</span>(<span class="ident">PointerMode::Precise</span>),
+    compiler_args: Vec&lt;String&gt;,
+    plugin_args: FlowistryPluginArgs,
+  ) -&gt; RustcResult&lt;()&gt; {
+    <span class="kw">let </span>eval_mode = EvalMode {
+      context_mode: plugin_args.context_mode.unwrap_or(ContextMode::SigOnly),
+      mutability_mode: plugin_args
+        .mutability_mode
+        .unwrap_or(MutabilityMode::DistinguishMut),
+      pointer_mode: plugin_args.pointer_mode.unwrap_or(PointerMode::Precise),
     };
-    <span class="macro">fluid_set!</span>(<span class="ident">EVAL_MODE</span>, <span class="ident">eval_mode</span>);
+    <span class="macro">fluid_set!</span>(EVAL_MODE, eval_mode);
 
-    <span class="kw">use</span> <span class="ident">FlowistryCommand</span>::<span class="kw-2">*</span>;
-    <span class="kw">match</span> <span class="ident">plugin_args</span>.<span class="ident">command</span> {
-      <span class="ident">Spans</span> { <span class="ident">file</span>, .. } =&gt; <span class="ident">postprocess</span>(<span class="ident"><span class="kw">crate</span>::spans::spans</span>(<span class="kw-2">&amp;</span><span class="ident">compiler_args</span>, <span class="ident">file</span>)),
-      <span class="ident">Playground</span> {
-        <span class="ident">file</span>, <span class="ident">start</span>, <span class="ident">end</span>, ..
+    <span class="kw">use </span>FlowistryCommand::<span class="kw-2">*</span>;
+    <span class="kw">match </span>plugin_args.command {
+      Spans { file, .. } =&gt; postprocess(<span class="kw">crate</span>::spans::spans(<span class="kw-2">&amp;</span>compiler_args, file)),
+      Playground {
+        file, start, end, ..
       } =&gt; {
-        <span class="kw">let</span> <span class="ident">indices</span> <span class="op">=</span> <span class="ident">GraphemeIndices::from_path</span>(<span class="kw-2">&amp;</span><span class="ident">file</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">Range::from_char_range</span>(<span class="ident">start</span>, <span class="ident">end</span>, <span class="kw-2">&amp;</span><span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="ident">indices</span>);
-        <span class="ident">postprocess</span>(<span class="ident">run</span>(<span class="ident"><span class="kw">crate</span>::playground::playground</span>, <span class="ident">range</span>, <span class="kw-2">&amp;</span><span class="ident">compiler_args</span>))
+        <span class="kw">let </span>indices = GraphemeIndices::from_path(<span class="kw-2">&amp;</span>file).unwrap();
+        <span class="kw">let </span>range = Range::from_char_range(start, end, <span class="kw-2">&amp;</span>file, <span class="kw-2">&amp;</span>indices);
+        postprocess(run(<span class="kw">crate</span>::playground::playground, range, <span class="kw-2">&amp;</span>compiler_args))
       }
-      <span class="ident">Focus</span> { <span class="ident">file</span>, <span class="ident">pos</span>, .. } =&gt; {
-        <span class="kw">let</span> <span class="ident">indices</span> <span class="op">=</span> <span class="ident">GraphemeIndices::from_path</span>(<span class="kw-2">&amp;</span><span class="ident">file</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span>
-          <span class="ident">FunctionIdentifier::Range</span>(<span class="ident">Range::from_char_range</span>(<span class="ident">pos</span>, <span class="ident">pos</span>, <span class="kw-2">&amp;</span><span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="ident">indices</span>));
-        <span class="ident">postprocess</span>(<span class="ident">run</span>(<span class="ident"><span class="kw">crate</span>::focus::focus</span>, <span class="ident">id</span>, <span class="kw-2">&amp;</span><span class="ident">compiler_args</span>))
+      Focus { file, pos, .. } =&gt; {
+        <span class="kw">let </span>indices = GraphemeIndices::from_path(<span class="kw-2">&amp;</span>file).unwrap();
+        <span class="kw">let </span>id =
+          FunctionIdentifier::Range(Range::from_char_range(pos, pos, <span class="kw-2">&amp;</span>file, <span class="kw-2">&amp;</span>indices));
+        postprocess(run(<span class="kw">crate</span>::focus::focus, id, <span class="kw-2">&amp;</span>compiler_args))
       }
-      <span class="ident">Decompose</span> {
-        <span class="ident">file</span>: <span class="ident">_file</span>,
-        <span class="ident">pos</span>: <span class="ident">_pos</span>,
+      Decompose {
+        file: _file,
+        pos: _pos,
         ..
       } =&gt; {
-        <span class="macro">cfg_if::cfg_if!</span> {
-          <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;decompose&quot;</span>)]</span> {
-            <span class="kw">let</span> <span class="ident">indices</span> <span class="op">=</span> <span class="ident">GraphemeIndices::from_path</span>(<span class="kw-2">&amp;</span><span class="ident">_file</span>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span>
-              <span class="ident">FunctionIdentifier::Range</span>(<span class="ident">Range::from_char_range</span>(<span class="ident">_pos</span>, <span class="ident">_pos</span>, <span class="kw-2">&amp;</span><span class="ident">_file</span>, <span class="kw-2">&amp;</span><span class="ident">indices</span>));
-            <span class="ident">postprocess</span>(<span class="ident">run</span>(
-              <span class="ident"><span class="kw">crate</span>::decompose::decompose</span>,
-              <span class="ident">id</span>,
-              <span class="kw-2">&amp;</span><span class="ident">compiler_args</span>,
+        <span class="macro">cfg_if::cfg_if! </span>{
+          <span class="kw">if </span><span class="attribute">#[cfg(feature = <span class="string">&quot;decompose&quot;</span>)] </span>{
+            <span class="kw">let </span>indices = GraphemeIndices::from_path(<span class="kw-2">&amp;</span>_file).unwrap();
+            <span class="kw">let </span>id =
+              FunctionIdentifier::Range(Range::from_char_range(_pos, _pos, <span class="kw-2">&amp;</span>_file, <span class="kw-2">&amp;</span>indices));
+            postprocess(run(
+              <span class="kw">crate</span>::decompose::decompose,
+              id,
+              <span class="kw-2">&amp;</span>compiler_args,
             ))
-          } <span class="kw">else</span> {
+          } <span class="kw">else </span>{
             <span class="macro">panic!</span>(<span class="string">&quot;Flowistry must be built with the decompose feature&quot;</span>)
           }
         }
       }
-      <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+      <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
     }
   }
 }
 
-<span class="kw">fn</span> <span class="ident">postprocess</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Serialize</span><span class="op">&gt;</span>(<span class="ident">result</span>: <span class="ident">FlowistryResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">RustcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-  <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">result</span> {
-    <span class="prelude-val">Ok</span>(<span class="ident">output</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">output</span>),
-    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">match</span> <span class="ident">e</span> {
-      <span class="ident">FlowistryError::BuildError</span> =&gt; {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">rustc_errors::ErrorGuaranteed::unchecked_claim_error_was_emitted</span>());
+<span class="kw">fn </span>postprocess&lt;T: Serialize&gt;(result: FlowistryResult&lt;T&gt;) -&gt; RustcResult&lt;()&gt; {
+  <span class="kw">let </span>result = <span class="kw">match </span>result {
+    <span class="prelude-val">Ok</span>(output) =&gt; <span class="prelude-val">Ok</span>(output),
+    <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">match </span>e {
+      FlowistryError::BuildError =&gt; {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(rustc_errors::ErrorGuaranteed::unchecked_claim_error_was_emitted());
       }
-      <span class="ident">FlowistryError::AnalysisError</span>(<span class="ident">msg</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">msg</span>),
+      FlowistryError::AnalysisError(msg) =&gt; <span class="prelude-val">Err</span>(msg),
     },
   };
 
-  <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">serde_json::to_string</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>).<span class="ident">unwrap</span>());
+  <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, serde_json::to_string(<span class="kw-2">&amp;</span>result).unwrap());
 
   <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_with_callbacks</span>(
-  <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>],
-  <span class="ident">callbacks</span>: <span class="kw-2">&amp;mut</span> (<span class="kw">dyn</span> <span class="ident">rustc_driver::Callbacks</span> <span class="op">+</span> <span class="ident">Send</span>),
-) -&gt; <span class="ident">FlowistryResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-  <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">to_vec</span>();
-  <span class="ident">args</span>.<span class="ident">extend</span>(
-    <span class="string">&quot;-Z identify-regions -Z mir-opt-level=0 -A warnings&quot;</span>
-      .<span class="ident">split</span>(<span class="string">&#39; &#39;</span>)
-      .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">to_owned</span>()),
+<span class="kw">pub fn </span>run_with_callbacks(
+  args: <span class="kw-2">&amp;</span>[String],
+  callbacks: <span class="kw-2">&amp;mut </span>(<span class="kw">dyn </span>rustc_driver::Callbacks + Send),
+) -&gt; FlowistryResult&lt;()&gt; {
+  <span class="kw">let </span><span class="kw-2">mut </span>args = args.to_vec();
+  args.extend(
+    <span class="string">&quot;-Z identify-regions -Z mir-opt-level=0 -A warnings&quot;
+      </span>.split(<span class="string">&#39; &#39;</span>)
+      .map(|s| s.to_owned()),
   );
 
-  <span class="kw">let</span> <span class="ident">compiler</span> <span class="op">=</span> <span class="ident">rustc_driver::RunCompiler::new</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>, <span class="ident">callbacks</span>);
-  <span class="ident">compiler</span>.<span class="ident">run</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">FlowistryError::BuildError</span>)
+  <span class="kw">let </span>compiler = rustc_driver::RunCompiler::new(<span class="kw-2">&amp;</span>args, callbacks);
+  compiler.run().map_err(|<span class="kw">_</span>| FlowistryError::BuildError)
 }
 
-<span class="kw">fn</span> <span class="ident">run</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">FlowistryAnalysis</span>, <span class="ident">T</span>: <span class="ident">ToSpan</span><span class="op">&gt;</span>(
-  <span class="ident">analysis</span>: <span class="ident">A</span>,
-  <span class="ident">target</span>: <span class="ident">T</span>,
-  <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>],
-) -&gt; <span class="ident">FlowistryResult</span><span class="op">&lt;</span><span class="ident">A::Output</span><span class="op">&gt;</span> {
-  <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">callbacks</span> <span class="op">=</span> <span class="ident">FlowistryCallbacks</span> {
-    <span class="ident">analysis</span>: <span class="prelude-val">Some</span>(<span class="ident">analysis</span>),
-    <span class="ident">target</span>,
-    <span class="ident">output</span>: <span class="prelude-val">None</span>,
-    <span class="ident">rustc_start</span>: <span class="ident">Instant::now</span>(),
-    <span class="ident">eval_mode</span>: <span class="ident">EVAL_MODE</span>.<span class="ident">copied</span>(),
+<span class="kw">fn </span>run&lt;A: FlowistryAnalysis, T: ToSpan&gt;(
+  analysis: A,
+  target: T,
+  args: <span class="kw-2">&amp;</span>[String],
+) -&gt; FlowistryResult&lt;A::Output&gt; {
+  <span class="kw">let </span><span class="kw-2">mut </span>callbacks = FlowistryCallbacks {
+    analysis: <span class="prelude-val">Some</span>(analysis),
+    target,
+    output: <span class="prelude-val">None</span>,
+    rustc_start: Instant::now(),
+    eval_mode: EVAL_MODE.copied(),
   };
 
   <span class="macro">info!</span>(<span class="string">&quot;Starting rustc analysis...&quot;</span>);
-  <span class="macro">debug!</span>(<span class="string">&quot;Eval mode: {:?}&quot;</span>, <span class="ident">callbacks</span>.<span class="ident">eval_mode</span>);
+  <span class="macro">debug!</span>(<span class="string">&quot;Eval mode: {:?}&quot;</span>, callbacks.eval_mode);
 
-  <span class="ident">run_with_callbacks</span>(<span class="ident">args</span>, <span class="kw-2">&amp;mut</span> <span class="ident">callbacks</span>)<span class="question-mark">?</span>;
+  run_with_callbacks(args, <span class="kw-2">&amp;mut </span>callbacks)<span class="question-mark">?</span>;
 
-  <span class="ident">callbacks</span>
-    .<span class="ident">output</span>
-    .<span class="ident">unwrap</span>()
-    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FlowistryError::AnalysisError</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()))
+  callbacks
+    .output
+    .unwrap()
+    .map_err(|e| FlowistryError::AnalysisError(e.to_string()))
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FlowistryError</span> {
-  <span class="ident">BuildError</span>,
-  <span class="ident">AnalysisError</span>(<span class="ident">String</span>),
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>FlowistryError {
+  BuildError,
+  AnalysisError(String),
 }
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">FlowistryResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">FlowistryError</span><span class="op">&gt;</span>;
+<span class="kw">pub type </span>FlowistryResult&lt;T&gt; = <span class="prelude-ty">Result</span>&lt;T, FlowistryError&gt;;
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FlowistryAnalysis</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> {
-  <span class="kw">type</span> <span class="ident">Output</span>: <span class="ident">Serialize</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>;
-  <span class="kw">fn</span> <span class="ident">analyze</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span>, <span class="ident">id</span>: <span class="ident">BodyId</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span>;
+<span class="kw">pub trait </span>FlowistryAnalysis: Sized + Send + Sync {
+  <span class="kw">type </span>Output: Serialize + Send + Sync;
+  <span class="kw">fn </span>analyze(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tcx: TyCtxt, id: BodyId) -&gt; anyhow::Result&lt;<span class="self">Self</span>::Output&gt;;
 }
 
-<span class="comment">// Implement FlowistryAnalysis for all functions with a type signature that matches</span>
-<span class="comment">// FlowistryAnalysis::analyze</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">O</span><span class="op">&gt;</span> <span class="ident">FlowistryAnalysis</span> <span class="kw">for</span> <span class="ident">F</span>
-<span class="kw">where</span>
-  <span class="ident">F</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">Fn</span><span class="op">&lt;</span>(<span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">BodyId</span>), <span class="ident">Output</span> <span class="op">=</span> <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
-  <span class="ident">O</span>: <span class="ident">Serialize</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
+<span class="comment">// Implement FlowistryAnalysis for all functions with a type signature that matches
+// FlowistryAnalysis::analyze
+</span><span class="kw">impl</span>&lt;F, O&gt; FlowistryAnalysis <span class="kw">for </span>F
+<span class="kw">where
+  </span>F: <span class="kw">for</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; Fn&lt;(TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, BodyId), Output = anyhow::Result&lt;O&gt;&gt; + Send + Sync,
+  O: Serialize + Send + Sync,
 {
-  <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">O</span>;
-  <span class="kw">fn</span> <span class="ident">analyze</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span>, <span class="ident">id</span>: <span class="ident">BodyId</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-    (<span class="self">self</span>)(<span class="ident">tcx</span>, <span class="ident">id</span>)
+  <span class="kw">type </span>Output = O;
+  <span class="kw">fn </span>analyze(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tcx: TyCtxt, id: BodyId) -&gt; anyhow::Result&lt;<span class="self">Self</span>::Output&gt; {
+    (<span class="self">self</span>)(tcx, id)
   }
 }
 
-<span class="kw">struct</span> <span class="ident">FlowistryCallbacks</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">FlowistryAnalysis</span>, <span class="ident">T</span>: <span class="ident">ToSpan</span><span class="op">&gt;</span> {
-  <span class="ident">analysis</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>,
-  <span class="ident">target</span>: <span class="ident">T</span>,
-  <span class="ident">output</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident">A::Output</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-  <span class="ident">rustc_start</span>: <span class="ident">Instant</span>,
-  <span class="ident">eval_mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EvalMode</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>FlowistryCallbacks&lt;A: FlowistryAnalysis, T: ToSpan&gt; {
+  analysis: <span class="prelude-ty">Option</span>&lt;A&gt;,
+  target: T,
+  output: <span class="prelude-ty">Option</span>&lt;anyhow::Result&lt;A::Output&gt;&gt;,
+  rustc_start: Instant,
+  eval_mode: <span class="prelude-ty">Option</span>&lt;EvalMode&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">FlowistryAnalysis</span>, <span class="ident">T</span>: <span class="ident">ToSpan</span><span class="op">&gt;</span> <span class="ident">rustc_driver::Callbacks</span>
-  <span class="kw">for</span> <span class="ident">FlowistryCallbacks</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">impl</span>&lt;A: FlowistryAnalysis, T: ToSpan&gt; rustc_driver::Callbacks
+  <span class="kw">for </span>FlowistryCallbacks&lt;A, T&gt;
 {
-  <span class="kw">fn</span> <span class="ident">config</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">config</span>: <span class="kw-2">&amp;mut</span> <span class="ident">rustc_interface::Config</span>) {
-    <span class="ident">config</span>.<span class="ident">override_queries</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">borrowck_facts::override_queries</span>);
+  <span class="kw">fn </span>config(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: <span class="kw-2">&amp;mut </span>rustc_interface::Config) {
+    config.override_queries = <span class="prelude-val">Some</span>(borrowck_facts::override_queries);
   }
 
-  <span class="kw">fn</span> <span class="ident">after_parsing</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
-    <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-    <span class="ident">_compiler</span>: <span class="kw-2">&amp;</span><span class="ident">rustc_interface::interface::Compiler</span>,
-    <span class="ident">queries</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">rustc_interface::Queries</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  ) -&gt; <span class="ident">rustc_driver::Compilation</span> {
-    <span class="ident">elapsed</span>(<span class="string">&quot;rustc&quot;</span>, <span class="self">self</span>.<span class="ident">rustc_start</span>);
-    <span class="macro">fluid_set!</span>(<span class="ident">EVAL_MODE</span>, <span class="self">self</span>.<span class="ident">eval_mode</span>.<span class="ident">unwrap_or_default</span>());
+  <span class="kw">fn </span>after_parsing&lt;<span class="lifetime">&#39;tcx</span>&gt;(
+    <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+    _compiler: <span class="kw-2">&amp;</span>rustc_interface::interface::Compiler,
+    queries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>rustc_interface::Queries&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  ) -&gt; rustc_driver::Compilation {
+    elapsed(<span class="string">&quot;rustc&quot;</span>, <span class="self">self</span>.rustc_start);
+    <span class="macro">fluid_set!</span>(EVAL_MODE, <span class="self">self</span>.eval_mode.unwrap_or_default());
 
-    <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
-    <span class="ident">queries</span>.<span class="ident">global_ctxt</span>().<span class="ident">unwrap</span>().<span class="ident">take</span>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">tcx</span><span class="op">|</span> {
-      <span class="ident">elapsed</span>(<span class="string">&quot;global_ctxt&quot;</span>, <span class="ident">start</span>);
-      <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">analysis</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">analysis</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
-      <span class="self">self</span>.<span class="ident">output</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="op">|</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">target</span>.<span class="ident">to_span</span>(<span class="ident">tcx</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bodies</span> <span class="op">=</span> <span class="ident">source_map::find_enclosing_bodies</span>(<span class="ident">tcx</span>, <span class="ident">target</span>);
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">bodies</span>.<span class="ident">next</span>().<span class="ident">context</span>(<span class="string">&quot;Selection did not map to a body&quot;</span>)<span class="question-mark">?</span>;
-        <span class="ident">analysis</span>.<span class="ident">analyze</span>(<span class="ident">tcx</span>, <span class="ident">body</span>)
+    <span class="kw">let </span>start = Instant::now();
+    queries.global_ctxt().unwrap().take().enter(|tcx| {
+      elapsed(<span class="string">&quot;global_ctxt&quot;</span>, start);
+      <span class="kw">let </span><span class="kw-2">mut </span>analysis = <span class="self">self</span>.analysis.take().unwrap();
+      <span class="self">self</span>.output = <span class="prelude-val">Some</span>((|| {
+        <span class="kw">let </span>target = <span class="self">self</span>.target.to_span(tcx)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>bodies = source_map::find_enclosing_bodies(tcx, target);
+        <span class="kw">let </span>body = bodies.next().context(<span class="string">&quot;Selection did not map to a body&quot;</span>)<span class="question-mark">?</span>;
+        analysis.analyze(tcx, body)
       })());
     });
 
-    <span class="ident">rustc_driver::Compilation::Stop</span>
+    rustc_driver::Compilation::Stop
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="flowistry_ide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="flowistry_ide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

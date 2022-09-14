@@ -1,3 +1,3 @@
-(function() {var implementors = {};
-implementors["flowistry"] = [{"text":"impl Idx for <a class=\"struct\" href=\"flowistry/indexed/impls/struct.LocationIndex.html\" title=\"struct flowistry::indexed::impls::LocationIndex\">LocationIndex</a>","synthetic":false,"types":["flowistry::indexed::impls::LocationIndex"]},{"text":"impl Idx for <a class=\"struct\" href=\"flowistry/mir/aliases/struct.RegionSccIndex.html\" title=\"struct flowistry::mir::aliases::RegionSccIndex\">RegionSccIndex</a>","synthetic":false,"types":["flowistry::mir::aliases::RegionSccIndex"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"flowistry":[["impl Idx for <a class=\"struct\" href=\"flowistry/indexed/impls/struct.LocationIndex.html\" title=\"struct flowistry::indexed::impls::LocationIndex\">LocationIndex</a>"],["impl Idx for <a class=\"struct\" href=\"flowistry/mir/aliases/struct.RegionSccIndex.html\" title=\"struct flowistry::mir::aliases::RegionSccIndex\">RegionSccIndex</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

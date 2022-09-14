@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["UNKNOWN_REGION",""]],"fn":[["generate_conservative_constraints",""]],"struct":[["Aliases",""],["RegionSccIndex",""]]});
+window.SIDEBAR_ITEMS = {"constant":[["UNKNOWN_REGION",""]],"fn":[["generate_conservative_constraints",""]],"struct":[["Aliases",""],["RegionSccIndex",""]]};

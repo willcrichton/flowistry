@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.3/src/intersperse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>intersperse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.4/src/intersperse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>intersperse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -123,126 +116,123 @@
 <span id="116">116</span>
 <span id="117">117</span>
 <span id="118">118</span>
-<span id="119">119</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::iter</span>::{<span class="ident">Fuse</span>, <span class="ident">FusedIterator</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::size_hint</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::iter::{Fuse, FusedIterator};
+<span class="kw">use </span><span class="kw">super</span>::size_hint;
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">IntersperseElement</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">generate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Item</span>;
+<span class="kw">pub trait </span>IntersperseElement&lt;Item&gt; {
+    <span class="kw">fn </span>generate(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Item;
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntersperseElementSimple</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>(<span class="ident">Item</span>);
+<span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>IntersperseElementSimple&lt;Item&gt;(Item);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Item</span>: <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">IntersperseElement</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">IntersperseElementSimple</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">generate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Item</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>()
+<span class="kw">impl</span>&lt;Item: Clone&gt; IntersperseElement&lt;Item&gt; <span class="kw">for </span>IntersperseElementSimple&lt;Item&gt; {
+    <span class="kw">fn </span>generate(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Item {
+        <span class="self">self</span>.<span class="number">0</span>.clone()
     }
 }
 
-<span class="doccomment">/// An iterator adaptor to insert a particular value</span>
-<span class="doccomment">/// between each element of the adapted iterator.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Iterator element type is `I::Item`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This iterator is *fused*.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.intersperse()`](crate::Itertools::intersperse) for more information.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Intersperse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">IntersperseWith</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">IntersperseElementSimple</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">I</span> <span class="kw">as</span> <span class="ident">Iterator</span><span class="op">&gt;</span><span class="ident">::Item</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An iterator adaptor to insert a particular value
+/// between each element of the adapted iterator.
+///
+/// Iterator element type is `I::Item`
+///
+/// This iterator is *fused*.
+///
+/// See [`.intersperse()`](crate::Itertools::intersperse) for more information.
+</span><span class="kw">pub type </span>Intersperse&lt;I&gt; = IntersperseWith&lt;I, IntersperseElementSimple&lt;&lt;I <span class="kw">as </span>Iterator&gt;::Item&gt;&gt;;
 
-<span class="doccomment">/// Create a new Intersperse iterator</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">intersperse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>, <span class="ident">elt</span>: <span class="ident">I::Item</span>) -&gt; <span class="ident">Intersperse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="doccomment">/// Create a new Intersperse iterator
+</span><span class="kw">pub fn </span>intersperse&lt;I&gt;(iter: I, elt: I::Item) -&gt; Intersperse&lt;I&gt;
+    <span class="kw">where </span>I: Iterator,
 {
-    <span class="ident">intersperse_with</span>(<span class="ident">iter</span>, <span class="ident">IntersperseElementSimple</span>(<span class="ident">elt</span>))
+    intersperse_with(iter, IntersperseElementSimple(elt))
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Item</span>, <span class="ident">F</span>: <span class="ident">FnMut</span>()-&gt;<span class="ident">Item</span><span class="op">&gt;</span> <span class="ident">IntersperseElement</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">F</span> {
-    <span class="kw">fn</span> <span class="ident">generate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Item</span> {
+<span class="kw">impl</span>&lt;Item, F: FnMut()-&gt;Item&gt; IntersperseElement&lt;Item&gt; <span class="kw">for </span>F {
+    <span class="kw">fn </span>generate(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Item {
         <span class="self">self</span>()
     }
 }
 
-<span class="doccomment">/// An iterator adaptor to insert a particular value created by a function</span>
-<span class="doccomment">/// between each element of the adapted iterator.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Iterator element type is `I::Item`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This iterator is *fused*.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.intersperse_with()`](crate::Itertools::intersperse_with) for more information.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntersperseWith</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">ElemF</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="doccomment">/// An iterator adaptor to insert a particular value created by a function
+/// between each element of the adapted iterator.
+///
+/// Iterator element type is `I::Item`
+///
+/// This iterator is *fused*.
+///
+/// See [`.intersperse_with()`](crate::Itertools::intersperse_with) for more information.
+</span><span class="attribute">#[must_use = <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]
+#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>IntersperseWith&lt;I, ElemF&gt;
+    <span class="kw">where </span>I: Iterator,
 {
-    <span class="ident">element</span>: <span class="ident">ElemF</span>,
-    <span class="ident">iter</span>: <span class="ident">Fuse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
-    <span class="ident">peek</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+    element: ElemF,
+    iter: Fuse&lt;I&gt;,
+    peek: <span class="prelude-ty">Option</span>&lt;I::Item&gt;,
 }
 
-<span class="doccomment">/// Create a new IntersperseWith iterator</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">intersperse_with</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">ElemF</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>, <span class="ident">elt</span>: <span class="ident">ElemF</span>) -&gt; <span class="ident">IntersperseWith</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">ElemF</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="doccomment">/// Create a new `IntersperseWith` iterator
+</span><span class="kw">pub fn </span>intersperse_with&lt;I, ElemF&gt;(iter: I, elt: ElemF) -&gt; IntersperseWith&lt;I, ElemF&gt;
+    <span class="kw">where </span>I: Iterator,
 {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">fuse</span>();
-    <span class="ident">IntersperseWith</span> {
-        <span class="ident">peek</span>: <span class="ident">iter</span>.<span class="ident">next</span>(),
-        <span class="ident">iter</span>,
-        <span class="ident">element</span>: <span class="ident">elt</span>,
+    <span class="kw">let </span><span class="kw-2">mut </span>iter = iter.fuse();
+    IntersperseWith {
+        peek: iter.next(),
+        iter,
+        element: elt,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">ElemF</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">IntersperseWith</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">ElemF</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">ElemF</span>: <span class="ident">IntersperseElement</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>
+<span class="kw">impl</span>&lt;I, ElemF&gt; Iterator <span class="kw">for </span>IntersperseWith&lt;I, ElemF&gt;
+    <span class="kw">where </span>I: Iterator,
+          ElemF: IntersperseElement&lt;I::Item&gt;
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span>;
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">is_some</span>() {
-            <span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">take</span>()
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">peek</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>();
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">is_some</span>() {
-                <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">element</span>.<span class="ident">generate</span>())
-            } <span class="kw">else</span> {
-                <span class="prelude-val">None</span>
-            }
+    <span class="kw">type </span>Item = I::Item;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">if </span><span class="self">self</span>.peek.is_some() {
+            <span class="self">self</span>.peek.take()
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.peek = <span class="self">self</span>.iter.next();
+            <span class="kw">if </span><span class="self">self</span>.peek.is_some() {
+                <span class="prelude-val">Some</span>(<span class="self">self</span>.element.generate())
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>}
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-        <span class="comment">// 2 * SH + { 1 or 0 }</span>
-        <span class="kw">let</span> <span class="ident">has_peek</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">is_some</span>() <span class="kw">as</span> <span class="ident">usize</span>;
-        <span class="kw">let</span> <span class="ident">sh</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">size_hint</span>();
-        <span class="ident">size_hint::add_scalar</span>(<span class="ident">size_hint::add</span>(<span class="ident">sh</span>, <span class="ident">sh</span>), <span class="ident">has_peek</span>)
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="comment">// 2 * SH + { 1 or 0 }
+        </span><span class="kw">let </span>has_peek = <span class="self">self</span>.peek.is_some() <span class="kw">as </span>usize;
+        <span class="kw">let </span>sh = <span class="self">self</span>.iter.size_hint();
+        size_hint::add_scalar(size_hint::add(sh, sh), has_peek)
     }
 
-    <span class="kw">fn</span> <span class="ident">fold</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">init</span>: <span class="ident">B</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">B</span> <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>, <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">B</span>, <span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">B</span>,
+    <span class="kw">fn </span>fold&lt;B, F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, init: B, <span class="kw-2">mut </span>f: F) -&gt; B <span class="kw">where
+        </span><span class="self">Self</span>: Sized, F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accum</span> <span class="op">=</span> <span class="ident">init</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>accum = init;
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">take</span>() {
-            <span class="ident">accum</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">accum</span>, <span class="ident">x</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <span class="self">self</span>.peek.take() {
+            accum = f(accum, x);
         }
 
-        <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">element</span>;
+        <span class="kw">let </span>element = <span class="kw-2">&amp;mut </span><span class="self">self</span>.element;
 
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">fold</span>(<span class="ident">accum</span>,
-            <span class="op">|</span><span class="ident">accum</span>, <span class="ident">x</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">accum</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">accum</span>, <span class="ident">element</span>.<span class="ident">generate</span>());
-                <span class="kw">let</span> <span class="ident">accum</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">accum</span>, <span class="ident">x</span>);
-                <span class="ident">accum</span>
+        <span class="self">self</span>.iter.fold(accum,
+            |accum, x| {
+                <span class="kw">let </span>accum = f(accum, element.generate());
+                f(accum, x)
         })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">ElemF</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">IntersperseWith</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">ElemF</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">ElemF</span>: <span class="ident">IntersperseElement</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>
+<span class="kw">impl</span>&lt;I, ElemF&gt; FusedIterator <span class="kw">for </span>IntersperseWith&lt;I, ElemF&gt;
+    <span class="kw">where </span>I: Iterator,
+          ElemF: IntersperseElement&lt;I::Item&gt;
 {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

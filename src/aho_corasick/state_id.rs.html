@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.18/src/state_id.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state_id.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/state_id.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state_id.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -197,198 +190,197 @@
 <span id="190">190</span>
 <span id="191">191</span>
 <span id="192">192</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt::Debug</span>;
-<span class="kw">use</span> <span class="ident">std::hash::Hash</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::fmt::Debug;
+<span class="kw">use </span>std::hash::Hash;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><span class="kw">crate</span>::error::{Error, <span class="prelude-ty">Result</span>};
 
-<span class="comment">// NOTE: Most of this code was copied from regex-automata, but without the</span>
-<span class="comment">// (de)serialization specific stuff.</span>
+<span class="comment">// NOTE: Most of this code was copied from regex-automata, but without the
+// (de)serialization specific stuff.
 
-<span class="doccomment">/// Check that the premultiplication of the given state identifier can</span>
-<span class="doccomment">/// fit into the representation indicated by `S`. If it cannot, or if it</span>
-<span class="doccomment">/// overflows `usize` itself, then an error is returned.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">premultiply_overflow_error</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(
-    <span class="ident">last_state</span>: <span class="ident">S</span>,
-    <span class="ident">alphabet_len</span>: <span class="ident">usize</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">requested</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">last_state</span>.<span class="ident">to_usize</span>().<span class="ident">checked_mul</span>(<span class="ident">alphabet_len</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">requested</span>) =&gt; <span class="ident">requested</span>,
-        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::premultiply_overflow</span>(<span class="number">0</span>, <span class="number">0</span>)),
+</span><span class="doccomment">/// Check that the premultiplication of the given state identifier can
+/// fit into the representation indicated by `S`. If it cannot, or if it
+/// overflows `usize` itself, then an error is returned.
+</span><span class="kw">pub fn </span>premultiply_overflow_error&lt;S: StateID&gt;(
+    last_state: S,
+    alphabet_len: usize,
+) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>requested = <span class="kw">match </span>last_state.to_usize().checked_mul(alphabet_len) {
+        <span class="prelude-val">Some</span>(requested) =&gt; requested,
+        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::premultiply_overflow(<span class="number">0</span>, <span class="number">0</span>)),
     };
-    <span class="kw">if</span> <span class="ident">requested</span> <span class="op">&gt;</span> <span class="ident">S::max_id</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::premultiply_overflow</span>(<span class="ident">S::max_id</span>(), <span class="ident">requested</span>));
+    <span class="kw">if </span>requested &gt; S::max_id() {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::premultiply_overflow(S::max_id(), requested));
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Convert the given `usize` to the chosen state identifier</span>
-<span class="doccomment">/// representation. If the given value cannot fit in the chosen</span>
-<span class="doccomment">/// representation, then an error is returned.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">usize_to_state_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">value</span> <span class="op">&gt;</span> <span class="ident">S::max_id</span>() {
-        <span class="prelude-val">Err</span>(<span class="ident">Error::state_id_overflow</span>(<span class="ident">S::max_id</span>()))
-    } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">S::from_usize</span>(<span class="ident">value</span>))
+<span class="doccomment">/// Convert the given `usize` to the chosen state identifier
+/// representation. If the given value cannot fit in the chosen
+/// representation, then an error is returned.
+</span><span class="kw">pub fn </span>usize_to_state_id&lt;S: StateID&gt;(value: usize) -&gt; <span class="prelude-ty">Result</span>&lt;S&gt; {
+    <span class="kw">if </span>value &gt; S::max_id() {
+        <span class="prelude-val">Err</span>(Error::state_id_overflow(S::max_id()))
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Ok</span>(S::from_usize(value))
     }
 }
 
-<span class="doccomment">/// Return the unique identifier for an automaton&#39;s fail state in the chosen</span>
-<span class="doccomment">/// representation indicated by `S`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fail_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>() -&gt; <span class="ident">S</span> {
-    <span class="ident">S::from_usize</span>(<span class="number">0</span>)
+<span class="doccomment">/// Return the unique identifier for an automaton&#39;s fail state in the chosen
+/// representation indicated by `S`.
+</span><span class="kw">pub fn </span>fail_id&lt;S: StateID&gt;() -&gt; S {
+    S::from_usize(<span class="number">0</span>)
 }
 
-<span class="doccomment">/// Return the unique identifier for an automaton&#39;s fail state in the chosen</span>
-<span class="doccomment">/// representation indicated by `S`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dead_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>() -&gt; <span class="ident">S</span> {
-    <span class="ident">S::from_usize</span>(<span class="number">1</span>)
+<span class="doccomment">/// Return the unique identifier for an automaton&#39;s fail state in the chosen
+/// representation indicated by `S`.
+</span><span class="kw">pub fn </span>dead_id&lt;S: StateID&gt;() -&gt; S {
+    S::from_usize(<span class="number">1</span>)
 }
 
-<span class="kw">mod</span> <span class="ident">private</span> {
-    <span class="doccomment">/// Sealed stops crates other than aho-corasick from implementing any</span>
-    <span class="doccomment">/// traits that use it.</span>
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Sealed</span> {}
-    <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident">u8</span> {}
-    <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident">u16</span> {}
-    <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident">u32</span> {}
-    <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident">u64</span> {}
-    <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident">usize</span> {}
+<span class="kw">mod </span>private {
+    <span class="doccomment">/// Sealed stops crates other than aho-corasick from implementing any
+    /// traits that use it.
+    </span><span class="kw">pub trait </span>Sealed {}
+    <span class="kw">impl </span>Sealed <span class="kw">for </span>u8 {}
+    <span class="kw">impl </span>Sealed <span class="kw">for </span>u16 {}
+    <span class="kw">impl </span>Sealed <span class="kw">for </span>u32 {}
+    <span class="kw">impl </span>Sealed <span class="kw">for </span>u64 {}
+    <span class="kw">impl </span>Sealed <span class="kw">for </span>usize {}
 }
 
-<span class="doccomment">/// A trait describing the representation of an automaton&#39;s state identifier.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The purpose of this trait is to safely express both the possible state</span>
-<span class="doccomment">/// identifier representations that can be used in an automaton and to convert</span>
-<span class="doccomment">/// between state identifier representations and types that can be used to</span>
-<span class="doccomment">/// efficiently index memory (such as `usize`).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In general, one should not need to implement this trait explicitly. Indeed,</span>
-<span class="doccomment">/// for now, this trait is sealed such that it cannot be implemented by any</span>
-<span class="doccomment">/// other type. In particular, this crate provides implementations for `u8`,</span>
-<span class="doccomment">/// `u16`, `u32`, `u64` and `usize`. (`u32` and `u64` are only provided for</span>
-<span class="doccomment">/// targets that can represent all corresponding values in a `usize`.)</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StateID</span>:
-    <span class="ident">private::Sealed</span>
-    <span class="op">+</span> <span class="ident">Clone</span>
-    <span class="op">+</span> <span class="ident">Copy</span>
-    <span class="op">+</span> <span class="ident">Debug</span>
-    <span class="op">+</span> <span class="ident">Eq</span>
-    <span class="op">+</span> <span class="ident">Hash</span>
-    <span class="op">+</span> <span class="ident">PartialEq</span>
-    <span class="op">+</span> <span class="ident">PartialOrd</span>
-    <span class="op">+</span> <span class="ident">Ord</span>
+<span class="doccomment">/// A trait describing the representation of an automaton&#39;s state identifier.
+///
+/// The purpose of this trait is to safely express both the possible state
+/// identifier representations that can be used in an automaton and to convert
+/// between state identifier representations and types that can be used to
+/// efficiently index memory (such as `usize`).
+///
+/// In general, one should not need to implement this trait explicitly. Indeed,
+/// for now, this trait is sealed such that it cannot be implemented by any
+/// other type. In particular, this crate provides implementations for `u8`,
+/// `u16`, `u32`, `u64` and `usize`. (`u32` and `u64` are only provided for
+/// targets that can represent all corresponding values in a `usize`.)
+</span><span class="kw">pub trait </span>StateID:
+    private::Sealed
+    + Clone
+    + Copy
+    + Debug
+    + Eq
+    + Hash
+    + PartialEq
+    + PartialOrd
+    + Ord
 {
-    <span class="doccomment">/// Convert from a `usize` to this implementation&#39;s representation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Implementors may assume that `n &lt;= Self::max_id`. That is, implementors</span>
-    <span class="doccomment">/// do not need to check whether `n` can fit inside this implementation&#39;s</span>
-    <span class="doccomment">/// representation.</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span>;
+    <span class="doccomment">/// Convert from a `usize` to this implementation&#39;s representation.
+    ///
+    /// Implementors may assume that `n &lt;= Self::max_id`. That is, implementors
+    /// do not need to check whether `n` can fit inside this implementation&#39;s
+    /// representation.
+    </span><span class="kw">fn </span>from_usize(n: usize) -&gt; <span class="self">Self</span>;
 
-    <span class="doccomment">/// Convert this implementation&#39;s representation to a `usize`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Implementors must not return a `usize` value greater than</span>
-    <span class="doccomment">/// `Self::max_id` and must not permit overflow when converting between the</span>
-    <span class="doccomment">/// implementor&#39;s representation and `usize`. In general, the preferred</span>
-    <span class="doccomment">/// way for implementors to achieve this is to simply not provide</span>
-    <span class="doccomment">/// implementations of `StateID` that cannot fit into the target platform&#39;s</span>
-    <span class="doccomment">/// `usize`.</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span>;
+    <span class="doccomment">/// Convert this implementation&#39;s representation to a `usize`.
+    ///
+    /// Implementors must not return a `usize` value greater than
+    /// `Self::max_id` and must not permit overflow when converting between the
+    /// implementor&#39;s representation and `usize`. In general, the preferred
+    /// way for implementors to achieve this is to simply not provide
+    /// implementations of `StateID` that cannot fit into the target platform&#39;s
+    /// `usize`.
+    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; usize;
 
-    <span class="doccomment">/// Return the maximum state identifier supported by this representation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Implementors must return a correct bound. Doing otherwise may result</span>
-    <span class="doccomment">/// in unspecified behavior (but will not violate memory safety).</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() -&gt; <span class="ident">usize</span>;
+    <span class="doccomment">/// Return the maximum state identifier supported by this representation.
+    ///
+    /// Implementors must return a correct bound. Doing otherwise may result
+    /// in unspecified behavior (but will not violate memory safety).
+    </span><span class="kw">fn </span>max_id() -&gt; usize;
 }
 
-<span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">usize</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
-        <span class="ident">n</span>
+<span class="kw">impl </span>StateID <span class="kw">for </span>usize {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from_usize(n: usize) -&gt; usize {
+        n
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>
-    }
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() -&gt; <span class="ident">usize</span> {
-        <span class="ident">::std::usize::MAX</span>
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">u8</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u8</span> {
-        <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u8</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() -&gt; <span class="ident">usize</span> {
-        <span class="ident">::std::u8::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>max_id() -&gt; usize {
+        ::std::usize::MAX
     }
 }
 
-<span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">u16</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u16</span> {
-        <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u16</span>
+<span class="kw">impl </span>StateID <span class="kw">for </span>u8 {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from_usize(n: usize) -&gt; u8 {
+        n <span class="kw">as </span>u8
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self </span><span class="kw">as </span>usize
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() -&gt; <span class="ident">usize</span> {
-        <span class="ident">::std::u16::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>, <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>))]</span>
-<span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">u32</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u32</span> {
-        <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u32</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() -&gt; <span class="ident">usize</span> {
-        <span class="ident">::std::u32::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>max_id() -&gt; usize {
+        ::std::u8::MAX <span class="kw">as </span>usize
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">u64</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u64</span> {
-        <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>
+<span class="kw">impl </span>StateID <span class="kw">for </span>u16 {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from_usize(n: usize) -&gt; u16 {
+        n <span class="kw">as </span>u16
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self </span><span class="kw">as </span>usize
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() -&gt; <span class="ident">usize</span> {
-        <span class="ident">::std::u64::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>max_id() -&gt; usize {
+        ::std::u16::MAX <span class="kw">as </span>usize
+    }
+}
+
+<span class="attribute">#[cfg(any(target_pointer_width = <span class="string">&quot;32&quot;</span>, target_pointer_width = <span class="string">&quot;64&quot;</span>))]
+</span><span class="kw">impl </span>StateID <span class="kw">for </span>u32 {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from_usize(n: usize) -&gt; u32 {
+        n <span class="kw">as </span>u32
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self </span><span class="kw">as </span>usize
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>max_id() -&gt; usize {
+        ::std::u32::MAX <span class="kw">as </span>usize
+    }
+}
+
+<span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+</span><span class="kw">impl </span>StateID <span class="kw">for </span>u64 {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from_usize(n: usize) -&gt; u64 {
+        n <span class="kw">as </span>u64
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>to_usize(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self </span><span class="kw">as </span>usize
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>max_id() -&gt; usize {
+        ::std::u64::MAX <span class="kw">as </span>usize
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

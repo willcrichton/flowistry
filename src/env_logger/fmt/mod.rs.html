@@ -1,13 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.9.0/src/fmt/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../env_logger/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../env_logger/index.html"><div class="logo-container">
-                    <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../env_logger/index.html">
-                        <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.9.0/src/fmt/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../env_logger/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../env_logger/index.html"><div class="logo-container">
+                    <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../env_logger/index.html">
+                        <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -659,392 +652,392 @@
 <span id="650">650</span>
 <span id="651">651</span>
 <span id="652">652</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Formatting for log records.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module contains a [`Formatter`] that can be used to format log records</span>
-<span class="doccomment">//! into without needing temporary allocations. Usually you won&#39;t need to worry</span>
-<span class="doccomment">//! about the contents of this module and can use the `Formatter` like an ordinary</span>
-<span class="doccomment">//! [`Write`].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Formatting log records</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The format used to print log records can be customised using the [`Builder::format`]</span>
-<span class="doccomment">//! method.</span>
-<span class="doccomment">//! Custom formats can apply different color and weight to printed values using</span>
-<span class="doccomment">//! [`Style`] builders.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! use std::io::Write;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let mut builder = env_logger::Builder::new();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! builder.format(|buf, record| {</span>
-<span class="doccomment">//!     writeln!(buf, &quot;{}: {}&quot;,</span>
-<span class="doccomment">//!         record.level(),</span>
-<span class="doccomment">//!         record.args())</span>
-<span class="doccomment">//! });</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`Formatter`]: struct.Formatter.html</span>
-<span class="doccomment">//! [`Style`]: struct.Style.html</span>
-<span class="doccomment">//! [`Builder::format`]: ../struct.Builder.html#method.format</span>
-<span class="doccomment">//! [`Write`]: https://doc.rust-lang.org/stable/std/io/trait.Write.html</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Formatting for log records.
+//!
+//! This module contains a [`Formatter`] that can be used to format log records
+//! into without needing temporary allocations. Usually you won&#39;t need to worry
+//! about the contents of this module and can use the `Formatter` like an ordinary
+//! [`Write`].
+//!
+//! # Formatting log records
+//!
+//! The format used to print log records can be customised using the [`Builder::format`]
+//! method.
+//! Custom formats can apply different color and weight to printed values using
+//! [`Style`] builders.
+//!
+//! ```
+//! use std::io::Write;
+//!
+//! let mut builder = env_logger::Builder::new();
+//!
+//! builder.format(|buf, record| {
+//!     writeln!(buf, &quot;{}: {}&quot;,
+//!         record.level(),
+//!         record.args())
+//! });
+//! ```
+//!
+//! [`Formatter`]: struct.Formatter.html
+//! [`Style`]: struct.Style.html
+//! [`Builder::format`]: ../struct.Builder.html#method.format
+//! [`Write`]: https://doc.rust-lang.org/stable/std/io/trait.Write.html
 
-<span class="kw">use</span> <span class="ident">std::cell::RefCell</span>;
-<span class="kw">use</span> <span class="ident">std::fmt::Display</span>;
-<span class="kw">use</span> <span class="ident">std::io::prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">io</span>, <span class="ident">mem</span>};
+</span><span class="kw">use </span>std::cell::RefCell;
+<span class="kw">use </span>std::fmt::Display;
+<span class="kw">use </span>std::io::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::rc::Rc;
+<span class="kw">use </span>std::{fmt, io, mem};
 
-<span class="kw">use</span> <span class="ident">log::Record</span>;
+<span class="kw">use </span>log::Record;
 
-<span class="kw">mod</span> <span class="ident">humantime</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">writer</span>;
+<span class="kw">mod </span>humantime;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>writer;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::humantime::glob</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::writer::glob</span>::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><span class="self">self</span>::humantime::glob::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><span class="self">self</span>::writer::glob::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::writer</span>::{<span class="ident">Buffer</span>, <span class="ident">Writer</span>};
+<span class="kw">use </span><span class="self">self</span>::writer::{Buffer, Writer};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">glob</span> {
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Target</span>, <span class="ident">TimestampPrecision</span>, <span class="ident">WriteStyle</span>};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>glob {
+    <span class="kw">pub use super</span>::{Target, TimestampPrecision, WriteStyle};
 }
 
-<span class="doccomment">/// Formatting precision of timestamps.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Seconds give precision of full seconds, milliseconds give thousands of a</span>
-<span class="doccomment">/// second (3 decimal digits), microseconds are millionth of a second (6 decimal</span>
-<span class="doccomment">/// digits) and nanoseconds are billionth of a second (9 decimal digits).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TimestampPrecision</span> {
-    <span class="doccomment">/// Full second precision (0 decimal digits)</span>
-    <span class="ident">Seconds</span>,
-    <span class="doccomment">/// Millisecond precision (3 decimal digits)</span>
-    <span class="ident">Millis</span>,
-    <span class="doccomment">/// Microsecond precision (6 decimal digits)</span>
-    <span class="ident">Micros</span>,
-    <span class="doccomment">/// Nanosecond precision (9 decimal digits)</span>
-    <span class="ident">Nanos</span>,
+<span class="doccomment">/// Formatting precision of timestamps.
+///
+/// Seconds give precision of full seconds, milliseconds give thousands of a
+/// second (3 decimal digits), microseconds are millionth of a second (6 decimal
+/// digits) and nanoseconds are billionth of a second (9 decimal digits).
+</span><span class="attribute">#[derive(Copy, Clone, Debug)]
+</span><span class="kw">pub enum </span>TimestampPrecision {
+    <span class="doccomment">/// Full second precision (0 decimal digits)
+    </span>Seconds,
+    <span class="doccomment">/// Millisecond precision (3 decimal digits)
+    </span>Millis,
+    <span class="doccomment">/// Microsecond precision (6 decimal digits)
+    </span>Micros,
+    <span class="doccomment">/// Nanosecond precision (9 decimal digits)
+    </span>Nanos,
 }
 
-<span class="doccomment">/// The default timestamp precision is seconds.</span>
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">TimestampPrecision</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">TimestampPrecision::Seconds</span>
+<span class="doccomment">/// The default timestamp precision is seconds.
+</span><span class="kw">impl </span>Default <span class="kw">for </span>TimestampPrecision {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        TimestampPrecision::Seconds
     }
 }
 
-<span class="doccomment">/// A formatter to write logs into.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Formatter` implements the standard [`Write`] trait for writing log records.</span>
-<span class="doccomment">/// It also supports terminal colors, through the [`style`] method.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Use the [`writeln`] macro to format a log record.</span>
-<span class="doccomment">/// An instance of a `Formatter` is passed to an `env_logger` format as `buf`:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use std::io::Write;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut builder = env_logger::Builder::new();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// builder.format(|buf, record| writeln!(buf, &quot;{}: {}&quot;, record.level(), record.args()));</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Write`]: https://doc.rust-lang.org/stable/std/io/trait.Write.html</span>
-<span class="doccomment">/// [`writeln`]: https://doc.rust-lang.org/stable/std/macro.writeln.html</span>
-<span class="doccomment">/// [`style`]: #method.style</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Formatter</span> {
-    <span class="ident">buf</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Buffer</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">write_style</span>: <span class="ident">WriteStyle</span>,
+<span class="doccomment">/// A formatter to write logs into.
+///
+/// `Formatter` implements the standard [`Write`] trait for writing log records.
+/// It also supports terminal colors, through the [`style`] method.
+///
+/// # Examples
+///
+/// Use the [`writeln`] macro to format a log record.
+/// An instance of a `Formatter` is passed to an `env_logger` format as `buf`:
+///
+/// ```
+/// use std::io::Write;
+///
+/// let mut builder = env_logger::Builder::new();
+///
+/// builder.format(|buf, record| writeln!(buf, &quot;{}: {}&quot;, record.level(), record.args()));
+/// ```
+///
+/// [`Write`]: https://doc.rust-lang.org/stable/std/io/trait.Write.html
+/// [`writeln`]: https://doc.rust-lang.org/stable/std/macro.writeln.html
+/// [`style`]: #method.style
+</span><span class="kw">pub struct </span>Formatter {
+    buf: Rc&lt;RefCell&lt;Buffer&gt;&gt;,
+    write_style: WriteStyle,
 }
 
-<span class="kw">impl</span> <span class="ident">Formatter</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;</span><span class="ident">Writer</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Formatter</span> {
-            <span class="ident">buf</span>: <span class="ident">Rc::new</span>(<span class="ident">RefCell::new</span>(<span class="ident">writer</span>.<span class="ident">buffer</span>())),
-            <span class="ident">write_style</span>: <span class="ident">writer</span>.<span class="ident">write_style</span>(),
+<span class="kw">impl </span>Formatter {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(writer: <span class="kw-2">&amp;</span>Writer) -&gt; <span class="self">Self </span>{
+        Formatter {
+            buf: Rc::new(RefCell::new(writer.buffer())),
+            write_style: writer.write_style(),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">write_style</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">WriteStyle</span> {
-        <span class="self">self</span>.<span class="ident">write_style</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; WriteStyle {
+        <span class="self">self</span>.write_style
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">print</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">writer</span>: <span class="kw-2">&amp;</span><span class="ident">Writer</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="ident">writer</span>.<span class="ident">print</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">borrow</span>())
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>print(<span class="kw-2">&amp;</span><span class="self">self</span>, writer: <span class="kw-2">&amp;</span>Writer) -&gt; io::Result&lt;()&gt; {
+        writer.print(<span class="kw-2">&amp;</span><span class="self">self</span>.buf.borrow())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">borrow_mut</span>().<span class="ident">clear</span>()
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Write</span> <span class="kw">for</span> <span class="ident">Formatter</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">borrow_mut</span>().<span class="ident">write</span>(<span class="ident">buf</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">borrow_mut</span>().<span class="ident">flush</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.buf.borrow_mut().clear()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Formatter</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Formatter&quot;</span>).<span class="ident">finish</span>()
+<span class="kw">impl </span>Write <span class="kw">for </span>Formatter {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.buf.borrow_mut().write(buf)
+    }
+
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.buf.borrow_mut().flush()
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">FormatFn</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span>, <span class="kw-2">&amp;</span><span class="ident">Record</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>;
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Builder</span> {
-    <span class="kw">pub</span> <span class="ident">format_timestamp</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TimestampPrecision</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">format_module_path</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">format_target</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">format_level</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">format_indent</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">custom_format</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FormatFn</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">format_suffix</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-    <span class="ident">built</span>: <span class="ident">bool</span>,
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Formatter {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Formatter&quot;</span>).finish()
+    }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Builder</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">Builder</span> {
-            <span class="ident">format_timestamp</span>: <span class="prelude-val">Some</span>(<span class="ident">Default::default</span>()),
-            <span class="ident">format_module_path</span>: <span class="bool-val">false</span>,
-            <span class="ident">format_target</span>: <span class="bool-val">true</span>,
-            <span class="ident">format_level</span>: <span class="bool-val">true</span>,
-            <span class="ident">format_indent</span>: <span class="prelude-val">Some</span>(<span class="number">4</span>),
-            <span class="ident">custom_format</span>: <span class="prelude-val">None</span>,
-            <span class="ident">format_suffix</span>: <span class="string">&quot;\n&quot;</span>,
-            <span class="ident">built</span>: <span class="bool-val">false</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>FormatFn = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;mut </span>Formatter, <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; + Sync + Send&gt;;
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Builder {
+    <span class="kw">pub </span>format_timestamp: <span class="prelude-ty">Option</span>&lt;TimestampPrecision&gt;,
+    <span class="kw">pub </span>format_module_path: bool,
+    <span class="kw">pub </span>format_target: bool,
+    <span class="kw">pub </span>format_level: bool,
+    <span class="kw">pub </span>format_indent: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    <span class="kw">pub </span>custom_format: <span class="prelude-ty">Option</span>&lt;FormatFn&gt;,
+    <span class="kw">pub </span>format_suffix: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    built: bool,
+}
+
+<span class="kw">impl </span>Default <span class="kw">for </span>Builder {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        Builder {
+            format_timestamp: <span class="prelude-val">Some</span>(Default::default()),
+            format_module_path: <span class="bool-val">false</span>,
+            format_target: <span class="bool-val">true</span>,
+            format_level: <span class="bool-val">true</span>,
+            format_indent: <span class="prelude-val">Some</span>(<span class="number">4</span>),
+            custom_format: <span class="prelude-val">None</span>,
+            format_suffix: <span class="string">&quot;\n&quot;</span>,
+            built: <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Builder</span> {
-    <span class="doccomment">/// Convert the format into a callable function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the `custom_format` is `Some`, then any `default_format` switches are ignored.</span>
-    <span class="doccomment">/// If the `custom_format` is `None`, then a default format is returned.</span>
-    <span class="doccomment">/// Any `default_format` switches set to `false` won&#39;t be written by the format.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">FormatFn</span> {
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">built</span>, <span class="string">&quot;attempt to re-use consumed builder&quot;</span>);
+<span class="kw">impl </span>Builder {
+    <span class="doccomment">/// Convert the format into a callable function.
+    ///
+    /// If the `custom_format` is `Some`, then any `default_format` switches are ignored.
+    /// If the `custom_format` is `None`, then a default format is returned.
+    /// Any `default_format` switches set to `false` won&#39;t be written by the format.
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; FormatFn {
+        <span class="macro">assert!</span>(!<span class="self">self</span>.built, <span class="string">&quot;attempt to re-use consumed builder&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">built</span> <span class="op">=</span> <span class="ident">mem::replace</span>(
+        <span class="kw">let </span>built = mem::replace(
             <span class="self">self</span>,
-            <span class="ident">Builder</span> {
-                <span class="ident">built</span>: <span class="bool-val">true</span>,
-                ..<span class="ident">Default::default</span>()
+            Builder {
+                built: <span class="bool-val">true</span>,
+                ..Default::default()
             },
         );
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fmt</span>) <span class="op">=</span> <span class="ident">built</span>.<span class="ident">custom_format</span> {
-            <span class="ident">fmt</span>
-        } <span class="kw">else</span> {
-            <span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">buf</span>, <span class="ident">record</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">fmt</span> <span class="op">=</span> <span class="ident">DefaultFormat</span> {
-                    <span class="ident">timestamp</span>: <span class="ident">built</span>.<span class="ident">format_timestamp</span>,
-                    <span class="ident">module_path</span>: <span class="ident">built</span>.<span class="ident">format_module_path</span>,
-                    <span class="ident">target</span>: <span class="ident">built</span>.<span class="ident">format_target</span>,
-                    <span class="ident">level</span>: <span class="ident">built</span>.<span class="ident">format_level</span>,
-                    <span class="ident">written_header_value</span>: <span class="bool-val">false</span>,
-                    <span class="ident">indent</span>: <span class="ident">built</span>.<span class="ident">format_indent</span>,
-                    <span class="ident">suffix</span>: <span class="ident">built</span>.<span class="ident">format_suffix</span>,
-                    <span class="ident">buf</span>,
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(fmt) = built.custom_format {
+            fmt
+        } <span class="kw">else </span>{
+            Box::new(<span class="kw">move </span>|buf, record| {
+                <span class="kw">let </span>fmt = DefaultFormat {
+                    timestamp: built.format_timestamp,
+                    module_path: built.format_module_path,
+                    target: built.format_target,
+                    level: built.format_level,
+                    written_header_value: <span class="bool-val">false</span>,
+                    indent: built.format_indent,
+                    suffix: built.format_suffix,
+                    buf,
                 };
 
-                <span class="ident">fmt</span>.<span class="ident">write</span>(<span class="ident">record</span>)
+                fmt.write(record)
             })
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;termcolor&quot;</span>)]</span>
-<span class="kw">type</span> <span class="ident">SubtleStyle</span> <span class="op">=</span> <span class="ident">StyledValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;termcolor&quot;</span>))]</span>
-<span class="kw">type</span> <span class="ident">SubtleStyle</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;termcolor&quot;</span>)]
+</span><span class="kw">type </span>SubtleStyle = StyledValue&lt;<span class="lifetime">&#39;static</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;;
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;termcolor&quot;</span>))]
+</span><span class="kw">type </span>SubtleStyle = <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
 
-<span class="doccomment">/// The default format.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This format needs to work with any combination of crate features.</span>
-<span class="kw">struct</span> <span class="ident">DefaultFormat</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">timestamp</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TimestampPrecision</span><span class="op">&gt;</span>,
-    <span class="ident">module_path</span>: <span class="ident">bool</span>,
-    <span class="ident">target</span>: <span class="ident">bool</span>,
-    <span class="ident">level</span>: <span class="ident">bool</span>,
-    <span class="ident">written_header_value</span>: <span class="ident">bool</span>,
-    <span class="ident">indent</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Formatter</span>,
-    <span class="ident">suffix</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
+<span class="doccomment">/// The default format.
+///
+/// This format needs to work with any combination of crate features.
+</span><span class="kw">struct </span>DefaultFormat&lt;<span class="lifetime">&#39;a</span>&gt; {
+    timestamp: <span class="prelude-ty">Option</span>&lt;TimestampPrecision&gt;,
+    module_path: bool,
+    target: bool,
+    level: bool,
+    written_header_value: bool,
+    indent: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Formatter,
+    suffix: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">DefaultFormat</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">record</span>: <span class="kw-2">&amp;</span><span class="ident">Record</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">write_timestamp</span>()<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">write_level</span>(<span class="ident">record</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">write_module_path</span>(<span class="ident">record</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">write_target</span>(<span class="ident">record</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">finish_header</span>()<span class="question-mark">?</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DefaultFormat&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.write_timestamp()<span class="question-mark">?</span>;
+        <span class="self">self</span>.write_level(record)<span class="question-mark">?</span>;
+        <span class="self">self</span>.write_module_path(record)<span class="question-mark">?</span>;
+        <span class="self">self</span>.write_target(record)<span class="question-mark">?</span>;
+        <span class="self">self</span>.finish_header()<span class="question-mark">?</span>;
 
-        <span class="self">self</span>.<span class="ident">write_args</span>(<span class="ident">record</span>)
+        <span class="self">self</span>.write_args(record)
     }
 
-    <span class="kw">fn</span> <span class="ident">subtle_style</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="ident">SubtleStyle</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;termcolor&quot;</span>)]</span>
-        {
-            <span class="self">self</span>.<span class="ident">buf</span>
-                .<span class="ident">style</span>()
-                .<span class="ident">set_color</span>(<span class="ident">Color::Black</span>)
-                .<span class="ident">set_intense</span>(<span class="bool-val">true</span>)
-                .<span class="ident">clone</span>()
-                .<span class="ident">into_value</span>(<span class="ident">text</span>)
+    <span class="kw">fn </span>subtle_style(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; SubtleStyle {
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;termcolor&quot;</span>)]
+        </span>{
+            <span class="self">self</span>.buf
+                .style()
+                .set_color(Color::Black)
+                .set_intense(<span class="bool-val">true</span>)
+                .clone()
+                .into_value(text)
         }
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;termcolor&quot;</span>))]</span>
-        {
-            <span class="ident">text</span>
+        <span class="attribute">#[cfg(not(feature = <span class="string">&quot;termcolor&quot;</span>))]
+        </span>{
+            text
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">write_header_value</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Display</span>,
+    <span class="kw">fn </span>write_header_value&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; io::Result&lt;()&gt;
+    <span class="kw">where
+        </span>T: Display,
     {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">written_header_value</span> {
-            <span class="self">self</span>.<span class="ident">written_header_value</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <span class="kw">if </span>!<span class="self">self</span>.written_header_value {
+            <span class="self">self</span>.written_header_value = <span class="bool-val">true</span>;
 
-            <span class="kw">let</span> <span class="ident">open_brace</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">subtle_style</span>(<span class="string">&quot;[&quot;</span>);
-            <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">buf</span>, <span class="string">&quot;{}{}&quot;</span>, <span class="ident">open_brace</span>, <span class="ident">value</span>)
-        } <span class="kw">else</span> {
-            <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">buf</span>, <span class="string">&quot; {}&quot;</span>, <span class="ident">value</span>)
+            <span class="kw">let </span>open_brace = <span class="self">self</span>.subtle_style(<span class="string">&quot;[&quot;</span>);
+            <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">&quot;{}{}&quot;</span>, open_brace, value)
+        } <span class="kw">else </span>{
+            <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">&quot; {}&quot;</span>, value)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">write_level</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">record</span>: <span class="kw-2">&amp;</span><span class="ident">Record</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">level</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+    <span class="kw">fn </span>write_level(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">if </span>!<span class="self">self</span>.level {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
-        <span class="kw">let</span> <span class="ident">level</span> <span class="op">=</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;termcolor&quot;</span>)]</span>
-            {
-                <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">default_styled_level</span>(<span class="ident">record</span>.<span class="ident">level</span>())
+        <span class="kw">let </span>level = {
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;termcolor&quot;</span>)]
+            </span>{
+                <span class="self">self</span>.buf.default_styled_level(record.level())
             }
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;termcolor&quot;</span>))]</span>
-            {
-                <span class="ident">record</span>.<span class="ident">level</span>()
+            <span class="attribute">#[cfg(not(feature = <span class="string">&quot;termcolor&quot;</span>))]
+            </span>{
+                record.level()
             }
         };
 
-        <span class="self">self</span>.<span class="ident">write_header_value</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:&lt;5}&quot;</span>, <span class="ident">level</span>))
+        <span class="self">self</span>.write_header_value(<span class="macro">format_args!</span>(<span class="string">&quot;{:&lt;5}&quot;</span>, level))
     }
 
-    <span class="kw">fn</span> <span class="ident">write_timestamp</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;humantime&quot;</span>)]</span>
-        {
-            <span class="kw">use</span> <span class="ident"><span class="self">self</span>::TimestampPrecision</span>::<span class="kw-2">*</span>;
-            <span class="kw">let</span> <span class="ident">ts</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">timestamp</span> {
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
-                <span class="prelude-val">Some</span>(<span class="ident">Seconds</span>) =&gt; <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">timestamp_seconds</span>(),
-                <span class="prelude-val">Some</span>(<span class="ident">Millis</span>) =&gt; <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">timestamp_millis</span>(),
-                <span class="prelude-val">Some</span>(<span class="ident">Micros</span>) =&gt; <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">timestamp_micros</span>(),
-                <span class="prelude-val">Some</span>(<span class="ident">Nanos</span>) =&gt; <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">timestamp_nanos</span>(),
+    <span class="kw">fn </span>write_timestamp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;humantime&quot;</span>)]
+        </span>{
+            <span class="kw">use </span><span class="self">self</span>::TimestampPrecision::<span class="kw-2">*</span>;
+            <span class="kw">let </span>ts = <span class="kw">match </span><span class="self">self</span>.timestamp {
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
+                <span class="prelude-val">Some</span>(Seconds) =&gt; <span class="self">self</span>.buf.timestamp_seconds(),
+                <span class="prelude-val">Some</span>(Millis) =&gt; <span class="self">self</span>.buf.timestamp_millis(),
+                <span class="prelude-val">Some</span>(Micros) =&gt; <span class="self">self</span>.buf.timestamp_micros(),
+                <span class="prelude-val">Some</span>(Nanos) =&gt; <span class="self">self</span>.buf.timestamp_nanos(),
             };
 
-            <span class="self">self</span>.<span class="ident">write_header_value</span>(<span class="ident">ts</span>)
+            <span class="self">self</span>.write_header_value(ts)
         }
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;humantime&quot;</span>))]</span>
-        {
-            <span class="comment">// Trick the compiler to think we have used self.timestamp</span>
-            <span class="comment">// Workaround for &quot;field is never used: `timestamp`&quot; compiler nag.</span>
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">timestamp</span>;
+        <span class="attribute">#[cfg(not(feature = <span class="string">&quot;humantime&quot;</span>))]
+        </span>{
+            <span class="comment">// Trick the compiler to think we have used self.timestamp
+            // Workaround for &quot;field is never used: `timestamp`&quot; compiler nag.
+            </span><span class="kw">let _ </span>= <span class="self">self</span>.timestamp;
             <span class="prelude-val">Ok</span>(())
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">write_module_path</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">record</span>: <span class="kw-2">&amp;</span><span class="ident">Record</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">module_path</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+    <span class="kw">fn </span>write_module_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">if </span>!<span class="self">self</span>.module_path {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">module_path</span>) <span class="op">=</span> <span class="ident">record</span>.<span class="ident">module_path</span>() {
-            <span class="self">self</span>.<span class="ident">write_header_value</span>(<span class="ident">module_path</span>)
-        } <span class="kw">else</span> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(module_path) = record.module_path() {
+            <span class="self">self</span>.write_header_value(module_path)
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">write_target</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">record</span>: <span class="kw-2">&amp;</span><span class="ident">Record</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">target</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+    <span class="kw">fn </span>write_target(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">if </span>!<span class="self">self</span>.target {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
-        <span class="kw">match</span> <span class="ident">record</span>.<span class="ident">target</span>() {
-            <span class="string">&quot;&quot;</span> =&gt; <span class="prelude-val">Ok</span>(()),
-            <span class="ident">target</span> =&gt; <span class="self">self</span>.<span class="ident">write_header_value</span>(<span class="ident">target</span>),
+        <span class="kw">match </span>record.target() {
+            <span class="string">&quot;&quot; </span>=&gt; <span class="prelude-val">Ok</span>(()),
+            target =&gt; <span class="self">self</span>.write_header_value(target),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">finish_header</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">written_header_value</span> {
-            <span class="kw">let</span> <span class="ident">close_brace</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">subtle_style</span>(<span class="string">&quot;]&quot;</span>);
-            <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">buf</span>, <span class="string">&quot;{} &quot;</span>, <span class="ident">close_brace</span>)
-        } <span class="kw">else</span> {
+    <span class="kw">fn </span>finish_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">if </span><span class="self">self</span>.written_header_value {
+            <span class="kw">let </span>close_brace = <span class="self">self</span>.subtle_style(<span class="string">&quot;]&quot;</span>);
+            <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">&quot;{} &quot;</span>, close_brace)
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">write_args</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">record</span>: <span class="kw-2">&amp;</span><span class="ident">Record</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">indent</span> {
-            <span class="comment">// Fast path for no indentation</span>
-            <span class="prelude-val">None</span> =&gt; <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">buf</span>, <span class="string">&quot;{}{}&quot;</span>, <span class="ident">record</span>.<span class="ident">args</span>(), <span class="self">self</span>.<span class="ident">suffix</span>),
+    <span class="kw">fn </span>write_args(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">match </span><span class="self">self</span>.indent {
+            <span class="comment">// Fast path for no indentation
+            </span><span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">&quot;{}{}&quot;</span>, record.args(), <span class="self">self</span>.suffix),
 
-            <span class="prelude-val">Some</span>(<span class="ident">indent_count</span>) =&gt; {
-                <span class="comment">// Create a wrapper around the buffer only if we have to actually indent the message</span>
+            <span class="prelude-val">Some</span>(indent_count) =&gt; {
+                <span class="comment">// Create a wrapper around the buffer only if we have to actually indent the message
 
-                <span class="kw">struct</span> <span class="ident">IndentWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-                    <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">DefaultFormat</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
-                    <span class="ident">indent_count</span>: <span class="ident">usize</span>,
+                </span><span class="kw">struct </span>IndentWrapper&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>&gt; {
+                    fmt: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>DefaultFormat&lt;<span class="lifetime">&#39;b</span>&gt;,
+                    indent_count: usize,
                 }
 
-                <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">Write</span> <span class="kw">for</span> <span class="ident">IndentWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-                    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                        <span class="kw">for</span> <span class="ident">chunk</span> <span class="kw">in</span> <span class="ident">buf</span>.<span class="ident">split</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="op">==</span> <span class="string">b&#39;\n&#39;</span>) {
-                            <span class="kw">if</span> <span class="op">!</span><span class="ident">first</span> {
+                <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; Write <span class="kw">for </span>IndentWrapper&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+                    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
+                        <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
+                        <span class="kw">for </span>chunk <span class="kw">in </span>buf.split(|<span class="kw-2">&amp;</span>x| x == <span class="string">b&#39;\n&#39;</span>) {
+                            <span class="kw">if </span>!first {
                                 <span class="macro">write!</span>(
-                                    <span class="self">self</span>.<span class="ident">fmt</span>.<span class="ident">buf</span>,
+                                    <span class="self">self</span>.fmt.buf,
                                     <span class="string">&quot;{}{:width$}&quot;</span>,
-                                    <span class="self">self</span>.<span class="ident">fmt</span>.<span class="ident">suffix</span>,
+                                    <span class="self">self</span>.fmt.suffix,
                                     <span class="string">&quot;&quot;</span>,
-                                    <span class="ident">width</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">indent_count</span>
+                                    width = <span class="self">self</span>.indent_count
                                 )<span class="question-mark">?</span>;
                             }
-                            <span class="self">self</span>.<span class="ident">fmt</span>.<span class="ident">buf</span>.<span class="ident">write_all</span>(<span class="ident">chunk</span>)<span class="question-mark">?</span>;
-                            <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                            <span class="self">self</span>.fmt.buf.write_all(chunk)<span class="question-mark">?</span>;
+                            first = <span class="bool-val">false</span>;
                         }
 
-                        <span class="prelude-val">Ok</span>(<span class="ident">buf</span>.<span class="ident">len</span>())
+                        <span class="prelude-val">Ok</span>(buf.len())
                     }
 
-                    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-                        <span class="self">self</span>.<span class="ident">fmt</span>.<span class="ident">buf</span>.<span class="ident">flush</span>()
+                    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+                        <span class="self">self</span>.fmt.buf.flush()
                     }
                 }
 
-                <span class="comment">// The explicit scope here is just to make older versions of Rust happy</span>
-                {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wrapper</span> <span class="op">=</span> <span class="ident">IndentWrapper</span> {
-                        <span class="ident">fmt</span>: <span class="self">self</span>,
-                        <span class="ident">indent_count</span>,
+                <span class="comment">// The explicit scope here is just to make older versions of Rust happy
+                </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>wrapper = IndentWrapper {
+                        fmt: <span class="self">self</span>,
+                        indent_count,
                     };
-                    <span class="macro">write!</span>(<span class="ident">wrapper</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">record</span>.<span class="ident">args</span>())<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(wrapper, <span class="string">&quot;{}&quot;</span>, record.args())<span class="question-mark">?</span>;
                 }
 
-                <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">buf</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">suffix</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.suffix)<span class="question-mark">?</span>;
 
                 <span class="prelude-val">Ok</span>(())
             }
@@ -1052,265 +1045,264 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">Level</span>, <span class="ident">Record</span>};
+    <span class="kw">use </span>log::{Level, Record};
 
-    <span class="kw">fn</span> <span class="ident">write_record</span>(<span class="ident">record</span>: <span class="ident">Record</span>, <span class="ident">fmt</span>: <span class="ident">DefaultFormat</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">fmt</span>.<span class="ident">buf</span>.<span class="ident">buf</span>.<span class="ident">clone</span>();
+    <span class="kw">fn </span>write_record(record: Record, fmt: DefaultFormat) -&gt; String {
+        <span class="kw">let </span>buf = fmt.buf.buf.clone();
 
-        <span class="ident">fmt</span>.<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="ident">record</span>).<span class="ident">expect</span>(<span class="string">&quot;failed to write record&quot;</span>);
+        fmt.write(<span class="kw-2">&amp;</span>record).expect(<span class="string">&quot;failed to write record&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">borrow</span>();
-        <span class="ident">String::from_utf8</span>(<span class="ident">buf</span>.<span class="ident">bytes</span>().<span class="ident">to_vec</span>()).<span class="ident">expect</span>(<span class="string">&quot;failed to read record&quot;</span>)
+        <span class="kw">let </span>buf = buf.borrow();
+        String::from_utf8(buf.bytes().to_vec()).expect(<span class="string">&quot;failed to read record&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">write_target</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="ident">fmt</span>: <span class="ident">DefaultFormat</span>) -&gt; <span class="ident">String</span> {
-        <span class="ident">write_record</span>(
-            <span class="ident">Record::builder</span>()
-                .<span class="ident">args</span>(<span class="macro">format_args!</span>(<span class="string">&quot;log\nmessage&quot;</span>))
-                .<span class="ident">level</span>(<span class="ident">Level::Info</span>)
-                .<span class="ident">file</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;test.rs&quot;</span>))
-                .<span class="ident">line</span>(<span class="prelude-val">Some</span>(<span class="number">144</span>))
-                .<span class="ident">module_path</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;test::path&quot;</span>))
-                .<span class="ident">target</span>(<span class="ident">target</span>)
-                .<span class="ident">build</span>(),
-            <span class="ident">fmt</span>,
+    <span class="kw">fn </span>write_target&lt;<span class="lifetime">&#39;a</span>&gt;(target: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, fmt: DefaultFormat) -&gt; String {
+        write_record(
+            Record::builder()
+                .args(<span class="macro">format_args!</span>(<span class="string">&quot;log\nmessage&quot;</span>))
+                .level(Level::Info)
+                .file(<span class="prelude-val">Some</span>(<span class="string">&quot;test.rs&quot;</span>))
+                .line(<span class="prelude-val">Some</span>(<span class="number">144</span>))
+                .module_path(<span class="prelude-val">Some</span>(<span class="string">&quot;test::path&quot;</span>))
+                .target(target)
+                .build(),
+            fmt,
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">fmt</span>: <span class="ident">DefaultFormat</span>) -&gt; <span class="ident">String</span> {
-        <span class="ident">write_target</span>(<span class="string">&quot;&quot;</span>, <span class="ident">fmt</span>)
+    <span class="kw">fn </span>write(fmt: DefaultFormat) -&gt; String {
+        write_target(<span class="string">&quot;&quot;</span>, fmt)
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">format_with_header</span>() {
-        <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">writer::Builder::new</span>()
-            .<span class="ident">write_style</span>(<span class="ident">WriteStyle::Never</span>)
-            .<span class="ident">build</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>format_with_header() {
+        <span class="kw">let </span>writer = writer::Builder::new()
+            .write_style(WriteStyle::Never)
+            .build();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Formatter::new</span>(<span class="kw-2">&amp;</span><span class="ident">writer</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
 
-        <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <span class="ident">write</span>(<span class="ident">DefaultFormat</span> {
-            <span class="ident">timestamp</span>: <span class="prelude-val">None</span>,
-            <span class="ident">module_path</span>: <span class="bool-val">true</span>,
-            <span class="ident">target</span>: <span class="bool-val">false</span>,
-            <span class="ident">level</span>: <span class="bool-val">true</span>,
-            <span class="ident">written_header_value</span>: <span class="bool-val">false</span>,
-            <span class="ident">indent</span>: <span class="prelude-val">None</span>,
-            <span class="ident">suffix</span>: <span class="string">&quot;\n&quot;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">f</span>,
+        <span class="kw">let </span>written = write(DefaultFormat {
+            timestamp: <span class="prelude-val">None</span>,
+            module_path: <span class="bool-val">true</span>,
+            target: <span class="bool-val">false</span>,
+            level: <span class="bool-val">true</span>,
+            written_header_value: <span class="bool-val">false</span>,
+            indent: <span class="prelude-val">None</span>,
+            suffix: <span class="string">&quot;\n&quot;</span>,
+            buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\nmessage\n&quot;</span>, <span class="ident">written</span>);
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\nmessage\n&quot;</span>, written);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">format_no_header</span>() {
-        <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">writer::Builder::new</span>()
-            .<span class="ident">write_style</span>(<span class="ident">WriteStyle::Never</span>)
-            .<span class="ident">build</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>format_no_header() {
+        <span class="kw">let </span>writer = writer::Builder::new()
+            .write_style(WriteStyle::Never)
+            .build();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Formatter::new</span>(<span class="kw-2">&amp;</span><span class="ident">writer</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
 
-        <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <span class="ident">write</span>(<span class="ident">DefaultFormat</span> {
-            <span class="ident">timestamp</span>: <span class="prelude-val">None</span>,
-            <span class="ident">module_path</span>: <span class="bool-val">false</span>,
-            <span class="ident">target</span>: <span class="bool-val">false</span>,
-            <span class="ident">level</span>: <span class="bool-val">false</span>,
-            <span class="ident">written_header_value</span>: <span class="bool-val">false</span>,
-            <span class="ident">indent</span>: <span class="prelude-val">None</span>,
-            <span class="ident">suffix</span>: <span class="string">&quot;\n&quot;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">f</span>,
+        <span class="kw">let </span>written = write(DefaultFormat {
+            timestamp: <span class="prelude-val">None</span>,
+            module_path: <span class="bool-val">false</span>,
+            target: <span class="bool-val">false</span>,
+            level: <span class="bool-val">false</span>,
+            written_header_value: <span class="bool-val">false</span>,
+            indent: <span class="prelude-val">None</span>,
+            suffix: <span class="string">&quot;\n&quot;</span>,
+            buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;log\nmessage\n&quot;</span>, <span class="ident">written</span>);
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;log\nmessage\n&quot;</span>, written);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">format_indent_spaces</span>() {
-        <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">writer::Builder::new</span>()
-            .<span class="ident">write_style</span>(<span class="ident">WriteStyle::Never</span>)
-            .<span class="ident">build</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>format_indent_spaces() {
+        <span class="kw">let </span>writer = writer::Builder::new()
+            .write_style(WriteStyle::Never)
+            .build();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Formatter::new</span>(<span class="kw-2">&amp;</span><span class="ident">writer</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
 
-        <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <span class="ident">write</span>(<span class="ident">DefaultFormat</span> {
-            <span class="ident">timestamp</span>: <span class="prelude-val">None</span>,
-            <span class="ident">module_path</span>: <span class="bool-val">true</span>,
-            <span class="ident">target</span>: <span class="bool-val">false</span>,
-            <span class="ident">level</span>: <span class="bool-val">true</span>,
-            <span class="ident">written_header_value</span>: <span class="bool-val">false</span>,
-            <span class="ident">indent</span>: <span class="prelude-val">Some</span>(<span class="number">4</span>),
-            <span class="ident">suffix</span>: <span class="string">&quot;\n&quot;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">f</span>,
+        <span class="kw">let </span>written = write(DefaultFormat {
+            timestamp: <span class="prelude-val">None</span>,
+            module_path: <span class="bool-val">true</span>,
+            target: <span class="bool-val">false</span>,
+            level: <span class="bool-val">true</span>,
+            written_header_value: <span class="bool-val">false</span>,
+            indent: <span class="prelude-val">Some</span>(<span class="number">4</span>),
+            suffix: <span class="string">&quot;\n&quot;</span>,
+            buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\n    message\n&quot;</span>, <span class="ident">written</span>);
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\n    message\n&quot;</span>, written);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">format_indent_zero_spaces</span>() {
-        <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">writer::Builder::new</span>()
-            .<span class="ident">write_style</span>(<span class="ident">WriteStyle::Never</span>)
-            .<span class="ident">build</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>format_indent_zero_spaces() {
+        <span class="kw">let </span>writer = writer::Builder::new()
+            .write_style(WriteStyle::Never)
+            .build();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Formatter::new</span>(<span class="kw-2">&amp;</span><span class="ident">writer</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
 
-        <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <span class="ident">write</span>(<span class="ident">DefaultFormat</span> {
-            <span class="ident">timestamp</span>: <span class="prelude-val">None</span>,
-            <span class="ident">module_path</span>: <span class="bool-val">true</span>,
-            <span class="ident">target</span>: <span class="bool-val">false</span>,
-            <span class="ident">level</span>: <span class="bool-val">true</span>,
-            <span class="ident">written_header_value</span>: <span class="bool-val">false</span>,
-            <span class="ident">indent</span>: <span class="prelude-val">Some</span>(<span class="number">0</span>),
-            <span class="ident">suffix</span>: <span class="string">&quot;\n&quot;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">f</span>,
+        <span class="kw">let </span>written = write(DefaultFormat {
+            timestamp: <span class="prelude-val">None</span>,
+            module_path: <span class="bool-val">true</span>,
+            target: <span class="bool-val">false</span>,
+            level: <span class="bool-val">true</span>,
+            written_header_value: <span class="bool-val">false</span>,
+            indent: <span class="prelude-val">Some</span>(<span class="number">0</span>),
+            suffix: <span class="string">&quot;\n&quot;</span>,
+            buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\nmessage\n&quot;</span>, <span class="ident">written</span>);
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\nmessage\n&quot;</span>, written);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">format_indent_spaces_no_header</span>() {
-        <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">writer::Builder::new</span>()
-            .<span class="ident">write_style</span>(<span class="ident">WriteStyle::Never</span>)
-            .<span class="ident">build</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>format_indent_spaces_no_header() {
+        <span class="kw">let </span>writer = writer::Builder::new()
+            .write_style(WriteStyle::Never)
+            .build();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Formatter::new</span>(<span class="kw-2">&amp;</span><span class="ident">writer</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
 
-        <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <span class="ident">write</span>(<span class="ident">DefaultFormat</span> {
-            <span class="ident">timestamp</span>: <span class="prelude-val">None</span>,
-            <span class="ident">module_path</span>: <span class="bool-val">false</span>,
-            <span class="ident">target</span>: <span class="bool-val">false</span>,
-            <span class="ident">level</span>: <span class="bool-val">false</span>,
-            <span class="ident">written_header_value</span>: <span class="bool-val">false</span>,
-            <span class="ident">indent</span>: <span class="prelude-val">Some</span>(<span class="number">4</span>),
-            <span class="ident">suffix</span>: <span class="string">&quot;\n&quot;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">f</span>,
+        <span class="kw">let </span>written = write(DefaultFormat {
+            timestamp: <span class="prelude-val">None</span>,
+            module_path: <span class="bool-val">false</span>,
+            target: <span class="bool-val">false</span>,
+            level: <span class="bool-val">false</span>,
+            written_header_value: <span class="bool-val">false</span>,
+            indent: <span class="prelude-val">Some</span>(<span class="number">4</span>),
+            suffix: <span class="string">&quot;\n&quot;</span>,
+            buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;log\n    message\n&quot;</span>, <span class="ident">written</span>);
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;log\n    message\n&quot;</span>, written);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">format_suffix</span>() {
-        <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">writer::Builder::new</span>()
-            .<span class="ident">write_style</span>(<span class="ident">WriteStyle::Never</span>)
-            .<span class="ident">build</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>format_suffix() {
+        <span class="kw">let </span>writer = writer::Builder::new()
+            .write_style(WriteStyle::Never)
+            .build();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Formatter::new</span>(<span class="kw-2">&amp;</span><span class="ident">writer</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
 
-        <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <span class="ident">write</span>(<span class="ident">DefaultFormat</span> {
-            <span class="ident">timestamp</span>: <span class="prelude-val">None</span>,
-            <span class="ident">module_path</span>: <span class="bool-val">false</span>,
-            <span class="ident">target</span>: <span class="bool-val">false</span>,
-            <span class="ident">level</span>: <span class="bool-val">false</span>,
-            <span class="ident">written_header_value</span>: <span class="bool-val">false</span>,
-            <span class="ident">indent</span>: <span class="prelude-val">None</span>,
-            <span class="ident">suffix</span>: <span class="string">&quot;\n\n&quot;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">f</span>,
+        <span class="kw">let </span>written = write(DefaultFormat {
+            timestamp: <span class="prelude-val">None</span>,
+            module_path: <span class="bool-val">false</span>,
+            target: <span class="bool-val">false</span>,
+            level: <span class="bool-val">false</span>,
+            written_header_value: <span class="bool-val">false</span>,
+            indent: <span class="prelude-val">None</span>,
+            suffix: <span class="string">&quot;\n\n&quot;</span>,
+            buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;log\nmessage\n\n&quot;</span>, <span class="ident">written</span>);
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;log\nmessage\n\n&quot;</span>, written);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">format_suffix_with_indent</span>() {
-        <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">writer::Builder::new</span>()
-            .<span class="ident">write_style</span>(<span class="ident">WriteStyle::Never</span>)
-            .<span class="ident">build</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>format_suffix_with_indent() {
+        <span class="kw">let </span>writer = writer::Builder::new()
+            .write_style(WriteStyle::Never)
+            .build();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Formatter::new</span>(<span class="kw-2">&amp;</span><span class="ident">writer</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
 
-        <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <span class="ident">write</span>(<span class="ident">DefaultFormat</span> {
-            <span class="ident">timestamp</span>: <span class="prelude-val">None</span>,
-            <span class="ident">module_path</span>: <span class="bool-val">false</span>,
-            <span class="ident">target</span>: <span class="bool-val">false</span>,
-            <span class="ident">level</span>: <span class="bool-val">false</span>,
-            <span class="ident">written_header_value</span>: <span class="bool-val">false</span>,
-            <span class="ident">indent</span>: <span class="prelude-val">Some</span>(<span class="number">4</span>),
-            <span class="ident">suffix</span>: <span class="string">&quot;\n\n&quot;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">f</span>,
+        <span class="kw">let </span>written = write(DefaultFormat {
+            timestamp: <span class="prelude-val">None</span>,
+            module_path: <span class="bool-val">false</span>,
+            target: <span class="bool-val">false</span>,
+            level: <span class="bool-val">false</span>,
+            written_header_value: <span class="bool-val">false</span>,
+            indent: <span class="prelude-val">Some</span>(<span class="number">4</span>),
+            suffix: <span class="string">&quot;\n\n&quot;</span>,
+            buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;log\n\n    message\n\n&quot;</span>, <span class="ident">written</span>);
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;log\n\n    message\n\n&quot;</span>, written);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">format_target</span>() {
-        <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">writer::Builder::new</span>()
-            .<span class="ident">write_style</span>(<span class="ident">WriteStyle::Never</span>)
-            .<span class="ident">build</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>format_target() {
+        <span class="kw">let </span>writer = writer::Builder::new()
+            .write_style(WriteStyle::Never)
+            .build();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Formatter::new</span>(<span class="kw-2">&amp;</span><span class="ident">writer</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
 
-        <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <span class="ident">write_target</span>(
+        <span class="kw">let </span>written = write_target(
             <span class="string">&quot;target&quot;</span>,
-            <span class="ident">DefaultFormat</span> {
-                <span class="ident">timestamp</span>: <span class="prelude-val">None</span>,
-                <span class="ident">module_path</span>: <span class="bool-val">true</span>,
-                <span class="ident">target</span>: <span class="bool-val">true</span>,
-                <span class="ident">level</span>: <span class="bool-val">true</span>,
-                <span class="ident">written_header_value</span>: <span class="bool-val">false</span>,
-                <span class="ident">indent</span>: <span class="prelude-val">None</span>,
-                <span class="ident">suffix</span>: <span class="string">&quot;\n&quot;</span>,
-                <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">f</span>,
+            DefaultFormat {
+                timestamp: <span class="prelude-val">None</span>,
+                module_path: <span class="bool-val">true</span>,
+                target: <span class="bool-val">true</span>,
+                level: <span class="bool-val">true</span>,
+                written_header_value: <span class="bool-val">false</span>,
+                indent: <span class="prelude-val">None</span>,
+                suffix: <span class="string">&quot;\n&quot;</span>,
+                buf: <span class="kw-2">&amp;mut </span>f,
             },
         );
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path target] log\nmessage\n&quot;</span>, <span class="ident">written</span>);
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path target] log\nmessage\n&quot;</span>, written);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">format_empty_target</span>() {
-        <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">writer::Builder::new</span>()
-            .<span class="ident">write_style</span>(<span class="ident">WriteStyle::Never</span>)
-            .<span class="ident">build</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>format_empty_target() {
+        <span class="kw">let </span>writer = writer::Builder::new()
+            .write_style(WriteStyle::Never)
+            .build();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Formatter::new</span>(<span class="kw-2">&amp;</span><span class="ident">writer</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
 
-        <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <span class="ident">write</span>(<span class="ident">DefaultFormat</span> {
-            <span class="ident">timestamp</span>: <span class="prelude-val">None</span>,
-            <span class="ident">module_path</span>: <span class="bool-val">true</span>,
-            <span class="ident">target</span>: <span class="bool-val">true</span>,
-            <span class="ident">level</span>: <span class="bool-val">true</span>,
-            <span class="ident">written_header_value</span>: <span class="bool-val">false</span>,
-            <span class="ident">indent</span>: <span class="prelude-val">None</span>,
-            <span class="ident">suffix</span>: <span class="string">&quot;\n&quot;</span>,
-            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">f</span>,
+        <span class="kw">let </span>written = write(DefaultFormat {
+            timestamp: <span class="prelude-val">None</span>,
+            module_path: <span class="bool-val">true</span>,
+            target: <span class="bool-val">true</span>,
+            level: <span class="bool-val">true</span>,
+            written_header_value: <span class="bool-val">false</span>,
+            indent: <span class="prelude-val">None</span>,
+            suffix: <span class="string">&quot;\n&quot;</span>,
+            buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\nmessage\n&quot;</span>, <span class="ident">written</span>);
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\nmessage\n&quot;</span>, written);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">format_no_target</span>() {
-        <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">writer::Builder::new</span>()
-            .<span class="ident">write_style</span>(<span class="ident">WriteStyle::Never</span>)
-            .<span class="ident">build</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>format_no_target() {
+        <span class="kw">let </span>writer = writer::Builder::new()
+            .write_style(WriteStyle::Never)
+            .build();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Formatter::new</span>(<span class="kw-2">&amp;</span><span class="ident">writer</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
 
-        <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <span class="ident">write_target</span>(
+        <span class="kw">let </span>written = write_target(
             <span class="string">&quot;target&quot;</span>,
-            <span class="ident">DefaultFormat</span> {
-                <span class="ident">timestamp</span>: <span class="prelude-val">None</span>,
-                <span class="ident">module_path</span>: <span class="bool-val">true</span>,
-                <span class="ident">target</span>: <span class="bool-val">false</span>,
-                <span class="ident">level</span>: <span class="bool-val">true</span>,
-                <span class="ident">written_header_value</span>: <span class="bool-val">false</span>,
-                <span class="ident">indent</span>: <span class="prelude-val">None</span>,
-                <span class="ident">suffix</span>: <span class="string">&quot;\n&quot;</span>,
-                <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">f</span>,
+            DefaultFormat {
+                timestamp: <span class="prelude-val">None</span>,
+                module_path: <span class="bool-val">true</span>,
+                target: <span class="bool-val">false</span>,
+                level: <span class="bool-val">true</span>,
+                written_header_value: <span class="bool-val">false</span>,
+                indent: <span class="prelude-val">None</span>,
+                suffix: <span class="string">&quot;\n&quot;</span>,
+                buf: <span class="kw-2">&amp;mut </span>f,
             },
         );
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\nmessage\n&quot;</span>, <span class="ident">written</span>);
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\nmessage\n&quot;</span>, written);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="env_logger" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="env_logger" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

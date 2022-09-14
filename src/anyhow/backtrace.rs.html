@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.58/src/backtrace.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backtrace.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../anyhow/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../anyhow/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../anyhow/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/backtrace.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backtrace.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../anyhow/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../anyhow/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../anyhow/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -406,407 +399,406 @@
 <span id="399">399</span>
 <span id="400">400</span>
 <span id="401">401</span>
-</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">backtrace</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">std::backtrace</span>::{<span class="ident">Backtrace</span>, <span class="ident">BacktraceStatus</span>};
+</pre><pre class="rust"><code><span class="attribute">#[cfg(backtrace)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>std::backtrace::{Backtrace, BacktraceStatus};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">backtrace</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;backtrace&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident"><span class="self">self</span>::capture</span>::{<span class="ident">Backtrace</span>, <span class="ident">BacktraceStatus</span>};
+<span class="attribute">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::capture::{Backtrace, BacktraceStatus};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">backtrace</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;backtrace&quot;</span>)))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Backtrace</span> {}
+<span class="attribute">#[cfg(not(any(backtrace, feature = <span class="string">&quot;backtrace&quot;</span>)))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Backtrace {}
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">backtrace</span>)]</span>
-<span class="macro">macro_rules!</span> <span class="ident">impl_backtrace</span> {
+<span class="attribute">#[cfg(backtrace)]
+</span><span class="macro">macro_rules! </span>impl_backtrace {
     () =&gt; {
-        <span class="ident">std::backtrace::Backtrace</span>
+        std::backtrace::Backtrace
     };
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">backtrace</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;backtrace&quot;</span>))]</span>
-<span class="macro">macro_rules!</span> <span class="ident">impl_backtrace</span> {
+<span class="attribute">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
+</span><span class="macro">macro_rules! </span>impl_backtrace {
     () =&gt; {
-        <span class="kw">impl</span> <span class="ident">core::fmt::Debug</span> <span class="op">+</span> <span class="ident">core::fmt::Display</span>
+        <span class="kw">impl </span>core::fmt::Debug + core::fmt::Display
     };
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">backtrace</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;backtrace&quot;</span>))]</span>
-<span class="macro">macro_rules!</span> <span class="ident">backtrace</span> {
+<span class="attribute">#[cfg(any(backtrace, feature = <span class="string">&quot;backtrace&quot;</span>))]
+</span><span class="macro">macro_rules! </span>backtrace {
     () =&gt; {
-        <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::backtrace::Backtrace::capture</span>())
+        <span class="prelude-val">Some</span>(<span class="kw">crate</span>::backtrace::Backtrace::capture())
     };
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">backtrace</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;backtrace&quot;</span>)))]</span>
-<span class="macro">macro_rules!</span> <span class="ident">backtrace</span> {
+<span class="attribute">#[cfg(not(any(backtrace, feature = <span class="string">&quot;backtrace&quot;</span>)))]
+</span><span class="macro">macro_rules! </span>backtrace {
     () =&gt; {
-        <span class="prelude-val">None</span>
-    };
+        <span class="prelude-val">None
+    </span>};
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">backtrace</span>)]</span>
-<span class="macro">macro_rules!</span> <span class="ident">backtrace_if_absent</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">err</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">err</span>.<span class="ident">backtrace</span>() {
+<span class="attribute">#[cfg(backtrace)]
+</span><span class="macro">macro_rules! </span>backtrace_if_absent {
+    (<span class="macro-nonterminal">$err</span>:expr) =&gt; {
+        <span class="kw">match </span>(<span class="macro-nonterminal">$err </span><span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>std::error::Error).request_ref::&lt;std::backtrace::Backtrace&gt;() {
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="macro">backtrace!</span>(),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">backtrace!</span>(),
         }
     };
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">not</span>(<span class="ident">backtrace</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;backtrace&quot;</span>))]</span>
-<span class="macro">macro_rules!</span> <span class="ident">backtrace_if_absent</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">err</span>:<span class="ident">expr</span>) =&gt; {
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
+</span><span class="macro">macro_rules! </span>backtrace_if_absent {
+    (<span class="macro-nonterminal">$err</span>:expr) =&gt; {
         <span class="macro">backtrace!</span>()
     };
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">not</span>(<span class="ident">backtrace</span>), <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;backtrace&quot;</span>)))]</span>
-<span class="macro">macro_rules!</span> <span class="ident">backtrace_if_absent</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">err</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="prelude-val">None</span>
-    };
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(backtrace), not(feature = <span class="string">&quot;backtrace&quot;</span>)))]
+</span><span class="macro">macro_rules! </span>backtrace_if_absent {
+    (<span class="macro-nonterminal">$err</span>:expr) =&gt; {
+        <span class="prelude-val">None
+    </span>};
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">backtrace</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;backtrace&quot;</span>))]</span>
-<span class="kw">mod</span> <span class="ident">capture</span> {
-    <span class="kw">use</span> <span class="ident">backtrace</span>::{<span class="ident">BacktraceFmt</span>, <span class="ident">BytesOrWideString</span>, <span class="ident">Frame</span>, <span class="ident">PrintFmt</span>, <span class="ident">SymbolName</span>};
-    <span class="kw">use</span> <span class="ident">core::cell::UnsafeCell</span>;
-    <span class="kw">use</span> <span class="ident">core::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>};
-    <span class="kw">use</span> <span class="ident">core::sync::atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>};
-    <span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
-    <span class="kw">use</span> <span class="ident">std::env</span>;
-    <span class="kw">use</span> <span class="ident">std::path</span>::{<span class="self">self</span>, <span class="ident">Path</span>, <span class="ident">PathBuf</span>};
-    <span class="kw">use</span> <span class="ident">std::sync::Once</span>;
+<span class="attribute">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
+</span><span class="kw">mod </span>capture {
+    <span class="kw">use </span>backtrace::{BacktraceFmt, BytesOrWideString, Frame, PrintFmt, SymbolName};
+    <span class="kw">use </span>core::cell::UnsafeCell;
+    <span class="kw">use </span>core::fmt::{<span class="self">self</span>, Debug, Display};
+    <span class="kw">use </span>core::sync::atomic::{AtomicUsize, Ordering};
+    <span class="kw">use </span>std::borrow::Cow;
+    <span class="kw">use </span>std::env;
+    <span class="kw">use </span>std::path::{<span class="self">self</span>, Path, PathBuf};
+    <span class="kw">use </span>std::sync::Once;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Backtrace</span> {
-        <span class="ident">inner</span>: <span class="ident">Inner</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Backtrace {
+        inner: Inner,
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">BacktraceStatus</span> {
-        <span class="ident">Unsupported</span>,
-        <span class="ident">Disabled</span>,
-        <span class="ident">Captured</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>BacktraceStatus {
+        Unsupported,
+        Disabled,
+        Captured,
     }
 
-    <span class="kw">enum</span> <span class="ident">Inner</span> {
-        <span class="ident">Unsupported</span>,
-        <span class="ident">Disabled</span>,
-        <span class="ident">Captured</span>(<span class="ident">LazilyResolvedCapture</span>),
+    <span class="kw">enum </span>Inner {
+        Unsupported,
+        Disabled,
+        Captured(LazilyResolvedCapture),
     }
 
-    <span class="kw">struct</span> <span class="ident">Capture</span> {
-        <span class="ident">actual_start</span>: <span class="ident">usize</span>,
-        <span class="ident">resolved</span>: <span class="ident">bool</span>,
-        <span class="ident">frames</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BacktraceFrame</span><span class="op">&gt;</span>,
+    <span class="kw">struct </span>Capture {
+        actual_start: usize,
+        resolved: bool,
+        frames: Vec&lt;BacktraceFrame&gt;,
     }
 
-    <span class="kw">struct</span> <span class="ident">BacktraceFrame</span> {
-        <span class="ident">frame</span>: <span class="ident">Frame</span>,
-        <span class="ident">symbols</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BacktraceSymbol</span><span class="op">&gt;</span>,
+    <span class="kw">struct </span>BacktraceFrame {
+        frame: Frame,
+        symbols: Vec&lt;BacktraceSymbol&gt;,
     }
 
-    <span class="kw">struct</span> <span class="ident">BacktraceSymbol</span> {
-        <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">filename</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BytesOrWide</span><span class="op">&gt;</span>,
-        <span class="ident">lineno</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-        <span class="ident">colno</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+    <span class="kw">struct </span>BacktraceSymbol {
+        name: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
+        filename: <span class="prelude-ty">Option</span>&lt;BytesOrWide&gt;,
+        lineno: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+        colno: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     }
 
-    <span class="kw">enum</span> <span class="ident">BytesOrWide</span> {
-        <span class="ident">Bytes</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>),
-        <span class="ident">Wide</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>),
+    <span class="kw">enum </span>BytesOrWide {
+        Bytes(Vec&lt;u8&gt;),
+        Wide(Vec&lt;u16&gt;),
     }
 
-    <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Backtrace</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-            <span class="kw">let</span> <span class="ident">capture</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span> {
-                <span class="ident">Inner::Unsupported</span> =&gt; <span class="kw">return</span> <span class="ident">fmt</span>.<span class="ident">write_str</span>(<span class="string">&quot;&lt;unsupported&gt;&quot;</span>),
-                <span class="ident">Inner::Disabled</span> =&gt; <span class="kw">return</span> <span class="ident">fmt</span>.<span class="ident">write_str</span>(<span class="string">&quot;&lt;disabled&gt;&quot;</span>),
-                <span class="ident">Inner::Captured</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>.<span class="ident">force</span>(),
+    <span class="kw">impl </span>Debug <span class="kw">for </span>Backtrace {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+            <span class="kw">let </span>capture = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+                Inner::Unsupported =&gt; <span class="kw">return </span>fmt.write_str(<span class="string">&quot;&lt;unsupported&gt;&quot;</span>),
+                Inner::Disabled =&gt; <span class="kw">return </span>fmt.write_str(<span class="string">&quot;&lt;disabled&gt;&quot;</span>),
+                Inner::Captured(c) =&gt; c.force(),
             };
 
-            <span class="kw">let</span> <span class="ident">frames</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">capture</span>.<span class="ident">frames</span>[<span class="ident">capture</span>.<span class="ident">actual_start</span>..];
+            <span class="kw">let </span>frames = <span class="kw-2">&amp;</span>capture.frames[capture.actual_start..];
 
-            <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot;Backtrace &quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(fmt, <span class="string">&quot;Backtrace &quot;</span>)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dbg</span> <span class="op">=</span> <span class="ident">fmt</span>.<span class="ident">debug_list</span>();
+            <span class="kw">let </span><span class="kw-2">mut </span>dbg = fmt.debug_list();
 
-            <span class="kw">for</span> <span class="ident">frame</span> <span class="kw">in</span> <span class="ident">frames</span> {
-                <span class="kw">if</span> <span class="ident">frame</span>.<span class="ident">frame</span>.<span class="ident">ip</span>().<span class="ident">is_null</span>() {
+            <span class="kw">for </span>frame <span class="kw">in </span>frames {
+                <span class="kw">if </span>frame.frame.ip().is_null() {
                     <span class="kw">continue</span>;
                 }
 
-                <span class="ident">dbg</span>.<span class="ident">entries</span>(<span class="kw-2">&amp;</span><span class="ident">frame</span>.<span class="ident">symbols</span>);
+                dbg.entries(<span class="kw-2">&amp;</span>frame.symbols);
             }
 
-            <span class="ident">dbg</span>.<span class="ident">finish</span>()
+            dbg.finish()
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">BacktraceFrame</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dbg</span> <span class="op">=</span> <span class="ident">fmt</span>.<span class="ident">debug_list</span>();
-            <span class="ident">dbg</span>.<span class="ident">entries</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">symbols</span>);
-            <span class="ident">dbg</span>.<span class="ident">finish</span>()
+    <span class="kw">impl </span>Debug <span class="kw">for </span>BacktraceFrame {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+            <span class="kw">let </span><span class="kw-2">mut </span>dbg = fmt.debug_list();
+            dbg.entries(<span class="kw-2">&amp;</span><span class="self">self</span>.symbols);
+            dbg.finish()
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">BacktraceSymbol</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-            <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot;{{ &quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">impl </span>Debug <span class="kw">for </span>BacktraceSymbol {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+            <span class="macro">write!</span>(fmt, <span class="string">&quot;{{ &quot;</span>)<span class="question-mark">?</span>;
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fn_name</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">SymbolName::new</span>(<span class="ident">b</span>)) {
-                <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot;fn: \&quot;{:#}\&quot;&quot;</span>, <span class="ident">fn_name</span>)<span class="question-mark">?</span>;
-            } <span class="kw">else</span> {
-                <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot;fn: &lt;unknown&gt;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(fn_name) = <span class="self">self</span>.name.as_ref().map(|b| SymbolName::new(b)) {
+                <span class="macro">write!</span>(fmt, <span class="string">&quot;fn: \&quot;{:#}\&quot;&quot;</span>, fn_name)<span class="question-mark">?</span>;
+            } <span class="kw">else </span>{
+                <span class="macro">write!</span>(fmt, <span class="string">&quot;fn: &lt;unknown&gt;&quot;</span>)<span class="question-mark">?</span>;
             }
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fname</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">filename</span>.<span class="ident">as_ref</span>() {
-                <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot;, file: \&quot;{:?}\&quot;&quot;</span>, <span class="ident">fname</span>)<span class="question-mark">?</span>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(fname) = <span class="self">self</span>.filename.as_ref() {
+                <span class="macro">write!</span>(fmt, <span class="string">&quot;, file: \&quot;{:?}\&quot;&quot;</span>, fname)<span class="question-mark">?</span>;
             }
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">line</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">lineno</span> {
-                <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot;, line: {:?}&quot;</span>, <span class="ident">line</span>)<span class="question-mark">?</span>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(line) = <span class="self">self</span>.lineno {
+                <span class="macro">write!</span>(fmt, <span class="string">&quot;, line: {:?}&quot;</span>, line)<span class="question-mark">?</span>;
             }
 
-            <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot; }}&quot;</span>)
+            <span class="macro">write!</span>(fmt, <span class="string">&quot; }}&quot;</span>)
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">BytesOrWide</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-            <span class="ident">output_filename</span>(
-                <span class="ident">fmt</span>,
-                <span class="kw">match</span> <span class="self">self</span> {
-                    <span class="ident">BytesOrWide::Bytes</span>(<span class="ident">w</span>) =&gt; <span class="ident">BytesOrWideString::Bytes</span>(<span class="ident">w</span>),
-                    <span class="ident">BytesOrWide::Wide</span>(<span class="ident">w</span>) =&gt; <span class="ident">BytesOrWideString::Wide</span>(<span class="ident">w</span>),
+    <span class="kw">impl </span>Debug <span class="kw">for </span>BytesOrWide {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+            output_filename(
+                fmt,
+                <span class="kw">match </span><span class="self">self </span>{
+                    BytesOrWide::Bytes(w) =&gt; BytesOrWideString::Bytes(w),
+                    BytesOrWide::Wide(w) =&gt; BytesOrWideString::Wide(w),
                 },
-                <span class="ident">PrintFmt::Short</span>,
-                <span class="ident">env::current_dir</span>().<span class="ident">as_ref</span>().<span class="ident">ok</span>(),
+                PrintFmt::Short,
+                env::current_dir().as_ref().ok(),
             )
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">Backtrace</span> {
-        <span class="kw">fn</span> <span class="ident">enabled</span>() -&gt; <span class="ident">bool</span> {
-            <span class="kw">static</span> <span class="ident">ENABLED</span>: <span class="ident">AtomicUsize</span> <span class="op">=</span> <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>);
-            <span class="kw">match</span> <span class="ident">ENABLED</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
-                <span class="number">0</span> =&gt; {}
-                <span class="number">1</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
-                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
+    <span class="kw">impl </span>Backtrace {
+        <span class="kw">fn </span>enabled() -&gt; bool {
+            <span class="kw">static </span>ENABLED: AtomicUsize = AtomicUsize::new(<span class="number">0</span>);
+            <span class="kw">match </span>ENABLED.load(Ordering::Relaxed) {
+                <span class="number">0 </span>=&gt; {}
+                <span class="number">1 </span>=&gt; <span class="kw">return </span><span class="bool-val">false</span>,
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="bool-val">true</span>,
             }
-            <span class="kw">let</span> <span class="ident">enabled</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">env::var_os</span>(<span class="string">&quot;RUST_LIB_BACKTRACE&quot;</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;0&quot;</span>,
-                <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident">env::var_os</span>(<span class="string">&quot;RUST_BACKTRACE&quot;</span>) {
-                    <span class="prelude-val">Some</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;0&quot;</span>,
-                    <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
+            <span class="kw">let </span>enabled = <span class="kw">match </span>env::var_os(<span class="string">&quot;RUST_LIB_BACKTRACE&quot;</span>) {
+                <span class="prelude-val">Some</span>(s) =&gt; s != <span class="string">&quot;0&quot;</span>,
+                <span class="prelude-val">None </span>=&gt; <span class="kw">match </span>env::var_os(<span class="string">&quot;RUST_BACKTRACE&quot;</span>) {
+                    <span class="prelude-val">Some</span>(s) =&gt; s != <span class="string">&quot;0&quot;</span>,
+                    <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
                 },
             };
-            <span class="ident">ENABLED</span>.<span class="ident">store</span>(<span class="ident">enabled</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">Ordering::Relaxed</span>);
-            <span class="ident">enabled</span>
+            ENABLED.store(enabled <span class="kw">as </span>usize + <span class="number">1</span>, Ordering::Relaxed);
+            enabled
         }
 
-        <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span> <span class="comment">// want to make sure there&#39;s a frame here to remove</span>
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">capture</span>() -&gt; <span class="ident">Backtrace</span> {
-            <span class="kw">if</span> <span class="ident">Backtrace::enabled</span>() {
-                <span class="ident">Backtrace::create</span>(<span class="ident">Backtrace::capture</span> <span class="kw">as</span> <span class="ident">usize</span>)
-            } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Inner::Disabled</span>;
-                <span class="ident">Backtrace</span> { <span class="ident">inner</span> }
+        <span class="attribute">#[inline(never)] </span><span class="comment">// want to make sure there&#39;s a frame here to remove
+        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>capture() -&gt; Backtrace {
+            <span class="kw">if </span>Backtrace::enabled() {
+                Backtrace::create(Backtrace::capture <span class="kw">as </span>usize)
+            } <span class="kw">else </span>{
+                <span class="kw">let </span>inner = Inner::Disabled;
+                Backtrace { inner }
             }
         }
 
-        <span class="comment">// Capture a backtrace which starts just before the function addressed</span>
-        <span class="comment">// by `ip`</span>
-        <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">ip</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Backtrace</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">frames</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">actual_start</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-            <span class="ident">backtrace::trace</span>(<span class="op">|</span><span class="ident">frame</span><span class="op">|</span> {
-                <span class="ident">frames</span>.<span class="ident">push</span>(<span class="ident">BacktraceFrame</span> {
-                    <span class="ident">frame</span>: <span class="ident">frame</span>.<span class="ident">clone</span>(),
-                    <span class="ident">symbols</span>: <span class="ident">Vec::new</span>(),
+        <span class="comment">// Capture a backtrace which starts just before the function addressed
+        // by `ip`
+        </span><span class="kw">fn </span>create(ip: usize) -&gt; Backtrace {
+            <span class="kw">let </span><span class="kw-2">mut </span>frames = Vec::new();
+            <span class="kw">let </span><span class="kw-2">mut </span>actual_start = <span class="prelude-val">None</span>;
+            backtrace::trace(|frame| {
+                frames.push(BacktraceFrame {
+                    frame: frame.clone(),
+                    symbols: Vec::new(),
                 });
-                <span class="kw">if</span> <span class="ident">frame</span>.<span class="ident">symbol_address</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">==</span> <span class="ident">ip</span> <span class="op">&amp;&amp;</span> <span class="ident">actual_start</span>.<span class="ident">is_none</span>() {
-                    <span class="ident">actual_start</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">frames</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>);
+                <span class="kw">if </span>frame.symbol_address() <span class="kw">as </span>usize == ip &amp;&amp; actual_start.is_none() {
+                    actual_start = <span class="prelude-val">Some</span>(frames.len() + <span class="number">1</span>);
                 }
-                <span class="bool-val">true</span>
-            });
+                <span class="bool-val">true
+            </span>});
 
-            <span class="comment">// If no frames came out assume that this is an unsupported platform</span>
-            <span class="comment">// since `backtrace` doesn&#39;t provide a way of learning this right</span>
-            <span class="comment">// now, and this should be a good enough approximation.</span>
-            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">frames</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">Inner::Unsupported</span>
-            } <span class="kw">else</span> {
-                <span class="ident">Inner::Captured</span>(<span class="ident">LazilyResolvedCapture::new</span>(<span class="ident">Capture</span> {
-                    <span class="ident">actual_start</span>: <span class="ident">actual_start</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>),
-                    <span class="ident">frames</span>,
-                    <span class="ident">resolved</span>: <span class="bool-val">false</span>,
+            <span class="comment">// If no frames came out assume that this is an unsupported platform
+            // since `backtrace` doesn&#39;t provide a way of learning this right
+            // now, and this should be a good enough approximation.
+            </span><span class="kw">let </span>inner = <span class="kw">if </span>frames.is_empty() {
+                Inner::Unsupported
+            } <span class="kw">else </span>{
+                Inner::Captured(LazilyResolvedCapture::new(Capture {
+                    actual_start: actual_start.unwrap_or(<span class="number">0</span>),
+                    frames,
+                    resolved: <span class="bool-val">false</span>,
                 }))
             };
 
-            <span class="ident">Backtrace</span> { <span class="ident">inner</span> }
+            Backtrace { inner }
         }
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">BacktraceStatus</span> {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span> {
-                <span class="ident">Inner::Unsupported</span> =&gt; <span class="ident">BacktraceStatus::Unsupported</span>,
-                <span class="ident">Inner::Disabled</span> =&gt; <span class="ident">BacktraceStatus::Disabled</span>,
-                <span class="ident">Inner::Captured</span>(<span class="kw">_</span>) =&gt; <span class="ident">BacktraceStatus::Captured</span>,
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BacktraceStatus {
+            <span class="kw">match </span><span class="self">self</span>.inner {
+                Inner::Unsupported =&gt; BacktraceStatus::Unsupported,
+                Inner::Disabled =&gt; BacktraceStatus::Disabled,
+                Inner::Captured(<span class="kw">_</span>) =&gt; BacktraceStatus::Captured,
             }
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Backtrace</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-            <span class="kw">let</span> <span class="ident">capture</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span> {
-                <span class="ident">Inner::Unsupported</span> =&gt; <span class="kw">return</span> <span class="ident">fmt</span>.<span class="ident">write_str</span>(<span class="string">&quot;unsupported backtrace&quot;</span>),
-                <span class="ident">Inner::Disabled</span> =&gt; <span class="kw">return</span> <span class="ident">fmt</span>.<span class="ident">write_str</span>(<span class="string">&quot;disabled backtrace&quot;</span>),
-                <span class="ident">Inner::Captured</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>.<span class="ident">force</span>(),
+    <span class="kw">impl </span>Display <span class="kw">for </span>Backtrace {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+            <span class="kw">let </span>capture = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+                Inner::Unsupported =&gt; <span class="kw">return </span>fmt.write_str(<span class="string">&quot;unsupported backtrace&quot;</span>),
+                Inner::Disabled =&gt; <span class="kw">return </span>fmt.write_str(<span class="string">&quot;disabled backtrace&quot;</span>),
+                Inner::Captured(c) =&gt; c.force(),
             };
 
-            <span class="kw">let</span> <span class="ident">full</span> <span class="op">=</span> <span class="ident">fmt</span>.<span class="ident">alternate</span>();
-            <span class="kw">let</span> (<span class="ident">frames</span>, <span class="ident">style</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">full</span> {
-                (<span class="kw-2">&amp;</span><span class="ident">capture</span>.<span class="ident">frames</span>[..], <span class="ident">PrintFmt::Full</span>)
-            } <span class="kw">else</span> {
-                (<span class="kw-2">&amp;</span><span class="ident">capture</span>.<span class="ident">frames</span>[<span class="ident">capture</span>.<span class="ident">actual_start</span>..], <span class="ident">PrintFmt::Short</span>)
+            <span class="kw">let </span>full = fmt.alternate();
+            <span class="kw">let </span>(frames, style) = <span class="kw">if </span>full {
+                (<span class="kw-2">&amp;</span>capture.frames[..], PrintFmt::Full)
+            } <span class="kw">else </span>{
+                (<span class="kw-2">&amp;</span>capture.frames[capture.actual_start..], PrintFmt::Short)
             };
 
-            <span class="comment">// When printing paths we try to strip the cwd if it exists,</span>
-            <span class="comment">// otherwise we just print the path as-is. Note that we also only do</span>
-            <span class="comment">// this for the short format, because if it&#39;s full we presumably</span>
-            <span class="comment">// want to print everything.</span>
-            <span class="kw">let</span> <span class="ident">cwd</span> <span class="op">=</span> <span class="ident">env::current_dir</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">print_path</span> <span class="op">=</span> <span class="kw">move</span> <span class="op">|</span><span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>, <span class="ident">path</span>: <span class="ident">BytesOrWideString</span><span class="op">|</span> {
-                <span class="ident">output_filename</span>(<span class="ident">fmt</span>, <span class="ident">path</span>, <span class="ident">style</span>, <span class="ident">cwd</span>.<span class="ident">as_ref</span>().<span class="ident">ok</span>())
+            <span class="comment">// When printing paths we try to strip the cwd if it exists,
+            // otherwise we just print the path as-is. Note that we also only do
+            // this for the short format, because if it&#39;s full we presumably
+            // want to print everything.
+            </span><span class="kw">let </span>cwd = env::current_dir();
+            <span class="kw">let </span><span class="kw-2">mut </span>print_path = <span class="kw">move </span>|fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter, path: BytesOrWideString| {
+                output_filename(fmt, path, style, cwd.as_ref().ok())
             };
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">BacktraceFmt::new</span>(<span class="ident">fmt</span>, <span class="ident">style</span>, <span class="kw-2">&amp;mut</span> <span class="ident">print_path</span>);
-            <span class="ident">f</span>.<span class="ident">add_context</span>()<span class="question-mark">?</span>;
-            <span class="kw">for</span> <span class="ident">frame</span> <span class="kw">in</span> <span class="ident">frames</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">frame</span>();
-                <span class="kw">if</span> <span class="ident">frame</span>.<span class="ident">symbols</span>.<span class="ident">is_empty</span>() {
-                    <span class="ident">f</span>.<span class="ident">print_raw</span>(<span class="ident">frame</span>.<span class="ident">frame</span>.<span class="ident">ip</span>(), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-                } <span class="kw">else</span> {
-                    <span class="kw">for</span> <span class="ident">symbol</span> <span class="kw">in</span> <span class="ident">frame</span>.<span class="ident">symbols</span>.<span class="ident">iter</span>() {
-                        <span class="ident">f</span>.<span class="ident">print_raw_with_column</span>(
-                            <span class="ident">frame</span>.<span class="ident">frame</span>.<span class="ident">ip</span>(),
-                            <span class="ident">symbol</span>.<span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">SymbolName::new</span>(<span class="ident">b</span>)),
-                            <span class="ident">symbol</span>.<span class="ident">filename</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">b</span> {
-                                <span class="ident">BytesOrWide::Bytes</span>(<span class="ident">w</span>) =&gt; <span class="ident">BytesOrWideString::Bytes</span>(<span class="ident">w</span>),
-                                <span class="ident">BytesOrWide::Wide</span>(<span class="ident">w</span>) =&gt; <span class="ident">BytesOrWideString::Wide</span>(<span class="ident">w</span>),
+            <span class="kw">let </span><span class="kw-2">mut </span>f = BacktraceFmt::new(fmt, style, <span class="kw-2">&amp;mut </span>print_path);
+            f.add_context()<span class="question-mark">?</span>;
+            <span class="kw">for </span>frame <span class="kw">in </span>frames {
+                <span class="kw">let </span><span class="kw-2">mut </span>f = f.frame();
+                <span class="kw">if </span>frame.symbols.is_empty() {
+                    f.print_raw(frame.frame.ip(), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+                } <span class="kw">else </span>{
+                    <span class="kw">for </span>symbol <span class="kw">in </span>frame.symbols.iter() {
+                        f.print_raw_with_column(
+                            frame.frame.ip(),
+                            symbol.name.as_ref().map(|b| SymbolName::new(b)),
+                            symbol.filename.as_ref().map(|b| <span class="kw">match </span>b {
+                                BytesOrWide::Bytes(w) =&gt; BytesOrWideString::Bytes(w),
+                                BytesOrWide::Wide(w) =&gt; BytesOrWideString::Wide(w),
                             }),
-                            <span class="ident">symbol</span>.<span class="ident">lineno</span>,
-                            <span class="ident">symbol</span>.<span class="ident">colno</span>,
+                            symbol.lineno,
+                            symbol.colno,
                         )<span class="question-mark">?</span>;
                     }
                 }
             }
-            <span class="ident">f</span>.<span class="ident">finish</span>()<span class="question-mark">?</span>;
+            f.finish()<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(())
         }
     }
 
-    <span class="kw">struct</span> <span class="ident">LazilyResolvedCapture</span> {
-        <span class="ident">sync</span>: <span class="ident">Once</span>,
-        <span class="ident">capture</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">Capture</span><span class="op">&gt;</span>,
+    <span class="kw">struct </span>LazilyResolvedCapture {
+        sync: Once,
+        capture: UnsafeCell&lt;Capture&gt;,
     }
 
-    <span class="kw">impl</span> <span class="ident">LazilyResolvedCapture</span> {
-        <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">capture</span>: <span class="ident">Capture</span>) -&gt; <span class="self">Self</span> {
-            <span class="ident">LazilyResolvedCapture</span> {
-                <span class="ident">sync</span>: <span class="ident">Once::new</span>(),
-                <span class="ident">capture</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">capture</span>),
+    <span class="kw">impl </span>LazilyResolvedCapture {
+        <span class="kw">fn </span>new(capture: Capture) -&gt; <span class="self">Self </span>{
+            LazilyResolvedCapture {
+                sync: Once::new(),
+                capture: UnsafeCell::new(capture),
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">force</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Capture</span> {
-            <span class="self">self</span>.<span class="ident">sync</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="comment">// Safety: This exclusive reference can&#39;t overlap with any</span>
-                <span class="comment">// others. `Once` guarantees callers will block until this</span>
-                <span class="comment">// closure returns. `Once` also guarantees only a single caller</span>
-                <span class="comment">// will enter this closure.</span>
-                <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">capture</span>.<span class="ident">get</span>() }.<span class="ident">resolve</span>();
+        <span class="kw">fn </span>force(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Capture {
+            <span class="self">self</span>.sync.call_once(|| {
+                <span class="comment">// Safety: This exclusive reference can&#39;t overlap with any
+                // others. `Once` guarantees callers will block until this
+                // closure returns. `Once` also guarantees only a single caller
+                // will enter this closure.
+                </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.capture.get() }.resolve();
             });
 
-            <span class="comment">// Safety: This shared reference can&#39;t overlap with the exclusive</span>
-            <span class="comment">// reference above.</span>
-            <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">capture</span>.<span class="ident">get</span>() }
+            <span class="comment">// Safety: This shared reference can&#39;t overlap with the exclusive
+            // reference above.
+            </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.capture.get() }
         }
     }
 
-    <span class="comment">// Safety: Access to the inner value is synchronized using a thread-safe</span>
-    <span class="comment">// `Once`. So long as `Capture` is `Sync`, `LazilyResolvedCapture` is too</span>
-    <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">LazilyResolvedCapture</span> <span class="kw">where</span> <span class="ident">Capture</span>: <span class="ident">Sync</span> {}
+    <span class="comment">// Safety: Access to the inner value is synchronized using a thread-safe
+    // `Once`. So long as `Capture` is `Sync`, `LazilyResolvedCapture` is too
+    </span><span class="kw">unsafe impl </span>Sync <span class="kw">for </span>LazilyResolvedCapture <span class="kw">where </span>Capture: Sync {}
 
-    <span class="kw">impl</span> <span class="ident">Capture</span> {
-        <span class="kw">fn</span> <span class="ident">resolve</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-            <span class="comment">// If we&#39;re already resolved, nothing to do!</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">resolved</span> {
+    <span class="kw">impl </span>Capture {
+        <span class="kw">fn </span>resolve(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+            <span class="comment">// If we&#39;re already resolved, nothing to do!
+            </span><span class="kw">if </span><span class="self">self</span>.resolved {
                 <span class="kw">return</span>;
             }
-            <span class="self">self</span>.<span class="ident">resolved</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="self">self</span>.resolved = <span class="bool-val">true</span>;
 
-            <span class="kw">for</span> <span class="ident">frame</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">frames</span>.<span class="ident">iter_mut</span>() {
-                <span class="kw">let</span> <span class="ident">symbols</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">frame</span>.<span class="ident">symbols</span>;
-                <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">frame</span>.<span class="ident">frame</span>;
-                <span class="ident">backtrace::resolve_frame</span>(<span class="ident">frame</span>, <span class="op">|</span><span class="ident">symbol</span><span class="op">|</span> {
-                    <span class="ident">symbols</span>.<span class="ident">push</span>(<span class="ident">BacktraceSymbol</span> {
-                        <span class="ident">name</span>: <span class="ident">symbol</span>.<span class="ident">name</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">as_bytes</span>().<span class="ident">to_vec</span>()),
-                        <span class="ident">filename</span>: <span class="ident">symbol</span>.<span class="ident">filename_raw</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">b</span> {
-                            <span class="ident">BytesOrWideString::Bytes</span>(<span class="ident">b</span>) =&gt; <span class="ident">BytesOrWide::Bytes</span>(<span class="ident">b</span>.<span class="ident">to_owned</span>()),
-                            <span class="ident">BytesOrWideString::Wide</span>(<span class="ident">b</span>) =&gt; <span class="ident">BytesOrWide::Wide</span>(<span class="ident">b</span>.<span class="ident">to_owned</span>()),
+            <span class="kw">for </span>frame <span class="kw">in </span><span class="self">self</span>.frames.iter_mut() {
+                <span class="kw">let </span>symbols = <span class="kw-2">&amp;mut </span>frame.symbols;
+                <span class="kw">let </span>frame = <span class="kw-2">&amp;</span>frame.frame;
+                backtrace::resolve_frame(frame, |symbol| {
+                    symbols.push(BacktraceSymbol {
+                        name: symbol.name().map(|m| m.as_bytes().to_vec()),
+                        filename: symbol.filename_raw().map(|b| <span class="kw">match </span>b {
+                            BytesOrWideString::Bytes(b) =&gt; BytesOrWide::Bytes(b.to_owned()),
+                            BytesOrWideString::Wide(b) =&gt; BytesOrWide::Wide(b.to_owned()),
                         }),
-                        <span class="ident">lineno</span>: <span class="ident">symbol</span>.<span class="ident">lineno</span>(),
-                        <span class="ident">colno</span>: <span class="ident">symbol</span>.<span class="ident">colno</span>(),
+                        lineno: symbol.lineno(),
+                        colno: symbol.colno(),
                     });
                 });
             }
         }
     }
 
-    <span class="comment">// Prints the filename of the backtrace frame.</span>
-    <span class="kw">fn</span> <span class="ident">output_filename</span>(
-        <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>,
-        <span class="ident">bows</span>: <span class="ident">BytesOrWideString</span>,
-        <span class="ident">print_fmt</span>: <span class="ident">PrintFmt</span>,
-        <span class="ident">cwd</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">file</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">bows</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-            <span class="ident">BytesOrWideString::Bytes</span>(<span class="ident">bytes</span>) =&gt; {
-                <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
-                <span class="ident">Path::new</span>(<span class="ident">std::ffi::OsStr::from_bytes</span>(<span class="ident">bytes</span>)).<span class="ident">into</span>()
+    <span class="comment">// Prints the filename of the backtrace frame.
+    </span><span class="kw">fn </span>output_filename(
+        fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter,
+        bows: BytesOrWideString,
+        print_fmt: PrintFmt,
+        cwd: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PathBuf&gt;,
+    ) -&gt; fmt::Result {
+        <span class="kw">let </span>file: Cow&lt;Path&gt; = <span class="kw">match </span>bows {
+            <span class="attribute">#[cfg(unix)]
+            </span>BytesOrWideString::Bytes(bytes) =&gt; {
+                <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
+                Path::new(std::ffi::OsStr::from_bytes(bytes)).into()
             }
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">unix</span>))]</span>
-            <span class="ident">BytesOrWideString::Bytes</span>(<span class="ident">bytes</span>) =&gt; {
-                <span class="ident">Path::new</span>(<span class="ident">std::str::from_utf8</span>(<span class="ident">bytes</span>).<span class="ident">unwrap_or</span>(<span class="string">&quot;&lt;unknown&gt;&quot;</span>)).<span class="ident">into</span>()
+            <span class="attribute">#[cfg(not(unix))]
+            </span>BytesOrWideString::Bytes(bytes) =&gt; {
+                Path::new(std::str::from_utf8(bytes).unwrap_or(<span class="string">&quot;&lt;unknown&gt;&quot;</span>)).into()
             }
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-            <span class="ident">BytesOrWideString::Wide</span>(<span class="ident">wide</span>) =&gt; {
-                <span class="kw">use</span> <span class="ident">std::os::windows::ffi::OsStringExt</span>;
-                <span class="ident">Cow::Owned</span>(<span class="ident">std::ffi::OsString::from_wide</span>(<span class="ident">wide</span>).<span class="ident">into</span>())
+            <span class="attribute">#[cfg(windows)]
+            </span>BytesOrWideString::Wide(wide) =&gt; {
+                <span class="kw">use </span>std::os::windows::ffi::OsStringExt;
+                Cow::Owned(std::ffi::OsString::from_wide(wide).into())
             }
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">windows</span>))]</span>
-            <span class="ident">BytesOrWideString::Wide</span>(<span class="ident">_wide</span>) =&gt; <span class="ident">Path::new</span>(<span class="string">&quot;&lt;unknown&gt;&quot;</span>).<span class="ident">into</span>(),
+            <span class="attribute">#[cfg(not(windows))]
+            </span>BytesOrWideString::Wide(_wide) =&gt; Path::new(<span class="string">&quot;&lt;unknown&gt;&quot;</span>).into(),
         };
-        <span class="kw">if</span> <span class="ident">print_fmt</span> <span class="op">==</span> <span class="ident">PrintFmt::Short</span> <span class="op">&amp;&amp;</span> <span class="ident">file</span>.<span class="ident">is_absolute</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cwd</span>) <span class="op">=</span> <span class="ident">cwd</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">stripped</span>) <span class="op">=</span> <span class="ident">file</span>.<span class="ident">strip_prefix</span>(<span class="kw-2">&amp;</span><span class="ident">cwd</span>) {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">stripped</span>.<span class="ident">to_str</span>() {
-                        <span class="kw">return</span> <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot;.{}{}&quot;</span>, <span class="ident">path::MAIN_SEPARATOR</span>, <span class="ident">s</span>);
+        <span class="kw">if </span>print_fmt == PrintFmt::Short &amp;&amp; file.is_absolute() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(cwd) = cwd {
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(stripped) = file.strip_prefix(<span class="kw-2">&amp;</span>cwd) {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = stripped.to_str() {
+                        <span class="kw">return </span><span class="macro">write!</span>(fmt, <span class="string">&quot;.{}{}&quot;</span>, path::MAIN_SEPARATOR, s);
                     }
                 }
             }
         }
-        <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">file</span>.<span class="ident">display</span>(), <span class="ident">fmt</span>)
+        Display::fmt(<span class="kw-2">&amp;</span>file.display(), fmt)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">_assert_send_sync</span>() {
-    <span class="kw">fn</span> <span class="ident">_assert</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>() {}
-    <span class="ident">_assert</span>::<span class="op">&lt;</span><span class="ident">Backtrace</span><span class="op">&gt;</span>();
+<span class="kw">fn </span>_assert_send_sync() {
+    <span class="kw">fn </span>_assert&lt;T: Send + Sync&gt;() {}
+    _assert::&lt;Backtrace&gt;();
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="anyhow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="anyhow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

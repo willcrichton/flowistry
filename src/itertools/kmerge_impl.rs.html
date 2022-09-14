@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.3/src/kmerge_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>kmerge_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.4/src/kmerge_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>kmerge_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -232,233 +225,232 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::size_hint</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Itertools</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::size_hint;
+<span class="kw">use </span><span class="kw">crate</span>::Itertools;
 
-<span class="kw">use</span> <span class="ident">alloc::vec::Vec</span>;
-<span class="kw">use</span> <span class="ident">std::iter::FusedIterator</span>;
-<span class="kw">use</span> <span class="ident">std::mem::replace</span>;
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use </span>alloc::vec::Vec;
+<span class="kw">use </span>std::iter::FusedIterator;
+<span class="kw">use </span>std::mem::replace;
+<span class="kw">use </span>std::fmt;
 
-<span class="doccomment">/// Head element and Tail iterator pair</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `PartialEq`, `Eq`, `PartialOrd` and `Ord` are implemented by comparing sequences based on</span>
-<span class="doccomment">/// first items (which are guaranteed to exist).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The meanings of `PartialOrd` and `Ord` are reversed so as to turn the heap used in</span>
-<span class="doccomment">/// `KMerge` into a min-heap.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">HeadTail</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>
+<span class="doccomment">/// Head element and Tail iterator pair
+///
+/// `PartialEq`, `Eq`, `PartialOrd` and `Ord` are implemented by comparing sequences based on
+/// first items (which are guaranteed to exist).
+///
+/// The meanings of `PartialOrd` and `Ord` are reversed so as to turn the heap used in
+/// `KMerge` into a min-heap.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>HeadTail&lt;I&gt;
+    <span class="kw">where </span>I: Iterator
 {
-    <span class="ident">head</span>: <span class="ident">I::Item</span>,
-    <span class="ident">tail</span>: <span class="ident">I</span>,
+    head: I::Item,
+    tail: I,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">HeadTail</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>
+<span class="kw">impl</span>&lt;I&gt; HeadTail&lt;I&gt;
+    <span class="kw">where </span>I: Iterator
 {
-    <span class="doccomment">/// Constructs a `HeadTail` from an `Iterator`. Returns `None` if the `Iterator` is empty.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="kw-2">mut</span> <span class="ident">it</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HeadTail</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">next</span>();
-        <span class="ident">head</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> {
-            <span class="ident">HeadTail</span> {
-                <span class="ident">head</span>: <span class="ident">h</span>,
-                <span class="ident">tail</span>: <span class="ident">it</span>,
+    <span class="doccomment">/// Constructs a `HeadTail` from an `Iterator`. Returns `None` if the `Iterator` is empty.
+    </span><span class="kw">fn </span>new(<span class="kw-2">mut </span>it: I) -&gt; <span class="prelude-ty">Option</span>&lt;HeadTail&lt;I&gt;&gt; {
+        <span class="kw">let </span>head = it.next();
+        head.map(|h| {
+            HeadTail {
+                head: h,
+                tail: it,
             }
         })
     }
 
-    <span class="doccomment">/// Get the next element and update `head`, returning the old head in `Some`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` when the tail is exhausted (only `head` then remains).</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">tail</span>.<span class="ident">next</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">replace</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">head</span>, <span class="ident">next</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+    <span class="doccomment">/// Get the next element and update `head`, returning the old head in `Some`.
+    ///
+    /// Returns `None` when the tail is exhausted (only `head` then remains).
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;I::Item&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.tail.next() {
+            <span class="prelude-val">Some</span>(replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.head, next))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="doccomment">/// Hints at the size of the sequence, same as the `Iterator` method.</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-        <span class="ident">size_hint::add_scalar</span>(<span class="self">self</span>.<span class="ident">tail</span>.<span class="ident">size_hint</span>(), <span class="number">1</span>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">HeadTail</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span> <span class="op">+</span> <span class="ident">Clone</span>,
-          <span class="ident">I::Item</span>: <span class="ident">Clone</span>
-{
-    <span class="macro">clone_fields!</span>(<span class="ident">head</span>, <span class="ident">tail</span>);
-}
-
-<span class="doccomment">/// Make `data` a heap (min-heap w.r.t the sorting).</span>
-<span class="kw">fn</span> <span class="ident">heapify</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">data</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">T</span>], <span class="kw-2">mut</span> <span class="ident">less_than</span>: <span class="ident">S</span>)
-    <span class="kw">where</span> <span class="ident">S</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">bool</span>
-{
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">2</span>).<span class="ident">rev</span>() {
-        <span class="ident">sift_down</span>(<span class="ident">data</span>, <span class="ident">i</span>, <span class="kw-2">&amp;mut</span> <span class="ident">less_than</span>);
+    <span class="doccomment">/// Hints at the size of the sequence, same as the `Iterator` method.
+    </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        size_hint::add_scalar(<span class="self">self</span>.tail.size_hint(), <span class="number">1</span>)
     }
 }
 
-<span class="doccomment">/// Sift down element at `index` (`heap` is a min-heap wrt the ordering)</span>
-<span class="kw">fn</span> <span class="ident">sift_down</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">heap</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">T</span>], <span class="ident">index</span>: <span class="ident">usize</span>, <span class="kw-2">mut</span> <span class="ident">less_than</span>: <span class="ident">S</span>)
-    <span class="kw">where</span> <span class="ident">S</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">bool</span>
+<span class="kw">impl</span>&lt;I&gt; Clone <span class="kw">for </span>HeadTail&lt;I&gt;
+    <span class="kw">where </span>I: Iterator + Clone,
+          I::Item: Clone
 {
-    <span class="macro">debug_assert!</span>(<span class="ident">index</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">heap</span>.<span class="ident">len</span>());
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">index</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">child</span> <span class="op">=</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">pos</span> <span class="op">+</span> <span class="number">1</span>;
-    <span class="comment">// Require the right child to be present</span>
-    <span class="comment">// This allows to find the index of the smallest child without a branch</span>
-    <span class="comment">// that wouldn&#39;t be predicted if present</span>
-    <span class="kw">while</span> <span class="ident">child</span> <span class="op">+</span> <span class="number">1</span> <span class="op">&lt;</span> <span class="ident">heap</span>.<span class="ident">len</span>() {
-        <span class="comment">// pick the smaller of the two children</span>
-        <span class="comment">// use aritmethic to avoid an unpredictable branch</span>
-        <span class="ident">child</span> <span class="op">+</span><span class="op">=</span> <span class="ident">less_than</span>(<span class="kw-2">&amp;</span><span class="ident">heap</span>[<span class="ident">child</span><span class="op">+</span><span class="number">1</span>], <span class="kw-2">&amp;</span><span class="ident">heap</span>[<span class="ident">child</span>]) <span class="kw">as</span> <span class="ident">usize</span>;
+    <span class="macro">clone_fields!</span>(head, tail);
+}
 
-        <span class="comment">// sift down is done if we are already in order</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">less_than</span>(<span class="kw-2">&amp;</span><span class="ident">heap</span>[<span class="ident">child</span>], <span class="kw-2">&amp;</span><span class="ident">heap</span>[<span class="ident">pos</span>]) {
+<span class="doccomment">/// Make `data` a heap (min-heap w.r.t the sorting).
+</span><span class="kw">fn </span>heapify&lt;T, S&gt;(data: <span class="kw-2">&amp;mut </span>[T], <span class="kw-2">mut </span>less_than: S)
+    <span class="kw">where </span>S: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; bool
+{
+    <span class="kw">for </span>i <span class="kw">in </span>(<span class="number">0</span>..data.len() / <span class="number">2</span>).rev() {
+        sift_down(data, i, <span class="kw-2">&amp;mut </span>less_than);
+    }
+}
+
+<span class="doccomment">/// Sift down element at `index` (`heap` is a min-heap wrt the ordering)
+</span><span class="kw">fn </span>sift_down&lt;T, S&gt;(heap: <span class="kw-2">&amp;mut </span>[T], index: usize, <span class="kw-2">mut </span>less_than: S)
+    <span class="kw">where </span>S: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; bool
+{
+    <span class="macro">debug_assert!</span>(index &lt;= heap.len());
+    <span class="kw">let </span><span class="kw-2">mut </span>pos = index;
+    <span class="kw">let </span><span class="kw-2">mut </span>child = <span class="number">2 </span>* pos + <span class="number">1</span>;
+    <span class="comment">// Require the right child to be present
+    // This allows to find the index of the smallest child without a branch
+    // that wouldn&#39;t be predicted if present
+    </span><span class="kw">while </span>child + <span class="number">1 </span>&lt; heap.len() {
+        <span class="comment">// pick the smaller of the two children
+        // use arithmetic to avoid an unpredictable branch
+        </span>child += less_than(<span class="kw-2">&amp;</span>heap[child+<span class="number">1</span>], <span class="kw-2">&amp;</span>heap[child]) <span class="kw">as </span>usize;
+
+        <span class="comment">// sift down is done if we are already in order
+        </span><span class="kw">if </span>!less_than(<span class="kw-2">&amp;</span>heap[child], <span class="kw-2">&amp;</span>heap[pos]) {
             <span class="kw">return</span>;
         }
-        <span class="ident">heap</span>.<span class="ident">swap</span>(<span class="ident">pos</span>, <span class="ident">child</span>);
-        <span class="ident">pos</span> <span class="op">=</span> <span class="ident">child</span>;
-        <span class="ident">child</span> <span class="op">=</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">pos</span> <span class="op">+</span> <span class="number">1</span>;
+        heap.swap(pos, child);
+        pos = child;
+        child = <span class="number">2 </span>* pos + <span class="number">1</span>;
     }
-    <span class="comment">// Check if the last (left) child was an only child</span>
-    <span class="comment">// if it is then it has to be compared with the parent</span>
-    <span class="kw">if</span> <span class="ident">child</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">heap</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">less_than</span>(<span class="kw-2">&amp;</span><span class="ident">heap</span>[<span class="ident">child</span>], <span class="kw-2">&amp;</span><span class="ident">heap</span>[<span class="ident">pos</span>]) {
-        <span class="ident">heap</span>.<span class="ident">swap</span>(<span class="ident">pos</span>, <span class="ident">child</span>);
-    }
-}
-
-<span class="doccomment">/// An iterator adaptor that merges an abitrary number of base iterators in ascending order.</span>
-<span class="doccomment">/// If all base iterators are sorted (ascending), the result is sorted.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Iterator element type is `I::Item`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.kmerge()`](crate::Itertools::kmerge) for more information.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">KMerge</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">KMergeBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">KMergeByLt</span><span class="op">&gt;</span>;
-
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">KMergePredicate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">kmerge_pred</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">bool</span>;
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KMergeByLt</span>;
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialOrd</span><span class="op">&gt;</span> <span class="ident">KMergePredicate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">KMergeByLt</span> {
-    <span class="kw">fn</span> <span class="ident">kmerge_pred</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">a</span> <span class="op">&lt;</span> <span class="ident">b</span>
+    <span class="comment">// Check if the last (left) child was an only child
+    // if it is then it has to be compared with the parent
+    </span><span class="kw">if </span>child + <span class="number">1 </span>== heap.len() &amp;&amp; less_than(<span class="kw-2">&amp;</span>heap[child], <span class="kw-2">&amp;</span>heap[pos]) {
+        heap.swap(pos, child);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="ident">T</span>)-&gt;<span class="ident">bool</span><span class="op">&gt;</span> <span class="ident">KMergePredicate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">F</span> {
-    <span class="kw">fn</span> <span class="ident">kmerge_pred</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>(<span class="ident">a</span>, <span class="ident">b</span>)
+<span class="doccomment">/// An iterator adaptor that merges an abitrary number of base iterators in ascending order.
+/// If all base iterators are sorted (ascending), the result is sorted.
+///
+/// Iterator element type is `I::Item`.
+///
+/// See [`.kmerge()`](crate::Itertools::kmerge) for more information.
+</span><span class="kw">pub type </span>KMerge&lt;I&gt; = KMergeBy&lt;I, KMergeByLt&gt;;
+
+<span class="kw">pub trait </span>KMergePredicate&lt;T&gt; {
+    <span class="kw">fn </span>kmerge_pred(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; bool;
+}
+
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>KMergeByLt;
+
+<span class="kw">impl</span>&lt;T: PartialOrd&gt; KMergePredicate&lt;T&gt; <span class="kw">for </span>KMergeByLt {
+    <span class="kw">fn </span>kmerge_pred(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; bool {
+        a &lt; b
     }
 }
 
-<span class="doccomment">/// Create an iterator that merges elements of the contained iterators using</span>
-<span class="doccomment">/// the ordering function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Equivalent to `iterable.into_iter().kmerge()`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use itertools::kmerge;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// for elt in kmerge(vec![vec![0, 2, 4], vec![1, 3, 5], vec![6, 7]]) {</span>
-<span class="doccomment">///     /* loop body */</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kmerge</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iterable</span>: <span class="ident">I</span>) -&gt; <span class="ident">KMerge</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">I::Item</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::IntoIter</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">IntoIterator</span>,
-          <span class="ident">I::Item</span>: <span class="ident">IntoIterator</span>,
-          <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">I</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::Item</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::Item</span>: <span class="ident">PartialOrd</span>
-{
-    <span class="ident">kmerge_by</span>(<span class="ident">iterable</span>, <span class="ident">KMergeByLt</span>)
+<span class="kw">impl</span>&lt;T, F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T)-&gt;bool&gt; KMergePredicate&lt;T&gt; <span class="kw">for </span>F {
+    <span class="kw">fn </span>kmerge_pred(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>T, b: <span class="kw-2">&amp;</span>T) -&gt; bool {
+        <span class="self">self</span>(a, b)
+    }
 }
 
-<span class="doccomment">/// An iterator adaptor that merges an abitrary number of base iterators</span>
-<span class="doccomment">/// according to an ordering function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Iterator element type is `I::Item`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.kmerge_by()`](crate::Itertools::kmerge_by) for more</span>
-<span class="doccomment">/// information.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KMergeBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="doccomment">/// Create an iterator that merges elements of the contained iterators using
+/// the ordering function.
+///
+/// [`IntoIterator`] enabled version of [`Itertools::kmerge`].
+///
+/// ```
+/// use itertools::kmerge;
+///
+/// for elt in kmerge(vec![vec![0, 2, 4], vec![1, 3, 5], vec![6, 7]]) {
+///     /* loop body */
+/// }
+/// ```
+</span><span class="kw">pub fn </span>kmerge&lt;I&gt;(iterable: I) -&gt; KMerge&lt;&lt;I::Item <span class="kw">as </span>IntoIterator&gt;::IntoIter&gt;
+    <span class="kw">where </span>I: IntoIterator,
+          I::Item: IntoIterator,
+          &lt;&lt;I <span class="kw">as </span>IntoIterator&gt;::Item <span class="kw">as </span>IntoIterator&gt;::Item: PartialOrd
 {
-    <span class="ident">heap</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HeadTail</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">less_than</span>: <span class="ident">F</span>,
+    kmerge_by(iterable, KMergeByLt)
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">KMergeBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span> <span class="op">+</span> <span class="ident">fmt::Debug</span>,
-          <span class="ident">I::Item</span>: <span class="ident">fmt::Debug</span>,
+<span class="doccomment">/// An iterator adaptor that merges an abitrary number of base iterators
+/// according to an ordering function.
+///
+/// Iterator element type is `I::Item`.
+///
+/// See [`.kmerge_by()`](crate::Itertools::kmerge_by) for more
+/// information.
+</span><span class="attribute">#[must_use = <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]
+</span><span class="kw">pub struct </span>KMergeBy&lt;I, F&gt;
+    <span class="kw">where </span>I: Iterator,
 {
-    <span class="macro">debug_fmt_fields!</span>(<span class="ident">KMergeBy</span>, <span class="ident">heap</span>);
+    heap: Vec&lt;HeadTail&lt;I&gt;&gt;,
+    less_than: F,
 }
 
-<span class="doccomment">/// Create an iterator that merges elements of the contained iterators.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Equivalent to `iterable.into_iter().kmerge_by(less_than)`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kmerge_by</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">iterable</span>: <span class="ident">I</span>, <span class="kw-2">mut</span> <span class="ident">less_than</span>: <span class="ident">F</span>)
-    -&gt; <span class="ident">KMergeBy</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">I::Item</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::IntoIter</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">IntoIterator</span>,
-          <span class="ident">I::Item</span>: <span class="ident">IntoIterator</span>,
-          <span class="ident">F</span>: <span class="ident">KMergePredicate</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">I</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::Item</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;I, F&gt; fmt::Debug <span class="kw">for </span>KMergeBy&lt;I, F&gt;
+    <span class="kw">where </span>I: Iterator + fmt::Debug,
+          I::Item: fmt::Debug,
 {
-    <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iterable</span>.<span class="ident">into_iter</span>();
-    <span class="kw">let</span> (<span class="ident">lower</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">size_hint</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">heap</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">lower</span>);
-    <span class="ident">heap</span>.<span class="ident">extend</span>(<span class="ident">iter</span>.<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">HeadTail::new</span>(<span class="ident">it</span>.<span class="ident">into_iter</span>())));
-    <span class="ident">heapify</span>(<span class="kw-2">&amp;mut</span> <span class="ident">heap</span>, <span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">less_than</span>.<span class="ident">kmerge_pred</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">head</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">head</span>));
-    <span class="ident">KMergeBy</span> { <span class="ident">heap</span>, <span class="ident">less_than</span> }
+    <span class="macro">debug_fmt_fields!</span>(KMergeBy, heap);
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">KMergeBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span> <span class="op">+</span> <span class="ident">Clone</span>,
-          <span class="ident">I::Item</span>: <span class="ident">Clone</span>,
-          <span class="ident">F</span>: <span class="ident">Clone</span>,
+<span class="doccomment">/// Create an iterator that merges elements of the contained iterators.
+///
+/// [`IntoIterator`] enabled version of [`Itertools::kmerge_by`].
+</span><span class="kw">pub fn </span>kmerge_by&lt;I, F&gt;(iterable: I, <span class="kw-2">mut </span>less_than: F)
+    -&gt; KMergeBy&lt;&lt;I::Item <span class="kw">as </span>IntoIterator&gt;::IntoIter, F&gt;
+    <span class="kw">where </span>I: IntoIterator,
+          I::Item: IntoIterator,
+          F: KMergePredicate&lt;&lt;&lt;I <span class="kw">as </span>IntoIterator&gt;::Item <span class="kw">as </span>IntoIterator&gt;::Item&gt;,
 {
-    <span class="macro">clone_fields!</span>(<span class="ident">heap</span>, <span class="ident">less_than</span>);
+    <span class="kw">let </span>iter = iterable.into_iter();
+    <span class="kw">let </span>(lower, <span class="kw">_</span>) = iter.size_hint();
+    <span class="kw">let </span><span class="kw-2">mut </span>heap: Vec&lt;<span class="kw">_</span>&gt; = Vec::with_capacity(lower);
+    heap.extend(iter.filter_map(|it| HeadTail::new(it.into_iter())));
+    heapify(<span class="kw-2">&amp;mut </span>heap, |a, b| less_than.kmerge_pred(<span class="kw-2">&amp;</span>a.head, <span class="kw-2">&amp;</span>b.head));
+    KMergeBy { heap, less_than }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">KMergeBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">F</span>: <span class="ident">KMergePredicate</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>
+<span class="kw">impl</span>&lt;I, F&gt; Clone <span class="kw">for </span>KMergeBy&lt;I, F&gt;
+    <span class="kw">where </span>I: Iterator + Clone,
+          I::Item: Clone,
+          F: Clone,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span>;
+    <span class="macro">clone_fields!</span>(heap, less_than);
+}
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">heap</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+<span class="kw">impl</span>&lt;I, F&gt; Iterator <span class="kw">for </span>KMergeBy&lt;I, F&gt;
+    <span class="kw">where </span>I: Iterator,
+          F: KMergePredicate&lt;I::Item&gt;
+{
+    <span class="kw">type </span>Item = I::Item;
+
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">if </span><span class="self">self</span>.heap.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">heap</span>[<span class="number">0</span>].<span class="ident">next</span>() {
-            <span class="ident">next</span>
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">heap</span>.<span class="ident">swap_remove</span>(<span class="number">0</span>).<span class="ident">head</span>
+        <span class="kw">let </span>result = <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.heap[<span class="number">0</span>].next() {
+            next
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.heap.swap_remove(<span class="number">0</span>).head
         };
-        <span class="kw">let</span> <span class="ident">less_than</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">less_than</span>;
-        <span class="ident">sift_down</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">heap</span>, <span class="number">0</span>, <span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">less_than</span>.<span class="ident">kmerge_pred</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">head</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">head</span>));
-        <span class="prelude-val">Some</span>(<span class="ident">result</span>)
+        <span class="kw">let </span>less_than = <span class="kw-2">&amp;mut </span><span class="self">self</span>.less_than;
+        sift_down(<span class="kw-2">&amp;mut </span><span class="self">self</span>.heap, <span class="number">0</span>, |a, b| less_than.kmerge_pred(<span class="kw-2">&amp;</span>a.head, <span class="kw-2">&amp;</span>b.head));
+        <span class="prelude-val">Some</span>(result)
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">heap</span>.<span class="ident">iter</span>()
-                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span>.<span class="ident">size_hint</span>())
-                 .<span class="ident">fold1</span>(<span class="ident">size_hint::add</span>)
-                 .<span class="ident">unwrap_or</span>((<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>)))
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="attribute">#[allow(deprecated)] </span><span class="comment">//TODO: once msrv hits 1.51. replace `fold1` with `reduce`
+        </span><span class="self">self</span>.heap.iter()
+                 .map(|i| i.size_hint())
+                 .fold1(size_hint::add)
+                 .unwrap_or((<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>)))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">KMergeBy</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">F</span>: <span class="ident">KMergePredicate</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>
+<span class="kw">impl</span>&lt;I, F&gt; FusedIterator <span class="kw">for </span>KMergeBy&lt;I, F&gt;
+    <span class="kw">where </span>I: Iterator,
+          F: KMergePredicate&lt;I::Item&gt;
 {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.10/src/identifier.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>identifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../semver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../semver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../semver/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.13/src/identifier.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>identifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../semver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../semver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../semver/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -405,406 +398,405 @@
 <span id="398">398</span>
 <span id="399">399</span>
 <span id="400">400</span>
-</pre><pre class="rust"><code><span class="comment">// This module implements Identifier, a short-optimized string allowed to</span>
-<span class="comment">// contain only the ASCII characters hyphen, dot, 0-9, A-Z, a-z.</span>
-<span class="comment">//</span>
-<span class="comment">// As of mid-2021, the distribution of pre-release lengths on crates.io is:</span>
-<span class="comment">//</span>
-<span class="comment">//     length  count         length  count         length  count</span>
-<span class="comment">//        0  355929            11      81            24       2</span>
-<span class="comment">//        1     208            12      48            25       6</span>
-<span class="comment">//        2     236            13      55            26      10</span>
-<span class="comment">//        3    1909            14      25            27       4</span>
-<span class="comment">//        4    1284            15      15            28       1</span>
-<span class="comment">//        5    1742            16      35            30       1</span>
-<span class="comment">//        6    3440            17       9            31       5</span>
-<span class="comment">//        7    5624            18       6            32       1</span>
-<span class="comment">//        8    1321            19      12            36       2</span>
-<span class="comment">//        9     179            20       2            37     379</span>
-<span class="comment">//       10      65            23      11</span>
-<span class="comment">//</span>
-<span class="comment">// and the distribution of build metadata lengths is:</span>
-<span class="comment">//</span>
-<span class="comment">//     length  count         length  count         length  count</span>
-<span class="comment">//        0  364445             8    7725            18       1</span>
-<span class="comment">//        1      72             9      16            19       1</span>
-<span class="comment">//        2       7            10      85            20       1</span>
-<span class="comment">//        3      28            11      17            22       4</span>
-<span class="comment">//        4       9            12      10            26       1</span>
-<span class="comment">//        5      68            13       9            27       1</span>
-<span class="comment">//        6      73            14      10            40       5</span>
-<span class="comment">//        7      53            15       6</span>
-<span class="comment">//</span>
-<span class="comment">// Therefore it really behooves us to be able to use the entire 8 bytes of a</span>
-<span class="comment">// pointer for inline storage. For both pre-release and build metadata there are</span>
-<span class="comment">// vastly more strings with length exactly 8 bytes than the sum over all lengths</span>
-<span class="comment">// longer than 8 bytes.</span>
-<span class="comment">//</span>
-<span class="comment">// To differentiate the inline representation from the heap allocated long</span>
-<span class="comment">// representation, we&#39;ll allocate heap pointers with 2-byte alignment so that</span>
-<span class="comment">// they are guaranteed to have an unset least significant bit. Then in the repr</span>
-<span class="comment">// we store for pointers, we rotate a 1 into the most significant bit of the</span>
-<span class="comment">// most significant byte, which is never set for an ASCII byte.</span>
-<span class="comment">//</span>
-<span class="comment">// Inline repr:</span>
-<span class="comment">//</span>
-<span class="comment">//     0xxxxxxx 0xxxxxxx 0xxxxxxx 0xxxxxxx 0xxxxxxx 0xxxxxxx 0xxxxxxx 0xxxxxxx</span>
-<span class="comment">//</span>
-<span class="comment">// Heap allocated repr:</span>
-<span class="comment">//</span>
-<span class="comment">//     1ppppppp pppppppp pppppppp pppppppp pppppppp pppppppp pppppppp pppppppp 0</span>
-<span class="comment">//     ^ most significant bit   least significant bit of orig ptr, rotated out ^</span>
-<span class="comment">//</span>
-<span class="comment">// Since the most significant bit doubles as a sign bit for the similarly sized</span>
-<span class="comment">// signed integer type, the CPU has an efficient instruction for inspecting it,</span>
-<span class="comment">// meaning we can differentiate between an inline repr and a heap allocated repr</span>
-<span class="comment">// in one instruction. Effectively an inline repr always looks like a positive</span>
-<span class="comment">// i64 while a heap allocated repr always looks like a negative i64.</span>
-<span class="comment">//</span>
-<span class="comment">// For the inline repr, we store \0 padding on the end of the stored characters,</span>
-<span class="comment">// and thus the string length is readily determined efficiently by a cttz (count</span>
-<span class="comment">// trailing zeros) or bsf (bit scan forward) instruction.</span>
-<span class="comment">//</span>
-<span class="comment">// For the heap allocated repr, the length is encoded as a base-128 varint at</span>
-<span class="comment">// the head of the allocation.</span>
-<span class="comment">//</span>
-<span class="comment">// Empty strings are stored as an all-1 bit pattern, corresponding to -1i64.</span>
-<span class="comment">// Consequently the all-0 bit pattern is never a legal representation in any</span>
-<span class="comment">// repr, leaving it available as a niche for downstream code. For example this</span>
-<span class="comment">// allows size_of::&lt;Version&gt;() == size_of::&lt;Option&lt;Version&gt;&gt;().</span>
+</pre><pre class="rust"><code><span class="comment">// This module implements Identifier, a short-optimized string allowed to
+// contain only the ASCII characters hyphen, dot, 0-9, A-Z, a-z.
+//
+// As of mid-2021, the distribution of pre-release lengths on crates.io is:
+//
+//     length  count         length  count         length  count
+//        0  355929            11      81            24       2
+//        1     208            12      48            25       6
+//        2     236            13      55            26      10
+//        3    1909            14      25            27       4
+//        4    1284            15      15            28       1
+//        5    1742            16      35            30       1
+//        6    3440            17       9            31       5
+//        7    5624            18       6            32       1
+//        8    1321            19      12            36       2
+//        9     179            20       2            37     379
+//       10      65            23      11
+//
+// and the distribution of build metadata lengths is:
+//
+//     length  count         length  count         length  count
+//        0  364445             8    7725            18       1
+//        1      72             9      16            19       1
+//        2       7            10      85            20       1
+//        3      28            11      17            22       4
+//        4       9            12      10            26       1
+//        5      68            13       9            27       1
+//        6      73            14      10            40       5
+//        7      53            15       6
+//
+// Therefore it really behooves us to be able to use the entire 8 bytes of a
+// pointer for inline storage. For both pre-release and build metadata there are
+// vastly more strings with length exactly 8 bytes than the sum over all lengths
+// longer than 8 bytes.
+//
+// To differentiate the inline representation from the heap allocated long
+// representation, we&#39;ll allocate heap pointers with 2-byte alignment so that
+// they are guaranteed to have an unset least significant bit. Then in the repr
+// we store for pointers, we rotate a 1 into the most significant bit of the
+// most significant byte, which is never set for an ASCII byte.
+//
+// Inline repr:
+//
+//     0xxxxxxx 0xxxxxxx 0xxxxxxx 0xxxxxxx 0xxxxxxx 0xxxxxxx 0xxxxxxx 0xxxxxxx
+//
+// Heap allocated repr:
+//
+//     1ppppppp pppppppp pppppppp pppppppp pppppppp pppppppp pppppppp pppppppp 0
+//     ^ most significant bit   least significant bit of orig ptr, rotated out ^
+//
+// Since the most significant bit doubles as a sign bit for the similarly sized
+// signed integer type, the CPU has an efficient instruction for inspecting it,
+// meaning we can differentiate between an inline repr and a heap allocated repr
+// in one instruction. Effectively an inline repr always looks like a positive
+// i64 while a heap allocated repr always looks like a negative i64.
+//
+// For the inline repr, we store \0 padding on the end of the stored characters,
+// and thus the string length is readily determined efficiently by a cttz (count
+// trailing zeros) or bsf (bit scan forward) instruction.
+//
+// For the heap allocated repr, the length is encoded as a base-128 varint at
+// the head of the allocation.
+//
+// Empty strings are stored as an all-1 bit pattern, corresponding to -1i64.
+// Consequently the all-0 bit pattern is never a legal representation in any
+// repr, leaving it available as a niche for downstream code. For example this
+// allows size_of::&lt;Version&gt;() == size_of::&lt;Option&lt;Version&gt;&gt;().
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::alloc::alloc</span>::{<span class="ident">alloc</span>, <span class="ident">dealloc</span>, <span class="ident">Layout</span>};
-<span class="kw">use</span> <span class="ident">core::mem</span>;
-<span class="kw">use</span> <span class="ident">core::num</span>::{<span class="ident">NonZeroU64</span>, <span class="ident">NonZeroUsize</span>};
-<span class="kw">use</span> <span class="ident">core::ptr</span>::{<span class="self">self</span>, <span class="ident">NonNull</span>};
-<span class="kw">use</span> <span class="ident">core::slice</span>;
-<span class="kw">use</span> <span class="ident">core::str</span>;
+</span><span class="kw">use </span><span class="kw">crate</span>::alloc::alloc::{alloc, dealloc, Layout};
+<span class="kw">use </span>core::mem;
+<span class="kw">use </span>core::num::{NonZeroU64, NonZeroUsize};
+<span class="kw">use </span>core::ptr::{<span class="self">self</span>, NonNull};
+<span class="kw">use </span>core::slice;
+<span class="kw">use </span>core::str;
 
-<span class="kw">const</span> <span class="ident">PTR_BYTES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+<span class="kw">const </span>PTR_BYTES: usize = mem::size_of::&lt;NonNull&lt;u8&gt;&gt;();
 
-<span class="comment">// If pointers are already 8 bytes or bigger, then 0. If pointers are smaller</span>
-<span class="comment">// than 8 bytes, then Identifier will contain a byte array to raise its size up</span>
-<span class="comment">// to 8 bytes total.</span>
-<span class="kw">const</span> <span class="ident">TAIL_BYTES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">8</span> <span class="op">*</span> (<span class="ident">PTR_BYTES</span> <span class="op">&lt;</span> <span class="number">8</span>) <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">PTR_BYTES</span> <span class="op">*</span> (<span class="ident">PTR_BYTES</span> <span class="op">&lt;</span> <span class="number">8</span>) <span class="kw">as</span> <span class="ident">usize</span>;
+<span class="comment">// If pointers are already 8 bytes or bigger, then 0. If pointers are smaller
+// than 8 bytes, then Identifier will contain a byte array to raise its size up
+// to 8 bytes total.
+</span><span class="kw">const </span>TAIL_BYTES: usize = <span class="number">8 </span>* (PTR_BYTES &lt; <span class="number">8</span>) <span class="kw">as </span>usize - PTR_BYTES * (PTR_BYTES &lt; <span class="number">8</span>) <span class="kw">as </span>usize;
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>, <span class="ident">align</span>(<span class="number">8</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Identifier</span> {
-    <span class="ident">head</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-    <span class="ident">tail</span>: [<span class="ident">u8</span>; <span class="ident">TAIL_BYTES</span>],
+<span class="attribute">#[repr(C, align(<span class="number">8</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Identifier {
+    head: NonNull&lt;u8&gt;,
+    tail: [u8; TAIL_BYTES],
 }
 
-<span class="kw">impl</span> <span class="ident">Identifier</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="self">Self</span> {
-        <span class="comment">// This is a separate constant because unsafe function calls are not</span>
-        <span class="comment">// allowed in a const fn body, only in a const, until later rustc than</span>
-        <span class="comment">// what we support.</span>
-        <span class="kw">const</span> <span class="ident">HEAD</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">NonNull::new_unchecked</span>(<span class="op">!</span><span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>) };
+<span class="kw">impl </span>Identifier {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>empty() -&gt; <span class="self">Self </span>{
+        <span class="comment">// This is a separate constant because unsafe function calls are not
+        // allowed in a const fn body, only in a const, until later rustc than
+        // what we support.
+        </span><span class="kw">const </span>HEAD: NonNull&lt;u8&gt; = <span class="kw">unsafe </span>{ NonNull::new_unchecked(!<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span>u8) };
 
-        <span class="comment">// `mov rax, -1`</span>
-        <span class="ident">Identifier</span> {
-            <span class="ident">head</span>: <span class="ident">HEAD</span>,
-            <span class="ident">tail</span>: [<span class="op">!</span><span class="number">0</span>; <span class="ident">TAIL_BYTES</span>],
+        <span class="comment">// `mov rax, -1`
+        </span>Identifier {
+            head: HEAD,
+            tail: [!<span class="number">0</span>; TAIL_BYTES],
         }
     }
 
-    <span class="comment">// SAFETY: string must be ASCII and not contain \0 bytes.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new_unchecked</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>();
-        <span class="kw">match</span> <span class="ident">len</span> <span class="kw">as</span> <span class="ident">u64</span> {
-            <span class="number">0</span> =&gt; <span class="ident"><span class="self">Self</span>::empty</span>(),
-            <span class="number">1</span>..<span class="op">=</span><span class="number">8</span> =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>()];
-                <span class="comment">// SAFETY: string is big enough to read len bytes, bytes is big</span>
-                <span class="comment">// enough to write len bytes, and they do not overlap.</span>
-                <span class="kw">unsafe</span> { <span class="ident">ptr::copy_nonoverlapping</span>(<span class="ident">string</span>.<span class="ident">as_ptr</span>(), <span class="ident">bytes</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">len</span>) };
-                <span class="comment">// SAFETY: the head field is nonzero because the input string</span>
-                <span class="comment">// was at least 1 byte of ASCII and did not contain \0.</span>
-                <span class="kw">unsafe</span> { <span class="ident">mem::transmute</span>::<span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>()], <span class="ident">Identifier</span><span class="op">&gt;</span>(<span class="ident">bytes</span>) }
+    <span class="comment">// SAFETY: string must be ASCII and not contain \0 bytes.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>new_unchecked(string: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>len = string.len();
+        <span class="kw">match </span>len <span class="kw">as </span>u64 {
+            <span class="number">0 </span>=&gt; <span class="self">Self</span>::empty(),
+            <span class="number">1</span>..=<span class="number">8 </span>=&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>bytes = [<span class="number">0u8</span>; mem::size_of::&lt;Identifier&gt;()];
+                <span class="comment">// SAFETY: string is big enough to read len bytes, bytes is big
+                // enough to write len bytes, and they do not overlap.
+                </span><span class="kw">unsafe </span>{ ptr::copy_nonoverlapping(string.as_ptr(), bytes.as_mut_ptr(), len) };
+                <span class="comment">// SAFETY: the head field is nonzero because the input string
+                // was at least 1 byte of ASCII and did not contain \0.
+                </span><span class="kw">unsafe </span>{ mem::transmute::&lt;[u8; mem::size_of::&lt;Identifier&gt;()], Identifier&gt;(bytes) }
             }
-            <span class="number">9</span>..<span class="op">=</span><span class="number">0xff_ffff_ffff_ffff</span> =&gt; {
-                <span class="comment">// SAFETY: len is in a range that does not contain 0.</span>
-                <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">bytes_for_varint</span>(<span class="kw">unsafe</span> { <span class="ident">NonZeroUsize::new_unchecked</span>(<span class="ident">len</span>) }) <span class="op">+</span> <span class="ident">len</span>;
-                <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="number">2</span>;
-                <span class="comment">// SAFETY: align is not zero, align is a power of two, and</span>
-                <span class="comment">// rounding size up to align does not overflow usize::MAX.</span>
-                <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Layout::from_size_align_unchecked</span>(<span class="ident">size</span>, <span class="ident">align</span>) };
-                <span class="comment">// SAFETY: layout&#39;s size is nonzero.</span>
-                <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">alloc</span>(<span class="ident">layout</span>) };
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">write</span> <span class="op">=</span> <span class="ident">ptr</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">varint_remaining</span> <span class="op">=</span> <span class="ident">len</span>;
-                <span class="kw">while</span> <span class="ident">varint_remaining</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                    <span class="comment">// SAFETY: size is bytes_for_varint(len) bytes + len bytes.</span>
-                    <span class="comment">// This is writing the first bytes_for_varint(len) bytes.</span>
-                    <span class="kw">unsafe</span> { <span class="ident">ptr::write</span>(<span class="ident">write</span>, <span class="ident">varint_remaining</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">|</span> <span class="number">0x80</span>) };
-                    <span class="ident">varint_remaining</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">7</span>;
-                    <span class="comment">// SAFETY: still in bounds of the same allocation.</span>
-                    <span class="ident">write</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">write</span>.<span class="ident">add</span>(<span class="number">1</span>) };
+            <span class="number">9</span>..=<span class="number">0xff_ffff_ffff_ffff </span>=&gt; {
+                <span class="comment">// SAFETY: len is in a range that does not contain 0.
+                </span><span class="kw">let </span>size = bytes_for_varint(<span class="kw">unsafe </span>{ NonZeroUsize::new_unchecked(len) }) + len;
+                <span class="kw">let </span>align = <span class="number">2</span>;
+                <span class="comment">// SAFETY: align is not zero, align is a power of two, and
+                // rounding size up to align does not overflow usize::MAX.
+                </span><span class="kw">let </span>layout = <span class="kw">unsafe </span>{ Layout::from_size_align_unchecked(size, align) };
+                <span class="comment">// SAFETY: layout&#39;s size is nonzero.
+                </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ alloc(layout) };
+                <span class="kw">let </span><span class="kw-2">mut </span>write = ptr;
+                <span class="kw">let </span><span class="kw-2">mut </span>varint_remaining = len;
+                <span class="kw">while </span>varint_remaining &gt; <span class="number">0 </span>{
+                    <span class="comment">// SAFETY: size is bytes_for_varint(len) bytes + len bytes.
+                    // This is writing the first bytes_for_varint(len) bytes.
+                    </span><span class="kw">unsafe </span>{ ptr::write(write, varint_remaining <span class="kw">as </span>u8 | <span class="number">0x80</span>) };
+                    varint_remaining &gt;&gt;= <span class="number">7</span>;
+                    <span class="comment">// SAFETY: still in bounds of the same allocation.
+                    </span>write = <span class="kw">unsafe </span>{ write.add(<span class="number">1</span>) };
                 }
-                <span class="comment">// SAFETY: size is bytes_for_varint(len) bytes + len bytes. This</span>
-                <span class="comment">// is writing to the last len bytes.</span>
-                <span class="kw">unsafe</span> { <span class="ident">ptr::copy_nonoverlapping</span>(<span class="ident">string</span>.<span class="ident">as_ptr</span>(), <span class="ident">write</span>, <span class="ident">len</span>) };
-                <span class="ident">Identifier</span> {
-                    <span class="ident">head</span>: <span class="ident">ptr_to_repr</span>(<span class="ident">ptr</span>),
-                    <span class="ident">tail</span>: [<span class="number">0</span>; <span class="ident">TAIL_BYTES</span>],
+                <span class="comment">// SAFETY: size is bytes_for_varint(len) bytes + len bytes. This
+                // is writing to the last len bytes.
+                </span><span class="kw">unsafe </span>{ ptr::copy_nonoverlapping(string.as_ptr(), write, len) };
+                Identifier {
+                    head: ptr_to_repr(ptr),
+                    tail: [<span class="number">0</span>; TAIL_BYTES],
                 }
             }
-            <span class="number">0x100_0000_0000_0000</span>..<span class="op">=</span><span class="number">0xffff_ffff_ffff_ffff</span> =&gt; {
+            <span class="number">0x100_0000_0000_0000</span>..=<span class="number">0xffff_ffff_ffff_ffff </span>=&gt; {
                 <span class="macro">unreachable!</span>(<span class="string">&quot;please refrain from storing &gt;64 petabytes of text in semver version&quot;</span>);
             }
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">no_exhaustive_int_match</span>)]</span> <span class="comment">// rustc &lt;1.33</span>
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+            <span class="attribute">#[cfg(no_exhaustive_int_match)] </span><span class="comment">// rustc &lt;1.33
+            </span><span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// `cmp rdi, -1` -- basically: `repr as i64 == -1`</span>
-        <span class="kw">let</span> <span class="ident">empty</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::empty</span>();
-        <span class="kw">let</span> <span class="ident">is_empty</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">head</span> <span class="op">==</span> <span class="ident">empty</span>.<span class="ident">head</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">tail</span> <span class="op">==</span> <span class="ident">empty</span>.<span class="ident">tail</span>;
-        <span class="comment">// The empty representation does nothing on Drop. We can&#39;t let this one</span>
-        <span class="comment">// drop normally because `impl Drop for Identifier` calls is_empty; that</span>
-        <span class="comment">// would be an infinite recursion.</span>
-        <span class="ident">mem::forget</span>(<span class="ident">empty</span>);
-        <span class="ident">is_empty</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="comment">// `cmp rdi, -1` -- basically: `repr as i64 == -1`
+        </span><span class="kw">let </span>empty = <span class="self">Self</span>::empty();
+        <span class="kw">let </span>is_empty = <span class="self">self</span>.head == empty.head &amp;&amp; <span class="self">self</span>.tail == empty.tail;
+        <span class="comment">// The empty representation does nothing on Drop. We can&#39;t let this one
+        // drop normally because `impl Drop for Identifier` calls is_empty; that
+        // would be an infinite recursion.
+        </span>mem::forget(empty);
+        is_empty
     }
 
-    <span class="kw">fn</span> <span class="ident">is_inline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// `test rdi, rdi` -- basically: `repr as i64 &gt;= 0`</span>
-        <span class="self">self</span>.<span class="ident">head</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&gt;</span><span class="op">&gt;</span> (<span class="ident">PTR_BYTES</span> <span class="op">*</span> <span class="number">8</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">==</span> <span class="number">0</span>
+    <span class="kw">fn </span>is_inline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="comment">// `test rdi, rdi` -- basically: `repr as i64 &gt;= 0`
+        </span><span class="self">self</span>.head.as_ptr() <span class="kw">as </span>usize &gt;&gt; (PTR_BYTES * <span class="number">8 </span>- <span class="number">1</span>) == <span class="number">0
+    </span>}
+
+    <span class="kw">fn </span>is_empty_or_inline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="comment">// `cmp rdi, -2` -- basically: `repr as i64 &gt; -2`
+        </span><span class="self">self</span>.is_empty() || <span class="self">self</span>.is_inline()
     }
 
-    <span class="kw">fn</span> <span class="ident">is_empty_or_inline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// `cmp rdi, -2` -- basically: `repr as i64 &gt; -2`</span>
-        <span class="self">self</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">is_inline</span>()
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_empty</span>() {
-            <span class="string">&quot;&quot;</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_inline</span>() {
-            <span class="comment">// SAFETY: repr is in the inline representation.</span>
-            <span class="kw">unsafe</span> { <span class="ident">inline_as_str</span>(<span class="self">self</span>) }
-        } <span class="kw">else</span> {
-            <span class="comment">// SAFETY: repr is in the heap allocated representation.</span>
-            <span class="kw">unsafe</span> { <span class="ident">ptr_as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">head</span>) }
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Identifier</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_empty_or_inline</span>() {
-            <span class="ident">Identifier</span> {
-                <span class="ident">head</span>: <span class="self">self</span>.<span class="ident">head</span>,
-                <span class="ident">tail</span>: <span class="self">self</span>.<span class="ident">tail</span>,
-            }
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">repr_to_ptr</span>(<span class="self">self</span>.<span class="ident">head</span>);
-            <span class="comment">// SAFETY: ptr is one of our own heap allocations.</span>
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">decode_len</span>(<span class="ident">ptr</span>) };
-            <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">bytes_for_varint</span>(<span class="ident">len</span>) <span class="op">+</span> <span class="ident">len</span>.<span class="ident">get</span>();
-            <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="number">2</span>;
-            <span class="comment">// SAFETY: align is not zero, align is a power of two, and rounding</span>
-            <span class="comment">// size up to align does not overflow usize::MAX. This is just</span>
-            <span class="comment">// duplicating a previous allocation where all of these guarantees</span>
-            <span class="comment">// were already made.</span>
-            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Layout::from_size_align_unchecked</span>(<span class="ident">size</span>, <span class="ident">align</span>) };
-            <span class="comment">// SAFETY: layout&#39;s size is nonzero.</span>
-            <span class="kw">let</span> <span class="ident">clone</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">alloc</span>(<span class="ident">layout</span>) };
-            <span class="comment">// SAFETY: new allocation cannot overlap the previous one (this was</span>
-            <span class="comment">// not a realloc). The argument ptrs are readable/writeable</span>
-            <span class="comment">// respectively for size bytes.</span>
-            <span class="kw">unsafe</span> { <span class="ident">ptr::copy_nonoverlapping</span>(<span class="ident">ptr</span>, <span class="ident">clone</span>, <span class="ident">size</span>) }
-            <span class="ident">Identifier</span> {
-                <span class="ident">head</span>: <span class="ident">ptr_to_repr</span>(<span class="ident">clone</span>),
-                <span class="ident">tail</span>: [<span class="number">0</span>; <span class="ident">TAIL_BYTES</span>],
-            }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">if </span><span class="self">self</span>.is_empty() {
+            <span class="string">&quot;&quot;
+        </span>} <span class="kw">else if </span><span class="self">self</span>.is_inline() {
+            <span class="comment">// SAFETY: repr is in the inline representation.
+            </span><span class="kw">unsafe </span>{ inline_as_str(<span class="self">self</span>) }
+        } <span class="kw">else </span>{
+            <span class="comment">// SAFETY: repr is in the heap allocated representation.
+            </span><span class="kw">unsafe </span>{ ptr_as_str(<span class="kw-2">&amp;</span><span class="self">self</span>.head) }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Identifier</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_empty_or_inline</span>() {
+<span class="kw">impl </span>Clone <span class="kw">for </span>Identifier {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span><span class="self">self</span>.is_empty_or_inline() {
+            Identifier {
+                head: <span class="self">self</span>.head,
+                tail: <span class="self">self</span>.tail,
+            }
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>ptr = repr_to_ptr(<span class="self">self</span>.head);
+            <span class="comment">// SAFETY: ptr is one of our own heap allocations.
+            </span><span class="kw">let </span>len = <span class="kw">unsafe </span>{ decode_len(ptr) };
+            <span class="kw">let </span>size = bytes_for_varint(len) + len.get();
+            <span class="kw">let </span>align = <span class="number">2</span>;
+            <span class="comment">// SAFETY: align is not zero, align is a power of two, and rounding
+            // size up to align does not overflow usize::MAX. This is just
+            // duplicating a previous allocation where all of these guarantees
+            // were already made.
+            </span><span class="kw">let </span>layout = <span class="kw">unsafe </span>{ Layout::from_size_align_unchecked(size, align) };
+            <span class="comment">// SAFETY: layout&#39;s size is nonzero.
+            </span><span class="kw">let </span>clone = <span class="kw">unsafe </span>{ alloc(layout) };
+            <span class="comment">// SAFETY: new allocation cannot overlap the previous one (this was
+            // not a realloc). The argument ptrs are readable/writeable
+            // respectively for size bytes.
+            </span><span class="kw">unsafe </span>{ ptr::copy_nonoverlapping(ptr, clone, size) }
+            Identifier {
+                head: ptr_to_repr(clone),
+                tail: [<span class="number">0</span>; TAIL_BYTES],
+            }
+        }
+    }
+}
+
+<span class="kw">impl </span>Drop <span class="kw">for </span>Identifier {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if </span><span class="self">self</span>.is_empty_or_inline() {
             <span class="kw">return</span>;
         }
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">repr_to_ptr_mut</span>(<span class="self">self</span>.<span class="ident">head</span>);
-        <span class="comment">// SAFETY: ptr is one of our own heap allocations.</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">decode_len</span>(<span class="ident">ptr</span>) };
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">bytes_for_varint</span>(<span class="ident">len</span>) <span class="op">+</span> <span class="ident">len</span>.<span class="ident">get</span>();
-        <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="number">2</span>;
-        <span class="comment">// SAFETY: align is not zero, align is a power of two, and rounding</span>
-        <span class="comment">// size up to align does not overflow usize::MAX. These guarantees were</span>
-        <span class="comment">// made when originally allocating this memory.</span>
-        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Layout::from_size_align_unchecked</span>(<span class="ident">size</span>, <span class="ident">align</span>) };
-        <span class="comment">// SAFETY: ptr was previously allocated by the same allocator with the</span>
-        <span class="comment">// same layout.</span>
-        <span class="kw">unsafe</span> { <span class="ident">dealloc</span>(<span class="ident">ptr</span>, <span class="ident">layout</span>) }
+        <span class="kw">let </span>ptr = repr_to_ptr_mut(<span class="self">self</span>.head);
+        <span class="comment">// SAFETY: ptr is one of our own heap allocations.
+        </span><span class="kw">let </span>len = <span class="kw">unsafe </span>{ decode_len(ptr) };
+        <span class="kw">let </span>size = bytes_for_varint(len) + len.get();
+        <span class="kw">let </span>align = <span class="number">2</span>;
+        <span class="comment">// SAFETY: align is not zero, align is a power of two, and rounding
+        // size up to align does not overflow usize::MAX. These guarantees were
+        // made when originally allocating this memory.
+        </span><span class="kw">let </span>layout = <span class="kw">unsafe </span>{ Layout::from_size_align_unchecked(size, align) };
+        <span class="comment">// SAFETY: ptr was previously allocated by the same allocator with the
+        // same layout.
+        </span><span class="kw">unsafe </span>{ dealloc(ptr, layout) }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Identifier</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_empty_or_inline</span>() {
-            <span class="comment">// Fast path (most common)</span>
-            <span class="self">self</span>.<span class="ident">head</span> <span class="op">==</span> <span class="ident">rhs</span>.<span class="ident">head</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">tail</span> <span class="op">==</span> <span class="ident">rhs</span>.<span class="ident">tail</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">rhs</span>.<span class="ident">is_empty_or_inline</span>() {
-            <span class="bool-val">false</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// SAFETY: both reprs are in the heap allocated representation.</span>
-            <span class="kw">unsafe</span> { <span class="ident">ptr_as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">head</span>) <span class="op">==</span> <span class="ident">ptr_as_str</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>.<span class="ident">head</span>) }
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>Identifier {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="kw">if </span><span class="self">self</span>.is_empty_or_inline() {
+            <span class="comment">// Fast path (most common)
+            </span><span class="self">self</span>.head == rhs.head &amp;&amp; <span class="self">self</span>.tail == rhs.tail
+        } <span class="kw">else if </span>rhs.is_empty_or_inline() {
+            <span class="bool-val">false
+        </span>} <span class="kw">else </span>{
+            <span class="comment">// SAFETY: both reprs are in the heap allocated representation.
+            </span><span class="kw">unsafe </span>{ ptr_as_str(<span class="kw-2">&amp;</span><span class="self">self</span>.head) == ptr_as_str(<span class="kw-2">&amp;</span>rhs.head) }
         }
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">Identifier</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">Identifier</span> {}
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>Identifier {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>Identifier {}
 
-<span class="comment">// We use heap pointers that are 2-byte aligned, meaning they have an</span>
-<span class="comment">// insignificant 0 in the least significant bit. We take advantage of that</span>
-<span class="comment">// unneeded bit to rotate a 1 into the most significant bit to make the repr</span>
-<span class="comment">// distinguishable from ASCII bytes.</span>
-<span class="kw">fn</span> <span class="ident">ptr_to_repr</span>(<span class="ident">original</span>: <span class="kw-2">*mut</span> <span class="ident">u8</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-    <span class="comment">// `mov eax, 1`</span>
-    <span class="comment">// `shld rax, rdi, 63`</span>
-    <span class="kw">let</span> <span class="ident">modified</span> <span class="op">=</span> (<span class="ident">original</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">|</span> <span class="number">1</span>).<span class="ident">rotate_right</span>(<span class="number">1</span>);
+<span class="comment">// We use heap pointers that are 2-byte aligned, meaning they have an
+// insignificant 0 in the least significant bit. We take advantage of that
+// unneeded bit to rotate a 1 into the most significant bit to make the repr
+// distinguishable from ASCII bytes.
+</span><span class="kw">fn </span>ptr_to_repr(original: <span class="kw-2">*mut </span>u8) -&gt; NonNull&lt;u8&gt; {
+    <span class="comment">// `mov eax, 1`
+    // `shld rax, rdi, 63`
+    </span><span class="kw">let </span>modified = (original <span class="kw">as </span>usize | <span class="number">1</span>).rotate_right(<span class="number">1</span>);
 
-    <span class="comment">// `original + (modified - original)`, but being mindful of provenance.</span>
-    <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> <span class="ident">modified</span>.<span class="ident">wrapping_sub</span>(<span class="ident">original</span> <span class="kw">as</span> <span class="ident">usize</span>);
-    <span class="kw">let</span> <span class="ident">modified</span> <span class="op">=</span> <span class="ident">original</span>.<span class="ident">wrapping_add</span>(<span class="ident">diff</span>);
+    <span class="comment">// `original + (modified - original)`, but being mindful of provenance.
+    </span><span class="kw">let </span>diff = modified.wrapping_sub(original <span class="kw">as </span>usize);
+    <span class="kw">let </span>modified = original.wrapping_add(diff);
 
-    <span class="comment">// SAFETY: the most significant bit of repr is known to be set, so the value</span>
-    <span class="comment">// is not zero.</span>
-    <span class="kw">unsafe</span> { <span class="ident">NonNull::new_unchecked</span>(<span class="ident">modified</span>) }
+    <span class="comment">// SAFETY: the most significant bit of repr is known to be set, so the value
+    // is not zero.
+    </span><span class="kw">unsafe </span>{ NonNull::new_unchecked(modified) }
 }
 
-<span class="comment">// Shift out the 1 previously placed into the most significant bit of the least</span>
-<span class="comment">// significant byte. Shift in a low 0 bit to reconstruct the original 2-byte</span>
-<span class="comment">// aligned pointer.</span>
-<span class="kw">fn</span> <span class="ident">repr_to_ptr</span>(<span class="ident">modified</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">*const</span> <span class="ident">u8</span> {
-    <span class="comment">// `lea rax, [rdi + rdi]`</span>
-    <span class="kw">let</span> <span class="ident">modified</span> <span class="op">=</span> <span class="ident">modified</span>.<span class="ident">as_ptr</span>();
-    <span class="kw">let</span> <span class="ident">original</span> <span class="op">=</span> (<span class="ident">modified</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>;
+<span class="comment">// Shift out the 1 previously placed into the most significant bit of the least
+// significant byte. Shift in a low 0 bit to reconstruct the original 2-byte
+// aligned pointer.
+</span><span class="kw">fn </span>repr_to_ptr(modified: NonNull&lt;u8&gt;) -&gt; <span class="kw-2">*const </span>u8 {
+    <span class="comment">// `lea rax, [rdi + rdi]`
+    </span><span class="kw">let </span>modified = modified.as_ptr();
+    <span class="kw">let </span>original = (modified <span class="kw">as </span>usize) &lt;&lt; <span class="number">1</span>;
 
-    <span class="comment">// `modified + (original - modified)`, but being mindful of provenance.</span>
-    <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> <span class="ident">original</span>.<span class="ident">wrapping_sub</span>(<span class="ident">modified</span> <span class="kw">as</span> <span class="ident">usize</span>);
-    <span class="ident">modified</span>.<span class="ident">wrapping_add</span>(<span class="ident">diff</span>)
+    <span class="comment">// `modified + (original - modified)`, but being mindful of provenance.
+    </span><span class="kw">let </span>diff = original.wrapping_sub(modified <span class="kw">as </span>usize);
+    modified.wrapping_add(diff)
 }
 
-<span class="kw">fn</span> <span class="ident">repr_to_ptr_mut</span>(<span class="ident">repr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">u8</span> {
-    <span class="ident">repr_to_ptr</span>(<span class="ident">repr</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>
+<span class="kw">fn </span>repr_to_ptr_mut(repr: NonNull&lt;u8&gt;) -&gt; <span class="kw-2">*mut </span>u8 {
+    repr_to_ptr(repr) <span class="kw">as </span><span class="kw-2">*mut </span>u8
 }
 
-<span class="comment">// Compute the length of the inline string, assuming the argument is in short</span>
-<span class="comment">// string representation. Short strings are stored as 1 to 8 nonzero ASCII</span>
-<span class="comment">// bytes, followed by \0 padding for the remaining bytes.</span>
-<span class="comment">//</span>
-<span class="comment">// SAFETY: the identifier must indeed be in the inline representation.</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">inline_len</span>(<span class="ident">repr</span>: <span class="kw-2">&amp;</span><span class="ident">Identifier</span>) -&gt; <span class="ident">NonZeroUsize</span> {
-    <span class="comment">// SAFETY: Identifier&#39;s layout is align(8) and at least size 8. We&#39;re doing</span>
-    <span class="comment">// an aligned read of the first 8 bytes from it. The bytes are not all zero</span>
-    <span class="comment">// because inline strings are at least 1 byte long and cannot contain \0.</span>
-    <span class="kw">let</span> <span class="ident">repr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ptr::read</span>(<span class="ident">repr</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">Identifier</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">NonZeroU64</span>) };
+<span class="comment">// Compute the length of the inline string, assuming the argument is in short
+// string representation. Short strings are stored as 1 to 8 nonzero ASCII
+// bytes, followed by \0 padding for the remaining bytes.
+//
+// SAFETY: the identifier must indeed be in the inline representation.
+</span><span class="kw">unsafe fn </span>inline_len(repr: <span class="kw-2">&amp;</span>Identifier) -&gt; NonZeroUsize {
+    <span class="comment">// SAFETY: Identifier&#39;s layout is align(8) and at least size 8. We&#39;re doing
+    // an aligned read of the first 8 bytes from it. The bytes are not all zero
+    // because inline strings are at least 1 byte long and cannot contain \0.
+    </span><span class="kw">let </span>repr = <span class="kw">unsafe </span>{ ptr::read(repr <span class="kw">as </span><span class="kw-2">*const </span>Identifier <span class="kw">as </span><span class="kw-2">*const </span>NonZeroU64) };
 
-    <span class="comment">// Rustc &gt;=1.53 has intrinsics for counting zeros on a non-zeroable integer.</span>
-    <span class="comment">// On many architectures these are more efficient than counting on ordinary</span>
-    <span class="comment">// zeroable integers (bsf vs cttz). On rustc &lt;1.53 without those intrinsics,</span>
-    <span class="comment">// we count zeros in the u64 rather than the NonZeroU64.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">no_nonzero_bitscan</span>)]</span>
-    <span class="kw">let</span> <span class="ident">repr</span> <span class="op">=</span> <span class="ident">repr</span>.<span class="ident">get</span>();
+    <span class="comment">// Rustc &gt;=1.53 has intrinsics for counting zeros on a non-zeroable integer.
+    // On many architectures these are more efficient than counting on ordinary
+    // zeroable integers (bsf vs cttz). On rustc &lt;1.53 without those intrinsics,
+    // we count zeros in the u64 rather than the NonZeroU64.
+    </span><span class="attribute">#[cfg(no_nonzero_bitscan)]
+    </span><span class="kw">let </span>repr = repr.get();
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>)]</span>
-    <span class="kw">let</span> <span class="ident">zero_bits_on_string_end</span> <span class="op">=</span> <span class="ident">repr</span>.<span class="ident">leading_zeros</span>();
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>)]</span>
-    <span class="kw">let</span> <span class="ident">zero_bits_on_string_end</span> <span class="op">=</span> <span class="ident">repr</span>.<span class="ident">trailing_zeros</span>();
+    <span class="attribute">#[cfg(target_endian = <span class="string">&quot;little&quot;</span>)]
+    </span><span class="kw">let </span>zero_bits_on_string_end = repr.leading_zeros();
+    <span class="attribute">#[cfg(target_endian = <span class="string">&quot;big&quot;</span>)]
+    </span><span class="kw">let </span>zero_bits_on_string_end = repr.trailing_zeros();
 
-    <span class="kw">let</span> <span class="ident">nonzero_bytes</span> <span class="op">=</span> <span class="number">8</span> <span class="op">-</span> <span class="ident">zero_bits_on_string_end</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">/</span> <span class="number">8</span>;
+    <span class="kw">let </span>nonzero_bytes = <span class="number">8 </span>- zero_bits_on_string_end <span class="kw">as </span>usize / <span class="number">8</span>;
 
-    <span class="comment">// SAFETY: repr is nonzero, so it has at most 63 zero bits on either end,</span>
-    <span class="comment">// thus at least one nonzero byte.</span>
-    <span class="kw">unsafe</span> { <span class="ident">NonZeroUsize::new_unchecked</span>(<span class="ident">nonzero_bytes</span>) }
+    <span class="comment">// SAFETY: repr is nonzero, so it has at most 63 zero bits on either end,
+    // thus at least one nonzero byte.
+    </span><span class="kw">unsafe </span>{ NonZeroUsize::new_unchecked(nonzero_bytes) }
 }
 
-<span class="comment">// SAFETY: repr must be in the inline representation, i.e. at least 1 and at</span>
-<span class="comment">// most 8 nonzero ASCII bytes padded on the end with \0 bytes.</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">inline_as_str</span>(<span class="ident">repr</span>: <span class="kw-2">&amp;</span><span class="ident">Identifier</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-    <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">repr</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">Identifier</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span>;
-    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">inline_len</span>(<span class="ident">repr</span>) }.<span class="ident">get</span>();
-    <span class="comment">// SAFETY: we are viewing the nonzero ASCII prefix of the inline repr&#39;s</span>
-    <span class="comment">// contents as a slice of bytes. Input/output lifetimes are correctly</span>
-    <span class="comment">// associated.</span>
-    <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">slice::from_raw_parts</span>(<span class="ident">ptr</span>, <span class="ident">len</span>) };
-    <span class="comment">// SAFETY: the string contents are known to be only ASCII bytes, which are</span>
-    <span class="comment">// always valid UTF-8.</span>
-    <span class="kw">unsafe</span> { <span class="ident">str::from_utf8_unchecked</span>(<span class="ident">slice</span>) }
+<span class="comment">// SAFETY: repr must be in the inline representation, i.e. at least 1 and at
+// most 8 nonzero ASCII bytes padded on the end with \0 bytes.
+</span><span class="kw">unsafe fn </span>inline_as_str(repr: <span class="kw-2">&amp;</span>Identifier) -&gt; <span class="kw-2">&amp;</span>str {
+    <span class="kw">let </span>ptr = repr <span class="kw">as </span><span class="kw-2">*const </span>Identifier <span class="kw">as </span><span class="kw-2">*const </span>u8;
+    <span class="kw">let </span>len = <span class="kw">unsafe </span>{ inline_len(repr) }.get();
+    <span class="comment">// SAFETY: we are viewing the nonzero ASCII prefix of the inline repr&#39;s
+    // contents as a slice of bytes. Input/output lifetimes are correctly
+    // associated.
+    </span><span class="kw">let </span>slice = <span class="kw">unsafe </span>{ slice::from_raw_parts(ptr, len) };
+    <span class="comment">// SAFETY: the string contents are known to be only ASCII bytes, which are
+    // always valid UTF-8.
+    </span><span class="kw">unsafe </span>{ str::from_utf8_unchecked(slice) }
 }
 
-<span class="comment">// Decode varint. Varints consist of between one and eight base-128 digits, each</span>
-<span class="comment">// of which is stored in a byte with most significant bit set. Adjacent to the</span>
-<span class="comment">// varint in memory there is guaranteed to be at least 9 ASCII bytes, each of</span>
-<span class="comment">// which has an unset most significant bit.</span>
-<span class="comment">//</span>
-<span class="comment">// SAFETY: ptr must be one of our own heap allocations, with the varint header</span>
-<span class="comment">// already written.</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">decode_len</span>(<span class="ident">ptr</span>: <span class="kw-2">*const</span> <span class="ident">u8</span>) -&gt; <span class="ident">NonZeroUsize</span> {
-    <span class="comment">// SAFETY: There is at least one byte of varint followed by at least 9 bytes</span>
-    <span class="comment">// of string content, which is at least 10 bytes total for the allocation,</span>
-    <span class="comment">// so reading the first two is no problem.</span>
-    <span class="kw">let</span> [<span class="ident">first</span>, <span class="ident">second</span>] <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ptr::read</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*const</span> [<span class="ident">u8</span>; <span class="number">2</span>]) };
-    <span class="kw">if</span> <span class="ident">second</span> <span class="op">&lt;</span> <span class="number">0x80</span> {
-        <span class="comment">// SAFETY: the length of this heap allocated string has been encoded as</span>
-        <span class="comment">// one base-128 digit, so the length is at least 9 and at most 127. It</span>
-        <span class="comment">// cannot be zero.</span>
-        <span class="kw">unsafe</span> { <span class="ident">NonZeroUsize::new_unchecked</span>((<span class="ident">first</span> <span class="op">&amp;</span> <span class="number">0x7f</span>) <span class="kw">as</span> <span class="ident">usize</span>) }
-    } <span class="kw">else</span> {
-        <span class="kw">return</span> <span class="kw">unsafe</span> { <span class="ident">decode_len_cold</span>(<span class="ident">ptr</span>) };
+<span class="comment">// Decode varint. Varints consist of between one and eight base-128 digits, each
+// of which is stored in a byte with most significant bit set. Adjacent to the
+// varint in memory there is guaranteed to be at least 9 ASCII bytes, each of
+// which has an unset most significant bit.
+//
+// SAFETY: ptr must be one of our own heap allocations, with the varint header
+// already written.
+</span><span class="kw">unsafe fn </span>decode_len(ptr: <span class="kw-2">*const </span>u8) -&gt; NonZeroUsize {
+    <span class="comment">// SAFETY: There is at least one byte of varint followed by at least 9 bytes
+    // of string content, which is at least 10 bytes total for the allocation,
+    // so reading the first two is no problem.
+    </span><span class="kw">let </span>[first, second] = <span class="kw">unsafe </span>{ ptr::read(ptr <span class="kw">as </span><span class="kw-2">*const </span>[u8; <span class="number">2</span>]) };
+    <span class="kw">if </span>second &lt; <span class="number">0x80 </span>{
+        <span class="comment">// SAFETY: the length of this heap allocated string has been encoded as
+        // one base-128 digit, so the length is at least 9 and at most 127. It
+        // cannot be zero.
+        </span><span class="kw">unsafe </span>{ NonZeroUsize::new_unchecked((first &amp; <span class="number">0x7f</span>) <span class="kw">as </span>usize) }
+    } <span class="kw">else </span>{
+        <span class="kw">return unsafe </span>{ decode_len_cold(ptr) };
 
-        <span class="comment">// Identifiers 128 bytes or longer. This is not exercised by any crate</span>
-        <span class="comment">// version currently published to crates.io.</span>
-        <span class="attribute">#[<span class="ident">cold</span>]</span>
-        <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">decode_len_cold</span>(<span class="kw-2">mut</span> <span class="ident">ptr</span>: <span class="kw-2">*const</span> <span class="ident">u8</span>) -&gt; <span class="ident">NonZeroUsize</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shift</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="kw">loop</span> {
-                <span class="comment">// SAFETY: varint continues while there are bytes having the</span>
-                <span class="comment">// most significant bit set, i.e. until we start hitting the</span>
-                <span class="comment">// ASCII string content with msb unset.</span>
-                <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">ptr</span> };
-                <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&lt;</span> <span class="number">0x80</span> {
-                    <span class="comment">// SAFETY: the string length is known to be 128 bytes or</span>
-                    <span class="comment">// longer.</span>
-                    <span class="kw">return</span> <span class="kw">unsafe</span> { <span class="ident">NonZeroUsize::new_unchecked</span>(<span class="ident">len</span>) };
+        <span class="comment">// Identifiers 128 bytes or longer. This is not exercised by any crate
+        // version currently published to crates.io.
+        </span><span class="attribute">#[cold]
+        #[inline(never)]
+        </span><span class="kw">unsafe fn </span>decode_len_cold(<span class="kw-2">mut </span>ptr: <span class="kw-2">*const </span>u8) -&gt; NonZeroUsize {
+            <span class="kw">let </span><span class="kw-2">mut </span>len = <span class="number">0</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>shift = <span class="number">0</span>;
+            <span class="kw">loop </span>{
+                <span class="comment">// SAFETY: varint continues while there are bytes having the
+                // most significant bit set, i.e. until we start hitting the
+                // ASCII string content with msb unset.
+                </span><span class="kw">let </span>byte = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>ptr };
+                <span class="kw">if </span>byte &lt; <span class="number">0x80 </span>{
+                    <span class="comment">// SAFETY: the string length is known to be 128 bytes or
+                    // longer.
+                    </span><span class="kw">return unsafe </span>{ NonZeroUsize::new_unchecked(len) };
                 }
-                <span class="comment">// SAFETY: still in bounds of the same allocation.</span>
-                <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ptr</span>.<span class="ident">add</span>(<span class="number">1</span>) };
-                <span class="ident">len</span> <span class="op">+</span><span class="op">=</span> ((<span class="ident">byte</span> <span class="op">&amp;</span> <span class="number">0x7f</span>) <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">shift</span>;
-                <span class="ident">shift</span> <span class="op">+</span><span class="op">=</span> <span class="number">7</span>;
+                <span class="comment">// SAFETY: still in bounds of the same allocation.
+                </span>ptr = <span class="kw">unsafe </span>{ ptr.add(<span class="number">1</span>) };
+                len += ((byte &amp; <span class="number">0x7f</span>) <span class="kw">as </span>usize) &lt;&lt; shift;
+                shift += <span class="number">7</span>;
             }
         }
     }
 }
 
-<span class="comment">// SAFETY: repr must be in the heap allocated representation, with varint header</span>
-<span class="comment">// and string contents already written.</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ptr_as_str</span>(<span class="ident">repr</span>: <span class="kw-2">&amp;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-    <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">repr_to_ptr</span>(<span class="kw-2">*</span><span class="ident">repr</span>);
-    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">decode_len</span>(<span class="ident">ptr</span>) };
-    <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">bytes_for_varint</span>(<span class="ident">len</span>);
-    <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">slice::from_raw_parts</span>(<span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">header</span>), <span class="ident">len</span>.<span class="ident">get</span>()) };
-    <span class="comment">// SAFETY: all identifier contents are ASCII bytes, which are always valid</span>
-    <span class="comment">// UTF-8.</span>
-    <span class="kw">unsafe</span> { <span class="ident">str::from_utf8_unchecked</span>(<span class="ident">slice</span>) }
+<span class="comment">// SAFETY: repr must be in the heap allocated representation, with varint header
+// and string contents already written.
+</span><span class="kw">unsafe fn </span>ptr_as_str(repr: <span class="kw-2">&amp;</span>NonNull&lt;u8&gt;) -&gt; <span class="kw-2">&amp;</span>str {
+    <span class="kw">let </span>ptr = repr_to_ptr(<span class="kw-2">*</span>repr);
+    <span class="kw">let </span>len = <span class="kw">unsafe </span>{ decode_len(ptr) };
+    <span class="kw">let </span>header = bytes_for_varint(len);
+    <span class="kw">let </span>slice = <span class="kw">unsafe </span>{ slice::from_raw_parts(ptr.add(header), len.get()) };
+    <span class="comment">// SAFETY: all identifier contents are ASCII bytes, which are always valid
+    // UTF-8.
+    </span><span class="kw">unsafe </span>{ str::from_utf8_unchecked(slice) }
 }
 
-<span class="comment">// Number of base-128 digits required for the varint representation of a length.</span>
-<span class="kw">fn</span> <span class="ident">bytes_for_varint</span>(<span class="ident">len</span>: <span class="ident">NonZeroUsize</span>) -&gt; <span class="ident">usize</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">no_nonzero_bitscan</span>)]</span> <span class="comment">// rustc &lt;1.53</span>
-    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">get</span>();
+<span class="comment">// Number of base-128 digits required for the varint representation of a length.
+</span><span class="kw">fn </span>bytes_for_varint(len: NonZeroUsize) -&gt; usize {
+    <span class="attribute">#[cfg(no_nonzero_bitscan)] </span><span class="comment">// rustc &lt;1.53
+    </span><span class="kw">let </span>len = len.get();
 
-    <span class="kw">let</span> <span class="ident">usize_bits</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="number">8</span>;
-    <span class="kw">let</span> <span class="ident">len_bits</span> <span class="op">=</span> <span class="ident">usize_bits</span> <span class="op">-</span> <span class="ident">len</span>.<span class="ident">leading_zeros</span>() <span class="kw">as</span> <span class="ident">usize</span>;
-    (<span class="ident">len_bits</span> <span class="op">+</span> <span class="number">6</span>) <span class="op">/</span> <span class="number">7</span>
-}
+    <span class="kw">let </span>usize_bits = mem::size_of::&lt;usize&gt;() * <span class="number">8</span>;
+    <span class="kw">let </span>len_bits = usize_bits - len.leading_zeros() <span class="kw">as </span>usize;
+    (len_bits + <span class="number">6</span>) / <span class="number">7
+</span>}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="semver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="semver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

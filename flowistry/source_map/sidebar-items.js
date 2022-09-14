@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["EnclosingHirSpans",""],["FunctionIdentifier",""]],"fn":[["find_bodies",""],["find_enclosing_bodies",""]],"struct":[["GraphemeIndices",""],["Range",""],["SpanTree",""],["Spanner",""]],"trait":[["ToSpan",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["EnclosingHirSpans",""],["FunctionIdentifier",""]],"fn":[["find_bodies",""],["find_enclosing_bodies",""]],"struct":[["GraphemeIndices",""],["Range",""],["SpanTree",""],["Spanner",""]],"trait":[["ToSpan",""]]};

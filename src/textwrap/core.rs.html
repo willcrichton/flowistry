@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/textwrap-0.15.0/src/core.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>core.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../textwrap/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/textwrap-0.15.0/src/core.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>core.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../textwrap/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -438,439 +431,438 @@
 <span id="431">431</span>
 <span id="432">432</span>
 <span id="433">433</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Building blocks for advanced wrapping functionality.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The functions and structs in this module can be used to implement</span>
-<span class="doccomment">//! advanced wrapping functionality when the [`wrap`](super::wrap) and</span>
-<span class="doccomment">//! [`fill`](super::fill) function don&#39;t do what you want.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! In general, you want to follow these steps when wrapping</span>
-<span class="doccomment">//! something:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! 1. Split your input into [`Fragment`]s. These are abstract blocks</span>
-<span class="doccomment">//!    of text or content which can be wrapped into lines. See</span>
-<span class="doccomment">//!    [`WordSeparator`](crate::word_separators::WordSeparator) for</span>
-<span class="doccomment">//!    how to do this for text.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! 2. Potentially split your fragments into smaller pieces. This</span>
-<span class="doccomment">//!    allows you to implement things like hyphenation. If you use the</span>
-<span class="doccomment">//!    `Word` type, you can use [`WordSplitter`](crate::WordSplitter)</span>
-<span class="doccomment">//!    enum for this.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! 3. Potentially break apart fragments that are still too large to</span>
-<span class="doccomment">//!    fit on a single line. This is implemented in [`break_words`].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! 4. Finally take your fragments and put them into lines. There are</span>
-<span class="doccomment">//!    two algorithms for this in the</span>
-<span class="doccomment">//!    [`wrap_algorithms`](crate::wrap_algorithms) module:</span>
-<span class="doccomment">//!    [`wrap_optimal_fit`](crate::wrap_algorithms::wrap_optimal_fit)</span>
-<span class="doccomment">//!    and [`wrap_first_fit`](crate::wrap_algorithms::wrap_first_fit).</span>
-<span class="doccomment">//!    The former produces better line breaks, the latter is faster.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! 5. Iterate through the slices returned by the wrapping functions</span>
-<span class="doccomment">//!    and construct your lines of output.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Please [open an issue](https://github.com/mgeisler/textwrap/) if</span>
-<span class="doccomment">//! the functionality here is not sufficient or if you have ideas for</span>
-<span class="doccomment">//! improving it. We would love to hear from you!</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Building blocks for advanced wrapping functionality.
+//!
+//! The functions and structs in this module can be used to implement
+//! advanced wrapping functionality when the [`wrap`](super::wrap) and
+//! [`fill`](super::fill) function don&#39;t do what you want.
+//!
+//! In general, you want to follow these steps when wrapping
+//! something:
+//!
+//! 1. Split your input into [`Fragment`]s. These are abstract blocks
+//!    of text or content which can be wrapped into lines. See
+//!    [`WordSeparator`](crate::word_separators::WordSeparator) for
+//!    how to do this for text.
+//!
+//! 2. Potentially split your fragments into smaller pieces. This
+//!    allows you to implement things like hyphenation. If you use the
+//!    `Word` type, you can use [`WordSplitter`](crate::WordSplitter)
+//!    enum for this.
+//!
+//! 3. Potentially break apart fragments that are still too large to
+//!    fit on a single line. This is implemented in [`break_words`].
+//!
+//! 4. Finally take your fragments and put them into lines. There are
+//!    two algorithms for this in the
+//!    [`wrap_algorithms`](crate::wrap_algorithms) module:
+//!    [`wrap_optimal_fit`](crate::wrap_algorithms::wrap_optimal_fit)
+//!    and [`wrap_first_fit`](crate::wrap_algorithms::wrap_first_fit).
+//!    The former produces better line breaks, the latter is faster.
+//!
+//! 5. Iterate through the slices returned by the wrapping functions
+//!    and construct your lines of output.
+//!
+//! Please [open an issue](https://github.com/mgeisler/textwrap/) if
+//! the functionality here is not sufficient or if you have ideas for
+//! improving it. We would love to hear from you!
 
-<span class="doccomment">/// The CSI or “Control Sequence Introducer” introduces an ANSI escape</span>
-<span class="doccomment">/// sequence. This is typically used for colored text and will be</span>
-<span class="doccomment">/// ignored when computing the text width.</span>
-<span class="kw">const</span> <span class="ident">CSI</span>: (<span class="ident">char</span>, <span class="ident">char</span>) <span class="op">=</span> (<span class="string">&#39;\x1b&#39;</span>, <span class="string">&#39;[&#39;</span>);
-<span class="doccomment">/// The final bytes of an ANSI escape sequence must be in this range.</span>
-<span class="kw">const</span> <span class="ident">ANSI_FINAL_BYTE</span>: <span class="ident">std::ops::RangeInclusive</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> <span class="op">=</span> <span class="string">&#39;\x40&#39;</span>..<span class="op">=</span><span class="string">&#39;\x7e&#39;</span>;
+/// The CSI or “Control Sequence Introducer” introduces an ANSI escape
+/// sequence. This is typically used for colored text and will be
+/// ignored when computing the text width.
+</span><span class="kw">const </span>CSI: (char, char) = (<span class="string">&#39;\x1b&#39;</span>, <span class="string">&#39;[&#39;</span>);
+<span class="doccomment">/// The final bytes of an ANSI escape sequence must be in this range.
+</span><span class="kw">const </span>ANSI_FINAL_BYTE: std::ops::RangeInclusive&lt;char&gt; = <span class="string">&#39;\x40&#39;</span>..=<span class="string">&#39;\x7e&#39;</span>;
 
-<span class="doccomment">/// Skip ANSI escape sequences. The `ch` is the current `char`, the</span>
-<span class="doccomment">/// `chars` provide the following characters. The `chars` will be</span>
-<span class="doccomment">/// modified if `ch` is the start of an ANSI escape sequence.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">skip_ansi_escape_sequence</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">ch</span>: <span class="ident">char</span>, <span class="ident">chars</span>: <span class="kw-2">&amp;mut</span> <span class="ident">I</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">if</span> <span class="ident">ch</span> <span class="op">==</span> <span class="ident">CSI</span>.<span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">chars</span>.<span class="ident">next</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">CSI</span>.<span class="number">1</span>) {
-        <span class="comment">// We have found the start of an ANSI escape code, typically</span>
-        <span class="comment">// used for colored terminal text. We skip until we find a</span>
-        <span class="comment">// &quot;final byte&quot; in the range 0x40–0x7E.</span>
-        <span class="kw">for</span> <span class="ident">ch</span> <span class="kw">in</span> <span class="ident">chars</span> {
-            <span class="kw">if</span> <span class="ident">ANSI_FINAL_BYTE</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ch</span>) {
-                <span class="kw">return</span> <span class="bool-val">true</span>;
+<span class="doccomment">/// Skip ANSI escape sequences. The `ch` is the current `char`, the
+/// `chars` provide the following characters. The `chars` will be
+/// modified if `ch` is the start of an ANSI escape sequence.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>skip_ansi_escape_sequence&lt;I: Iterator&lt;Item = char&gt;&gt;(ch: char, chars: <span class="kw-2">&amp;mut </span>I) -&gt; bool {
+    <span class="kw">if </span>ch == CSI.<span class="number">0 </span>&amp;&amp; chars.next() == <span class="prelude-val">Some</span>(CSI.<span class="number">1</span>) {
+        <span class="comment">// We have found the start of an ANSI escape code, typically
+        // used for colored terminal text. We skip until we find a
+        // &quot;final byte&quot; in the range 0x40–0x7E.
+        </span><span class="kw">for </span>ch <span class="kw">in </span>chars {
+            <span class="kw">if </span>ANSI_FINAL_BYTE.contains(<span class="kw-2">&amp;</span>ch) {
+                <span class="kw">return </span><span class="bool-val">true</span>;
             }
         }
     }
-    <span class="bool-val">false</span>
+    <span class="bool-val">false
+</span>}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-width&quot;</span>)]
+#[inline]
+</span><span class="kw">fn </span>ch_width(ch: char) -&gt; usize {
+    unicode_width::UnicodeWidthChar::width(ch).unwrap_or(<span class="number">0</span>)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-width&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">ch_width</span>(<span class="ident">ch</span>: <span class="ident">char</span>) -&gt; <span class="ident">usize</span> {
-    <span class="ident">unicode_width::UnicodeWidthChar::width</span>(<span class="ident">ch</span>).<span class="ident">unwrap_or</span>(<span class="number">0</span>)
+<span class="doccomment">/// First character which [`ch_width`] will classify as double-width.
+/// Please see [`display_width`].
+</span><span class="attribute">#[cfg(not(feature = <span class="string">&quot;unicode-width&quot;</span>))]
+</span><span class="kw">const </span>DOUBLE_WIDTH_CUTOFF: char = <span class="string">&#39;\u{1100}&#39;</span>;
+
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;unicode-width&quot;</span>))]
+#[inline]
+</span><span class="kw">fn </span>ch_width(ch: char) -&gt; usize {
+    <span class="kw">if </span>ch &lt; DOUBLE_WIDTH_CUTOFF {
+        <span class="number">1
+    </span>} <span class="kw">else </span>{
+        <span class="number">2
+    </span>}
 }
 
-<span class="doccomment">/// First character which [`ch_width`] will classify as double-width.</span>
-<span class="doccomment">/// Please see [`display_width`].</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-width&quot;</span>))]</span>
-<span class="kw">const</span> <span class="ident">DOUBLE_WIDTH_CUTOFF</span>: <span class="ident">char</span> <span class="op">=</span> <span class="string">&#39;\u{1100}&#39;</span>;
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-width&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">ch_width</span>(<span class="ident">ch</span>: <span class="ident">char</span>) -&gt; <span class="ident">usize</span> {
-    <span class="kw">if</span> <span class="ident">ch</span> <span class="op">&lt;</span> <span class="ident">DOUBLE_WIDTH_CUTOFF</span> {
-        <span class="number">1</span>
-    } <span class="kw">else</span> {
-        <span class="number">2</span>
-    }
-}
-
-<span class="doccomment">/// Compute the display width of `text` while skipping over ANSI</span>
-<span class="doccomment">/// escape sequences.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use textwrap::core::display_width;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(display_width(&quot;Café Plain&quot;), 10);</span>
-<span class="doccomment">/// assert_eq!(display_width(&quot;\u{1b}[31mCafé Rouge\u{1b}[0m&quot;), 10);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// **Note:** When the `unicode-width` Cargo feature is disabled, the</span>
-<span class="doccomment">/// width of a `char` is determined by a crude approximation which</span>
-<span class="doccomment">/// simply counts chars below U+1100 as 1 column wide, and all other</span>
-<span class="doccomment">/// characters as 2 columns wide. With the feature enabled, function</span>
-<span class="doccomment">/// will correctly deal with [combining characters] in their</span>
-<span class="doccomment">/// decomposed form (see [Unicode equivalence]).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An example of a decomposed character is “é”, which can be</span>
-<span class="doccomment">/// decomposed into: “e” followed by a combining acute accent: “◌́”.</span>
-<span class="doccomment">/// Without the `unicode-width` Cargo feature, every `char` below</span>
-<span class="doccomment">/// U+1100 has a width of 1. This includes the combining accent:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use textwrap::core::display_width;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(display_width(&quot;Cafe Plain&quot;), 10);</span>
-<span class="doccomment">/// #[cfg(feature = &quot;unicode-width&quot;)]</span>
-<span class="doccomment">/// assert_eq!(display_width(&quot;Cafe\u{301} Plain&quot;), 10);</span>
-<span class="doccomment">/// #[cfg(not(feature = &quot;unicode-width&quot;))]</span>
-<span class="doccomment">/// assert_eq!(display_width(&quot;Cafe\u{301} Plain&quot;), 11);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Emojis and CJK Characters</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Characters such as emojis and [CJK characters] used in the</span>
-<span class="doccomment">/// Chinese, Japanese, and Korean langauges are seen as double-width,</span>
-<span class="doccomment">/// even if the `unicode-width` feature is disabled:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use textwrap::core::display_width;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(display_width(&quot;😂😭🥺🤣✨😍🙏🥰😊🔥&quot;), 20);</span>
-<span class="doccomment">/// assert_eq!(display_width(&quot;你好&quot;), 4);  // “Nǐ hǎo” or “Hello” in Chinese</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Limitations</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The displayed width of a string cannot always be computed from the</span>
-<span class="doccomment">/// string alone. This is because the width depends on the rendering</span>
-<span class="doccomment">/// engine used. This is particularly visible with [emoji modifier</span>
-<span class="doccomment">/// sequences] where a base emoji is modified with, e.g., skin tone or</span>
-<span class="doccomment">/// hair color modifiers. It is up to the rendering engine to detect</span>
-<span class="doccomment">/// this and to produce a suitable emoji.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A simple example is “❤️”, which consists of “❤” (U+2764: Black</span>
-<span class="doccomment">/// Heart Symbol) followed by U+FE0F (Variation Selector-16). By</span>
-<span class="doccomment">/// itself, “❤” is a black heart, but if you follow it with the</span>
-<span class="doccomment">/// variant selector, you may get a wider red heart.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A more complex example would be “👨‍🦰” which should depict a man</span>
-<span class="doccomment">/// with red hair. Here the computed width is too large — and the</span>
-<span class="doccomment">/// width differs depending on the use of the `unicode-width` feature:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use textwrap::core::display_width;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(&quot;👨‍🦰&quot;.chars().collect::&lt;Vec&lt;char&gt;&gt;(), [&#39;\u{1f468}&#39;, &#39;\u{200d}&#39;, &#39;\u{1f9b0}&#39;]);</span>
-<span class="doccomment">/// #[cfg(feature = &quot;unicode-width&quot;)]</span>
-<span class="doccomment">/// assert_eq!(display_width(&quot;👨‍🦰&quot;), 4);</span>
-<span class="doccomment">/// #[cfg(not(feature = &quot;unicode-width&quot;))]</span>
-<span class="doccomment">/// assert_eq!(display_width(&quot;👨‍🦰&quot;), 6);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This happens because the grapheme consists of three code points:</span>
-<span class="doccomment">/// “👨” (U+1F468: Man), Zero Width Joiner (U+200D), and “🦰”</span>
-<span class="doccomment">/// (U+1F9B0: Red Hair). You can see them above in the test. With</span>
-<span class="doccomment">/// `unicode-width` enabled, the ZWJ is correctly seen as having zero</span>
-<span class="doccomment">/// width, without it is counted as a double-width character.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Terminal Support</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Modern browsers typically do a great job at combining characters</span>
-<span class="doccomment">/// as shown above, but terminals often struggle more. As an example,</span>
-<span class="doccomment">/// Gnome Terminal version 3.38.1, shows “❤️” as a big red heart, but</span>
-<span class="doccomment">/// shows &quot;👨‍🦰&quot; as “👨🦰”.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [combining characters]: https://en.wikipedia.org/wiki/Combining_character</span>
-<span class="doccomment">/// [Unicode equivalence]: https://en.wikipedia.org/wiki/Unicode_equivalence</span>
-<span class="doccomment">/// [CJK characters]: https://en.wikipedia.org/wiki/CJK_characters</span>
-<span class="doccomment">/// [emoji modifier sequences]: https://unicode.org/emoji/charts/full-emoji-modifiers.html</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">display_width</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">usize</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">text</span>.<span class="ident">chars</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">width</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
-        <span class="kw">if</span> <span class="ident">skip_ansi_escape_sequence</span>(<span class="ident">ch</span>, <span class="kw-2">&amp;mut</span> <span class="ident">chars</span>) {
+<span class="doccomment">/// Compute the display width of `text` while skipping over ANSI
+/// escape sequences.
+///
+/// # Examples
+///
+/// ```
+/// use textwrap::core::display_width;
+///
+/// assert_eq!(display_width(&quot;Café Plain&quot;), 10);
+/// assert_eq!(display_width(&quot;\u{1b}[31mCafé Rouge\u{1b}[0m&quot;), 10);
+/// ```
+///
+/// **Note:** When the `unicode-width` Cargo feature is disabled, the
+/// width of a `char` is determined by a crude approximation which
+/// simply counts chars below U+1100 as 1 column wide, and all other
+/// characters as 2 columns wide. With the feature enabled, function
+/// will correctly deal with [combining characters] in their
+/// decomposed form (see [Unicode equivalence]).
+///
+/// An example of a decomposed character is “é”, which can be
+/// decomposed into: “e” followed by a combining acute accent: “◌́”.
+/// Without the `unicode-width` Cargo feature, every `char` below
+/// U+1100 has a width of 1. This includes the combining accent:
+///
+/// ```
+/// use textwrap::core::display_width;
+///
+/// assert_eq!(display_width(&quot;Cafe Plain&quot;), 10);
+/// #[cfg(feature = &quot;unicode-width&quot;)]
+/// assert_eq!(display_width(&quot;Cafe\u{301} Plain&quot;), 10);
+/// #[cfg(not(feature = &quot;unicode-width&quot;))]
+/// assert_eq!(display_width(&quot;Cafe\u{301} Plain&quot;), 11);
+/// ```
+///
+/// ## Emojis and CJK Characters
+///
+/// Characters such as emojis and [CJK characters] used in the
+/// Chinese, Japanese, and Korean langauges are seen as double-width,
+/// even if the `unicode-width` feature is disabled:
+///
+/// ```
+/// use textwrap::core::display_width;
+///
+/// assert_eq!(display_width(&quot;😂😭🥺🤣✨😍🙏🥰😊🔥&quot;), 20);
+/// assert_eq!(display_width(&quot;你好&quot;), 4);  // “Nǐ hǎo” or “Hello” in Chinese
+/// ```
+///
+/// # Limitations
+///
+/// The displayed width of a string cannot always be computed from the
+/// string alone. This is because the width depends on the rendering
+/// engine used. This is particularly visible with [emoji modifier
+/// sequences] where a base emoji is modified with, e.g., skin tone or
+/// hair color modifiers. It is up to the rendering engine to detect
+/// this and to produce a suitable emoji.
+///
+/// A simple example is “❤️”, which consists of “❤” (U+2764: Black
+/// Heart Symbol) followed by U+FE0F (Variation Selector-16). By
+/// itself, “❤” is a black heart, but if you follow it with the
+/// variant selector, you may get a wider red heart.
+///
+/// A more complex example would be “👨‍🦰” which should depict a man
+/// with red hair. Here the computed width is too large — and the
+/// width differs depending on the use of the `unicode-width` feature:
+///
+/// ```
+/// use textwrap::core::display_width;
+///
+/// assert_eq!(&quot;👨‍🦰&quot;.chars().collect::&lt;Vec&lt;char&gt;&gt;(), [&#39;\u{1f468}&#39;, &#39;\u{200d}&#39;, &#39;\u{1f9b0}&#39;]);
+/// #[cfg(feature = &quot;unicode-width&quot;)]
+/// assert_eq!(display_width(&quot;👨‍🦰&quot;), 4);
+/// #[cfg(not(feature = &quot;unicode-width&quot;))]
+/// assert_eq!(display_width(&quot;👨‍🦰&quot;), 6);
+/// ```
+///
+/// This happens because the grapheme consists of three code points:
+/// “👨” (U+1F468: Man), Zero Width Joiner (U+200D), and “🦰”
+/// (U+1F9B0: Red Hair). You can see them above in the test. With
+/// `unicode-width` enabled, the ZWJ is correctly seen as having zero
+/// width, without it is counted as a double-width character.
+///
+/// ## Terminal Support
+///
+/// Modern browsers typically do a great job at combining characters
+/// as shown above, but terminals often struggle more. As an example,
+/// Gnome Terminal version 3.38.1, shows “❤️” as a big red heart, but
+/// shows &quot;👨‍🦰&quot; as “👨🦰”.
+///
+/// [combining characters]: https://en.wikipedia.org/wiki/Combining_character
+/// [Unicode equivalence]: https://en.wikipedia.org/wiki/Unicode_equivalence
+/// [CJK characters]: https://en.wikipedia.org/wiki/CJK_characters
+/// [emoji modifier sequences]: https://unicode.org/emoji/charts/full-emoji-modifiers.html
+</span><span class="kw">pub fn </span>display_width(text: <span class="kw-2">&amp;</span>str) -&gt; usize {
+    <span class="kw">let </span><span class="kw-2">mut </span>chars = text.chars();
+    <span class="kw">let </span><span class="kw-2">mut </span>width = <span class="number">0</span>;
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(ch) = chars.next() {
+        <span class="kw">if </span>skip_ansi_escape_sequence(ch, <span class="kw-2">&amp;mut </span>chars) {
             <span class="kw">continue</span>;
         }
-        <span class="ident">width</span> <span class="op">+</span><span class="op">=</span> <span class="ident">ch_width</span>(<span class="ident">ch</span>);
+        width += ch_width(ch);
     }
-    <span class="ident">width</span>
+    width
 }
 
-<span class="doccomment">/// A (text) fragment denotes the unit which we wrap into lines.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Fragments represent an abstract _word_ plus the _whitespace_</span>
-<span class="doccomment">/// following the word. In case the word falls at the end of the line,</span>
-<span class="doccomment">/// the whitespace is dropped and a so-called _penalty_ is inserted</span>
-<span class="doccomment">/// instead (typically `&quot;-&quot;` if the word was hyphenated).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// For wrapping purposes, the precise content of the word, the</span>
-<span class="doccomment">/// whitespace, and the penalty is irrelevant. All we need to know is</span>
-<span class="doccomment">/// the displayed width of each part, which this trait provides.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Fragment</span>: <span class="ident">std::fmt::Debug</span> {
-    <span class="doccomment">/// Displayed width of word represented by this fragment.</span>
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span>;
+<span class="doccomment">/// A (text) fragment denotes the unit which we wrap into lines.
+///
+/// Fragments represent an abstract _word_ plus the _whitespace_
+/// following the word. In case the word falls at the end of the line,
+/// the whitespace is dropped and a so-called _penalty_ is inserted
+/// instead (typically `&quot;-&quot;` if the word was hyphenated).
+///
+/// For wrapping purposes, the precise content of the word, the
+/// whitespace, and the penalty is irrelevant. All we need to know is
+/// the displayed width of each part, which this trait provides.
+</span><span class="kw">pub trait </span>Fragment: std::fmt::Debug {
+    <span class="doccomment">/// Displayed width of word represented by this fragment.
+    </span><span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64;
 
-    <span class="doccomment">/// Displayed width of the whitespace that must follow the word</span>
-    <span class="doccomment">/// when the word is not at the end of a line.</span>
-    <span class="kw">fn</span> <span class="ident">whitespace_width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span>;
+    <span class="doccomment">/// Displayed width of the whitespace that must follow the word
+    /// when the word is not at the end of a line.
+    </span><span class="kw">fn </span>whitespace_width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64;
 
-    <span class="doccomment">/// Displayed width of the penalty that must be inserted if the</span>
-    <span class="doccomment">/// word falls at the end of a line.</span>
-    <span class="kw">fn</span> <span class="ident">penalty_width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span>;
+    <span class="doccomment">/// Displayed width of the penalty that must be inserted if the
+    /// word falls at the end of a line.
+    </span><span class="kw">fn </span>penalty_width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64;
 }
 
-<span class="doccomment">/// A piece of wrappable text, including any trailing whitespace.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A `Word` is an example of a [`Fragment`], so it has a width,</span>
-<span class="doccomment">/// trailing whitespace, and potentially a penalty item.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Word</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Word content.</span>
-    <span class="kw">pub</span> <span class="ident">word</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
-    <span class="doccomment">/// Whitespace to insert if the word does not fall at the end of a line.</span>
-    <span class="kw">pub</span> <span class="ident">whitespace</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
-    <span class="doccomment">/// Penalty string to insert if the word falls at the end of a line.</span>
-    <span class="kw">pub</span> <span class="ident">penalty</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
-    <span class="comment">// Cached width in columns.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">width</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// A piece of wrappable text, including any trailing whitespace.
+///
+/// A `Word` is an example of a [`Fragment`], so it has a width,
+/// trailing whitespace, and potentially a penalty item.
+</span><span class="attribute">#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Word&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Word content.
+    </span><span class="kw">pub </span>word: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+    <span class="doccomment">/// Whitespace to insert if the word does not fall at the end of a line.
+    </span><span class="kw">pub </span>whitespace: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+    <span class="doccomment">/// Penalty string to insert if the word falls at the end of a line.
+    </span><span class="kw">pub </span>penalty: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+    <span class="comment">// Cached width in columns.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) width: usize,
 }
 
-<span class="kw">impl</span> <span class="ident">std::ops::Deref</span> <span class="kw">for</span> <span class="ident">Word</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">str</span>;
+<span class="kw">impl </span>std::ops::Deref <span class="kw">for </span>Word&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span>Target = str;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="self">self</span>.<span class="ident">word</span>
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="self">self</span>.word
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Word</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Construct a `Word` from a string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A trailing stretch of `&#39; &#39;` is automatically taken to be the</span>
-    <span class="doccomment">/// whitespace part of the word.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">word</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Word</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">trimmed</span> <span class="op">=</span> <span class="ident">word</span>.<span class="ident">trim_end_matches</span>(<span class="string">&#39; &#39;</span>);
-        <span class="ident">Word</span> {
-            <span class="ident">word</span>: <span class="ident">trimmed</span>,
-            <span class="ident">width</span>: <span class="ident">display_width</span>(<span class="ident">trimmed</span>),
-            <span class="ident">whitespace</span>: <span class="kw-2">&amp;</span><span class="ident">word</span>[<span class="ident">trimmed</span>.<span class="ident">len</span>()..],
-            <span class="ident">penalty</span>: <span class="string">&quot;&quot;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Word&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Construct a `Word` from a string.
+    ///
+    /// A trailing stretch of `&#39; &#39;` is automatically taken to be the
+    /// whitespace part of the word.
+    </span><span class="kw">pub fn </span>from(word: <span class="kw-2">&amp;</span>str) -&gt; Word&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="kw">let </span>trimmed = word.trim_end_matches(<span class="string">&#39; &#39;</span>);
+        Word {
+            word: trimmed,
+            width: display_width(trimmed),
+            whitespace: <span class="kw-2">&amp;</span>word[trimmed.len()..],
+            penalty: <span class="string">&quot;&quot;</span>,
         }
     }
 
-    <span class="doccomment">/// Break this word into smaller words with a width of at most</span>
-    <span class="doccomment">/// `line_width`. The whitespace and penalty from this `Word` is</span>
-    <span class="doccomment">/// added to the last piece.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use textwrap::core::Word;</span>
-    <span class="doccomment">/// assert_eq!(</span>
-    <span class="doccomment">///     Word::from(&quot;Hello!  &quot;).break_apart(3).collect::&lt;Vec&lt;_&gt;&gt;(),</span>
-    <span class="doccomment">///     vec![Word::from(&quot;Hel&quot;), Word::from(&quot;lo!  &quot;)]</span>
-    <span class="doccomment">/// );</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">break_apart</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>, <span class="ident">line_width</span>: <span class="ident">usize</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Word</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;b</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">char_indices</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">word</span>.<span class="ident">char_indices</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">width</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="doccomment">/// Break this word into smaller words with a width of at most
+    /// `line_width`. The whitespace and penalty from this `Word` is
+    /// added to the last piece.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use textwrap::core::Word;
+    /// assert_eq!(
+    ///     Word::from(&quot;Hello!  &quot;).break_apart(3).collect::&lt;Vec&lt;_&gt;&gt;(),
+    ///     vec![Word::from(&quot;Hel&quot;), Word::from(&quot;lo!  &quot;)]
+    /// );
+    /// ```
+    </span><span class="kw">pub fn </span>break_apart&lt;<span class="lifetime">&#39;b</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="self">self</span>, line_width: usize) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Word&lt;<span class="lifetime">&#39;a</span>&gt;&gt; + <span class="lifetime">&#39;b </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>char_indices = <span class="self">self</span>.word.char_indices();
+        <span class="kw">let </span><span class="kw-2">mut </span>offset = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>width = <span class="number">0</span>;
 
-        <span class="ident">std::iter::from_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">idx</span>, <span class="ident">ch</span>)) <span class="op">=</span> <span class="ident">char_indices</span>.<span class="ident">next</span>() {
-                <span class="kw">if</span> <span class="ident">skip_ansi_escape_sequence</span>(<span class="ident">ch</span>, <span class="kw-2">&amp;mut</span> <span class="ident">char_indices</span>.<span class="ident">by_ref</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">ch</span>)<span class="op">|</span> <span class="ident">ch</span>)) {
+        std::iter::from_fn(<span class="kw">move </span>|| {
+            <span class="kw">while let </span><span class="prelude-val">Some</span>((idx, ch)) = char_indices.next() {
+                <span class="kw">if </span>skip_ansi_escape_sequence(ch, <span class="kw-2">&amp;mut </span>char_indices.by_ref().map(|(<span class="kw">_</span>, ch)| ch)) {
                     <span class="kw">continue</span>;
                 }
 
-                <span class="kw">if</span> <span class="ident">width</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">width</span> <span class="op">+</span> <span class="ident">ch_width</span>(<span class="ident">ch</span>) <span class="op">&gt;</span> <span class="ident">line_width</span> {
-                    <span class="kw">let</span> <span class="ident">word</span> <span class="op">=</span> <span class="ident">Word</span> {
-                        <span class="ident">word</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">word</span>[<span class="ident">offset</span>..<span class="ident">idx</span>],
-                        <span class="ident">width</span>: <span class="ident">width</span>,
-                        <span class="ident">whitespace</span>: <span class="string">&quot;&quot;</span>,
-                        <span class="ident">penalty</span>: <span class="string">&quot;&quot;</span>,
+                <span class="kw">if </span>width &gt; <span class="number">0 </span>&amp;&amp; width + ch_width(ch) &gt; line_width {
+                    <span class="kw">let </span>word = Word {
+                        word: <span class="kw-2">&amp;</span><span class="self">self</span>.word[offset..idx],
+                        width: width,
+                        whitespace: <span class="string">&quot;&quot;</span>,
+                        penalty: <span class="string">&quot;&quot;</span>,
                     };
-                    <span class="ident">offset</span> <span class="op">=</span> <span class="ident">idx</span>;
-                    <span class="ident">width</span> <span class="op">=</span> <span class="ident">ch_width</span>(<span class="ident">ch</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">word</span>);
+                    offset = idx;
+                    width = ch_width(ch);
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(word);
                 }
 
-                <span class="ident">width</span> <span class="op">+</span><span class="op">=</span> <span class="ident">ch_width</span>(<span class="ident">ch</span>);
+                width += ch_width(ch);
             }
 
-            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">word</span>.<span class="ident">len</span>() {
-                <span class="kw">let</span> <span class="ident">word</span> <span class="op">=</span> <span class="ident">Word</span> {
-                    <span class="ident">word</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">word</span>[<span class="ident">offset</span>..],
-                    <span class="ident">width</span>: <span class="ident">width</span>,
-                    <span class="ident">whitespace</span>: <span class="self">self</span>.<span class="ident">whitespace</span>,
-                    <span class="ident">penalty</span>: <span class="self">self</span>.<span class="ident">penalty</span>,
+            <span class="kw">if </span>offset &lt; <span class="self">self</span>.word.len() {
+                <span class="kw">let </span>word = Word {
+                    word: <span class="kw-2">&amp;</span><span class="self">self</span>.word[offset..],
+                    width: width,
+                    whitespace: <span class="self">self</span>.whitespace,
+                    penalty: <span class="self">self</span>.penalty,
                 };
-                <span class="ident">offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">word</span>.<span class="ident">len</span>();
-                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">word</span>);
+                offset = <span class="self">self</span>.word.len();
+                <span class="kw">return </span><span class="prelude-val">Some</span>(word);
             }
 
-            <span class="prelude-val">None</span>
-        })
+            <span class="prelude-val">None
+        </span>})
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Fragment</span> <span class="kw">for</span> <span class="ident">Word</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> {
-        <span class="self">self</span>.<span class="ident">width</span> <span class="kw">as</span> <span class="ident">f64</span>
+<span class="kw">impl </span>Fragment <span class="kw">for </span>Word&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
+        <span class="self">self</span>.width <span class="kw">as </span>f64
     }
 
-    <span class="comment">// We assume the whitespace consist of &#39; &#39; only. This allows us to</span>
-    <span class="comment">// compute the display width in constant time.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">whitespace_width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> {
-        <span class="self">self</span>.<span class="ident">whitespace</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">f64</span>
+    <span class="comment">// We assume the whitespace consist of &#39; &#39; only. This allows us to
+    // compute the display width in constant time.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>whitespace_width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
+        <span class="self">self</span>.whitespace.len() <span class="kw">as </span>f64
     }
 
-    <span class="comment">// We assume the penalty is `&quot;&quot;` or `&quot;-&quot;`. This allows us to</span>
-    <span class="comment">// compute the display width in constant time.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">penalty_width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> {
-        <span class="self">self</span>.<span class="ident">penalty</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">f64</span>
+    <span class="comment">// We assume the penalty is `&quot;&quot;` or `&quot;-&quot;`. This allows us to
+    // compute the display width in constant time.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>penalty_width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
+        <span class="self">self</span>.penalty.len() <span class="kw">as </span>f64
     }
 }
 
-<span class="doccomment">/// Forcibly break words wider than `line_width` into smaller words.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This simply calls [`Word::break_apart`] on words that are too</span>
-<span class="doccomment">/// wide. This means that no extra `&#39;-&#39;` is inserted, the word is</span>
-<span class="doccomment">/// simply broken into smaller pieces.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">break_words</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">words</span>: <span class="ident">I</span>, <span class="ident">line_width</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Word</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Word</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Forcibly break words wider than `line_width` into smaller words.
+///
+/// This simply calls [`Word::break_apart`] on words that are too
+/// wide. This means that no extra `&#39;-&#39;` is inserted, the word is
+/// simply broken into smaller pieces.
+</span><span class="kw">pub fn </span>break_words&lt;<span class="lifetime">&#39;a</span>, I&gt;(words: I, line_width: usize) -&gt; Vec&lt;Word&lt;<span class="lifetime">&#39;a</span>&gt;&gt;
+<span class="kw">where
+    </span>I: IntoIterator&lt;Item = Word&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
 {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shortened_words</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">for</span> <span class="ident">word</span> <span class="kw">in</span> <span class="ident">words</span> {
-        <span class="kw">if</span> <span class="ident">word</span>.<span class="ident">width</span>() <span class="op">&gt;</span> <span class="ident">line_width</span> <span class="kw">as</span> <span class="ident">f64</span> {
-            <span class="ident">shortened_words</span>.<span class="ident">extend</span>(<span class="ident">word</span>.<span class="ident">break_apart</span>(<span class="ident">line_width</span>));
-        } <span class="kw">else</span> {
-            <span class="ident">shortened_words</span>.<span class="ident">push</span>(<span class="ident">word</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>shortened_words = Vec::new();
+    <span class="kw">for </span>word <span class="kw">in </span>words {
+        <span class="kw">if </span>word.width() &gt; line_width <span class="kw">as </span>f64 {
+            shortened_words.extend(word.break_apart(line_width));
+        } <span class="kw">else </span>{
+            shortened_words.push(word);
         }
     }
-    <span class="ident">shortened_words</span>
+    shortened_words
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-width&quot;</span>)]</span>
-    <span class="kw">use</span> <span class="ident">unicode_width::UnicodeWidthChar</span>;
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-width&quot;</span>)]
+    </span><span class="kw">use </span>unicode_width::UnicodeWidthChar;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">skip_ansi_escape_sequence_works</span>() {
-        <span class="kw">let</span> <span class="ident">blue_text</span> <span class="op">=</span> <span class="string">&quot;\u{1b}[34mHello\u{1b}[0m&quot;</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">blue_text</span>.<span class="ident">chars</span>();
-        <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">skip_ansi_escape_sequence</span>(<span class="ident">ch</span>, <span class="kw-2">&amp;mut</span> <span class="ident">chars</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">chars</span>.<span class="ident">next</span>(), <span class="prelude-val">Some</span>(<span class="string">&#39;H&#39;</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>skip_ansi_escape_sequence_works() {
+        <span class="kw">let </span>blue_text = <span class="string">&quot;\u{1b}[34mHello\u{1b}[0m&quot;</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>chars = blue_text.chars();
+        <span class="kw">let </span>ch = chars.next().unwrap();
+        <span class="macro">assert!</span>(skip_ansi_escape_sequence(ch, <span class="kw-2">&amp;mut </span>chars));
+        <span class="macro">assert_eq!</span>(chars.next(), <span class="prelude-val">Some</span>(<span class="string">&#39;H&#39;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">emojis_have_correct_width</span>() {
-        <span class="kw">use</span> <span class="ident">unic_emoji_char::is_emoji</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>emojis_have_correct_width() {
+        <span class="kw">use </span>unic_emoji_char::is_emoji;
 
-        <span class="comment">// Emojis in the Basic Latin (ASCII) and Latin-1 Supplement</span>
-        <span class="comment">// blocks all have a width of 1 column. This includes</span>
-        <span class="comment">// characters such as &#39;#&#39; and &#39;©&#39;.</span>
-        <span class="kw">for</span> <span class="ident">ch</span> <span class="kw">in</span> <span class="string">&#39;\u{1}&#39;</span>..<span class="string">&#39;\u{FF}&#39;</span> {
-            <span class="kw">if</span> <span class="ident">is_emoji</span>(<span class="ident">ch</span>) {
-                <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:?} U+{:04X}&quot;</span>, <span class="ident">ch</span>, <span class="ident">ch</span> <span class="kw">as</span> <span class="ident">u32</span>);
+        <span class="comment">// Emojis in the Basic Latin (ASCII) and Latin-1 Supplement
+        // blocks all have a width of 1 column. This includes
+        // characters such as &#39;#&#39; and &#39;©&#39;.
+        </span><span class="kw">for </span>ch <span class="kw">in </span><span class="string">&#39;\u{1}&#39;</span>..<span class="string">&#39;\u{FF}&#39; </span>{
+            <span class="kw">if </span>is_emoji(ch) {
+                <span class="kw">let </span>desc = <span class="macro">format!</span>(<span class="string">&quot;{:?} U+{:04X}&quot;</span>, ch, ch <span class="kw">as </span>u32);
 
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-width&quot;</span>)]</span>
-                <span class="macro">assert_eq!</span>(<span class="ident">ch</span>.<span class="ident">width</span>().<span class="ident">unwrap</span>(), <span class="number">1</span>, <span class="string">&quot;char: {}&quot;</span>, <span class="ident">desc</span>);
+                <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-width&quot;</span>)]
+                </span><span class="macro">assert_eq!</span>(ch.width().unwrap(), <span class="number">1</span>, <span class="string">&quot;char: {}&quot;</span>, desc);
 
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-width&quot;</span>))]</span>
-                <span class="macro">assert_eq!</span>(<span class="ident">ch_width</span>(<span class="ident">ch</span>), <span class="number">1</span>, <span class="string">&quot;char: {}&quot;</span>, <span class="ident">desc</span>);
+                <span class="attribute">#[cfg(not(feature = <span class="string">&quot;unicode-width&quot;</span>))]
+                </span><span class="macro">assert_eq!</span>(ch_width(ch), <span class="number">1</span>, <span class="string">&quot;char: {}&quot;</span>, desc);
             }
         }
 
-        <span class="comment">// Emojis in the remaining blocks of the Basic Multilingual</span>
-        <span class="comment">// Plane (BMP), in the Supplementary Multilingual Plane (SMP),</span>
-        <span class="comment">// and in the Supplementary Ideographic Plane (SIP), are all 1</span>
-        <span class="comment">// or 2 columns wide when unicode-width is used, and always 2</span>
-        <span class="comment">// columns wide otherwise. This includes all of our favorite</span>
-        <span class="comment">// emojis such as 😊.</span>
-        <span class="kw">for</span> <span class="ident">ch</span> <span class="kw">in</span> <span class="string">&#39;\u{FF}&#39;</span>..<span class="string">&#39;\u{2FFFF}&#39;</span> {
-            <span class="kw">if</span> <span class="ident">is_emoji</span>(<span class="ident">ch</span>) {
-                <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:?} U+{:04X}&quot;</span>, <span class="ident">ch</span>, <span class="ident">ch</span> <span class="kw">as</span> <span class="ident">u32</span>);
+        <span class="comment">// Emojis in the remaining blocks of the Basic Multilingual
+        // Plane (BMP), in the Supplementary Multilingual Plane (SMP),
+        // and in the Supplementary Ideographic Plane (SIP), are all 1
+        // or 2 columns wide when unicode-width is used, and always 2
+        // columns wide otherwise. This includes all of our favorite
+        // emojis such as 😊.
+        </span><span class="kw">for </span>ch <span class="kw">in </span><span class="string">&#39;\u{FF}&#39;</span>..<span class="string">&#39;\u{2FFFF}&#39; </span>{
+            <span class="kw">if </span>is_emoji(ch) {
+                <span class="kw">let </span>desc = <span class="macro">format!</span>(<span class="string">&quot;{:?} U+{:04X}&quot;</span>, ch, ch <span class="kw">as </span>u32);
 
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-width&quot;</span>)]</span>
-                <span class="macro">assert!</span>(<span class="ident">ch</span>.<span class="ident">width</span>().<span class="ident">unwrap</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">2</span>, <span class="string">&quot;char: {}&quot;</span>, <span class="ident">desc</span>);
+                <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-width&quot;</span>)]
+                </span><span class="macro">assert!</span>(ch.width().unwrap() &lt;= <span class="number">2</span>, <span class="string">&quot;char: {}&quot;</span>, desc);
 
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-width&quot;</span>))]</span>
-                <span class="macro">assert_eq!</span>(<span class="ident">ch_width</span>(<span class="ident">ch</span>), <span class="number">2</span>, <span class="string">&quot;char: {}&quot;</span>, <span class="ident">desc</span>);
+                <span class="attribute">#[cfg(not(feature = <span class="string">&quot;unicode-width&quot;</span>))]
+                </span><span class="macro">assert_eq!</span>(ch_width(ch), <span class="number">2</span>, <span class="string">&quot;char: {}&quot;</span>, desc);
             }
         }
 
-        <span class="comment">// The remaining planes contain almost no assigned code points</span>
-        <span class="comment">// and thus also no emojis.</span>
+        <span class="comment">// The remaining planes contain almost no assigned code points
+        // and thus also no emojis.
+    </span>}
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>display_width_works() {
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;Café Plain&quot;</span>.len(), <span class="number">11</span>); <span class="comment">// “é” is two bytes
+        </span><span class="macro">assert_eq!</span>(display_width(<span class="string">&quot;Café Plain&quot;</span>), <span class="number">10</span>);
+        <span class="macro">assert_eq!</span>(display_width(<span class="string">&quot;\u{1b}[31mCafé Rouge\u{1b}[0m&quot;</span>), <span class="number">10</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">display_width_works</span>() {
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;Café Plain&quot;</span>.<span class="ident">len</span>(), <span class="number">11</span>); <span class="comment">// “é” is two bytes</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">display_width</span>(<span class="string">&quot;Café Plain&quot;</span>), <span class="number">10</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">display_width</span>(<span class="string">&quot;\u{1b}[31mCafé Rouge\u{1b}[0m&quot;</span>), <span class="number">10</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>display_width_narrow_emojis() {
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-width&quot;</span>)]
+        </span><span class="macro">assert_eq!</span>(display_width(<span class="string">&quot;⁉&quot;</span>), <span class="number">1</span>);
+
+        <span class="comment">// The ⁉ character is above DOUBLE_WIDTH_CUTOFF.
+        </span><span class="attribute">#[cfg(not(feature = <span class="string">&quot;unicode-width&quot;</span>))]
+        </span><span class="macro">assert_eq!</span>(display_width(<span class="string">&quot;⁉&quot;</span>), <span class="number">2</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">display_width_narrow_emojis</span>() {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-width&quot;</span>)]</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">display_width</span>(<span class="string">&quot;⁉&quot;</span>), <span class="number">1</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>display_width_narrow_emojis_variant_selector() {
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-width&quot;</span>)]
+        </span><span class="macro">assert_eq!</span>(display_width(<span class="string">&quot;⁉\u{fe0f}&quot;</span>), <span class="number">1</span>);
 
-        <span class="comment">// The ⁉ character is above DOUBLE_WIDTH_CUTOFF.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-width&quot;</span>))]</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">display_width</span>(<span class="string">&quot;⁉&quot;</span>), <span class="number">2</span>);
+        <span class="comment">// The variant selector-16 is also counted.
+        </span><span class="attribute">#[cfg(not(feature = <span class="string">&quot;unicode-width&quot;</span>))]
+        </span><span class="macro">assert_eq!</span>(display_width(<span class="string">&quot;⁉\u{fe0f}&quot;</span>), <span class="number">4</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">display_width_narrow_emojis_variant_selector</span>() {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-width&quot;</span>)]</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">display_width</span>(<span class="string">&quot;⁉\u{fe0f}&quot;</span>), <span class="number">1</span>);
-
-        <span class="comment">// The variant selector-16 is also counted.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-width&quot;</span>))]</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">display_width</span>(<span class="string">&quot;⁉\u{fe0f}&quot;</span>), <span class="number">4</span>);
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">display_width_emojis</span>() {
-        <span class="macro">assert_eq!</span>(<span class="ident">display_width</span>(<span class="string">&quot;😂😭🥺🤣✨😍🙏🥰😊🔥&quot;</span>), <span class="number">20</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>display_width_emojis() {
+        <span class="macro">assert_eq!</span>(display_width(<span class="string">&quot;😂😭🥺🤣✨😍🙏🥰😊🔥&quot;</span>), <span class="number">20</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="textwrap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="textwrap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

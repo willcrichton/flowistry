@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/mir/engine.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>engine.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/mir/engine.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>engine.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -15,13 +14,7 @@
     });
 </script>
 
-</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -166,151 +159,152 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module re-implements [`rustc_mir_dataflow::Engine`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Engine.html) for performance reasons.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The Engine implementation in rustc optimizes for minimizing memory usage</span>
-<span class="doccomment">//! by only materializing results at the start of basic blocks, and recomputing</span>
-<span class="doccomment">//! the analysis when visiting results. However, this strategy involves a lot of</span>
-<span class="doccomment">//! creation and deletion of the [analysis domain](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.AnalysisDomain.html).</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The information flow analysis has a large domain of size `O(|places| * |locations|)`.</span>
-<span class="doccomment">//! Profiling showed that a significant portion of analysis time was just the engine</span>
-<span class="doccomment">//! allocating / cloning / dropping the domain, not doing computation. Therefore this</span>
-<span class="doccomment">//! engine improves performance but increases memory usage by up-front materializing</span>
-<span class="doccomment">//! the domain at every [`Location`].</span>
+<span id="146">146</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module re-implements [`rustc_mir_dataflow::Engine`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Engine.html) for performance reasons.
+//!
+//! The Engine implementation in rustc optimizes for minimizing memory usage
+//! by only materializing results at the start of basic blocks, and recomputing
+//! the analysis when visiting results. However, this strategy involves a lot of
+//! creation and deletion of the [analysis domain](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.AnalysisDomain.html).
+//!
+//! The information flow analysis has a large domain of size `O(|places| * |locations|)`.
+//! Profiling showed that a significant portion of analysis time was just the engine
+//! allocating / cloning / dropping the domain, not doing computation. Therefore this
+//! engine improves performance but increases memory usage by up-front materializing
+//! the domain at every [`Location`].
 
-<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
+</span><span class="kw">use </span>std::rc::Rc;
 
-<span class="kw">use</span> <span class="ident">either::Either</span>;
-<span class="kw">use</span> <span class="ident">rustc_data_structures</span>::{<span class="ident">graph::WithSuccessors</span>, <span class="ident">work_queue::WorkQueue</span>};
-<span class="kw">use</span> <span class="ident">rustc_index::vec::IndexVec</span>;
-<span class="kw">use</span> <span class="ident">rustc_middle</span>::{
-  <span class="ident">mir</span>::{<span class="ident">traversal</span>, <span class="ident">Body</span>, <span class="ident">Location</span>},
-  <span class="ident">ty::TyCtxt</span>,
+<span class="kw">use </span>either::Either;
+<span class="kw">use </span>rustc_data_structures::{graph::WithSuccessors, work_queue::WorkQueue};
+<span class="kw">use </span>rustc_index::vec::IndexVec;
+<span class="kw">use </span>rustc_middle::{
+  mir::{traversal, Body, Location},
+  ty::TyCtxt,
 };
-<span class="kw">use</span> <span class="ident">rustc_mir_dataflow</span>::{<span class="ident">Analysis</span>, <span class="ident">Direction</span>, <span class="ident">JoinSemiLattice</span>, <span class="ident">ResultsVisitor</span>};
+<span class="kw">use </span>rustc_mir_dataflow::{Analysis, Direction, JoinSemiLattice, ResultsVisitor};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::indexed</span>::{
-  <span class="ident">impls</span>::{<span class="ident">LocationDomain</span>, <span class="ident">LocationIndex</span>},
-  <span class="ident">IndexedDomain</span>,
+<span class="kw">use </span><span class="kw">crate</span>::indexed::{
+  impls::{LocationDomain, LocationIndex},
+  IndexedDomain,
 };
 
-<span class="doccomment">/// An alternative implementation of</span>
-<span class="doccomment">/// [`rustc_mir_dataflow::Results`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Results.html).</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AnalysisResults</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">A</span>: <span class="ident">Analysis</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-  <span class="kw">pub</span> <span class="ident">analysis</span>: <span class="ident">A</span>,
-  <span class="ident">location_domain</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">LocationDomain</span><span class="op">&gt;</span>,
-  <span class="ident">state</span>: <span class="ident">IndexVec</span><span class="op">&lt;</span><span class="ident">LocationIndex</span>, <span class="ident">A::Domain</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An alternative implementation of
+/// [`rustc_mir_dataflow::Results`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Results.html).
+</span><span class="kw">pub struct </span>AnalysisResults&lt;<span class="lifetime">&#39;tcx</span>, A: Analysis&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
+  <span class="kw">pub </span>analysis: A,
+  location_domain: Rc&lt;LocationDomain&gt;,
+  state: IndexVec&lt;LocationIndex, A::Domain&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">A</span>: <span class="ident">Analysis</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">AnalysisResults</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">A</span><span class="op">&gt;</span> {
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_reachable_with</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir</span> <span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>)
-  <span class="kw">where</span>
-    <span class="ident">V</span>: <span class="ident">ResultsVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, <span class="ident">FlowState</span> <span class="op">=</span> <span class="ident">A::Domain</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>, A: Analysis&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; AnalysisResults&lt;<span class="lifetime">&#39;tcx</span>, A&gt; {
+  <span class="kw">pub fn </span>visit_reachable_with&lt;<span class="lifetime">&#39;mir</span>, V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, visitor: <span class="kw-2">&amp;mut </span>V)
+  <span class="kw">where
+    </span>V: ResultsVisitor&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, FlowState = A::Domain&gt;,
   {
-    <span class="kw">for</span> (<span class="ident">block</span>, <span class="ident">data</span>) <span class="kw">in</span> <span class="ident">traversal::reachable</span>(<span class="ident">body</span>) {
-      <span class="kw">for</span> <span class="ident">statement_index</span> <span class="kw">in</span> <span class="number">0</span> ..<span class="op">=</span> <span class="ident">data</span>.<span class="ident">statements</span>.<span class="ident">len</span>() {
-        <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">Location</span> {
-          <span class="ident">block</span>,
-          <span class="ident">statement_index</span>,
+    <span class="kw">for </span>(block, data) <span class="kw">in </span>traversal::reachable(body) {
+      <span class="kw">for </span>statement_index <span class="kw">in </span><span class="number">0 </span>..= data.statements.len() {
+        <span class="kw">let </span>location = Location {
+          block,
+          statement_index,
         };
-        <span class="kw">let</span> <span class="ident">loc_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">location_domain</span>.<span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="ident">location</span>);
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>[<span class="ident">loc_index</span>];
+        <span class="kw">let </span>loc_index = <span class="self">self</span>.location_domain.index(<span class="kw-2">&amp;</span>location);
+        <span class="kw">let </span>state = <span class="kw-2">&amp;</span><span class="self">self</span>.state[loc_index];
 
-        <span class="kw">if</span> <span class="ident">statement_index</span> <span class="op">==</span> <span class="number">0</span> {
-          <span class="ident">visitor</span>.<span class="ident">visit_block_start</span>(<span class="ident">state</span>, <span class="ident">data</span>, <span class="ident">block</span>);
+        <span class="kw">if </span>statement_index == <span class="number">0 </span>{
+          visitor.visit_block_start(state, data, block);
         }
 
-        <span class="kw">if</span> <span class="ident">statement_index</span> <span class="op">==</span> <span class="ident">data</span>.<span class="ident">statements</span>.<span class="ident">len</span>() {
-          <span class="ident">visitor</span>.<span class="ident">visit_terminator_after_primary_effect</span>(
-            <span class="ident">state</span>,
-            <span class="ident">data</span>.<span class="ident">terminator</span>(),
-            <span class="ident">location</span>,
+        <span class="kw">if </span>statement_index == data.statements.len() {
+          visitor.visit_terminator_after_primary_effect(
+            state,
+            data.terminator(),
+            location,
           )
-        } <span class="kw">else</span> {
-          <span class="ident">visitor</span>.<span class="ident">visit_statement_after_primary_effect</span>(
-            <span class="ident">state</span>,
-            <span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">statements</span>[<span class="ident">statement_index</span>],
-            <span class="ident">location</span>,
+        } <span class="kw">else </span>{
+          visitor.visit_statement_after_primary_effect(
+            state,
+            <span class="kw-2">&amp;</span>data.statements[statement_index],
+            location,
           )
         }
       }
     }
   }
 
-  <span class="doccomment">/// Gets the computed [`AnalysisDomain`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.AnalysisDomain.html)</span>
-  <span class="doccomment">/// at a given [`Location`].</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">location</span>: <span class="ident">Location</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">A::Domain</span> {
-    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>[<span class="self">self</span>.<span class="ident">location_domain</span>.<span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="ident">location</span>)]
+  <span class="doccomment">/// Gets the computed [`AnalysisDomain`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.AnalysisDomain.html)
+  /// at a given [`Location`].
+  </span><span class="kw">pub fn </span>state_at(<span class="kw-2">&amp;</span><span class="self">self</span>, location: Location) -&gt; <span class="kw-2">&amp;</span>A::Domain {
+    <span class="kw-2">&amp;</span><span class="self">self</span>.state[<span class="self">self</span>.location_domain.index(<span class="kw-2">&amp;</span>location)]
   }
 }
 
-<span class="doccomment">/// Runs a given [`Analysis`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.Analysis.html) to a fixpoint over the given [`Body`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A reimplementation of [`rustc_mir_dataflow::framework::engine::iterate_to_fixpoint`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/framework/engine/struct.Engine.html#method.iterate_to_fixpoint).</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterate_to_fixpoint</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">A</span>: <span class="ident">Analysis</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-  <span class="ident">_tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="ident">location_domain</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">LocationDomain</span><span class="op">&gt;</span>,
-  <span class="ident">analysis</span>: <span class="ident">A</span>,
-) -&gt; <span class="ident">AnalysisResults</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">A</span><span class="op">&gt;</span> {
-  <span class="kw">let</span> <span class="ident">bottom_value</span> <span class="op">=</span> <span class="ident">analysis</span>.<span class="ident">bottom_value</span>(<span class="ident">body</span>);
+<span class="doccomment">/// Runs a given [`Analysis`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.Analysis.html) to a fixpoint over the given [`Body`].
+///
+/// A reimplementation of [`rustc_mir_dataflow::framework::engine::iterate_to_fixpoint`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/framework/engine/struct.Engine.html#method.iterate_to_fixpoint).
+</span><span class="kw">pub fn </span>iterate_to_fixpoint&lt;<span class="lifetime">&#39;tcx</span>, A: Analysis&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;(
+  _tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  location_domain: Rc&lt;LocationDomain&gt;,
+  analysis: A,
+) -&gt; AnalysisResults&lt;<span class="lifetime">&#39;tcx</span>, A&gt; {
+  <span class="kw">let </span>bottom_value = analysis.bottom_value(body);
 
-  <span class="comment">// `state` materializes the analysis domain for *every* location, which is the crux</span>
-  <span class="comment">// of this implementation strategy.</span>
-  <span class="kw">let</span> <span class="ident">num_locs</span> <span class="op">=</span> <span class="ident">location_domain</span>.<span class="ident">num_real_locations</span>();
-  <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">IndexVec::from_elem_n</span>(<span class="ident">bottom_value</span>, <span class="ident">num_locs</span>);
+  <span class="comment">// `state` materializes the analysis domain for *every* location, which is the crux
+  // of this implementation strategy.
+  </span><span class="kw">let </span>num_locs = location_domain.num_real_locations();
+  <span class="kw">let </span><span class="kw-2">mut </span>state = IndexVec::from_elem_n(bottom_value, num_locs);
 
-  <span class="ident">analysis</span>
-    .<span class="ident">initialize_start_block</span>(<span class="ident">body</span>, <span class="kw-2">&amp;mut</span> <span class="ident">state</span>[<span class="ident">location_domain</span>.<span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="ident">Location::START</span>)]);
+  analysis
+    .initialize_start_block(body, <span class="kw-2">&amp;mut </span>state[location_domain.index(<span class="kw-2">&amp;</span>Location::START)]);
 
-  <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dirty_queue</span>: <span class="ident">WorkQueue</span><span class="op">&lt;</span><span class="ident">LocationIndex</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">WorkQueue::with_none</span>(<span class="ident">num_locs</span>);
-  <span class="kw">if</span> <span class="ident">A::Direction::is_forward</span>() {
-    <span class="kw">for</span> (<span class="ident">block</span>, <span class="ident">data</span>) <span class="kw">in</span> <span class="ident">traversal::reverse_postorder</span>(<span class="ident">body</span>) {
-      <span class="kw">for</span> <span class="ident">statement_index</span> <span class="kw">in</span> <span class="number">0</span> ..<span class="op">=</span> <span class="ident">data</span>.<span class="ident">statements</span>.<span class="ident">len</span>() {
-        <span class="ident">dirty_queue</span>.<span class="ident">insert</span>(<span class="ident">location_domain</span>.<span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="ident">Location</span> {
-          <span class="ident">block</span>,
-          <span class="ident">statement_index</span>,
+  <span class="kw">let </span><span class="kw-2">mut </span>dirty_queue: WorkQueue&lt;LocationIndex&gt; = WorkQueue::with_none(num_locs);
+  <span class="kw">if </span>A::Direction::IS_FORWARD {
+    <span class="kw">for </span>(block, data) <span class="kw">in </span>traversal::reverse_postorder(body) {
+      <span class="kw">for </span>statement_index <span class="kw">in </span><span class="number">0 </span>..= data.statements.len() {
+        dirty_queue.insert(location_domain.index(<span class="kw-2">&amp;</span>Location {
+          block,
+          statement_index,
         }));
       }
     }
   }
 
-  <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">loc_index</span>) <span class="op">=</span> <span class="ident">dirty_queue</span>.<span class="ident">pop</span>() {
-    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">location_domain</span>.<span class="ident">value</span>(<span class="ident">loc_index</span>);
-    <span class="kw">let</span> <span class="ident">next_locs</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">body</span>.<span class="ident">stmt_at</span>(<span class="ident">location</span>) {
-      <span class="ident">Either::Left</span>(<span class="ident">statement</span>) =&gt; {
-        <span class="ident">analysis</span>.<span class="ident">apply_statement_effect</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>[<span class="ident">loc_index</span>], <span class="ident">statement</span>, <span class="ident">location</span>);
-        <span class="macro">vec!</span>[<span class="ident">location</span>.<span class="ident">successor_within_block</span>()]
+  <span class="kw">while let </span><span class="prelude-val">Some</span>(loc_index) = dirty_queue.pop() {
+    <span class="kw">let </span>location = <span class="kw-2">*</span>location_domain.value(loc_index);
+    <span class="kw">let </span>next_locs = <span class="kw">match </span>body.stmt_at(location) {
+      Either::Left(statement) =&gt; {
+        analysis.apply_statement_effect(<span class="kw-2">&amp;mut </span>state[loc_index], statement, location);
+        <span class="macro">vec!</span>[location.successor_within_block()]
       }
-      <span class="ident">Either::Right</span>(<span class="ident">terminator</span>) =&gt; {
-        <span class="ident">analysis</span>.<span class="ident">apply_terminator_effect</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>[<span class="ident">loc_index</span>], <span class="ident">terminator</span>, <span class="ident">location</span>);
-        <span class="ident">body</span>
-          .<span class="ident">successors</span>(<span class="ident">location</span>.<span class="ident">block</span>)
-          .<span class="ident">map</span>(<span class="op">|</span><span class="ident">block</span><span class="op">|</span> <span class="ident">Location</span> {
-            <span class="ident">block</span>,
-            <span class="ident">statement_index</span>: <span class="number">0</span>,
+      Either::Right(terminator) =&gt; {
+        analysis.apply_terminator_effect(<span class="kw-2">&amp;mut </span>state[loc_index], terminator, location);
+        body
+          .basic_blocks
+          .successors(location.block)
+          .map(|block| Location {
+            block,
+            statement_index: <span class="number">0</span>,
           })
-          .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+          .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
       }
     };
 
-    <span class="kw">for</span> <span class="ident">next_loc</span> <span class="kw">in</span> <span class="ident">next_locs</span> {
-      <span class="kw">let</span> <span class="ident">next_loc_index</span> <span class="op">=</span> <span class="ident">location_domain</span>.<span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="ident">next_loc</span>);
-      <span class="kw">let</span> (<span class="ident">cur_state</span>, <span class="ident">next_state</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">pick2_mut</span>(<span class="ident">loc_index</span>, <span class="ident">next_loc_index</span>);
-      <span class="kw">let</span> <span class="ident">changed</span> <span class="op">=</span> <span class="ident">next_state</span>.<span class="ident">join</span>(<span class="ident">cur_state</span>);
-      <span class="kw">if</span> <span class="ident">changed</span> {
-        <span class="ident">dirty_queue</span>.<span class="ident">insert</span>(<span class="ident">next_loc_index</span>);
+    <span class="kw">for </span>next_loc <span class="kw">in </span>next_locs {
+      <span class="kw">let </span>next_loc_index = location_domain.index(<span class="kw-2">&amp;</span>next_loc);
+      <span class="kw">let </span>(cur_state, next_state) = state.pick2_mut(loc_index, next_loc_index);
+      <span class="kw">let </span>changed = next_state.join(cur_state);
+      <span class="kw">if </span>changed {
+        dirty_queue.insert(next_loc_index);
       }
     }
   }
 
-  <span class="ident">AnalysisResults</span> {
-    <span class="ident">analysis</span>,
-    <span class="ident">location_domain</span>,
-    <span class="ident">state</span>,
+  AnalysisResults {
+    analysis,
+    location_domain,
+    state,
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

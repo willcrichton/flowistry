@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["FlowistryPlugin",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["FlowistryPlugin",""]]};

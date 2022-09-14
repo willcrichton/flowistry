@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/source_map/range.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>range.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/source_map/range.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>range.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -15,13 +14,7 @@
     });
 </script>
 
-</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -277,262 +270,261 @@
 <span id="254">254</span>
 <span id="255">255</span>
 <span id="256">256</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Data structure for sharing [spans][Span] outside rustc.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Data structure for sharing [spans][Span] outside rustc.
 
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">default::Default</span>, <span class="ident">fs</span>, <span class="ident">path::Path</span>};
+</span><span class="kw">use </span>std::{default::Default, fs, path::Path};
 
-<span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">bail</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="ident">rustc_data_structures</span>::{<span class="ident">fx::FxHashMap</span> <span class="kw">as</span> <span class="ident">HashMap</span>, <span class="ident">sync::Lrc</span>};
-<span class="kw">use</span> <span class="ident">rustc_hir</span>::{
-  <span class="ident">intravisit</span>::{<span class="self">self</span>, <span class="ident">Visitor</span>},
-  <span class="ident">BodyId</span>,
+<span class="kw">use </span>anyhow::{bail, Context, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>rustc_data_structures::{fx::FxHashMap <span class="kw">as </span>HashMap, sync::Lrc};
+<span class="kw">use </span>rustc_hir::{
+  intravisit::{<span class="self">self</span>, Visitor},
+  BodyId,
 };
-<span class="kw">use</span> <span class="ident">rustc_middle::ty::TyCtxt</span>;
-<span class="kw">use</span> <span class="ident">rustc_span</span>::{
-  <span class="ident">source_map::SourceMap</span>, <span class="ident">BytePos</span>, <span class="ident">FileName</span>, <span class="ident">RealFileName</span>, <span class="ident">SourceFile</span>, <span class="ident">Span</span>,
+<span class="kw">use </span>rustc_middle::ty::TyCtxt;
+<span class="kw">use </span>rustc_span::{
+  source_map::SourceMap, BytePos, FileName, RealFileName, SourceFile, Span,
 };
-<span class="kw">use</span> <span class="ident">serde::Serialize</span>;
-<span class="kw">use</span> <span class="ident">unicode_segmentation::UnicodeSegmentation</span>;
+<span class="kw">use </span>serde::Serialize;
+<span class="kw">use </span>unicode_segmentation::UnicodeSegmentation;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cached::Cache</span>;
+<span class="kw">use </span><span class="kw">crate</span>::cached::Cache;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GraphemeIndices</span> {
-  <span class="ident">byte_to_char</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span>,
-  <span class="ident">char_to_byte</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>GraphemeIndices {
+  byte_to_char: HashMap&lt;usize, usize&gt;,
+  char_to_byte: Vec&lt;usize&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">GraphemeIndices</span> {
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">char_to_byte</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">for</span> <span class="ident">g</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">graphemes</span>(<span class="bool-val">true</span>) {
-      <span class="ident">char_to_byte</span>.<span class="ident">push</span>(<span class="ident">idx</span>);
-      <span class="ident">idx</span> <span class="op">+</span><span class="op">=</span> <span class="ident">g</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>();
+<span class="kw">impl </span>GraphemeIndices {
+  <span class="kw">pub fn </span>new(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+    <span class="kw">let </span><span class="kw-2">mut </span>char_to_byte = Vec::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>idx = <span class="number">0</span>;
+    <span class="kw">for </span>g <span class="kw">in </span>s.graphemes(<span class="bool-val">true</span>) {
+      char_to_byte.push(idx);
+      idx += g.as_bytes().len();
     }
-    <span class="kw">let</span> <span class="ident">byte_to_char</span> <span class="op">=</span> <span class="ident">char_to_byte</span>
-      .<span class="ident">iter</span>()
-      .<span class="ident">enumerate</span>()
-      .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">idx</span>, <span class="ident">byte</span>)<span class="op">|</span> (<span class="kw-2">*</span><span class="ident">byte</span>, <span class="ident">idx</span>))
-      .<span class="ident">chain</span>([(<span class="ident">char_to_byte</span>.<span class="ident">last</span>().<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) <span class="op">+</span> <span class="number">1</span>, <span class="ident">char_to_byte</span>.<span class="ident">len</span>())])
-      .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">GraphemeIndices</span> {
-      <span class="ident">byte_to_char</span>,
-      <span class="ident">char_to_byte</span>,
+    <span class="kw">let </span>byte_to_char = char_to_byte
+      .iter()
+      .enumerate()
+      .map(|(idx, byte)| (<span class="kw-2">*</span>byte, idx))
+      .chain([(char_to_byte.last().unwrap_or(<span class="kw-2">&amp;</span><span class="number">0</span>) + <span class="number">1</span>, char_to_byte.len())])
+      .collect::&lt;HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;();
+    GraphemeIndices {
+      byte_to_char,
+      char_to_byte,
     }
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_path</span>(<span class="ident">path</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">fs::read</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">s</span>))
+  <span class="kw">pub fn </span>from_path(path: <span class="kw">impl </span>AsRef&lt;Path&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">let </span>bytes = fs::read(path)<span class="question-mark">?</span>;
+    <span class="kw">let </span>s = std::str::from_utf8(<span class="kw-2">&amp;</span>bytes)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(<span class="self">Self</span>::new(s))
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_to_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">byte</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
-    <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">byte_to_char</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">byte</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+  <span class="kw">pub fn </span>byte_to_char(<span class="kw-2">&amp;</span><span class="self">self</span>, byte: usize) -&gt; usize {
+    <span class="kw-2">*</span><span class="self">self</span>.byte_to_char.get(<span class="kw-2">&amp;</span>byte).unwrap_or_else(|| {
       <span class="macro">panic!</span>(
         <span class="string">&quot;Could not find byte {byte:?} in bytes {:?}&quot;</span>,
-        <span class="self">self</span>.<span class="ident">char_to_byte</span>
+        <span class="self">self</span>.char_to_byte
       )
     })
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">char_to_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">chr</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
-    <span class="self">self</span>.<span class="ident">char_to_byte</span>[<span class="ident">chr</span>]
+  <span class="kw">pub fn </span>char_to_byte(<span class="kw-2">&amp;</span><span class="self">self</span>, chr: usize) -&gt; usize {
+    <span class="self">self</span>.char_to_byte[chr]
   }
 }
 
-<span class="macro">thread_local!</span> {
-  <span class="kw">static</span> <span class="ident">GRAPHEME_INDICES</span>: <span class="ident">Cache</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">GraphemeIndices</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Cache::default</span>();
-  <span class="kw">static</span> <span class="ident">SOURCE_FILES</span>: <span class="ident">Cache</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FileName</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Cache::default</span>();
+<span class="macro">thread_local! </span>{
+  <span class="kw">static </span>GRAPHEME_INDICES: Cache&lt;String, GraphemeIndices&gt; = Cache::default();
+  <span class="kw">static </span>SOURCE_FILES: Cache&lt;String, <span class="prelude-ty">Option</span>&lt;FileName&gt;&gt; = Cache::default();
 }
 
-<span class="kw">fn</span> <span class="ident">qpath_to_span</span>(<span class="ident">tcx</span>: <span class="ident">TyCtxt</span>, <span class="ident">qpath</span>: <span class="ident">String</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
-  <span class="kw">struct</span> <span class="ident">Finder</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">qpath</span>: <span class="ident">String</span>,
-    <span class="ident">span</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
+<span class="kw">fn </span>qpath_to_span(tcx: TyCtxt, qpath: String) -&gt; <span class="prelude-ty">Result</span>&lt;Span&gt; {
+  <span class="kw">struct </span>Finder&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    qpath: String,
+    span: <span class="prelude-ty">Option</span>&lt;Span&gt;,
   }
 
-  <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Finder</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">visit_nested_body</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">BodyId</span>) {
-      <span class="ident">intravisit::walk_body</span>(<span class="self">self</span>, <span class="self">self</span>.<span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">body</span>(<span class="ident">id</span>));
+  <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; Visitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>Finder&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">fn </span>visit_nested_body(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: BodyId) {
+      intravisit::walk_body(<span class="self">self</span>, <span class="self">self</span>.tcx.hir().body(id));
 
-      <span class="kw">let</span> <span class="ident">local_def_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">body_owner_def_id</span>(<span class="ident">id</span>);
-      <span class="kw">let</span> <span class="ident">function_path</span> <span class="op">=</span> <span class="self">self</span>
-        .<span class="ident">tcx</span>
-        .<span class="ident">def_path</span>(<span class="ident">local_def_id</span>.<span class="ident">to_def_id</span>())
-        .<span class="ident">to_string_no_crate_verbose</span>();
-      <span class="kw">if</span> <span class="ident">function_path</span>[<span class="number">2</span> ..] <span class="op">==</span> <span class="self">self</span>.<span class="ident">qpath</span> {
-        <span class="self">self</span>.<span class="ident">span</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">span</span>(<span class="ident">id</span>.<span class="ident">hir_id</span>));
+      <span class="kw">let </span>local_def_id = <span class="self">self</span>.tcx.hir().body_owner_def_id(id);
+      <span class="kw">let </span>function_path = <span class="self">self
+        </span>.tcx
+        .def_path(local_def_id.to_def_id())
+        .to_string_no_crate_verbose();
+      <span class="kw">if </span>function_path[<span class="number">2 </span>..] == <span class="self">self</span>.qpath {
+        <span class="self">self</span>.span = <span class="prelude-val">Some</span>(<span class="self">self</span>.tcx.hir().span(id.hir_id));
       }
     }
   }
 
-  <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">finder</span> <span class="op">=</span> <span class="ident">Finder</span> {
-    <span class="ident">tcx</span>,
-    <span class="ident">qpath</span>,
-    <span class="ident">span</span>: <span class="prelude-val">None</span>,
+  <span class="kw">let </span><span class="kw-2">mut </span>finder = Finder {
+    tcx,
+    qpath,
+    span: <span class="prelude-val">None</span>,
   };
-  <span class="ident">tcx</span>.<span class="ident">hir</span>().<span class="ident">deep_visit_all_item_likes</span>(<span class="kw-2">&amp;mut</span> <span class="ident">finder</span>);
-  <span class="ident">finder</span>
-    .<span class="ident">span</span>
-    .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;No function with qpath {}&quot;</span>, <span class="ident">finder</span>.<span class="ident">qpath</span>))
+  tcx.hir().visit_all_item_likes_in_crate(<span class="kw-2">&amp;mut </span>finder);
+  finder
+    .span
+    .with_context(|| <span class="macro">format!</span>(<span class="string">&quot;No function with qpath {}&quot;</span>, finder.qpath))
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Range</span> {
-  <span class="kw">pub</span> <span class="ident">char_start</span>: <span class="ident">usize</span>,
-  <span class="kw">pub</span> <span class="ident">char_end</span>: <span class="ident">usize</span>,
-  <span class="kw">pub</span> <span class="ident">byte_start</span>: <span class="ident">usize</span>,
-  <span class="kw">pub</span> <span class="ident">byte_end</span>: <span class="ident">usize</span>,
-  <span class="kw">pub</span> <span class="ident">filename</span>: <span class="ident">String</span>,
+<span class="attribute">#[derive(Serialize, Debug, Clone, Hash, PartialEq, Eq, Default)]
+</span><span class="kw">pub struct </span>Range {
+  <span class="kw">pub </span>char_start: usize,
+  <span class="kw">pub </span>char_end: usize,
+  <span class="kw">pub </span>byte_start: usize,
+  <span class="kw">pub </span>byte_end: usize,
+  <span class="kw">pub </span>filename: String,
 }
 
-<span class="kw">impl</span> <span class="ident">Range</span> {
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">substr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
-    <span class="ident">s</span>[<span class="self">self</span>.<span class="ident">byte_start</span> .. <span class="self">self</span>.<span class="ident">byte_end</span>].<span class="ident">to_string</span>()
+<span class="kw">impl </span>Range {
+  <span class="kw">pub fn </span>substr(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) -&gt; String {
+    s[<span class="self">self</span>.byte_start .. <span class="self">self</span>.byte_end].to_string()
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_char_range</span>(
-    <span class="ident">char_start</span>: <span class="ident">usize</span>,
-    <span class="ident">char_end</span>: <span class="ident">usize</span>,
-    <span class="ident">filename</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">GraphemeIndices</span>,
-  ) -&gt; <span class="self">Self</span> {
-    <span class="kw">let</span> <span class="ident">byte_start</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">char_to_byte</span>(<span class="ident">char_start</span>);
-    <span class="kw">let</span> <span class="ident">byte_end</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">char_to_byte</span>(<span class="ident">char_end</span>);
-    <span class="ident">Range</span> {
-      <span class="ident">char_start</span>,
-      <span class="ident">char_end</span>,
-      <span class="ident">byte_start</span>,
-      <span class="ident">byte_end</span>,
-      <span class="ident">filename</span>: <span class="ident">filename</span>.<span class="ident">to_string</span>(),
+  <span class="kw">pub fn </span>from_char_range(
+    char_start: usize,
+    char_end: usize,
+    filename: <span class="kw-2">&amp;</span>str,
+    file: <span class="kw-2">&amp;</span>GraphemeIndices,
+  ) -&gt; <span class="self">Self </span>{
+    <span class="kw">let </span>byte_start = file.char_to_byte(char_start);
+    <span class="kw">let </span>byte_end = file.char_to_byte(char_end);
+    Range {
+      char_start,
+      char_end,
+      byte_start,
+      byte_end,
+      filename: filename.to_string(),
     }
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_byte_range</span>(
-    <span class="ident">byte_start</span>: <span class="ident">usize</span>,
-    <span class="ident">byte_end</span>: <span class="ident">usize</span>,
-    <span class="ident">filename</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">GraphemeIndices</span>,
-  ) -&gt; <span class="self">Self</span> {
-    <span class="kw">let</span> <span class="ident">char_start</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">byte_to_char</span>(<span class="ident">byte_start</span>);
-    <span class="kw">let</span> <span class="ident">char_end</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">byte_to_char</span>(<span class="ident">byte_end</span>);
-    <span class="ident">Range</span> {
-      <span class="ident">byte_start</span>,
-      <span class="ident">byte_end</span>,
-      <span class="ident">char_start</span>,
-      <span class="ident">char_end</span>,
-      <span class="ident">filename</span>: <span class="ident">filename</span>.<span class="ident">to_string</span>(),
+  <span class="kw">pub fn </span>from_byte_range(
+    byte_start: usize,
+    byte_end: usize,
+    filename: <span class="kw-2">&amp;</span>str,
+    file: <span class="kw-2">&amp;</span>GraphemeIndices,
+  ) -&gt; <span class="self">Self </span>{
+    <span class="kw">let </span>char_start = file.byte_to_char(byte_start);
+    <span class="kw">let </span>char_end = file.byte_to_char(byte_end);
+    Range {
+      byte_start,
+      byte_end,
+      char_start,
+      char_end,
+      filename: filename.to_string(),
     }
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_span</span>(<span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">source_map</span>: <span class="kw-2">&amp;</span><span class="ident">SourceMap</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+  <span class="kw">pub fn </span>from_span(span: Span, source_map: <span class="kw-2">&amp;</span>SourceMap) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
     <span class="macro">log::trace!</span>(<span class="string">&quot;Converting to range: {span:?}&quot;</span>);
-    <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">source_map</span>.<span class="ident">lookup_source_file</span>(<span class="ident">span</span>.<span class="ident">lo</span>());
-    <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">file</span>.<span class="ident">name</span> {
-      <span class="ident">FileName::Real</span>(<span class="ident">RealFileName::LocalPath</span>(<span class="ident">filename</span>)) =&gt; {
-        <span class="ident">filename</span>.<span class="ident">to_string_lossy</span>().<span class="ident">into_owned</span>()
+    <span class="kw">let </span>file = source_map.lookup_source_file(span.lo());
+    <span class="kw">let </span>filename = <span class="kw">match </span><span class="kw-2">&amp;</span>file.name {
+      FileName::Real(RealFileName::LocalPath(filename)) =&gt; {
+        filename.to_string_lossy().into_owned()
       }
-      <span class="ident">filename</span> =&gt; <span class="macro">bail!</span>(<span class="string">&quot;Range::from_span doesn&#39;t support {filename:?}&quot;</span>),
+      filename =&gt; <span class="macro">bail!</span>(<span class="string">&quot;Range::from_span doesn&#39;t support {filename:?}&quot;</span>),
     };
 
     <span class="macro">assert!</span>(
-      <span class="ident">source_map</span>.<span class="ident">ensure_source_file_source_present</span>(<span class="ident">file</span>.<span class="ident">clone</span>()),
+      source_map.ensure_source_file_source_present(file.clone()),
       <span class="string">&quot;Could not load source for file: {:?}&quot;</span>,
-      <span class="ident">file</span>.<span class="ident">name</span>
+      file.name
     );
-    <span class="kw">let</span> <span class="ident">external</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">external_src</span>.<span class="ident">borrow</span>();
-    <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">file</span>
-      .<span class="ident">src</span>
-      .<span class="ident">as_ref</span>()
-      .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">external</span>.<span class="ident">get_source</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>());
+    <span class="kw">let </span>external = file.external_src.borrow();
+    <span class="kw">let </span>src = file
+      .src
+      .as_ref()
+      .unwrap_or_else(|| external.get_source().as_ref().unwrap());
 
-    <span class="kw">let</span> <span class="ident">byte_start</span> <span class="op">=</span> <span class="ident">source_map</span>.<span class="ident">lookup_byte_offset</span>(<span class="ident">span</span>.<span class="ident">lo</span>()).<span class="ident">pos</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>;
-    <span class="kw">let</span> <span class="ident">byte_end</span> <span class="op">=</span> <span class="ident">source_map</span>.<span class="ident">lookup_byte_offset</span>(<span class="ident">span</span>.<span class="ident">hi</span>()).<span class="ident">pos</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>;
+    <span class="kw">let </span>byte_start = source_map.lookup_byte_offset(span.lo()).pos.<span class="number">0 </span><span class="kw">as </span>usize;
+    <span class="kw">let </span>byte_end = source_map.lookup_byte_offset(span.hi()).pos.<span class="number">0 </span><span class="kw">as </span>usize;
 
-    <span class="ident">GRAPHEME_INDICES</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">grapheme_indices</span><span class="op">|</span> {
-      <span class="kw">let</span> <span class="ident">indices</span> <span class="op">=</span> <span class="ident">grapheme_indices</span>.<span class="ident">get</span>(<span class="ident">filename</span>.<span class="ident">clone</span>(), <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">GraphemeIndices::new</span>(<span class="ident">src</span>));
-      <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::from_byte_range</span>(
-        <span class="ident">byte_start</span>, <span class="ident">byte_end</span>, <span class="kw-2">&amp;</span><span class="ident">filename</span>, <span class="ident">indices</span>,
+    GRAPHEME_INDICES.with(|grapheme_indices| {
+      <span class="kw">let </span>indices = grapheme_indices.get(filename.clone(), |<span class="kw">_</span>| GraphemeIndices::new(src));
+      <span class="prelude-val">Ok</span>(<span class="self">Self</span>::from_byte_range(
+        byte_start, byte_end, <span class="kw-2">&amp;</span>filename, indices,
       ))
     })
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">source_file</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source_map</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">SourceMap</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Lrc</span><span class="op">&lt;</span><span class="ident">SourceFile</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">files</span> <span class="op">=</span> <span class="ident">source_map</span>.<span class="ident">files</span>();
-    <span class="ident">SOURCE_FILES</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">source_files</span><span class="op">|</span> {
-      <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <span class="ident">source_files</span>.<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">filename</span>.<span class="ident">clone</span>(), <span class="op">|</span><span class="ident">filename</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">filename</span>);
-        <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <span class="ident">filename</span>
-          .<span class="ident">canonicalize</span>()
-          .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">filename</span>.<span class="ident">to_path_buf</span>());
-        <span class="ident">files</span>
-          .<span class="ident">iter</span>()
-          .<span class="ident">map</span>(<span class="op">|</span><span class="ident">file</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">file</span>.<span class="ident">name</span>)
-          .<span class="ident">find</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">name</span> {
-            <span class="comment">// rustc seems to store relative paths to files in the workspace, so if filename is absolute,</span>
-            <span class="comment">// we can compare them using Path::ends_with</span>
-            <span class="ident">FileName::Real</span>(<span class="ident">RealFileName::LocalPath</span>(<span class="ident">other</span>)) =&gt; {
-              <span class="kw">let</span> <span class="ident">canonical</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">canonicalize</span>();
-              <span class="kw">let</span> <span class="ident">other</span> <span class="op">=</span> <span class="ident">canonical</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="ident">other</span>);
-              <span class="ident">filename</span>.<span class="ident">ends_with</span>(<span class="ident">other</span>)
+  <span class="kw">pub fn </span>source_file&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, source_map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SourceMap) -&gt; <span class="prelude-ty">Result</span>&lt;Lrc&lt;SourceFile&gt;&gt; {
+    <span class="kw">let </span>files = source_map.files();
+    SOURCE_FILES.with(|source_files| {
+      <span class="kw">let </span>filename = source_files.get(<span class="self">self</span>.filename.clone(), |filename| {
+        <span class="kw">let </span>filename = Path::new(<span class="kw-2">&amp;</span>filename);
+        <span class="kw">let </span>filename = filename
+          .canonicalize()
+          .unwrap_or_else(|<span class="kw">_</span>| filename.to_path_buf());
+        files
+          .iter()
+          .map(|file| <span class="kw-2">&amp;</span>file.name)
+          .find(|name| <span class="kw">match </span><span class="kw-2">&amp;</span>name {
+            <span class="comment">// rustc seems to store relative paths to files in the workspace, so if filename is absolute,
+            // we can compare them using Path::ends_with
+            </span>FileName::Real(RealFileName::LocalPath(other)) =&gt; {
+              <span class="kw">let </span>canonical = other.canonicalize();
+              <span class="kw">let </span>other = canonical.as_ref().unwrap_or(other);
+              filename.ends_with(other)
             }
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
           })
-          .<span class="ident">cloned</span>()
+          .cloned()
       });
-      <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <span class="ident">filename</span>.<span class="ident">as_ref</span>().<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+      <span class="kw">let </span>filename = filename.as_ref().with_context(|| {
         <span class="macro">format!</span>(
           <span class="string">&quot;Could not find SourceFile for path: {}. Available SourceFiles were: [{}]&quot;</span>,
-          <span class="self">self</span>.<span class="ident">filename</span>,
-          <span class="ident">files</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">file</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">file</span>.<span class="ident">name</span> {
-              <span class="ident">FileName::Real</span>(<span class="ident">RealFileName::LocalPath</span>(<span class="ident">other</span>)) =&gt;
-                <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">other</span>.<span class="ident">display</span>())),
-              <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+          <span class="self">self</span>.filename,
+          files
+            .iter()
+            .filter_map(|file| <span class="kw">match </span><span class="kw-2">&amp;</span>file.name {
+              FileName::Real(RealFileName::LocalPath(other)) =&gt;
+                <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, other.display())),
+              <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             })
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-            .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+            .join(<span class="string">&quot;, &quot;</span>)
         )
       })<span class="question-mark">?</span>;
 
-      <span class="prelude-val">Ok</span>(<span class="ident">source_map</span>.<span class="ident">get_source_file</span>(<span class="ident">filename</span>).<span class="ident">unwrap</span>())
+      <span class="prelude-val">Ok</span>(source_map.get_source_file(filename).unwrap())
     })
   }
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ToSpan</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> {
-  <span class="kw">fn</span> <span class="ident">to_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>;
+<span class="kw">pub trait </span>ToSpan: Send + Sync {
+  <span class="kw">fn </span>to_span(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt) -&gt; <span class="prelude-ty">Result</span>&lt;Span&gt;;
 }
 
-<span class="kw">impl</span> <span class="ident">ToSpan</span> <span class="kw">for</span> <span class="ident">Range</span> {
-  <span class="kw">fn</span> <span class="ident">to_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">source_map</span> <span class="op">=</span> <span class="ident">tcx</span>.<span class="ident">sess</span>.<span class="ident">source_map</span>();
-    <span class="kw">let</span> <span class="ident">source_file</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">source_file</span>(<span class="ident">source_map</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">source_file</span>.<span class="ident">start_pos</span>;
+<span class="kw">impl </span>ToSpan <span class="kw">for </span>Range {
+  <span class="kw">fn </span>to_span(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt) -&gt; <span class="prelude-ty">Result</span>&lt;Span&gt; {
+    <span class="kw">let </span>source_map = tcx.sess.source_map();
+    <span class="kw">let </span>source_file = <span class="self">self</span>.source_file(source_map)<span class="question-mark">?</span>;
+    <span class="kw">let </span>offset = source_file.start_pos;
 
-    <span class="prelude-val">Ok</span>(<span class="ident">Span::with_root_ctxt</span>(
-      <span class="ident">offset</span> <span class="op">+</span> <span class="ident">BytePos</span>(<span class="self">self</span>.<span class="ident">byte_start</span> <span class="kw">as</span> <span class="ident">u32</span>),
-      <span class="ident">offset</span> <span class="op">+</span> <span class="ident">BytePos</span>(<span class="self">self</span>.<span class="ident">byte_end</span> <span class="kw">as</span> <span class="ident">u32</span>),
+    <span class="prelude-val">Ok</span>(Span::with_root_ctxt(
+      offset + BytePos(<span class="self">self</span>.byte_start <span class="kw">as </span>u32),
+      offset + BytePos(<span class="self">self</span>.byte_end <span class="kw">as </span>u32),
     ))
   }
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FunctionIdentifier</span> {
-  <span class="ident">Qpath</span>(<span class="ident">String</span>),
-  <span class="ident">Range</span>(<span class="ident">Range</span>),
+<span class="kw">pub enum </span>FunctionIdentifier {
+  Qpath(String),
+  Range(Range),
 }
 
-<span class="kw">impl</span> <span class="ident">ToSpan</span> <span class="kw">for</span> <span class="ident">FunctionIdentifier</span> {
-  <span class="kw">fn</span> <span class="ident">to_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">FunctionIdentifier::Qpath</span>(<span class="ident">qpath</span>) =&gt; <span class="ident">qpath_to_span</span>(<span class="ident">tcx</span>, <span class="ident">qpath</span>.<span class="ident">clone</span>()),
-      <span class="ident">FunctionIdentifier::Range</span>(<span class="ident">range</span>) =&gt; <span class="ident">range</span>.<span class="ident">to_span</span>(<span class="ident">tcx</span>),
+<span class="kw">impl </span>ToSpan <span class="kw">for </span>FunctionIdentifier {
+  <span class="kw">fn </span>to_span(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt) -&gt; <span class="prelude-ty">Result</span>&lt;Span&gt; {
+    <span class="kw">match </span><span class="self">self </span>{
+      FunctionIdentifier::Qpath(qpath) =&gt; qpath_to_span(tcx, qpath.clone()),
+      FunctionIdentifier::Range(range) =&gt; range.to_span(tcx),
     }
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

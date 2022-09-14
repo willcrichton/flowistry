@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.3/src/groupbylazy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>groupbylazy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.4/src/groupbylazy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>groupbylazy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../itertools/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../itertools/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -576,577 +569,576 @@
 <span id="569">569</span>
 <span id="570">570</span>
 <span id="571">571</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::cell</span>::{<span class="ident">Cell</span>, <span class="ident">RefCell</span>};
-<span class="kw">use</span> <span class="ident">alloc::vec</span>::{<span class="self">self</span>, <span class="ident">Vec</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, RefCell};
+<span class="kw">use </span>alloc::vec::{<span class="self">self</span>, Vec};
 
-<span class="doccomment">/// A trait to unify FnMut for GroupBy with the chunk key in IntoChunks</span>
-<span class="kw">trait</span> <span class="ident">KeyFunction</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Key</span>;
-    <span class="kw">fn</span> <span class="ident">call_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="ident">A</span>) -&gt; <span class="ident"><span class="self">Self</span>::Key</span>;
+<span class="doccomment">/// A trait to unify `FnMut` for `GroupBy` with the chunk key in `IntoChunks`
+</span><span class="kw">trait </span>KeyFunction&lt;A&gt; {
+    <span class="kw">type </span>Key;
+    <span class="kw">fn </span>call_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: A) -&gt; <span class="self">Self</span>::Key;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>, <span class="ident">K</span>, <span class="ident">F</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">KeyFunction</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">F</span>
-    <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">A</span>) -&gt; <span class="ident">K</span>
+<span class="kw">impl</span>&lt;A, K, F: <span class="question-mark">?</span>Sized&gt; KeyFunction&lt;A&gt; <span class="kw">for </span>F
+    <span class="kw">where </span>F: FnMut(A) -&gt; K
 {
-    <span class="kw">type</span> <span class="ident">Key</span> <span class="op">=</span> <span class="ident">K</span>;
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">call_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="ident">A</span>) -&gt; <span class="ident"><span class="self">Self</span>::Key</span> {
-        (<span class="kw-2">*</span><span class="self">self</span>)(<span class="ident">arg</span>)
+    <span class="kw">type </span>Key = K;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>call_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: A) -&gt; <span class="self">Self</span>::Key {
+        (<span class="kw-2">*</span><span class="self">self</span>)(arg)
     }
 }
 
 
-<span class="doccomment">/// ChunkIndex acts like the grouping key function for IntoChunks</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">ChunkIndex</span> {
-    <span class="ident">size</span>: <span class="ident">usize</span>,
-    <span class="ident">index</span>: <span class="ident">usize</span>,
-    <span class="ident">key</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// `ChunkIndex` acts like the grouping key function for `IntoChunks`
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>ChunkIndex {
+    size: usize,
+    index: usize,
+    key: usize,
 }
 
-<span class="kw">impl</span> <span class="ident">ChunkIndex</span> {
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">ChunkIndex</span> {
-            <span class="ident">size</span>,
-            <span class="ident">index</span>: <span class="number">0</span>,
-            <span class="ident">key</span>: <span class="number">0</span>,
+<span class="kw">impl </span>ChunkIndex {
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>new(size: usize) -&gt; <span class="self">Self </span>{
+        ChunkIndex {
+            size,
+            index: <span class="number">0</span>,
+            key: <span class="number">0</span>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span><span class="op">&gt;</span> <span class="ident">KeyFunction</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ChunkIndex</span> {
-    <span class="kw">type</span> <span class="ident">Key</span> <span class="op">=</span> <span class="ident">usize</span>;
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">call_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_arg</span>: <span class="ident">A</span>) -&gt; <span class="ident"><span class="self">Self</span>::Key</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">index</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">size</span> {
-            <span class="self">self</span>.<span class="ident">key</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="self">self</span>.<span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">impl</span>&lt;A&gt; KeyFunction&lt;A&gt; <span class="kw">for </span>ChunkIndex {
+    <span class="kw">type </span>Key = usize;
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>call_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _arg: A) -&gt; <span class="self">Self</span>::Key {
+        <span class="kw">if </span><span class="self">self</span>.index == <span class="self">self</span>.size {
+            <span class="self">self</span>.key += <span class="number">1</span>;
+            <span class="self">self</span>.index = <span class="number">0</span>;
         }
-        <span class="self">self</span>.<span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="self">self</span>.<span class="ident">key</span>
+        <span class="self">self</span>.index += <span class="number">1</span>;
+        <span class="self">self</span>.key
     }
 }
 
 
-<span class="kw">struct</span> <span class="ident">GroupInner</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>
+<span class="kw">struct </span>GroupInner&lt;K, I, F&gt;
+    <span class="kw">where </span>I: Iterator
 {
-    <span class="ident">key</span>: <span class="ident">F</span>,
-    <span class="ident">iter</span>: <span class="ident">I</span>,
-    <span class="ident">current_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>,
-    <span class="ident">current_elt</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// flag set if iterator is exhausted</span>
-    <span class="ident">done</span>: <span class="ident">bool</span>,
-    <span class="doccomment">/// Index of group we are currently buffering or visiting</span>
-    <span class="ident">top_group</span>: <span class="ident">usize</span>,
-    <span class="doccomment">/// Least index for which we still have elements buffered</span>
-    <span class="ident">oldest_buffered_group</span>: <span class="ident">usize</span>,
-    <span class="doccomment">/// Group index for `buffer[0]` -- the slots</span>
-    <span class="doccomment">/// bottom_group..oldest_buffered_group are unused and will be erased when</span>
-    <span class="doccomment">/// that range is large enough.</span>
-    <span class="ident">bottom_group</span>: <span class="ident">usize</span>,
-    <span class="doccomment">/// Buffered groups, from `bottom_group` (index 0) to `top_group`.</span>
-    <span class="ident">buffer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">vec::IntoIter</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// index of last group iter that was dropped, usize::MAX == none</span>
-    <span class="ident">dropped_group</span>: <span class="ident">usize</span>,
+    key: F,
+    iter: I,
+    current_key: <span class="prelude-ty">Option</span>&lt;K&gt;,
+    current_elt: <span class="prelude-ty">Option</span>&lt;I::Item&gt;,
+    <span class="doccomment">/// flag set if iterator is exhausted
+    </span>done: bool,
+    <span class="doccomment">/// Index of group we are currently buffering or visiting
+    </span>top_group: usize,
+    <span class="doccomment">/// Least index for which we still have elements buffered
+    </span>oldest_buffered_group: usize,
+    <span class="doccomment">/// Group index for `buffer[0]` -- the slots
+    /// bottom_group..oldest_buffered_group are unused and will be erased when
+    /// that range is large enough.
+    </span>bottom_group: usize,
+    <span class="doccomment">/// Buffered groups, from `bottom_group` (index 0) to `top_group`.
+    </span>buffer: Vec&lt;vec::IntoIter&lt;I::Item&gt;&gt;,
+    <span class="doccomment">/// index of last group iter that was dropped, usize::MAX == none
+    </span>dropped_group: usize,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">GroupInner</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">F</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">KeyFunction</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">I::Item</span>, <span class="ident">Key</span><span class="op">=</span><span class="ident">K</span><span class="op">&gt;</span>,
-          <span class="ident">K</span>: <span class="ident">PartialEq</span>,
+<span class="kw">impl</span>&lt;K, I, F&gt; GroupInner&lt;K, I, F&gt;
+    <span class="kw">where </span>I: Iterator,
+          F: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; KeyFunction&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>I::Item, Key=K&gt;,
+          K: PartialEq,
 {
-    <span class="doccomment">/// `client`: Index of group that requests next element</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">step</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">client</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// `client`: Index of group that requests next element
+    </span><span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>step(<span class="kw-2">&amp;mut </span><span class="self">self</span>, client: usize) -&gt; <span class="prelude-ty">Option</span>&lt;I::Item&gt; {
         <span class="comment">/*
         println!(&quot;client={}, bottom_group={}, oldest_buffered_group={}, top_group={}, buffers=[{}]&quot;,
                  client, self.bottom_group, self.oldest_buffered_group,
                  self.top_group,
                  self.buffer.iter().map(|elt| elt.len()).format(&quot;, &quot;));
-        */</span>
-        <span class="kw">if</span> <span class="ident">client</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">oldest_buffered_group</span> {
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">client</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">top_group</span> <span class="op">|</span><span class="op">|</span>
-            (<span class="ident">client</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">top_group</span> <span class="op">&amp;&amp;</span>
-             <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">top_group</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">bottom_group</span>)
+        */
+        </span><span class="kw">if </span>client &lt; <span class="self">self</span>.oldest_buffered_group {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else if </span>client &lt; <span class="self">self</span>.top_group ||
+            (client == <span class="self">self</span>.top_group &amp;&amp;
+             <span class="self">self</span>.buffer.len() &gt; <span class="self">self</span>.top_group - <span class="self">self</span>.bottom_group)
         {
-            <span class="self">self</span>.<span class="ident">lookup_buffer</span>(<span class="ident">client</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">done</span> {
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">top_group</span> <span class="op">==</span> <span class="ident">client</span> {
-            <span class="self">self</span>.<span class="ident">step_current</span>()
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">step_buffering</span>(<span class="ident">client</span>)
+            <span class="self">self</span>.lookup_buffer(client)
+        } <span class="kw">else if </span><span class="self">self</span>.done {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else if </span><span class="self">self</span>.top_group == client {
+            <span class="self">self</span>.step_current()
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.step_buffering(client)
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">lookup_buffer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">client</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span> {
-        <span class="comment">// if `bufidx` doesn&#39;t exist in self.buffer, it might be empty</span>
-        <span class="kw">let</span> <span class="ident">bufidx</span> <span class="op">=</span> <span class="ident">client</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">bottom_group</span>;
-        <span class="kw">if</span> <span class="ident">client</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">oldest_buffered_group</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="attribute">#[inline(never)]
+    </span><span class="kw">fn </span>lookup_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, client: usize) -&gt; <span class="prelude-ty">Option</span>&lt;I::Item&gt; {
+        <span class="comment">// if `bufidx` doesn&#39;t exist in self.buffer, it might be empty
+        </span><span class="kw">let </span>bufidx = client - <span class="self">self</span>.bottom_group;
+        <span class="kw">if </span>client &lt; <span class="self">self</span>.oldest_buffered_group {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let</span> <span class="ident">elt</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">get_mut</span>(<span class="ident">bufidx</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">queue</span><span class="op">|</span> <span class="ident">queue</span>.<span class="ident">next</span>());
-        <span class="kw">if</span> <span class="ident">elt</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">client</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">oldest_buffered_group</span> {
-            <span class="comment">// FIXME: VecDeque is unfortunately not zero allocation when empty,</span>
-            <span class="comment">// so we do this job manually.</span>
-            <span class="comment">// `bottom_group..oldest_buffered_group` is unused, and if it&#39;s large enough, erase it.</span>
-            <span class="self">self</span>.<span class="ident">oldest_buffered_group</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="comment">// skip forward further empty queues too</span>
-            <span class="kw">while</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">oldest_buffered_group</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">bottom_group</span>)
-                             .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">buf</span><span class="op">|</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span>)
+        <span class="kw">let </span>elt = <span class="self">self</span>.buffer.get_mut(bufidx).and_then(|queue| queue.next());
+        <span class="kw">if </span>elt.is_none() &amp;&amp; client == <span class="self">self</span>.oldest_buffered_group {
+            <span class="comment">// FIXME: VecDeque is unfortunately not zero allocation when empty,
+            // so we do this job manually.
+            // `bottom_group..oldest_buffered_group` is unused, and if it&#39;s large enough, erase it.
+            </span><span class="self">self</span>.oldest_buffered_group += <span class="number">1</span>;
+            <span class="comment">// skip forward further empty queues too
+            </span><span class="kw">while </span><span class="self">self</span>.buffer.get(<span class="self">self</span>.oldest_buffered_group - <span class="self">self</span>.bottom_group)
+                             .map_or(<span class="bool-val">false</span>, |buf| buf.len() == <span class="number">0</span>)
             {
-                <span class="self">self</span>.<span class="ident">oldest_buffered_group</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="self">self</span>.oldest_buffered_group += <span class="number">1</span>;
             }
 
-            <span class="kw">let</span> <span class="ident">nclear</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">oldest_buffered_group</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">bottom_group</span>;
-            <span class="kw">if</span> <span class="ident">nclear</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">nclear</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">2</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
-                <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">buf</span><span class="op">|</span> {
-                    <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                    <span class="macro">debug_assert!</span>(<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="ident">nclear</span>);
-                    <span class="ident">i</span> <span class="op">&gt;</span> <span class="ident">nclear</span>
+            <span class="kw">let </span>nclear = <span class="self">self</span>.oldest_buffered_group - <span class="self">self</span>.bottom_group;
+            <span class="kw">if </span>nclear &gt; <span class="number">0 </span>&amp;&amp; nclear &gt;= <span class="self">self</span>.buffer.len() / <span class="number">2 </span>{
+                <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
+                <span class="self">self</span>.buffer.retain(|buf| {
+                    i += <span class="number">1</span>;
+                    <span class="macro">debug_assert!</span>(buf.len() == <span class="number">0 </span>|| i &gt; nclear);
+                    i &gt; nclear
                 });
-                <span class="self">self</span>.<span class="ident">bottom_group</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">oldest_buffered_group</span>;
+                <span class="self">self</span>.bottom_group = <span class="self">self</span>.oldest_buffered_group;
             }
         }
-        <span class="ident">elt</span>
+        elt
     }
 
-    <span class="doccomment">/// Take the next element from the iterator, and set the done</span>
-    <span class="doccomment">/// flag if exhausted. Must not be called after done.</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">next_element</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">done</span>);
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>() {
-            <span class="prelude-val">None</span> =&gt; { <span class="self">self</span>.<span class="ident">done</span> <span class="op">=</span> <span class="bool-val">true</span>; <span class="prelude-val">None</span> }
-            <span class="ident">otherwise</span> =&gt; <span class="ident">otherwise</span>,
+    <span class="doccomment">/// Take the next element from the iterator, and set the done
+    /// flag if exhausted. Must not be called after done.
+    </span><span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>next_element(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;I::Item&gt; {
+        <span class="macro">debug_assert!</span>(!<span class="self">self</span>.done);
+        <span class="kw">match </span><span class="self">self</span>.iter.next() {
+            <span class="prelude-val">None </span>=&gt; { <span class="self">self</span>.done = <span class="bool-val">true</span>; <span class="prelude-val">None </span>}
+            otherwise =&gt; otherwise,
         }
     }
 
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">step_buffering</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">client</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span> {
-        <span class="comment">// requested a later group -- walk through the current group up to</span>
-        <span class="comment">// the requested group index, and buffer the elements (unless</span>
-        <span class="comment">// the group is marked as dropped).</span>
-        <span class="comment">// Because the `Groups` iterator is always the first to request</span>
-        <span class="comment">// each group index, client is the next index efter top_group.</span>
-        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">top_group</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">client</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="attribute">#[inline(never)]
+    </span><span class="kw">fn </span>step_buffering(<span class="kw-2">&amp;mut </span><span class="self">self</span>, client: usize) -&gt; <span class="prelude-ty">Option</span>&lt;I::Item&gt; {
+        <span class="comment">// requested a later group -- walk through the current group up to
+        // the requested group index, and buffer the elements (unless
+        // the group is marked as dropped).
+        // Because the `Groups` iterator is always the first to request
+        // each group index, client is the next index efter top_group.
+        </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.top_group + <span class="number">1 </span>== client);
+        <span class="kw">let </span><span class="kw-2">mut </span>group = Vec::new();
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">elt</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_elt</span>.<span class="ident">take</span>() {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">top_group</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">dropped_group</span> {
-                <span class="ident">group</span>.<span class="ident">push</span>(<span class="ident">elt</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(elt) = <span class="self">self</span>.current_elt.take() {
+            <span class="kw">if </span><span class="self">self</span>.top_group != <span class="self">self</span>.dropped_group {
+                group.push(elt);
             }
         }
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">first_elt</span> <span class="op">=</span> <span class="prelude-val">None</span>; <span class="comment">// first element of the next group</span>
+        <span class="kw">let </span><span class="kw-2">mut </span>first_elt = <span class="prelude-val">None</span>; <span class="comment">// first element of the next group
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">elt</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_element</span>() {
-            <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">key</span>.<span class="ident">call_mut</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>);
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">current_key</span>.<span class="ident">take</span>() {
-                <span class="prelude-val">None</span> =&gt; {}
-                <span class="prelude-val">Some</span>(<span class="ident">old_key</span>) =&gt; <span class="kw">if</span> <span class="ident">old_key</span> <span class="op">!</span><span class="op">=</span> <span class="ident">key</span> {
-                    <span class="self">self</span>.<span class="ident">current_key</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">key</span>);
-                    <span class="ident">first_elt</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">elt</span>);
+        </span><span class="kw">while let </span><span class="prelude-val">Some</span>(elt) = <span class="self">self</span>.next_element() {
+            <span class="kw">let </span>key = <span class="self">self</span>.key.call_mut(<span class="kw-2">&amp;</span>elt);
+            <span class="kw">match </span><span class="self">self</span>.current_key.take() {
+                <span class="prelude-val">None </span>=&gt; {}
+                <span class="prelude-val">Some</span>(old_key) =&gt; <span class="kw">if </span>old_key != key {
+                    <span class="self">self</span>.current_key = <span class="prelude-val">Some</span>(key);
+                    first_elt = <span class="prelude-val">Some</span>(elt);
                     <span class="kw">break</span>;
                 },
             }
-            <span class="self">self</span>.<span class="ident">current_key</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">key</span>);
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">top_group</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">dropped_group</span> {
-                <span class="ident">group</span>.<span class="ident">push</span>(<span class="ident">elt</span>);
+            <span class="self">self</span>.current_key = <span class="prelude-val">Some</span>(key);
+            <span class="kw">if </span><span class="self">self</span>.top_group != <span class="self">self</span>.dropped_group {
+                group.push(elt);
             }
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">top_group</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">dropped_group</span> {
-            <span class="self">self</span>.<span class="ident">push_next_group</span>(<span class="ident">group</span>);
+        <span class="kw">if </span><span class="self">self</span>.top_group != <span class="self">self</span>.dropped_group {
+            <span class="self">self</span>.push_next_group(group);
         }
-        <span class="kw">if</span> <span class="ident">first_elt</span>.<span class="ident">is_some</span>() {
-            <span class="self">self</span>.<span class="ident">top_group</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">top_group</span> <span class="op">==</span> <span class="ident">client</span>);
+        <span class="kw">if </span>first_elt.is_some() {
+            <span class="self">self</span>.top_group += <span class="number">1</span>;
+            <span class="macro">debug_assert!</span>(<span class="self">self</span>.top_group == client);
         }
-        <span class="ident">first_elt</span>
+        first_elt
     }
 
-    <span class="kw">fn</span> <span class="ident">push_next_group</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">group</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>) {
-        <span class="comment">// When we add a new buffered group, fill up slots between oldest_buffered_group and top_group</span>
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">top_group</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">bottom_group</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">len</span>() {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">is_empty</span>() {
-                <span class="self">self</span>.<span class="ident">bottom_group</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="self">self</span>.<span class="ident">oldest_buffered_group</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            } <span class="kw">else</span> {
-                <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">push</span>(<span class="ident">Vec::new</span>().<span class="ident">into_iter</span>());
+    <span class="kw">fn </span>push_next_group(<span class="kw-2">&amp;mut </span><span class="self">self</span>, group: Vec&lt;I::Item&gt;) {
+        <span class="comment">// When we add a new buffered group, fill up slots between oldest_buffered_group and top_group
+        </span><span class="kw">while </span><span class="self">self</span>.top_group - <span class="self">self</span>.bottom_group &gt; <span class="self">self</span>.buffer.len() {
+            <span class="kw">if </span><span class="self">self</span>.buffer.is_empty() {
+                <span class="self">self</span>.bottom_group += <span class="number">1</span>;
+                <span class="self">self</span>.oldest_buffered_group += <span class="number">1</span>;
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.buffer.push(Vec::new().into_iter());
             }
         }
-        <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">push</span>(<span class="ident">group</span>.<span class="ident">into_iter</span>());
-        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">top_group</span> <span class="op">+</span> <span class="number">1</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">bottom_group</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">len</span>());
+        <span class="self">self</span>.buffer.push(group.into_iter());
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.top_group + <span class="number">1 </span>- <span class="self">self</span>.bottom_group == <span class="self">self</span>.buffer.len());
     }
 
-    <span class="doccomment">/// This is the immediate case, where we use no buffering</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">step_current</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">done</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">elt</span> @ <span class="prelude-val">Some</span>(..) <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_elt</span>.<span class="ident">take</span>() {
-            <span class="kw">return</span> <span class="ident">elt</span>;
+    <span class="doccomment">/// This is the immediate case, where we use no buffering
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>step_current(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;I::Item&gt; {
+        <span class="macro">debug_assert!</span>(!<span class="self">self</span>.done);
+        <span class="kw">if let </span>elt @ <span class="prelude-val">Some</span>(..) = <span class="self">self</span>.current_elt.take() {
+            <span class="kw">return </span>elt;
         }
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">next_element</span>() {
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">elt</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">key</span>.<span class="ident">call_mut</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>);
-                <span class="kw">match</span> <span class="self">self</span>.<span class="ident">current_key</span>.<span class="ident">take</span>() {
-                    <span class="prelude-val">None</span> =&gt; {}
-                    <span class="prelude-val">Some</span>(<span class="ident">old_key</span>) =&gt; <span class="kw">if</span> <span class="ident">old_key</span> <span class="op">!</span><span class="op">=</span> <span class="ident">key</span> {
-                        <span class="self">self</span>.<span class="ident">current_key</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">key</span>);
-                        <span class="self">self</span>.<span class="ident">current_elt</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">elt</span>);
-                        <span class="self">self</span>.<span class="ident">top_group</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                        <span class="kw">return</span> <span class="prelude-val">None</span>;
+        <span class="kw">match </span><span class="self">self</span>.next_element() {
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(elt) =&gt; {
+                <span class="kw">let </span>key = <span class="self">self</span>.key.call_mut(<span class="kw-2">&amp;</span>elt);
+                <span class="kw">match </span><span class="self">self</span>.current_key.take() {
+                    <span class="prelude-val">None </span>=&gt; {}
+                    <span class="prelude-val">Some</span>(old_key) =&gt; <span class="kw">if </span>old_key != key {
+                        <span class="self">self</span>.current_key = <span class="prelude-val">Some</span>(key);
+                        <span class="self">self</span>.current_elt = <span class="prelude-val">Some</span>(elt);
+                        <span class="self">self</span>.top_group += <span class="number">1</span>;
+                        <span class="kw">return </span><span class="prelude-val">None</span>;
                     },
                 }
-                <span class="self">self</span>.<span class="ident">current_key</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">key</span>);
-                <span class="prelude-val">Some</span>(<span class="ident">elt</span>)
+                <span class="self">self</span>.current_key = <span class="prelude-val">Some</span>(key);
+                <span class="prelude-val">Some</span>(elt)
             }
         }
     }
 
-    <span class="doccomment">/// Request the just started groups&#39; key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `client`: Index of group</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Panics** if no group key is available.</span>
-    <span class="kw">fn</span> <span class="ident">group_key</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">client</span>: <span class="ident">usize</span>) -&gt; <span class="ident">K</span> {
-        <span class="comment">// This can only be called after we have just returned the first</span>
-        <span class="comment">// element of a group.</span>
-        <span class="comment">// Perform this by simply buffering one more element, grabbing the</span>
-        <span class="comment">// next key.</span>
-        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">done</span>);
-        <span class="macro">debug_assert!</span>(<span class="ident">client</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">top_group</span>);
-        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">current_key</span>.<span class="ident">is_some</span>());
-        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">current_elt</span>.<span class="ident">is_none</span>());
-        <span class="kw">let</span> <span class="ident">old_key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_key</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">elt</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_element</span>() {
-            <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">key</span>.<span class="ident">call_mut</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>);
-            <span class="kw">if</span> <span class="ident">old_key</span> <span class="op">!</span><span class="op">=</span> <span class="ident">key</span> {
-                <span class="self">self</span>.<span class="ident">top_group</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="doccomment">/// Request the just started groups&#39; key.
+    ///
+    /// `client`: Index of group
+    ///
+    /// **Panics** if no group key is available.
+    </span><span class="kw">fn </span>group_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>, client: usize) -&gt; K {
+        <span class="comment">// This can only be called after we have just returned the first
+        // element of a group.
+        // Perform this by simply buffering one more element, grabbing the
+        // next key.
+        </span><span class="macro">debug_assert!</span>(!<span class="self">self</span>.done);
+        <span class="macro">debug_assert!</span>(client == <span class="self">self</span>.top_group);
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.current_key.is_some());
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.current_elt.is_none());
+        <span class="kw">let </span>old_key = <span class="self">self</span>.current_key.take().unwrap();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(elt) = <span class="self">self</span>.next_element() {
+            <span class="kw">let </span>key = <span class="self">self</span>.key.call_mut(<span class="kw-2">&amp;</span>elt);
+            <span class="kw">if </span>old_key != key {
+                <span class="self">self</span>.top_group += <span class="number">1</span>;
             }
-            <span class="self">self</span>.<span class="ident">current_key</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">key</span>);
-            <span class="self">self</span>.<span class="ident">current_elt</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">elt</span>);
+            <span class="self">self</span>.current_key = <span class="prelude-val">Some</span>(key);
+            <span class="self">self</span>.current_elt = <span class="prelude-val">Some</span>(elt);
         }
-        <span class="ident">old_key</span>
+        old_key
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">GroupInner</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="kw">impl</span>&lt;K, I, F&gt; GroupInner&lt;K, I, F&gt;
+    <span class="kw">where </span>I: Iterator,
 {
-    <span class="doccomment">/// Called when a group is dropped</span>
-    <span class="kw">fn</span> <span class="ident">drop_group</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">client</span>: <span class="ident">usize</span>) {
-        <span class="comment">// It&#39;s only useful to track the maximal index</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">dropped_group</span> <span class="op">==</span> <span class="op">!</span><span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">client</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">dropped_group</span> {
-            <span class="self">self</span>.<span class="ident">dropped_group</span> <span class="op">=</span> <span class="ident">client</span>;
+    <span class="doccomment">/// Called when a group is dropped
+    </span><span class="kw">fn </span>drop_group(<span class="kw-2">&amp;mut </span><span class="self">self</span>, client: usize) {
+        <span class="comment">// It&#39;s only useful to track the maximal index
+        </span><span class="kw">if </span><span class="self">self</span>.dropped_group == !<span class="number">0 </span>|| client &gt; <span class="self">self</span>.dropped_group {
+            <span class="self">self</span>.dropped_group = client;
         }
     }
 }
 
-<span class="doccomment">/// `GroupBy` is the storage for the lazy grouping operation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If the groups are consumed in their original order, or if each</span>
-<span class="doccomment">/// group is dropped without keeping it around, then `GroupBy` uses</span>
-<span class="doccomment">/// no allocations. It needs allocations only if several group iterators</span>
-<span class="doccomment">/// are alive at the same time.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type implements [`IntoIterator`] (it is **not** an iterator</span>
-<span class="doccomment">/// itself), because the group iterators need to borrow from this</span>
-<span class="doccomment">/// value. It should be stored in a local variable or temporary and</span>
-<span class="doccomment">/// iterated.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.group_by()`](crate::Itertools::group_by) for more information.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GroupBy</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="doccomment">/// `GroupBy` is the storage for the lazy grouping operation.
+///
+/// If the groups are consumed in their original order, or if each
+/// group is dropped without keeping it around, then `GroupBy` uses
+/// no allocations. It needs allocations only if several group iterators
+/// are alive at the same time.
+///
+/// This type implements [`IntoIterator`] (it is **not** an iterator
+/// itself), because the group iterators need to borrow from this
+/// value. It should be stored in a local variable or temporary and
+/// iterated.
+///
+/// See [`.group_by()`](crate::Itertools::group_by) for more information.
+</span><span class="attribute">#[must_use = <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]
+</span><span class="kw">pub struct </span>GroupBy&lt;K, I, F&gt;
+    <span class="kw">where </span>I: Iterator,
 {
-    <span class="ident">inner</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">GroupInner</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="comment">// the group iterator&#39;s current index. Keep this in the main value</span>
-    <span class="comment">// so that simultaneous iterators all use the same state.</span>
-    <span class="ident">index</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    inner: RefCell&lt;GroupInner&lt;K, I, F&gt;&gt;,
+    <span class="comment">// the group iterator&#39;s current index. Keep this in the main value
+    // so that simultaneous iterators all use the same state.
+    </span>index: Cell&lt;usize&gt;,
 }
 
-<span class="doccomment">/// Create a new</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">J</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">J</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">GroupBy</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">J::IntoIter</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">J</span>: <span class="ident">IntoIterator</span>,
-          <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">J::Item</span>) -&gt; <span class="ident">K</span>,
+<span class="doccomment">/// Create a new
+</span><span class="kw">pub fn </span>new&lt;K, J, F&gt;(iter: J, f: F) -&gt; GroupBy&lt;K, J::IntoIter, F&gt;
+    <span class="kw">where </span>J: IntoIterator,
+          F: FnMut(<span class="kw-2">&amp;</span>J::Item) -&gt; K,
 {
-    <span class="ident">GroupBy</span> {
-        <span class="ident">inner</span>: <span class="ident">RefCell::new</span>(<span class="ident">GroupInner</span> {
-            <span class="ident">key</span>: <span class="ident">f</span>,
-            <span class="ident">iter</span>: <span class="ident">iter</span>.<span class="ident">into_iter</span>(),
-            <span class="ident">current_key</span>: <span class="prelude-val">None</span>,
-            <span class="ident">current_elt</span>: <span class="prelude-val">None</span>,
-            <span class="ident">done</span>: <span class="bool-val">false</span>,
-            <span class="ident">top_group</span>: <span class="number">0</span>,
-            <span class="ident">oldest_buffered_group</span>: <span class="number">0</span>,
-            <span class="ident">bottom_group</span>: <span class="number">0</span>,
-            <span class="ident">buffer</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">dropped_group</span>: <span class="op">!</span><span class="number">0</span>,
+    GroupBy {
+        inner: RefCell::new(GroupInner {
+            key: f,
+            iter: iter.into_iter(),
+            current_key: <span class="prelude-val">None</span>,
+            current_elt: <span class="prelude-val">None</span>,
+            done: <span class="bool-val">false</span>,
+            top_group: <span class="number">0</span>,
+            oldest_buffered_group: <span class="number">0</span>,
+            bottom_group: <span class="number">0</span>,
+            buffer: Vec::new(),
+            dropped_group: !<span class="number">0</span>,
         }),
-        <span class="ident">index</span>: <span class="ident">Cell::new</span>(<span class="number">0</span>),
+        index: Cell::new(<span class="number">0</span>),
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">GroupBy</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="kw">impl</span>&lt;K, I, F&gt; GroupBy&lt;K, I, F&gt;
+    <span class="kw">where </span>I: Iterator,
 {
-    <span class="doccomment">/// `client`: Index of group that requests next element</span>
-    <span class="kw">fn</span> <span class="ident">step</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">client</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">I::Item</span>) -&gt; <span class="ident">K</span>,
-              <span class="ident">K</span>: <span class="ident">PartialEq</span>,
+    <span class="doccomment">/// `client`: Index of group that requests next element
+    </span><span class="kw">fn </span>step(<span class="kw-2">&amp;</span><span class="self">self</span>, client: usize) -&gt; <span class="prelude-ty">Option</span>&lt;I::Item&gt;
+        <span class="kw">where </span>F: FnMut(<span class="kw-2">&amp;</span>I::Item) -&gt; K,
+              K: PartialEq,
     {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">borrow_mut</span>().<span class="ident">step</span>(<span class="ident">client</span>)
+        <span class="self">self</span>.inner.borrow_mut().step(client)
     }
 
-    <span class="doccomment">/// `client`: Index of group</span>
-    <span class="kw">fn</span> <span class="ident">drop_group</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">client</span>: <span class="ident">usize</span>) {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">borrow_mut</span>().<span class="ident">drop_group</span>(<span class="ident">client</span>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">GroupBy</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">I::Item</span>: <span class="lifetime">&#39;a</span>,
-          <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">I::Item</span>) -&gt; <span class="ident">K</span>,
-          <span class="ident">K</span>: <span class="ident">PartialEq</span>
-{
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">K</span>, <span class="ident">Group</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>);
-    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">Groups</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
-        <span class="ident">Groups</span> { <span class="ident">parent</span>: <span class="self">self</span> }
+    <span class="doccomment">/// `client`: Index of group
+    </span><span class="kw">fn </span>drop_group(<span class="kw-2">&amp;</span><span class="self">self</span>, client: usize) {
+        <span class="self">self</span>.inner.borrow_mut().drop_group(client);
     }
 }
 
-
-<span class="doccomment">/// An iterator that yields the Group iterators.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Iterator element type is `(K, Group)`:</span>
-<span class="doccomment">/// the group&#39;s key `K` and the group&#39;s iterator.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.group_by()`](crate::Itertools::group_by) for more information.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Groups</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>: <span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="lifetime">&#39;a</span>, <span class="ident">F</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">I::Item</span>: <span class="lifetime">&#39;a</span>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, I, F&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>GroupBy&lt;K, I, F&gt;
+    <span class="kw">where </span>I: Iterator,
+          I::Item: <span class="lifetime">&#39;a</span>,
+          F: FnMut(<span class="kw-2">&amp;</span>I::Item) -&gt; K,
+          K: PartialEq
 {
-    <span class="ident">parent</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">GroupBy</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>,
+    <span class="kw">type </span>Item = (K, Group&lt;<span class="lifetime">&#39;a</span>, K, I, F&gt;);
+    <span class="kw">type </span>IntoIter = Groups&lt;<span class="lifetime">&#39;a</span>, K, I, F&gt;;
+
+    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
+        Groups { parent: <span class="self">self </span>}
+    }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Groups</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">I::Item</span>: <span class="lifetime">&#39;a</span>,
-          <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">I::Item</span>) -&gt; <span class="ident">K</span>,
-          <span class="ident">K</span>: <span class="ident">PartialEq</span>
-{
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">K</span>, <span class="ident">Group</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>);
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parent</span>.<span class="ident">index</span>.<span class="ident">get</span>();
-        <span class="self">self</span>.<span class="ident">parent</span>.<span class="ident">index</span>.<span class="ident">set</span>(<span class="ident">index</span> <span class="op">+</span> <span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">parent</span>.<span class="ident">inner</span>.<span class="ident">borrow_mut</span>();
-        <span class="ident">inner</span>.<span class="ident">step</span>(<span class="ident">index</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">elt</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">group_key</span>(<span class="ident">index</span>);
-            (<span class="ident">key</span>, <span class="ident">Group</span> {
-                <span class="ident">parent</span>: <span class="self">self</span>.<span class="ident">parent</span>,
-                <span class="ident">index</span>,
-                <span class="ident">first</span>: <span class="prelude-val">Some</span>(<span class="ident">elt</span>),
+<span class="doccomment">/// An iterator that yields the Group iterators.
+///
+/// Iterator element type is `(K, Group)`:
+/// the group&#39;s key `K` and the group&#39;s iterator.
+///
+/// See [`.group_by()`](crate::Itertools::group_by) for more information.
+</span><span class="attribute">#[must_use = <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]
+</span><span class="kw">pub struct </span>Groups&lt;<span class="lifetime">&#39;a</span>, K: <span class="lifetime">&#39;a</span>, I: <span class="lifetime">&#39;a</span>, F: <span class="lifetime">&#39;a</span>&gt;
+    <span class="kw">where </span>I: Iterator,
+          I::Item: <span class="lifetime">&#39;a
+</span>{
+    parent: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>GroupBy&lt;K, I, F&gt;,
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, I, F&gt; Iterator <span class="kw">for </span>Groups&lt;<span class="lifetime">&#39;a</span>, K, I, F&gt;
+    <span class="kw">where </span>I: Iterator,
+          I::Item: <span class="lifetime">&#39;a</span>,
+          F: FnMut(<span class="kw-2">&amp;</span>I::Item) -&gt; K,
+          K: PartialEq
+{
+    <span class="kw">type </span>Item = (K, Group&lt;<span class="lifetime">&#39;a</span>, K, I, F&gt;);
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">let </span>index = <span class="self">self</span>.parent.index.get();
+        <span class="self">self</span>.parent.index.set(index + <span class="number">1</span>);
+        <span class="kw">let </span>inner = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.parent.inner.borrow_mut();
+        inner.step(index).map(|elt| {
+            <span class="kw">let </span>key = inner.group_key(index);
+            (key, Group {
+                parent: <span class="self">self</span>.parent,
+                index,
+                first: <span class="prelude-val">Some</span>(elt),
             })
         })
     }
 }
 
-<span class="doccomment">/// An iterator for the elements in a single group.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Iterator element type is `I::Item`.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Group</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>: <span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="lifetime">&#39;a</span>, <span class="ident">F</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">I::Item</span>: <span class="lifetime">&#39;a</span>,
+<span class="doccomment">/// An iterator for the elements in a single group.
+///
+/// Iterator element type is `I::Item`.
+</span><span class="kw">pub struct </span>Group&lt;<span class="lifetime">&#39;a</span>, K: <span class="lifetime">&#39;a</span>, I: <span class="lifetime">&#39;a</span>, F: <span class="lifetime">&#39;a</span>&gt;
+    <span class="kw">where </span>I: Iterator,
+          I::Item: <span class="lifetime">&#39;a</span>,
 {
-    <span class="ident">parent</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">GroupBy</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>,
-    <span class="ident">index</span>: <span class="ident">usize</span>,
-    <span class="ident">first</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+    parent: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>GroupBy&lt;K, I, F&gt;,
+    index: usize,
+    first: <span class="prelude-ty">Option</span>&lt;I::Item&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Group</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">I::Item</span>: <span class="lifetime">&#39;a</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, I, F&gt; Drop <span class="kw">for </span>Group&lt;<span class="lifetime">&#39;a</span>, K, I, F&gt;
+    <span class="kw">where </span>I: Iterator,
+          I::Item: <span class="lifetime">&#39;a</span>,
 {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">parent</span>.<span class="ident">drop_group</span>(<span class="self">self</span>.<span class="ident">index</span>);
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.parent.drop_group(<span class="self">self</span>.index);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Group</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">I::Item</span>: <span class="lifetime">&#39;a</span>,
-          <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">I::Item</span>) -&gt; <span class="ident">K</span>,
-          <span class="ident">K</span>: <span class="ident">PartialEq</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, I, F&gt; Iterator <span class="kw">for </span>Group&lt;<span class="lifetime">&#39;a</span>, K, I, F&gt;
+    <span class="kw">where </span>I: Iterator,
+          I::Item: <span class="lifetime">&#39;a</span>,
+          F: FnMut(<span class="kw-2">&amp;</span>I::Item) -&gt; K,
+          K: PartialEq,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span>;
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">elt</span> @ <span class="prelude-val">Some</span>(..) <span class="op">=</span> <span class="self">self</span>.<span class="ident">first</span>.<span class="ident">take</span>() {
-            <span class="kw">return</span> <span class="ident">elt</span>;
+    <span class="kw">type </span>Item = I::Item;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">if let </span>elt @ <span class="prelude-val">Some</span>(..) = <span class="self">self</span>.first.take() {
+            <span class="kw">return </span>elt;
         }
-        <span class="self">self</span>.<span class="ident">parent</span>.<span class="ident">step</span>(<span class="self">self</span>.<span class="ident">index</span>)
+        <span class="self">self</span>.parent.step(<span class="self">self</span>.index)
     }
 }
 
-<span class="comment">///// IntoChunks /////</span>
+<span class="comment">///// IntoChunks /////
 
-<span class="doccomment">/// Create a new</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_chunks</span><span class="op">&lt;</span><span class="ident">J</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">J</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="ident">IntoChunks</span><span class="op">&lt;</span><span class="ident">J::IntoIter</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">J</span>: <span class="ident">IntoIterator</span>,
+</span><span class="doccomment">/// Create a new
+</span><span class="kw">pub fn </span>new_chunks&lt;J&gt;(iter: J, size: usize) -&gt; IntoChunks&lt;J::IntoIter&gt;
+    <span class="kw">where </span>J: IntoIterator,
 {
-    <span class="ident">IntoChunks</span> {
-        <span class="ident">inner</span>: <span class="ident">RefCell::new</span>(<span class="ident">GroupInner</span> {
-            <span class="ident">key</span>: <span class="ident">ChunkIndex::new</span>(<span class="ident">size</span>),
-            <span class="ident">iter</span>: <span class="ident">iter</span>.<span class="ident">into_iter</span>(),
-            <span class="ident">current_key</span>: <span class="prelude-val">None</span>,
-            <span class="ident">current_elt</span>: <span class="prelude-val">None</span>,
-            <span class="ident">done</span>: <span class="bool-val">false</span>,
-            <span class="ident">top_group</span>: <span class="number">0</span>,
-            <span class="ident">oldest_buffered_group</span>: <span class="number">0</span>,
-            <span class="ident">bottom_group</span>: <span class="number">0</span>,
-            <span class="ident">buffer</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">dropped_group</span>: <span class="op">!</span><span class="number">0</span>,
+    IntoChunks {
+        inner: RefCell::new(GroupInner {
+            key: ChunkIndex::new(size),
+            iter: iter.into_iter(),
+            current_key: <span class="prelude-val">None</span>,
+            current_elt: <span class="prelude-val">None</span>,
+            done: <span class="bool-val">false</span>,
+            top_group: <span class="number">0</span>,
+            oldest_buffered_group: <span class="number">0</span>,
+            bottom_group: <span class="number">0</span>,
+            buffer: Vec::new(),
+            dropped_group: !<span class="number">0</span>,
         }),
-        <span class="ident">index</span>: <span class="ident">Cell::new</span>(<span class="number">0</span>),
+        index: Cell::new(<span class="number">0</span>),
     }
 }
 
 
-<span class="doccomment">/// `ChunkLazy` is the storage for a lazy chunking operation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `IntoChunks` behaves just like `GroupBy`: it is iterable, and</span>
-<span class="doccomment">/// it only buffers if several chunk iterators are alive at the same time.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type implements [`IntoIterator`] (it is **not** an iterator</span>
-<span class="doccomment">/// itself), because the chunk iterators need to borrow from this</span>
-<span class="doccomment">/// value. It should be stored in a local variable or temporary and</span>
-<span class="doccomment">/// iterated.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Iterator element type is `Chunk`, each chunk&#39;s iterator.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.chunks()`](crate::Itertools::chunks) for more information.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntoChunks</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="doccomment">/// `ChunkLazy` is the storage for a lazy chunking operation.
+///
+/// `IntoChunks` behaves just like `GroupBy`: it is iterable, and
+/// it only buffers if several chunk iterators are alive at the same time.
+///
+/// This type implements [`IntoIterator`] (it is **not** an iterator
+/// itself), because the chunk iterators need to borrow from this
+/// value. It should be stored in a local variable or temporary and
+/// iterated.
+///
+/// Iterator element type is `Chunk`, each chunk&#39;s iterator.
+///
+/// See [`.chunks()`](crate::Itertools::chunks) for more information.
+</span><span class="attribute">#[must_use = <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]
+</span><span class="kw">pub struct </span>IntoChunks&lt;I&gt;
+    <span class="kw">where </span>I: Iterator,
 {
-    <span class="ident">inner</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">GroupInner</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">I</span>, <span class="ident">ChunkIndex</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="comment">// the chunk iterator&#39;s current index. Keep this in the main value</span>
-    <span class="comment">// so that simultaneous iterators all use the same state.</span>
-    <span class="ident">index</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    inner: RefCell&lt;GroupInner&lt;usize, I, ChunkIndex&gt;&gt;,
+    <span class="comment">// the chunk iterator&#39;s current index. Keep this in the main value
+    // so that simultaneous iterators all use the same state.
+    </span>index: Cell&lt;usize&gt;,
 }
 
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">IntoChunks</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="kw">impl</span>&lt;I&gt; IntoChunks&lt;I&gt;
+    <span class="kw">where </span>I: Iterator,
 {
-    <span class="doccomment">/// `client`: Index of chunk that requests next element</span>
-    <span class="kw">fn</span> <span class="ident">step</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">client</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">borrow_mut</span>().<span class="ident">step</span>(<span class="ident">client</span>)
+    <span class="doccomment">/// `client`: Index of chunk that requests next element
+    </span><span class="kw">fn </span>step(<span class="kw-2">&amp;</span><span class="self">self</span>, client: usize) -&gt; <span class="prelude-ty">Option</span>&lt;I::Item&gt; {
+        <span class="self">self</span>.inner.borrow_mut().step(client)
     }
 
-    <span class="doccomment">/// `client`: Index of chunk</span>
-    <span class="kw">fn</span> <span class="ident">drop_group</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">client</span>: <span class="ident">usize</span>) {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">borrow_mut</span>().<span class="ident">drop_group</span>(<span class="ident">client</span>)
+    <span class="doccomment">/// `client`: Index of chunk
+    </span><span class="kw">fn </span>drop_group(<span class="kw-2">&amp;</span><span class="self">self</span>, client: usize) {
+        <span class="self">self</span>.inner.borrow_mut().drop_group(client);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">IntoChunks</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">I::Item</span>: <span class="lifetime">&#39;a</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IntoChunks&lt;I&gt;
+    <span class="kw">where </span>I: Iterator,
+          I::Item: <span class="lifetime">&#39;a</span>,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Chunk</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">Chunks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Item = Chunk&lt;<span class="lifetime">&#39;a</span>, I&gt;;
+    <span class="kw">type </span>IntoIter = Chunks&lt;<span class="lifetime">&#39;a</span>, I&gt;;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
-        <span class="ident">Chunks</span> {
-            <span class="ident">parent</span>: <span class="self">self</span>,
+    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
+        Chunks {
+            parent: <span class="self">self</span>,
         }
     }
 }
 
 
-<span class="doccomment">/// An iterator that yields the Chunk iterators.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Iterator element type is `Chunk`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`.chunks()`](crate::Itertools::chunks) for more information.</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Chunks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">I::Item</span>: <span class="lifetime">&#39;a</span>,
+<span class="doccomment">/// An iterator that yields the Chunk iterators.
+///
+/// Iterator element type is `Chunk`.
+///
+/// See [`.chunks()`](crate::Itertools::chunks) for more information.
+</span><span class="attribute">#[must_use = <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]
+</span><span class="kw">pub struct </span>Chunks&lt;<span class="lifetime">&#39;a</span>, I: <span class="lifetime">&#39;a</span>&gt;
+    <span class="kw">where </span>I: Iterator,
+          I::Item: <span class="lifetime">&#39;a</span>,
 {
-    <span class="ident">parent</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">IntoChunks</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
+    parent: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IntoChunks&lt;I&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Chunks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">I::Item</span>: <span class="lifetime">&#39;a</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I&gt; Iterator <span class="kw">for </span>Chunks&lt;<span class="lifetime">&#39;a</span>, I&gt;
+    <span class="kw">where </span>I: Iterator,
+          I::Item: <span class="lifetime">&#39;a</span>,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Chunk</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Item = Chunk&lt;<span class="lifetime">&#39;a</span>, I&gt;;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parent</span>.<span class="ident">index</span>.<span class="ident">get</span>();
-        <span class="self">self</span>.<span class="ident">parent</span>.<span class="ident">index</span>.<span class="ident">set</span>(<span class="ident">index</span> <span class="op">+</span> <span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">parent</span>.<span class="ident">inner</span>.<span class="ident">borrow_mut</span>();
-        <span class="ident">inner</span>.<span class="ident">step</span>(<span class="ident">index</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">elt</span><span class="op">|</span> {
-            <span class="ident">Chunk</span> {
-                <span class="ident">parent</span>: <span class="self">self</span>.<span class="ident">parent</span>,
-                <span class="ident">index</span>,
-                <span class="ident">first</span>: <span class="prelude-val">Some</span>(<span class="ident">elt</span>),
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">let </span>index = <span class="self">self</span>.parent.index.get();
+        <span class="self">self</span>.parent.index.set(index + <span class="number">1</span>);
+        <span class="kw">let </span>inner = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.parent.inner.borrow_mut();
+        inner.step(index).map(|elt| {
+            Chunk {
+                parent: <span class="self">self</span>.parent,
+                index,
+                first: <span class="prelude-val">Some</span>(elt),
             }
         })
     }
 }
 
-<span class="doccomment">/// An iterator for the elements in a single chunk.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Iterator element type is `I::Item`.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Chunk</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">I::Item</span>: <span class="lifetime">&#39;a</span>,
+<span class="doccomment">/// An iterator for the elements in a single chunk.
+///
+/// Iterator element type is `I::Item`.
+</span><span class="kw">pub struct </span>Chunk&lt;<span class="lifetime">&#39;a</span>, I: <span class="lifetime">&#39;a</span>&gt;
+    <span class="kw">where </span>I: Iterator,
+          I::Item: <span class="lifetime">&#39;a</span>,
 {
-    <span class="ident">parent</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">IntoChunks</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
-    <span class="ident">index</span>: <span class="ident">usize</span>,
-    <span class="ident">first</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+    parent: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IntoChunks&lt;I&gt;,
+    index: usize,
+    first: <span class="prelude-ty">Option</span>&lt;I::Item&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Chunk</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">I::Item</span>: <span class="lifetime">&#39;a</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I&gt; Drop <span class="kw">for </span>Chunk&lt;<span class="lifetime">&#39;a</span>, I&gt;
+    <span class="kw">where </span>I: Iterator,
+          I::Item: <span class="lifetime">&#39;a</span>,
 {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">parent</span>.<span class="ident">drop_group</span>(<span class="self">self</span>.<span class="ident">index</span>);
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.parent.drop_group(<span class="self">self</span>.index);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Chunk</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">I</span>: <span class="ident">Iterator</span>,
-          <span class="ident">I::Item</span>: <span class="lifetime">&#39;a</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I&gt; Iterator <span class="kw">for </span>Chunk&lt;<span class="lifetime">&#39;a</span>, I&gt;
+    <span class="kw">where </span>I: Iterator,
+          I::Item: <span class="lifetime">&#39;a</span>,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span>;
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">elt</span> @ <span class="prelude-val">Some</span>(..) <span class="op">=</span> <span class="self">self</span>.<span class="ident">first</span>.<span class="ident">take</span>() {
-            <span class="kw">return</span> <span class="ident">elt</span>;
+    <span class="kw">type </span>Item = I::Item;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">if let </span>elt @ <span class="prelude-val">Some</span>(..) = <span class="self">self</span>.first.take() {
+            <span class="kw">return </span>elt;
         }
-        <span class="self">self</span>.<span class="ident">parent</span>.<span class="ident">step</span>(<span class="self">self</span>.<span class="ident">index</span>)
+        <span class="self">self</span>.parent.step(<span class="self">self</span>.index)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="itertools" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

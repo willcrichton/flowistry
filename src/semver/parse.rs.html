@@ -1,11 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.10/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../semver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../semver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../semver/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.13/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../semver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../semver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../semver/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -410,411 +403,410 @@
 <span id="403">403</span>
 <span id="404">404</span>
 <span id="405">405</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::backport</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">ErrorKind</span>, <span class="ident">Position</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::identifier::Identifier</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">BuildMetadata</span>, <span class="ident">Comparator</span>, <span class="ident">Op</span>, <span class="ident">Prerelease</span>, <span class="ident">Version</span>, <span class="ident">VersionReq</span>};
-<span class="kw">use</span> <span class="ident">core::str::FromStr</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::backport::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::error::{ErrorKind, Position};
+<span class="kw">use </span><span class="kw">crate</span>::identifier::Identifier;
+<span class="kw">use crate</span>::{BuildMetadata, Comparator, Op, Prerelease, Version, VersionReq};
+<span class="kw">use </span>core::str::FromStr;
 
-<span class="doccomment">/// Error parsing a SemVer version or version requirement.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use semver::Version;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn main() {</span>
-<span class="doccomment">///     let err = Version::parse(&quot;1.q.r&quot;).unwrap_err();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     // &quot;unexpected character &#39;q&#39; while parsing minor version number&quot;</span>
-<span class="doccomment">///     eprintln!(&quot;{}&quot;, err);</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Error</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">kind</span>: <span class="ident">ErrorKind</span>,
+<span class="doccomment">/// Error parsing a SemVer version or version requirement.
+///
+/// # Example
+///
+/// ```
+/// use semver::Version;
+///
+/// fn main() {
+///     let err = Version::parse(&quot;1.q.r&quot;).unwrap_err();
+///
+///     // &quot;unexpected character &#39;q&#39; while parsing minor version number&quot;
+///     eprintln!(&quot;{}&quot;, err);
+/// }
+/// ```
+</span><span class="kw">pub struct </span>Error {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) kind: ErrorKind,
 }
 
-<span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">Version</span> {
-    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>FromStr <span class="kw">for </span>Version {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= Error;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::Major</span>;
-        <span class="kw">let</span> (<span class="ident">major</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="ident">numeric_identifier</span>(<span class="ident">text</span>, <span class="ident">pos</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">dot</span>(<span class="ident">text</span>, <span class="ident">pos</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>from_str(text: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>pos = Position::Major;
+        <span class="kw">let </span>(major, text) = numeric_identifier(text, pos)<span class="question-mark">?</span>;
+        <span class="kw">let </span>text = dot(text, pos)<span class="question-mark">?</span>;
 
-        <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::Minor</span>;
-        <span class="kw">let</span> (<span class="ident">minor</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="ident">numeric_identifier</span>(<span class="ident">text</span>, <span class="ident">pos</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">dot</span>(<span class="ident">text</span>, <span class="ident">pos</span>)<span class="question-mark">?</span>;
+        pos = Position::Minor;
+        <span class="kw">let </span>(minor, text) = numeric_identifier(text, pos)<span class="question-mark">?</span>;
+        <span class="kw">let </span>text = dot(text, pos)<span class="question-mark">?</span>;
 
-        <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::Patch</span>;
-        <span class="kw">let</span> (<span class="ident">patch</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="ident">numeric_identifier</span>(<span class="ident">text</span>, <span class="ident">pos</span>)<span class="question-mark">?</span>;
+        pos = Position::Patch;
+        <span class="kw">let </span>(patch, text) = numeric_identifier(text, pos)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">text</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Version::new</span>(<span class="ident">major</span>, <span class="ident">minor</span>, <span class="ident">patch</span>));
+        <span class="kw">if </span>text.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(Version::new(major, minor, patch));
         }
 
-        <span class="kw">let</span> (<span class="ident">pre</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">text</span>) <span class="op">=</span> <span class="ident">text</span>.<span class="ident">strip_prefix</span>(<span class="string">&#39;-&#39;</span>) {
-            <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::Pre</span>;
-            <span class="kw">let</span> (<span class="ident">pre</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="ident">prerelease_identifier</span>(<span class="ident">text</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">pre</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::EmptySegment</span>(<span class="ident">pos</span>)));
+        <span class="kw">let </span>(pre, text) = <span class="kw">if let </span><span class="prelude-val">Some</span>(text) = text.strip_prefix(<span class="string">&#39;-&#39;</span>) {
+            pos = Position::Pre;
+            <span class="kw">let </span>(pre, text) = prerelease_identifier(text)<span class="question-mark">?</span>;
+            <span class="kw">if </span>pre.is_empty() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::EmptySegment(pos)));
             }
-            (<span class="ident">pre</span>, <span class="ident">text</span>)
-        } <span class="kw">else</span> {
-            (<span class="ident">Prerelease::EMPTY</span>, <span class="ident">text</span>)
+            (pre, text)
+        } <span class="kw">else </span>{
+            (Prerelease::EMPTY, text)
         };
 
-        <span class="kw">let</span> (<span class="ident">build</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">text</span>) <span class="op">=</span> <span class="ident">text</span>.<span class="ident">strip_prefix</span>(<span class="string">&#39;+&#39;</span>) {
-            <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::Build</span>;
-            <span class="kw">let</span> (<span class="ident">build</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="ident">build_identifier</span>(<span class="ident">text</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">build</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::EmptySegment</span>(<span class="ident">pos</span>)));
+        <span class="kw">let </span>(build, text) = <span class="kw">if let </span><span class="prelude-val">Some</span>(text) = text.strip_prefix(<span class="string">&#39;+&#39;</span>) {
+            pos = Position::Build;
+            <span class="kw">let </span>(build, text) = build_identifier(text)<span class="question-mark">?</span>;
+            <span class="kw">if </span>build.is_empty() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::EmptySegment(pos)));
             }
-            (<span class="ident">build</span>, <span class="ident">text</span>)
-        } <span class="kw">else</span> {
-            (<span class="ident">BuildMetadata::EMPTY</span>, <span class="ident">text</span>)
+            (build, text)
+        } <span class="kw">else </span>{
+            (BuildMetadata::EMPTY, text)
         };
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">unexpected</span>) <span class="op">=</span> <span class="ident">text</span>.<span class="ident">chars</span>().<span class="ident">next</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::UnexpectedCharAfter</span>(<span class="ident">pos</span>, <span class="ident">unexpected</span>)));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(unexpected) = text.chars().next() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::UnexpectedCharAfter(pos, unexpected)));
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Version</span> {
-            <span class="ident">major</span>,
-            <span class="ident">minor</span>,
-            <span class="ident">patch</span>,
-            <span class="ident">pre</span>,
-            <span class="ident">build</span>,
+        <span class="prelude-val">Ok</span>(Version {
+            major,
+            minor,
+            patch,
+            pre,
+            build,
         })
     }
 }
 
-<span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">VersionReq</span> {
-    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>FromStr <span class="kw">for </span>VersionReq {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= Error;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">text</span>.<span class="ident">trim_start_matches</span>(<span class="string">&#39; &#39;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ch</span>, <span class="ident">text</span>)) <span class="op">=</span> <span class="ident">wildcard</span>(<span class="ident">text</span>) {
-            <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">text</span>.<span class="ident">trim_start_matches</span>(<span class="string">&#39; &#39;</span>);
-            <span class="kw">if</span> <span class="ident">rest</span>.<span class="ident">is_empty</span>() {
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">no_const_vec_new</span>))]</span>
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">VersionReq::STAR</span>);
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">no_const_vec_new</span>)]</span> <span class="comment">// rustc &lt;1.39</span>
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">VersionReq</span> {
-                    <span class="ident">comparators</span>: <span class="ident">Vec::new</span>(),
+    <span class="kw">fn </span>from_str(text: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        <span class="kw">let </span>text = text.trim_start_matches(<span class="string">&#39; &#39;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((ch, text)) = wildcard(text) {
+            <span class="kw">let </span>rest = text.trim_start_matches(<span class="string">&#39; &#39;</span>);
+            <span class="kw">if </span>rest.is_empty() {
+                <span class="attribute">#[cfg(not(no_const_vec_new))]
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(VersionReq::STAR);
+                <span class="attribute">#[cfg(no_const_vec_new)] </span><span class="comment">// rustc &lt;1.39
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(VersionReq {
+                    comparators: Vec::new(),
                 });
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">rest</span>.<span class="ident">starts_with</span>(<span class="string">&#39;,&#39;</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::WildcardNotTheOnlyComparator</span>(<span class="ident">ch</span>)));
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::UnexpectedAfterWildcard</span>));
+            } <span class="kw">else if </span>rest.starts_with(<span class="string">&#39;,&#39;</span>) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::WildcardNotTheOnlyComparator(ch)));
+            } <span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::UnexpectedAfterWildcard));
             }
         }
 
-        <span class="kw">let</span> <span class="ident">depth</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">comparators</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">version_req</span>(<span class="ident">text</span>, <span class="kw-2">&amp;mut</span> <span class="ident">comparators</span>, <span class="ident">depth</span>)<span class="question-mark">?</span>;
-        <span class="kw">unsafe</span> { <span class="ident">comparators</span>.<span class="ident">set_len</span>(<span class="ident">len</span>) }
-        <span class="prelude-val">Ok</span>(<span class="ident">VersionReq</span> { <span class="ident">comparators</span> })
+        <span class="kw">let </span>depth = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>comparators = Vec::new();
+        <span class="kw">let </span>len = version_req(text, <span class="kw-2">&amp;mut </span>comparators, depth)<span class="question-mark">?</span>;
+        <span class="kw">unsafe </span>{ comparators.set_len(len) }
+        <span class="prelude-val">Ok</span>(VersionReq { comparators })
     }
 }
 
-<span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">Comparator</span> {
-    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>FromStr <span class="kw">for </span>Comparator {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= Error;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">text</span>.<span class="ident">trim_start_matches</span>(<span class="string">&#39; &#39;</span>);
-        <span class="kw">let</span> (<span class="ident">comparator</span>, <span class="ident">pos</span>, <span class="ident">rest</span>) <span class="op">=</span> <span class="ident">comparator</span>(<span class="ident">text</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">rest</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <span class="ident">unexpected</span> <span class="op">=</span> <span class="ident">rest</span>.<span class="ident">chars</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::UnexpectedCharAfter</span>(<span class="ident">pos</span>, <span class="ident">unexpected</span>)));
+    <span class="kw">fn </span>from_str(text: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        <span class="kw">let </span>text = text.trim_start_matches(<span class="string">&#39; &#39;</span>);
+        <span class="kw">let </span>(comparator, pos, rest) = comparator(text)<span class="question-mark">?</span>;
+        <span class="kw">if </span>!rest.is_empty() {
+            <span class="kw">let </span>unexpected = rest.chars().next().unwrap();
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::UnexpectedCharAfter(pos, unexpected)));
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">comparator</span>)
+        <span class="prelude-val">Ok</span>(comparator)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">Prerelease</span> {
-    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>FromStr <span class="kw">for </span>Prerelease {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= Error;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">pre</span>, <span class="ident">rest</span>) <span class="op">=</span> <span class="ident">prerelease_identifier</span>(<span class="ident">text</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">rest</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::IllegalCharacter</span>(<span class="ident">Position::Pre</span>)));
+    <span class="kw">fn </span>from_str(text: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        <span class="kw">let </span>(pre, rest) = prerelease_identifier(text)<span class="question-mark">?</span>;
+        <span class="kw">if </span>!rest.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::IllegalCharacter(Position::Pre)));
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">pre</span>)
+        <span class="prelude-val">Ok</span>(pre)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">BuildMetadata</span> {
-    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>FromStr <span class="kw">for </span>BuildMetadata {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= Error;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">build</span>, <span class="ident">rest</span>) <span class="op">=</span> <span class="ident">build_identifier</span>(<span class="ident">text</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">rest</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::IllegalCharacter</span>(<span class="ident">Position::Build</span>)));
+    <span class="kw">fn </span>from_str(text: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        <span class="kw">let </span>(build, rest) = build_identifier(text)<span class="question-mark">?</span>;
+        <span class="kw">if </span>!rest.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::IllegalCharacter(Position::Build)));
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">build</span>)
+        <span class="prelude-val">Ok</span>(build)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">ErrorKind</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Error</span> { <span class="ident">kind</span> }
+<span class="kw">impl </span>Error {
+    <span class="kw">fn </span>new(kind: ErrorKind) -&gt; <span class="self">Self </span>{
+        Error { kind }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Op</span> {
-    <span class="kw">const</span> <span class="ident">DEFAULT</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">Op::Caret</span>;
+<span class="kw">impl </span>Op {
+    <span class="kw">const </span>DEFAULT: <span class="self">Self </span>= Op::Caret;
 }
 
-<span class="kw">fn</span> <span class="ident">numeric_identifier</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">u64</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>), <span class="ident">Error</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="number">0u64</span>;
+<span class="kw">fn </span>numeric_identifier(input: <span class="kw-2">&amp;</span>str, pos: Position) -&gt; <span class="prelude-ty">Result</span>&lt;(u64, <span class="kw-2">&amp;</span>str), Error&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>len = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>value = <span class="number">0u64</span>;
 
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">digit</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">as_bytes</span>().<span class="ident">get</span>(<span class="ident">len</span>) {
-        <span class="kw">if</span> <span class="ident">digit</span> <span class="op">&lt;</span> <span class="string">b&#39;0&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">digit</span> <span class="op">&gt;</span> <span class="string">b&#39;9&#39;</span> {
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>digit) = input.as_bytes().get(len) {
+        <span class="kw">if </span>digit &lt; <span class="string">b&#39;0&#39; </span>|| digit &gt; <span class="string">b&#39;9&#39; </span>{
             <span class="kw">break</span>;
         }
-        <span class="kw">if</span> <span class="ident">value</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::LeadingZero</span>(<span class="ident">pos</span>)));
+        <span class="kw">if </span>value == <span class="number">0 </span>&amp;&amp; len &gt; <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::LeadingZero(pos)));
         }
-        <span class="kw">match</span> <span class="ident">value</span>
-            .<span class="ident">checked_mul</span>(<span class="number">10</span>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">checked_add</span>((<span class="ident">digit</span> <span class="op">-</span> <span class="string">b&#39;0&#39;</span>) <span class="kw">as</span> <span class="ident">u64</span>))
+        <span class="kw">match </span>value
+            .checked_mul(<span class="number">10</span>)
+            .and_then(|value| value.checked_add((digit - <span class="string">b&#39;0&#39;</span>) <span class="kw">as </span>u64))
         {
-            <span class="prelude-val">Some</span>(<span class="ident">sum</span>) =&gt; <span class="ident">value</span> <span class="op">=</span> <span class="ident">sum</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::Overflow</span>(<span class="ident">pos</span>))),
+            <span class="prelude-val">Some</span>(sum) =&gt; value = sum,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::Overflow(pos))),
         }
-        <span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        len += <span class="number">1</span>;
     }
 
-    <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="prelude-val">Ok</span>((<span class="ident">value</span>, <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">len</span>..]))
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">unexpected</span>) <span class="op">=</span> <span class="ident">input</span>[<span class="ident">len</span>..].<span class="ident">chars</span>().<span class="ident">next</span>() {
-        <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::UnexpectedChar</span>(<span class="ident">pos</span>, <span class="ident">unexpected</span>)))
-    } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::UnexpectedEnd</span>(<span class="ident">pos</span>)))
-    }
-}
-
-<span class="kw">fn</span> <span class="ident">wildcard</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">char</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>)<span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rest</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">strip_prefix</span>(<span class="string">&#39;*&#39;</span>) {
-        <span class="prelude-val">Some</span>((<span class="string">&#39;*&#39;</span>, <span class="ident">rest</span>))
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rest</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">strip_prefix</span>(<span class="string">&#39;x&#39;</span>) {
-        <span class="prelude-val">Some</span>((<span class="string">&#39;x&#39;</span>, <span class="ident">rest</span>))
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rest</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">strip_prefix</span>(<span class="string">&#39;X&#39;</span>) {
-        <span class="prelude-val">Some</span>((<span class="string">&#39;X&#39;</span>, <span class="ident">rest</span>))
-    } <span class="kw">else</span> {
-        <span class="prelude-val">None</span>
+    <span class="kw">if </span>len &gt; <span class="number">0 </span>{
+        <span class="prelude-val">Ok</span>((value, <span class="kw-2">&amp;</span>input[len..]))
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(unexpected) = input[len..].chars().next() {
+        <span class="prelude-val">Err</span>(Error::new(ErrorKind::UnexpectedChar(pos, unexpected)))
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Err</span>(Error::new(ErrorKind::UnexpectedEnd(pos)))
     }
 }
 
-<span class="kw">fn</span> <span class="ident">dot</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rest</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">strip_prefix</span>(<span class="string">&#39;.&#39;</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">rest</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">unexpected</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">next</span>() {
-        <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::UnexpectedCharAfter</span>(<span class="ident">pos</span>, <span class="ident">unexpected</span>)))
-    } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::UnexpectedEnd</span>(<span class="ident">pos</span>)))
+<span class="kw">fn </span>wildcard(input: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;(char, <span class="kw-2">&amp;</span>str)&gt; {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = input.strip_prefix(<span class="string">&#39;*&#39;</span>) {
+        <span class="prelude-val">Some</span>((<span class="string">&#39;*&#39;</span>, rest))
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(rest) = input.strip_prefix(<span class="string">&#39;x&#39;</span>) {
+        <span class="prelude-val">Some</span>((<span class="string">&#39;x&#39;</span>, rest))
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(rest) = input.strip_prefix(<span class="string">&#39;X&#39;</span>) {
+        <span class="prelude-val">Some</span>((<span class="string">&#39;X&#39;</span>, rest))
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>}
+}
+
+<span class="kw">fn </span>dot(input: <span class="kw-2">&amp;</span>str, pos: Position) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>str, Error&gt; {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = input.strip_prefix(<span class="string">&#39;.&#39;</span>) {
+        <span class="prelude-val">Ok</span>(rest)
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(unexpected) = input.chars().next() {
+        <span class="prelude-val">Err</span>(Error::new(ErrorKind::UnexpectedCharAfter(pos, unexpected)))
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Err</span>(Error::new(ErrorKind::UnexpectedEnd(pos)))
     }
 }
 
-<span class="kw">fn</span> <span class="ident">prerelease_identifier</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Prerelease</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>), <span class="ident">Error</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="ident">string</span>, <span class="ident">rest</span>) <span class="op">=</span> <span class="ident">identifier</span>(<span class="ident">input</span>, <span class="ident">Position::Pre</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">identifier</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Identifier::new_unchecked</span>(<span class="ident">string</span>) };
-    <span class="prelude-val">Ok</span>((<span class="ident">Prerelease</span> { <span class="ident">identifier</span> }, <span class="ident">rest</span>))
+<span class="kw">fn </span>prerelease_identifier(input: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(Prerelease, <span class="kw-2">&amp;</span>str), Error&gt; {
+    <span class="kw">let </span>(string, rest) = identifier(input, Position::Pre)<span class="question-mark">?</span>;
+    <span class="kw">let </span>identifier = <span class="kw">unsafe </span>{ Identifier::new_unchecked(string) };
+    <span class="prelude-val">Ok</span>((Prerelease { identifier }, rest))
 }
 
-<span class="kw">fn</span> <span class="ident">build_identifier</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">BuildMetadata</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>), <span class="ident">Error</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="ident">string</span>, <span class="ident">rest</span>) <span class="op">=</span> <span class="ident">identifier</span>(<span class="ident">input</span>, <span class="ident">Position::Build</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">identifier</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Identifier::new_unchecked</span>(<span class="ident">string</span>) };
-    <span class="prelude-val">Ok</span>((<span class="ident">BuildMetadata</span> { <span class="ident">identifier</span> }, <span class="ident">rest</span>))
+<span class="kw">fn </span>build_identifier(input: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(BuildMetadata, <span class="kw-2">&amp;</span>str), Error&gt; {
+    <span class="kw">let </span>(string, rest) = identifier(input, Position::Build)<span class="question-mark">?</span>;
+    <span class="kw">let </span>identifier = <span class="kw">unsafe </span>{ Identifier::new_unchecked(string) };
+    <span class="prelude-val">Ok</span>((BuildMetadata { identifier }, rest))
 }
 
-<span class="kw">fn</span> <span class="ident">identifier</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>), <span class="ident">Error</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accumulated_len</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">segment_len</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">segment_has_nondigit</span> <span class="op">=</span> <span class="bool-val">false</span>;
+<span class="kw">fn </span>identifier(input: <span class="kw-2">&amp;</span>str, pos: Position) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str), Error&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>accumulated_len = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>segment_len = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>segment_has_nondigit = <span class="bool-val">false</span>;
 
-    <span class="kw">loop</span> {
-        <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">as_bytes</span>().<span class="ident">get</span>(<span class="ident">accumulated_len</span> <span class="op">+</span> <span class="ident">segment_len</span>) {
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;A&#39;</span>..<span class="op">=</span><span class="string">b&#39;Z&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;a&#39;</span>..<span class="op">=</span><span class="string">b&#39;z&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
-                <span class="ident">segment_len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="ident">segment_has_nondigit</span> <span class="op">=</span> <span class="bool-val">true</span>;
+    <span class="kw">loop </span>{
+        <span class="kw">match </span>input.as_bytes().get(accumulated_len + segment_len) {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;Z&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;z&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
+                segment_len += <span class="number">1</span>;
+                segment_has_nondigit = <span class="bool-val">true</span>;
             }
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span>) =&gt; {
-                <span class="ident">segment_len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39;</span>) =&gt; {
+                segment_len += <span class="number">1</span>;
             }
-            <span class="ident">boundary</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">segment_len</span> <span class="op">==</span> <span class="number">0</span> {
-                    <span class="kw">if</span> <span class="ident">accumulated_len</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">boundary</span> <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;.&#39;</span>) {
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="string">&quot;&quot;</span>, <span class="ident">input</span>));
-                    } <span class="kw">else</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::EmptySegment</span>(<span class="ident">pos</span>)));
+            boundary =&gt; {
+                <span class="kw">if </span>segment_len == <span class="number">0 </span>{
+                    <span class="kw">if </span>accumulated_len == <span class="number">0 </span>&amp;&amp; boundary != <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;.&#39;</span>) {
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="string">&quot;&quot;</span>, input));
+                    } <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::EmptySegment(pos)));
                     }
                 }
-                <span class="kw">if</span> <span class="ident">pos</span> <span class="op">==</span> <span class="ident">Position::Pre</span>
-                    <span class="op">&amp;&amp;</span> <span class="ident">segment_len</span> <span class="op">&gt;</span> <span class="number">1</span>
-                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">segment_has_nondigit</span>
-                    <span class="op">&amp;&amp;</span> <span class="ident">input</span>[<span class="ident">accumulated_len</span>..].<span class="ident">starts_with</span>(<span class="string">&#39;0&#39;</span>)
+                <span class="kw">if </span>pos == Position::Pre
+                    &amp;&amp; segment_len &gt; <span class="number">1
+                    </span>&amp;&amp; !segment_has_nondigit
+                    &amp;&amp; input[accumulated_len..].starts_with(<span class="string">&#39;0&#39;</span>)
                 {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::LeadingZero</span>(<span class="ident">pos</span>)));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::LeadingZero(pos)));
                 }
-                <span class="ident">accumulated_len</span> <span class="op">+</span><span class="op">=</span> <span class="ident">segment_len</span>;
-                <span class="kw">if</span> <span class="ident">boundary</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;.&#39;</span>) {
-                    <span class="ident">accumulated_len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                    <span class="ident">segment_len</span> <span class="op">=</span> <span class="number">0</span>;
-                    <span class="ident">segment_has_nondigit</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>.<span class="ident">split_at</span>(<span class="ident">accumulated_len</span>));
+                accumulated_len += segment_len;
+                <span class="kw">if </span>boundary == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;.&#39;</span>) {
+                    accumulated_len += <span class="number">1</span>;
+                    segment_len = <span class="number">0</span>;
+                    segment_has_nondigit = <span class="bool-val">false</span>;
+                } <span class="kw">else </span>{
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(input.split_at(accumulated_len));
                 }
             }
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">op</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; (<span class="ident">Op</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>) {
-    <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">as_bytes</span>();
-    <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">first</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;=&#39;</span>) {
-        (<span class="ident">Op::Exact</span>, <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">1</span>..])
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">first</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;&gt;&#39;</span>) {
-        <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">get</span>(<span class="number">1</span>) <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;=&#39;</span>) {
-            (<span class="ident">Op::GreaterEq</span>, <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">2</span>..])
-        } <span class="kw">else</span> {
-            (<span class="ident">Op::Greater</span>, <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">1</span>..])
+<span class="kw">fn </span>op(input: <span class="kw-2">&amp;</span>str) -&gt; (Op, <span class="kw-2">&amp;</span>str) {
+    <span class="kw">let </span>bytes = input.as_bytes();
+    <span class="kw">if </span>bytes.first() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;=&#39;</span>) {
+        (Op::Exact, <span class="kw-2">&amp;</span>input[<span class="number">1</span>..])
+    } <span class="kw">else if </span>bytes.first() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;&gt;&#39;</span>) {
+        <span class="kw">if </span>bytes.get(<span class="number">1</span>) == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;=&#39;</span>) {
+            (Op::GreaterEq, <span class="kw-2">&amp;</span>input[<span class="number">2</span>..])
+        } <span class="kw">else </span>{
+            (Op::Greater, <span class="kw-2">&amp;</span>input[<span class="number">1</span>..])
         }
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">first</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;&lt;&#39;</span>) {
-        <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">get</span>(<span class="number">1</span>) <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;=&#39;</span>) {
-            (<span class="ident">Op::LessEq</span>, <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">2</span>..])
-        } <span class="kw">else</span> {
-            (<span class="ident">Op::Less</span>, <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">1</span>..])
+    } <span class="kw">else if </span>bytes.first() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;&lt;&#39;</span>) {
+        <span class="kw">if </span>bytes.get(<span class="number">1</span>) == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;=&#39;</span>) {
+            (Op::LessEq, <span class="kw-2">&amp;</span>input[<span class="number">2</span>..])
+        } <span class="kw">else </span>{
+            (Op::Less, <span class="kw-2">&amp;</span>input[<span class="number">1</span>..])
         }
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">first</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;~&#39;</span>) {
-        (<span class="ident">Op::Tilde</span>, <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">1</span>..])
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">first</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;^&#39;</span>) {
-        (<span class="ident">Op::Caret</span>, <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">1</span>..])
-    } <span class="kw">else</span> {
-        (<span class="ident">Op::DEFAULT</span>, <span class="ident">input</span>)
+    } <span class="kw">else if </span>bytes.first() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;~&#39;</span>) {
+        (Op::Tilde, <span class="kw-2">&amp;</span>input[<span class="number">1</span>..])
+    } <span class="kw">else if </span>bytes.first() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&#39;^&#39;</span>) {
+        (Op::Caret, <span class="kw-2">&amp;</span>input[<span class="number">1</span>..])
+    } <span class="kw">else </span>{
+        (Op::DEFAULT, input)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">comparator</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Comparator</span>, <span class="ident">Position</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>), <span class="ident">Error</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">op</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="ident">op</span>(<span class="ident">input</span>);
-    <span class="kw">let</span> <span class="ident">default_op</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">text</span>.<span class="ident">len</span>();
-    <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">text</span>.<span class="ident">trim_start_matches</span>(<span class="string">&#39; &#39;</span>);
+<span class="kw">fn </span>comparator(input: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(Comparator, Position, <span class="kw-2">&amp;</span>str), Error&gt; {
+    <span class="kw">let </span>(<span class="kw-2">mut </span>op, text) = op(input);
+    <span class="kw">let </span>default_op = input.len() == text.len();
+    <span class="kw">let </span>text = text.trim_start_matches(<span class="string">&#39; &#39;</span>);
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::Major</span>;
-    <span class="kw">let</span> (<span class="ident">major</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="ident">numeric_identifier</span>(<span class="ident">text</span>, <span class="ident">pos</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_wildcard</span> <span class="op">=</span> <span class="bool-val">false</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>pos = Position::Major;
+    <span class="kw">let </span>(major, text) = numeric_identifier(text, pos)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>has_wildcard = <span class="bool-val">false</span>;
 
-    <span class="kw">let</span> (<span class="ident">minor</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">text</span>) <span class="op">=</span> <span class="ident">text</span>.<span class="ident">strip_prefix</span>(<span class="string">&#39;.&#39;</span>) {
-        <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::Minor</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">text</span>)) <span class="op">=</span> <span class="ident">wildcard</span>(<span class="ident">text</span>) {
-            <span class="ident">has_wildcard</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="kw">if</span> <span class="ident">default_op</span> {
-                <span class="ident">op</span> <span class="op">=</span> <span class="ident">Op::Wildcard</span>;
+    <span class="kw">let </span>(minor, text) = <span class="kw">if let </span><span class="prelude-val">Some</span>(text) = text.strip_prefix(<span class="string">&#39;.&#39;</span>) {
+        pos = Position::Minor;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, text)) = wildcard(text) {
+            has_wildcard = <span class="bool-val">true</span>;
+            <span class="kw">if </span>default_op {
+                op = Op::Wildcard;
             }
-            (<span class="prelude-val">None</span>, <span class="ident">text</span>)
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> (<span class="ident">minor</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="ident">numeric_identifier</span>(<span class="ident">text</span>, <span class="ident">pos</span>)<span class="question-mark">?</span>;
-            (<span class="prelude-val">Some</span>(<span class="ident">minor</span>), <span class="ident">text</span>)
+            (<span class="prelude-val">None</span>, text)
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>(minor, text) = numeric_identifier(text, pos)<span class="question-mark">?</span>;
+            (<span class="prelude-val">Some</span>(minor), text)
         }
-    } <span class="kw">else</span> {
-        (<span class="prelude-val">None</span>, <span class="ident">text</span>)
+    } <span class="kw">else </span>{
+        (<span class="prelude-val">None</span>, text)
     };
 
-    <span class="kw">let</span> (<span class="ident">patch</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">text</span>) <span class="op">=</span> <span class="ident">text</span>.<span class="ident">strip_prefix</span>(<span class="string">&#39;.&#39;</span>) {
-        <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::Patch</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">text</span>)) <span class="op">=</span> <span class="ident">wildcard</span>(<span class="ident">text</span>) {
-            <span class="kw">if</span> <span class="ident">default_op</span> {
-                <span class="ident">op</span> <span class="op">=</span> <span class="ident">Op::Wildcard</span>;
+    <span class="kw">let </span>(patch, text) = <span class="kw">if let </span><span class="prelude-val">Some</span>(text) = text.strip_prefix(<span class="string">&#39;.&#39;</span>) {
+        pos = Position::Patch;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, text)) = wildcard(text) {
+            <span class="kw">if </span>default_op {
+                op = Op::Wildcard;
             }
-            (<span class="prelude-val">None</span>, <span class="ident">text</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">has_wildcard</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::UnexpectedAfterWildcard</span>));
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> (<span class="ident">patch</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="ident">numeric_identifier</span>(<span class="ident">text</span>, <span class="ident">pos</span>)<span class="question-mark">?</span>;
-            (<span class="prelude-val">Some</span>(<span class="ident">patch</span>), <span class="ident">text</span>)
+            (<span class="prelude-val">None</span>, text)
+        } <span class="kw">else if </span>has_wildcard {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::UnexpectedAfterWildcard));
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>(patch, text) = numeric_identifier(text, pos)<span class="question-mark">?</span>;
+            (<span class="prelude-val">Some</span>(patch), text)
         }
-    } <span class="kw">else</span> {
-        (<span class="prelude-val">None</span>, <span class="ident">text</span>)
+    } <span class="kw">else </span>{
+        (<span class="prelude-val">None</span>, text)
     };
 
-    <span class="kw">let</span> (<span class="ident">pre</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">patch</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">text</span>.<span class="ident">starts_with</span>(<span class="string">&#39;-&#39;</span>) {
-        <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::Pre</span>;
-        <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">text</span>[<span class="number">1</span>..];
-        <span class="kw">let</span> (<span class="ident">pre</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="ident">prerelease_identifier</span>(<span class="ident">text</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">pre</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::EmptySegment</span>(<span class="ident">pos</span>)));
+    <span class="kw">let </span>(pre, text) = <span class="kw">if </span>patch.is_some() &amp;&amp; text.starts_with(<span class="string">&#39;-&#39;</span>) {
+        pos = Position::Pre;
+        <span class="kw">let </span>text = <span class="kw-2">&amp;</span>text[<span class="number">1</span>..];
+        <span class="kw">let </span>(pre, text) = prerelease_identifier(text)<span class="question-mark">?</span>;
+        <span class="kw">if </span>pre.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::EmptySegment(pos)));
         }
-        (<span class="ident">pre</span>, <span class="ident">text</span>)
-    } <span class="kw">else</span> {
-        (<span class="ident">Prerelease::EMPTY</span>, <span class="ident">text</span>)
+        (pre, text)
+    } <span class="kw">else </span>{
+        (Prerelease::EMPTY, text)
     };
 
-    <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">patch</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">text</span>.<span class="ident">starts_with</span>(<span class="string">&#39;+&#39;</span>) {
-        <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::Build</span>;
-        <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">text</span>[<span class="number">1</span>..];
-        <span class="kw">let</span> (<span class="ident">build</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="ident">build_identifier</span>(<span class="ident">text</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">build</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::EmptySegment</span>(<span class="ident">pos</span>)));
+    <span class="kw">let </span>text = <span class="kw">if </span>patch.is_some() &amp;&amp; text.starts_with(<span class="string">&#39;+&#39;</span>) {
+        pos = Position::Build;
+        <span class="kw">let </span>text = <span class="kw-2">&amp;</span>text[<span class="number">1</span>..];
+        <span class="kw">let </span>(build, text) = build_identifier(text)<span class="question-mark">?</span>;
+        <span class="kw">if </span>build.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::EmptySegment(pos)));
         }
-        <span class="ident">text</span>
-    } <span class="kw">else</span> {
-        <span class="ident">text</span>
+        text
+    } <span class="kw">else </span>{
+        text
     };
 
-    <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">text</span>.<span class="ident">trim_start_matches</span>(<span class="string">&#39; &#39;</span>);
+    <span class="kw">let </span>text = text.trim_start_matches(<span class="string">&#39; &#39;</span>);
 
-    <span class="kw">let</span> <span class="ident">comparator</span> <span class="op">=</span> <span class="ident">Comparator</span> {
-        <span class="ident">op</span>,
-        <span class="ident">major</span>,
-        <span class="ident">minor</span>,
-        <span class="ident">patch</span>,
-        <span class="ident">pre</span>,
+    <span class="kw">let </span>comparator = Comparator {
+        op,
+        major,
+        minor,
+        patch,
+        pre,
     };
 
-    <span class="prelude-val">Ok</span>((<span class="ident">comparator</span>, <span class="ident">pos</span>, <span class="ident">text</span>))
+    <span class="prelude-val">Ok</span>((comparator, pos, text))
 }
 
-<span class="kw">fn</span> <span class="ident">version_req</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Comparator</span><span class="op">&gt;</span>, <span class="ident">depth</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="ident">comparator</span>, <span class="ident">pos</span>, <span class="ident">text</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">comparator</span>(<span class="ident">input</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">success</span>) =&gt; <span class="ident">success</span>,
-        <span class="prelude-val">Err</span>(<span class="kw-2">mut</span> <span class="ident">error</span>) =&gt; {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ch</span>, <span class="kw-2">mut</span> <span class="ident">rest</span>)) <span class="op">=</span> <span class="ident">wildcard</span>(<span class="ident">input</span>) {
-                <span class="ident">rest</span> <span class="op">=</span> <span class="ident">rest</span>.<span class="ident">trim_start_matches</span>(<span class="string">&#39; &#39;</span>);
-                <span class="kw">if</span> <span class="ident">rest</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">rest</span>.<span class="ident">starts_with</span>(<span class="string">&#39;,&#39;</span>) {
-                    <span class="ident">error</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">ErrorKind::WildcardNotTheOnlyComparator</span>(<span class="ident">ch</span>);
+<span class="kw">fn </span>version_req(input: <span class="kw-2">&amp;</span>str, out: <span class="kw-2">&amp;mut </span>Vec&lt;Comparator&gt;, depth: usize) -&gt; <span class="prelude-ty">Result</span>&lt;usize, Error&gt; {
+    <span class="kw">let </span>(comparator, pos, text) = <span class="kw">match </span>comparator(input) {
+        <span class="prelude-val">Ok</span>(success) =&gt; success,
+        <span class="prelude-val">Err</span>(<span class="kw-2">mut </span>error) =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((ch, <span class="kw-2">mut </span>rest)) = wildcard(input) {
+                rest = rest.trim_start_matches(<span class="string">&#39; &#39;</span>);
+                <span class="kw">if </span>rest.is_empty() || rest.starts_with(<span class="string">&#39;,&#39;</span>) {
+                    error.kind = ErrorKind::WildcardNotTheOnlyComparator(ch);
                 }
             }
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(error);
         }
     };
 
-    <span class="kw">if</span> <span class="ident">text</span>.<span class="ident">is_empty</span>() {
-        <span class="ident">out</span>.<span class="ident">reserve_exact</span>(<span class="ident">depth</span> <span class="op">+</span> <span class="number">1</span>);
-        <span class="kw">unsafe</span> { <span class="ident">out</span>.<span class="ident">as_mut_ptr</span>().<span class="ident">add</span>(<span class="ident">depth</span>).<span class="ident">write</span>(<span class="ident">comparator</span>) }
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">depth</span> <span class="op">+</span> <span class="number">1</span>);
+    <span class="kw">if </span>text.is_empty() {
+        out.reserve_exact(depth + <span class="number">1</span>);
+        <span class="kw">unsafe </span>{ out.as_mut_ptr().add(depth).write(comparator) }
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(depth + <span class="number">1</span>);
     }
 
-    <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">text</span>) <span class="op">=</span> <span class="ident">text</span>.<span class="ident">strip_prefix</span>(<span class="string">&#39;,&#39;</span>) {
-        <span class="ident">text</span>.<span class="ident">trim_start_matches</span>(<span class="string">&#39; &#39;</span>)
-    } <span class="kw">else</span> {
-        <span class="kw">let</span> <span class="ident">unexpected</span> <span class="op">=</span> <span class="ident">text</span>.<span class="ident">chars</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::ExpectedCommaFound</span>(<span class="ident">pos</span>, <span class="ident">unexpected</span>)));
+    <span class="kw">let </span>text = <span class="kw">if let </span><span class="prelude-val">Some</span>(text) = text.strip_prefix(<span class="string">&#39;,&#39;</span>) {
+        text.trim_start_matches(<span class="string">&#39; &#39;</span>)
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>unexpected = text.chars().next().unwrap();
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::ExpectedCommaFound(pos, unexpected)));
     };
 
-    <span class="kw">const</span> <span class="ident">MAX_COMPARATORS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">32</span>;
-    <span class="kw">if</span> <span class="ident">depth</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">MAX_COMPARATORS</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::ExcessiveComparators</span>));
+    <span class="kw">const </span>MAX_COMPARATORS: usize = <span class="number">32</span>;
+    <span class="kw">if </span>depth + <span class="number">1 </span>== MAX_COMPARATORS {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(ErrorKind::ExcessiveComparators));
     }
 
-    <span class="comment">// Recurse to collect parsed Comparator objects on the stack. We perform a</span>
-    <span class="comment">// single allocation to allocate exactly the right sized Vec only once the</span>
-    <span class="comment">// total number of comparators is known.</span>
-    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">version_req</span>(<span class="ident">text</span>, <span class="ident">out</span>, <span class="ident">depth</span> <span class="op">+</span> <span class="number">1</span>)<span class="question-mark">?</span>;
-    <span class="kw">unsafe</span> { <span class="ident">out</span>.<span class="ident">as_mut_ptr</span>().<span class="ident">add</span>(<span class="ident">depth</span>).<span class="ident">write</span>(<span class="ident">comparator</span>) }
-    <span class="prelude-val">Ok</span>(<span class="ident">len</span>)
+    <span class="comment">// Recurse to collect parsed Comparator objects on the stack. We perform a
+    // single allocation to allocate exactly the right sized Vec only once the
+    // total number of comparators is known.
+    </span><span class="kw">let </span>len = version_req(text, out, depth + <span class="number">1</span>)<span class="question-mark">?</span>;
+    <span class="kw">unsafe </span>{ out.as_mut_ptr().add(depth).write(comparator) }
+    <span class="prelude-val">Ok</span>(len)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="semver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="semver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

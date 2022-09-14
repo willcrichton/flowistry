@@ -1,13 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.9.0/src/fmt/writer/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../env_logger/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../env_logger/index.html"><div class="logo-container">
-                    <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../env_logger/index.html">
-                        <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.9.0/src/fmt/writer/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../env_logger/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../env_logger/index.html"><div class="logo-container">
+                    <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../env_logger/index.html">
+                        <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -259,258 +252,257 @@
 <span id="250">250</span>
 <span id="251">251</span>
 <span id="252">252</span>
-</pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">atty</span>;
-<span class="kw">mod</span> <span class="ident">termcolor</span>;
+</pre><pre class="rust"><code><span class="kw">mod </span>atty;
+<span class="kw">mod </span>termcolor;
 
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::atty</span>::{<span class="ident">is_stderr</span>, <span class="ident">is_stdout</span>};
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::termcolor::BufferWriter</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">io</span>, <span class="ident">mem</span>, <span class="ident">sync::Mutex</span>};
+<span class="kw">use </span><span class="self">self</span>::atty::{is_stderr, is_stdout};
+<span class="kw">use </span><span class="self">self</span>::termcolor::BufferWriter;
+<span class="kw">use </span>std::{fmt, io, mem, sync::Mutex};
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">glob</span> {
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::termcolor::glob</span>::<span class="kw-2">*</span>;
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>glob {
+    <span class="kw">pub use </span><span class="kw">super</span>::termcolor::glob::<span class="kw-2">*</span>;
+    <span class="kw">pub use super</span>::<span class="kw-2">*</span>;
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use</span> <span class="ident"><span class="self">self</span>::termcolor::Buffer</span>;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::termcolor::Buffer;
 
-<span class="doccomment">/// Log target, either `stdout`, `stderr` or a custom pipe.</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Target</span> {
-    <span class="doccomment">/// Logs will be sent to standard output.</span>
-    <span class="ident">Stdout</span>,
-    <span class="doccomment">/// Logs will be sent to standard error.</span>
-    <span class="ident">Stderr</span>,
-    <span class="doccomment">/// Logs will be sent to a custom pipe.</span>
-    <span class="ident">Pipe</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">io::Write</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>),
+<span class="doccomment">/// Log target, either `stdout`, `stderr` or a custom pipe.
+</span><span class="attribute">#[non_exhaustive]
+</span><span class="kw">pub enum </span>Target {
+    <span class="doccomment">/// Logs will be sent to standard output.
+    </span>Stdout,
+    <span class="doccomment">/// Logs will be sent to standard error.
+    </span>Stderr,
+    <span class="doccomment">/// Logs will be sent to a custom pipe.
+    </span>Pipe(Box&lt;<span class="kw">dyn </span>io::Write + Send + <span class="lifetime">&#39;static</span>&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Target</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">Target::Stderr</span>
+<span class="kw">impl </span>Default <span class="kw">for </span>Target {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        Target::Stderr
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Target</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Target {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">write!</span>(
-            <span class="ident">f</span>,
+            f,
             <span class="string">&quot;{}&quot;</span>,
-            <span class="kw">match</span> <span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::Stdout</span> =&gt; <span class="string">&quot;stdout&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Stderr</span> =&gt; <span class="string">&quot;stderr&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Pipe</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;pipe&quot;</span>,
+            <span class="kw">match </span><span class="self">self </span>{
+                <span class="self">Self</span>::Stdout =&gt; <span class="string">&quot;stdout&quot;</span>,
+                <span class="self">Self</span>::Stderr =&gt; <span class="string">&quot;stderr&quot;</span>,
+                <span class="self">Self</span>::Pipe(<span class="kw">_</span>) =&gt; <span class="string">&quot;pipe&quot;</span>,
             }
         )
     }
 }
 
-<span class="doccomment">/// Log target, either `stdout`, `stderr` or a custom pipe.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Same as `Target`, except the pipe is wrapped in a mutex for interior mutability.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">WritableTarget</span> {
-    <span class="doccomment">/// Logs will be sent to standard output.</span>
-    <span class="ident">Stdout</span>,
-    <span class="doccomment">/// Logs will be sent to standard error.</span>
-    <span class="ident">Stderr</span>,
-    <span class="doccomment">/// Logs will be sent to a custom pipe.</span>
-    <span class="ident">Pipe</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">io::Write</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+<span class="doccomment">/// Log target, either `stdout`, `stderr` or a custom pipe.
+///
+/// Same as `Target`, except the pipe is wrapped in a mutex for interior mutability.
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>WritableTarget {
+    <span class="doccomment">/// Logs will be sent to standard output.
+    </span>Stdout,
+    <span class="doccomment">/// Logs will be sent to standard error.
+    </span>Stderr,
+    <span class="doccomment">/// Logs will be sent to a custom pipe.
+    </span>Pipe(Box&lt;Mutex&lt;<span class="kw">dyn </span>io::Write + Send + <span class="lifetime">&#39;static</span>&gt;&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Target</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">WritableTarget</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">target</span>: <span class="ident">Target</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="ident">target</span> {
-            <span class="ident">Target::Stdout</span> =&gt; <span class="ident"><span class="self">Self</span>::Stdout</span>,
-            <span class="ident">Target::Stderr</span> =&gt; <span class="ident"><span class="self">Self</span>::Stderr</span>,
-            <span class="ident">Target::Pipe</span>(<span class="ident">pipe</span>) =&gt; <span class="ident"><span class="self">Self</span>::Pipe</span>(<span class="ident">Box::new</span>(<span class="ident">Mutex::new</span>(<span class="ident">pipe</span>))),
+<span class="kw">impl </span>From&lt;Target&gt; <span class="kw">for </span>WritableTarget {
+    <span class="kw">fn </span>from(target: Target) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>target {
+            Target::Stdout =&gt; <span class="self">Self</span>::Stdout,
+            Target::Stderr =&gt; <span class="self">Self</span>::Stderr,
+            Target::Pipe(pipe) =&gt; <span class="self">Self</span>::Pipe(Box::new(Mutex::new(pipe))),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">WritableTarget</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">Target::default</span>())
+<span class="kw">impl </span>Default <span class="kw">for </span>WritableTarget {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from(Target::default())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">WritableTarget</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>WritableTarget {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">write!</span>(
-            <span class="ident">f</span>,
+            f,
             <span class="string">&quot;{}&quot;</span>,
-            <span class="kw">match</span> <span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::Stdout</span> =&gt; <span class="string">&quot;stdout&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Stderr</span> =&gt; <span class="string">&quot;stderr&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Pipe</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;pipe&quot;</span>,
+            <span class="kw">match </span><span class="self">self </span>{
+                <span class="self">Self</span>::Stdout =&gt; <span class="string">&quot;stdout&quot;</span>,
+                <span class="self">Self</span>::Stderr =&gt; <span class="string">&quot;stderr&quot;</span>,
+                <span class="self">Self</span>::Pipe(<span class="kw">_</span>) =&gt; <span class="string">&quot;pipe&quot;</span>,
             }
         )
     }
 }
-<span class="doccomment">/// Whether or not to print styles to the target.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">WriteStyle</span> {
-    <span class="doccomment">/// Try to print styles, but don&#39;t force the issue.</span>
-    <span class="ident">Auto</span>,
-    <span class="doccomment">/// Try very hard to print styles.</span>
-    <span class="ident">Always</span>,
-    <span class="doccomment">/// Never print styles.</span>
-    <span class="ident">Never</span>,
+<span class="doccomment">/// Whether or not to print styles to the target.
+</span><span class="attribute">#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+</span><span class="kw">pub enum </span>WriteStyle {
+    <span class="doccomment">/// Try to print styles, but don&#39;t force the issue.
+    </span>Auto,
+    <span class="doccomment">/// Try very hard to print styles.
+    </span>Always,
+    <span class="doccomment">/// Never print styles.
+    </span>Never,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">WriteStyle</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">WriteStyle::Auto</span>
+<span class="kw">impl </span>Default <span class="kw">for </span>WriteStyle {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        WriteStyle::Auto
     }
 }
 
-<span class="doccomment">/// A terminal target with color awareness.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Writer</span> {
-    <span class="ident">inner</span>: <span class="ident">BufferWriter</span>,
-    <span class="ident">write_style</span>: <span class="ident">WriteStyle</span>,
+<span class="doccomment">/// A terminal target with color awareness.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Writer {
+    inner: BufferWriter,
+    write_style: WriteStyle,
 }
 
-<span class="kw">impl</span> <span class="ident">Writer</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_style</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">WriteStyle</span> {
-        <span class="self">self</span>.<span class="ident">write_style</span>
+<span class="kw">impl </span>Writer {
+    <span class="kw">pub fn </span>write_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; WriteStyle {
+        <span class="self">self</span>.write_style
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Buffer</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">buffer</span>()
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Buffer {
+        <span class="self">self</span>.inner.buffer()
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">print</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="ident">Buffer</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">print</span>(<span class="ident">buf</span>)
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>print(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>Buffer) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.inner.print(buf)
     }
 }
 
-<span class="doccomment">/// A builder for a terminal writer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The target and style choice can be configured before building.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Builder</span> {
-    <span class="ident">target</span>: <span class="ident">WritableTarget</span>,
-    <span class="ident">write_style</span>: <span class="ident">WriteStyle</span>,
-    <span class="ident">is_test</span>: <span class="ident">bool</span>,
-    <span class="ident">built</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// A builder for a terminal writer.
+///
+/// The target and style choice can be configured before building.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Builder {
+    target: WritableTarget,
+    write_style: WriteStyle,
+    is_test: bool,
+    built: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">Builder</span> {
-    <span class="doccomment">/// Initialize the writer builder with defaults.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">Builder</span> {
-            <span class="ident">target</span>: <span class="ident">Default::default</span>(),
-            <span class="ident">write_style</span>: <span class="ident">Default::default</span>(),
-            <span class="ident">is_test</span>: <span class="bool-val">false</span>,
-            <span class="ident">built</span>: <span class="bool-val">false</span>,
+<span class="kw">impl </span>Builder {
+    <span class="doccomment">/// Initialize the writer builder with defaults.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+        Builder {
+            target: Default::default(),
+            write_style: Default::default(),
+            is_test: <span class="bool-val">false</span>,
+            built: <span class="bool-val">false</span>,
         }
     }
 
-    <span class="doccomment">/// Set the target to write to.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">target</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">target</span>: <span class="ident">Target</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">target</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">into</span>();
-        <span class="self">self</span>
+    <span class="doccomment">/// Set the target to write to.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>target(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: Target) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.target = target.into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Parses a style choice string.
+    ///
+    /// See the [Disabling colors] section for more details.
+    ///
+    /// [Disabling colors]: ../index.html#disabling-colors
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_write_style(<span class="kw-2">&amp;mut </span><span class="self">self</span>, write_style: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.write_style(parse_write_style(write_style))
     }
 
-    <span class="doccomment">/// Parses a style choice string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See the [Disabling colors] section for more details.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [Disabling colors]: ../index.html#disabling-colors</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_write_style</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">write_style</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">write_style</span>(<span class="ident">parse_write_style</span>(<span class="ident">write_style</span>))
-    }
+    <span class="doccomment">/// Whether or not to print style characters when writing.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write_style(<span class="kw-2">&amp;mut </span><span class="self">self</span>, write_style: WriteStyle) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.write_style = write_style;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Whether or not to print style characters when writing.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">write_style</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">write_style</span>: <span class="ident">WriteStyle</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">write_style</span> <span class="op">=</span> <span class="ident">write_style</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Whether or not to capture logs for `cargo test`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_test(<span class="kw-2">&amp;mut </span><span class="self">self</span>, is_test: bool) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.is_test = is_test;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Whether or not to capture logs for `cargo test`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_test</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">is_test</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">is_test</span> <span class="op">=</span> <span class="ident">is_test</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Build a terminal writer.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Writer {
+        <span class="macro">assert!</span>(!<span class="self">self</span>.built, <span class="string">&quot;attempt to re-use consumed builder&quot;</span>);
+        <span class="self">self</span>.built = <span class="bool-val">true</span>;
 
-    <span class="doccomment">/// Build a terminal writer.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Writer</span> {
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">built</span>, <span class="string">&quot;attempt to re-use consumed builder&quot;</span>);
-        <span class="self">self</span>.<span class="ident">built</span> <span class="op">=</span> <span class="bool-val">true</span>;
-
-        <span class="kw">let</span> <span class="ident">color_choice</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">write_style</span> {
-            <span class="ident">WriteStyle::Auto</span> =&gt; {
-                <span class="kw">if</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">target</span> {
-                    <span class="ident">WritableTarget::Stderr</span> =&gt; <span class="ident">is_stderr</span>(),
-                    <span class="ident">WritableTarget::Stdout</span> =&gt; <span class="ident">is_stdout</span>(),
-                    <span class="ident">WritableTarget::Pipe</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+        <span class="kw">let </span>color_choice = <span class="kw">match </span><span class="self">self</span>.write_style {
+            WriteStyle::Auto =&gt; {
+                <span class="kw">if match </span><span class="kw-2">&amp;</span><span class="self">self</span>.target {
+                    WritableTarget::Stderr =&gt; is_stderr(),
+                    WritableTarget::Stdout =&gt; is_stdout(),
+                    WritableTarget::Pipe(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
                 } {
-                    <span class="ident">WriteStyle::Auto</span>
-                } <span class="kw">else</span> {
-                    <span class="ident">WriteStyle::Never</span>
+                    WriteStyle::Auto
+                } <span class="kw">else </span>{
+                    WriteStyle::Never
                 }
             }
-            <span class="ident">color_choice</span> =&gt; <span class="ident">color_choice</span>,
+            color_choice =&gt; color_choice,
         };
 
-        <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">target</span>) {
-            <span class="ident">WritableTarget::Stderr</span> =&gt; <span class="ident">BufferWriter::stderr</span>(<span class="self">self</span>.<span class="ident">is_test</span>, <span class="ident">color_choice</span>),
-            <span class="ident">WritableTarget::Stdout</span> =&gt; <span class="ident">BufferWriter::stdout</span>(<span class="self">self</span>.<span class="ident">is_test</span>, <span class="ident">color_choice</span>),
-            <span class="ident">WritableTarget::Pipe</span>(<span class="ident">pipe</span>) =&gt; <span class="ident">BufferWriter::pipe</span>(<span class="self">self</span>.<span class="ident">is_test</span>, <span class="ident">color_choice</span>, <span class="ident">pipe</span>),
+        <span class="kw">let </span>writer = <span class="kw">match </span>mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.target) {
+            WritableTarget::Stderr =&gt; BufferWriter::stderr(<span class="self">self</span>.is_test, color_choice),
+            WritableTarget::Stdout =&gt; BufferWriter::stdout(<span class="self">self</span>.is_test, color_choice),
+            WritableTarget::Pipe(pipe) =&gt; BufferWriter::pipe(<span class="self">self</span>.is_test, color_choice, pipe),
         };
 
-        <span class="ident">Writer</span> {
-            <span class="ident">inner</span>: <span class="ident">writer</span>,
-            <span class="ident">write_style</span>: <span class="self">self</span>.<span class="ident">write_style</span>,
+        Writer {
+            inner: writer,
+            write_style: <span class="self">self</span>.write_style,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Builder</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">Builder::new</span>()
+<span class="kw">impl </span>Default <span class="kw">for </span>Builder {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        Builder::new()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Writer</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Writer&quot;</span>).<span class="ident">finish</span>()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Writer {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Writer&quot;</span>).finish()
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_write_style</span>(<span class="ident">spec</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">WriteStyle</span> {
-    <span class="kw">match</span> <span class="ident">spec</span> {
-        <span class="string">&quot;auto&quot;</span> =&gt; <span class="ident">WriteStyle::Auto</span>,
-        <span class="string">&quot;always&quot;</span> =&gt; <span class="ident">WriteStyle::Always</span>,
-        <span class="string">&quot;never&quot;</span> =&gt; <span class="ident">WriteStyle::Never</span>,
-        <span class="kw">_</span> =&gt; <span class="ident">Default::default</span>(),
+<span class="kw">fn </span>parse_write_style(spec: <span class="kw-2">&amp;</span>str) -&gt; WriteStyle {
+    <span class="kw">match </span>spec {
+        <span class="string">&quot;auto&quot; </span>=&gt; WriteStyle::Auto,
+        <span class="string">&quot;always&quot; </span>=&gt; WriteStyle::Always,
+        <span class="string">&quot;never&quot; </span>=&gt; WriteStyle::Never,
+        <span class="kw">_ </span>=&gt; Default::default(),
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_write_style_valid</span>() {
-        <span class="kw">let</span> <span class="ident">inputs</span> <span class="op">=</span> <span class="macro">vec!</span>[
-            (<span class="string">&quot;auto&quot;</span>, <span class="ident">WriteStyle::Auto</span>),
-            (<span class="string">&quot;always&quot;</span>, <span class="ident">WriteStyle::Always</span>),
-            (<span class="string">&quot;never&quot;</span>, <span class="ident">WriteStyle::Never</span>),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_write_style_valid() {
+        <span class="kw">let </span>inputs = <span class="macro">vec!</span>[
+            (<span class="string">&quot;auto&quot;</span>, WriteStyle::Auto),
+            (<span class="string">&quot;always&quot;</span>, WriteStyle::Always),
+            (<span class="string">&quot;never&quot;</span>, WriteStyle::Never),
         ];
 
-        <span class="kw">for</span> (<span class="ident">input</span>, <span class="ident">expected</span>) <span class="kw">in</span> <span class="ident">inputs</span> {
-            <span class="macro">assert_eq!</span>(<span class="ident">expected</span>, <span class="ident">parse_write_style</span>(<span class="ident">input</span>));
+        <span class="kw">for </span>(input, expected) <span class="kw">in </span>inputs {
+            <span class="macro">assert_eq!</span>(expected, parse_write_style(input));
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">parse_write_style_invalid</span>() {
-        <span class="kw">let</span> <span class="ident">inputs</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;&quot;</span>, <span class="string">&quot;true&quot;</span>, <span class="string">&quot;false&quot;</span>, <span class="string">&quot;NEVER!!&quot;</span>];
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>parse_write_style_invalid() {
+        <span class="kw">let </span>inputs = <span class="macro">vec!</span>[<span class="string">&quot;&quot;</span>, <span class="string">&quot;true&quot;</span>, <span class="string">&quot;false&quot;</span>, <span class="string">&quot;NEVER!!&quot;</span>];
 
-        <span class="kw">for</span> <span class="ident">input</span> <span class="kw">in</span> <span class="ident">inputs</span> {
-            <span class="macro">assert_eq!</span>(<span class="ident">WriteStyle::Auto</span>, <span class="ident">parse_write_style</span>(<span class="ident">input</span>));
+        <span class="kw">for </span>input <span class="kw">in </span>inputs {
+            <span class="macro">assert_eq!</span>(WriteStyle::Auto, parse_write_style(input));
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="env_logger" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="env_logger" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>

@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry_ide/src/focus/direct_influence.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>direct_influence.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry_ide/src/focus/direct_influence.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>direct_influence.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -15,13 +14,7 @@
     });
 </script>
 
-</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry_ide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry_ide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry_ide/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry_ide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry_ide/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry_ide/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -68,53 +61,52 @@
 <span id="45">45</span>
 <span id="46">46</span>
 <span id="47">47</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">flowistry</span>::{
-  <span class="ident">indexed::IndexMatrix</span>, <span class="ident">infoflow::mutation::ModularMutationVisitor</span>, <span class="ident">mir::aliases::Aliases</span>,
+</pre><pre class="rust"><code><span class="kw">use </span>flowistry::{
+  indexed::IndexMatrix, infoflow::mutation::ModularMutationVisitor, mir::aliases::Aliases,
 };
-<span class="kw">use</span> <span class="ident">rustc_middle::mir</span>::{<span class="ident">visit::Visitor</span>, <span class="ident">Body</span>, <span class="ident">Location</span>, <span class="ident">Mutability</span>, <span class="ident">Place</span>};
+<span class="kw">use </span>rustc_middle::mir::{visit::Visitor, Body, Location, Mutability, Place};
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DirectInfluence</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="ident">aliases</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Aliases</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-  <span class="ident">influence</span>: <span class="ident">IndexMatrix</span><span class="op">&lt;</span><span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Location</span><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>DirectInfluence&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+  aliases: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
+  influence: IndexMatrix&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, Location&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">DirectInfluence</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">aliases</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Aliases</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">influence</span> <span class="op">=</span> <span class="ident">IndexMatrix::new</span>(<span class="ident">aliases</span>.<span class="ident">location_domain</span>());
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; DirectInfluence&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">pub fn </span>build(body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, aliases: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">let </span><span class="kw-2">mut </span>influence = IndexMatrix::new(aliases.location_domain());
 
-    <span class="ident">ModularMutationVisitor::new</span>(<span class="ident">aliases</span>, <span class="op">|</span><span class="ident">mutated</span>, <span class="ident">inputs</span>, <span class="ident">location</span>, <span class="kw">_</span><span class="op">|</span> {
-      <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">add</span> <span class="op">=</span> <span class="op">|</span><span class="ident">place</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">mutability</span>: <span class="ident">Mutability</span><span class="op">|</span> {
-        <span class="kw">for</span> <span class="ident">alias</span> <span class="kw">in</span> <span class="ident">aliases</span>.<span class="ident">reachable_values</span>(<span class="ident">place</span>, <span class="ident">mutability</span>) {
-          <span class="ident">influence</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">alias</span>, <span class="ident">location</span>);
+    ModularMutationVisitor::new(aliases, |mutated, inputs, location, <span class="kw">_</span>| {
+      <span class="kw">let </span><span class="kw-2">mut </span>add = |place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, mutability: Mutability| {
+        <span class="kw">for </span>alias <span class="kw">in </span>aliases.reachable_values(place, mutability) {
+          influence.insert(<span class="kw-2">*</span>alias, location);
         }
       };
 
-      <span class="kw">for</span> (<span class="ident">input</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="ident">inputs</span> {
-        <span class="ident">add</span>(<span class="kw-2">*</span><span class="ident">input</span>, <span class="ident">Mutability::Not</span>);
+      <span class="kw">for </span>(input, <span class="kw">_</span>) <span class="kw">in </span>inputs {
+        add(<span class="kw-2">*</span>input, Mutability::Not);
       }
 
-      <span class="ident">add</span>(<span class="ident">mutated</span>, <span class="ident">Mutability::Mut</span>);
+      add(mutated, Mutability::Mut);
     })
-    .<span class="ident">visit_body</span>(<span class="ident">body</span>);
+    .visit_body(body);
 
-    <span class="ident">DirectInfluence</span> { <span class="ident">aliases</span>, <span class="ident">influence</span> }
+    DirectInfluence { aliases, influence }
   }
 
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">target</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Location</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">aliases</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">reachable_values</span>(<span class="ident">target</span>, <span class="ident">Mutability::Not</span>);
-    <span class="ident">aliases</span>
-      .<span class="ident">iter</span>()
-      .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">target_alias</span><span class="op">|</span> {
-        <span class="self">self</span>
-          .<span class="ident">influence</span>
-          .<span class="ident">row_set</span>(<span class="kw-2">*</span><span class="ident">target_alias</span>)
-          .<span class="ident">iter</span>()
-          .<span class="ident">copied</span>()
-          .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+  <span class="kw">pub fn </span>lookup(<span class="kw-2">&amp;</span><span class="self">self</span>, target: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; Vec&lt;Location&gt; {
+    <span class="kw">let </span>aliases = <span class="self">self</span>.aliases.reachable_values(target, Mutability::Not);
+    aliases
+      .iter()
+      .flat_map(|target_alias| {
+        <span class="self">self
+          </span>.influence
+          .row_set(<span class="kw-2">*</span>target_alias)
+          .iter()
+          .copied()
+          .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
       })
-      .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+      .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry_ide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (b2eed72a6 2022-05-22)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry_ide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
