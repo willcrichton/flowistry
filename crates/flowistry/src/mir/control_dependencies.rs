@@ -27,7 +27,7 @@ fn compute_immediate_post_dominators(
   body: &Body,
   ret: BasicBlock,
 ) -> HashMap<BasicBlock, BasicBlock> {
-  let nblocks = body.basic_blocks().len();
+  let nblocks = body.basic_blocks.len();
   let mut graph = BodyReversed {
     body,
     ret,
@@ -59,7 +59,7 @@ impl WithStartNode for BodyReversed<'_, '_> {
 
 impl WithNumNodes for BodyReversed<'_, '_> {
   fn num_nodes(&self) -> usize {
-    self.body.basic_blocks().len()
+    self.body.basic_blocks.len()
   }
 }
 
@@ -71,7 +71,7 @@ impl<'graph> GraphSuccessors<'graph> for BodyReversed<'_, '_> {
 impl WithSuccessors for BodyReversed<'_, '_> {
   fn successors(&self, node: Self::Node) -> <Self as GraphSuccessors<'_>>::Iter {
     Box::new(
-      self.body.predecessors()[node]
+      self.body.basic_blocks.predecessors()[node]
         .iter()
         .filter(|bb| !self.unreachable.contains(**bb))
         .copied(),
@@ -87,7 +87,7 @@ impl<'graph> GraphPredecessors<'graph> for BodyReversed<'_, '_> {
 impl WithPredecessors for BodyReversed<'_, '_> {
   fn predecessors(&self, node: Self::Node) -> <Self as GraphPredecessors<'_>>::Iter {
     Box::new(
-      self.body.basic_blocks()[node]
+      self.body.basic_blocks[node]
         .terminator()
         .successors()
         .filter(|bb| !self.unreachable.contains(*bb)),
@@ -131,7 +131,7 @@ impl ControlDependencies {
         .all_returns()
         .map(|loc| ControlDependencies::build_for_return(body, loc.block))
         .fold(
-          SparseBitMatrix::new(body.basic_blocks().len()),
+          SparseBitMatrix::new(body.basic_blocks.len()),
           |mut deps1, deps2| {
             for block in deps2.rows() {
               if let Some(set) = deps2.row(block) {
@@ -155,11 +155,11 @@ impl ControlDependencies {
     log::debug!("idom={idom:?}");
 
     let edges = body
-      .basic_blocks()
+      .basic_blocks
       .indices()
       .filter_map(|bb| Some((*idom.get(&bb)?, bb)))
       .collect::<Vec<_>>();
-    let n = body.basic_blocks().len();
+    let n = body.basic_blocks.len();
     let dominator_tree = VecGraph::new(n, edges);
 
     let traversal = iterate::post_order_from(&dominator_tree, ret);
@@ -167,7 +167,7 @@ impl ControlDependencies {
     // Only use size = n b/c exit node shouldn't ever have a dominance frontier
     let mut df = SparseBitMatrix::new(n);
     for x in traversal {
-      let local = body.predecessors()[x].iter().copied();
+      let local = body.basic_blocks.predecessors()[x].iter().copied();
       let up = dominator_tree
         .successors(x)
         .iter()

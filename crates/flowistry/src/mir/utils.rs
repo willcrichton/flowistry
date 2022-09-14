@@ -74,7 +74,7 @@ pub fn arg_mut_ptrs<'tcx>(
             .into_iter()
             .filter_map(|(place, mutability)| match mutability {
               Mutability::Mut => Some(place),
-              Mutability::Not => ignore_mut.then(|| place),
+              Mutability::Not => ignore_mut.then_some(place),
             })
         })
         .map(move |place| (*i, tcx.mk_place_deref(place)))
@@ -213,7 +213,7 @@ impl<'tcx> Visitor<'tcx> for PlaceCollector<'tcx> {
 
 pub fn run_dot(path: &Path, buf: Vec<u8>) -> Result<()> {
   let mut p = Command::new("dot")
-    .args(&["-Tpdf", "-o", &path.display().to_string()])
+    .args(["-Tpdf", "-o", &path.display().to_string()])
     .stdin(Stdio::piped())
     .spawn()?;
 
@@ -251,7 +251,7 @@ where
 }
 
 pub fn location_to_string(location: Location, body: &Body<'_>) -> String {
-  if location.block.as_usize() == body.basic_blocks().len() {
+  if location.block.as_usize() == body.basic_blocks.len() {
     format!("_{}", location.statement_index)
   } else {
     match body.stmt_at(location) {
@@ -267,8 +267,8 @@ impl<'tcx> MirPass<'tcx> for SimplifyMir {
     let return_blocks = body
       .all_returns()
       .filter_map(|loc| {
-        let bb = &body.basic_blocks()[loc.block];
-        (bb.statements.len() == 0).then(|| loc.block)
+        let bb = &body.basic_blocks[loc.block];
+        (bb.statements.len() == 0).then_some(loc.block)
       })
       .collect::<HashSet<_>>();
 
@@ -759,7 +759,7 @@ impl<'tcx> BodyExt<'tcx> for Body<'tcx> {
   type AllReturnsIter<'a> = impl Iterator<Item = Location>   where Self: 'a;
   fn all_returns(&self) -> Self::AllReturnsIter<'_> {
     self
-      .basic_blocks()
+      .basic_blocks
       .iter_enumerated()
       .filter_map(|(block, data)| match data.terminator().kind {
         TerminatorKind::Return => Some(Location {
@@ -773,7 +773,7 @@ impl<'tcx> BodyExt<'tcx> for Body<'tcx> {
   type AllLocationsIter<'a> = impl Iterator<Item = Location>   where Self: 'a;
   fn all_locations(&self) -> Self::AllLocationsIter<'_> {
     self
-      .basic_blocks()
+      .basic_blocks
       .iter_enumerated()
       .flat_map(|(block, data)| {
         (0 .. data.statements.len() + 1).map(move |statement_index| Location {
@@ -785,7 +785,7 @@ impl<'tcx> BodyExt<'tcx> for Body<'tcx> {
 
   type LocationsIter = impl Iterator<Item = Location>;
   fn locations_in_block(&self, block: BasicBlock) -> Self::LocationsIter {
-    let num_stmts = self.basic_blocks()[block].statements.len();
+    let num_stmts = self.basic_blocks[block].statements.len();
     (0 ..= num_stmts).map(move |statement_index| Location {
       block,
       statement_index,

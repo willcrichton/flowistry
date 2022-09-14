@@ -40,7 +40,6 @@
   min_specialization,        // for rustc_index::newtype_index
   type_alias_impl_trait,     // for impl Trait in trait definition, eg crate::mir::utils 
   generic_associated_types,  // for impl Trait in trait definition
-  crate_visibility_modifier, // for crate-wide shared private items
   trait_alias,
 )]
 #![allow(

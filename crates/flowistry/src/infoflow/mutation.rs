@@ -90,16 +90,14 @@ where
           .map(|place| (*place, None))
           .collect::<Vec<_>>();
 
-        if let Some((dst_place, _)) = destination {
-          let ret_is_unit = dst_place
-            .ty(self.aliases.body.local_decls(), tcx)
-            .ty
-            .is_unit();
-          let empty = vec![];
-          let inputs = if ret_is_unit { &empty } else { &arg_inputs };
+        let ret_is_unit = destination
+          .ty(self.aliases.body.local_decls(), tcx)
+          .ty
+          .is_unit();
+        let empty = vec![];
+        let inputs = if ret_is_unit { &empty } else { &arg_inputs };
 
-          (self.f)(*dst_place, inputs, location, MutationStatus::Definitely);
-        }
+        (self.f)(*destination, inputs, location, MutationStatus::Definitely);
 
         for arg in arg_places {
           for arg_mut in self.aliases.reachable_values(arg, Mutability::Mut) {

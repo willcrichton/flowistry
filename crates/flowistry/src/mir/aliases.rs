@@ -20,7 +20,7 @@ use rustc_middle::{
     *,
   },
   ty::{
-    Region, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeAndMut, TypeFoldable,
+    Region, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeAndMut, TypeSuperVisitable,
     TypeVisitor,
   },
 };
@@ -663,7 +663,7 @@ impl<'tcx> TypeVisitor<'tcx> for LoanCollector<'_, 'tcx> {
           };
           loan_mutability
             .more_permissive_than(self.target_mutability)
-            .then(|| place)
+            .then_some(place)
         }))
     }
 
