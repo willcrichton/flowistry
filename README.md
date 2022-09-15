@@ -51,7 +51,7 @@ Flowistry is available as a VSCode plugin. You can install Flowistry from the [V
 * Search for "Flowistry" and then click "Install".
 * Open a Rust workspace and wait for the tool to finish installing.
 
-**Note on platform support:** Flowistry does not yet support Windows or NixOS. Flowistry cannot provide pre-built binaries for ARM targets like M1 Macs, so Flowistry must be installed from scratch on these targets (this is done for you, but will take a few more minutes than usual).
+**Note on platform support:** Flowistry does not yet support NixOS. Flowistry cannot provide pre-built binaries for ARM targets like M1 Macs, so Flowistry must be installed from scratch on these targets (this is done for you, but will take a few more minutes than usual).
 
 Alternatively, you can install it from source:
 
