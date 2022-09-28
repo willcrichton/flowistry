@@ -574,7 +574,15 @@ impl<R: RowBounds + fmt::Debug, C: IndexedValue + fmt::Debug> fmt::Debug
         continue;
       }
 
-      write!(f, "  {row:?}: {:?},", self.matrix.get(row).unwrap())?;
+      let set = self
+        .matrix
+        .get(row)
+        .unwrap()
+        .iter()
+        .map(|idx| format!("{:?}", self.col_domain().value(idx)))
+        .collect::<Vec<_>>()
+        .join(", ");
+      write!(f, "  {row:?}: {{{set}}}, ")?;
     }
 
     write!(f, "}}")
