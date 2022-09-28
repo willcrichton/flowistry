@@ -15,6 +15,7 @@
 #![feature(rustc_private)]
 
 extern crate rustc_borrowck;
+extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_hir;
 extern crate rustc_interface;
@@ -25,24 +26,26 @@ use std::process::Command;
 
 use flowistry::{
   indexed::IndexedDomain,
-  infoflow::Direction,
+  infoflow::{mutation::ModularMutationVisitor, Direction},
   mir::{
+    aliases::Aliases,
     borrowck_facts,
     utils::{BodyExt, PlaceExt, SpanExt},
   },
   source_map::{EnclosingHirSpans, Spanner},
 };
 use rustc_borrowck::BodyWithBorrowckFacts;
+use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir::{BodyId, ItemKind};
 use rustc_middle::{
-  mir::{Local, Place},
+  mir::{visit::Visitor, Local, Location, Place},
   ty::TyCtxt,
 };
 use rustc_span::Span;
 
 // This is the core analysis. Everything below this function is plumbing to
 // call into rustc's API.
-fn analysis<'tcx>(
+fn all_dependencies<'tcx>(
   tcx: TyCtxt<'tcx>,
   body_id: BodyId,
   body_with_facts: &BodyWithBorrowckFacts<'tcx>,
@@ -53,7 +56,7 @@ fn analysis<'tcx>(
   // visualizable, so we need to post-process it with a specific query.
   let results = flowistry::infoflow::compute_flow(tcx, body_id, body_with_facts);
   let location_domain = results.analysis.location_domain();
-  
+
   // We construct a target of the first argument at the start of the function.
   let arg_local = Local::from_usize(1);
   let arg_place = Place::make(arg_local, &[], tcx);
@@ -100,6 +103,32 @@ fn analysis<'tcx>(
   }
 }
 
+fn direct_dependencies<'tcx>(
+  tcx: TyCtxt<'tcx>,
+  body_id: BodyId,
+  body_with_facts: &BodyWithBorrowckFacts<'tcx>,
+) {
+  println!("Body:\n{}", body_with_facts.body.to_string(tcx).unwrap());
+
+  let aliases = Aliases::build(
+    tcx,
+    tcx.hir().body_owner_def_id(body_id).to_def_id(),
+    body_with_facts,
+  );
+  let mut dependencies: HashMap<Place<'tcx>, HashSet<(Place<'tcx>, Location)>> =
+    HashMap::default();
+  let mut visitor =
+    ModularMutationVisitor::new(&aliases, |place, inputs, location, _| {
+      dependencies
+        .entry(place)
+        .or_default()
+        .extend(inputs.iter().map(|(input, _)| (*input, location)));
+    });
+  visitor.visit_body(&body_with_facts.body);
+
+  println!("{dependencies:#?}");
+}
+
 struct Callbacks;
 impl rustc_driver::Callbacks for Callbacks {
   fn config(&mut self, config: &mut rustc_interface::Config) {
@@ -127,7 +156,11 @@ impl rustc_driver::Callbacks for Callbacks {
 
       let def_id = hir.body_owner_def_id(body_id);
       let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
-      analysis(tcx, body_id, body_with_facts)
+      if std::env::var("DIRECT").is_ok() {
+        direct_dependencies(tcx, body_id, body_with_facts)
+      } else {
+        all_dependencies(tcx, body_id, body_with_facts)
+      }
     });
     rustc_driver::Compilation::Stop
   }
