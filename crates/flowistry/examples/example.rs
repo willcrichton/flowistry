@@ -24,6 +24,7 @@ extern crate rustc_span;
 use std::process::Command;
 
 use flowistry::{
+  indexed::IndexedDomain,
   infoflow::Direction,
   mir::{
     borrowck_facts,
@@ -34,7 +35,7 @@ use flowistry::{
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_hir::{BodyId, ItemKind};
 use rustc_middle::{
-  mir::{Local, Location, Place},
+  mir::{Local, Place},
   ty::TyCtxt,
 };
 use rustc_span::Span;
@@ -51,10 +52,15 @@ fn analysis<'tcx>(
   // This computes the core information flow data structure. But it's not very
   // visualizable, so we need to post-process it with a specific query.
   let results = flowistry::infoflow::compute_flow(tcx, body_id, body_with_facts);
-
+  let location_domain = results.analysis.location_domain();
+  
   // We construct a target of the first argument at the start of the function.
-  let arg = Place::make(Local::from_usize(1), &[], tcx);
-  let targets = vec![vec![(arg, Location::START)]];
+  let arg_local = Local::from_usize(1);
+  let arg_place = Place::make(arg_local, &[], tcx);
+  let targets = vec![vec![(
+    arg_place,
+    *location_domain.value(location_domain.arg_to_location(arg_local)),
+  )]];
 
   // Then use Flowistry to compute the locations and places influenced by the target.
   let location_deps = flowistry::infoflow::compute_dependencies(
@@ -80,7 +86,7 @@ fn analysis<'tcx>(
   for location in location_deps.iter() {
     let spans = Span::merge_overlaps(spanner.location_to_spans(
       *location,
-      results.analysis.location_domain(),
+      location_domain,
       body,
       EnclosingHirSpans::OuterOnly,
     ));
@@ -128,6 +134,8 @@ impl rustc_driver::Callbacks for Callbacks {
 }
 
 fn main() {
+  env_logger::init();
+
   // Get the sysroot so rustc can find libstd
   let print_sysroot = Command::new("rustc")
     .args(&["--print", "sysroot"])
