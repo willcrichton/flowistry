@@ -642,6 +642,14 @@
 <span id="626">626</span>
 <span id="627">627</span>
 <span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
 </pre><pre class="rust"><code><span class="doccomment">//! APIs for efficiently representing values with an fixed-size domain via bit-sets.
 //!
 //! This module is an abstraction over the [`rustc_index::bit_set`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/index.html)
@@ -1218,7 +1226,15 @@
         <span class="kw">continue</span>;
       }
 
-      <span class="macro">write!</span>(f, <span class="string">&quot;  {row:?}: {:?},&quot;</span>, <span class="self">self</span>.matrix.get(row).unwrap())<span class="question-mark">?</span>;
+      <span class="kw">let </span>set = <span class="self">self
+        </span>.matrix
+        .get(row)
+        .unwrap()
+        .iter()
+        .map(|idx| <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.col_domain().value(idx)))
+        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+        .join(<span class="string">&quot;, &quot;</span>);
+      <span class="macro">write!</span>(f, <span class="string">&quot;  {row:?}: {{{set}}}, &quot;</span>)<span class="question-mark">?</span>;
     }
 
     <span class="macro">write!</span>(f, <span class="string">&quot;}}&quot;</span>)

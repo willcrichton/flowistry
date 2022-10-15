@@ -327,6 +327,36 @@
 <span id="311">311</span>
 <span id="312">312</span>
 <span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A framework for running up custom cargo commands that use rustc_private.
 //!
 //! Most of this file is either directly copy/pasted, or otherwise generalized
@@ -338,7 +368,7 @@
 <span class="kw">extern crate </span>rustc_interface;
 
 <span class="kw">use </span>std::{
-  env,
+  env, fs,
   ops::Deref,
   path::{Path, PathBuf},
   process::{exit, Command},
@@ -435,7 +465,7 @@
   cmd
     .env(<span class="string">&quot;RUSTC_WORKSPACE_WRAPPER&quot;</span>, path)
     .args([<span class="string">&quot;check&quot;</span>, <span class="string">&quot;-v&quot;</span>, <span class="string">&quot;--target-dir&quot;</span>])
-    .arg(target_dir);
+    .arg(<span class="kw-2">&amp;</span>target_dir);
 
   <span class="kw">let </span>workspace_members = metadata
     .workspace_members
@@ -514,8 +544,29 @@
     <span class="kw">if </span>kind != <span class="string">&quot;proc-macro&quot; </span>{
       cmd.arg(<span class="macro">format!</span>(<span class="string">&quot;--{kind}&quot;</span>));
     }
+
     <span class="kw">match </span>kind.as_str() {
-      <span class="string">&quot;lib&quot; </span>| <span class="string">&quot;proc-macro&quot; </span>=&gt; {}
+      <span class="string">&quot;proc-macro&quot; </span>=&gt; {}
+      <span class="string">&quot;lib&quot; </span>=&gt; {
+        <span class="comment">// If we&#39;re supposed to be running the plugin on the library target,
+        // pass that info to the driver
+        </span>cmd.env(<span class="string">&quot;RUSTC_PLUGIN_LIB_TARGET&quot;</span>, <span class="string">&quot;&quot;</span>);
+
+        <span class="comment">// If the rmeta files were previously generated for the lib (e.g. by running the plugin
+        // on a reverse-dep), then we have to remove them or else Cargo will memoize the plugin.
+        </span><span class="kw">let </span>deps_dir = target_dir.join(<span class="string">&quot;debug&quot;</span>).join(<span class="string">&quot;deps&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(entries) = fs::read_dir(<span class="kw-2">&amp;</span>deps_dir) {
+          <span class="kw">let </span>prefix = <span class="macro">format!</span>(<span class="string">&quot;lib{}&quot;</span>, pkg.name.replace(<span class="string">&#39;-&#39;</span>, <span class="string">&quot;_&quot;</span>));
+          <span class="kw">for </span>entry <span class="kw">in </span>entries {
+            <span class="kw">let </span>path = entry.unwrap().path();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(file_name) = path.file_name() {
+              <span class="kw">if </span>file_name.to_string_lossy().starts_with(<span class="kw-2">&amp;</span>prefix) {
+                fs::remove_file(path).unwrap();
+              }
+            }
+          }
+        }
+      }
       <span class="kw">_ </span>=&gt; {
         cmd.arg(<span class="kw-2">&amp;</span>target.name);
       }
@@ -611,7 +662,7 @@
     }
 
     <span class="comment">// Setting RUSTC_WRAPPER causes Cargo to pass &#39;rustc&#39; as the first argument.
-    // We&#39;re invoking the compiler programmatically, so we ignore this/
+    // We&#39;re invoking the compiler programmatically, so we ignore this
     </span><span class="kw">let </span>wrapper_mode =
       orig_args.get(<span class="number">1</span>).map(Path::new).and_then(Path::file_stem) == <span class="prelude-val">Some</span>(<span class="string">&quot;rustc&quot;</span>.as_ref());
 
@@ -627,9 +678,18 @@
       args.extend(<span class="macro">vec!</span>[<span class="string">&quot;--sysroot&quot;</span>.into(), sys_root]);
     };
 
-    <span class="kw">let </span>primary_package = env::var(<span class="string">&quot;CARGO_PRIMARY_PACKAGE&quot;</span>).is_ok();
+    <span class="comment">// On a given invocation of rustc, we have to decide whether to act as rustc,
+    // or actually execute the plugin. There are three conditions for executing the plugin:
+    // 1. CARGO_PRIMARY_PACKAGE must be set, as we don&#39;t run the plugin on dependencies.
+    // 2. --print is NOT passed, since Cargo does that to get info about rustc.
+    // 3. If rustc is running on src/lib.rs, then we only run the plugin if we&#39;re supposed to,
+    //    i.e. RUSTC_PLUGIN_LIB_TARGET is set. If the plugin is supposed to run on a reverse-dep
+    //    of the lib, then we need to let the lib be checked as normal to generate an rmeta.
+    </span><span class="kw">let </span>primary_package = env::var(<span class="string">&quot;CARGO_PRIMARY_PACKAGE&quot;</span>).is_ok();
     <span class="kw">let </span>normal_rustc = args.iter().any(|arg| arg.starts_with(<span class="string">&quot;--print&quot;</span>));
-    <span class="kw">let </span>run_plugin = primary_package &amp;&amp; !normal_rustc;
+    <span class="kw">let </span>is_lib = args.iter().any(|arg| arg == <span class="string">&quot;src/lib.rs&quot;</span>);
+    <span class="kw">let </span>plugin_lib_target = env::var(<span class="string">&quot;RUSTC_PLUGIN_LIB_TARGET&quot;</span>).is_ok();
+    <span class="kw">let </span>run_plugin = primary_package &amp;&amp; !normal_rustc &amp;&amp; (!is_lib || plugin_lib_target);
 
     <span class="kw">if </span>run_plugin {
       <span class="kw">let </span>plugin_args: T::Args =
