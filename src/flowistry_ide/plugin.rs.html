@@ -317,6 +317,10 @@
 <span id="301">301</span>
 <span id="302">302</span>
 <span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
   env,
   path::PathBuf,
@@ -508,7 +512,7 @@
       FlowistryError::BuildError =&gt; {
         <span class="kw">return </span><span class="prelude-val">Err</span>(rustc_errors::ErrorGuaranteed::unchecked_claim_error_was_emitted());
       }
-      FlowistryError::AnalysisError(msg) =&gt; <span class="prelude-val">Err</span>(msg),
+      e =&gt; <span class="prelude-val">Err</span>(e),
     },
   };
 
@@ -553,13 +557,17 @@
   callbacks
     .output
     .unwrap()
-    .map_err(|e| FlowistryError::AnalysisError(e.to_string()))
+    .map_err(|e| FlowistryError::AnalysisError {
+      error: e.to_string(),
+    })
 }
 
-<span class="attribute">#[derive(Debug)]
+<span class="attribute">#[derive(Debug, Serialize)]
+#[serde(tag = <span class="string">&quot;type&quot;</span>)]
 </span><span class="kw">pub enum </span>FlowistryError {
   BuildError,
-  AnalysisError(String),
+  AnalysisError { error: String },
+  FileNotFound,
 }
 
 <span class="kw">pub type </span>FlowistryResult&lt;T&gt; = <span class="prelude-ty">Result</span>&lt;T, FlowistryError&gt;;

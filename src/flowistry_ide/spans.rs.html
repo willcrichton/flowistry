@@ -70,10 +70,12 @@
 <span id="54">54</span>
 <span id="55">55</span>
 <span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
 </pre><pre class="rust"><code><span class="kw">use </span>flowistry::source_map::{find_bodies, Range};
 <span class="kw">use </span>serde::Serialize;
 
-<span class="kw">use </span><span class="kw">crate</span>::plugin::FlowistryResult;
+<span class="kw">use </span><span class="kw">crate</span>::plugin::{FlowistryError, FlowistryResult};
 
 <span class="attribute">#[derive(Serialize)]
 </span><span class="kw">pub struct </span>SpansOutput {
@@ -82,7 +84,7 @@
 
 <span class="kw">struct </span>Callbacks {
   filename: String,
-  output: <span class="prelude-ty">Option</span>&lt;SpansOutput&gt;,
+  output: <span class="prelude-ty">Option</span>&lt;FlowistryResult&lt;SpansOutput&gt;&gt;,
 }
 
 <span class="kw">impl </span>rustc_driver::Callbacks <span class="kw">for </span>Callbacks {
@@ -94,25 +96,27 @@
     queries.global_ctxt().unwrap().take().enter(|tcx| {
       <span class="kw">let </span>spans = find_bodies(tcx).into_iter().map(|(span, <span class="kw">_</span>)| span);
 
-      <span class="kw">let </span>source_map = compiler.session().source_map();
-      <span class="kw">let </span>source_file = Range {
-        byte_start: <span class="number">0</span>,
-        byte_end: <span class="number">0</span>,
-        char_start: <span class="number">0</span>,
-        char_end: <span class="number">0</span>,
-        filename: <span class="self">self</span>.filename.clone(),
-      }
-      .source_file(source_map)
-      .unwrap();
+      <span class="self">self</span>.output = <span class="prelude-val">Some</span>((|| {
+        <span class="kw">let </span>source_map = compiler.session().source_map();
+        <span class="kw">let </span>source_file = Range {
+          byte_start: <span class="number">0</span>,
+          byte_end: <span class="number">0</span>,
+          char_start: <span class="number">0</span>,
+          char_end: <span class="number">0</span>,
+          filename: <span class="self">self</span>.filename.clone(),
+        }
+        .source_file(source_map)
+        .map_err(|<span class="kw">_</span>| FlowistryError::FileNotFound)<span class="question-mark">?</span>;
 
-      <span class="kw">let </span>spans = spans
-        .into_iter()
-        .filter(|span| {
-          source_map.lookup_source_file(span.lo()).name_hash == source_file.name_hash
-        })
-        .filter_map(|span| Range::from_span(span, source_map).ok())
-        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-      <span class="self">self</span>.output = <span class="prelude-val">Some</span>(SpansOutput { spans });
+        <span class="kw">let </span>spans = spans
+          .into_iter()
+          .filter(|span| {
+            source_map.lookup_source_file(span.lo()).name_hash == source_file.name_hash
+          })
+          .filter_map(|span| Range::from_span(span, source_map).ok())
+          .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="prelude-val">Ok</span>(SpansOutput { spans })
+      })());
     });
     rustc_driver::Compilation::Stop
   }
@@ -124,7 +128,7 @@
     output: <span class="prelude-val">None</span>,
   };
   <span class="kw">crate</span>::plugin::run_with_callbacks(args, <span class="kw-2">&amp;mut </span>callbacks)<span class="question-mark">?</span>;
-  <span class="prelude-val">Ok</span>(callbacks.output.unwrap())
+  callbacks.output.unwrap()
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="flowistry_ide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
