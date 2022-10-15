@@ -9,7 +9,7 @@ extern crate rustc_driver;
 extern crate rustc_interface;
 
 use std::{
-  env,
+  env, fs,
   ops::Deref,
   path::{Path, PathBuf},
   process::{exit, Command},
@@ -106,7 +106,7 @@ pub fn cli_main<T: RustcPlugin>(plugin: T) {
   cmd
     .env("RUSTC_WORKSPACE_WRAPPER", path)
     .args(["check", "-v", "--target-dir"])
-    .arg(target_dir);
+    .arg(&target_dir);
 
   let workspace_members = metadata
     .workspace_members
@@ -185,8 +185,29 @@ pub fn cli_main<T: RustcPlugin>(plugin: T) {
     if kind != "proc-macro" {
       cmd.arg(format!("--{kind}"));
     }
+
     match kind.as_str() {
-      "lib" | "proc-macro" => {}
+      "proc-macro" => {}
+      "lib" => {
+        // If we're supposed to be running the plugin on the library target,
+        // pass that info to the driver
+        cmd.env("RUSTC_PLUGIN_LIB_TARGET", "");
+
+        // If the rmeta files were previously generated for the lib (e.g. by running the plugin
+        // on a reverse-dep), then we have to remove them or else Cargo will memoize the plugin.
+        let deps_dir = target_dir.join("debug").join("deps");
+        if let Ok(entries) = fs::read_dir(&deps_dir) {
+          let prefix = format!("lib{}", pkg.name.replace('-', "_"));
+          for entry in entries {
+            let path = entry.unwrap().path();
+            if let Some(file_name) = path.file_name() {
+              if file_name.to_string_lossy().starts_with(&prefix) {
+                fs::remove_file(path).unwrap();
+              }
+            }
+          }
+        }
+      }
       _ => {
         cmd.arg(&target.name);
       }
@@ -282,7 +303,7 @@ pub fn driver_main<T: RustcPlugin>(plugin: T) {
     }
 
     // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
-    // We're invoking the compiler programmatically, so we ignore this/
+    // We're invoking the compiler programmatically, so we ignore this
     let wrapper_mode =
       orig_args.get(1).map(Path::new).and_then(Path::file_stem) == Some("rustc".as_ref());
 
@@ -298,9 +319,18 @@ pub fn driver_main<T: RustcPlugin>(plugin: T) {
       args.extend(vec!["--sysroot".into(), sys_root]);
     };
 
+    // On a given invocation of rustc, we have to decide whether to act as rustc,
+    // or actually execute the plugin. There are three conditions for executing the plugin:
+    // 1. CARGO_PRIMARY_PACKAGE must be set, as we don't run the plugin on dependencies.
+    // 2. --print is NOT passed, since Cargo does that to get info about rustc.
+    // 3. If rustc is running on src/lib.rs, then we only run the plugin if we're supposed to,
+    //    i.e. RUSTC_PLUGIN_LIB_TARGET is set. If the plugin is supposed to run on a reverse-dep
+    //    of the lib, then we need to let the lib be checked as normal to generate an rmeta.
     let primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
     let normal_rustc = args.iter().any(|arg| arg.starts_with("--print"));
-    let run_plugin = primary_package && !normal_rustc;
+    let is_lib = args.iter().any(|arg| arg == "src/lib.rs");
+    let plugin_lib_target = env::var("RUSTC_PLUGIN_LIB_TARGET").is_ok();
+    let run_plugin = primary_package && !normal_rustc && (!is_lib || plugin_lib_target);
 
     if run_plugin {
       let plugin_args: T::Args =
