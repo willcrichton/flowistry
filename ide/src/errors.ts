@@ -9,14 +9,17 @@ import { globals } from "./extension";
 import { log, logs } from "./logging";
 
 interface BuildError {
-  type: "build-error";
+  type: "BuildError";
   error: string;
 }
 interface AnalysisError {
-  type: "analysis-error";
+  type: "AnalysisError";
   error: string;
 }
-export type FlowistryError = BuildError | AnalysisError;
+interface FileNotFound {
+  type: "FileNotFound"
+}
+export type FlowistryError = BuildError | AnalysisError | FileNotFound;
 interface FlowistryOutput<T> {
   type: "output";
   value: T;
@@ -134,11 +137,13 @@ ${log_text}`,
   }
 };
 
-export const show_error = async (error: BuildError | AnalysisError) => {
-  if (error.type === "build-error") {
+export const show_error = async (error: FlowistryError) => {
+  if (error.type === "BuildError") {
     await globals.error_pane.show(error.error);
-  } else {
+  } else if (error.type == "AnalysisError") {
     await show_error_dialog(error.error);
+  } else if (error.type == "FileNotFound") {
+    // should not reach here
   }
 };
 
@@ -146,6 +151,6 @@ export let hide_error = () => globals.error_pane.hide();
 
 export async function last_error(context: vscode.ExtensionContext) {
   let error = context.workspaceState.get("err_log") as string;
-  let flowistry_err: BuildError = { type: "build-error", error };
+  let flowistry_err: BuildError = { type: "BuildError", error };
   await show_error(flowistry_err);
 }

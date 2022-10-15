@@ -253,7 +253,7 @@ let valid_document = (doc: vscode.TextDocument): boolean => {
  */
 export class FocusMode {
   mode: StatusBarState = "idle";
-  state: Map<string, FocusDocumentState> = new Map();
+  state: Map<string, FocusDocumentState | "notfound"> = new Map();
 
   doc_save_callback?: vscode.Disposable;
   doc_edit_callback?: vscode.Disposable;
@@ -313,7 +313,7 @@ export class FocusMode {
   private get_doc_state = async (
     editor: vscode.TextEditor
   ): Promise<FocusDocumentState | null> => {
-    if (this.mode !== "active") {
+    if (this.mode !== "active" && this.mode !== "notfound") {
       return null;
     }
 
@@ -326,13 +326,23 @@ export class FocusMode {
       if (is_ok(doc_state_res)) {
         this.state.set(filename, doc_state_res.value);
       } else {
-        await show_error(doc_state_res);
-        this.set_mode("error");
-        return null;
+        if (doc_state_res.type == "FileNotFound") {
+         this.state.set(filename, "notfound");
+        } else {
+          await show_error(doc_state_res);
+          this.set_mode("error");
+          return null;  
+        }        
       }
     }
 
-    return this.state.get(filename)!;
+    let state = this.state.get(filename)!;
+    if (state == "notfound") {
+      this.set_mode("notfound");
+      return null;
+    } else {
+      return state;
+    }
   };
 
   private handle_analysis_result = async <T>(result: FlowistryResult<T>) => {

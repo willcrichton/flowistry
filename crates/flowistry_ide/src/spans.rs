@@ -1,7 +1,7 @@
 use flowistry::source_map::{find_bodies, Range};
 use serde::Serialize;
 
-use crate::plugin::FlowistryResult;
+use crate::plugin::{FlowistryError, FlowistryResult};
 
 #[derive(Serialize)]
 pub struct SpansOutput {
@@ -10,7 +10,7 @@ pub struct SpansOutput {
 
 struct Callbacks {
   filename: String,
-  output: Option<SpansOutput>,
+  output: Option<FlowistryResult<SpansOutput>>,
 }
 
 impl rustc_driver::Callbacks for Callbacks {
@@ -22,25 +22,27 @@ impl rustc_driver::Callbacks for Callbacks {
     queries.global_ctxt().unwrap().take().enter(|tcx| {
       let spans = find_bodies(tcx).into_iter().map(|(span, _)| span);
 
-      let source_map = compiler.session().source_map();
-      let source_file = Range {
-        byte_start: 0,
-        byte_end: 0,
-        char_start: 0,
-        char_end: 0,
-        filename: self.filename.clone(),
-      }
-      .source_file(source_map)
-      .unwrap();
+      self.output = Some((|| {
+        let source_map = compiler.session().source_map();
+        let source_file = Range {
+          byte_start: 0,
+          byte_end: 0,
+          char_start: 0,
+          char_end: 0,
+          filename: self.filename.clone(),
+        }
+        .source_file(source_map)
+        .map_err(|_| FlowistryError::FileNotFound)?;
 
-      let spans = spans
-        .into_iter()
-        .filter(|span| {
-          source_map.lookup_source_file(span.lo()).name_hash == source_file.name_hash
-        })
-        .filter_map(|span| Range::from_span(span, source_map).ok())
-        .collect::<Vec<_>>();
-      self.output = Some(SpansOutput { spans });
+        let spans = spans
+          .into_iter()
+          .filter(|span| {
+            source_map.lookup_source_file(span.lo()).name_hash == source_file.name_hash
+          })
+          .filter_map(|span| Range::from_span(span, source_map).ok())
+          .collect::<Vec<_>>();
+        Ok(SpansOutput { spans })
+      })());
     });
     rustc_driver::Compilation::Stop
   }
@@ -52,5 +54,5 @@ pub fn spans(args: &[String], filename: String) -> FlowistryResult<SpansOutput> 
     output: None,
   };
   crate::plugin::run_with_callbacks(args, &mut callbacks)?;
-  Ok(callbacks.output.unwrap())
+  callbacks.output.unwrap()
 }

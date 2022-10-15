@@ -5,13 +5,15 @@ export type StatusBarState =
   | "unsaved"
   | "idle"
   | "error"
-  | "loading";
+  | "loading"
+  | "notfound";
 
 interface StatusBarConfig {
   foreground: string;
   background: string;
   icon?: string;
   command: string;
+  tooltip?: string;
 }
 
 const config_for_state: Record<StatusBarState, StatusBarConfig> = {
@@ -44,6 +46,13 @@ const config_for_state: Record<StatusBarState, StatusBarConfig> = {
     icon: "sync~spin",
     command: "flowistry.focus",
   },
+  notfound: {
+    foreground: "statusBarItem.foreground",
+    background: "statusBarItem.background",
+    icon: "question",
+    command: "flowistry.focus",
+    tooltip: "Flowistry could not get Cargo to find this file (this is probably a Flowistry bug)"
+  },
 };
 
 export class StatusBar {
@@ -68,5 +77,6 @@ export class StatusBar {
     this.bar_item.backgroundColor = new vscode.ThemeColor(config.background);
     this.bar_item.text = `$(${config.icon}) flowistry`;
     this.bar_item.command = config.command;
+    this.bar_item.tooltip = config.tooltip;
   }
 }
