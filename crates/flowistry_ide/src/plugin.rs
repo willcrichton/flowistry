@@ -189,7 +189,7 @@ fn postprocess<T: Serialize>(result: FlowistryResult<T>) -> RustcResult<()> {
       FlowistryError::BuildError => {
         return Err(rustc_errors::ErrorGuaranteed::unchecked_claim_error_was_emitted());
       }
-      FlowistryError::AnalysisError(msg) => Err(msg),
+      e => Err(e),
     },
   };
 
@@ -234,13 +234,17 @@ fn run<A: FlowistryAnalysis, T: ToSpan>(
   callbacks
     .output
     .unwrap()
-    .map_err(|e| FlowistryError::AnalysisError(e.to_string()))
+    .map_err(|e| FlowistryError::AnalysisError {
+      error: e.to_string(),
+    })
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
+#[serde(tag = "type")]
 pub enum FlowistryError {
   BuildError,
-  AnalysisError(String),
+  AnalysisError { error: String },
+  FileNotFound,
 }
 
 pub type FlowistryResult<T> = Result<T, FlowistryError>;

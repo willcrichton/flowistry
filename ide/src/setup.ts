@@ -7,7 +7,7 @@ import { Readable } from "stream";
 import * as vscode from "vscode";
 
 import { download } from "./download";
-import { FlowistryResult } from "./errors";
+import { FlowistryError, FlowistryResult } from "./errors";
 import { globals } from "./extension";
 import { log } from "./logging";
 
@@ -17,14 +17,8 @@ declare const TOOLCHAIN: {
   components: string[];
 };
 
-// serde-compatible types
-interface Ok<T> {
-  Ok: T;
-}
-interface Err {
-  Err: string;
-}
-type Result<T> = Ok<T> | Err;
+// serde-compatible type
+type Result<T> = { Ok: T } | { Err: FlowistryError };
 
 /* eslint no-undef: "off" */
 const LIBRARY_PATHS: Partial<Record<NodeJS.Platform, string>> = {
@@ -224,7 +218,7 @@ export async function setup(
       context.workspaceState.update("err_log", e);
 
       return {
-        type: "build-error",
+        type: "BuildError",
         error: e,
       };
     }
@@ -238,10 +232,7 @@ export async function setup(
 
     let output_typed: Result<T> = JSON.parse(output);
     if ("Err" in output_typed) {
-      return {
-        type: "analysis-error",
-        error: output_typed.Err,
-      };
+      return output_typed.Err;
     } else {
       return {
         type: "output",
