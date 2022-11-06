@@ -245,7 +245,7 @@ where
   let output_dir = Path::new("target");
   // let fname = tcx.def_path_debug_str(def_id);
   let fname = "results";
-  let output_path = output_dir.join(format!("{fname}.png"));
+  let output_path = output_dir.join(format!("{fname}.pdf"));
 
   run_dot(&output_path, buf)
 }
@@ -320,6 +320,13 @@ pub trait PlaceExt<'tcx> {
     body: &Body<'tcx>,
     def_id: DefId,
   ) -> Vec<Place<'tcx>>;
+  fn interior_paths(
+    &self,
+    tcx: TyCtxt<'tcx>,
+    body: &Body<'tcx>,
+    def_id: DefId,
+  ) -> Vec<Place<'tcx>>;
+  
   fn to_string(&self, tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> Option<String>;
   fn normalize(&self, tcx: TyCtxt<'tcx>, def_id: DefId) -> Place<'tcx>;
 }
@@ -427,6 +434,28 @@ impl<'tcx> PlaceExt<'tcx> for Place<'tcx> {
       places: Some(HashSet::default()),
       types: None,
       stop_at: StoppingCondition::BeforeRefs,
+    };
+    region_collector.visit_ty(ty);
+    region_collector.places.unwrap().into_iter().collect()
+  }
+
+  fn interior_paths(
+    &self,
+    tcx: TyCtxt<'tcx>,
+    body: &Body<'tcx>,
+    def_id: DefId,
+  ) -> Vec<Place<'tcx>> {
+    let ty = self.ty(body.local_decls(), tcx).ty;
+    let mut region_collector = CollectRegions {
+      tcx,
+      def_id,
+      local: self.local,
+      place_stack: self.projection.to_vec(),
+      ty_stack: Vec::new(),
+      regions: HashMap::default(),
+      places: Some(HashSet::default()),
+      types: None,
+      stop_at: StoppingCondition::None,
     };
     region_collector.visit_ty(ty);
     region_collector.places.unwrap().into_iter().collect()
