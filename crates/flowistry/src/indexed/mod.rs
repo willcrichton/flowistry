@@ -9,9 +9,9 @@
 //! Therefore if we want to encode a set of locations (e.g. for the [`FlowDomain`](crate::infoflow::FlowDomain)),
 //! then we can assign each `Location` a numeric index and use a compact bit-set instead of, say,
 //! a hash set. Concretely, this means:
-//! 1. Defining a type `LocationIndex` that implements the [`Idx`](rustc_index::vec::Idx) trait.
-//! 2. Creating a mapping ("domain") from `Location`s to `LocationIndex`.
-//! 3. Constructing a `LocationSet` out of a [`BitSet`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/struct.BitSet.html)`<LocationIndex>`.
+//! 1. Defining a type `LocationOrArgIndex` that implements the [`Idx`](rustc_index::vec::Idx) trait.
+//! 2. Creating a mapping ("domain") from `Location`s to `LocationOrArgIndex`.
+//! 3. Constructing a `LocationSet` out of a [`BitSet`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/struct.BitSet.html)`<LocationOrArgIndex>`.
 //!
 //! Abstractly, for an arbitrary type `T`, we perform each step with the following constructs:
 //! 1. Indexes are defined with the  [`rustc_index::newtype_index`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/macro.newtype_index.html) macro.

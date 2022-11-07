@@ -16,7 +16,7 @@ use super::{
 use crate::{
   extensions::{is_extension_active, ContextMode, MutabilityMode},
   indexed::{
-    impls::{LocationDomain, LocationSet},
+    impls::{LocationOrArg, LocationOrArgDomain, LocationOrArgSet},
     IndexMatrix, IndexedDomain,
   },
   mir::{
@@ -33,8 +33,8 @@ use crate::{
 /// However instead of using those datatypes directly, we provide several abstractions in the [`indexed`](crate::indexed)
 /// module that have a more ergonomic interface and more efficient implementation than their `bit_set` counterparts.
 ///
-/// The [`IndexMatrix`] maps from a [`Place`] to a [`LocationSet`] via the [`IndexMatrix::row_set`] method. The [`LocationSet`] is an
-/// [`IndexSet`](crate::indexed::IndexSet) of locations, which wraps a
+/// The [`IndexMatrix`] maps from a [`Place`] to a [`LocationOrArgSet`] via the [`IndexMatrix::row_set`] method. The [`LocationOrArgSet`] is an
+/// [`IndexSet`](crate::indexed::IndexSet) of locations (or arguments, see note below), which wraps a
 /// [`rustc_index::bit_set::HybridBitSet`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/enum.HybridBitSet.html) and
 /// has roughly the same API. The main difference is that `HybridBitSet` operates only on values that implement the
 /// [`rustc_index::vec::Idx`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/vec/trait.Idx.html) trait (usually created via
@@ -43,17 +43,12 @@ use crate::{
 /// is the implementation for locations.
 ///
 ///
-/// # Hack alert: synthetic locations
-/// This API uses a hacky trick to represent the dependencies of function arguments. For instance, if `_1` is an argument,
-/// `_1` is not defined at a location, but rather simply exists at the execution of `Location::START`. Therefore we invent "synthetic" locations
-/// help distinguish when places depend on a given argument. For an argument place `_n`, it has a synthetic location with
-/// [`Location::block`] set to `body.basic_blocks().len()` and [`Location::statement_index`] set to `n`.
-///
-/// This hack matters because if you get a `Location` out of a `LocationSet` taken from a `FlowDomain`, then it might
-/// not correspond to an actual MIR instruction. For example, if you call [`Body::stmt_at`] on a synthetic location then **it will panic.**
-/// If you want to check whether a location is synthetic, you can use the `LocationDomain::location_to_local` function. And one day, I will
-/// hopefully get around to making this all less hacky.
-pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, Location>;
+/// # Note: arguments as dependencies
+/// Because function arguments are never initialized, there is no "root" location for argument places. This fact poses a problem for
+/// information flow analysis: an instruction `bb[0]: _2 = _1` (where `_1` is an argument) would set $\Theta(\verb|_2|) = \Theta(\verb|_1|) \cup \\{\verb|bb0[0]|\\}\$.
+/// However, $\Theta(\verb|_1|)$ would be empty, so it would be imposible to determine that `_2` depends on `_1`. To solve this issue, we
+/// enrich the domain of locations with arguments, using the [`LocationOrArg`] type. Any dependency can be on *either* a location or an argument.
+pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, LocationOrArg>;
 
 pub struct FlowAnalysis<'a, 'tcx> {
   pub tcx: TyCtxt<'tcx>,
@@ -83,7 +78,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     }
   }
 
-  pub fn location_domain(&self) -> &Rc<LocationDomain> {
+  pub fn location_domain(&self) -> &Rc<LocationOrArgDomain> {
     self.aliases.location_domain()
   }
 
@@ -112,10 +107,10 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
       }
     }
 
-    let mut input_location_deps = LocationSet::new(location_domain);
+    let mut input_location_deps = LocationOrArgSet::new(location_domain);
     input_location_deps.insert(location);
 
-    let add_deps = |place: Place<'tcx>, location_deps: &mut LocationSet| {
+    let add_deps = |place: Place<'tcx>, location_deps: &mut LocationOrArgSet| {
       let reachable_values = all_aliases.reachable_values(place, Mutability::Not);
       let provenance =
         place
@@ -146,7 +141,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
       if let Some(elem) = elem {
         let mut projection = mutated.projection.to_vec();
         projection.push(*elem);
-        let mut child_deps = LocationSet::new(location_domain);
+        let mut child_deps = LocationOrArgSet::new(location_domain);
         add_deps(*place, &mut child_deps);
         children.push((
           Place::make(mutated.local, &projection, self.tcx),

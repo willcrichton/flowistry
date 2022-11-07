@@ -8,7 +8,7 @@ use rustc_span::Span;
 use super::{mutation::ModularMutationVisitor, FlowResults};
 use crate::{
   block_timer,
-  indexed::impls::LocationSet,
+  indexed::impls::{LocationOrArg, LocationOrArgSet},
   mir::utils::{BodyExt, OperandExt, SpanExt},
   source_map::{EnclosingHirSpans, Spanner},
 };
@@ -22,12 +22,12 @@ pub enum Direction {
 
 #[derive(Debug, Clone)]
 struct TargetDeps {
-  all_forward: Vec<LocationSet>,
+  all_forward: Vec<LocationOrArgSet>,
 }
 
 impl TargetDeps {
   pub fn new<'tcx>(
-    targets: &[(Place<'tcx>, Location)],
+    targets: &[(Place<'tcx>, LocationOrArg)],
     results: &FlowResults<'_, 'tcx>,
   ) -> Self {
     let aliases = &results.analysis.aliases;
@@ -43,15 +43,14 @@ impl TargetDeps {
 
     let all_forward = expanded_targets
       .map(|(place, location)| {
-        let state_location = if location_domain.location_to_local(location).is_some() {
-          Location::START
-        } else {
-          location
+        let state_location = match location {
+          LocationOrArg::Arg(..) => Location::START,
+          LocationOrArg::Location(location) => location,
         };
         let state = results.state_at(state_location);
         // backward.union(&aliases.deps(state, place));
 
-        let mut forward = LocationSet::new(location_domain);
+        let mut forward = LocationOrArgSet::new(location_domain);
         forward.insert_all();
         for conflict in aliases.children(aliases.normalize(place)) {
           // conflict should already be normalized because the input to aliases.children is normalized
@@ -84,9 +83,9 @@ impl TargetDeps {
 /// `[deps(x@L1) ∪ deps(y@L2), deps(z@L3)]`.
 pub fn compute_dependencies<'tcx>(
   results: &FlowResults<'_, 'tcx>,
-  all_targets: Vec<Vec<(Place<'tcx>, Location)>>,
+  all_targets: Vec<Vec<(Place<'tcx>, LocationOrArg)>>,
   direction: Direction,
-) -> Vec<LocationSet> {
+) -> Vec<LocationOrArgSet> {
   block_timer!("compute_dependencies");
   log::info!("Computing dependencies for {} targets", all_targets.len());
   debug!("all_targets={all_targets:#?}");
@@ -98,7 +97,7 @@ pub fn compute_dependencies<'tcx>(
   let outputs = RefCell::new(
     all_targets
       .iter()
-      .map(|_| LocationSet::new(location_domain))
+      .map(|_| LocationOrArgSet::new(location_domain))
       .collect::<Vec<_>>(),
   );
 
@@ -117,7 +116,7 @@ pub fn compute_dependencies<'tcx>(
     debug!("all_target_deps={all_target_deps:#?}");
 
     for arg in body.args_iter() {
-      let location = location_domain.arg_to_location(arg);
+      let location = LocationOrArg::Arg(arg);
       for (target_deps, outputs) in
         iter::zip(&all_target_deps, &mut *outputs.borrow_mut())
       {
@@ -176,11 +175,12 @@ pub fn compute_dependencies<'tcx>(
           .aliases
           .reachable_values(*place, Mutability::Not)
         {
-          if location_domain.location_to_local(*location).is_some() {
-            outputs.insert(location);
-          } else {
-            let deps = aliases.deps(results.state_at(*location), *value);
-            outputs.union(&deps);
+          match location {
+            LocationOrArg::Arg(..) => outputs.insert(location),
+            LocationOrArg::Location(location) => {
+              let deps = aliases.deps(results.state_at(*location), *value);
+              outputs.union(&deps);
+            }
           }
         }
       }
@@ -203,13 +203,12 @@ pub fn compute_dependencies<'tcx>(
 /// source [`Span`] for the location.
 pub fn compute_dependency_spans<'tcx>(
   results: &FlowResults<'_, 'tcx>,
-  targets: Vec<Vec<(Place<'tcx>, Location)>>,
+  targets: Vec<Vec<(Place<'tcx>, LocationOrArg)>>,
   direction: Direction,
   spanner: &Spanner,
 ) -> Vec<Vec<Span>> {
   let body = results.analysis.body;
 
-  let location_domain = results.analysis.location_domain();
   let all_deps = compute_dependencies(results, targets, direction);
   debug!("all_deps={all_deps:?}");
 
@@ -219,12 +218,7 @@ pub fn compute_dependency_spans<'tcx>(
       let location_spans = deps
         .iter()
         .flat_map(|location| {
-          spanner.location_to_spans(
-            *location,
-            location_domain,
-            body,
-            EnclosingHirSpans::OuterOnly,
-          )
+          spanner.location_to_spans(*location, body, EnclosingHirSpans::OuterOnly)
         })
         .collect::<Vec<_>>();
 

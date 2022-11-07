@@ -31,21 +31,21 @@ mod recursive;
 /// Using the metavariables in [the paper](https://arxiv.org/abs/2111.13662): for each
 /// [`Location`](rustc_middle::mir::Location) $\ell$ in a [`Body`](rustc_middle::mir::Body) $f$,
 /// this type contains a [`FlowDomain`] $\Theta$ that maps from a [`Place`](rustc_middle::mir::Place) $p$
-/// to [`LocationSet`](crate::indexed::impls::LocationSet) $\kappa$. The domain of $\Theta$
+/// to [`LocationOrArgSet`](crate::indexed::impls::LocationOrArgSet) $\kappa$. The domain of $\Theta$
 /// is all places that have been defined up to $\ell$. For each place, $\Theta(p)$ contains the set of locations
-/// that could influence the value of that place (the place's dependencies).
+/// (or arguments) that could influence the value of that place, i.e. the place's dependencies.
 ///
 /// For example, to get the dependencies of the first argument at the first instruction, that would be:
 /// ```
 /// # #![feature(rustc_private)]
 /// # extern crate rustc_middle;
 /// # use rustc_middle::{ty::TyCtxt, mir::{Place, Location, Local}};
-/// # use flowistry::{infoflow::{FlowDomain, FlowResults}, mir::utils::PlaceExt, indexed::impls::LocationSet};
+/// # use flowistry::{infoflow::{FlowDomain, FlowResults}, mir::utils::PlaceExt, indexed::impls::LocationOrArgSet};
 /// fn example<'tcx>(tcx: TyCtxt<'tcx>, results: &FlowResults<'_, 'tcx>) {
-///   let ℓ: Location       = Location::START;
-///   let Θ: &FlowDomain    = results.state_at(ℓ);
-///   let p: Place          = Place::make(Local::from_usize(1), &[], tcx);
-///   let κ: LocationSet<_> = Θ.row_set(p);
+///   let ℓ: Location            = Location::START;
+///   let Θ: &FlowDomain         = results.state_at(ℓ);
+///   let p: Place               = Place::make(Local::from_usize(1), &[], tcx);
+///   let κ: LocationOrArgSet<_> = Θ.row_set(p);
 ///   for ℓ2 in κ.iter() {
 ///     println!("at location {ℓ:?}, place {p:?} depends on location {ℓ2:?}");
 ///   }

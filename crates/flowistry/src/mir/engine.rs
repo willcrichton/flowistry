@@ -22,17 +22,18 @@ use rustc_middle::{
 };
 use rustc_mir_dataflow::{Analysis, Direction, JoinSemiLattice, ResultsVisitor};
 
+use super::utils::BodyExt;
 use crate::indexed::{
-  impls::{LocationDomain, LocationIndex},
-  IndexedDomain,
+  impls::{LocationOrArg, LocationOrArgDomain, LocationOrArgIndex},
+  IndexedDomain, ToIndex,
 };
 
 /// An alternative implementation of
 /// [`rustc_mir_dataflow::Results`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Results.html).
 pub struct AnalysisResults<'tcx, A: Analysis<'tcx>> {
   pub analysis: A,
-  location_domain: Rc<LocationDomain>,
-  state: IndexVec<LocationIndex, A::Domain>,
+  location_domain: Rc<LocationOrArgDomain>,
+  state: IndexVec<LocationOrArgIndex, A::Domain>,
 }
 
 impl<'tcx, A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
@@ -46,7 +47,7 @@ impl<'tcx, A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
           block,
           statement_index,
         };
-        let loc_index = self.location_domain.index(&location);
+        let loc_index = location.to_index(&self.location_domain);
         let state = &self.state[loc_index];
 
         if statement_index == 0 {
@@ -73,7 +74,7 @@ impl<'tcx, A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
   /// Gets the computed [`AnalysisDomain`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.AnalysisDomain.html)
   /// at a given [`Location`].
   pub fn state_at(&self, location: Location) -> &A::Domain {
-    &self.state[self.location_domain.index(&location)]
+    &self.state[location.to_index(&self.location_domain)]
   }
 }
 
@@ -83,33 +84,36 @@ impl<'tcx, A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
 pub fn iterate_to_fixpoint<'tcx, A: Analysis<'tcx>>(
   _tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,
-  location_domain: Rc<LocationDomain>,
+  location_domain: Rc<LocationOrArgDomain>,
   analysis: A,
 ) -> AnalysisResults<'tcx, A> {
   let bottom_value = analysis.bottom_value(body);
 
   // `state` materializes the analysis domain for *every* location, which is the crux
   // of this implementation strategy.
-  let num_locs = location_domain.num_real_locations();
+  let num_locs = body.all_locations().count();
   let mut state = IndexVec::from_elem_n(bottom_value, num_locs);
 
   analysis
-    .initialize_start_block(body, &mut state[location_domain.index(&Location::START)]);
+    .initialize_start_block(body, &mut state[Location::START.to_index(&location_domain)]);
 
-  let mut dirty_queue: WorkQueue<LocationIndex> = WorkQueue::with_none(num_locs);
+  let mut dirty_queue: WorkQueue<LocationOrArgIndex> = WorkQueue::with_none(num_locs);
   if A::Direction::IS_FORWARD {
     for (block, data) in traversal::reverse_postorder(body) {
       for statement_index in 0 ..= data.statements.len() {
-        dirty_queue.insert(location_domain.index(&Location {
+        let location = Location {
           block,
           statement_index,
-        }));
+        };
+        dirty_queue.insert(location.to_index(&location_domain));
       }
     }
   }
 
   while let Some(loc_index) = dirty_queue.pop() {
-    let location = *location_domain.value(loc_index);
+    let LocationOrArg::Location(location) = *location_domain.value(loc_index) else {
+      unreachable!()
+    };
     let next_locs = match body.stmt_at(location) {
       Either::Left(statement) => {
         analysis.apply_statement_effect(&mut state[loc_index], statement, location);
@@ -129,7 +133,7 @@ pub fn iterate_to_fixpoint<'tcx, A: Analysis<'tcx>>(
     };
 
     for next_loc in next_locs {
-      let next_loc_index = location_domain.index(&next_loc);
+      let next_loc_index = location_domain.index(&LocationOrArg::Location(next_loc));
       let (cur_state, next_state) = state.pick2_mut(loc_index, next_loc_index);
       let changed = next_state.join(cur_state);
       if changed {

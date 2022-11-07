@@ -14,7 +14,7 @@ use smallvec::{smallvec, SmallVec};
 
 use super::Spanner;
 use crate::{
-  indexed::impls::arg_location,
+  indexed::impls::LocationOrArg,
   mir::utils::{BodyExt, PlaceExt, SpanExt},
 };
 
@@ -22,7 +22,7 @@ use crate::{
 pub struct MirSpannedPlace<'tcx> {
   pub place: mir::Place<'tcx>,
   pub span: SpanData,
-  pub locations: SmallVec<[mir::Location; 1]>,
+  pub locations: SmallVec<[LocationOrArg; 1]>,
 }
 
 pub struct MirSpanCollector<'a, 'hir, 'tcx>(
@@ -48,7 +48,10 @@ impl<'tcx> MirVisitor<'tcx> for MirSpanCollector<'_, '_, 'tcx> {
     // Add the return type as a spanned place representing all return locations
     let span = body.local_decls()[RETURN_PLACE].source_info.span;
     let span = try_span!(self, span);
-    let locations = body.all_returns().collect::<SmallVec<_>>();
+    let locations = body
+      .all_returns()
+      .map(LocationOrArg::Location)
+      .collect::<SmallVec<_>>();
     self.0.mir_spans.push(MirSpannedPlace {
       span: span.data(),
       locations,
@@ -90,7 +93,9 @@ impl<'tcx> MirVisitor<'tcx> for MirSpanCollector<'_, '_, 'tcx> {
         NonMutatingUseContext::Copy | NonMutatingUseContext::Move,
       ) => {
         let source_info = body.source_info(location);
-        (source_info.span, smallvec![location])
+        (source_info.span, smallvec![LocationOrArg::Location(
+          location
+        )])
       }
       PlaceContext::NonMutatingUse(NonMutatingUseContext::Inspect) => {
         let source_info = body.source_info(location);
@@ -106,7 +111,7 @@ impl<'tcx> MirVisitor<'tcx> for MirSpanCollector<'_, '_, 'tcx> {
                 _,
               )),
             ..
-          }) => match arg_location(*place, body) {
+          }) => match LocationOrArg::from_place(*place, body) {
             Some(arg_location) => smallvec![arg_location],
             None => {
               let locations = assigning_locations(body, *place);
@@ -127,9 +132,9 @@ impl<'tcx> MirVisitor<'tcx> for MirSpanCollector<'_, '_, 'tcx> {
         if body.args_iter().any(|local| local == place.local) =>
       {
         let source_info = body.local_decls()[place.local].source_info;
-        let location = match arg_location(*place, body) {
+        let location = match LocationOrArg::from_place(*place, body) {
           Some(arg_location) => arg_location,
-          None => location,
+          None => LocationOrArg::Location(location),
         };
         (source_info.span, smallvec![location])
       }
@@ -169,7 +174,7 @@ impl<'tcx> MirVisitor<'tcx> for MirSpanCollector<'_, '_, 'tcx> {
       let span = try_span!(self, statement.source_info.span);
       let spanned_place = MirSpannedPlace {
         place: *lhs,
-        locations: smallvec![location],
+        locations: smallvec![LocationOrArg::Location(location)],
         span: span.data(),
       };
       trace!("spanned place (assign): {spanned_place:?}");
@@ -195,7 +200,7 @@ impl<'tcx> MirVisitor<'tcx> for MirSpanCollector<'_, '_, 'tcx> {
     let span = try_span!(self, terminator.source_info.span);
     let spanned_place = MirSpannedPlace {
       place,
-      locations: smallvec![location],
+      locations: smallvec![LocationOrArg::Location(location)],
       span: span.data(),
     };
     trace!("spanned place (terminator): {spanned_place:?}");
@@ -206,7 +211,7 @@ impl<'tcx> MirVisitor<'tcx> for MirSpanCollector<'_, '_, 'tcx> {
 fn assigning_locations<'tcx>(
   body: &Body<'tcx>,
   place: mir::Place<'tcx>,
-) -> SmallVec<[mir::Location; 1]> {
+) -> SmallVec<[LocationOrArg; 1]> {
   body
     .all_locations()
     .filter(|location| match body.stmt_at(*location) {
@@ -222,5 +227,6 @@ fn assigning_locations<'tcx>(
       }) => *lhs == place,
       _ => false,
     })
+    .map(LocationOrArg::Location)
     .collect::<SmallVec<_>>()
 }

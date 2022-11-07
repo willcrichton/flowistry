@@ -39,6 +39,7 @@ use smallvec::SmallVec;
 
 use crate::{
   extensions::{is_extension_active, MutabilityMode},
+  indexed::impls::LocationOrArg,
   mir::aliases::UNKNOWN_REGION,
 };
 
@@ -250,14 +251,13 @@ where
   run_dot(&output_path, buf)
 }
 
-pub fn location_to_string(location: Location, body: &Body<'_>) -> String {
-  if location.block.as_usize() == body.basic_blocks.len() {
-    format!("_{}", location.statement_index)
-  } else {
-    match body.stmt_at(location) {
+pub fn location_to_string(location: LocationOrArg, body: &Body<'_>) -> String {
+  match location {
+    LocationOrArg::Arg(local) => format!("{local:?}"),
+    LocationOrArg::Location(location) => match body.stmt_at(location) {
       Either::Left(stmt) => format!("{:?}", stmt.kind),
       Either::Right(terminator) => format!("{:?}", terminator.kind),
-    }
+    },
   }
 }
 
@@ -326,7 +326,7 @@ pub trait PlaceExt<'tcx> {
     body: &Body<'tcx>,
     def_id: DefId,
   ) -> Vec<Place<'tcx>>;
-  
+
   fn to_string(&self, tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> Option<String>;
   fn normalize(&self, tcx: TyCtxt<'tcx>, def_id: DefId) -> Place<'tcx>;
 }
