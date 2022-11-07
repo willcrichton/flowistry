@@ -1,11 +1,13 @@
 use flowistry::{
-  indexed::IndexMatrix, infoflow::mutation::ModularMutationVisitor, mir::aliases::Aliases,
+  indexed::{impls::LocationOrArg, IndexMatrix},
+  infoflow::mutation::ModularMutationVisitor,
+  mir::aliases::Aliases,
 };
-use rustc_middle::mir::{visit::Visitor, Body, Location, Mutability, Place};
+use rustc_middle::mir::{visit::Visitor, Body, Mutability, Place};
 
 pub struct DirectInfluence<'a, 'tcx> {
   aliases: &'a Aliases<'a, 'tcx>,
-  influence: IndexMatrix<Place<'tcx>, Location>,
+  influence: IndexMatrix<Place<'tcx>, LocationOrArg>,
 }
 
 impl<'a, 'tcx> DirectInfluence<'a, 'tcx> {
@@ -30,7 +32,7 @@ impl<'a, 'tcx> DirectInfluence<'a, 'tcx> {
     DirectInfluence { aliases, influence }
   }
 
-  pub fn lookup(&self, target: Place<'tcx>) -> Vec<Location> {
+  pub fn lookup(&self, target: Place<'tcx>) -> Vec<LocationOrArg> {
     let aliases = self.aliases.reachable_values(target, Mutability::Not);
     aliases
       .iter()

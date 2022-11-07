@@ -41,6 +41,7 @@
   type_alias_impl_trait,     // for impl Trait in trait definition, eg crate::mir::utils 
   generic_associated_types,  // for impl Trait in trait definition
   trait_alias,
+  let_else
 )]
 #![allow(
   clippy::single_match,

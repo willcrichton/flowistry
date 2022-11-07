@@ -1,7 +1,5 @@
 //! Mapping source ranges to/from the HIR and MIR.
 
-use std::rc::Rc;
-
 use either::Either;
 use log::trace;
 use rustc_hir::{
@@ -21,7 +19,7 @@ use super::{
   span_tree::SpanTree,
 };
 use crate::{
-  indexed::impls::LocationDomain,
+  indexed::impls::LocationOrArg,
   mir::utils::{self, SpanDataExt, SpanExt},
 };
 
@@ -104,14 +102,13 @@ where
 
   pub fn location_to_spans(
     &self,
-    location: mir::Location,
-    location_domain: &Rc<LocationDomain>,
+    location: LocationOrArg,
     body: &Body,
     span_type: EnclosingHirSpans,
   ) -> Vec<Span> {
-    let (target_span, stmt) = match location_domain.location_to_local(location) {
-      Some(local) => (body.local_decls[local].source_info.span, None),
-      None => (
+    let (target_span, stmt) = match location {
+      LocationOrArg::Arg(local) => (body.local_decls[local].source_info.span, None),
+      LocationOrArg::Location(location) => (
         body.source_info(location).span,
         Some(body.stmt_at(location)),
       ),
@@ -422,7 +419,6 @@ mod test {
     let (input, _ranges) = test_utils::parse_ranges(src, [("`(", ")`")]).unwrap();
     test_utils::compile_body(input, move |tcx, body_id, body_with_facts| {
       let body = &body_with_facts.body;
-      let location_domain = LocationDomain::new(body);
       let source_map = tcx.sess.source_map();
 
       let spanner = Spanner::new(tcx, body_id, body);
@@ -473,8 +469,7 @@ mod test {
           statement_index: *j,
         };
         let spans = spanner.location_to_spans(
-          loc,
-          &location_domain,
+          LocationOrArg::Location(loc),
           body,
           EnclosingHirSpans::OuterOnly,
         );

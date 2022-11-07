@@ -44,7 +44,7 @@ fn analysis<'tcx>(
       .indices()
       .map(|local| {
         let arg = Place::make(local, &[], tcx);
-        vec![(arg, Location::START)]
+        vec![(arg, Location::START.into())]
       })
       .collect::<Vec<_>>();
 

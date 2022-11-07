@@ -25,7 +25,7 @@ extern crate rustc_span;
 use std::process::Command;
 
 use flowistry::{
-  indexed::IndexedDomain,
+  indexed::impls::LocationOrArg,
   infoflow::{mutation::ModularMutationVisitor, Direction},
   mir::{
     aliases::Aliases,
@@ -55,15 +55,11 @@ fn all_dependencies<'tcx>(
   // This computes the core information flow data structure. But it's not very
   // visualizable, so we need to post-process it with a specific query.
   let results = flowistry::infoflow::compute_flow(tcx, body_id, body_with_facts);
-  let location_domain = results.analysis.location_domain();
 
   // We construct a target of the first argument at the start of the function.
   let arg_local = Local::from_usize(1);
   let arg_place = Place::make(arg_local, &[], tcx);
-  let targets = vec![vec![(
-    arg_place,
-    *location_domain.value(location_domain.arg_to_location(arg_local)),
-  )]];
+  let targets = vec![vec![(arg_place, LocationOrArg::Arg(arg_local))]];
 
   // Then use Flowistry to compute the locations and places influenced by the target.
   let location_deps = flowistry::infoflow::compute_dependencies(
@@ -89,7 +85,6 @@ fn all_dependencies<'tcx>(
   for location in location_deps.iter() {
     let spans = Span::merge_overlaps(spanner.location_to_spans(
       *location,
-      location_domain,
       body,
       EnclosingHirSpans::OuterOnly,
     ));

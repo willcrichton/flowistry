@@ -30,8 +30,11 @@ use crate::{
   cached::{Cache, CopyCache},
   extensions::{is_extension_active, MutabilityMode, PointerMode},
   indexed::{
-    impls::{LocationDomain, LocationIndex, LocationSet, PlaceSet},
-    IndexMatrix, RefSet,
+    impls::{
+      build_location_arg_domain, LocationOrArg, LocationOrArgDomain, LocationOrArgIndex,
+      LocationOrArgSet, PlaceSet,
+    },
+    IndexMatrix, RefSet, ToIndex,
   },
   mir::utils::{self, MutabilityExt, PlaceExt},
   timer::elapsed,
@@ -143,7 +146,7 @@ pub struct Aliases<'a, 'tcx> {
   pub tcx: TyCtxt<'tcx>,
   pub body: &'a Body<'tcx>,
   pub def_id: DefId,
-  location_domain: Rc<LocationDomain>,
+  location_domain: Rc<LocationOrArgDomain>,
 
   // Core computed data structure
   loans: LoanMap<'tcx>,
@@ -401,8 +404,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
   ) -> Self {
     block_timer!("aliases");
     let body = &body_with_facts.body;
-
-    let location_domain = LocationDomain::new(body);
+    let location_domain = build_location_arg_domain(body);
 
     let loans = Self::compute_loans(tcx, def_id, body_with_facts);
     debug!("Loans: {loans:?}");
@@ -538,9 +540,11 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     })
   }
 
-  pub fn all_args(&'a self) -> impl Iterator<Item = (Place<'tcx>, LocationIndex)> + 'a {
+  pub fn all_args(
+    &'a self,
+  ) -> impl Iterator<Item = (Place<'tcx>, LocationOrArgIndex)> + 'a {
     self.body.args_iter().flat_map(|local| {
-      let location = self.location_domain().arg_to_location(local);
+      let location = local.to_index(&self.location_domain);
       let place = Place::from_local(local, self.tcx);
       let ptrs = place
         .interior_pointers(self.tcx, self.body, self.def_id)
@@ -558,15 +562,15 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     })
   }
 
-  pub fn location_domain(&self) -> &Rc<LocationDomain> {
+  pub fn location_domain(&self) -> &Rc<LocationOrArgDomain> {
     &self.location_domain
   }
 
   pub fn deps(
     &self,
-    state: &'a IndexMatrix<Place<'tcx>, Location>,
+    state: &'a IndexMatrix<Place<'tcx>, LocationOrArg>,
     place: Place<'tcx>,
-  ) -> LocationSet<RefSet<'a, Location>> {
+  ) -> LocationOrArgSet<RefSet<'a, LocationOrArg>> {
     state.row_set(self.normalize(place))
   }
 }
