@@ -108,9 +108,9 @@ If rustup fails, especially with an error like "could not rename downloaded file
 To solve the issue, go to the command line and run:
 
 ```
-rustup toolchain install nightly-2022-09-12 -c rust-src -c rustc-dev -c llvm-tools-preview
+rustup toolchain install nightly-2022-11-07 -c rust-src -c rustc-dev -c llvm-tools-preview
 ```
 
-> Note: double check the value of "channel" in `rust-toolchain.toml` if `nightly-2022-09-12` is no longer correct.
+> Note: double check the value of "channel" in `rust-toolchain.toml` if `nightly-2022-11-07` is no longer correct.
 
 Then go back to VSCode and click "Continue" to let Flowistry continue installing.

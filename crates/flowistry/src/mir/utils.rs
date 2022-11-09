@@ -520,15 +520,10 @@ impl<'tcx> PlaceExt<'tcx> for Place<'tcx> {
     //   erase regions, and normalize projections
     let param_env = tcx.param_env(def_id);
     let place = tcx.erase_regions(*self);
-    let place = tcx.infer_ctxt().enter(|infcx| {
-      infcx
-        .partially_normalize_associated_types_in(
-          ObligationCause::dummy(),
-          param_env,
-          place,
-        )
-        .value
-    });
+    let infcx = tcx.infer_ctxt().build();
+    let place = infcx
+      .partially_normalize_associated_types_in(ObligationCause::dummy(), param_env, place)
+      .value;
 
     let projection = place
       .projection
@@ -670,20 +665,18 @@ impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
         self.place_stack.pop();
       }
 
-      TyKind::Projection(_)
-      | TyKind::FnDef(_, _)
-      | TyKind::FnPtr(_)
-      | TyKind::Opaque(_, _)
-      | TyKind::Foreign(_)
-      | TyKind::Dynamic(_, _)
-      | TyKind::Param(_)
+      TyKind::Projection(..)
+      | TyKind::FnDef(..)
+      | TyKind::FnPtr(..)
+      | TyKind::Opaque(..)
+      | TyKind::Foreign(..)
+      | TyKind::Dynamic(..)
+      | TyKind::Param(..)
       | TyKind::Never => {}
 
       _ if ty.is_primitive_ty() => {}
 
-      _ => {
-        warn!("unimplemented {ty:?} ({:?})", ty.kind());
-      }
+      _ => warn!("unimplemented {ty:?} ({:?})", ty.kind()),
     };
 
     // let inherent_impls = tcx.inherent_impls(self.def_id);
@@ -785,7 +778,7 @@ pub trait BodyExt<'tcx> {
 }
 
 impl<'tcx> BodyExt<'tcx> for Body<'tcx> {
-  type AllReturnsIter<'a> = impl Iterator<Item = Location>   where Self: 'a;
+  type AllReturnsIter<'a> = impl Iterator<Item = Location> + 'a where Self: 'a ;
   fn all_returns(&self) -> Self::AllReturnsIter<'_> {
     self
       .basic_blocks
@@ -799,7 +792,7 @@ impl<'tcx> BodyExt<'tcx> for Body<'tcx> {
       })
   }
 
-  type AllLocationsIter<'a> = impl Iterator<Item = Location>   where Self: 'a;
+  type AllLocationsIter<'a> = impl Iterator<Item = Location> + 'a    where Self: 'a;
   fn all_locations(&self) -> Self::AllLocationsIter<'_> {
     self
       .basic_blocks
