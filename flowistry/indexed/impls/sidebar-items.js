@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["arg_location",""]],"struct":[["LocationDomain",""],["LocationIndex",""]],"type":[["LocationSet",""],["PlaceSet",""]]};
+window.SIDEBAR_ITEMS = {"enum":[["LocationOrArg","Used to represent dependencies of places."]],"fn":[["build_location_arg_domain",""]],"struct":[["LocationOrArgIndex",""]],"type":[["LocationOrArgDomain",""],["LocationOrArgSet",""],["PlaceSet",""]]};

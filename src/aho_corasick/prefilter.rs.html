@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/prefilter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prefilter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/prefilter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prefilter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1080,7 +1080,7 @@
 /// In other cases, the prefilter can only report a potential match, in which
 /// case the callers must attempt to confirm the match. In this case, prefilter
 /// implementations are permitted to return false positives.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub enum </span>Candidate {
     <span class="prelude-val">None</span>,
     Match(Match),
@@ -1151,7 +1151,7 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, P: Prefilter + <span class="question-mark">?</span>Sized&gt; Prefilter <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>P {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>next_candidate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         state: <span class="kw-2">&amp;mut </span>PrefilterState,
@@ -1176,7 +1176,7 @@
 
 <span class="doccomment">/// A convenience object for representing any type that implements Prefilter
 /// and is cloneable.
-</span><span class="attribute">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>PrefilterObj(Box&lt;<span class="kw">dyn </span>Prefilter&gt;);
 
 <span class="kw">impl </span>Clone <span class="kw">for </span>PrefilterObj {
@@ -1204,7 +1204,7 @@
 ///
 /// A prefilter state should be created for each search. (Where creating an
 /// iterator via, e.g., `find_iter`, is treated as a single search.)
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>PrefilterState {
     <span class="doccomment">/// The number of skips that has been executed.
     </span>skips: usize,
@@ -1272,7 +1272,7 @@
 
     <span class="doccomment">/// Update this state with the number of bytes skipped on the last
     /// invocation of the prefilter.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>update_skipped_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, skipped: usize) {
         <span class="self">self</span>.skips += <span class="number">1</span>;
         <span class="self">self</span>.skipped += skipped;
@@ -1288,7 +1288,7 @@
     /// current position is less than the last position at which a scan ended,
     /// then the prefilter should not be re-run until the search moves past
     /// that position.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>update_at(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: usize) {
         <span class="kw">if </span>at &gt; <span class="self">self</span>.last_scan_at {
             <span class="self">self</span>.last_scan_at = at;
@@ -1300,7 +1300,7 @@
     ///
     /// The given pos should correspond to the current starting position of the
     /// search.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>is_effective(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: usize) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.inert {
             <span class="kw">return </span><span class="bool-val">false</span>;
@@ -1326,7 +1326,7 @@
 <span class="doccomment">/// A builder for constructing the best possible prefilter. When constructed,
 /// this builder will heuristically select the best prefilter it can build,
 /// if any, and discard the rest.
-</span><span class="attribute">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Builder {
     count: usize,
     ascii_case_insensitive: bool,
@@ -1415,7 +1415,7 @@
 
 <span class="doccomment">/// A type that wraps a packed searcher and implements the `Prefilter`
 /// interface.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>Packed(packed::Searcher);
 
 <span class="kw">impl </span>Prefilter <span class="kw">for </span>Packed {
@@ -1446,7 +1446,7 @@
 /// A rare byte prefilter attempts to pick out a small set of rare bytes that
 /// occurr in the patterns, and then quickly scan to matches of those rare
 /// bytes.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>RareBytesBuilder {
     <span class="doccomment">/// Whether this prefilter should account for ASCII case insensitivity or
     /// not.
@@ -1472,7 +1472,7 @@
 }
 
 <span class="doccomment">/// A set of bytes.
-</span><span class="attribute">#[derive(Clone, Copy)]
+</span><span class="attr">#[derive(Clone, Copy)]
 </span><span class="kw">struct </span>ByteSet([bool; <span class="number">256</span>]);
 
 <span class="kw">impl </span>ByteSet {
@@ -1504,7 +1504,7 @@
 }
 
 <span class="doccomment">/// A set of byte offsets, keyed by byte.
-</span><span class="attribute">#[derive(Clone, Copy)]
+</span><span class="attr">#[derive(Clone, Copy)]
 </span><span class="kw">struct </span>RareByteOffsets {
     <span class="doccomment">/// Each entry corresponds to the maximum offset of the corresponding
     /// byte across all patterns seen.
@@ -1541,7 +1541,7 @@
 
 <span class="doccomment">/// Offsets associated with an occurrence of a &quot;rare&quot; byte in any of the
 /// patterns used to construct a single Aho-Corasick automaton.
-</span><span class="attribute">#[derive(Clone, Copy, Debug)]
+</span><span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">struct </span>RareByteOffset {
     <span class="doccomment">/// The maximum offset at which a particular byte occurs from the start
     /// of any pattern. This is used as a shift amount. That is, when an
@@ -1714,7 +1714,7 @@
 }
 
 <span class="doccomment">/// A prefilter for scanning for a single &quot;rare&quot; byte.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>RareBytesOne {
     byte1: u8,
     offset: RareByteOffset,
@@ -1773,7 +1773,7 @@
 }
 
 <span class="doccomment">/// A prefilter for scanning for two &quot;rare&quot; bytes.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>RareBytesTwo {
     offsets: RareByteOffsets,
     byte1: u8,
@@ -1812,7 +1812,7 @@
 }
 
 <span class="doccomment">/// A prefilter for scanning for three &quot;rare&quot; bytes.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>RareBytesThree {
     offsets: RareByteOffsets,
     byte1: u8,
@@ -1863,7 +1863,7 @@
 /// In some cases, a heuristic frequency analysis may determine that it would
 /// be better not to use this prefilter even when there are 3 or fewer distinct
 /// starting bytes.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>StartBytesBuilder {
     <span class="doccomment">/// Whether this prefilter should account for ASCII case insensitivity or
     /// not.
@@ -1963,7 +1963,7 @@
 }
 
 <span class="doccomment">/// A prefilter for scanning for a single starting byte.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>StartBytesOne {
     byte1: u8,
 }
@@ -1990,7 +1990,7 @@
 }
 
 <span class="doccomment">/// A prefilter for scanning for two starting bytes.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>StartBytesTwo {
     byte1: u8,
     byte2: u8,
@@ -2018,7 +2018,7 @@
 }
 
 <span class="doccomment">/// A prefilter for scanning for three starting bytes.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>StartBytesThree {
     byte1: u8,
     byte2: u8,
@@ -2051,7 +2051,7 @@
 ///
 /// The caller is responsible for checking the prestate before deciding whether
 /// to initiate a search.
-</span><span class="attribute">#[inline]
+</span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>next&lt;P: Prefilter&gt;(
     prestate: <span class="kw-2">&amp;mut </span>PrefilterState,
     prefilter: P,
@@ -2093,11 +2093,11 @@
     BYTE_FREQUENCIES[b <span class="kw">as </span>usize]
 }
 
-<span class="attribute">#[cfg(test)]
+<span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>scratch() {
         <span class="kw">let </span><span class="kw-2">mut </span>b = Builder::new(MatchKind::LeftmostFirst);
         b.add(<span class="string">b&quot;Sherlock&quot;</span>);
@@ -2113,4 +2113,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

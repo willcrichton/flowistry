@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.102/src/lit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lit.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.103/src/lit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lit.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1598,16 +1598,16 @@
 <span id="1598">1598</span>
 <span id="1599">1599</span>
 <span id="1600">1600</span>
-</pre><pre class="rust"><code><span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
+</pre><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::lookahead;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::parse::{Parse, Parser};
 <span class="kw">use crate</span>::{Error, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>proc_macro2::{Ident, Literal, Span};
-<span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
 </span><span class="kw">use </span>proc_macro2::{TokenStream, TokenTree};
 <span class="kw">use </span>std::fmt::{<span class="self">self</span>, Display};
-<span class="attribute">#[cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)]
 </span><span class="kw">use </span>std::hash::{Hash, Hasher};
 <span class="kw">use </span>std::str::{<span class="self">self</span>, FromStr};
 
@@ -1766,7 +1766,7 @@
     ///     }
     /// }
     /// ```
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
     #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
     </span><span class="kw">pub fn </span>parse&lt;T: Parse&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
         <span class="self">self</span>.parse_with(T::parse)
@@ -1796,7 +1796,7 @@
     /// #     Ok(())
     /// # }
     /// ```
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
     #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
     </span><span class="kw">pub fn </span>parse_with&lt;F: Parser&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, parser: F) -&gt; <span class="prelude-ty">Result</span>&lt;F::Output&gt; {
         <span class="kw">use </span>proc_macro2::Group;
@@ -2149,12 +2149,12 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)]
 </span><span class="kw">mod </span>debug_impls {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>std::fmt::{<span class="self">self</span>, Debug};
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
     </span><span class="kw">impl </span>Debug <span class="kw">for </span>LitStr {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
             formatter
@@ -2164,7 +2164,7 @@
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
     </span><span class="kw">impl </span>Debug <span class="kw">for </span>LitByteStr {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
             formatter
@@ -2174,7 +2174,7 @@
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
     </span><span class="kw">impl </span>Debug <span class="kw">for </span>LitByte {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
             formatter
@@ -2184,7 +2184,7 @@
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
     </span><span class="kw">impl </span>Debug <span class="kw">for </span>LitChar {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
             formatter
@@ -2194,7 +2194,7 @@
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
     </span><span class="kw">impl </span>Debug <span class="kw">for </span>LitInt {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
             formatter
@@ -2204,7 +2204,7 @@
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
     </span><span class="kw">impl </span>Debug <span class="kw">for </span>LitFloat {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
             formatter
@@ -2214,7 +2214,7 @@
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
     </span><span class="kw">impl </span>Debug <span class="kw">for </span>LitBool {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
             formatter
@@ -2225,7 +2225,7 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)]
 #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)))]
 </span><span class="kw">impl </span>Clone <span class="kw">for </span>LitRepr {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
@@ -2236,7 +2236,7 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)]
 #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)))]
 </span><span class="kw">impl </span>Clone <span class="kw">for </span>LitIntRepr {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
@@ -2248,7 +2248,7 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)]
 #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)))]
 </span><span class="kw">impl </span>Clone <span class="kw">for </span>LitFloatRepr {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
@@ -2262,7 +2262,7 @@
 
 <span class="macro">macro_rules! </span>lit_extra_traits {
     (<span class="macro-nonterminal">$ty</span>:ident) =&gt; {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)]
         #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;clone-impls&quot;</span>)))]
         </span><span class="kw">impl </span>Clone <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
             <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
@@ -2272,7 +2272,7 @@
             }
         }
 
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)]
         #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
         </span><span class="kw">impl </span>PartialEq <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
             <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
@@ -2280,7 +2280,7 @@
             }
         }
 
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)]
         #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)))]
         </span><span class="kw">impl </span>Hash <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
             <span class="kw">fn </span>hash&lt;H&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H)
@@ -2291,7 +2291,7 @@
             }
         }
 
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
         #[doc(hidden)]
         #[allow(non_snake_case)]
         </span><span class="kw">pub fn </span><span class="macro-nonterminal">$ty</span>(marker: lookahead::TokenMarker) -&gt; <span class="macro-nonterminal">$ty </span>{
@@ -2307,7 +2307,7 @@
 <span class="macro">lit_extra_traits!</span>(LitInt);
 <span class="macro">lit_extra_traits!</span>(LitFloat);
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
 #[doc(hidden)]
 #[allow(non_snake_case)]
 </span><span class="kw">pub fn </span>LitBool(marker: lookahead::TokenMarker) -&gt; LitBool {
@@ -2327,21 +2327,21 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
 #[doc(hidden)]
 #[allow(non_snake_case)]
 </span><span class="kw">pub fn </span>Lit(marker: lookahead::TokenMarker) -&gt; Lit {
     <span class="kw">match </span>marker {}
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;parsing&quot;</span>)]
 </span><span class="kw">pub mod </span>parsing {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span><span class="kw">crate</span>::buffer::Cursor;
     <span class="kw">use </span><span class="kw">crate</span>::parse::{Parse, ParseStream, <span class="prelude-ty">Result</span>};
     <span class="kw">use </span>proc_macro2::Punct;
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
     </span><span class="kw">impl </span>Parse <span class="kw">for </span>Lit {
         <span class="kw">fn </span>parse(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             input.step(|cursor| {
@@ -2413,7 +2413,7 @@
         ))
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
     </span><span class="kw">impl </span>Parse <span class="kw">for </span>LitStr {
         <span class="kw">fn </span>parse(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>head = input.fork();
@@ -2424,7 +2424,7 @@
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
     </span><span class="kw">impl </span>Parse <span class="kw">for </span>LitByteStr {
         <span class="kw">fn </span>parse(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>head = input.fork();
@@ -2435,7 +2435,7 @@
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
     </span><span class="kw">impl </span>Parse <span class="kw">for </span>LitByte {
         <span class="kw">fn </span>parse(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>head = input.fork();
@@ -2446,7 +2446,7 @@
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
     </span><span class="kw">impl </span>Parse <span class="kw">for </span>LitChar {
         <span class="kw">fn </span>parse(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>head = input.fork();
@@ -2457,7 +2457,7 @@
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
     </span><span class="kw">impl </span>Parse <span class="kw">for </span>LitInt {
         <span class="kw">fn </span>parse(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>head = input.fork();
@@ -2468,7 +2468,7 @@
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
     </span><span class="kw">impl </span>Parse <span class="kw">for </span>LitFloat {
         <span class="kw">fn </span>parse(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>head = input.fork();
@@ -2479,7 +2479,7 @@
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;parsing&quot;</span>)))]
     </span><span class="kw">impl </span>Parse <span class="kw">for </span>LitBool {
         <span class="kw">fn </span>parse(input: ParseStream) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>head = input.fork();
@@ -2491,55 +2491,55 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;printing&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;printing&quot;</span>)]
 </span><span class="kw">mod </span>printing {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>proc_macro2::TokenStream;
     <span class="kw">use </span>quote::{ToTokens, TokenStreamExt};
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
     </span><span class="kw">impl </span>ToTokens <span class="kw">for </span>LitStr {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
             <span class="self">self</span>.repr.token.to_tokens(tokens);
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
     </span><span class="kw">impl </span>ToTokens <span class="kw">for </span>LitByteStr {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
             <span class="self">self</span>.repr.token.to_tokens(tokens);
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
     </span><span class="kw">impl </span>ToTokens <span class="kw">for </span>LitByte {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
             <span class="self">self</span>.repr.token.to_tokens(tokens);
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
     </span><span class="kw">impl </span>ToTokens <span class="kw">for </span>LitChar {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
             <span class="self">self</span>.repr.token.to_tokens(tokens);
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
     </span><span class="kw">impl </span>ToTokens <span class="kw">for </span>LitInt {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
             <span class="self">self</span>.repr.token.to_tokens(tokens);
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
     </span><span class="kw">impl </span>ToTokens <span class="kw">for </span>LitFloat {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
             <span class="self">self</span>.repr.token.to_tokens(tokens);
         }
     }
 
-    <span class="attribute">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
+    <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;printing&quot;</span>)))]
     </span><span class="kw">impl </span>ToTokens <span class="kw">for </span>LitBool {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
             tokens.append(<span class="self">self</span>.token());
@@ -2685,7 +2685,7 @@
 
     <span class="comment">// Clippy false positive
     // https://github.com/rust-lang-nursery/rust-clippy/issues/2329
-    </span><span class="attribute">#[allow(clippy::needless_continue)]
+    </span><span class="attr">#[allow(clippy::needless_continue)]
     </span><span class="kw">fn </span>parse_lit_str_cooked(<span class="kw-2">mut </span>s: <span class="kw-2">&amp;</span>str) -&gt; (Box&lt;str&gt;, Box&lt;str&gt;) {
         <span class="macro">assert_eq!</span>(byte(s, <span class="number">0</span>), <span class="string">b&#39;&quot;&#39;</span>);
         s = <span class="kw-2">&amp;</span>s[<span class="number">1</span>..];
@@ -2778,7 +2778,7 @@
 
     <span class="comment">// Clippy false positive
     // https://github.com/rust-lang-nursery/rust-clippy/issues/2329
-    </span><span class="attribute">#[allow(clippy::needless_continue)]
+    </span><span class="attr">#[allow(clippy::needless_continue)]
     </span><span class="kw">fn </span>parse_lit_byte_str_cooked(<span class="kw-2">mut </span>s: <span class="kw-2">&amp;</span>str) -&gt; (Vec&lt;u8&gt;, Box&lt;str&gt;) {
         <span class="macro">assert_eq!</span>(byte(s, <span class="number">0</span>), <span class="string">b&#39;b&#39;</span>);
         <span class="macro">assert_eq!</span>(byte(s, <span class="number">1</span>), <span class="string">b&#39;&quot;&#39;</span>);
@@ -3164,9 +3164,9 @@
         </span>}
     }
 
-    <span class="attribute">#[allow(clippy::unnecessary_wraps)]
+    <span class="attr">#[allow(clippy::unnecessary_wraps)]
     </span><span class="kw">pub fn </span>to_literal(repr: <span class="kw-2">&amp;</span>str, digits: <span class="kw-2">&amp;</span>str, suffix: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Literal&gt; {
-        <span class="attribute">#[cfg(syn_no_negative_literal_parse)]
+        <span class="attr">#[cfg(syn_no_negative_literal_parse)]
         </span>{
             <span class="comment">// Rustc older than https://github.com/rust-lang/rust/pull/87262.
             </span><span class="kw">if </span>repr.starts_with(<span class="string">&#39;-&#39;</span>) {
@@ -3199,4 +3199,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="syn" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

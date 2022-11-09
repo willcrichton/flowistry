@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.27/src/ast/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.28/src/ast/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -5950,7 +5950,7 @@ This module provides a regular expression parser.
 ///
 /// This does not include ASCII character classes, since they can only appear
 /// within a set character class.
-</span><span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
+</span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">enum </span>Primitive {
     Literal(ast::Literal),
     Assertion(ast::Assertion),
@@ -6040,7 +6040,7 @@ This module provides a regular expression parser.
 <span class="doccomment">/// A builder for a regular expression parser.
 ///
 /// This builder permits modifying configuration options for the parser.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>ParserBuilder {
     ignore_whitespace: bool,
     nest_limit: u32,
@@ -6152,7 +6152,7 @@ This module provides a regular expression parser.
 ///
 /// A `Parser` can be configured in more detail via a
 /// [`ParserBuilder`](struct.ParserBuilder.html).
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Parser {
     <span class="doccomment">/// The current position of the parser.
     </span>pos: Cell&lt;Position&gt;,
@@ -6195,7 +6195,7 @@ This module provides a regular expression parser.
 /// This type also lets us use `ParserI&lt;&amp;Parser&gt;` in production code while
 /// retaining the convenience of `ParserI&lt;Parser&gt;` for tests, which sometimes
 /// work against the internal interface of the parser.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>ParserI&lt;<span class="lifetime">&#39;s</span>, P&gt; {
     <span class="doccomment">/// The parser state/configuration.
     </span>parser: P,
@@ -6206,7 +6206,7 @@ This module provides a regular expression parser.
 <span class="doccomment">/// GroupState represents a single stack frame while parsing nested groups
 /// and alternations. Each frame records the state up to an opening parenthesis
 /// or a alternating bracket `|`.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">enum </span>GroupState {
     <span class="doccomment">/// This state is pushed whenever an opening group is found.
     </span>Group {
@@ -6230,7 +6230,7 @@ This module provides a regular expression parser.
 ///
 /// Note that a parser&#39;s character class stack is only non-empty when parsing
 /// a character class. In all other cases, it is empty.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">enum </span>ClassState {
     <span class="doccomment">/// This state is pushed whenever an opening bracket is found.
     </span>Open {
@@ -6566,7 +6566,7 @@ This module provides a regular expression parser.
     ///
     /// This assumes the parser is currently positioned at `|` and will advance
     /// the parser to the character following `|`.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>push_alternate(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>concat: ast::Concat) -&gt; <span class="prelude-ty">Result</span>&lt;ast::Concat&gt; {
         <span class="macro">assert_eq!</span>(<span class="self">self</span>.char(), <span class="string">&#39;|&#39;</span>);
         concat.span.end = <span class="self">self</span>.pos();
@@ -6604,7 +6604,7 @@ This module provides a regular expression parser.
     ///
     /// If there was a problem parsing the start of the group, then an error
     /// is returned.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>push_group(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>concat: ast::Concat) -&gt; <span class="prelude-ty">Result</span>&lt;ast::Concat&gt; {
         <span class="macro">assert_eq!</span>(<span class="self">self</span>.char(), <span class="string">&#39;(&#39;</span>);
         <span class="kw">match </span><span class="self">self</span>.parse_group()<span class="question-mark">? </span>{
@@ -6645,7 +6645,7 @@ This module provides a regular expression parser.
     ///
     /// If no such group could be popped, then an unopened group error is
     /// returned.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>pop_group(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>group_concat: ast::Concat) -&gt; <span class="prelude-ty">Result</span>&lt;ast::Concat&gt; {
         <span class="kw">use </span><span class="self">self</span>::GroupState::<span class="kw-2">*</span>;
 
@@ -6697,7 +6697,7 @@ This module provides a regular expression parser.
     /// error.
     ///
     /// This assumes that the parser has advanced to the end.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>pop_group_end(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>concat: ast::Concat) -&gt; <span class="prelude-ty">Result</span>&lt;Ast&gt; {
         concat.span.end = <span class="self">self</span>.pos();
         <span class="kw">let </span><span class="kw-2">mut </span>stack = <span class="self">self</span>.parser().stack_group.borrow_mut();
@@ -6740,7 +6740,7 @@ This module provides a regular expression parser.
     /// If there was a problem parsing the opening of the class, then an error
     /// is returned. Otherwise, a new union of set items for the class is
     /// returned (which may be populated with either a `]` or a `-`).
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>push_class_open(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         parent_union: ast::ClassSetUnion,
@@ -6769,7 +6769,7 @@ This module provides a regular expression parser.
     ///
     /// If there is no corresponding opening bracket on the parser&#39;s stack,
     /// then an error is returned.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>pop_class(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         nested_union: ast::ClassSetUnion,
@@ -6818,7 +6818,7 @@ This module provides a regular expression parser.
     /// recently opened class.
     ///
     /// This should only be called while parsing a character class.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>unclosed_class_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ast::Error {
         <span class="kw">for </span>state <span class="kw">in </span><span class="self">self</span>.parser().stack_class.borrow().iter().rev() {
             <span class="kw">if let </span>ClassState::Open { <span class="kw-2">ref </span>set, .. } = <span class="kw-2">*</span>state {
@@ -6835,7 +6835,7 @@ This module provides a regular expression parser.
     ///
     /// A fresh set union is returned, which should be used to build the right
     /// hand side of this operator.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>push_class_op(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         next_kind: ast::ClassSetBinaryOpKind,
@@ -6855,7 +6855,7 @@ This module provides a regular expression parser.
     /// given set unchanged. If the top of the stack is an operation, then the
     /// given set will be used as the rhs of the operation on the top of the
     /// stack. In that case, the binary operation is returned as a set.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>pop_class_op(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: ast::ClassSet) -&gt; ast::ClassSet {
         <span class="kw">let </span><span class="kw-2">mut </span>stack = <span class="self">self</span>.parser().stack_class.borrow_mut();
         <span class="kw">let </span>(kind, lhs) = <span class="kw">match </span>stack.pop() {
@@ -6949,7 +6949,7 @@ This module provides a regular expression parser.
     /// The caller should include the concatenation that is being built. The
     /// concatenation returned includes the repetition operator applied to the
     /// last expression in the given concatenation.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_uncounted_repetition(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="kw-2">mut </span>concat: ast::Concat,
@@ -7004,7 +7004,7 @@ This module provides a regular expression parser.
     /// The caller should include the concatenation that is being built. The
     /// concatenation returned includes the repetition operator applied to the
     /// last expression in the given concatenation.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_counted_repetition(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="kw-2">mut </span>concat: ast::Concat,
@@ -7112,7 +7112,7 @@ This module provides a regular expression parser.
     ///
     /// If a capture name is given and it is incorrectly specified, then a
     /// corresponding error is returned.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_group(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Either&lt;ast::SetFlags, ast::Group&gt;&gt; {
         <span class="macro">assert_eq!</span>(<span class="self">self</span>.char(), <span class="string">&#39;(&#39;</span>);
         <span class="kw">let </span>open_span = <span class="self">self</span>.span_char();
@@ -7179,7 +7179,7 @@ This module provides a regular expression parser.
     /// following the closing `&gt;`.
     ///
     /// The caller must provide the capture index of the group for this name.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_capture_name(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         capture_index: u32,
@@ -7240,7 +7240,7 @@ This module provides a regular expression parser.
     ///
     /// If no flags could be found or if the negation operation is not followed
     /// by any flags, then an error is returned.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ast::Flags&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>flags = ast::Flags { span: <span class="self">self</span>.span(), items: <span class="macro">vec!</span>[] };
         <span class="kw">let </span><span class="kw-2">mut </span>last_was_negation = <span class="prelude-val">None</span>;
@@ -7292,7 +7292,7 @@ This module provides a regular expression parser.
     /// # Errors
     ///
     /// If the flag is not recognized, then an error is returned.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_flag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ast::Flag&gt; {
         <span class="kw">match </span><span class="self">self</span>.char() {
             <span class="string">&#39;i&#39; </span>=&gt; <span class="prelude-val">Ok</span>(ast::Flag::CaseInsensitive),
@@ -7359,7 +7359,7 @@ This module provides a regular expression parser.
     /// This assumes the parser is positioned at the start of the escape
     /// sequence, i.e., `\`. It advances the parser to the first position
     /// immediately following the escape sequence.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_escape(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Primitive&gt; {
         <span class="macro">assert_eq!</span>(<span class="self">self</span>.char(), <span class="string">&#39;\\&#39;</span>);
         <span class="kw">let </span>start = <span class="self">self</span>.pos();
@@ -7461,7 +7461,7 @@ This module provides a regular expression parser.
     /// escapes is enabled.
     ///
     /// Assuming the preconditions are met, this routine can never fail.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_octal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ast::Literal {
         <span class="kw">use </span>std::char;
         <span class="kw">use </span>std::u32;
@@ -7495,7 +7495,7 @@ This module provides a regular expression parser.
     /// hex notations, i.e., `\xFF` and `\x{FFFF}`. This expects the parser to
     /// be positioned at the `x`, `u` or `U` prefix. The parser is advanced to
     /// the first character immediately following the hexadecimal literal.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_hex(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ast::Literal&gt; {
         <span class="macro">assert!</span>(
             <span class="self">self</span>.char() == <span class="string">&#39;x&#39; </span>|| <span class="self">self</span>.char() == <span class="string">&#39;u&#39; </span>|| <span class="self">self</span>.char() == <span class="string">&#39;U&#39;
@@ -7525,7 +7525,7 @@ This module provides a regular expression parser.
     ///
     /// The number of digits given must be 2 (for `\xNN`), 4 (for `\uNNNN`)
     /// or 8 (for `\UNNNNNNNN`).
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_hex_digits(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         kind: ast::HexLiteralKind,
@@ -7571,7 +7571,7 @@ This module provides a regular expression parser.
     <span class="doccomment">/// Parse a hex representation of any Unicode scalar value. This expects
     /// the parser to be positioned at the opening brace `{` and will advance
     /// the parser to the first character following the closing brace `}`.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_hex_brace(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         kind: ast::HexLiteralKind,
@@ -7665,7 +7665,7 @@ This module provides a regular expression parser.
     /// This assumes the parser is positioned at the opening `[`. If parsing
     /// is successful, then the parser is advanced to the position immediately
     /// following the closing `]`.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_set_class(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ast::Class&gt; {
         <span class="macro">assert_eq!</span>(<span class="self">self</span>.char(), <span class="string">&#39;[&#39;</span>);
 
@@ -7732,7 +7732,7 @@ This module provides a regular expression parser.
     /// If an invalid escape is found, or if a character class is found where
     /// a simple literal is expected (e.g., in a range), then an error is
     /// returned.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_set_class_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ast::ClassSetItem&gt; {
         <span class="kw">let </span>prim1 = <span class="self">self</span>.parse_set_class_item()<span class="question-mark">?</span>;
         <span class="self">self</span>.bump_space();
@@ -7779,7 +7779,7 @@ This module provides a regular expression parser.
     ///
     /// Note that it is the caller&#39;s responsibility to report an error if an
     /// illegal primitive was parsed.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_set_class_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Primitive&gt; {
         <span class="kw">if </span><span class="self">self</span>.char() == <span class="string">&#39;\\&#39; </span>{
             <span class="self">self</span>.parse_escape()
@@ -7810,7 +7810,7 @@ This module provides a regular expression parser.
     /// the parser to the first non-special byte of the character class.
     ///
     /// An error is returned if EOF is found.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_set_class_open(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(ast::ClassBracketed, ast::ClassSetUnion)&gt; {
@@ -7884,7 +7884,7 @@ This module provides a regular expression parser.
     /// advance the parser and `None` is returned. Otherwise, the parser is
     /// advanced to the first byte following the closing `]` and the
     /// corresponding ASCII class is returned.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>maybe_parse_ascii_class(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ast::ClassAscii&gt; {
         <span class="comment">// ASCII character classes are interesting from a parsing perspective
         // because parsing cannot fail with any interesting error. For example,
@@ -7955,7 +7955,7 @@ This module provides a regular expression parser.
     /// advance the parser to the character immediately following the class.
     ///
     /// Note that this does not check whether the class name is valid or not.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_unicode_class(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ast::ClassUnicode&gt; {
         <span class="macro">assert!</span>(<span class="self">self</span>.char() == <span class="string">&#39;p&#39; </span>|| <span class="self">self</span>.char() == <span class="string">&#39;P&#39;</span>);
 
@@ -8034,7 +8034,7 @@ This module provides a regular expression parser.
     <span class="doccomment">/// Parse a Perl character class, e.g., `\d` or `\W`. This assumes the
     /// parser is currently at a valid character class name and will be
     /// advanced to the character immediately following the class.
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>parse_perl_class(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ast::ClassPerl {
         <span class="kw">let </span>c = <span class="self">self</span>.char();
         <span class="kw">let </span>span = <span class="self">self</span>.span_char();
@@ -8054,7 +8054,7 @@ This module provides a regular expression parser.
 
 <span class="doccomment">/// A type that traverses a fully parsed Ast and checks whether its depth
 /// exceeds the specified nesting limit. If it does, then an error is returned.
-</span><span class="attribute">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>NestLimiter&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;s</span>, P&gt; {
     <span class="doccomment">/// The parser that is checking the nest limit.
     </span>p: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>ParserI&lt;<span class="lifetime">&#39;s</span>, P&gt;,
@@ -8067,7 +8067,7 @@ This module provides a regular expression parser.
         NestLimiter { p, depth: <span class="number">0 </span>}
     }
 
-    <span class="attribute">#[inline(never)]
+    <span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>check(<span class="self">self</span>, ast: <span class="kw-2">&amp;</span>Ast) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         ast::visit(ast, <span class="self">self</span>)
     }
@@ -8225,7 +8225,7 @@ This module provides a regular expression parser.
     }
 }
 
-<span class="attribute">#[cfg(test)]
+<span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span>std::ops::Range;
 
@@ -8253,7 +8253,7 @@ This module provides a regular expression parser.
     <span class="comment">// We create these errors to compare with real ast::Errors in the tests.
     // We define equality between TestError and ast::Error to disregard the
     // pattern string in ast::Error, which is annoying to provide in tests.
-    </span><span class="attribute">#[derive(Clone, Debug)]
+    </span><span class="attr">#[derive(Clone, Debug)]
     </span><span class="kw">struct </span>TestError {
         span: Span,
         kind: ast::ErrorKind,
@@ -8421,7 +8421,7 @@ This module provides a regular expression parser.
         })
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_nest_limit() {
         <span class="comment">// A nest limit of 0 still allows some types of regexes.
         </span><span class="macro">assert_eq!</span>(
@@ -8579,7 +8579,7 @@ This module provides a regular expression parser.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_comments() {
         <span class="kw">let </span>pat = <span class="string">&quot;(?x)
 # This is comment 1.
@@ -8626,7 +8626,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_holistic() {
         <span class="macro">assert_eq!</span>(parser(<span class="string">&quot;]&quot;</span>).parse(), <span class="prelude-val">Ok</span>(lit(<span class="string">&#39;]&#39;</span>, <span class="number">0</span>)));
         <span class="macro">assert_eq!</span>(
@@ -8657,7 +8657,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_ignore_whitespace() {
         <span class="comment">// Test that basic whitespace insensitivity works.
         </span><span class="kw">let </span>pat = <span class="string">&quot;(?x)a b&quot;</span>;
@@ -8819,7 +8819,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_newlines() {
         <span class="kw">let </span>pat = <span class="string">&quot;.\n.&quot;</span>;
         <span class="macro">assert_eq!</span>(
@@ -8861,7 +8861,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_uncounted_repetition() {
         <span class="macro">assert_eq!</span>(
             parser(<span class="string">r&quot;a*&quot;</span>).parse(),
@@ -9085,7 +9085,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_counted_repetition() {
         <span class="macro">assert_eq!</span>(
             parser(<span class="string">r&quot;a{5}&quot;</span>).parse(),
@@ -9342,7 +9342,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_alternate() {
         <span class="macro">assert_eq!</span>(
             parser(<span class="string">r&quot;a|b&quot;</span>).parse(),
@@ -9502,7 +9502,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_unsupported_lookaround() {
         <span class="macro">assert_eq!</span>(
             parser(<span class="string">r&quot;(?=a)&quot;</span>).parse().unwrap_err(),
@@ -9534,7 +9534,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_group() {
         <span class="macro">assert_eq!</span>(
             parser(<span class="string">&quot;(?i)&quot;</span>).parse(),
@@ -9746,7 +9746,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_capture_name() {
         <span class="macro">assert_eq!</span>(
             parser(<span class="string">&quot;(?P&lt;a&gt;z)&quot;</span>).parse(),
@@ -9872,7 +9872,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_flags() {
         <span class="macro">assert_eq!</span>(
             parser(<span class="string">&quot;i:&quot;</span>).parse_flags(),
@@ -10030,7 +10030,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_flag() {
         <span class="macro">assert_eq!</span>(parser(<span class="string">&quot;i&quot;</span>).parse_flag(), <span class="prelude-val">Ok</span>(ast::Flag::CaseInsensitive));
         <span class="macro">assert_eq!</span>(parser(<span class="string">&quot;m&quot;</span>).parse_flag(), <span class="prelude-val">Ok</span>(ast::Flag::MultiLine));
@@ -10055,7 +10055,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_primitive_non_escape() {
         <span class="macro">assert_eq!</span>(
             parser(<span class="string">r&quot;.&quot;</span>).parse_primitive(),
@@ -10102,7 +10102,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_escape() {
         <span class="macro">assert_eq!</span>(
             parser(<span class="string">r&quot;\|&quot;</span>).parse_primitive(),
@@ -10175,7 +10175,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_unsupported_backreference() {
         <span class="macro">assert_eq!</span>(
             parser(<span class="string">r&quot;\0&quot;</span>).parse_escape().unwrap_err(),
@@ -10193,7 +10193,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_octal() {
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">511 </span>{
             <span class="kw">let </span>pat = <span class="macro">format!</span>(<span class="string">r&quot;\{:o}&quot;</span>, i);
@@ -10268,7 +10268,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_hex_two() {
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">256 </span>{
             <span class="kw">let </span>pat = <span class="macro">format!</span>(<span class="string">r&quot;\x{:02x}&quot;</span>, i);
@@ -10305,7 +10305,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_hex_four() {
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">65536 </span>{
             <span class="kw">let </span>c = <span class="kw">match </span>::std::char::from_u32(i) {
@@ -10369,7 +10369,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_hex_eight() {
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">65536 </span>{
             <span class="kw">let </span>c = <span class="kw">match </span>::std::char::from_u32(i) {
@@ -10454,7 +10454,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_hex_brace() {
         <span class="macro">assert_eq!</span>(
             parser(<span class="string">r&quot;\u{26c4}&quot;</span>).parse_escape(),
@@ -10559,7 +10559,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_decimal() {
         <span class="macro">assert_eq!</span>(parser(<span class="string">&quot;123&quot;</span>).parse_decimal(), <span class="prelude-val">Ok</span>(<span class="number">123</span>));
         <span class="macro">assert_eq!</span>(parser(<span class="string">&quot;0&quot;</span>).parse_decimal(), <span class="prelude-val">Ok</span>(<span class="number">0</span>));
@@ -10582,7 +10582,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_set_class() {
         <span class="kw">fn </span>union(span: Span, items: Vec&lt;ast::ClassSetItem&gt;) -&gt; ast::ClassSet {
             ast::ClassSet::union(ast::ClassSetUnion { span, items })
@@ -11165,7 +11165,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_set_class_open() {
         <span class="macro">assert_eq!</span>(parser(<span class="string">&quot;[a]&quot;</span>).parse_set_class_open(), {
             <span class="kw">let </span>set = ast::ClassBracketed {
@@ -11444,7 +11444,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>maybe_parse_ascii_class() {
         <span class="macro">assert_eq!</span>(
             parser(<span class="string">r&quot;[:alnum:]&quot;</span>).maybe_parse_ascii_class(),
@@ -11496,7 +11496,7 @@ bar
         <span class="macro">assert_eq!</span>(p.offset(), <span class="number">0</span>);
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_unicode_class() {
         <span class="macro">assert_eq!</span>(
             parser(<span class="string">r&quot;\pN&quot;</span>).parse_escape(),
@@ -11694,7 +11694,7 @@ bar
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_perl_class() {
         <span class="macro">assert_eq!</span>(
             parser(<span class="string">r&quot;\d&quot;</span>).parse_escape(),
@@ -11776,7 +11776,7 @@ bar
     <span class="comment">// This tests a bug fix where the nest limit checker wasn&#39;t decrementing
     // its depth during post-traversal, which causes long regexes to trip
     // the default limit too aggressively.
-    </span><span class="attribute">#[test]
+    </span><span class="attr">#[test]
     </span><span class="kw">fn </span>regression_454_nest_too_big() {
         <span class="kw">let </span>pattern = <span class="string">r#&quot;
         2(?:
@@ -11819,7 +11819,7 @@ bar
     <span class="comment">// This tests that we treat a trailing `-` in a character class as a
     // literal `-` even when whitespace mode is enabled and there is whitespace
     // after the trailing `-`.
-    </span><span class="attribute">#[test]
+    </span><span class="attr">#[test]
     </span><span class="kw">fn </span>regression_455_trailing_dash_ignore_whitespace() {
         <span class="macro">assert!</span>(parser(<span class="string">&quot;(?x)[ / - ]&quot;</span>).parse().is_ok());
         <span class="macro">assert!</span>(parser(<span class="string">&quot;(?x)[ a - ]&quot;</span>).parse().is_ok());
@@ -11859,4 +11859,4 @@ bar
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

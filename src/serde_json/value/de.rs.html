@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.86/src/value/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde_json/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.87/src/value/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../serde_json/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1375,22 +1375,13 @@
 <span id="1375">1375</span>
 <span id="1376">1376</span>
 <span id="1377">1377</span>
-<span id="1378">1378</span>
-<span id="1379">1379</span>
-<span id="1380">1380</span>
-<span id="1381">1381</span>
-<span id="1382">1382</span>
-<span id="1383">1383</span>
-<span id="1384">1384</span>
-<span id="1385">1385</span>
-<span id="1386">1386</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::error::Error;
 <span class="kw">use </span><span class="kw">crate</span>::map::Map;
 <span class="kw">use </span><span class="kw">crate</span>::number::Number;
 <span class="kw">use </span><span class="kw">crate</span>::value::Value;
 <span class="kw">use </span>alloc::borrow::{Cow, ToOwned};
 <span class="kw">use </span>alloc::string::String;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
 </span><span class="kw">use </span>alloc::string::ToString;
 <span class="kw">use </span>alloc::vec::{<span class="self">self</span>, Vec};
 <span class="kw">use </span>core::fmt;
@@ -1400,13 +1391,13 @@
     <span class="self">self</span>, Deserialize, DeserializeSeed, EnumAccess, Expected, IntoDeserializer, MapAccess,
     SeqAccess, Unexpected, VariantAccess, Visitor,
 };
-<span class="kw">use </span>serde::{forward_to_deserialize_any, serde_if_integer128};
+<span class="kw">use </span>serde::forward_to_deserialize_any;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::number::NumberFromString;
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>Value {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;Value, D::Error&gt;
     <span class="kw">where
         </span>D: serde::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -1420,27 +1411,27 @@
                 formatter.write_str(<span class="string">&quot;any valid JSON value&quot;</span>)
             }
 
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>visit_bool&lt;E&gt;(<span class="self">self</span>, value: bool) -&gt; <span class="prelude-ty">Result</span>&lt;Value, E&gt; {
                 <span class="prelude-val">Ok</span>(Value::Bool(value))
             }
 
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>visit_i64&lt;E&gt;(<span class="self">self</span>, value: i64) -&gt; <span class="prelude-ty">Result</span>&lt;Value, E&gt; {
                 <span class="prelude-val">Ok</span>(Value::Number(value.into()))
             }
 
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>visit_u64&lt;E&gt;(<span class="self">self</span>, value: u64) -&gt; <span class="prelude-ty">Result</span>&lt;Value, E&gt; {
                 <span class="prelude-val">Ok</span>(Value::Number(value.into()))
             }
 
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>visit_f64&lt;E&gt;(<span class="self">self</span>, value: f64) -&gt; <span class="prelude-ty">Result</span>&lt;Value, E&gt; {
                 <span class="prelude-val">Ok</span>(Number::from_f64(value).map_or(Value::Null, Value::Number))
             }
 
-            <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+            <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
             #[inline]
             </span><span class="kw">fn </span>visit_str&lt;E&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Value, E&gt;
             <span class="kw">where
@@ -1449,18 +1440,18 @@
                 <span class="self">self</span>.visit_string(String::from(value))
             }
 
-            <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+            <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
             #[inline]
             </span><span class="kw">fn </span>visit_string&lt;E&gt;(<span class="self">self</span>, value: String) -&gt; <span class="prelude-ty">Result</span>&lt;Value, E&gt; {
                 <span class="prelude-val">Ok</span>(Value::String(value))
             }
 
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>visit_none&lt;E&gt;(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Value, E&gt; {
                 <span class="prelude-val">Ok</span>(Value::Null)
             }
 
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>visit_some&lt;D&gt;(<span class="self">self</span>, deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;Value, D::Error&gt;
             <span class="kw">where
                 </span>D: serde::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -1468,12 +1459,12 @@
                 Deserialize::deserialize(deserializer)
             }
 
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>visit_unit&lt;E&gt;(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Value, E&gt; {
                 <span class="prelude-val">Ok</span>(Value::Null)
             }
 
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>visit_seq&lt;V&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;Value, V::Error&gt;
             <span class="kw">where
                 </span>V: SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -1487,18 +1478,18 @@
                 <span class="prelude-val">Ok</span>(Value::Array(vec))
             }
 
-            <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+            <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
             </span><span class="kw">fn </span>visit_map&lt;V&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;Value, V::Error&gt;
             <span class="kw">where
                 </span>V: MapAccess&lt;<span class="lifetime">&#39;de</span>&gt;,
             {
                 <span class="kw">match </span>visitor.next_key_seed(KeyClassifier)<span class="question-mark">? </span>{
-                    <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+                    <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
                     </span><span class="prelude-val">Some</span>(KeyClass::Number) =&gt; {
                         <span class="kw">let </span>number: NumberFromString = visitor.next_value()<span class="question-mark">?</span>;
                         <span class="prelude-val">Ok</span>(Value::Number(number.value))
                     }
-                    <span class="attribute">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+                    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
                     </span><span class="prelude-val">Some</span>(KeyClass::RawValue) =&gt; {
                         <span class="kw">let </span>value = visitor.next_value_seed(<span class="kw">crate</span>::raw::BoxedFromString)<span class="question-mark">?</span>;
                         <span class="kw">crate</span>::from_str(value.get()).map_err(de::Error::custom)
@@ -1531,7 +1522,7 @@
 
 <span class="macro">macro_rules! </span>deserialize_number {
     (<span class="macro-nonterminal">$method</span>:ident) =&gt; {
-        <span class="attribute">#[cfg(not(feature = <span class="string">&quot;arbitrary_precision&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">&quot;arbitrary_precision&quot;</span>))]
         </span><span class="kw">fn </span><span class="macro-nonterminal">$method</span>&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
         <span class="kw">where
             </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -1542,7 +1533,7 @@
             }
         }
 
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
         </span><span class="kw">fn </span><span class="macro-nonterminal">$method</span>&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
         <span class="kw">where
             </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -1594,7 +1585,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; serde::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>Value {
     <span class="kw">type </span>Error = Error;
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -1603,7 +1594,7 @@
             Value::Null =&gt; visitor.visit_unit(),
             Value::Bool(v) =&gt; visitor.visit_bool(v),
             Value::Number(n) =&gt; n.deserialize_any(visitor),
-            <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+            <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
             </span>Value::String(v) =&gt; visitor.visit_string(v),
             Value::Array(v) =&gt; visit_array(v, visitor),
             Value::Object(v) =&gt; visit_object(v, visitor),
@@ -1614,19 +1605,16 @@
     <span class="macro">deserialize_number!</span>(deserialize_i16);
     <span class="macro">deserialize_number!</span>(deserialize_i32);
     <span class="macro">deserialize_number!</span>(deserialize_i64);
+    <span class="macro">deserialize_number!</span>(deserialize_i128);
     <span class="macro">deserialize_number!</span>(deserialize_u8);
     <span class="macro">deserialize_number!</span>(deserialize_u16);
     <span class="macro">deserialize_number!</span>(deserialize_u32);
     <span class="macro">deserialize_number!</span>(deserialize_u64);
+    <span class="macro">deserialize_number!</span>(deserialize_u128);
     <span class="macro">deserialize_number!</span>(deserialize_f32);
     <span class="macro">deserialize_number!</span>(deserialize_f64);
 
-    <span class="macro">serde_if_integer128! </span>{
-        <span class="macro">deserialize_number!</span>(deserialize_i128);
-        <span class="macro">deserialize_number!</span>(deserialize_u128);
-    }
-
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -1637,7 +1625,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_enum&lt;V&gt;(
         <span class="self">self</span>,
         _name: <span class="kw-2">&amp;</span>str,
@@ -1680,7 +1668,7 @@
         visitor.visit_enum(EnumDeserializer { variant, value })
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(
         <span class="self">self</span>,
         name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
@@ -1689,7 +1677,7 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
         </span>{
             <span class="kw">if </span>name == <span class="kw">crate</span>::raw::TOKEN {
                 <span class="kw">return </span>visitor.visit_map(<span class="kw">crate</span>::raw::OwnedRawDeserializer {
@@ -1731,7 +1719,7 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+            <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
             </span>Value::String(v) =&gt; visitor.visit_string(v),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.invalid_type(<span class="kw-2">&amp;</span>visitor)),
         }
@@ -1749,7 +1737,7 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+            <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
             </span>Value::String(v) =&gt; visitor.visit_string(v),
             Value::Array(v) =&gt; visit_array(v, visitor),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.invalid_type(<span class="kw-2">&amp;</span>visitor)),
@@ -2029,7 +2017,7 @@
 
 <span class="macro">macro_rules! </span>deserialize_value_ref_number {
     (<span class="macro-nonterminal">$method</span>:ident) =&gt; {
-        <span class="attribute">#[cfg(not(feature = <span class="string">&quot;arbitrary_precision&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">&quot;arbitrary_precision&quot;</span>))]
         </span><span class="kw">fn </span><span class="macro-nonterminal">$method</span>&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
         <span class="kw">where
             </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -2040,7 +2028,7 @@
             }
         }
 
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
         </span><span class="kw">fn </span><span class="macro-nonterminal">$method</span>&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
         <span class="kw">where
             </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -2110,17 +2098,14 @@
     <span class="macro">deserialize_value_ref_number!</span>(deserialize_i16);
     <span class="macro">deserialize_value_ref_number!</span>(deserialize_i32);
     <span class="macro">deserialize_value_ref_number!</span>(deserialize_i64);
+    <span class="macro">deserialize_number!</span>(deserialize_i128);
     <span class="macro">deserialize_value_ref_number!</span>(deserialize_u8);
     <span class="macro">deserialize_value_ref_number!</span>(deserialize_u16);
     <span class="macro">deserialize_value_ref_number!</span>(deserialize_u32);
     <span class="macro">deserialize_value_ref_number!</span>(deserialize_u64);
+    <span class="macro">deserialize_number!</span>(deserialize_u128);
     <span class="macro">deserialize_value_ref_number!</span>(deserialize_f32);
     <span class="macro">deserialize_value_ref_number!</span>(deserialize_f64);
-
-    <span class="macro">serde_if_integer128! </span>{
-        <span class="macro">deserialize_number!</span>(deserialize_i128);
-        <span class="macro">deserialize_number!</span>(deserialize_u128);
-    }
 
     <span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
@@ -2174,7 +2159,7 @@
         visitor.visit_enum(EnumRefDeserializer { variant, value })
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(
         <span class="self">self</span>,
         name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
@@ -2183,7 +2168,7 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
         </span>{
             <span class="kw">if </span>name == <span class="kw">crate</span>::raw::TOKEN {
                 <span class="kw">return </span>visitor.visit_map(<span class="kw">crate</span>::raw::OwnedRawDeserializer {
@@ -2521,7 +2506,7 @@
             <span class="kw">match </span>(<span class="self">self</span>.key.parse(), <span class="self">self</span>.key) {
                 (<span class="prelude-val">Ok</span>(integer), <span class="kw">_</span>) =&gt; visitor.<span class="macro-nonterminal">$visit</span>(integer),
                 (<span class="prelude-val">Err</span>(<span class="kw">_</span>), Cow::Borrowed(s)) =&gt; visitor.visit_borrowed_str(s),
-                <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+                <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
                 </span>(<span class="prelude-val">Err</span>(<span class="kw">_</span>), Cow::Owned(s)) =&gt; visitor.visit_string(s),
             }
         }
@@ -2542,17 +2527,14 @@
     <span class="macro">deserialize_integer_key!</span>(deserialize_i16 =&gt; visit_i16);
     <span class="macro">deserialize_integer_key!</span>(deserialize_i32 =&gt; visit_i32);
     <span class="macro">deserialize_integer_key!</span>(deserialize_i64 =&gt; visit_i64);
+    <span class="macro">deserialize_integer_key!</span>(deserialize_i128 =&gt; visit_i128);
     <span class="macro">deserialize_integer_key!</span>(deserialize_u8 =&gt; visit_u8);
     <span class="macro">deserialize_integer_key!</span>(deserialize_u16 =&gt; visit_u16);
     <span class="macro">deserialize_integer_key!</span>(deserialize_u32 =&gt; visit_u32);
     <span class="macro">deserialize_integer_key!</span>(deserialize_u64 =&gt; visit_u64);
+    <span class="macro">deserialize_integer_key!</span>(deserialize_u128 =&gt; visit_u128);
 
-    <span class="macro">serde_if_integer128! </span>{
-        <span class="macro">deserialize_integer_key!</span>(deserialize_i128 =&gt; visit_i128);
-        <span class="macro">deserialize_integer_key!</span>(deserialize_u128 =&gt; visit_u128);
-    }
-
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -2561,7 +2543,7 @@
         </span>visitor.visit_some(<span class="self">self</span>)
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(
         <span class="self">self</span>,
         _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
@@ -2597,9 +2579,9 @@
 
 <span class="kw">enum </span>KeyClass {
     Map(String),
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
     </span>Number,
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
     </span>RawValue,
 }
 
@@ -2626,23 +2608,23 @@
         </span>E: de::Error,
     {
         <span class="kw">match </span>s {
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
             </span><span class="kw">crate</span>::number::TOKEN =&gt; <span class="prelude-val">Ok</span>(KeyClass::Number),
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
             </span><span class="kw">crate</span>::raw::TOKEN =&gt; <span class="prelude-val">Ok</span>(KeyClass::RawValue),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(KeyClass::Map(s.to_owned())),
         }
     }
 
-    <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+    <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
     </span><span class="kw">fn </span>visit_string&lt;E&gt;(<span class="self">self</span>, s: String) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, E&gt;
     <span class="kw">where
         </span>E: de::Error,
     {
         <span class="kw">match </span>s.as_str() {
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
             </span><span class="kw">crate</span>::number::TOKEN =&gt; <span class="prelude-val">Ok</span>(KeyClass::Number),
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
             </span><span class="kw">crate</span>::raw::TOKEN =&gt; <span class="prelude-val">Ok</span>(KeyClass::RawValue),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(KeyClass::Map(s)),
         }
@@ -2650,7 +2632,7 @@
 }
 
 <span class="kw">impl </span>Value {
-    <span class="attribute">#[cold]
+    <span class="attr">#[cold]
     </span><span class="kw">fn </span>invalid_type&lt;E&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, exp: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Expected) -&gt; E
     <span class="kw">where
         </span>E: serde::de::Error,
@@ -2658,7 +2640,7 @@
         serde::de::Error::invalid_type(<span class="self">self</span>.unexpected(), exp)
     }
 
-    <span class="attribute">#[cold]
+    <span class="attr">#[cold]
     </span><span class="kw">fn </span>unexpected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Unexpected {
         <span class="kw">match </span><span class="self">self </span>{
             Value::Null =&gt; Unexpected::Unit,
@@ -2690,7 +2672,7 @@
     {
         <span class="kw">match </span><span class="self">self</span>.value {
             Cow::Borrowed(string) =&gt; visitor.visit_borrowed_str(string),
-            <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+            <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
             </span>Cow::Owned(string) =&gt; visitor.visit_string(string),
         }
     }
@@ -2771,4 +2753,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_json" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_json" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

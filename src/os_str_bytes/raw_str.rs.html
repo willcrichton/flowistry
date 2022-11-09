@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/os_str_bytes-6.3.0/src/raw_str.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>raw_str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../os_str_bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../os_str_bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../os_str_bytes/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/os_str_bytes-6.3.1/src/raw_str.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>raw_str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../os_str_bytes/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1543,13 +1543,6 @@
 <span id="1543">1543</span>
 <span id="1544">1544</span>
 <span id="1545">1545</span>
-<span id="1546">1546</span>
-<span id="1547">1547</span>
-<span id="1548">1548</span>
-<span id="1549">1549</span>
-<span id="1550">1550</span>
-<span id="1551">1551</span>
-<span id="1552">1552</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::borrow::Borrow;
 <span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::borrow::ToOwned;
@@ -1571,9 +1564,9 @@
 <span class="kw">use </span>std::result;
 <span class="kw">use </span>std::str;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;memchr&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;memchr&quot;</span>)]
 </span><span class="kw">use </span>memchr::memmem::find;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;memchr&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;memchr&quot;</span>)]
 </span><span class="kw">use </span>memchr::memmem::rfind;
 
 <span class="kw">use </span><span class="kw">super</span>::imp;
@@ -1588,27 +1581,20 @@
     <span class="kw">use </span><span class="kw">super</span>::Result;
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;memchr&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;memchr&quot;</span>))]
 </span><span class="kw">fn </span>find(string: <span class="kw-2">&amp;</span>[u8], pat: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-    <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..=string.len().checked_sub(pat.len())<span class="question-mark">? </span>{
-        <span class="kw">if </span>string[i..].starts_with(pat) {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(i);
-        }
-    }
-    <span class="prelude-val">None
-</span>}
+    (<span class="number">0</span>..=string.len().checked_sub(pat.len())<span class="question-mark">?</span>)
+        .find(|<span class="kw-2">&amp;</span>x| string[x..].starts_with(pat))
+}
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;memchr&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;memchr&quot;</span>))]
 </span><span class="kw">fn </span>rfind(string: <span class="kw-2">&amp;</span>[u8], pat: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-    <span class="kw">for </span>i <span class="kw">in </span>(pat.len()..=string.len()).rev() {
-        <span class="kw">if </span>string[..i].ends_with(pat) {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(i - pat.len());
-        }
-    }
-    <span class="prelude-val">None
-</span>}
+    (pat.len()..=string.len())
+        .rfind(|<span class="kw-2">&amp;</span>x| string[..x].ends_with(pat))
+        .map(|x| x - pat.len())
+}
 
-<span class="attribute">#[allow(clippy::missing_safety_doc)]
+<span class="attr">#[allow(clippy::missing_safety_doc)]
 </span><span class="kw">unsafe trait </span>TransmuteBox {
     <span class="kw">fn </span>transmute_box&lt;R&gt;(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; Box&lt;R&gt;
     <span class="kw">where
@@ -1659,7 +1645,7 @@
 ///
 /// [memchr complexity]: memchr::memmem::find#complexity
 /// [unspecified encoding]: super#encoding
-</span><span class="attribute">#[derive(Eq, Hash, Ord, PartialEq, PartialOrd)]
+</span><span class="attr">#[derive(Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(os_str_bytes_docs_rs, doc(cfg(feature = <span class="string">&quot;raw_os_str&quot;</span>)))]
 #[repr(transparent)]
 </span><span class="kw">pub struct </span>RawOsStr([u8]);
@@ -1691,7 +1677,7 @@
     /// #
     /// # Ok::&lt;_, io::Error&gt;(())
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>new(string: <span class="kw-2">&amp;</span>OsStr) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt; {
         <span class="kw">match </span>imp::os_str_to_bytes(string) {
@@ -1716,7 +1702,7 @@
     /// ```
     ///
     /// [encoding]: super#encoding
-    </span><span class="attribute">#[allow(clippy::should_implement_trait)]
+    </span><span class="attr">#[allow(clippy::should_implement_trait)]
     #[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>from_str(string: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
@@ -1747,7 +1733,7 @@
     /// ```
     ///
     /// [unspecified encoding]: super#encoding
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use = <span class="string">&quot;method should not be used for validation&quot;</span>]
     #[track_caller]
     </span><span class="kw">pub fn </span>assert_from_raw_bytes(string: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
@@ -1782,7 +1768,7 @@
         /// ```
         ///
         /// [`assert_from_raw_bytes`]: Self::assert_from_raw_bytes
-        </span><span class="attribute">#[cfg_attr(
+        </span><span class="attr">#[cfg_attr(
             os_str_bytes_docs_rs,
             doc(cfg(feature = <span class="string">&quot;checked_conversions&quot;</span>))
         )]
@@ -1820,11 +1806,11 @@
     /// ```
     ///
     /// [unspecified encoding]: super#encoding
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     #[track_caller]
     </span><span class="kw">pub unsafe fn </span>from_raw_bytes_unchecked(string: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
-        <span class="attribute">#[cfg(debug_assertions)]
+        <span class="attr">#[cfg(debug_assertions)]
         </span><span class="macro">expect_encoded!</span>(raw::validate_bytes(string));
 
         <span class="self">Self</span>::from_inner(string)
@@ -1845,7 +1831,7 @@
     /// ```
     ///
     /// [unspecified encoding]: super#encoding
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>as_raw_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
@@ -1862,7 +1848,7 @@
     /// assert!(raw.contains(&quot;oo&quot;));
     /// assert!(!raw.contains(&quot;of&quot;));
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>contains&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: P) -&gt; bool
     <span class="kw">where
@@ -1882,7 +1868,7 @@
     /// assert!(raw.ends_with(&quot;bar&quot;));
     /// assert!(!raw.ends_with(&quot;foo&quot;));
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>ends_with&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: P) -&gt; bool
     <span class="kw">where
@@ -1905,7 +1891,7 @@
     /// assert!(raw.ends_with_os(RawOsStr::from_str(&quot;bar&quot;)));
     /// assert!(!raw.ends_with_os(RawOsStr::from_str(&quot;foo&quot;)));
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>ends_with_os(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         raw::ends_with(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, <span class="kw-2">&amp;</span>pat.<span class="number">0</span>)
@@ -1922,7 +1908,7 @@
     /// assert_eq!(Some(1), raw.find(&quot;o&quot;));
     /// assert_eq!(None, raw.find(&quot;of&quot;));
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>find&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: P) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;
     <span class="kw">where
@@ -1944,7 +1930,7 @@
     /// assert!(RawOsStr::from_str(&quot;&quot;).is_empty());
     /// assert!(!RawOsStr::from_str(&quot;foobar&quot;).is_empty());
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.<span class="number">0</span>.is_empty()
@@ -1970,7 +1956,7 @@
     /// assert_eq!(6, RawOsStr::from_str(&quot;foobar&quot;).raw_len());
     /// assert_eq!(0, RawOsStr::from_str(&quot;&quot;).raw_len());
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>raw_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.<span class="number">0</span>.len()
@@ -1987,7 +1973,7 @@
     /// assert_eq!(Some(2), raw.rfind(&quot;o&quot;));
     /// assert_eq!(None, raw.rfind(&quot;of&quot;));
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>rfind&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: P) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;
     <span class="kw">where
@@ -2037,7 +2023,7 @@
     /// );
     /// assert_eq!(None, raw.rsplit_once(&quot;of&quot;));
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>rsplit_once&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: P) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="self">Self</span>)&gt;
     <span class="kw">where
@@ -2047,7 +2033,7 @@
     }
 
     <span class="comment">// https://github.com/rust-lang/rust/blob/49c68bd53f90e375bfb3cbba8c1c67a9e0adb9c0/src/libcore/str/mod.rs#L2184-L2221
-    </span><span class="attribute">#[cold]
+    </span><span class="attr">#[cold]
     #[inline(never)]
     #[track_caller]
     </span><span class="kw">fn </span>index_boundary_error(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; ! {
@@ -2069,7 +2055,7 @@
         );
     }
 
-    <span class="attribute">#[track_caller]
+    <span class="attr">#[track_caller]
     </span><span class="kw">fn </span>check_bound(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>byte) = <span class="self">self</span>.<span class="number">0</span>.get(index) {
             <span class="kw">if </span>raw::is_continuation(byte) {
@@ -2092,7 +2078,7 @@
     /// let raw = RawOsStr::from_str(&quot;foobar&quot;);
     /// assert_eq!([&quot;f&quot;, &quot;&quot;, &quot;bar&quot;], *raw.split(&quot;o&quot;).collect::&lt;Vec&lt;_&gt;&gt;());
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>split&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: P) -&gt; Split&lt;<span class="lifetime">&#39;_</span>, P&gt;
@@ -2121,7 +2107,7 @@
     /// ```
     ///
     /// [valid boundary]: #indices
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>split_at(<span class="kw-2">&amp;</span><span class="self">self</span>, mid: usize) -&gt; (<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="self">Self</span>) {
@@ -2152,7 +2138,7 @@
     /// );
     /// assert_eq!(None, raw.split_once(&quot;of&quot;));
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>split_once&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: P) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="self">Self</span>)&gt;
     <span class="kw">where
@@ -2172,7 +2158,7 @@
     /// assert!(raw.starts_with(&quot;foo&quot;));
     /// assert!(!raw.starts_with(&quot;bar&quot;));
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>starts_with&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: P) -&gt; bool
     <span class="kw">where
@@ -2196,7 +2182,7 @@
     /// assert!(raw.starts_with_os(RawOsStr::from_str(&quot;foo&quot;)));
     /// assert!(!raw.starts_with_os(RawOsStr::from_str(&quot;bar&quot;)));
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>starts_with_os(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         raw::starts_with(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, <span class="kw-2">&amp;</span>pat.<span class="number">0</span>)
@@ -2216,7 +2202,7 @@
     /// );
     /// assert_eq!(None, raw.strip_prefix(&quot;o&quot;));
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>strip_prefix&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: P) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt;
     <span class="kw">where
@@ -2242,7 +2228,7 @@
     /// );
     /// assert_eq!(None, raw.strip_suffix(&quot;o&quot;));
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>strip_suffix&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: P) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt;
     <span class="kw">where
@@ -2273,7 +2259,7 @@
     /// #
     /// # Ok::&lt;_, io::Error&gt;(())
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>to_os_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, OsStr&gt; {
         <span class="macro">expect_encoded!</span>(imp::os_str_from_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>))
@@ -2290,7 +2276,7 @@
     /// let raw = RawOsStr::from_str(string);
     /// assert_eq!(Some(string), raw.to_str());
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>to_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         str::from_utf8(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>).ok()
@@ -2319,7 +2305,7 @@
     /// #
     /// # Ok::&lt;_, io::Error&gt;(())
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>to_str_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, str&gt; {
         String::from_utf8_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>)
@@ -2360,7 +2346,7 @@
     /// assert_eq!(&quot;111foo1bar&quot;, raw.trim_end_matches(&quot;1&quot;));
     /// assert_eq!(&quot;111foo1bar111&quot;, raw.trim_end_matches(&quot;o&quot;));
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>trim_end_matches&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: P) -&gt; <span class="kw-2">&amp;</span><span class="self">Self
     </span><span class="kw">where
@@ -2380,7 +2366,7 @@
     /// assert_eq!(&quot;foo1bar&quot;, raw.trim_matches(&quot;1&quot;));
     /// assert_eq!(&quot;111foo1bar111&quot;, raw.trim_matches(&quot;o&quot;));
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>trim_matches&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: P) -&gt; <span class="kw-2">&amp;</span><span class="self">Self
     </span><span class="kw">where
@@ -2408,7 +2394,7 @@
     /// assert_eq!(&quot;foo1bar111&quot;, raw.trim_start_matches(&quot;1&quot;));
     /// assert_eq!(&quot;111foo1bar111&quot;, raw.trim_start_matches(&quot;o&quot;));
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>trim_start_matches&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pat: P) -&gt; <span class="kw-2">&amp;</span><span class="self">Self
     </span><span class="kw">where
@@ -2419,42 +2405,42 @@
 }
 
 <span class="kw">impl </span>AsRef&lt;<span class="self">Self</span>&gt; <span class="kw">for </span>RawOsStr {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
         <span class="self">self
     </span>}
 }
 
 <span class="kw">impl </span>AsRef&lt;RawOsStr&gt; <span class="kw">for </span>str {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawOsStr {
         RawOsStr::from_str(<span class="self">self</span>)
     }
 }
 
 <span class="kw">impl </span>AsRef&lt;RawOsStr&gt; <span class="kw">for </span>String {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawOsStr {
         (<span class="kw-2">**</span><span class="self">self</span>).as_ref()
     }
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span><span class="kw-2">&amp;</span>RawOsStr {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         RawOsStr::from_str(<span class="string">&quot;&quot;</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RawOsStr&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, RawOsStr&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RawOsStr) -&gt; <span class="self">Self </span>{
         Cow::Borrowed(value)
     }
 }
 
 <span class="kw">impl </span>From&lt;Box&lt;str&gt;&gt; <span class="kw">for </span>Box&lt;RawOsStr&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(value: Box&lt;str&gt;) -&gt; <span class="self">Self </span>{
         value.into_boxed_bytes().transmute_box()
     }
@@ -2463,7 +2449,7 @@
 <span class="kw">impl </span>ToOwned <span class="kw">for </span>RawOsStr {
     <span class="kw">type </span>Owned = RawOsString;
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Owned {
         RawOsString(<span class="self">self</span>.<span class="number">0</span>.to_owned())
     }
@@ -2472,7 +2458,7 @@
 <span class="doccomment">/// Extensions to [`Cow&lt;RawOsStr&gt;`] for additional conversions.
 ///
 /// [`Cow&lt;RawOsStr&gt;`]: Cow
-</span><span class="attribute">#[cfg_attr(os_str_bytes_docs_rs, doc(cfg(feature = <span class="string">&quot;raw_os_str&quot;</span>)))]
+</span><span class="attr">#[cfg_attr(os_str_bytes_docs_rs, doc(cfg(feature = <span class="string">&quot;raw_os_str&quot;</span>)))]
 </span><span class="kw">pub trait </span>RawOsStrCow&lt;<span class="lifetime">&#39;a</span>&gt;: private::Sealed {
     <span class="doccomment">/// Converts this representation back to a platform-native string.
     ///
@@ -2491,7 +2477,7 @@
     /// #
     /// # Ok::&lt;_, io::Error&gt;(())
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">fn </span>into_os_str(<span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, OsStr&gt;;
 
     <span class="doccomment">/// Returns the byte string stored by this container.
@@ -2512,12 +2498,12 @@
     /// ```
     ///
     /// [unspecified encoding]: super#encoding
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">fn </span>into_raw_bytes(<span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, [u8]&gt;;
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; RawOsStrCow&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, RawOsStr&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_os_str(<span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, OsStr&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Cow::Borrowed(string) =&gt; string.to_os_str(),
@@ -2525,7 +2511,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_raw_bytes(<span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, [u8]&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Cow::Borrowed(string) =&gt; Cow::Borrowed(<span class="kw-2">&amp;</span>string.<span class="number">0</span>),
@@ -2537,7 +2523,7 @@
 <span class="doccomment">/// A container for owned byte strings converted by this crate.
 ///
 /// For more information, see [`RawOsStr`].
-</span><span class="attribute">#[derive(Clone, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+</span><span class="attr">#[derive(Clone, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(os_str_bytes_docs_rs, doc(cfg(feature = <span class="string">&quot;raw_os_str&quot;</span>)))]
 </span><span class="kw">pub struct </span>RawOsString(Vec&lt;u8&gt;);
 
@@ -2560,7 +2546,7 @@
     /// #
     /// # Ok::&lt;_, io::Error&gt;(())
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>new(string: OsString) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(imp::os_string_into_vec(string))
@@ -2582,7 +2568,7 @@
     /// ```
     ///
     /// [encoding]: super#encoding
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>from_string(string: String) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(string.into_bytes())
@@ -2612,7 +2598,7 @@
     /// ```
     ///
     /// [unspecified encoding]: super#encoding
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use = <span class="string">&quot;method should not be used for validation&quot;</span>]
     #[track_caller]
     </span><span class="kw">pub fn </span>assert_from_raw_vec(string: Vec&lt;u8&gt;) -&gt; <span class="self">Self </span>{
@@ -2648,7 +2634,7 @@
         /// ```
         ///
         /// [`assert_from_raw_vec`]: Self::assert_from_raw_vec
-        </span><span class="attribute">#[cfg_attr(
+        </span><span class="attr">#[cfg_attr(
             os_str_bytes_docs_rs,
             doc(cfg(feature = <span class="string">&quot;checked_conversions&quot;</span>))
         )]
@@ -2686,11 +2672,11 @@
     /// ```
     ///
     /// [unspecified encoding]: super#encoding
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     #[track_caller]
     </span><span class="kw">pub unsafe fn </span>from_raw_vec_unchecked(string: Vec&lt;u8&gt;) -&gt; <span class="self">Self </span>{
-        <span class="attribute">#[cfg(debug_assertions)]
+        <span class="attr">#[cfg(debug_assertions)]
         </span><span class="macro">expect_encoded!</span>(raw::validate_bytes(<span class="kw-2">&amp;</span>string));
 
         <span class="self">Self</span>(string)
@@ -2713,7 +2699,7 @@
     /// #
     /// # Ok::&lt;_, io::Error&gt;(())
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.<span class="number">0</span>.clear();
     }
@@ -2729,7 +2715,7 @@
     /// let raw = RawOsString::from_string(string.clone());
     /// assert_eq!(string, *raw.into_box());
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>into_box(<span class="self">self</span>) -&gt; Box&lt;RawOsStr&gt; {
         <span class="self">self</span>.<span class="number">0</span>.into_boxed_slice().transmute_box()
@@ -2751,7 +2737,7 @@
     /// #
     /// # Ok::&lt;_, io::Error&gt;(())
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>into_os_string(<span class="self">self</span>) -&gt; OsString {
         <span class="macro">expect_encoded!</span>(imp::os_string_from_vec(<span class="self">self</span>.<span class="number">0</span>))
@@ -2772,7 +2758,7 @@
     /// ```
     ///
     /// [unspecified encoding]: super#encoding
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>into_raw_vec(<span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
         <span class="self">self</span>.<span class="number">0
@@ -2789,7 +2775,7 @@
     /// let raw = RawOsString::from_string(string.clone());
     /// assert_eq!(Ok(string), raw.into_string());
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>into_string(<span class="self">self</span>) -&gt; result::Result&lt;String, <span class="self">Self</span>&gt; {
         String::from_utf8(<span class="self">self</span>.<span class="number">0</span>).map_err(|x| <span class="self">Self</span>(x.into_bytes()))
     }
@@ -2806,7 +2792,7 @@
     /// raw.shrink_to_fit();
     /// assert_eq!(string, raw);
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>shrink_to_fit(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.<span class="number">0</span>.shrink_to_fit();
     }
@@ -2828,7 +2814,7 @@
     /// ```
     ///
     /// [valid boundary]: RawOsStr#indices
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     #[track_caller]
     </span><span class="kw">pub fn </span>split_off(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: usize) -&gt; <span class="self">Self </span>{
@@ -2854,7 +2840,7 @@
     /// ```
     ///
     /// [valid boundary]: RawOsStr#indices
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[track_caller]
     </span><span class="kw">pub fn </span>truncate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_len: usize) {
         <span class="self">self</span>.check_bound(new_len);
@@ -2864,14 +2850,14 @@
 }
 
 <span class="kw">impl </span>AsRef&lt;RawOsStr&gt; <span class="kw">for </span>RawOsString {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawOsStr {
         <span class="self">self
     </span>}
 }
 
 <span class="kw">impl </span>Borrow&lt;RawOsStr&gt; <span class="kw">for </span>RawOsString {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawOsStr {
         <span class="self">self
     </span>}
@@ -2880,35 +2866,35 @@
 <span class="kw">impl </span>Deref <span class="kw">for </span>RawOsString {
     <span class="kw">type </span>Target = RawOsStr;
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
         RawOsStr::from_inner(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
 <span class="kw">impl </span>From&lt;RawOsString&gt; <span class="kw">for </span>Box&lt;RawOsStr&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(value: RawOsString) -&gt; <span class="self">Self </span>{
         value.into_box()
     }
 }
 
 <span class="kw">impl </span>From&lt;Box&lt;RawOsStr&gt;&gt; <span class="kw">for </span>RawOsString {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(value: Box&lt;RawOsStr&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(value.transmute_box::&lt;[<span class="kw">_</span>]&gt;().into_vec())
     }
 }
 
 <span class="kw">impl </span>From&lt;RawOsString&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, RawOsStr&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(value: RawOsString) -&gt; <span class="self">Self </span>{
         Cow::Owned(value)
     }
 }
 
 <span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>RawOsString {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(value: String) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_string(value)
     }
@@ -2959,7 +2945,7 @@
 <span class="macro">macro_rules! </span>r#impl {
     ( <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty </span>) =&gt; {
         <span class="kw">impl </span>Debug <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type </span>{
-            <span class="attribute">#[<span class="macro-nonterminal">inline</span>]
+            <span class="attr">#[<span class="macro-nonterminal">inline</span>]
             </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
                 f.debug_tuple(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="kw">type</span>))
                     .<span class="macro-nonterminal">field</span>(<span class="kw-2">&amp;</span>DebugBuffer(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>))
@@ -2976,7 +2962,7 @@
         <span class="kw">impl </span>Index&lt;<span class="macro-nonterminal">$index_type</span>&gt; <span class="kw">for </span>RawOsStr {
             <span class="kw">type </span>Output = <span class="self">Self</span>;
 
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: <span class="macro-nonterminal">$index_type</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
                 $(
                     <span class="kw">let </span><span class="macro-nonterminal">$index_var </span>= <span class="kw-2">&amp;</span>idx;
@@ -2990,7 +2976,7 @@
         <span class="kw">impl </span>Index&lt;<span class="macro-nonterminal">$index_type</span>&gt; <span class="kw">for </span>RawOsString {
             <span class="kw">type </span>Output = RawOsStr;
 
-            <span class="attribute">#[allow(clippy::indexing_slicing)]
+            <span class="attr">#[allow(clippy::indexing_slicing)]
             #[inline]
             </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: <span class="macro-nonterminal">$index_type</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
                 <span class="kw-2">&amp;</span>(<span class="kw-2">**</span><span class="self">self</span>)[idx]
@@ -3002,7 +2988,7 @@
 <span class="macro">r#impl!</span>(RangeFrom&lt;usize&gt;, x, x.start);
 <span class="macro">r#impl!</span>(RangeFull);
 <span class="comment">// [usize::MAX] will always be a valid inclusive end index.
-</span><span class="attribute">#[rustfmt::skip]
+</span><span class="attr">#[rustfmt::skip]
 </span><span class="macro">r#impl!</span>(RangeInclusive&lt;usize&gt;, x, <span class="kw-2">*</span>x.start(), x.end().wrapping_add(<span class="number">1</span>));
 <span class="macro">r#impl!</span>(RangeTo&lt;usize&gt;, x, x.end);
 <span class="macro">r#impl!</span>(RangeToInclusive&lt;usize&gt;, x, x.end.wrapping_add(<span class="number">1</span>));
@@ -3010,7 +2996,7 @@
 <span class="macro">macro_rules! </span>r#impl {
     ( <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty </span>, <span class="macro-nonterminal">$other_type</span>:ty ) =&gt; {
         <span class="kw">impl </span>PartialEq&lt;<span class="macro-nonterminal">$other_type</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type </span>{
-            <span class="attribute">#[<span class="macro-nonterminal">inline</span>]
+            <span class="attr">#[<span class="macro-nonterminal">inline</span>]
             </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$other_type</span>) -&gt; bool {
                 <span class="kw">let </span>raw: <span class="kw-2">&amp;</span>RawOsStr = <span class="self">self</span>;
                 <span class="kw">let </span>other: <span class="kw-2">&amp;</span>RawOsStr = other.as_ref();
@@ -3019,7 +3005,7 @@
         }
 
         <span class="kw">impl </span>PartialEq&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$other_type </span>{
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="kw">type</span>) -&gt; <span class="macro-nonterminal">bool </span>{
                 other == <span class="self">self
             </span>}
@@ -3035,27 +3021,27 @@
 <span class="macro">r#impl!</span>(RawOsString, <span class="kw-2">&amp;</span>str);
 <span class="macro">r#impl!</span>(RawOsString, String);
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;print_bytes&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;print_bytes&quot;</span>)]
 #[cfg_attr(os_str_bytes_docs_rs, doc(cfg(feature = <span class="string">&quot;print_bytes&quot;</span>)))]
 </span><span class="kw">mod </span>print_bytes {
     <span class="kw">use </span>print_bytes::ByteStr;
     <span class="kw">use </span>print_bytes::ToBytes;
-    <span class="attribute">#[cfg(windows)]
+    <span class="attr">#[cfg(windows)]
     </span><span class="kw">use </span>print_bytes::WideStr;
 
-    <span class="attribute">#[cfg(windows)]
+    <span class="attr">#[cfg(windows)]
     </span><span class="kw">use </span><span class="kw">crate</span>::imp::raw;
 
     <span class="kw">use </span><span class="kw">super</span>::RawOsStr;
     <span class="kw">use </span><span class="kw">super</span>::RawOsString;
 
     <span class="kw">impl </span>ToBytes <span class="kw">for </span>RawOsStr {
-        <span class="attribute">#[inline]
+        <span class="attr">#[inline]
         </span><span class="kw">fn </span>to_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ByteStr&lt;<span class="lifetime">&#39;_</span>&gt; {
             <span class="self">self</span>.<span class="number">0</span>.to_bytes()
         }
 
-        <span class="attribute">#[cfg(windows)]
+        <span class="attr">#[cfg(windows)]
         #[inline]
         </span><span class="kw">fn </span>to_wide(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;WideStr&gt; {
             <span class="prelude-val">Some</span>(WideStr::new(raw::encode_wide_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>).collect()))
@@ -3063,12 +3049,12 @@
     }
 
     <span class="kw">impl </span>ToBytes <span class="kw">for </span>RawOsString {
-        <span class="attribute">#[inline]
+        <span class="attr">#[inline]
         </span><span class="kw">fn </span>to_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ByteStr&lt;<span class="lifetime">&#39;_</span>&gt; {
             (<span class="kw-2">**</span><span class="self">self</span>).to_bytes()
         }
 
-        <span class="attribute">#[cfg(windows)]
+        <span class="attr">#[cfg(windows)]
         #[inline]
         </span><span class="kw">fn </span>to_wide(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;WideStr&gt; {
             (<span class="kw-2">**</span><span class="self">self</span>).to_wide()
@@ -3076,7 +3062,7 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;uniquote&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;uniquote&quot;</span>)]
 #[cfg_attr(os_str_bytes_docs_rs, doc(cfg(feature = <span class="string">&quot;uniquote&quot;</span>)))]
 </span><span class="kw">mod </span>uniquote {
     <span class="kw">use </span>uniquote::Formatter;
@@ -3089,18 +3075,18 @@
     <span class="kw">use </span><span class="kw">super</span>::RawOsString;
 
     <span class="kw">impl </span>Quote <span class="kw">for </span>RawOsStr {
-        <span class="attribute">#[inline]
+        <span class="attr">#[inline]
         </span><span class="kw">fn </span>escape(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result </span>{
             raw::uniquote::escape(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, f)
         }
     }
 
     <span class="kw">impl </span>Quote <span class="kw">for </span>RawOsString {
-        <span class="attribute">#[inline]
+        <span class="attr">#[inline]
         </span><span class="kw">fn </span>escape(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result </span>{
             (<span class="kw-2">**</span><span class="self">self</span>).escape(f)
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="os_str_bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="os_str_bytes" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

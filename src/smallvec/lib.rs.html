@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/smallvec-1.10.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../smallvec/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../smallvec/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../smallvec/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/smallvec-1.10.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../smallvec/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -2208,7 +2208,7 @@
 //!
 //! Tracking issue: [rust-lang/rust#34761](https://github.com/rust-lang/rust/issues/34761)
 
-</span><span class="attribute">#![no_std]
+</span><span class="attr">#![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(feature = <span class="string">&quot;specialization&quot;</span>, allow(incomplete_features))]
 #![cfg_attr(feature = <span class="string">&quot;specialization&quot;</span>, feature(specialization))]
@@ -2223,13 +2223,13 @@
 #[doc(hidden)]
 </span><span class="kw">pub extern crate </span>alloc;
 
-<span class="attribute">#[cfg(any(test, feature = <span class="string">&quot;write&quot;</span>))]
+<span class="attr">#[cfg(any(test, feature = <span class="string">&quot;write&quot;</span>))]
 </span><span class="kw">extern crate </span>std;
 
-<span class="attribute">#[cfg(test)]
+<span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
-<span class="attribute">#[allow(deprecated)]
+<span class="attr">#[allow(deprecated)]
 </span><span class="kw">use </span>alloc::alloc::{Layout, LayoutErr};
 <span class="kw">use </span>alloc::boxed::Box;
 <span class="kw">use </span>alloc::{vec, vec::Vec};
@@ -2245,16 +2245,16 @@
 <span class="kw">use </span>core::ptr::{<span class="self">self</span>, NonNull};
 <span class="kw">use </span>core::slice::{<span class="self">self</span>, SliceIndex};
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
 </span><span class="kw">use </span>serde::{
     de::{Deserialize, Deserializer, SeqAccess, Visitor},
     ser::{Serialize, SerializeSeq, Serializer},
 };
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
 </span><span class="kw">use </span>core::marker::PhantomData;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;write&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;write&quot;</span>)]
 </span><span class="kw">use </span>std::io;
 
 <span class="doccomment">/// Creates a [`SmallVec`] containing the arguments.
@@ -2296,7 +2296,7 @@
 /// to the same boxed integer value, not five references pointing to independently
 /// boxed integers.
 
-</span><span class="attribute">#[macro_export]
+</span><span class="attr">#[macro_export]
 </span><span class="macro">macro_rules! </span>smallvec {
     <span class="comment">// count helper: transform any expression into 1
     </span>(@one <span class="macro-nonterminal">$x</span>:expr) =&gt; (<span class="number">1usize</span>);
@@ -2305,7 +2305,7 @@
     });
     ($(<span class="macro-nonterminal">$x</span>:expr),<span class="kw-2">*</span>$(,)<span class="kw-2">*</span>) =&gt; ({
         <span class="kw">let </span>count = <span class="number">0usize </span>$(+ <span class="macro-nonterminal">$</span><span class="macro">crate::smallvec!</span>(@<span class="macro-nonterminal">one $x</span>))<span class="kw-2">*</span>;
-        <span class="attribute">#[allow(unused_mut)]
+        <span class="attr">#[allow(unused_mut)]
         </span><span class="kw">let </span><span class="kw-2">mut </span>vec = <span class="macro-nonterminal">$crate::SmallVec::new</span>();
         <span class="kw">if </span>count &lt;= vec.inline_size() {
             $(vec.push(<span class="macro-nonterminal">$x</span>);)*
@@ -2347,7 +2347,7 @@
 /// ```
 ///
 /// Note that the behavior mimics that of array expressions, in contrast to [`smallvec`].
-</span><span class="attribute">#[cfg(feature = <span class="string">&quot;const_new&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;const_new&quot;</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;const_new&quot;</span>)))]
 #[macro_export]
 </span><span class="macro">macro_rules! </span>smallvec_inline {
@@ -2363,7 +2363,7 @@
 }
 
 <span class="doccomment">/// `panic!()` in debug builds, optimization hint in release.
-</span><span class="attribute">#[cfg(not(feature = <span class="string">&quot;union&quot;</span>))]
+</span><span class="attr">#[cfg(not(feature = <span class="string">&quot;union&quot;</span>))]
 </span><span class="macro">macro_rules! </span>debug_unreachable {
     () =&gt; {
         <span class="macro">debug_unreachable!</span>(<span class="string">&quot;entered unreachable code&quot;</span>)
@@ -2396,14 +2396,14 @@
 /// initialize(&amp;mut small_vec);
 /// assert_eq!(&amp;small_vec as &amp;[_], b&quot;Test!&quot;);
 /// ```
-</span><span class="attribute">#[doc(hidden)]
+</span><span class="attr">#[doc(hidden)]
 #[deprecated]
 </span><span class="kw">pub trait </span>ExtendFromSlice&lt;T&gt; {
     <span class="doccomment">/// Extends a collection from a slice of its element type
     </span><span class="kw">fn </span>extend_from_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>[T]);
 }
 
-<span class="attribute">#[allow(deprecated)]
+<span class="attr">#[allow(deprecated)]
 </span><span class="kw">impl</span>&lt;T: Clone&gt; ExtendFromSlice&lt;T&gt; <span class="kw">for </span>Vec&lt;T&gt; {
     <span class="kw">fn </span>extend_from_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>[T]) {
         Vec::extend_from_slice(<span class="self">self</span>, other)
@@ -2411,7 +2411,7 @@
 }
 
 <span class="doccomment">/// Error type for APIs with fallible heap allocation
-</span><span class="attribute">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>CollectionAllocErr {
     <span class="doccomment">/// Overflow `usize::MAX` or other error during size computation
     </span>CapacityOverflow,
@@ -2428,7 +2428,7 @@
     }
 }
 
-<span class="attribute">#[allow(deprecated)]
+<span class="attr">#[allow(deprecated)]
 </span><span class="kw">impl </span>From&lt;LayoutErr&gt; <span class="kw">for </span>CollectionAllocErr {
     <span class="kw">fn </span>from(<span class="kw">_</span>: LayoutErr) -&gt; <span class="self">Self </span>{
         CollectionAllocErr::CapacityOverflow
@@ -2486,21 +2486,21 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;a </span>+ Array&gt; Iterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">type </span>Item = T::Item;
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T::Item&gt; {
         <span class="self">self</span>.iter
             .next()
             .map(|reference| <span class="kw">unsafe </span>{ ptr::read(reference) })
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
         <span class="self">self</span>.iter.size_hint()
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;a </span>+ Array&gt; DoubleEndedIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T::Item&gt; {
         <span class="self">self</span>.iter
             .next_back()
@@ -2509,7 +2509,7 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Array&gt; ExactSizeIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.iter.len()
     }
@@ -2542,15 +2542,15 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;union&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;union&quot;</span>)]
 </span><span class="kw">union </span>SmallVecData&lt;A: Array&gt; {
     inline: core::mem::ManuallyDrop&lt;MaybeUninit&lt;A&gt;&gt;,
     heap: (<span class="kw-2">*mut </span>A::Item, usize),
 }
 
-<span class="attribute">#[cfg(all(feature = <span class="string">&quot;union&quot;</span>, feature = <span class="string">&quot;const_new&quot;</span>))]
+<span class="attr">#[cfg(all(feature = <span class="string">&quot;union&quot;</span>, feature = <span class="string">&quot;const_new&quot;</span>))]
 </span><span class="kw">impl</span>&lt;T, <span class="kw">const </span>N: usize&gt; SmallVecData&lt;[T; N]&gt; {
-    <span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;const_new&quot;</span>)))]
+    <span class="attr">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;const_new&quot;</span>)))]
     #[inline]
     </span><span class="kw">const fn </span>from_const(inline: MaybeUninit&lt;[T; N]&gt;) -&gt; <span class="self">Self </span>{
         SmallVecData {
@@ -2559,97 +2559,97 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;union&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;union&quot;</span>)]
 </span><span class="kw">impl</span>&lt;A: Array&gt; SmallVecData&lt;A&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>inline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>A::Item {
         <span class="self">self</span>.inline.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>A::Item
     }
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>inline_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>A::Item {
         <span class="self">self</span>.inline.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>A::Item
     }
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>from_inline(inline: MaybeUninit&lt;A&gt;) -&gt; SmallVecData&lt;A&gt; {
         SmallVecData {
             inline: core::mem::ManuallyDrop::new(inline),
         }
     }
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>into_inline(<span class="self">self</span>) -&gt; MaybeUninit&lt;A&gt; {
         core::mem::ManuallyDrop::into_inner(<span class="self">self</span>.inline)
     }
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>heap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">*mut </span>A::Item, usize) {
         <span class="self">self</span>.heap
     }
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>heap_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>(<span class="kw-2">*mut </span>A::Item, usize) {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.heap
     }
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>from_heap(ptr: <span class="kw-2">*mut </span>A::Item, len: usize) -&gt; SmallVecData&lt;A&gt; {
         SmallVecData { heap: (ptr, len) }
     }
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;union&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;union&quot;</span>))]
 </span><span class="kw">enum </span>SmallVecData&lt;A: Array&gt; {
     Inline(MaybeUninit&lt;A&gt;),
     Heap((<span class="kw-2">*mut </span>A::Item, usize)),
 }
 
-<span class="attribute">#[cfg(all(not(feature = <span class="string">&quot;union&quot;</span>), feature = <span class="string">&quot;const_new&quot;</span>))]
+<span class="attr">#[cfg(all(not(feature = <span class="string">&quot;union&quot;</span>), feature = <span class="string">&quot;const_new&quot;</span>))]
 </span><span class="kw">impl</span>&lt;T, <span class="kw">const </span>N: usize&gt; SmallVecData&lt;[T; N]&gt; {
-    <span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;const_new&quot;</span>)))]
+    <span class="attr">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;const_new&quot;</span>)))]
     #[inline]
     </span><span class="kw">const fn </span>from_const(inline: MaybeUninit&lt;[T; N]&gt;) -&gt; <span class="self">Self </span>{
         SmallVecData::Inline(inline)
     }
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;union&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;union&quot;</span>))]
 </span><span class="kw">impl</span>&lt;A: Array&gt; SmallVecData&lt;A&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>inline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>A::Item {
         <span class="kw">match </span><span class="self">self </span>{
             SmallVecData::Inline(a) =&gt; a.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>A::Item,
             <span class="kw">_ </span>=&gt; <span class="macro">debug_unreachable!</span>(),
         }
     }
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>inline_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>A::Item {
         <span class="kw">match </span><span class="self">self </span>{
             SmallVecData::Inline(a) =&gt; a.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>A::Item,
             <span class="kw">_ </span>=&gt; <span class="macro">debug_unreachable!</span>(),
         }
     }
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>from_inline(inline: MaybeUninit&lt;A&gt;) -&gt; SmallVecData&lt;A&gt; {
         SmallVecData::Inline(inline)
     }
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>into_inline(<span class="self">self</span>) -&gt; MaybeUninit&lt;A&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             SmallVecData::Inline(a) =&gt; a,
             <span class="kw">_ </span>=&gt; <span class="macro">debug_unreachable!</span>(),
         }
     }
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>heap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">*mut </span>A::Item, usize) {
         <span class="kw">match </span><span class="self">self </span>{
             SmallVecData::Heap(data) =&gt; <span class="kw-2">*</span>data,
             <span class="kw">_ </span>=&gt; <span class="macro">debug_unreachable!</span>(),
         }
     }
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>heap_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>(<span class="kw-2">*mut </span>A::Item, usize) {
         <span class="kw">match </span><span class="self">self </span>{
             SmallVecData::Heap(data) =&gt; data,
             <span class="kw">_ </span>=&gt; <span class="macro">debug_unreachable!</span>(),
         }
     }
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>from_heap(ptr: <span class="kw-2">*mut </span>A::Item, len: usize) -&gt; SmallVecData&lt;A&gt; {
         SmallVecData::Heap((ptr, len))
     }
@@ -2694,7 +2694,7 @@
 
 <span class="kw">impl</span>&lt;A: Array&gt; SmallVec&lt;A&gt; {
     <span class="doccomment">/// Construct an empty vector
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>new() -&gt; SmallVec&lt;A&gt; {
         <span class="comment">// Try to detect invalid custom implementations of `Array`. Hopefully,
         // this check should be optimized away entirely for valid ones.
@@ -2721,7 +2721,7 @@
     /// assert!(v.is_empty());
     /// assert!(v.capacity() &gt;= 100);
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>with_capacity(n: usize) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>v = SmallVec::new();
         v.reserve_exact(n);
@@ -2740,7 +2740,7 @@
     ///
     /// assert_eq!(&amp;*small_vec, &amp;[1, 2, 3, 4, 5]);
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_vec(<span class="kw-2">mut </span>vec: Vec&lt;A::Item&gt;) -&gt; SmallVec&lt;A&gt; {
         <span class="kw">if </span>vec.capacity() &lt;= <span class="self">Self</span>::inline_capacity() {
             <span class="kw">unsafe </span>{
@@ -2776,7 +2776,7 @@
     ///
     /// assert_eq!(&amp;*small_vec, &amp;[1, 2, 3, 4, 5]);
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_buf(buf: A) -&gt; SmallVec&lt;A&gt; {
         SmallVec {
             capacity: A::size(),
@@ -2796,7 +2796,7 @@
     ///
     /// assert_eq!(&amp;*small_vec, &amp;[1, 2, 3, 4, 5]);
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_buf_and_len(buf: A, len: usize) -&gt; SmallVec&lt;A&gt; {
         <span class="macro">assert!</span>(len &lt;= A::size());
         <span class="kw">unsafe </span>{ SmallVec::from_buf_and_len_unchecked(MaybeUninit::new(buf), len) }
@@ -2817,7 +2817,7 @@
     ///
     /// assert_eq!(&amp;*small_vec, &amp;[1, 2, 3, 4, 5]);
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub unsafe fn </span>from_buf_and_len_unchecked(buf: MaybeUninit&lt;A&gt;, len: usize) -&gt; SmallVec&lt;A&gt; {
         SmallVec {
             capacity: len,
@@ -2836,7 +2836,7 @@
     }
 
     <span class="doccomment">/// The maximum number of elements this vector can hold inline
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>inline_capacity() -&gt; usize {
         <span class="kw">if </span>mem::size_of::&lt;A::Item&gt;() &gt; <span class="number">0 </span>{
             A::size()
@@ -2856,32 +2856,32 @@
     }
 
     <span class="doccomment">/// The maximum number of elements this vector can hold inline
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>inline_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">Self</span>::inline_capacity()
     }
 
     <span class="doccomment">/// The number of elements stored in the vector
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.triple().<span class="number">1
     </span>}
 
     <span class="doccomment">/// Returns `true` if the vector is empty
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.len() == <span class="number">0
     </span>}
 
     <span class="doccomment">/// The number of items the vector can hold without reallocating
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.triple().<span class="number">2
     </span>}
 
     <span class="doccomment">/// Returns a tuple with (data ptr, len, capacity)
     /// Useful to get all SmallVec properties with a single check of the current storage variant.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>triple(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">*const </span>A::Item, usize, usize) {
         <span class="kw">unsafe </span>{
             <span class="kw">if </span><span class="self">self</span>.spilled() {
@@ -2894,7 +2894,7 @@
     }
 
     <span class="doccomment">/// Returns a tuple with (data ptr, len ptr, capacity)
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>triple_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; (<span class="kw-2">*mut </span>A::Item, <span class="kw-2">&amp;mut </span>usize, usize) {
         <span class="kw">unsafe </span>{
             <span class="kw">if </span><span class="self">self</span>.spilled() {
@@ -2911,7 +2911,7 @@
     }
 
     <span class="doccomment">/// Returns `true` if the data has spilled into a separate heap-allocated buffer.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>spilled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.capacity &gt; <span class="self">Self</span>::inline_capacity()
     }
@@ -2966,7 +2966,7 @@
     }
 
     <span class="doccomment">/// Append an item to the vector.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: A::Item) {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>(<span class="kw-2">mut </span>ptr, <span class="kw-2">mut </span>len, cap) = <span class="self">self</span>.triple_mut();
@@ -2982,7 +2982,7 @@
     }
 
     <span class="doccomment">/// Remove an item from the end of the vector and return it, or None if empty.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;A::Item&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>(ptr, len_ptr, <span class="kw">_</span>) = <span class="self">self</span>.triple_mut();
@@ -3071,7 +3071,7 @@
     /// May reserve more space to avoid frequent reallocations.
     ///
     /// Panics if the capacity computation overflows `usize`.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: usize) {
         infallible(<span class="self">self</span>.try_reserve(additional))
     }
@@ -3172,7 +3172,7 @@
     /// This does not preserve ordering, but is O(1).
     ///
     /// Panics if `index` is out of bounds.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>swap_remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize) -&gt; A::Item {
         <span class="kw">let </span>len = <span class="self">self</span>.len();
         <span class="self">self</span>.swap(len - <span class="number">1</span>, index);
@@ -3181,7 +3181,7 @@
     }
 
     <span class="doccomment">/// Remove all elements from the vector.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.truncate(<span class="number">0</span>);
     }
@@ -3537,7 +3537,7 @@
     ///         assert_eq!(&amp;*rebuilt, &amp;[4, 5, 6]);
     ///     }
     /// }
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub unsafe fn </span>from_raw_parts(ptr: <span class="kw-2">*mut </span>A::Item, length: usize, capacity: usize) -&gt; SmallVec&lt;A&gt; {
         <span class="macro">assert!</span>(capacity &gt; <span class="self">Self</span>::inline_capacity());
         SmallVec {
@@ -3618,7 +3618,7 @@
     <span class="doccomment">/// Copy elements from a slice and append them to the vector.
     ///
     /// For slices of `Copy` types, this is more efficient than `extend`.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>extend_from_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, slice: <span class="kw-2">&amp;</span>[A::Item]) {
         <span class="kw">let </span>len = <span class="self">self</span>.len();
         <span class="self">self</span>.insert_from_slice(len, slice);
@@ -3673,7 +3673,7 @@
 
 <span class="kw">impl</span>&lt;A: Array&gt; ops::Deref <span class="kw">for </span>SmallVec&lt;A&gt; {
     <span class="kw">type </span>Target = [A::Item];
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[A::Item] {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>(ptr, len, <span class="kw">_</span>) = <span class="self">self</span>.triple();
@@ -3683,7 +3683,7 @@
 }
 
 <span class="kw">impl</span>&lt;A: Array&gt; ops::DerefMut <span class="kw">for </span>SmallVec&lt;A&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[A::Item] {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>(ptr, <span class="kw-2">&amp;mut </span>len, <span class="kw">_</span>) = <span class="self">self</span>.triple_mut();
@@ -3693,55 +3693,55 @@
 }
 
 <span class="kw">impl</span>&lt;A: Array&gt; AsRef&lt;[A::Item]&gt; <span class="kw">for </span>SmallVec&lt;A&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[A::Item] {
         <span class="self">self
     </span>}
 }
 
 <span class="kw">impl</span>&lt;A: Array&gt; AsMut&lt;[A::Item]&gt; <span class="kw">for </span>SmallVec&lt;A&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[A::Item] {
         <span class="self">self
     </span>}
 }
 
 <span class="kw">impl</span>&lt;A: Array&gt; Borrow&lt;[A::Item]&gt; <span class="kw">for </span>SmallVec&lt;A&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[A::Item] {
         <span class="self">self
     </span>}
 }
 
 <span class="kw">impl</span>&lt;A: Array&gt; BorrowMut&lt;[A::Item]&gt; <span class="kw">for </span>SmallVec&lt;A&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>borrow_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[A::Item] {
         <span class="self">self
     </span>}
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;write&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;write&quot;</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;write&quot;</span>)))]
 </span><span class="kw">impl</span>&lt;A: Array&lt;Item = u8&gt;&gt; io::Write <span class="kw">for </span>SmallVec&lt;A&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="self">self</span>.extend_from_slice(buf);
         <span class="prelude-val">Ok</span>(buf.len())
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>write_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;()&gt; {
         <span class="self">self</span>.extend_from_slice(buf);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;serde&quot;</span>)))]
 </span><span class="kw">impl</span>&lt;A: Array&gt; Serialize <span class="kw">for </span>SmallVec&lt;A&gt;
 <span class="kw">where
@@ -3756,7 +3756,7 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;serde&quot;</span>)))]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, A: Array&gt; Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>SmallVec&lt;A&gt;
 <span class="kw">where
@@ -3769,12 +3769,12 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
 </span><span class="kw">struct </span>SmallVecVisitor&lt;A&gt; {
     phantom: PhantomData&lt;A&gt;,
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, A: Array&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>SmallVecVisitor&lt;A&gt;
 <span class="kw">where
     </span>A::Item: Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -3802,23 +3802,23 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;specialization&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;specialization&quot;</span>)]
 </span><span class="kw">trait </span>SpecFrom&lt;A: Array, S&gt; {
     <span class="kw">fn </span>spec_from(slice: S) -&gt; SmallVec&lt;A&gt;;
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;specialization&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;specialization&quot;</span>)]
 </span><span class="kw">mod </span>specialization;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary&quot;</span>)]
 </span><span class="kw">mod </span>arbitrary;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;specialization&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;specialization&quot;</span>)]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, A: Array&gt; SpecFrom&lt;A, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[A::Item]&gt; <span class="kw">for </span>SmallVec&lt;A&gt;
 <span class="kw">where
     </span>A::Item: Copy,
 {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>spec_from(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[A::Item]) -&gt; SmallVec&lt;A&gt; {
         SmallVec::from_slice(slice)
     }
@@ -3828,13 +3828,13 @@
 <span class="kw">where
     </span>A::Item: Clone,
 {
-    <span class="attribute">#[cfg(not(feature = <span class="string">&quot;specialization&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">&quot;specialization&quot;</span>))]
     #[inline]
     </span><span class="kw">fn </span>from(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[A::Item]) -&gt; SmallVec&lt;A&gt; {
         slice.iter().cloned().collect()
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;specialization&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;specialization&quot;</span>)]
     #[inline]
     </span><span class="kw">fn </span>from(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[A::Item]) -&gt; SmallVec&lt;A&gt; {
         SmallVec::spec_from(slice)
@@ -3842,14 +3842,14 @@
 }
 
 <span class="kw">impl</span>&lt;A: Array&gt; From&lt;Vec&lt;A::Item&gt;&gt; <span class="kw">for </span>SmallVec&lt;A&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(vec: Vec&lt;A::Item&gt;) -&gt; SmallVec&lt;A&gt; {
         SmallVec::from_vec(vec)
     }
 }
 
 <span class="kw">impl</span>&lt;A: Array&gt; From&lt;A&gt; <span class="kw">for </span>SmallVec&lt;A&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(array: A) -&gt; SmallVec&lt;A&gt; {
         SmallVec::from_buf(array)
     }
@@ -3869,7 +3869,7 @@
     }
 }
 
-<span class="attribute">#[allow(deprecated)]
+<span class="attr">#[allow(deprecated)]
 </span><span class="kw">impl</span>&lt;A: Array&gt; ExtendFromSlice&lt;A::Item&gt; <span class="kw">for </span>SmallVec&lt;A&gt;
 <span class="kw">where
     </span>A::Item: Copy,
@@ -3880,7 +3880,7 @@
 }
 
 <span class="kw">impl</span>&lt;A: Array&gt; FromIterator&lt;A::Item&gt; <span class="kw">for </span>SmallVec&lt;A&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>from_iter&lt;I: IntoIterator&lt;Item = A::Item&gt;&gt;(iterable: I) -&gt; SmallVec&lt;A&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>v = SmallVec::new();
         v.extend(iterable);
@@ -3923,14 +3923,14 @@
 }
 
 <span class="kw">impl</span>&lt;A: Array&gt; Default <span class="kw">for </span>SmallVec&lt;A&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>default() -&gt; SmallVec&lt;A&gt; {
         SmallVec::new()
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;may_dangle&quot;</span>)]
-</span><span class="kw">unsafe impl</span>&lt;<span class="attribute">#[may_dangle] </span>A: Array&gt; Drop <span class="kw">for </span>SmallVec&lt;A&gt; {
+<span class="attr">#[cfg(feature = <span class="string">&quot;may_dangle&quot;</span>)]
+</span><span class="kw">unsafe impl</span>&lt;<span class="attr">#[may_dangle] </span>A: Array&gt; Drop <span class="kw">for </span>SmallVec&lt;A&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
             <span class="kw">if </span><span class="self">self</span>.spilled() {
@@ -3943,7 +3943,7 @@
     }
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;may_dangle&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;may_dangle&quot;</span>))]
 </span><span class="kw">impl</span>&lt;A: Array&gt; Drop <span class="kw">for </span>SmallVec&lt;A&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
@@ -3961,7 +3961,7 @@
 <span class="kw">where
     </span>A::Item: Clone,
 {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SmallVec&lt;A&gt; {
         SmallVec::from(<span class="self">self</span>.as_slice())
     }
@@ -3986,7 +3986,7 @@
 <span class="kw">where
     </span>A::Item: PartialEq&lt;B::Item&gt;,
 {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>SmallVec&lt;B&gt;) -&gt; bool {
         <span class="self">self</span>[..] == other[..]
     }
@@ -3998,7 +3998,7 @@
 <span class="kw">where
     </span>A::Item: PartialOrd,
 {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>SmallVec&lt;A&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;cmp::Ordering&gt; {
         PartialOrd::partial_cmp(<span class="kw-2">&amp;**</span><span class="self">self</span>, <span class="kw-2">&amp;**</span>other)
     }
@@ -4008,7 +4008,7 @@
 <span class="kw">where
     </span>A::Item: Ord,
 {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>SmallVec&lt;A&gt;) -&gt; cmp::Ordering {
         Ord::cmp(<span class="kw-2">&amp;**</span><span class="self">self</span>, <span class="kw-2">&amp;**</span>other)
     }
@@ -4063,7 +4063,7 @@
 <span class="kw">impl</span>&lt;A: Array&gt; Iterator <span class="kw">for </span>IntoIter&lt;A&gt; {
     <span class="kw">type </span>Item = A::Item;
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;A::Item&gt; {
         <span class="kw">if </span><span class="self">self</span>.current == <span class="self">self</span>.end {
             <span class="prelude-val">None
@@ -4076,7 +4076,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
         <span class="kw">let </span>size = <span class="self">self</span>.end - <span class="self">self</span>.current;
         (size, <span class="prelude-val">Some</span>(size))
@@ -4084,7 +4084,7 @@
 }
 
 <span class="kw">impl</span>&lt;A: Array&gt; DoubleEndedIterator <span class="kw">for </span>IntoIter&lt;A&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;A::Item&gt; {
         <span class="kw">if </span><span class="self">self</span>.current == <span class="self">self</span>.end {
             <span class="prelude-val">None
@@ -4164,7 +4164,7 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; SetLenOnDrop&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>new(len: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>usize) -&gt; <span class="self">Self </span>{
         SetLenOnDrop {
             local_len: <span class="kw-2">*</span>len,
@@ -4172,30 +4172,30 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.local_len
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>increment_len(<span class="kw-2">&amp;mut </span><span class="self">self</span>, increment: usize) {
         <span class="self">self</span>.local_len += increment;
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Drop <span class="kw">for </span>SetLenOnDrop&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw-2">*</span><span class="self">self</span>.len = <span class="self">self</span>.local_len;
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;const_new&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;const_new&quot;</span>)]
 </span><span class="kw">impl</span>&lt;T, <span class="kw">const </span>N: usize&gt; SmallVec&lt;[T; N]&gt; {
     <span class="doccomment">/// Construct an empty vector.
     ///
     /// This is a `const` version of [`SmallVec::new`] that is enabled by the feature `const_new`, with the limitation that it only works for arrays.
-    </span><span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;const_new&quot;</span>)))]
+    </span><span class="attr">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;const_new&quot;</span>)))]
     #[inline]
     </span><span class="kw">pub const fn </span>new_const() -&gt; <span class="self">Self </span>{
         SmallVec {
@@ -4207,7 +4207,7 @@
     <span class="doccomment">/// The array passed as an argument is moved to be an inline version of `SmallVec`.
     ///
     /// This is a `const` version of [`SmallVec::from_buf`] that is enabled by the feature `const_new`, with the limitation that it only works for arrays.
-    </span><span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;const_new&quot;</span>)))]
+    </span><span class="attr">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;const_new&quot;</span>)))]
     #[inline]
     </span><span class="kw">pub const fn </span>from_const(items: [T; N]) -&gt; <span class="self">Self </span>{
         SmallVec {
@@ -4217,30 +4217,30 @@
     }
 }
 
-<span class="attribute">#[cfg(all(feature = <span class="string">&quot;const_generics&quot;</span>, not(doc)))]
+<span class="attr">#[cfg(all(feature = <span class="string">&quot;const_generics&quot;</span>, not(doc)))]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;const_generics&quot;</span>)))]
 </span><span class="kw">unsafe impl</span>&lt;T, <span class="kw">const </span>N: usize&gt; Array <span class="kw">for </span>[T; N] {
     <span class="kw">type </span>Item = T;
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>size() -&gt; usize {
         N
     }
 }
 
-<span class="attribute">#[cfg(any(not(feature = <span class="string">&quot;const_generics&quot;</span>), doc))]
+<span class="attr">#[cfg(any(not(feature = <span class="string">&quot;const_generics&quot;</span>), doc))]
 </span><span class="macro">macro_rules! </span>impl_array(
     ($(<span class="macro-nonterminal">$size</span>:expr),+) =&gt; {
         $(
             <span class="kw">unsafe impl</span>&lt;T&gt; Array <span class="kw">for </span>[T; <span class="macro-nonterminal">$size</span>] {
                 <span class="kw">type </span>Item = T;
-                <span class="attribute">#[inline]
+                <span class="attr">#[inline]
                 </span><span class="kw">fn </span>size() -&gt; usize { <span class="macro-nonterminal">$size </span>}
             }
         )+
     }
 );
 
-<span class="attribute">#[cfg(any(not(feature = <span class="string">&quot;const_generics&quot;</span>), doc))]
+<span class="attr">#[cfg(any(not(feature = <span class="string">&quot;const_generics&quot;</span>), doc))]
 </span><span class="macro">impl_array!</span>(
     <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>, <span class="number">11</span>, <span class="number">12</span>, <span class="number">13</span>, <span class="number">14</span>, <span class="number">15</span>, <span class="number">16</span>, <span class="number">17</span>, <span class="number">18</span>, <span class="number">19</span>, <span class="number">20</span>, <span class="number">21</span>, <span class="number">22</span>, <span class="number">23</span>, <span class="number">24</span>, <span class="number">25</span>,
     <span class="number">26</span>, <span class="number">27</span>, <span class="number">28</span>, <span class="number">29</span>, <span class="number">30</span>, <span class="number">31</span>, <span class="number">32</span>, <span class="number">36</span>, <span class="number">0x40</span>, <span class="number">0x60</span>, <span class="number">0x80</span>, <span class="number">0x100</span>, <span class="number">0x200</span>, <span class="number">0x400</span>, <span class="number">0x600</span>, <span class="number">0x800</span>, <span class="number">0x1000</span>,
@@ -4257,10 +4257,10 @@
 <span class="kw">where
     </span>A::Item: Copy,
 {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>to_smallvec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SmallVec&lt;A&gt; {
         SmallVec::from_slice(<span class="self">self</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="smallvec" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="smallvec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

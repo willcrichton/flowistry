@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.145/src/de/value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../serde/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.147/src/de/value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../serde/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1677,6 +1677,41 @@
 <span id="1677">1677</span>
 <span id="1678">1678</span>
 <span id="1679">1679</span>
+<span id="1680">1680</span>
+<span id="1681">1681</span>
+<span id="1682">1682</span>
+<span id="1683">1683</span>
+<span id="1684">1684</span>
+<span id="1685">1685</span>
+<span id="1686">1686</span>
+<span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Building blocks for deserializing basic values using the `IntoDeserializer`
 //! trait.
 //!
@@ -1727,18 +1762,18 @@
 
 </span><span class="doccomment">/// A minimal representation of all possible errors that can occur using the
 /// `IntoDeserializer` trait.
-</span><span class="attribute">#[derive(Clone, PartialEq)]
+</span><span class="attr">#[derive(Clone, PartialEq)]
 </span><span class="kw">pub struct </span>Error {
     err: ErrorImpl,
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">type </span>ErrorImpl = Box&lt;str&gt;;
-<span class="attribute">#[cfg(not(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>)))]
+<span class="attr">#[cfg(not(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>)))]
 </span><span class="kw">type </span>ErrorImpl = ();
 
 <span class="kw">impl </span>de::Error <span class="kw">for </span>Error {
-    <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+    <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
     #[cold]
     </span><span class="kw">fn </span>custom&lt;T&gt;(msg: T) -&gt; <span class="self">Self
     </span><span class="kw">where
@@ -1749,7 +1784,7 @@
         }
     }
 
-    <span class="attribute">#[cfg(not(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>)))]
+    <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>)))]
     #[cold]
     </span><span class="kw">fn </span>custom&lt;T&gt;(msg: T) -&gt; <span class="self">Self
     </span><span class="kw">where
@@ -1761,7 +1796,7 @@
 }
 
 <span class="kw">impl </span>ser::Error <span class="kw">for </span>Error {
-    <span class="attribute">#[cold]
+    <span class="attr">#[cold]
     </span><span class="kw">fn </span>custom&lt;T&gt;(msg: T) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>T: Display,
@@ -1771,12 +1806,12 @@
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>Error {
-    <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+    <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
     </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         formatter.write_str(<span class="kw-2">&amp;</span><span class="self">self</span>.err)
     }
 
-    <span class="attribute">#[cfg(not(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>)))]
+    <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>)))]
     </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         formatter.write_str(<span class="string">&quot;Serde deserialization error&quot;</span>)
     }
@@ -1785,13 +1820,13 @@
 <span class="kw">impl </span>Debug <span class="kw">for </span>Error {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">let </span><span class="kw-2">mut </span>debug = formatter.debug_tuple(<span class="string">&quot;Error&quot;</span>);
-        <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
         </span>debug.field(<span class="kw-2">&amp;</span><span class="self">self</span>.err);
         debug.finish()
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">impl </span>error::Error <span class="kw">for </span>Error {
     <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw-2">&amp;</span><span class="self">self</span>.err
@@ -1819,7 +1854,7 @@
 <span class="macro">impl_copy_clone!</span>(UnitDeserializer);
 
 <span class="kw">impl</span>&lt;E&gt; UnitDeserializer&lt;E&gt; {
-    <span class="attribute">#[allow(missing_docs)]
+    <span class="attr">#[allow(missing_docs)]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         UnitDeserializer {
             marker: PhantomData,
@@ -1863,13 +1898,13 @@
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
 
 </span><span class="doccomment">/// A deserializer that cannot be instantiated.
-</span><span class="attribute">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
 </span><span class="kw">pub struct </span>NeverDeserializer&lt;E&gt; {
     never: !,
     marker: PhantomData&lt;E&gt;,
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, E&gt; IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, E&gt; <span class="kw">for </span>!
 <span class="kw">where
     </span>E: de::Error,
@@ -1881,7 +1916,7 @@
     </span>}
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, E&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>NeverDeserializer&lt;E&gt;
 <span class="kw">where
     </span>E: de::Error,
@@ -1906,7 +1941,7 @@
 
 </span><span class="macro">macro_rules! </span>primitive_deserializer {
     (<span class="macro-nonterminal">$ty</span>:ty, <span class="macro-nonterminal">$doc</span>:tt, <span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$method</span>:ident $(<span class="macro-nonterminal">$cast</span>:tt)<span class="kw-2">*</span>) =&gt; {
-        <span class="attribute">#[doc = <span class="string">&quot;A deserializer holding&quot;</span>]
+        <span class="attr">#[doc = <span class="string">&quot;A deserializer holding&quot;</span>]
         #[doc = <span class="macro-nonterminal">$doc</span>]
         </span><span class="kw">pub struct </span><span class="macro-nonterminal">$name</span>&lt;E&gt; {
             value: <span class="macro-nonterminal">$ty</span>,
@@ -1927,7 +1962,7 @@
         }
 
         <span class="kw">impl</span>&lt;E&gt; <span class="macro-nonterminal">$name</span>&lt;E&gt; {
-            <span class="attribute">#[allow(missing_docs)]
+            <span class="attr">#[allow(missing_docs)]
             </span><span class="kw">pub fn </span>new(value: <span class="macro-nonterminal">$ty</span>) -&gt; <span class="self">Self </span>{
                 <span class="macro-nonterminal">$name </span>{
                     value: value,
@@ -2006,7 +2041,7 @@
 }
 
 <span class="kw">impl</span>&lt;E&gt; U32Deserializer&lt;E&gt; {
-    <span class="attribute">#[allow(missing_docs)]
+    <span class="attr">#[allow(missing_docs)]
     </span><span class="kw">pub fn </span>new(value: u32) -&gt; <span class="self">Self </span>{
         U32Deserializer {
             value: value,
@@ -2095,7 +2130,7 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, E&gt; StrDeserializer&lt;<span class="lifetime">&#39;a</span>, E&gt; {
-    <span class="attribute">#[allow(missing_docs)]
+    <span class="attr">#[allow(missing_docs)]
     </span><span class="kw">pub fn </span>new(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; <span class="self">Self </span>{
         StrDeserializer {
             value: value,
@@ -2244,13 +2279,13 @@
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
 
 </span><span class="doccomment">/// A deserializer holding a `String`.
-</span><span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">pub struct </span>StringDeserializer&lt;E&gt; {
     value: String,
     marker: PhantomData&lt;E&gt;,
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;E&gt; Clone <span class="kw">for </span>StringDeserializer&lt;E&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         StringDeserializer {
@@ -2260,7 +2295,7 @@
     }
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, E&gt; IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, E&gt; <span class="kw">for </span>String
 <span class="kw">where
     </span>E: de::Error,
@@ -2272,9 +2307,9 @@
     }
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;E&gt; StringDeserializer&lt;E&gt; {
-    <span class="attribute">#[allow(missing_docs)]
+    <span class="attr">#[allow(missing_docs)]
     </span><span class="kw">pub fn </span>new(value: String) -&gt; <span class="self">Self </span>{
         StringDeserializer {
             value: value,
@@ -2283,7 +2318,7 @@
     }
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, E&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>StringDeserializer&lt;E&gt;
 <span class="kw">where
     </span>E: de::Error,
@@ -2318,7 +2353,7 @@
     }
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, E&gt; de::EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>StringDeserializer&lt;E&gt;
 <span class="kw">where
     </span>E: de::Error,
@@ -2334,7 +2369,7 @@
     }
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;E&gt; Debug <span class="kw">for </span>StringDeserializer&lt;E&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         formatter
@@ -2347,13 +2382,13 @@
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
 
 </span><span class="doccomment">/// A deserializer holding a `Cow&lt;str&gt;`.
-</span><span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">pub struct </span>CowStrDeserializer&lt;<span class="lifetime">&#39;a</span>, E&gt; {
     value: Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;,
     marker: PhantomData&lt;E&gt;,
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, E&gt; Clone <span class="kw">for </span>CowStrDeserializer&lt;<span class="lifetime">&#39;a</span>, E&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         CowStrDeserializer {
@@ -2363,7 +2398,7 @@
     }
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, E&gt; IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, E&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;
 <span class="kw">where
     </span>E: de::Error,
@@ -2375,9 +2410,9 @@
     }
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, E&gt; CowStrDeserializer&lt;<span class="lifetime">&#39;a</span>, E&gt; {
-    <span class="attribute">#[allow(missing_docs)]
+    <span class="attr">#[allow(missing_docs)]
     </span><span class="kw">pub fn </span>new(value: Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;) -&gt; <span class="self">Self </span>{
         CowStrDeserializer {
             value: value,
@@ -2386,7 +2421,7 @@
     }
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, E&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>CowStrDeserializer&lt;<span class="lifetime">&#39;a</span>, E&gt;
 <span class="kw">where
     </span>E: de::Error,
@@ -2424,7 +2459,7 @@
     }
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, E&gt; de::EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>CowStrDeserializer&lt;<span class="lifetime">&#39;a</span>, E&gt;
 <span class="kw">where
     </span>E: de::Error,
@@ -2440,7 +2475,7 @@
     }
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, E&gt; Debug <span class="kw">for </span>CowStrDeserializer&lt;<span class="lifetime">&#39;a</span>, E&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         formatter
@@ -2561,7 +2596,7 @@
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
 
 </span><span class="doccomment">/// A deserializer that iterates over a sequence.
-</span><span class="attribute">#[derive(Clone)]
+</span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>SeqDeserializer&lt;I, E&gt; {
     iter: iter::Fuse&lt;I&gt;,
     count: usize,
@@ -2681,7 +2716,7 @@
 
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
 
-</span><span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, T, E&gt; IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, E&gt; <span class="kw">for </span>Vec&lt;T&gt;
 <span class="kw">where
     </span>T: IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, E&gt;,
@@ -2694,7 +2729,7 @@
     }
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, T, E&gt; IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, E&gt; <span class="kw">for </span>BTreeSet&lt;T&gt;
 <span class="kw">where
     </span>T: IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, E&gt; + Eq + Ord,
@@ -2707,7 +2742,7 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, T, S, E&gt; IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, E&gt; <span class="kw">for </span>HashSet&lt;T, S&gt;
 <span class="kw">where
     </span>T: IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, E&gt; + Eq + Hash,
@@ -2724,7 +2759,7 @@
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
 
 </span><span class="doccomment">/// A deserializer holding a `SeqAccess`.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>SeqAccessDeserializer&lt;A&gt; {
     seq: A,
 }
@@ -3093,7 +3128,7 @@
 
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
 
-</span><span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, K, V, E&gt; IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, E&gt; <span class="kw">for </span>BTreeMap&lt;K, V&gt;
 <span class="kw">where
     </span>K: IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, E&gt; + Eq + Ord,
@@ -3107,7 +3142,7 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, K, V, S, E&gt; IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, E&gt; <span class="kw">for </span>HashMap&lt;K, V, S&gt;
 <span class="kw">where
     </span>K: IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, E&gt; + Eq + Hash,
@@ -3125,7 +3160,7 @@
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
 
 </span><span class="doccomment">/// A deserializer holding a `MapAccess`.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>MapAccessDeserializer&lt;A&gt; {
     map: A,
 }
@@ -3184,6 +3219,41 @@
             <span class="prelude-val">Some</span>(key) =&gt; <span class="prelude-val">Ok</span>((key, private::map_as_enum(<span class="self">self</span>.map))),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(de::Error::invalid_type(de::Unexpected::Map, <span class="kw-2">&amp;</span><span class="string">&quot;enum&quot;</span>)),
         }
+    }
+}
+
+<span class="comment">////////////////////////////////////////////////////////////////////////////////
+
+</span><span class="doccomment">/// A deserializer holding an `EnumAccess`.
+</span><span class="attr">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>EnumAccessDeserializer&lt;A&gt; {
+    access: A,
+}
+
+<span class="kw">impl</span>&lt;A&gt; EnumAccessDeserializer&lt;A&gt; {
+    <span class="doccomment">/// Construct a new `EnumAccessDeserializer&lt;A&gt;`.
+    </span><span class="kw">pub fn </span>new(access: A) -&gt; <span class="self">Self </span>{
+        EnumAccessDeserializer { access: access }
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, A&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>EnumAccessDeserializer&lt;A&gt;
+<span class="kw">where
+    </span>A: de::EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt;,
+{
+    <span class="kw">type </span>Error = A::Error;
+
+    <span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
+    <span class="kw">where
+        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+    {
+        visitor.visit_enum(<span class="self">self</span>.access)
+    }
+
+    <span class="macro">forward_to_deserialize_any! </span>{
+        bool i8 i16 i32 i64 i128 u8 u16 u32 u64 u128 f32 f64 char str string
+        bytes byte_buf option unit unit_struct newtype_struct seq tuple
+        tuple_struct map <span class="kw">struct enum </span>identifier ignored_any
     }
 }
 
@@ -3357,4 +3427,4 @@
     <span class="kw">pub type </span>Second&lt;T&gt; = &lt;T <span class="kw">as </span>Pair&gt;::Second;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

@@ -1,6 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.22/src/builder/command.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.23/src/builder/command.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../clap/index.html">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -5201,7 +5200,7 @@
 <span id="5199">5199</span>
 <span id="5200">5200</span>
 <span id="5201">5201</span>
-</pre><pre class="rust"><code><span class="attribute">#![allow(deprecated)]
+</pre><pre class="rust"><code><span class="attr">#![allow(deprecated)]
 
 </span><span class="comment">// Std
 </span><span class="kw">use </span>std::collections::HashMap;
@@ -5213,7 +5212,7 @@
 <span class="kw">use </span>std::path::Path;
 
 <span class="comment">// Third Party
-</span><span class="attribute">#[cfg(feature = <span class="string">&quot;yaml&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;yaml&quot;</span>)]
 </span><span class="kw">use </span>yaml_rust::Yaml;
 
 <span class="comment">// Internal
@@ -5231,7 +5230,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::PossibleValue;
 <span class="kw">use crate</span>::{Error, INTERNAL_ERROR_MSG};
 
-<span class="attribute">#[cfg(debug_assertions)]
+<span class="attr">#[cfg(debug_assertions)]
 </span><span class="kw">use </span><span class="kw">crate</span>::builder::debug_asserts::assert_app;
 
 <span class="doccomment">/// Build a command-line interface.
@@ -5273,7 +5272,7 @@
 </span><span class="kw">pub type </span>Command&lt;<span class="lifetime">&#39;help</span>&gt; = App&lt;<span class="lifetime">&#39;help</span>&gt;;
 
 <span class="doccomment">/// Deprecated, replaced with [`Command`]
-</span><span class="attribute">#[cfg_attr(
+</span><span class="attr">#[cfg_attr(
     feature = <span class="string">&quot;deprecated&quot;</span>,
     deprecated(since = <span class="string">&quot;3.1.0&quot;</span>, note = <span class="string">&quot;Replaced with `Command`&quot;</span>)
 )]
@@ -5384,7 +5383,7 @@
     /// # ;
     /// ```
     /// [argument]: Arg
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>arg&lt;A: Into&lt;Arg&lt;<span class="lifetime">&#39;help</span>&gt;&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, a: A) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>arg = a.into();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(current_disp_ord) = <span class="self">self</span>.current_disp_ord.as_mut() {
@@ -5414,7 +5413,7 @@
     /// # ;
     /// ```
     /// [arguments]: Arg
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>args&lt;I, T&gt;(<span class="kw-2">mut </span><span class="self">self</span>, args: I) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>I: IntoIterator&lt;Item = T&gt;,
@@ -5454,7 +5453,7 @@
     /// let res = cmd.try_get_matches_from_mut(vec![&quot;foo&quot;, &quot;-B&quot;]);
     /// assert!(res.is_ok());
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>mut_arg&lt;T, F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, arg_id: T, f: F) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>F: FnOnce(Arg&lt;<span class="lifetime">&#39;help</span>&gt;) -&gt; Arg&lt;<span class="lifetime">&#39;help</span>&gt;,
@@ -5500,7 +5499,7 @@
     /// let res = cmd.try_get_matches_from_mut(vec![&quot;foo&quot;, &quot;bar&quot;]);
     /// assert!(res.is_ok());
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>mut_subcommand&lt;<span class="lifetime">&#39;a</span>, T, F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, subcmd_id: T, f: F) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>F: FnOnce(App&lt;<span class="lifetime">&#39;help</span>&gt;) -&gt; App&lt;<span class="lifetime">&#39;help</span>&gt;,
@@ -5552,7 +5551,7 @@
     ///          .required(true))
     /// # ;
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>group&lt;G: Into&lt;ArgGroup&lt;<span class="lifetime">&#39;help</span>&gt;&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, group: G) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.groups.push(group.into());
@@ -5581,7 +5580,7 @@
     ///     ])
     /// # ;
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>groups&lt;I, T&gt;(<span class="kw-2">mut </span><span class="self">self</span>, groups: I) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>I: IntoIterator&lt;Item = T&gt;,
@@ -5613,7 +5612,7 @@
     ///         .arg(arg!(&quot;&lt;config&gt; &#39;Required configuration file to use&#39;&quot;)))
     /// # ;
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>subcommand&lt;S: Into&lt;App&lt;<span class="lifetime">&#39;help</span>&gt;&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, subcmd: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.subcommands.push(subcmd.into());
@@ -5634,7 +5633,7 @@
     /// # ;
     /// ```
     /// [`IntoIterator`]: std::iter::IntoIterator
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>subcommands&lt;I, T&gt;(<span class="kw-2">mut </span><span class="self">self</span>, subcmds: I) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>I: IntoIterator&lt;Item = T&gt;,
@@ -5710,7 +5709,7 @@
     /// ```
     /// [`env::args_os`]: std::env::args_os()
     /// [`App::try_get_matches_from_mut`]: Command::try_get_matches_from_mut()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_matches(<span class="self">self</span>) -&gt; ArgMatches {
         <span class="self">self</span>.get_matches_from(<span class="kw-2">&amp;mut </span>env::args_os())
     }
@@ -5767,7 +5766,7 @@
     /// [`kind`]: crate::Error
     /// [`ErrorKind::DisplayHelp`]: crate::ErrorKind::DisplayHelp
     /// [`ErrorKind::DisplayVersion`]: crate::ErrorKind::DisplayVersion
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>try_get_matches(<span class="self">self</span>) -&gt; ClapResult&lt;ArgMatches&gt; {
         <span class="comment">// Start the parsing
         </span><span class="self">self</span>.try_get_matches_from(<span class="kw-2">&amp;mut </span>env::args_os())
@@ -6118,7 +6117,7 @@
     /// assert_eq!(cmds, [&quot;command&quot;, &quot;set&quot;]);
     /// ```
     /// [`try_get_matches_from_mut`]: crate::Command::try_get_matches_from_mut()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>no_binary_name(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.global_setting(AppSettings::NoBinaryName)
@@ -6152,7 +6151,7 @@
     /// assert!(m.is_present(&quot;f&quot;));
     /// assert_eq!(m.value_of(&quot;stuff&quot;), None);
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>ignore_errors(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.global_setting(AppSettings::IgnoreErrors)
@@ -6166,7 +6165,7 @@
     /// The new actions (`ArgAction::Set`, `ArgAction::SetTrue`) do this by default.
     ///
     /// See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(
             since = <span class="string">&quot;3.2.0&quot;</span>,
@@ -6205,7 +6204,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// ```
     ///
     /// [`Arg::use_value_delimiter(false)`]: crate::Arg::use_value_delimiter()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>dont_delimit_trailing_values(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.global_setting(AppSettings::DontDelimitTrailingValues)
@@ -6229,11 +6228,11 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     .get_matches();
     /// ```
     /// [`ColorChoice::Auto`]: crate::ColorChoice::Auto
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
     #[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>color(<span class="self">self</span>, color: ColorChoice) -&gt; <span class="self">Self </span>{
-        <span class="attribute">#![allow(deprecated)]
+        <span class="attr">#![allow(deprecated)]
         </span><span class="kw">let </span>cmd = <span class="self">self
             </span>.unset_global_setting(AppSettings::ColorAuto)
             .unset_global_setting(AppSettings::ColorAlways)
@@ -6262,7 +6261,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     .term_width(80)
     /// # ;
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>term_width(<span class="kw-2">mut </span><span class="self">self</span>, width: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.term_w = <span class="prelude-val">Some</span>(width);
@@ -6286,7 +6285,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     .max_term_width(100)
     /// # ;
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>max_term_width(<span class="kw-2">mut </span><span class="self">self</span>, w: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.max_w = <span class="prelude-val">Some</span>(w);
@@ -6307,7 +6306,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// assert!(res.is_err());
     /// assert_eq!(res.unwrap_err().kind(), ErrorKind::UnknownArgument);
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>disable_version_flag(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.global_setting(AppSettings::DisableVersionFlag)
@@ -6339,7 +6338,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// ```
     ///
     /// [`subcommands`]: crate::Command::subcommand()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>propagate_version(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.global_setting(AppSettings::PropagateVersion)
@@ -6360,7 +6359,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     .next_line_help(true)
     ///     .get_matches();
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>next_line_help(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.global_setting(AppSettings::NextLineHelp)
@@ -6385,7 +6384,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// assert!(res.is_err());
     /// assert_eq!(res.unwrap_err().kind(), ErrorKind::UnknownArgument);
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>disable_help_flag(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.global_setting(AppSettings::DisableHelpFlag)
@@ -6413,7 +6412,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// ```
     ///
     /// [`subcommand`]: crate::Command::subcommand()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>disable_help_subcommand(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.global_setting(AppSettings::DisableHelpSubcommand)
@@ -6434,7 +6433,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     .disable_colored_help(true)
     ///     .get_matches();
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>disable_colored_help(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.global_setting(AppSettings::DisableColoredHelp)
@@ -6477,7 +6476,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     )
     /// #   .get_matches();
     ///```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>help_expected(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.global_setting(AppSettings::HelpExpected)
@@ -6498,7 +6497,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     .dont_collapse_args_in_usage(true)
     ///     .get_matches();
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>dont_collapse_args_in_usage(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.global_setting(AppSettings::DontCollapseArgsInUsage)
@@ -6515,7 +6514,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// [`Arg::hide_possible_values`][crate::Arg::hide_possible_values].
     ///
     /// **NOTE:** This choice is propagated to all child subcommands.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>hide_possible_values(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.global_setting(AppSettings::HidePossibleValues)
@@ -6536,7 +6535,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// **NOTE:** This choice is propagated to all child subcommands.
     ///
     /// [aliases]: crate::Command::aliases()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>infer_long_args(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.global_setting(AppSettings::InferLongArgs)
@@ -6577,7 +6576,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// [subcommand]: crate::Command::subcommand()
     /// [positional/free arguments]: crate::Arg::index()
     /// [aliases]: crate::Command::aliases()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>infer_subcommands(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.global_setting(AppSettings::InferSubcommands)
@@ -6605,7 +6604,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///
     /// // continued logic goes here, such as `cmd.get_matches()` etc.
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>name&lt;S: Into&lt;String&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.name = name.into();
         <span class="self">self
@@ -6631,7 +6630,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///      .bin_name(&quot;my_binary&quot;)
     /// # ;
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>bin_name&lt;S: Into&lt;String&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.bin_name = <span class="prelude-val">Some</span>(name.into());
         <span class="self">self
@@ -6647,7 +6646,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///      .display_name(&quot;my_program&quot;)
     /// # ;
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>display_name&lt;S: Into&lt;String&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.display_name = <span class="prelude-val">Some</span>(name.into());
         <span class="self">self
@@ -6668,7 +6667,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// # ;
     /// ```
     /// [`crate_authors!`]: ./macro.crate_authors!.html
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>author&lt;S: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, author: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.author = <span class="prelude-val">Some</span>(author.into());
         <span class="self">self
@@ -6691,7 +6690,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     .about(&quot;Does really amazing things for great people&quot;)
     /// # ;
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>about&lt;O: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, about: O) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.about = about.into();
         <span class="self">self
@@ -6716,7 +6715,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// # ;
     /// ```
     /// [`App::about`]: Command::about()
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>long_about&lt;O: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, long_about: O) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.long_about = long_about.into();
         <span class="self">self
@@ -6738,7 +6737,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// # ;
     /// ```
     ///
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>after_help&lt;S: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, help: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.after_help = <span class="prelude-val">Some</span>(help.into());
         <span class="self">self
@@ -6760,7 +6759,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///                      like, for real, be careful with this!&quot;)
     /// # ;
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>after_long_help&lt;S: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, help: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.after_long_help = <span class="prelude-val">Some</span>(help.into());
         <span class="self">self
@@ -6780,7 +6779,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     .before_help(&quot;Some info I&#39;d like to appear before the help info&quot;)
     /// # ;
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>before_help&lt;S: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, help: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.before_help = <span class="prelude-val">Some</span>(help.into());
         <span class="self">self
@@ -6800,7 +6799,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     .before_long_help(&quot;Some verbose and long info I&#39;d like to appear before the help info&quot;)
     /// # ;
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>before_long_help&lt;S: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, help: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.before_long_help = <span class="prelude-val">Some</span>(help.into());
         <span class="self">self
@@ -6823,7 +6822,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// # ;
     /// ```
     /// [`crate_version!`]: ./macro.crate_version!.html
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>version&lt;S: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, ver: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.version = <span class="prelude-val">Some</span>(ver.into());
         <span class="self">self
@@ -6851,7 +6850,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// # ;
     /// ```
     /// [`crate_version!`]: ./macro.crate_version!.html
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>long_version&lt;S: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, ver: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.long_version = <span class="prelude-val">Some</span>(ver.into());
         <span class="self">self
@@ -6894,7 +6893,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// ```
     ///
     /// [`ArgMatches::usage`]: ArgMatches::usage()
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>override_usage&lt;S: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, usage: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.usage_str = <span class="prelude-val">Some</span>(usage.into());
         <span class="self">self
@@ -6931,7 +6930,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///            work             Do some work&quot;)
     /// # ;
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>override_help&lt;S: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, help: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.help_str = <span class="prelude-val">Some</span>(help.into());
         <span class="self">self
@@ -6981,7 +6980,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// [`App::after_long_help`]: Command::after_long_help()
     /// [`App::before_help`]: Command::before_help()
     /// [`App::before_long_help`]: Command::before_long_help()
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>help_template&lt;S: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, s: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.template = <span class="prelude-val">Some</span>(s.into());
         <span class="self">self
@@ -7009,7 +7008,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     .setting(AppSettings::SubcommandRequired | AppSettings::AllowLeadingHyphen)
     /// # ;
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>setting&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, setting: F) -&gt; <span class="self">Self
     </span><span class="kw">where
@@ -7039,7 +7038,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     .unset_setting(AppSettings::SubcommandRequired | AppSettings::AllowLeadingHyphen)
     /// # ;
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>unset_setting&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, setting: F) -&gt; <span class="self">Self
     </span><span class="kw">where
@@ -7063,7 +7062,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     .global_setting(AppSettings::AllowNegativeNumbers)
     /// # ;
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>global_setting(<span class="kw-2">mut </span><span class="self">self</span>, setting: AppSettings) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.settings.set(setting);
@@ -7084,7 +7083,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// # ;
     /// ```
     /// [global]: Command::global_setting()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>unset_global_setting(<span class="kw-2">mut </span><span class="self">self</span>, setting: AppSettings) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.settings.unset(setting);
@@ -7093,7 +7092,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     </span>}
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::next_help_heading`]
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     #[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
@@ -7117,7 +7116,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///
     /// [`App::arg`]: Command::arg()
     /// [`Arg::help_heading`]: crate::Arg::help_heading()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>next_help_heading&lt;O&gt;(<span class="kw-2">mut </span><span class="self">self</span>, heading: O) -&gt; <span class="self">Self
     </span><span class="kw">where
@@ -7130,7 +7129,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     <span class="doccomment">/// Change the starting value for assigning future display orders for ags.
     ///
     /// This will be used for any arg that hasn&#39;t had [`Arg::display_order`] called.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>next_display_order(<span class="kw-2">mut </span><span class="self">self</span>, disp_ord: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;usize&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.current_disp_ord = disp_ord.into();
@@ -7244,7 +7243,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// ```
     ///
     /// [`App::replace`]: Command::replace()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[cfg(feature = <span class="string">&quot;unstable-replace&quot;</span>)]
     #[must_use]
     </span><span class="kw">pub fn </span>replace(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str, target: <span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str]) -&gt; <span class="self">Self </span>{
@@ -7266,7 +7265,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///
     /// [`subcommands`]: crate::Command::subcommand()
     /// [`Arg::default_value`]: crate::Arg::default_value()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>arg_required_else_help(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.setting(AppSettings::ArgRequiredElseHelp)
@@ -7300,7 +7299,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// # ;
     /// ```
     /// [`Arg::allow_hyphen_values`]: crate::Arg::allow_hyphen_values()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>allow_hyphen_values(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.setting(AppSettings::AllowHyphenValues)
@@ -7328,7 +7327,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// let m = res.unwrap();
     /// assert_eq!(m.value_of(&quot;num&quot;).unwrap(), &quot;-20&quot;);
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>allow_negative_numbers(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.setting(AppSettings::AllowNegativeNumbers)
@@ -7473,7 +7472,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// ```
     ///
     /// [required]: crate::Arg::required()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>allow_missing_positional(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.setting(AppSettings::AllowMissingPositional)
@@ -7510,7 +7509,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// assert!(*sync_matches.get_one::&lt;bool&gt;(&quot;search&quot;).expect(&quot;defaulted by clap&quot;));
     /// ```
     /// [`Arg::short`]: Arg::short()
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>short_flag(<span class="kw-2">mut </span><span class="self">self</span>, short: char) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.short_flag = <span class="prelude-val">Some</span>(short);
         <span class="self">self
@@ -7548,13 +7547,13 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// ```
     ///
     /// [`Arg::long`]: Arg::long()
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>long_flag(<span class="kw-2">mut </span><span class="self">self</span>, long: <span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str) -&gt; <span class="self">Self </span>{
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unstable-v4&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unstable-v4&quot;</span>)]
         </span>{
             <span class="self">self</span>.long_flag = <span class="prelude-val">Some</span>(long);
         }
-        <span class="attribute">#[cfg(not(feature = <span class="string">&quot;unstable-v4&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">&quot;unstable-v4&quot;</span>))]
         </span>{
             <span class="self">self</span>.long_flag = <span class="prelude-val">Some</span>(long.trim_start_matches(|c| c == <span class="string">&#39;-&#39;</span>));
         }
@@ -7586,7 +7585,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
     /// ```
     /// [`App::visible_alias`]: Command::visible_alias()
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>alias&lt;S: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.aliases.push((name.into(), <span class="bool-val">false</span>));
         <span class="self">self
@@ -7608,7 +7607,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///             .get_matches_from(vec![&quot;myprog&quot;, &quot;-d&quot;]);
     /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>short_flag_alias(<span class="kw-2">mut </span><span class="self">self</span>, name: char) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(name != <span class="string">&#39;-&#39;</span>, <span class="string">&quot;short alias name cannot be `-`&quot;</span>);
         <span class="self">self</span>.short_flag_aliases.push((name, <span class="bool-val">false</span>));
@@ -7631,7 +7630,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///             .get_matches_from(vec![&quot;myprog&quot;, &quot;--testing&quot;]);
     /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>long_flag_alias(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.long_flag_aliases.push((name, <span class="bool-val">false</span>));
         <span class="self">self
@@ -7665,7 +7664,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
     /// ```
     /// [`App::visible_aliases`]: Command::visible_aliases()
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str]) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.aliases.extend(names.iter().map(|n| (<span class="kw-2">*</span>n, <span class="bool-val">false</span>)));
         <span class="self">self
@@ -7690,7 +7689,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     .get_matches_from(vec![&quot;myprog&quot;, &quot;-a&quot;]);
     /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>short_flag_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw-2">&amp;</span>[char]) -&gt; <span class="self">Self </span>{
         <span class="kw">for </span>s <span class="kw">in </span>names {
             <span class="macro">assert!</span>(s != <span class="kw-2">&amp;</span><span class="string">&#39;-&#39;</span>, <span class="string">&quot;short alias name cannot be `-`&quot;</span>);
@@ -7718,7 +7717,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///             .get_matches_from(vec![&quot;myprog&quot;, &quot;--testing&quot;]);
     /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>long_flag_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str]) -&gt; <span class="self">Self </span>{
         <span class="kw">for </span>s <span class="kw">in </span>names {
             <span class="self">self</span>.long_flag_aliases.push((s, <span class="bool-val">false</span>));
@@ -7753,7 +7752,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
     /// ```
     /// [`App::alias`]: Command::alias()
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>visible_alias&lt;S: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: S) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.aliases.push((name.into(), <span class="bool-val">true</span>));
         <span class="self">self
@@ -7778,7 +7777,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
     /// ```
     /// [`App::short_flag_alias`]: Command::short_flag_alias()
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>visible_short_flag_alias(<span class="kw-2">mut </span><span class="self">self</span>, name: char) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(name != <span class="string">&#39;-&#39;</span>, <span class="string">&quot;short alias name cannot be `-`&quot;</span>);
         <span class="self">self</span>.short_flag_aliases.push((name, <span class="bool-val">true</span>));
@@ -7804,7 +7803,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
     /// ```
     /// [`App::long_flag_alias`]: Command::long_flag_alias()
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>visible_long_flag_alias(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.long_flag_aliases.push((name, <span class="bool-val">true</span>));
         <span class="self">self
@@ -7837,7 +7836,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
     /// ```
     /// [`App::alias`]: Command::alias()
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>visible_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str]) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.aliases.extend(names.iter().map(|n| (<span class="kw-2">*</span>n, <span class="bool-val">true</span>)));
         <span class="self">self
@@ -7858,7 +7857,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
     /// ```
     /// [`App::short_flag_aliases`]: Command::short_flag_aliases()
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>visible_short_flag_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw-2">&amp;</span>[char]) -&gt; <span class="self">Self </span>{
         <span class="kw">for </span>s <span class="kw">in </span>names {
             <span class="macro">assert!</span>(s != <span class="kw-2">&amp;</span><span class="string">&#39;-&#39;</span>, <span class="string">&quot;short alias name cannot be `-`&quot;</span>);
@@ -7882,7 +7881,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
     /// ```
     /// [`App::long_flag_aliases`]: Command::long_flag_aliases()
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>visible_long_flag_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str]) -&gt; <span class="self">Self </span>{
         <span class="kw">for </span>s <span class="kw">in </span>names {
             <span class="self">self</span>.long_flag_aliases.push((s, <span class="bool-val">true</span>));
@@ -7938,7 +7937,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     beta    I should be first!
     ///     alpha   Some help and text
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>display_order(<span class="kw-2">mut </span><span class="self">self</span>, ord: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.disp_ord = <span class="prelude-val">Some</span>(ord);
@@ -7959,7 +7958,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// ```
     ///
     /// [`subcommand`]: crate::Command::subcommand()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>hide(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.setting(AppSettings::Hidden)
@@ -8054,7 +8053,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///
     /// # Examples
     ///
-    </span><span class="attribute">#[cfg_attr(not(unix), doc = <span class="string">&quot; ```ignore&quot;</span>)]
+    </span><span class="attr">#[cfg_attr(not(unix), doc = <span class="string">&quot; ```ignore&quot;</span>)]
     #[cfg_attr(unix, doc = <span class="string">&quot; ```&quot;</span>)]
     </span><span class="doccomment">/// # use clap::Command;
     /// // Assume there is an external subcommand named &quot;subcmd&quot;
@@ -8348,7 +8347,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// [`no_binary_name`]: crate::Command::no_binary_name
     /// [`App::subcommand_value_name`]: crate::Command::subcommand_value_name
     /// [`App::subcommand_help_heading`]: crate::Command::subcommand_help_heading
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>multicall(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
             <span class="self">self</span>.setting(AppSettings::Multicall)
@@ -8417,7 +8416,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     help    Print this message or the help of the given subcommand(s)
     ///     sub1
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>subcommand_value_name&lt;S&gt;(<span class="kw-2">mut </span><span class="self">self</span>, value_name: S) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>S: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;,
@@ -8486,7 +8485,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///     help    Print this message or the help of the given subcommand(s)
     ///     sub1
     /// ```
-    </span><span class="attribute">#[must_use]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>subcommand_help_heading&lt;T&gt;(<span class="kw-2">mut </span><span class="self">self</span>, heading: T) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>T: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt;,
@@ -8498,19 +8497,19 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
 
 <span class="doccomment">/// # Reflection
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;help</span>&gt; App&lt;<span class="lifetime">&#39;help</span>&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_usage_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.usage_name.as_deref()
     }
 
     <span class="doccomment">/// Get the name of the binary.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_display_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.display_name.as_deref()
     }
 
     <span class="doccomment">/// Get the name of the binary.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_bin_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.bin_name.as_deref()
     }
@@ -8521,37 +8520,37 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Get the name of the cmd.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw-2">&amp;</span><span class="self">self</span>.name
     }
 
     <span class="doccomment">/// Get the version of the cmd.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt; {
         <span class="self">self</span>.version
     }
 
     <span class="doccomment">/// Get the long version of the cmd.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_long_version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt; {
         <span class="self">self</span>.long_version
     }
 
     <span class="doccomment">/// Get the authors of the cmd.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_author(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt; {
         <span class="self">self</span>.author
     }
 
     <span class="doccomment">/// Get the short flag of the subcommand.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_short_flag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
         <span class="self">self</span>.short_flag
     }
 
     <span class="doccomment">/// Get the long flag of the subcommand.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_long_flag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt; {
         <span class="self">self</span>.long_flag
     }
@@ -8559,7 +8558,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     <span class="doccomment">/// Get the help message specified via [`Command::about`].
     ///
     /// [`App::about`]: Command::about()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_about(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt; {
         <span class="self">self</span>.about
     }
@@ -8567,13 +8566,13 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     <span class="doccomment">/// Get the help message specified via [`Command::long_about`].
     ///
     /// [`App::long_about`]: Command::long_about()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_long_about(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt; {
         <span class="self">self</span>.long_about
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::get_next_help_heading`]
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.1.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::get_next_help_heading`&quot;</span>)
@@ -8585,19 +8584,19 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     <span class="doccomment">/// Get the custom section heading specified via [`Command::help_heading`].
     ///
     /// [`App::help_heading`]: Command::help_heading()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_next_help_heading(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt; {
         <span class="self">self</span>.current_help_heading
     }
 
     <span class="doccomment">/// Iterate through the *visible* aliases for this subcommand.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_visible_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt; + <span class="lifetime">&#39;_ </span>{
         <span class="self">self</span>.aliases.iter().filter(|(<span class="kw">_</span>, vis)| <span class="kw-2">*</span>vis).map(|a| a.<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Iterate through the *visible* short aliases for this subcommand.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_visible_short_flag_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = char&gt; + <span class="lifetime">&#39;_ </span>{
         <span class="self">self</span>.short_flag_aliases
             .iter()
@@ -8606,7 +8605,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Iterate through the *visible* long aliases for this subcommand.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_visible_long_flag_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt; + <span class="lifetime">&#39;_ </span>{
         <span class="self">self</span>.long_flag_aliases
             .iter()
@@ -8615,19 +8614,19 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Iterate through the set of *all* the aliases for this subcommand, both visible and hidden.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_all_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + <span class="lifetime">&#39;_ </span>{
         <span class="self">self</span>.aliases.iter().map(|a| a.<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Iterate through the set of *all* the short aliases for this subcommand, both visible and hidden.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_all_short_flag_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = char&gt; + <span class="lifetime">&#39;_ </span>{
         <span class="self">self</span>.short_flag_aliases.iter().map(|a| a.<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Iterate through the set of *all* the long aliases for this subcommand, both visible and hidden.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_all_long_flag_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str&gt; + <span class="lifetime">&#39;_ </span>{
         <span class="self">self</span>.long_flag_aliases.iter().map(|a| a.<span class="number">0</span>)
     }
@@ -8638,18 +8637,18 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     ///
     /// [local]: Command::setting()
     /// [global settings]: Command::global_setting()
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>is_set(<span class="kw-2">&amp;</span><span class="self">self</span>, s: AppSettings) -&gt; bool {
         <span class="self">self</span>.settings.is_set(s) || <span class="self">self</span>.g_settings.is_set(s)
     }
 
     <span class="doccomment">/// Should we color the output?
-    </span><span class="attribute">#[inline(never)]
+    </span><span class="attr">#[inline(never)]
     </span><span class="kw">pub fn </span>get_color(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ColorChoice {
         <span class="macro">debug!</span>(<span class="string">&quot;Command::color: Color setting...&quot;</span>);
 
         <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;color&quot;</span>) {
-            <span class="attribute">#[allow(deprecated)]
+            <span class="attr">#[allow(deprecated)]
             </span><span class="kw">if </span><span class="self">self</span>.is_set(AppSettings::ColorNever) {
                 <span class="macro">debug!</span>(<span class="string">&quot;Never&quot;</span>);
                 ColorChoice::Never
@@ -8666,31 +8665,31 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Iterate through the set of subcommands, getting a reference to each.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_subcommands(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>App&lt;<span class="lifetime">&#39;help</span>&gt;&gt; {
         <span class="self">self</span>.subcommands.iter()
     }
 
     <span class="doccomment">/// Iterate through the set of subcommands, getting a mutable reference to each.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_subcommands_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;mut </span>App&lt;<span class="lifetime">&#39;help</span>&gt;&gt; {
         <span class="self">self</span>.subcommands.iter_mut()
     }
 
     <span class="doccomment">/// Returns `true` if this `Command` has subcommands.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>has_subcommands(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         !<span class="self">self</span>.subcommands.is_empty()
     }
 
     <span class="doccomment">/// Returns the help heading for listing subcommands.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_subcommand_help_heading(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.subcommand_heading
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`App::get_subcommand_help_heading`]
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(
@@ -8703,31 +8702,31 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Returns the subcommand value name.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_subcommand_value_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.subcommand_value_name
     }
 
     <span class="doccomment">/// Returns the help heading for listing subcommands.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_before_help(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.before_help
     }
 
     <span class="doccomment">/// Returns the help heading for listing subcommands.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_before_long_help(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.before_long_help
     }
 
     <span class="doccomment">/// Returns the help heading for listing subcommands.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_after_help(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.after_help
     }
 
     <span class="doccomment">/// Returns the help heading for listing subcommands.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_after_long_help(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.after_long_help
     }
@@ -8735,7 +8734,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     <span class="doccomment">/// Find subcommand such that its name or one of aliases equals `name`.
     ///
     /// This does not recurse through subcommands of subcommands.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>find_subcommand&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>App&lt;<span class="lifetime">&#39;help</span>&gt;&gt;
     <span class="kw">where
         </span>T: PartialEq&lt;str&gt; + <span class="question-mark">?</span>Sized,
@@ -8747,7 +8746,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     /// a mutable reference to the subcommand.
     ///
     /// This does not recurse through subcommands of subcommands.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>find_subcommand_mut&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>App&lt;<span class="lifetime">&#39;help</span>&gt;&gt;
     <span class="kw">where
         </span>T: PartialEq&lt;str&gt; + <span class="question-mark">?</span>Sized,
@@ -8756,19 +8755,19 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Iterate through the set of groups.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_groups(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>ArgGroup&lt;<span class="lifetime">&#39;help</span>&gt;&gt; {
         <span class="self">self</span>.groups.iter()
     }
 
     <span class="doccomment">/// Iterate through the set of arguments.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_arguments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>Arg&lt;<span class="lifetime">&#39;help</span>&gt;&gt; {
         <span class="self">self</span>.args.args()
     }
 
     <span class="doccomment">/// Iterate through the *positionals* arguments.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_positionals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>Arg&lt;<span class="lifetime">&#39;help</span>&gt;&gt; {
         <span class="self">self</span>.get_arguments().filter(|a| a.is_positional())
     }
@@ -8911,7 +8910,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Report whether [`Command::help_expected`] is set
-    </span><span class="attribute">#[cfg(debug_assertions)]
+    </span><span class="attr">#[cfg(debug_assertions)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_help_expected_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.is_set(AppSettings::HelpExpected)
     }
@@ -9023,7 +9022,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
 <span class="doccomment">/// Deprecated
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;help</span>&gt; App&lt;<span class="lifetime">&#39;help</span>&gt; {
     <span class="doccomment">/// Deprecated in [Issue #3087](https://github.com/clap-rs/clap/issues/3087), maybe [`clap::Parser`][crate::Parser] would fit your use case?
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;yaml&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;yaml&quot;</span>)]
     #[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(
@@ -9033,7 +9032,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     )]
     #[doc(hidden)]
     </span><span class="kw">pub fn </span>from_yaml(y: <span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>Yaml) -&gt; <span class="self">Self </span>{
-        <span class="attribute">#![allow(deprecated)]
+        <span class="attr">#![allow(deprecated)]
         </span><span class="kw">let </span>yaml_file_hash = y.as_hash().expect(<span class="string">&quot;YAML file must be a hash&quot;</span>);
         <span class="comment">// We WANT this to panic on error...so expect() is good.
         </span><span class="kw">let </span>(<span class="kw-2">mut </span>a, yaml, err) = <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = y[<span class="string">&quot;name&quot;</span>].as_str() {
@@ -9118,7 +9117,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::override_usage`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::override_usage`&quot;</span>)
     )]
@@ -9129,7 +9128,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::override_help`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::override_help`&quot;</span>)
     )]
@@ -9140,7 +9139,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::mut_arg`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::mut_arg`&quot;</span>)
     )]
@@ -9151,7 +9150,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::mut_arg`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::mut_arg`&quot;</span>)
     )]
@@ -9162,7 +9161,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::mut_arg`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::mut_arg`&quot;</span>)
     )]
@@ -9173,7 +9172,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::mut_arg`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::mut_arg`&quot;</span>)
     )]
@@ -9184,7 +9183,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::help_template`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::help_template`&quot;</span>)
     )]
@@ -9195,7 +9194,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::setting(a| b)`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::setting(a | b)`&quot;</span>)
     )]
@@ -9209,7 +9208,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     </span>}
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::unset_setting(a| b)`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::unset_setting(a | b)`&quot;</span>)
     )]
@@ -9223,7 +9222,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     </span>}
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::global_setting(a| b)`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::global_setting(a | b)`&quot;</span>)
     )]
@@ -9238,7 +9237,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     </span>}
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::term_width`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::term_width`&quot;</span>)
     )]
@@ -9249,26 +9248,26 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Deprecated in [Issue #3086](https://github.com/clap-rs/clap/issues/3086), see [`arg!`][crate::arg!].
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Deprecated in Issue #3086, see `clap::arg!&quot;</span>)
     )]
     #[doc(hidden)]
     #[must_use]
     </span><span class="kw">pub fn </span>arg_from_usage(<span class="self">self</span>, usage: <span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str) -&gt; <span class="self">Self </span>{
-        <span class="attribute">#![allow(deprecated)]
+        <span class="attr">#![allow(deprecated)]
         </span><span class="self">self</span>.arg(Arg::from_usage(usage))
     }
 
     <span class="doccomment">/// Deprecated in [Issue #3086](https://github.com/clap-rs/clap/issues/3086), see [`arg!`][crate::arg!].
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Deprecated in Issue #3086, see `clap::arg!&quot;</span>)
     )]
     #[doc(hidden)]
     #[must_use]
     </span><span class="kw">pub fn </span>args_from_usage(<span class="kw-2">mut </span><span class="self">self</span>, usage: <span class="kw-2">&amp;</span><span class="lifetime">&#39;help </span>str) -&gt; <span class="self">Self </span>{
-        <span class="attribute">#![allow(deprecated)]
+        <span class="attr">#![allow(deprecated)]
         </span><span class="kw">for </span>line <span class="kw">in </span>usage.lines() {
             <span class="kw">let </span>l = line.trim();
             <span class="kw">if </span>l.is_empty() {
@@ -9280,7 +9279,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     </span>}
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::render_version`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::render_version`&quot;</span>)
     )]
@@ -9290,7 +9289,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::render_long_version`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::render_long_version`&quot;</span>)
     )]
@@ -9300,7 +9299,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::try_get_matches`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::try_get_matches`&quot;</span>)
     )]
@@ -9310,7 +9309,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::try_get_matches_from`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `App::try_get_matches_from`&quot;</span>)
     )]
@@ -9324,7 +9323,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Command::try_get_matches_from_mut`]
-    </span><span class="attribute">#[cfg_attr(
+    </span><span class="attr">#[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(
             since = <span class="string">&quot;3.0.0&quot;</span>,
@@ -9420,7 +9419,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
         <span class="prelude-val">Ok</span>(matcher.into_inner())
     }
 
-    <span class="attribute">#[doc(hidden)]
+    <span class="attr">#[doc(hidden)]
     #[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.1.10&quot;</span>, note = <span class="string">&quot;Replaced with `Command::build`&quot;</span>)
@@ -9429,7 +9428,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
         <span class="self">self</span>.build();
     }
 
-    <span class="attribute">#[doc(hidden)]
+    <span class="attr">#[doc(hidden)]
     #[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.1.10&quot;</span>, note = <span class="string">&quot;Replaced with `Command::build`&quot;</span>)
@@ -9438,7 +9437,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
         <span class="self">self</span>._build_self()
     }
 
-    <span class="attribute">#[doc(hidden)]
+    <span class="attr">#[doc(hidden)]
     #[cfg_attr(
         feature = <span class="string">&quot;deprecated&quot;</span>,
         deprecated(since = <span class="string">&quot;3.1.13&quot;</span>, note = <span class="string">&quot;Replaced with `Command::build`&quot;</span>)
@@ -9539,7 +9538,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
 
             <span class="self">self</span>.args._build();
 
-            <span class="attribute">#[cfg(debug_assertions)]
+            <span class="attr">#[cfg(debug_assertions)]
             </span>assert_app(<span class="self">self</span>);
             <span class="self">self</span>.settings.set(AppSettings::Built);
         } <span class="kw">else </span>{
@@ -9764,7 +9763,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
         }
     }
 
-    <span class="attribute">#[cfg(debug_assertions)]
+    <span class="attr">#[cfg(debug_assertions)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>two_args_of&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, condition: F) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>Arg&lt;<span class="lifetime">&#39;help</span>&gt;, <span class="kw-2">&amp;</span>Arg&lt;<span class="lifetime">&#39;help</span>&gt;)&gt;
     <span class="kw">where
         </span>F: Fn(<span class="kw-2">&amp;</span>Arg) -&gt; bool,
@@ -9773,7 +9772,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
     }
 
     <span class="comment">// just in case
-    </span><span class="attribute">#[allow(unused)]
+    </span><span class="attr">#[allow(unused)]
     </span><span class="kw">fn </span>two_groups_of&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, condition: F) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>ArgGroup, <span class="kw-2">&amp;</span>ArgGroup)&gt;
     <span class="kw">where
         </span>F: Fn(<span class="kw-2">&amp;</span>ArgGroup) -&gt; bool,
@@ -9855,7 +9854,7 @@ See `ArgAction::StoreValue` and `ArgAction::IncOccurrence` for how to migrate
         }
     }
 
-    <span class="attribute">#[allow(clippy::blocks_in_if_conditions)]
+    <span class="attr">#[allow(clippy::blocks_in_if_conditions)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_check_help_and_version(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="macro">debug!</span>(<span class="string">&quot;Command::_check_help_and_version: {}&quot;</span>, <span class="self">self</span>.name);
 
@@ -10088,7 +10087,7 @@ To change `help`s short, call `cmd.arg(Arg::new(\&quot;help\&quot;)...)`.&quot;<
         <span class="self">self</span>.args.args().find(|a| a.id == <span class="kw-2">*</span>arg_id)
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>contains_short(<span class="kw-2">&amp;</span><span class="self">self</span>, s: char) -&gt; bool {
         <span class="macro">assert!</span>(
             <span class="self">self</span>.is_set(AppSettings::Built),
@@ -10098,12 +10097,12 @@ To change `help`s short, call `cmd.arg(Arg::new(\&quot;help\&quot;)...)`.&quot;<
         <span class="self">self</span>.args.contains(s)
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: AppSettings) {
         <span class="self">self</span>.settings.set(s)
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_args(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         !<span class="self">self</span>.args.is_empty()
     }
@@ -10120,7 +10119,7 @@ To change `help`s short, call `cmd.arg(Arg::new(\&quot;help\&quot;)...)`.&quot;<
 
     <span class="doccomment">/// Check if this subcommand can be referred to as `name`. In other words,
     /// check if `name` is the name of this subcommand or is one of its aliases.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>aliases_to&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>T) -&gt; bool
     <span class="kw">where
         </span>T: PartialEq&lt;str&gt; + <span class="question-mark">?</span>Sized,
@@ -10130,7 +10129,7 @@ To change `help`s short, call `cmd.arg(Arg::new(\&quot;help\&quot;)...)`.&quot;<
 
     <span class="doccomment">/// Check if this subcommand can be referred to as `name`. In other words,
     /// check if `name` is the name of this short flag subcommand or is one of its short flag aliases.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>short_flag_aliases_to(<span class="kw-2">&amp;</span><span class="self">self</span>, flag: char) -&gt; bool {
         <span class="prelude-val">Some</span>(flag) == <span class="self">self</span>.short_flag
             || <span class="self">self</span>.get_all_short_flag_aliases().any(|alias| flag == alias)
@@ -10138,7 +10137,7 @@ To change `help`s short, call `cmd.arg(Arg::new(\&quot;help\&quot;)...)`.&quot;<
 
     <span class="doccomment">/// Check if this subcommand can be referred to as `name`. In other words,
     /// check if `name` is the name of this long flag subcommand or is one of its long flag aliases.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>long_flag_aliases_to&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, flag: <span class="kw-2">&amp;</span>T) -&gt; bool
     <span class="kw">where
         </span>T: PartialEq&lt;str&gt; + <span class="question-mark">?</span>Sized,
@@ -10151,7 +10150,7 @@ To change `help`s short, call `cmd.arg(Arg::new(\&quot;help\&quot;)...)`.&quot;<
         }
     }
 
-    <span class="attribute">#[cfg(debug_assertions)]
+    <span class="attr">#[cfg(debug_assertions)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>id_exists(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>Id) -&gt; bool {
         <span class="self">self</span>.args.args().any(|x| x.id == <span class="kw-2">*</span>id) || <span class="self">self</span>.groups.iter().any(|x| x.id == <span class="kw-2">*</span>id)
     }
@@ -10320,7 +10319,7 @@ To change `help`s short, call `cmd.arg(Arg::new(\&quot;help\&quot;)...)`.&quot;<
 
     <span class="comment">// Should we color the help?
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>color_help(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ColorChoice {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
         </span><span class="kw">if </span><span class="self">self</span>.is_disable_colored_help_set() {
             <span class="kw">return </span>ColorChoice::Never;
         }
@@ -10398,9 +10397,9 @@ To change `help`s short, call `cmd.arg(Arg::new(\&quot;help\&quot;)...)`.&quot;<
     }
 }
 
-<span class="attribute">#[test]
+<span class="attr">#[test]
 </span><span class="kw">fn </span>check_auto_traits() {
     <span class="macro">static_assertions::assert_impl_all!</span>(Command: Send, Sync, Unpin);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/infoflow/analysis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/infoflow/analysis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -14,7 +14,7 @@
     });
 </script>
 
-</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../flowistry/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -305,11 +305,6 @@
 <span id="289">289</span>
 <span id="290">290</span>
 <span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{cell::RefCell, rc::Rc};
 
 <span class="kw">use </span>log::{debug, trace};
@@ -328,7 +323,7 @@
 <span class="kw">use crate</span>::{
   extensions::{is_extension_active, ContextMode, MutabilityMode},
   indexed::{
-    impls::{LocationDomain, LocationSet},
+    impls::{LocationOrArg, LocationOrArgDomain, LocationOrArgSet},
     IndexMatrix, IndexedDomain,
   },
   mir::{
@@ -345,8 +340,8 @@
 /// However instead of using those datatypes directly, we provide several abstractions in the [`indexed`](crate::indexed)
 /// module that have a more ergonomic interface and more efficient implementation than their `bit_set` counterparts.
 ///
-/// The [`IndexMatrix`] maps from a [`Place`] to a [`LocationSet`] via the [`IndexMatrix::row_set`] method. The [`LocationSet`] is an
-/// [`IndexSet`](crate::indexed::IndexSet) of locations, which wraps a
+/// The [`IndexMatrix`] maps from a [`Place`] to a [`LocationOrArgSet`] via the [`IndexMatrix::row_set`] method. The [`LocationOrArgSet`] is an
+/// [`IndexSet`](crate::indexed::IndexSet) of locations (or arguments, see note below), which wraps a
 /// [`rustc_index::bit_set::HybridBitSet`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/enum.HybridBitSet.html) and
 /// has roughly the same API. The main difference is that `HybridBitSet` operates only on values that implement the
 /// [`rustc_index::vec::Idx`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/vec/trait.Idx.html) trait (usually created via
@@ -355,17 +350,12 @@
 /// is the implementation for locations.
 ///
 ///
-/// # Hack alert: synthetic locations
-/// This API uses a hacky trick to represent the dependencies of function arguments. For instance, if `_1` is an argument,
-/// `_1` is not defined at a location, but rather simply exists at the execution of `Location::START`. Therefore we invent &quot;synthetic&quot; locations
-/// help distinguish when places depend on a given argument. For an argument place `_n`, it has a synthetic location with
-/// [`Location::block`] set to `body.basic_blocks().len()` and [`Location::statement_index`] set to `n`.
-///
-/// This hack matters because if you get a `Location` out of a `LocationSet` taken from a `FlowDomain`, then it might
-/// not correspond to an actual MIR instruction. For example, if you call [`Body::stmt_at`] on a synthetic location then **it will panic.**
-/// If you want to check whether a location is synthetic, you can use the `LocationDomain::location_to_local` function. And one day, I will
-/// hopefully get around to making this all less hacky.
-</span><span class="kw">pub type </span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt; = IndexMatrix&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, Location&gt;;
+/// # Note: arguments as dependencies
+/// Because function arguments are never initialized, there is no &quot;root&quot; location for argument places. This fact poses a problem for
+/// information flow analysis: an instruction `bb[0]: _2 = _1` (where `_1` is an argument) would set $\Theta(\verb|_2|) = \Theta(\verb|_1|) \cup \\{\verb|bb0[0]|\\}\$.
+/// However, $\Theta(\verb|_1|)$ would be empty, so it would be imposible to determine that `_2` depends on `_1`. To solve this issue, we
+/// enrich the domain of locations with arguments, using the [`LocationOrArg`] type. Any dependency can be on *either* a location or an argument.
+</span><span class="kw">pub type </span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt; = IndexMatrix&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, LocationOrArg&gt;;
 
 <span class="kw">pub struct </span>FlowAnalysis&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
   <span class="kw">pub </span>tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
@@ -395,7 +385,7 @@
     }
   }
 
-  <span class="kw">pub fn </span>location_domain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Rc&lt;LocationDomain&gt; {
+  <span class="kw">pub fn </span>location_domain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Rc&lt;LocationOrArgDomain&gt; {
     <span class="self">self</span>.aliases.location_domain()
   }
 
@@ -424,10 +414,10 @@
       }
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>input_location_deps = LocationSet::new(location_domain);
+    <span class="kw">let </span><span class="kw-2">mut </span>input_location_deps = LocationOrArgSet::new(location_domain);
     input_location_deps.insert(location);
 
-    <span class="kw">let </span>add_deps = |place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, location_deps: <span class="kw-2">&amp;mut </span>LocationSet| {
+    <span class="kw">let </span>add_deps = |place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, location_deps: <span class="kw-2">&amp;mut </span>LocationOrArgSet| {
       <span class="kw">let </span>reachable_values = all_aliases.reachable_values(place, Mutability::Not);
       <span class="kw">let </span>provenance =
         place
@@ -458,7 +448,7 @@
       </span><span class="kw">if let </span><span class="prelude-val">Some</span>(elem) = elem {
         <span class="kw">let </span><span class="kw-2">mut </span>projection = mutated.projection.to_vec();
         projection.push(<span class="kw-2">*</span>elem);
-        <span class="kw">let </span><span class="kw-2">mut </span>child_deps = LocationSet::new(location_domain);
+        <span class="kw">let </span><span class="kw-2">mut </span>child_deps = LocationOrArgSet::new(location_domain);
         add_deps(<span class="kw-2">*</span>place, <span class="kw-2">&amp;mut </span>child_deps);
         children.push((
           Place::make(mutated.local, <span class="kw-2">&amp;</span>projection, <span class="self">self</span>.tcx),
@@ -607,4 +597,4 @@
   }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="flowistry" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="flowistry" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

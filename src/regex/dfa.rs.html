@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.6.0/src/dfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/dfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -2024,7 +2024,7 @@ implementation.)
 /// This cache is reused between multiple invocations of the same regex
 /// program. (It is not shared simultaneously between threads. If there is
 /// contention, then new caches are created.)
-</span><span class="attribute">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Cache {
     <span class="doccomment">/// Group persistent DFA related cache state together. The sparse sets
     /// listed below are used as scratch space while computing uncached states.
@@ -2043,7 +2043,7 @@ implementation.)
 <span class="doccomment">/// `CacheInner` is logically just a part of Cache, but groups together fields
 /// that aren&#39;t passed as function parameters throughout search. (This split
 /// is mostly an artifact of the borrow checker. It is happily paid.)
-</span><span class="attribute">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>CacheInner {
     <span class="doccomment">/// A cache of pre-compiled DFA states, keyed by the set of NFA states
     /// and the set of empty-width flags set at the byte in the input when the
@@ -2102,7 +2102,7 @@ implementation.)
 /// `StatePtr` points to the start of a particular row in this table. When
 /// indexing to find the next state this allows us to avoid a multiplication
 /// when computing an index into the table.
-</span><span class="attribute">#[derive(Clone)]
+</span><span class="attr">#[derive(Clone)]
 </span><span class="kw">struct </span>Transitions {
     <span class="doccomment">/// The table.
     </span>table: Vec&lt;StatePtr&gt;,
@@ -2111,7 +2111,7 @@ implementation.)
 }
 
 <span class="doccomment">/// Fsm encapsulates the actual execution of the DFA.
-</span><span class="attribute">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Fsm&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// prog contains the NFA instruction opcodes. DFA execution uses either
     /// the `dfa` instructions or the `dfa_reverse` instructions from
@@ -2150,7 +2150,7 @@ implementation.)
 ///
 /// The DFA can also give up if it runs out of room to create new states, or if
 /// it sees non-ASCII bytes in the presence of a Unicode word boundary.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub enum </span><span class="prelude-ty">Result</span>&lt;T&gt; {
     Match(T),
     NoMatch(usize),
@@ -2169,7 +2169,7 @@ implementation.)
     <span class="doccomment">/// Maps the given function onto T and returns the result.
     ///
     /// If this isn&#39;t a match, then this is a no-op.
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
     </span><span class="kw">pub fn </span>map&lt;U, F: FnMut(T) -&gt; U&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>f: F) -&gt; <span class="prelude-ty">Result</span>&lt;U&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Result::Match(t) =&gt; Result::Match(f(t)),
@@ -2203,7 +2203,7 @@ implementation.)
 /// to the previous one. If a delta is in the range -127..127,
 /// it is packed into a single byte; Otherwise the byte 128 (-128 as an i8)
 /// is coded as a flag, followed by 4 bytes encoding the delta.
-</span><span class="attribute">#[derive(Clone, Eq, Hash, PartialEq)]
+</span><span class="attr">#[derive(Clone, Eq, Hash, PartialEq)]
 </span><span class="kw">struct </span>State {
     data: Arc&lt;[u8]&gt;,
 }
@@ -2335,11 +2335,11 @@ implementation.)
 
 <span class="doccomment">/// Byte is a u8 in spirit, but a u16 in practice so that we can represent the
 /// special EOF sentinel value.
-</span><span class="attribute">#[derive(Copy, Clone, Debug)]
+</span><span class="attr">#[derive(Copy, Clone, Debug)]
 </span><span class="kw">struct </span>Byte(u16);
 
 <span class="doccomment">/// A set of flags for zero-width assertions.
-</span><span class="attribute">#[derive(Clone, Copy, Eq, Debug, Default, Hash, PartialEq)]
+</span><span class="attr">#[derive(Clone, Copy, Eq, Debug, Default, Hash, PartialEq)]
 </span><span class="kw">struct </span>EmptyFlags {
     start: bool,
     end: bool,
@@ -2351,7 +2351,7 @@ implementation.)
 
 <span class="doccomment">/// A set of flags describing various configurations of a DFA state. This is
 /// represented by a `u8` so that it is compact.
-</span><span class="attribute">#[derive(Clone, Copy, Eq, Default, Hash, PartialEq)]
+</span><span class="attr">#[derive(Clone, Copy, Eq, Default, Hash, PartialEq)]
 </span><span class="kw">struct </span>StateFlags(u8);
 
 <span class="kw">impl </span>Cache {
@@ -2388,7 +2388,7 @@ implementation.)
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Fsm&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
+    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">pub fn </span>forward(
         prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Program,
         cache: <span class="kw-2">&amp;</span>ProgramCache,
@@ -2418,7 +2418,7 @@ implementation.)
         dfa.exec_at(<span class="kw-2">&amp;mut </span>cache.qcur, <span class="kw-2">&amp;mut </span>cache.qnext, text)
     }
 
-    <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
+    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">pub fn </span>reverse(
         prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Program,
         cache: <span class="kw-2">&amp;</span>ProgramCache,
@@ -2448,7 +2448,7 @@ implementation.)
         dfa.exec_at_reverse(<span class="kw-2">&amp;mut </span>cache.qcur, <span class="kw-2">&amp;mut </span>cache.qnext, text)
     }
 
-    <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
+    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">pub fn </span>forward_many(
         prog: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Program,
         cache: <span class="kw-2">&amp;</span>ProgramCache,
@@ -2496,7 +2496,7 @@ implementation.)
     <span class="doccomment">/// Executes the DFA on a forward NFA.
     ///
     /// {qcur,qnext} are scratch ordered sets which may be non-empty.
-    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
+    </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>exec_at(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         qcur: <span class="kw-2">&amp;mut </span>SparseSet,
@@ -2689,7 +2689,7 @@ implementation.)
     }
 
     <span class="doccomment">/// Executes the DFA on a reverse NFA.
-    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
+    </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>exec_at_reverse(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         qcur: <span class="kw-2">&amp;mut </span>SparseSet,
@@ -2794,7 +2794,7 @@ implementation.)
     /// corresponds to text[i].
     ///
     /// This elides bounds checks, and is therefore not safe.
-    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
+    </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">unsafe fn </span>next_si(<span class="kw-2">&amp;</span><span class="self">self</span>, si: StatePtr, text: <span class="kw-2">&amp;</span>[u8], i: usize) -&gt; StatePtr {
         <span class="comment">// What is the argument for safety here?
         // We have three unchecked accesses that could possibly violate safety:
@@ -3308,7 +3308,7 @@ implementation.)
     /// then it is computed, cached and a pointer to it is returned.
     ///
     /// This may return STATE_DEAD but never STATE_UNKNOWN.
-    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
+    </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>start_state(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         q: <span class="kw-2">&amp;mut </span>SparseSet,
@@ -3469,7 +3469,7 @@ implementation.)
 
     <span class="doccomment">/// Given an input byte or the special EOF sentinel, return its
     /// corresponding byte class.
-    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
+    </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>byte_class(<span class="kw-2">&amp;</span><span class="self">self</span>, b: Byte) -&gt; usize {
         <span class="kw">match </span>b.as_byte() {
             <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.num_byte_classes() - <span class="number">1</span>,
@@ -3478,7 +3478,7 @@ implementation.)
     }
 
     <span class="doccomment">/// Like byte_class, but explicitly for u8s.
-    </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
+    </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
     </span><span class="kw">fn </span>u8_class(<span class="kw-2">&amp;</span><span class="self">self</span>, b: u8) -&gt; usize {
         <span class="self">self</span>.prog.byte_classes[b <span class="kw">as </span>usize] <span class="kw">as </span>usize
     }
@@ -3535,7 +3535,7 @@ implementation.)
 /// states by two different means. A more natural way to express this might
 /// use raw pointers, but an Arc is safe and effectively achieves the same
 /// thing.
-</span><span class="attribute">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>StateMap {
     <span class="doccomment">/// The keys are not actually static but rely on always pointing to a
     /// buffer in `states` which will never be moved except when clearing
@@ -3763,7 +3763,7 @@ implementation.)
     n <span class="kw">as </span>u32
 }
 
-<span class="attribute">#[allow(dead_code)] </span><span class="comment">// useful for debugging
+<span class="attr">#[allow(dead_code)] </span><span class="comment">// useful for debugging
 </span><span class="kw">fn </span>show_state_ptr(si: StatePtr) -&gt; String {
     <span class="kw">let </span><span class="kw-2">mut </span>s = <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, si &amp; STATE_MAX);
     <span class="kw">if </span>si == STATE_UNKNOWN {
@@ -3826,7 +3826,7 @@ implementation.)
     (<span class="number">0</span>, <span class="number">0</span>)
 }
 
-<span class="attribute">#[cfg(test)]
+<span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
 
     <span class="kw">use super</span>::{
@@ -3836,7 +3836,7 @@ implementation.)
     <span class="kw">use </span>quickcheck::{quickcheck, Gen, QuickCheck};
     <span class="kw">use </span>std::sync::Arc;
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>prop_state_encode_decode() {
         <span class="kw">fn </span>p(<span class="kw-2">mut </span>ips: Vec&lt;u32&gt;, flags: u8) -&gt; bool {
             <span class="comment">// It looks like our encoding scheme can&#39;t handle instruction
@@ -3866,7 +3866,7 @@ implementation.)
             .quickcheck(p <span class="kw">as fn</span>(Vec&lt;u32&gt;, u8) -&gt; bool);
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>prop_read_write_u32() {
         <span class="kw">fn </span>p(n: u32) -&gt; bool {
             <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[];
@@ -3877,7 +3877,7 @@ implementation.)
         quickcheck(p <span class="kw">as fn</span>(u32) -&gt; bool);
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>prop_read_write_i32() {
         <span class="kw">fn </span>p(n: i32) -&gt; bool {
             <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[];
@@ -3889,4 +3889,4 @@ implementation.)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.86/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../serde_json/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.87/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../serde_json/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -2601,41 +2601,30 @@
 <span id="2601">2601</span>
 <span id="2602">2602</span>
 <span id="2603">2603</span>
-<span id="2604">2604</span>
-<span id="2605">2605</span>
-<span id="2606">2606</span>
-<span id="2607">2607</span>
-<span id="2608">2608</span>
-<span id="2609">2609</span>
-<span id="2610">2610</span>
-<span id="2611">2611</span>
-<span id="2612">2612</span>
-<span id="2613">2613</span>
-<span id="2614">2614</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Deserialize JSON data to a Rust data structure.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::error::{Error, ErrorCode, <span class="prelude-ty">Result</span>};
-<span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::lexical;
 <span class="kw">use </span><span class="kw">crate</span>::number::Number;
 <span class="kw">use </span><span class="kw">crate</span>::read::{<span class="self">self</span>, Fused, Reference};
 <span class="kw">use </span>alloc::string::String;
 <span class="kw">use </span>alloc::vec::Vec;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
 </span><span class="kw">use </span>core::iter;
 <span class="kw">use </span>core::iter::FusedIterator;
 <span class="kw">use </span>core::marker::PhantomData;
 <span class="kw">use </span>core::result;
 <span class="kw">use </span>core::str::FromStr;
 <span class="kw">use </span>serde::de::{<span class="self">self</span>, Expected, Unexpected};
-<span class="kw">use </span>serde::{forward_to_deserialize_any, serde_if_integer128};
+<span class="kw">use </span>serde::forward_to_deserialize_any;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::number::NumberDeserializer;
 
 <span class="kw">pub use </span><span class="kw">crate</span>::read::{Read, SliceRead, StrRead};
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">pub use </span><span class="kw">crate</span>::read::IoRead;
 
 <span class="comment">//////////////////////////////////////////////////////////////////////////////
@@ -2645,9 +2634,9 @@
     read: R,
     scratch: Vec&lt;u8&gt;,
     remaining_depth: u8,
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
     </span>single_precision: bool,
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;unbounded_depth&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;unbounded_depth&quot;</span>)]
     </span>disable_recursion_limit: bool,
 }
 
@@ -2668,15 +2657,15 @@
             read,
             scratch: Vec::new(),
             remaining_depth: <span class="number">128</span>,
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
             </span>single_precision: <span class="bool-val">false</span>,
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;unbounded_depth&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;unbounded_depth&quot;</span>)]
             </span>disable_recursion_limit: <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">impl</span>&lt;R&gt; Deserializer&lt;read::IoRead&lt;R&gt;&gt;
 <span class="kw">where
     </span>R: <span class="kw">crate</span>::io::Read,
@@ -2717,7 +2706,7 @@
     F64(f64),
     U64(u64),
     I64(i64),
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
     </span>String(String),
 }
 
@@ -2730,7 +2719,7 @@
             ParserNumber::F64(x) =&gt; visitor.visit_f64(x),
             ParserNumber::U64(x) =&gt; visitor.visit_u64(x),
             ParserNumber::I64(x) =&gt; visitor.visit_i64(x),
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
             </span>ParserNumber::String(x) =&gt; visitor.visit_map(NumberDeserializer { number: x.into() }),
         }
     }
@@ -2740,7 +2729,7 @@
             ParserNumber::F64(x) =&gt; de::Error::invalid_type(Unexpected::Float(x), exp),
             ParserNumber::U64(x) =&gt; de::Error::invalid_type(Unexpected::Unsigned(x), exp),
             ParserNumber::I64(x) =&gt; de::Error::invalid_type(Unexpected::Signed(x), exp),
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
             </span>ParserNumber::String(<span class="kw">_</span>) =&gt; de::Error::invalid_type(Unexpected::Other(<span class="string">&quot;number&quot;</span>), exp),
         }
     }
@@ -2817,7 +2806,7 @@
     ///     }
     /// }
     /// ```
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;unbounded_depth&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;unbounded_depth&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;unbounded_depth&quot;</span>)))]
     </span><span class="kw">pub fn </span>disable_recursion_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.disable_recursion_limit = <span class="bool-val">true</span>;
@@ -2844,14 +2833,14 @@
     }
 
     <span class="doccomment">/// Error caused by a byte from next_char().
-    </span><span class="attribute">#[cold]
+    </span><span class="attr">#[cold]
     </span><span class="kw">fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>, reason: ErrorCode) -&gt; Error {
         <span class="kw">let </span>position = <span class="self">self</span>.read.position();
         Error::syntax(reason, position.line, position.column)
     }
 
     <span class="doccomment">/// Error caused by a byte from peek().
-    </span><span class="attribute">#[cold]
+    </span><span class="attr">#[cold]
     </span><span class="kw">fn </span>peek_error(<span class="kw-2">&amp;</span><span class="self">self</span>, reason: ErrorCode) -&gt; Error {
         <span class="kw">let </span>position = <span class="self">self</span>.read.peek_position();
         Error::syntax(reason, position.line, position.column)
@@ -2872,7 +2861,7 @@
         }
     }
 
-    <span class="attribute">#[cold]
+    <span class="attr">#[cold]
     </span><span class="kw">fn </span>peek_invalid_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, exp: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Expected) -&gt; Error {
         <span class="kw">let </span>err = <span class="kw">match </span><span class="self">self</span>.peek_or_null().unwrap_or(<span class="string">b&#39;\x00&#39;</span>) {
             <span class="string">b&#39;n&#39; </span>=&gt; {
@@ -2949,35 +2938,29 @@
         }
     }
 
-    <span class="macro">serde_if_integer128! </span>{
-        <span class="kw">fn </span>scan_integer128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>String) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-            <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.next_char_or_null()) {
-                <span class="string">b&#39;0&#39; </span>=&gt; {
-                    buf.push(<span class="string">&#39;0&#39;</span>);
-                    <span class="comment">// There can be only one leading &#39;0&#39;.
-                    </span><span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.peek_or_null()) {
-                        <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {
-                            <span class="prelude-val">Err</span>(<span class="self">self</span>.peek_error(ErrorCode::InvalidNumber))
-                        }
-                        <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
-                    }
-                }
-                c @ <span class="string">b&#39;1&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {
-                    buf.push(c <span class="kw">as </span>char);
-                    <span class="kw">while let </span>c @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>= <span class="macro">tri!</span>(<span class="self">self</span>.peek_or_null()) {
-                        <span class="self">self</span>.eat_char();
-                        buf.push(c <span class="kw">as </span>char);
-                    }
-                    <span class="prelude-val">Ok</span>(())
-                }
-                <span class="kw">_ </span>=&gt; {
-                    <span class="prelude-val">Err</span>(<span class="self">self</span>.error(ErrorCode::InvalidNumber))
+    <span class="kw">fn </span>scan_integer128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>String) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.next_char_or_null()) {
+            <span class="string">b&#39;0&#39; </span>=&gt; {
+                buf.push(<span class="string">&#39;0&#39;</span>);
+                <span class="comment">// There can be only one leading &#39;0&#39;.
+                </span><span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.peek_or_null()) {
+                    <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.peek_error(ErrorCode::InvalidNumber)),
+                    <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
                 }
             }
+            c @ <span class="string">b&#39;1&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {
+                buf.push(c <span class="kw">as </span>char);
+                <span class="kw">while let </span>c @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>= <span class="macro">tri!</span>(<span class="self">self</span>.peek_or_null()) {
+                    <span class="self">self</span>.eat_char();
+                    buf.push(c <span class="kw">as </span>char);
+                }
+                <span class="prelude-val">Ok</span>(())
+            }
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.error(ErrorCode::InvalidNumber)),
         }
     }
 
-    <span class="attribute">#[cold]
+    <span class="attr">#[cold]
     </span><span class="kw">fn </span>fix_position(<span class="kw-2">&amp;</span><span class="self">self</span>, err: Error) -&gt; Error {
         err.fix_position(<span class="kw">move </span>|code| <span class="self">self</span>.error(code))
     }
@@ -3157,7 +3140,7 @@
         <span class="self">self</span>.f64_from_parts(positive, significand, final_exp)
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
     </span><span class="kw">fn </span>f64_from_parts(<span class="kw-2">&amp;mut </span><span class="self">self</span>, positive: bool, significand: u64, exponent: i32) -&gt; <span class="prelude-ty">Result</span>&lt;f64&gt; {
         <span class="kw">let </span>f = <span class="kw">if </span><span class="self">self</span>.single_precision {
             lexical::parse_concise_float::&lt;f32&gt;(significand, exponent) <span class="kw">as </span>f64
@@ -3172,7 +3155,7 @@
         }
     }
 
-    <span class="attribute">#[cfg(not(feature = <span class="string">&quot;float_roundtrip&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">&quot;float_roundtrip&quot;</span>))]
     </span><span class="kw">fn </span>f64_from_parts(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         positive: bool,
@@ -3208,7 +3191,7 @@
         <span class="prelude-val">Ok</span>(<span class="kw">if </span>positive { f } <span class="kw">else </span>{ -f })
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
     #[cold]
     #[inline(never)]
     </span><span class="kw">fn </span>parse_long_integer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, positive: bool, partial_significand: u64) -&gt; <span class="prelude-ty">Result</span>&lt;f64&gt; {
@@ -3248,7 +3231,7 @@
         }
     }
 
-    <span class="attribute">#[cfg(not(feature = <span class="string">&quot;float_roundtrip&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">&quot;float_roundtrip&quot;</span>))]
     #[cold]
     #[inline(never)]
     </span><span class="kw">fn </span>parse_long_integer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, positive: bool, significand: u64) -&gt; <span class="prelude-ty">Result</span>&lt;f64&gt; {
@@ -3274,7 +3257,7 @@
         }
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
     #[cold]
     </span><span class="kw">fn </span>parse_long_decimal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, positive: bool, integer_end: usize) -&gt; <span class="prelude-ty">Result</span>&lt;f64&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>at_least_one_digit = integer_end &lt; <span class="self">self</span>.scratch.len();
@@ -3297,7 +3280,7 @@
         }
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
     </span><span class="kw">fn </span>parse_long_exponent(<span class="kw-2">&amp;mut </span><span class="self">self</span>, positive: bool, integer_end: usize) -&gt; <span class="prelude-ty">Result</span>&lt;f64&gt; {
         <span class="self">self</span>.eat_char();
 
@@ -3347,7 +3330,7 @@
 
     <span class="comment">// This cold code should not be inlined into the middle of the hot
     // decimal-parsing loop above.
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
     #[cold]
     #[inline(never)]
     </span><span class="kw">fn </span>parse_decimal_overflow(
@@ -3368,7 +3351,7 @@
         <span class="self">self</span>.parse_long_decimal(positive, integer_end)
     }
 
-    <span class="attribute">#[cfg(not(feature = <span class="string">&quot;float_roundtrip&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">&quot;float_roundtrip&quot;</span>))]
     #[cold]
     #[inline(never)]
     </span><span class="kw">fn </span>parse_decimal_overflow(
@@ -3391,7 +3374,7 @@
 
     <span class="comment">// This cold code should not be inlined into the middle of the hot
     // exponent-parsing loop above.
-    </span><span class="attribute">#[cold]
+    </span><span class="attr">#[cold]
     #[inline(never)]
     </span><span class="kw">fn </span>parse_exponent_overflow(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -3410,7 +3393,7 @@
         <span class="prelude-val">Ok</span>(<span class="kw">if </span>positive { <span class="number">0.0 </span>} <span class="kw">else </span>{ -<span class="number">0.0 </span>})
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
     </span><span class="kw">fn </span>f64_long_from_parts(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         positive: bool,
@@ -3466,12 +3449,12 @@
         }
     }
 
-    <span class="attribute">#[cfg(not(feature = <span class="string">&quot;arbitrary_precision&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">&quot;arbitrary_precision&quot;</span>))]
     </span><span class="kw">fn </span>parse_any_number(<span class="kw-2">&amp;mut </span><span class="self">self</span>, positive: bool) -&gt; <span class="prelude-ty">Result</span>&lt;ParserNumber&gt; {
         <span class="self">self</span>.parse_integer(positive)
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
     </span><span class="kw">fn </span>parse_any_number(<span class="kw-2">&amp;mut </span><span class="self">self</span>, positive: bool) -&gt; <span class="prelude-ty">Result</span>&lt;ParserNumber&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = String::with_capacity(<span class="number">16</span>);
         <span class="kw">if </span>!positive {
@@ -3490,7 +3473,7 @@
         <span class="prelude-val">Ok</span>(ParserNumber::String(buf))
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
     </span><span class="kw">fn </span>scan_or_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>String) -&gt; <span class="prelude-ty">Result</span>&lt;u8&gt; {
         <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.next_char()) {
             <span class="prelude-val">Some</span>(b) =&gt; {
@@ -3501,7 +3484,7 @@
         }
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
     </span><span class="kw">fn </span>scan_integer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>String) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.scan_or_eof(buf)) {
             <span class="string">b&#39;0&#39; </span>=&gt; {
@@ -3526,7 +3509,7 @@
         }
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
     </span><span class="kw">fn </span>scan_number(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>String) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.peek_or_null()) {
             <span class="string">b&#39;.&#39; </span>=&gt; <span class="self">self</span>.scan_decimal(buf),
@@ -3535,7 +3518,7 @@
         }
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
     </span><span class="kw">fn </span>scan_decimal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>String) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.eat_char();
         buf.push(<span class="string">&#39;.&#39;</span>);
@@ -3560,7 +3543,7 @@
         }
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
     </span><span class="kw">fn </span>scan_exponent(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: char, buf: <span class="kw-2">&amp;mut </span>String) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.eat_char();
         buf.push(e);
@@ -3816,7 +3799,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
     </span><span class="kw">fn </span>deserialize_raw_value&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -3838,7 +3821,7 @@
     }
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;float_roundtrip&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;float_roundtrip&quot;</span>))]
 </span><span class="kw">static </span>POW10: [f64; <span class="number">309</span>] = [
     <span class="number">1e000</span>, <span class="number">1e001</span>, <span class="number">1e002</span>, <span class="number">1e003</span>, <span class="number">1e004</span>, <span class="number">1e005</span>, <span class="number">1e006</span>, <span class="number">1e007</span>, <span class="number">1e008</span>, <span class="number">1e009</span>, <span class="comment">//
     </span><span class="number">1e010</span>, <span class="number">1e011</span>, <span class="number">1e012</span>, <span class="number">1e013</span>, <span class="number">1e014</span>, <span class="number">1e015</span>, <span class="number">1e016</span>, <span class="number">1e017</span>, <span class="number">1e018</span>, <span class="number">1e019</span>, <span class="comment">//
@@ -3884,14 +3867,14 @@
     };
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;unbounded_depth&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;unbounded_depth&quot;</span>))]
 </span><span class="macro">macro_rules! </span>if_checking_recursion_limit {
     ($(<span class="macro-nonterminal">$body</span>:tt)<span class="kw-2">*</span>) =&gt; {
         $(<span class="macro-nonterminal">$body</span>)*
     };
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;unbounded_depth&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;unbounded_depth&quot;</span>)]
 </span><span class="macro">macro_rules! </span>if_checking_recursion_limit {
     (<span class="macro-nonterminal">$this</span>:ident $(<span class="macro-nonterminal">$body</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="kw">if </span>!<span class="macro-nonterminal">$this</span>.disable_recursion_limit {
@@ -3920,7 +3903,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, R: Read&lt;<span class="lifetime">&#39;de</span>&gt;&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;R&gt; {
     <span class="kw">type </span>Error = Error;
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -4036,11 +4019,11 @@
     <span class="macro">deserialize_number!</span>(deserialize_u16);
     <span class="macro">deserialize_number!</span>(deserialize_u32);
     <span class="macro">deserialize_number!</span>(deserialize_u64);
-    <span class="attribute">#[cfg(not(feature = <span class="string">&quot;float_roundtrip&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">&quot;float_roundtrip&quot;</span>))]
     </span><span class="macro">deserialize_number!</span>(deserialize_f32);
     <span class="macro">deserialize_number!</span>(deserialize_f64);
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
     </span><span class="kw">fn </span>deserialize_f32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -4051,67 +4034,65 @@
         val
     }
 
-    <span class="macro">serde_if_integer128! </span>{
-        <span class="kw">fn </span>deserialize_i128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
-        <span class="kw">where
-            </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
-        {
-            <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+    <span class="kw">fn </span>deserialize_i128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+    {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
 
-            <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.parse_whitespace()) {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
-                    <span class="self">self</span>.eat_char();
-                    buf.push(<span class="string">&#39;-&#39;</span>);
-                }
-                <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
-                <span class="prelude-val">None </span>=&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.peek_error(ErrorCode::EofWhileParsingValue));
-                }
-            };
+        <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.parse_whitespace()) {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
+                <span class="self">self</span>.eat_char();
+                buf.push(<span class="string">&#39;-&#39;</span>);
+            }
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.peek_error(ErrorCode::EofWhileParsingValue));
+            }
+        };
 
-            <span class="macro">tri!</span>(<span class="self">self</span>.scan_integer128(<span class="kw-2">&amp;mut </span>buf));
+        <span class="macro">tri!</span>(<span class="self">self</span>.scan_integer128(<span class="kw-2">&amp;mut </span>buf));
 
-            <span class="kw">let </span>value = <span class="kw">match </span>buf.parse() {
-                <span class="prelude-val">Ok</span>(int) =&gt; visitor.visit_i128(int),
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(ErrorCode::NumberOutOfRange));
-                }
-            };
+        <span class="kw">let </span>value = <span class="kw">match </span>buf.parse() {
+            <span class="prelude-val">Ok</span>(int) =&gt; visitor.visit_i128(int),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(ErrorCode::NumberOutOfRange));
+            }
+        };
 
-            <span class="kw">match </span>value {
-                <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(value),
-                <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.fix_position(err)),
+        <span class="kw">match </span>value {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(value),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.fix_position(err)),
+        }
+    }
+
+    <span class="kw">fn </span>deserialize_u128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+    {
+        <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.parse_whitespace()) {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.peek_error(ErrorCode::NumberOutOfRange));
+            }
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.peek_error(ErrorCode::EofWhileParsingValue));
             }
         }
 
-        <span class="kw">fn </span>deserialize_u128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
-        <span class="kw">where
-            </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
-        {
-            <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.parse_whitespace()) {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.peek_error(ErrorCode::NumberOutOfRange));
-                }
-                <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
-                <span class="prelude-val">None </span>=&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.peek_error(ErrorCode::EofWhileParsingValue));
-                }
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+        <span class="macro">tri!</span>(<span class="self">self</span>.scan_integer128(<span class="kw-2">&amp;mut </span>buf));
+
+        <span class="kw">let </span>value = <span class="kw">match </span>buf.parse() {
+            <span class="prelude-val">Ok</span>(int) =&gt; visitor.visit_u128(int),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(ErrorCode::NumberOutOfRange));
             }
+        };
 
-            <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
-            <span class="macro">tri!</span>(<span class="self">self</span>.scan_integer128(<span class="kw-2">&amp;mut </span>buf));
-
-            <span class="kw">let </span>value = <span class="kw">match </span>buf.parse() {
-                <span class="prelude-val">Ok</span>(int) =&gt; visitor.visit_u128(int),
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(ErrorCode::NumberOutOfRange));
-                }
-            };
-
-            <span class="kw">match </span>value {
-                <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(value),
-                <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.fix_position(err)),
-            }
+        <span class="kw">match </span>value {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(value),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.fix_position(err)),
         }
     }
 
@@ -4258,7 +4239,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_byte_buf&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -4267,7 +4248,7 @@
     }
 
     <span class="doccomment">/// Parses a `null` as a None, and any other values as a `Some(...)`.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -4316,12 +4297,12 @@
     }
 
     <span class="doccomment">/// Parses a newtype struct as the underlying value.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(<span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
         </span>{
             <span class="kw">if </span>name == <span class="kw">crate</span>::raw::TOKEN {
                 <span class="kw">return </span><span class="self">self</span>.deserialize_raw_value(visitor);
@@ -4465,7 +4446,7 @@
 
     <span class="doccomment">/// Parses an enum as an object like `{&quot;$KEY&quot;:$VALUE}`, where $VALUE is either a straight
     /// value, a `[..]`, or a `{..}`.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_enum&lt;V&gt;(
         <span class="self">self</span>,
         _name: <span class="kw-2">&amp;</span>str,
@@ -4761,7 +4742,7 @@
 {
     <span class="kw">type </span>Error = Error;
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -4778,17 +4759,14 @@
     <span class="macro">deserialize_integer_key!</span>(deserialize_i16 =&gt; visit_i16);
     <span class="macro">deserialize_integer_key!</span>(deserialize_i32 =&gt; visit_i32);
     <span class="macro">deserialize_integer_key!</span>(deserialize_i64 =&gt; visit_i64);
+    <span class="macro">deserialize_integer_key!</span>(deserialize_i128 =&gt; visit_i128);
     <span class="macro">deserialize_integer_key!</span>(deserialize_u8 =&gt; visit_u8);
     <span class="macro">deserialize_integer_key!</span>(deserialize_u16 =&gt; visit_u16);
     <span class="macro">deserialize_integer_key!</span>(deserialize_u32 =&gt; visit_u32);
     <span class="macro">deserialize_integer_key!</span>(deserialize_u64 =&gt; visit_u64);
+    <span class="macro">deserialize_integer_key!</span>(deserialize_u128 =&gt; visit_u128);
 
-    <span class="macro">serde_if_integer128! </span>{
-        <span class="macro">deserialize_integer_key!</span>(deserialize_i128 =&gt; visit_i128);
-        <span class="macro">deserialize_integer_key!</span>(deserialize_u128 =&gt; visit_u128);
-    }
-
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -4797,12 +4775,12 @@
         </span>visitor.visit_some(<span class="self">self</span>)
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
         </span>{
             <span class="kw">if </span>name == <span class="kw">crate</span>::raw::TOKEN {
                 <span class="kw">return </span><span class="self">self</span>.de.deserialize_raw_value(visitor);
@@ -4813,7 +4791,7 @@
         visitor.visit_newtype_struct(<span class="self">self</span>)
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_enum&lt;V&gt;(
         <span class="self">self</span>,
         name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
@@ -4826,7 +4804,7 @@
         <span class="self">self</span>.de.deserialize_enum(name, variants, visitor)
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_bytes&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -4834,7 +4812,7 @@
         <span class="self">self</span>.de.deserialize_bytes(visitor)
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_byte_buf&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -5133,7 +5111,7 @@
 /// is wrong with the data, for example required struct fields are missing from
 /// the JSON map or some number is too big to fit in the expected primitive
 /// type.
-</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
 </span><span class="kw">pub fn </span>from_reader&lt;R, T&gt;(rdr: R) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
 <span class="kw">where
@@ -5227,4 +5205,4 @@
     from_trait(read::StrRead::new(s))
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="serde_json" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_json" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

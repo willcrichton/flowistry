@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.15.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../once_cell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../once_cell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../once_cell/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.16.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../once_cell/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1366,6 +1366,16 @@
 <span id="1366">1366</span>
 <span id="1367">1367</span>
 <span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
+<span id="1376">1376</span>
+<span id="1377">1377</span>
+<span id="1378">1378</span>
 </pre><pre class="rust"><code><span class="doccomment">//! # Overview
 //!
 //! `once_cell` provides two new cell-like types, [`unsync::OnceCell`] and [`sync::OnceCell`]. A `OnceCell`
@@ -1637,7 +1647,7 @@
 //!
 //! This crate&#39;s minimum supported `rustc` version is `1.56.0`.
 //!
-//! If only the `std` feature is enabled, MSRV will be updated conservatively.
+//! If only the `std` feature is enabled, MSRV will be updated conservatively, supporting at least latest 8 versions of the compiler.
 //! When using other features, like `parking_lot`, MSRV might be updated more frequently, up to the latest stable.
 //! In both cases, increasing MSRV is *not* considered a semver-breaking change.
 //!
@@ -1695,18 +1705,20 @@
 //! Most of this crate&#39;s functionality is available in `std` in nightly Rust.
 //! See the [tracking issue](https://github.com/rust-lang/rust/issues/74465).
 
-</span><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">extern crate </span>alloc;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-#[cfg(feature = <span class="string">&quot;parking_lot&quot;</span>)]
+<span class="attr">#[cfg(all(feature = <span class="string">&quot;critical-section&quot;</span>, not(feature = <span class="string">&quot;std&quot;</span>)))]
+#[path = <span class="string">&quot;imp_cs.rs&quot;</span>]
+</span><span class="kw">mod </span>imp;
+
+<span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;parking_lot&quot;</span>))]
 #[path = <span class="string">&quot;imp_pl.rs&quot;</span>]
 </span><span class="kw">mod </span>imp;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-#[cfg(not(feature = <span class="string">&quot;parking_lot&quot;</span>))]
+<span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(feature = <span class="string">&quot;parking_lot&quot;</span>)))]
 #[path = <span class="string">&quot;imp_std.rs&quot;</span>]
 </span><span class="kw">mod </span>imp;
 
@@ -1714,10 +1726,12 @@
 </span><span class="kw">pub mod </span>unsync {
     <span class="kw">use </span>core::{
         cell::{Cell, UnsafeCell},
-        fmt, hint, mem,
+        fmt, mem,
         ops::{Deref, DerefMut},
         panic::{RefUnwindSafe, UnwindSafe},
     };
+
+    <span class="kw">use </span><span class="kw">super</span>::unwrap_unchecked;
 
     <span class="doccomment">/// A cell which can be written to only once. It is not thread safe.
     ///
@@ -1810,6 +1824,7 @@
         <span class="doccomment">/// Gets a reference to the underlying value.
         ///
         /// Returns `None` if the cell is empty.
+        </span><span class="attr">#[inline]
         </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
             <span class="comment">// Safe due to `inner`&#39;s invariant
             </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.inner.get() }.as_ref()
@@ -1831,6 +1846,7 @@
         /// *cell.get_mut().unwrap() = 93;
         /// assert_eq!(cell.get(), Some(&amp;93));
         /// ```
+        </span><span class="attr">#[inline]
         </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
             <span class="comment">// Safe because we have unique access
             </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.inner.get() }.as_mut()
@@ -1878,16 +1894,14 @@
             <span class="kw">if let </span><span class="prelude-val">Some</span>(old) = <span class="self">self</span>.get() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>((old, value));
             }
+
             <span class="kw">let </span>slot = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.inner.get() };
             <span class="comment">// This is the only place where we set the slot, no races
             // due to reentrancy/concurrency are possible, and we&#39;ve
             // checked that slot is currently `None`, so this write
             // maintains the `inner`&#39;s invariant.
             </span><span class="kw-2">*</span>slot = <span class="prelude-val">Some</span>(value);
-            <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">&amp;*</span>slot {
-                <span class="prelude-val">Some</span>(value) =&gt; value,
-                <span class="prelude-val">None </span>=&gt; <span class="kw">unsafe </span>{ hint::unreachable_unchecked() },
-            })
+            <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ unwrap_unchecked(slot.as_ref()) })
         }
 
         <span class="doccomment">/// Gets the contents of the cell, initializing it with `f`
@@ -1960,7 +1974,7 @@
             // `assert`, while keeping `set/get` would be sound, but it seems
             // better to panic, rather than to silently use an old value.
             </span><span class="macro">assert!</span>(<span class="self">self</span>.set(val).is_ok(), <span class="string">&quot;reentrant init&quot;</span>);
-            <span class="prelude-val">Ok</span>(<span class="self">self</span>.get().unwrap())
+            <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ unwrap_unchecked(<span class="self">self</span>.get()) })
         }
 
         <span class="doccomment">/// Takes the value out of this `OnceCell`, moving it back to an uninitialized state.
@@ -2182,16 +2196,16 @@
 }
 
 <span class="doccomment">/// Thread-safe, blocking version of `OnceCell`.
-</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;critical-section&quot;</span>))]
 </span><span class="kw">pub mod </span>sync {
-    <span class="kw">use </span>std::{
+    <span class="kw">use </span>core::{
         cell::Cell,
         fmt, mem,
         ops::{Deref, DerefMut},
         panic::RefUnwindSafe,
     };
 
-    <span class="kw">use crate</span>::{imp::OnceCell <span class="kw">as </span>Imp, take_unchecked};
+    <span class="kw">use super</span>::{imp::OnceCell <span class="kw">as </span>Imp, unwrap_unchecked};
 
     <span class="doccomment">/// A thread-safe cell which can be written to only once.
     ///
@@ -2310,8 +2324,9 @@
         /// // Will return 92, but might block until the other thread does `.set`.
         /// let value: &amp;u32 = cell.wait();
         /// assert_eq!(*value, 92);
-        /// t.join().unwrap();;
+        /// t.join().unwrap();
         /// ```
+        </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
         </span><span class="kw">pub fn </span>wait(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
             <span class="kw">if </span>!<span class="self">self</span>.<span class="number">0</span>.is_initialized() {
                 <span class="self">self</span>.<span class="number">0</span>.wait()
@@ -2337,6 +2352,7 @@
         /// cell.set(92).unwrap();
         /// cell = OnceCell::new();
         /// ```
+        </span><span class="attr">#[inline]
         </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
             <span class="self">self</span>.<span class="number">0</span>.get_mut()
         }
@@ -2348,6 +2364,7 @@
         ///
         /// Caller must ensure that the cell is in initialized state, and that
         /// the contents are acquired by (synchronized to) this thread.
+        </span><span class="attr">#[inline]
         </span><span class="kw">pub unsafe fn </span>get_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
             <span class="self">self</span>.<span class="number">0</span>.get_unchecked()
         }
@@ -2399,7 +2416,7 @@
         /// ```
         </span><span class="kw">pub fn </span>try_insert(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>T, (<span class="kw-2">&amp;</span>T, T)&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>value = <span class="prelude-val">Some</span>(value);
-            <span class="kw">let </span>res = <span class="self">self</span>.get_or_init(|| <span class="kw">unsafe </span>{ take_unchecked(<span class="kw-2">&amp;mut </span>value) });
+            <span class="kw">let </span>res = <span class="self">self</span>.get_or_init(|| <span class="kw">unsafe </span>{ unwrap_unchecked(value.take()) });
             <span class="kw">match </span>value {
                 <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(res),
                 <span class="prelude-val">Some</span>(value) =&gt; <span class="prelude-val">Err</span>((res, value)),
@@ -2477,6 +2494,7 @@
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <span class="self">self</span>.get() {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(value);
             }
+
             <span class="self">self</span>.<span class="number">0</span>.initialize(f)<span class="question-mark">?</span>;
 
             <span class="comment">// Safe b/c value is initialized.
@@ -2532,6 +2550,7 @@
         /// cell.set(&quot;hello&quot;.to_string()).unwrap();
         /// assert_eq!(cell.into_inner(), Some(&quot;hello&quot;.to_string()));
         /// ```
+        </span><span class="attr">#[inline]
         </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
             <span class="self">self</span>.<span class="number">0</span>.into_inner()
         }
@@ -2721,18 +2740,19 @@
     </span><span class="kw">fn </span>_dummy() {}
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;race&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;race&quot;</span>)]
 </span><span class="kw">pub mod </span>race;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">unsafe fn </span>take_unchecked&lt;T&gt;(val: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;T&gt;) -&gt; T {
-    <span class="kw">match </span>val.take() {
-        <span class="prelude-val">Some</span>(it) =&gt; it,
+<span class="comment">// Remove once MSRV is at least 1.58.
+</span><span class="attr">#[inline]
+</span><span class="kw">unsafe fn </span>unwrap_unchecked&lt;T&gt;(val: <span class="prelude-ty">Option</span>&lt;T&gt;) -&gt; T {
+    <span class="kw">match </span>val {
+        <span class="prelude-val">Some</span>(value) =&gt; value,
         <span class="prelude-val">None </span>=&gt; {
             <span class="macro">debug_assert!</span>(<span class="bool-val">false</span>);
-            std::hint::unreachable_unchecked()
+            core::hint::unreachable_unchecked()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="once_cell" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="once_cell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

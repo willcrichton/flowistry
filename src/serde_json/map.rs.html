@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.86/src/map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../serde_json/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.87/src/map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../serde_json/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -948,14 +948,14 @@
 <span class="kw">use </span>core::fmt::{<span class="self">self</span>, Debug};
 <span class="kw">use </span>core::hash::Hash;
 <span class="kw">use </span>core::iter::{FromIterator, FusedIterator};
-<span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
 </span><span class="kw">use </span>core::mem;
 <span class="kw">use </span>core::ops;
 <span class="kw">use </span>serde::de;
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
 </span><span class="kw">use </span>alloc::collections::{btree_map, BTreeMap};
-<span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
 </span><span class="kw">use </span>indexmap::{<span class="self">self</span>, IndexMap};
 
 <span class="doccomment">/// Represents a JSON key/value type.
@@ -963,14 +963,14 @@
     map: MapImpl&lt;K, V&gt;,
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
 </span><span class="kw">type </span>MapImpl&lt;K, V&gt; = BTreeMap&lt;K, V&gt;;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
 </span><span class="kw">type </span>MapImpl&lt;K, V&gt; = IndexMap&lt;K, V&gt;;
 
 <span class="kw">impl </span>Map&lt;String, Value&gt; {
     <span class="doccomment">/// Makes a new empty Map.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         Map {
             map: MapImpl::new(),
@@ -978,22 +978,22 @@
     }
 
     <span class="doccomment">/// Makes a new empty Map with the given initial capacity.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>with_capacity(capacity: usize) -&gt; <span class="self">Self </span>{
         Map {
-            <span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+            <span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
             </span>map: {
                 <span class="comment">// does not support with_capacity
                 </span><span class="kw">let _ </span>= capacity;
                 BTreeMap::new()
             },
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
             </span>map: IndexMap::with_capacity(capacity),
         }
     }
 
     <span class="doccomment">/// Clears the map, removing all values.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.map.clear();
     }
@@ -1002,7 +1002,7 @@
     ///
     /// The key may be any borrowed form of the map&#39;s key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get&lt;Q&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Value&gt;
     <span class="kw">where
         </span>String: Borrow&lt;Q&gt;,
@@ -1015,7 +1015,7 @@
     ///
     /// The key may be any borrowed form of the map&#39;s key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>contains_key&lt;Q&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; bool
     <span class="kw">where
         </span>String: Borrow&lt;Q&gt;,
@@ -1028,7 +1028,7 @@
     ///
     /// The key may be any borrowed form of the map&#39;s key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_mut&lt;Q&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Value&gt;
     <span class="kw">where
         </span>String: Borrow&lt;Q&gt;,
@@ -1041,7 +1041,7 @@
     ///
     /// The key may be any borrowed form of the map&#39;s key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     #[cfg(any(feature = <span class="string">&quot;preserve_order&quot;</span>, not(no_btreemap_get_key_value)))]
     </span><span class="kw">pub fn </span>get_key_value&lt;Q&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>String, <span class="kw-2">&amp;</span>Value)&gt;
     <span class="kw">where
@@ -1057,7 +1057,7 @@
     ///
     /// If the map did have this key present, the value is updated, and the old
     /// value is returned.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: String, v: Value) -&gt; <span class="prelude-ty">Option</span>&lt;Value&gt; {
         <span class="self">self</span>.map.insert(k, v)
     }
@@ -1067,15 +1067,15 @@
     ///
     /// The key may be any borrowed form of the map&#39;s key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>remove&lt;Q&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;Value&gt;
     <span class="kw">where
         </span>String: Borrow&lt;Q&gt;,
         Q: <span class="question-mark">?</span>Sized + Ord + Eq + Hash,
     {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
         </span><span class="kw">return </span><span class="self">self</span>.map.swap_remove(key);
-        <span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
         </span><span class="kw">return </span><span class="self">self</span>.map.remove(key);
     }
 
@@ -1089,9 +1089,9 @@
         </span>String: Borrow&lt;Q&gt;,
         Q: <span class="question-mark">?</span>Sized + Ord + Eq + Hash,
     {
-        <span class="attribute">#[cfg(any(feature = <span class="string">&quot;preserve_order&quot;</span>, not(no_btreemap_remove_entry)))]
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;preserve_order&quot;</span>, not(no_btreemap_remove_entry)))]
         </span><span class="kw">return </span><span class="self">self</span>.map.remove_entry(key);
-        <span class="attribute">#[cfg(all(
+        <span class="attr">#[cfg(all(
             not(feature = <span class="string">&quot;preserve_order&quot;</span>),
             no_btreemap_remove_entry,
             not(no_btreemap_get_key_value),
@@ -1102,7 +1102,7 @@
             <span class="kw">let </span>value = <span class="self">self</span>.map.remove::&lt;String&gt;(<span class="kw-2">&amp;</span>key)<span class="question-mark">?</span>;
             <span class="prelude-val">Some</span>((key, value))
         }
-        <span class="attribute">#[cfg(all(
+        <span class="attr">#[cfg(all(
             not(feature = <span class="string">&quot;preserve_order&quot;</span>),
             no_btreemap_remove_entry,
             no_btreemap_get_key_value,
@@ -1130,13 +1130,13 @@
     }
 
     <span class="doccomment">/// Moves all elements from other into self, leaving other empty.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;mut </span><span class="self">Self</span>) {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
         </span><span class="kw">for </span>(k, v) <span class="kw">in </span>mem::replace(<span class="kw-2">&amp;mut </span>other.map, MapImpl::default()) {
             <span class="self">self</span>.map.insert(k, v);
         }
-        <span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
         </span><span class="self">self</span>.map.append(<span class="kw-2">&amp;mut </span>other.map);
     }
 
@@ -1146,9 +1146,9 @@
     <span class="kw">where
         </span>S: Into&lt;String&gt;,
     {
-        <span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
         </span><span class="kw">use </span>alloc::collections::btree_map::Entry <span class="kw">as </span>EntryImpl;
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
         </span><span class="kw">use </span>indexmap::map::Entry <span class="kw">as </span>EntryImpl;
 
         <span class="kw">match </span><span class="self">self</span>.map.entry(key.into()) {
@@ -1158,19 +1158,19 @@
     }
 
     <span class="doccomment">/// Returns the number of elements in the map.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.map.len()
     }
 
     <span class="doccomment">/// Returns true if the map contains no elements.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.map.is_empty()
     }
 
     <span class="doccomment">/// Gets an iterator over the entries of the map.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter {
         Iter {
             iter: <span class="self">self</span>.map.iter(),
@@ -1178,7 +1178,7 @@
     }
 
     <span class="doccomment">/// Gets a mutable iterator over the entries of the map.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; IterMut {
         IterMut {
             iter: <span class="self">self</span>.map.iter_mut(),
@@ -1186,7 +1186,7 @@
     }
 
     <span class="doccomment">/// Gets an iterator over the keys of the map.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Keys {
         Keys {
             iter: <span class="self">self</span>.map.keys(),
@@ -1194,7 +1194,7 @@
     }
 
     <span class="doccomment">/// Gets an iterator over the values of the map.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Values {
         Values {
             iter: <span class="self">self</span>.map.values(),
@@ -1202,7 +1202,7 @@
     }
 
     <span class="doccomment">/// Gets an iterator over mutable values of the map.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>values_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ValuesMut {
         ValuesMut {
             iter: <span class="self">self</span>.map.values_mut(),
@@ -1213,7 +1213,7 @@
     ///
     /// In other words, remove all pairs `(k, v)` such that `f(&amp;k, &amp;mut v)`
     /// returns `false`.
-    </span><span class="attribute">#[cfg(not(no_btreemap_retain))]
+    </span><span class="attr">#[cfg(not(no_btreemap_retain))]
     #[inline]
     </span><span class="kw">pub fn </span>retain&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F)
     <span class="kw">where
@@ -1223,9 +1223,9 @@
     }
 }
 
-<span class="attribute">#[allow(clippy::derivable_impls)] </span><span class="comment">// clippy bug: https://github.com/rust-lang/rust-clippy/issues/7655
+<span class="attr">#[allow(clippy::derivable_impls)] </span><span class="comment">// clippy bug: https://github.com/rust-lang/rust-clippy/issues/7655
 </span><span class="kw">impl </span>Default <span class="kw">for </span>Map&lt;String, Value&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         Map {
             map: MapImpl::new(),
@@ -1234,7 +1234,7 @@
 }
 
 <span class="kw">impl </span>Clone <span class="kw">for </span>Map&lt;String, Value&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         Map {
             map: <span class="self">self</span>.map.clone(),
@@ -1243,7 +1243,7 @@
 }
 
 <span class="kw">impl </span>PartialEq <span class="kw">for </span>Map&lt;String, Value&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="self">self</span>.map.eq(<span class="kw-2">&amp;</span>other.map)
     }
@@ -1301,15 +1301,15 @@
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>Map&lt;String, Value&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; <span class="prelude-ty">Result</span>&lt;(), fmt::Error&gt; {
         <span class="self">self</span>.map.fmt(formatter)
     }
 }
 
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">impl </span>serde::ser::Serialize <span class="kw">for </span>Map&lt;String, Value&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
         </span>S: serde::ser::Serializer,
@@ -1324,7 +1324,7 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>Map&lt;String, Value&gt; {
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, D::Error&gt;
     <span class="kw">where
         </span>D: de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -1338,7 +1338,7 @@
                 formatter.write_str(<span class="string">&quot;a map&quot;</span>)
             }
 
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>visit_unit&lt;E&gt;(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, E&gt;
             <span class="kw">where
                 </span>E: de::Error,
@@ -1346,7 +1346,7 @@
                 <span class="prelude-val">Ok</span>(Map::new())
             }
 
-            <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+            <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
             #[inline]
             </span><span class="kw">fn </span>visit_map&lt;V&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, V::Error&gt;
             <span class="kw">where
@@ -1390,25 +1390,25 @@
     ((<span class="macro-nonterminal">$name</span>:ident $(<span class="macro-nonterminal">$generics</span>:tt)<span class="kw-2">*</span>) =&gt; <span class="macro-nonterminal">$item</span>:ty) =&gt; {
         <span class="kw">impl </span>$(<span class="macro-nonterminal">$generics</span>)* Iterator <span class="kw">for </span><span class="macro-nonterminal">$name </span>$(<span class="macro-nonterminal">$generics</span>)* {
             <span class="kw">type </span>Item = <span class="macro-nonterminal">$item</span>;
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
                 <span class="self">self</span>.iter.next()
             }
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
                 <span class="self">self</span>.iter.size_hint()
             }
         }
 
         <span class="kw">impl </span>$(<span class="macro-nonterminal">$generics</span>)* DoubleEndedIterator <span class="kw">for </span><span class="macro-nonterminal">$name </span>$(<span class="macro-nonterminal">$generics</span>)* {
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
                 <span class="self">self</span>.iter.next_back()
             }
         }
 
         <span class="kw">impl </span>$(<span class="macro-nonterminal">$generics</span>)* ExactSizeIterator <span class="kw">for </span><span class="macro-nonterminal">$name </span>$(<span class="macro-nonterminal">$generics</span>)* {
-            <span class="attribute">#[inline]
+            <span class="attr">#[inline]
             </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
                 <span class="self">self</span>.iter.len()
             }
@@ -1446,14 +1446,14 @@
     occupied: OccupiedEntryImpl&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
 </span><span class="kw">type </span>VacantEntryImpl&lt;<span class="lifetime">&#39;a</span>&gt; = btree_map::VacantEntry&lt;<span class="lifetime">&#39;a</span>, String, Value&gt;;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
 </span><span class="kw">type </span>VacantEntryImpl&lt;<span class="lifetime">&#39;a</span>&gt; = indexmap::map::VacantEntry&lt;<span class="lifetime">&#39;a</span>, String, Value&gt;;
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
 </span><span class="kw">type </span>OccupiedEntryImpl&lt;<span class="lifetime">&#39;a</span>&gt; = btree_map::OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, String, Value&gt;;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
 </span><span class="kw">type </span>OccupiedEntryImpl&lt;<span class="lifetime">&#39;a</span>&gt; = indexmap::map::OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, String, Value&gt;;
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Entry&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -1569,7 +1569,7 @@
     ///     Entry::Occupied(_) =&gt; unimplemented!(),
     /// }
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>String {
         <span class="self">self</span>.vacant.key()
     }
@@ -1593,7 +1593,7 @@
     ///     Entry::Occupied(_) =&gt; unimplemented!(),
     /// }
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>insert(<span class="self">self</span>, value: Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Value {
         <span class="self">self</span>.vacant.insert(value)
     }
@@ -1619,7 +1619,7 @@
     ///     Entry::Vacant(_) =&gt; unimplemented!(),
     /// }
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>String {
         <span class="self">self</span>.occupied.key()
     }
@@ -1643,7 +1643,7 @@
     ///     Entry::Vacant(_) =&gt; unimplemented!(),
     /// }
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Value {
         <span class="self">self</span>.occupied.get()
     }
@@ -1669,7 +1669,7 @@
     ///
     /// assert_eq!(map[&quot;serde&quot;].as_array().unwrap().len(), 4);
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Value {
         <span class="self">self</span>.occupied.get_mut()
     }
@@ -1695,7 +1695,7 @@
     ///
     /// assert_eq!(map[&quot;serde&quot;].as_array().unwrap().len(), 4);
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>into_mut(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Value {
         <span class="self">self</span>.occupied.into_mut()
     }
@@ -1721,7 +1721,7 @@
     ///     Entry::Vacant(_) =&gt; unimplemented!(),
     /// }
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Value) -&gt; Value {
         <span class="self">self</span>.occupied.insert(value)
     }
@@ -1745,11 +1745,11 @@
     ///     Entry::Vacant(_) =&gt; unimplemented!(),
     /// }
     /// ```
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>remove(<span class="self">self</span>) -&gt; Value {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
         </span><span class="kw">return </span><span class="self">self</span>.occupied.swap_remove();
-        <span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
         </span><span class="kw">return </span><span class="self">self</span>.occupied.remove();
     }
 }
@@ -1759,7 +1759,7 @@
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Map&lt;String, Value&gt; {
     <span class="kw">type </span>Item = (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>String, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value);
     <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>&gt;;
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         Iter {
             iter: <span class="self">self</span>.map.iter(),
@@ -1772,9 +1772,9 @@
     iter: IterImpl&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
 </span><span class="kw">type </span>IterImpl&lt;<span class="lifetime">&#39;a</span>&gt; = btree_map::Iter&lt;<span class="lifetime">&#39;a</span>, String, Value&gt;;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
 </span><span class="kw">type </span>IterImpl&lt;<span class="lifetime">&#39;a</span>&gt; = indexmap::map::Iter&lt;<span class="lifetime">&#39;a</span>, String, Value&gt;;
 
 <span class="macro">delegate_iterator!</span>((Iter&lt;<span class="lifetime">&#39;a</span>&gt;) =&gt; (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>String, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value));
@@ -1784,7 +1784,7 @@
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Map&lt;String, Value&gt; {
     <span class="kw">type </span>Item = (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>String, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Value);
     <span class="kw">type </span>IntoIter = IterMut&lt;<span class="lifetime">&#39;a</span>&gt;;
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         IterMut {
             iter: <span class="self">self</span>.map.iter_mut(),
@@ -1797,9 +1797,9 @@
     iter: IterMutImpl&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
 </span><span class="kw">type </span>IterMutImpl&lt;<span class="lifetime">&#39;a</span>&gt; = btree_map::IterMut&lt;<span class="lifetime">&#39;a</span>, String, Value&gt;;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
 </span><span class="kw">type </span>IterMutImpl&lt;<span class="lifetime">&#39;a</span>&gt; = indexmap::map::IterMut&lt;<span class="lifetime">&#39;a</span>, String, Value&gt;;
 
 <span class="macro">delegate_iterator!</span>((IterMut&lt;<span class="lifetime">&#39;a</span>&gt;) =&gt; (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>String, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Value));
@@ -1809,7 +1809,7 @@
 </span><span class="kw">impl </span>IntoIterator <span class="kw">for </span>Map&lt;String, Value&gt; {
     <span class="kw">type </span>Item = (String, Value);
     <span class="kw">type </span>IntoIter = IntoIter;
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         IntoIter {
             iter: <span class="self">self</span>.map.into_iter(),
@@ -1822,9 +1822,9 @@
     iter: IntoIterImpl,
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
 </span><span class="kw">type </span>IntoIterImpl = btree_map::IntoIter&lt;String, Value&gt;;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
 </span><span class="kw">type </span>IntoIterImpl = indexmap::map::IntoIter&lt;String, Value&gt;;
 
 <span class="macro">delegate_iterator!</span>((IntoIter) =&gt; (String, Value));
@@ -1836,9 +1836,9 @@
     iter: KeysImpl&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
 </span><span class="kw">type </span>KeysImpl&lt;<span class="lifetime">&#39;a</span>&gt; = btree_map::Keys&lt;<span class="lifetime">&#39;a</span>, String, Value&gt;;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
 </span><span class="kw">type </span>KeysImpl&lt;<span class="lifetime">&#39;a</span>&gt; = indexmap::map::Keys&lt;<span class="lifetime">&#39;a</span>, String, Value&gt;;
 
 <span class="macro">delegate_iterator!</span>((Keys&lt;<span class="lifetime">&#39;a</span>&gt;) =&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>String);
@@ -1850,9 +1850,9 @@
     iter: ValuesImpl&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
 </span><span class="kw">type </span>ValuesImpl&lt;<span class="lifetime">&#39;a</span>&gt; = btree_map::Values&lt;<span class="lifetime">&#39;a</span>, String, Value&gt;;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
 </span><span class="kw">type </span>ValuesImpl&lt;<span class="lifetime">&#39;a</span>&gt; = indexmap::map::Values&lt;<span class="lifetime">&#39;a</span>, String, Value&gt;;
 
 <span class="macro">delegate_iterator!</span>((Values&lt;<span class="lifetime">&#39;a</span>&gt;) =&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value);
@@ -1864,11 +1864,11 @@
     iter: ValuesMutImpl&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
 </span><span class="kw">type </span>ValuesMutImpl&lt;<span class="lifetime">&#39;a</span>&gt; = btree_map::ValuesMut&lt;<span class="lifetime">&#39;a</span>, String, Value&gt;;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
 </span><span class="kw">type </span>ValuesMutImpl&lt;<span class="lifetime">&#39;a</span>&gt; = indexmap::map::ValuesMut&lt;<span class="lifetime">&#39;a</span>, String, Value&gt;;
 
 <span class="macro">delegate_iterator!</span>((ValuesMut&lt;<span class="lifetime">&#39;a</span>&gt;) =&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Value);
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="serde_json" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_json" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

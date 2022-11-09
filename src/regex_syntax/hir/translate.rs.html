@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.27/src/hir/translate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>translate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.28/src/hir/translate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>translate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -3219,7 +3219,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
 <span class="kw">type </span><span class="prelude-ty">Result</span>&lt;T&gt; = result::Result&lt;T, Error&gt;;
 
 <span class="doccomment">/// A builder for constructing an AST-&gt;HIR translator.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>TranslatorBuilder {
     allow_invalid_utf8: bool,
     flags: Flags,
@@ -3308,7 +3308,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
 ///
 /// A `Translator` can be configured in more detail via a
 /// [`TranslatorBuilder`](struct.TranslatorBuilder.html).
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Translator {
     <span class="doccomment">/// Our call stack, but on the heap.
     </span>stack: RefCell&lt;Vec&lt;HirFrame&gt;&gt;,
@@ -3344,7 +3344,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
 /// Note that technically, this type doesn&#39;t represent our entire stack
 /// frame. In particular, the Ast visitor represents any state associated with
 /// traversing the Ast itself.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">enum </span>HirFrame {
     <span class="doccomment">/// An arbitrary HIR expression. These get pushed whenever we hit a base
     /// case in the Ast. They get popped after an inductive (i.e., recursive)
@@ -3787,7 +3787,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
 /// which is not tied to the internal state of a translator.
 ///
 /// A TranslatorI exists for the time it takes to translate a single Ast.
-</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">struct </span>TranslatorI&lt;<span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span>&gt; {
     trans: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>Translator,
     pattern: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>str,
@@ -4210,7 +4210,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
 ///
 /// Each flag can be in one of three states: absent, present but disabled or
 /// present but enabled.
-</span><span class="attribute">#[derive(Clone, Copy, Debug, Default)]
+</span><span class="attr">#[derive(Clone, Copy, Debug, Default)]
 </span><span class="kw">struct </span>Flags {
     case_insensitive: <span class="prelude-ty">Option</span>&lt;bool&gt;,
     multi_line: <span class="prelude-ty">Option</span>&lt;bool&gt;,
@@ -4326,7 +4326,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     }
 }
 
-<span class="attribute">#[cfg(test)]
+<span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span><span class="kw">crate</span>::ast::parse::ParserBuilder;
     <span class="kw">use </span><span class="kw">crate</span>::ast::{<span class="self">self</span>, Ast, Position, Span};
@@ -4338,7 +4338,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="comment">// We create these errors to compare with real hir::Errors in the tests.
     // We define equality between TestError and hir::Error to disregard the
     // pattern string in hir::Error, which is annoying to provide in tests.
-    </span><span class="attribute">#[derive(Clone, Debug)]
+    </span><span class="attr">#[derive(Clone, Debug)]
     </span><span class="kw">struct </span>TestError {
         span: Span,
         kind: hir::ErrorKind,
@@ -4478,12 +4478,12 @@ Defines a translator that converts an `Ast` to an `Hir`.
         Hir::concat(exprs)
     }
 
-    <span class="attribute">#[allow(dead_code)]
+    <span class="attr">#[allow(dead_code)]
     </span><span class="kw">fn </span>hir_uclass_query(query: ClassQuery&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Hir {
         Hir::class(hir::Class::Unicode(unicode::class(query).unwrap()))
     }
 
-    <span class="attribute">#[allow(dead_code)]
+    <span class="attr">#[allow(dead_code)]
     </span><span class="kw">fn </span>hir_uclass_perl_word() -&gt; Hir {
         Hir::class(hir::Class::Unicode(unicode::perl_word().unwrap()))
     }
@@ -4536,7 +4536,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         }
     }
 
-    <span class="attribute">#[allow(dead_code)]
+    <span class="attr">#[allow(dead_code)]
     </span><span class="kw">fn </span>hir_union(expr1: Hir, expr2: Hir) -&gt; Hir {
         <span class="kw">use </span><span class="kw">crate</span>::hir::Class::{Bytes, Unicode};
 
@@ -4553,7 +4553,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         }
     }
 
-    <span class="attribute">#[allow(dead_code)]
+    <span class="attr">#[allow(dead_code)]
     </span><span class="kw">fn </span>hir_difference(expr1: Hir, expr2: Hir) -&gt; Hir {
         <span class="kw">use </span><span class="kw">crate</span>::hir::Class::{Bytes, Unicode};
 
@@ -4578,7 +4578,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         Hir::word_boundary(wb)
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>empty() {
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;&quot;</span>), Hir::empty());
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;(?i)&quot;</span>), Hir::empty());
@@ -4617,7 +4617,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>literal() {
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;a&quot;</span>), hir_lit(<span class="string">&quot;a&quot;</span>));
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;(?-u)a&quot;</span>), hir_lit(<span class="string">&quot;a&quot;</span>));
@@ -4651,16 +4651,16 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>literal_case_insensitive() {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(t(<span class="string">&quot;(?i)a&quot;</span>), hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;A&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;a&#39;</span>),]));
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i:a)&quot;</span>),
             hir_group_nocap(hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;A&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;a&#39;</span>)],))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;a(?i)a(?-i)a&quot;</span>),
             hir_cat(<span class="macro">vec!</span>[
@@ -4669,7 +4669,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 hir_lit(<span class="string">&quot;a&quot;</span>),
             ])
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i)ab@c&quot;</span>),
             hir_cat(<span class="macro">vec!</span>[
@@ -4679,14 +4679,14 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;C&#39;</span>, <span class="string">&#39;C&#39;</span>), (<span class="string">&#39;c&#39;</span>, <span class="string">&#39;c&#39;</span>)]),
             ])
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i)β&quot;</span>),
             hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;Β&#39;</span>, <span class="string">&#39;Β&#39;</span>), (<span class="string">&#39;β&#39;</span>, <span class="string">&#39;β&#39;</span>), (<span class="string">&#39;ϐ&#39;</span>, <span class="string">&#39;ϐ&#39;</span>),])
         );
 
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;(?i-u)a&quot;</span>), hir_bclass(<span class="kw-2">&amp;</span>[(<span class="string">b&#39;A&#39;</span>, <span class="string">b&#39;A&#39;</span>), (<span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;a&#39;</span>),]));
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?-u)a(?i)a(?-i)a&quot;</span>),
             hir_cat(<span class="macro">vec!</span>[
@@ -4731,7 +4731,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>dot() {
         <span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;.&quot;</span>),
@@ -4767,7 +4767,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>assertions() {
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;^&quot;</span>), hir_anchor(hir::Anchor::StartText));
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;$&quot;</span>), hir_anchor(hir::Anchor::EndText));
@@ -4798,7 +4798,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>group() {
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;(a)&quot;</span>), hir_group(<span class="number">1</span>, hir_lit(<span class="string">&quot;a&quot;</span>)));
         <span class="macro">assert_eq!</span>(
@@ -4855,9 +4855,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;(((?x)))&quot;</span>), hir_group(<span class="number">1</span>, hir_group(<span class="number">2</span>, Hir::empty())));
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>flags() {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i:a)a&quot;</span>),
             hir_cat(<span class="macro">vec!</span>[
@@ -4886,7 +4886,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 hir_lit(<span class="string">&quot;b&quot;</span>),
             ])
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i)(?-i:a)a&quot;</span>),
             hir_cat(<span class="macro">vec!</span>[
@@ -4894,7 +4894,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;A&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;a&#39;</span>)]),
             ])
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?im)a^&quot;</span>),
             hir_cat(<span class="macro">vec!</span>[
@@ -4902,7 +4902,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 hir_anchor(hir::Anchor::StartLine),
             ])
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?im)a^(?i-m)a^&quot;</span>),
             hir_cat(<span class="macro">vec!</span>[
@@ -4921,7 +4921,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 hir_star(<span class="bool-val">false</span>, hir_lit(<span class="string">&quot;a&quot;</span>)),
             ])
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?:a(?i)a)a&quot;</span>),
             hir_cat(<span class="macro">vec!</span>[
@@ -4932,7 +4932,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 hir_lit(<span class="string">&quot;a&quot;</span>),
             ])
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i)(?:a(?-i)a)a&quot;</span>),
             hir_cat(<span class="macro">vec!</span>[
@@ -4945,7 +4945,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>escape() {
         <span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;\\\.\+\*\?\(\)\|\[\]\{\}\^\$\#&quot;</span>),
@@ -4953,7 +4953,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>repetition() {
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;a?&quot;</span>), hir_quest(<span class="bool-val">true</span>, hir_lit(<span class="string">&quot;a&quot;</span>)));
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;a*&quot;</span>), hir_star(<span class="bool-val">true</span>, hir_lit(<span class="string">&quot;a&quot;</span>)));
@@ -5008,7 +5008,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>cat_alt() {
         <span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(ab)&quot;</span>),
@@ -5059,7 +5059,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>class_ascii() {
         <span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;[[:alnum:]]&quot;</span>),
@@ -5122,7 +5122,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
             t(<span class="string">&quot;[[:^lower:]]&quot;</span>),
             hir_negate(hir_uclass(ascii_class(<span class="kw-2">&amp;</span>ast::ClassAsciiKind::Lower)))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i)[[:lower:]]&quot;</span>),
             hir_uclass(<span class="kw-2">&amp;</span>[
@@ -5166,7 +5166,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>class_ascii_multiple() {
         <span class="comment">// See: https://github.com/rust-lang/regex/issues/680
         </span><span class="macro">assert_eq!</span>(
@@ -5185,24 +5185,24 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     #[cfg(feature = <span class="string">&quot;unicode-perl&quot;</span>)]
     </span><span class="kw">fn </span>class_perl() {
         <span class="comment">// Unicode
         </span><span class="macro">assert_eq!</span>(t(<span class="string">r&quot;\d&quot;</span>), hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;digit&quot;</span>)));
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;\s&quot;</span>), hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;space&quot;</span>)));
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;\w&quot;</span>), hir_uclass_perl_word());
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;(?i)\d&quot;</span>),
             hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;digit&quot;</span>))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;(?i)\s&quot;</span>),
             hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;space&quot;</span>))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(t(<span class="string">r&quot;(?i)\w&quot;</span>), hir_uclass_perl_word());
 
         <span class="comment">// Unicode, negated
@@ -5215,17 +5215,17 @@ Defines a translator that converts an `Ast` to an `Hir`.
             hir_negate(hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;space&quot;</span>)))
         );
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;\W&quot;</span>), hir_negate(hir_uclass_perl_word()));
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;(?i)\D&quot;</span>),
             hir_negate(hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;digit&quot;</span>)))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;(?i)\S&quot;</span>),
             hir_negate(hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;space&quot;</span>)))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(t(<span class="string">r&quot;(?i)\W&quot;</span>), hir_negate(hir_uclass_perl_word()));
 
         <span class="comment">// ASCII only
@@ -5293,7 +5293,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     #[cfg(not(feature = <span class="string">&quot;unicode-perl&quot;</span>))]
     </span><span class="kw">fn </span>class_perl_word_disabled() {
         <span class="macro">assert_eq!</span>(
@@ -5308,7 +5308,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     #[cfg(all(not(feature = <span class="string">&quot;unicode-perl&quot;</span>), not(feature = <span class="string">&quot;unicode-bool&quot;</span>)))]
     </span><span class="kw">fn </span>class_perl_space_disabled() {
         <span class="macro">assert_eq!</span>(
@@ -5323,7 +5323,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     #[cfg(all(
         not(feature = <span class="string">&quot;unicode-perl&quot;</span>),
         not(feature = <span class="string">&quot;unicode-gencat&quot;</span>)
@@ -5341,7 +5341,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     #[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
     </span><span class="kw">fn </span>class_unicode_gencat() {
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;\pZ&quot;</span>), hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;Z&quot;</span>)));
@@ -5455,7 +5455,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     #[cfg(not(feature = <span class="string">&quot;unicode-gencat&quot;</span>))]
     </span><span class="kw">fn </span>class_unicode_gencat_disabled() {
         <span class="macro">assert_eq!</span>(
@@ -5481,19 +5481,19 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     #[cfg(feature = <span class="string">&quot;unicode-script&quot;</span>)]
     </span><span class="kw">fn </span>class_unicode_script() {
         <span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;\p{Greek}&quot;</span>),
             hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;Greek&quot;</span>))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;(?i)\p{Greek}&quot;</span>),
             hir_case_fold(hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;Greek&quot;</span>)))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;(?i)\P{Greek}&quot;</span>),
             hir_negate(hir_case_fold(hir_uclass_query(ClassQuery::Binary(
@@ -5523,7 +5523,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     #[cfg(not(feature = <span class="string">&quot;unicode-script&quot;</span>))]
     </span><span class="kw">fn </span>class_unicode_script_disabled() {
         <span class="macro">assert_eq!</span>(
@@ -5549,7 +5549,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     #[cfg(feature = <span class="string">&quot;unicode-age&quot;</span>)]
     </span><span class="kw">fn </span>class_unicode_age() {
         <span class="macro">assert_eq!</span>(
@@ -5564,7 +5564,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     #[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
     </span><span class="kw">fn </span>class_unicode_any_empty() {
         <span class="macro">assert_eq!</span>(
@@ -5579,7 +5579,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     #[cfg(not(feature = <span class="string">&quot;unicode-age&quot;</span>))]
     </span><span class="kw">fn </span>class_unicode_age_disabled() {
         <span class="macro">assert_eq!</span>(
@@ -5594,7 +5594,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>class_bracketed() {
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;[a]&quot;</span>), hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;a&#39;</span>)]));
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;[^[a]]&quot;</span>), hir_negate(hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;a&#39;</span>)])));
@@ -5604,31 +5604,31 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;[\x00]&quot;</span>), hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;\0&#39;</span>, <span class="string">&#39;\0&#39;</span>)]));
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;[\n]&quot;</span>), hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;\n&#39;</span>, <span class="string">&#39;\n&#39;</span>)]));
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;[\n]&quot;</span>), hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;\n&#39;</span>, <span class="string">&#39;\n&#39;</span>)]));
-        <span class="attribute">#[cfg(any(feature = <span class="string">&quot;unicode-perl&quot;</span>, feature = <span class="string">&quot;unicode-gencat&quot;</span>))]
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;unicode-perl&quot;</span>, feature = <span class="string">&quot;unicode-gencat&quot;</span>))]
         </span><span class="macro">assert_eq!</span>(t(<span class="string">r&quot;[\d]&quot;</span>), hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;digit&quot;</span>)));
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;[\pZ]&quot;</span>),
             hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;separator&quot;</span>))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;[\p{separator}]&quot;</span>),
             hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;separator&quot;</span>))
         );
-        <span class="attribute">#[cfg(any(feature = <span class="string">&quot;unicode-perl&quot;</span>, feature = <span class="string">&quot;unicode-gencat&quot;</span>))]
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;unicode-perl&quot;</span>, feature = <span class="string">&quot;unicode-gencat&quot;</span>))]
         </span><span class="macro">assert_eq!</span>(t(<span class="string">r&quot;[^\D]&quot;</span>), hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;digit&quot;</span>)));
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;[^\PZ]&quot;</span>),
             hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;separator&quot;</span>))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;[^\P{separator}]&quot;</span>),
             hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;separator&quot;</span>))
         );
-        <span class="attribute">#[cfg(all(
+        <span class="attr">#[cfg(all(
             feature = <span class="string">&quot;unicode-case&quot;</span>,
             any(feature = <span class="string">&quot;unicode-perl&quot;</span>, feature = <span class="string">&quot;unicode-gencat&quot;</span>)
         ))]
@@ -5636,7 +5636,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
             t(<span class="string">r&quot;(?i)[^\D]&quot;</span>),
             hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;digit&quot;</span>))
         );
-        <span class="attribute">#[cfg(all(feature = <span class="string">&quot;unicode-case&quot;</span>, feature = <span class="string">&quot;unicode-script&quot;</span>))]
+        <span class="attr">#[cfg(all(feature = <span class="string">&quot;unicode-case&quot;</span>, feature = <span class="string">&quot;unicode-script&quot;</span>))]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;(?i)[^\P{greek}]&quot;</span>),
             hir_case_fold(hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;greek&quot;</span>)))
@@ -5646,14 +5646,14 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;(?-u)[\x00]&quot;</span>), hir_bclass(<span class="kw-2">&amp;</span>[(<span class="string">b&#39;\0&#39;</span>, <span class="string">b&#39;\0&#39;</span>)]));
         <span class="macro">assert_eq!</span>(t_bytes(<span class="string">r&quot;(?-u)[\xFF]&quot;</span>), hir_bclass(<span class="kw-2">&amp;</span>[(<span class="string">b&#39;\xFF&#39;</span>, <span class="string">b&#39;\xFF&#39;</span>)]));
 
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(t(<span class="string">&quot;(?i)[a]&quot;</span>), hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;A&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;a&#39;</span>)]));
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i)[k]&quot;</span>),
             hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;K&#39;</span>, <span class="string">&#39;K&#39;</span>), (<span class="string">&#39;k&#39;</span>, <span class="string">&#39;k&#39;</span>), (<span class="string">&#39;\u{212A}&#39;</span>, <span class="string">&#39;\u{212A}&#39;</span>),])
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i)[β]&quot;</span>),
             hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;Β&#39;</span>, <span class="string">&#39;Β&#39;</span>), (<span class="string">&#39;β&#39;</span>, <span class="string">&#39;β&#39;</span>), (<span class="string">&#39;ϐ&#39;</span>, <span class="string">&#39;ϐ&#39;</span>),])
@@ -5666,29 +5666,29 @@ Defines a translator that converts an `Ast` to an `Hir`.
             t_bytes(<span class="string">&quot;(?-u)[^a]&quot;</span>),
             hir_negate(hir_bclass(<span class="kw-2">&amp;</span>[(<span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;a&#39;</span>)]))
         );
-        <span class="attribute">#[cfg(any(feature = <span class="string">&quot;unicode-perl&quot;</span>, feature = <span class="string">&quot;unicode-gencat&quot;</span>))]
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;unicode-perl&quot;</span>, feature = <span class="string">&quot;unicode-gencat&quot;</span>))]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;[^\d]&quot;</span>),
             hir_negate(hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;digit&quot;</span>)))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;[^\pZ]&quot;</span>),
             hir_negate(hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;separator&quot;</span>)))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;[^\p{separator}]&quot;</span>),
             hir_negate(hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;separator&quot;</span>)))
         );
-        <span class="attribute">#[cfg(all(feature = <span class="string">&quot;unicode-case&quot;</span>, feature = <span class="string">&quot;unicode-script&quot;</span>))]
+        <span class="attr">#[cfg(all(feature = <span class="string">&quot;unicode-case&quot;</span>, feature = <span class="string">&quot;unicode-script&quot;</span>))]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;(?i)[^\p{greek}]&quot;</span>),
             hir_negate(hir_case_fold(hir_uclass_query(ClassQuery::Binary(
                 <span class="string">&quot;greek&quot;
             </span>))))
         );
-        <span class="attribute">#[cfg(all(feature = <span class="string">&quot;unicode-case&quot;</span>, feature = <span class="string">&quot;unicode-script&quot;</span>))]
+        <span class="attr">#[cfg(all(feature = <span class="string">&quot;unicode-case&quot;</span>, feature = <span class="string">&quot;unicode-script&quot;</span>))]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;(?i)[\P{greek}]&quot;</span>),
             hir_negate(hir_case_fold(hir_uclass_query(ClassQuery::Binary(
@@ -5727,7 +5727,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 ),
             }
         );
-        <span class="attribute">#[cfg(any(feature = <span class="string">&quot;unicode-perl&quot;</span>, feature = <span class="string">&quot;unicode-bool&quot;</span>))]
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;unicode-perl&quot;</span>, feature = <span class="string">&quot;unicode-bool&quot;</span>))]
         </span><span class="macro">assert_eq!</span>(
             t_err(<span class="string">r&quot;[^\s\S]&quot;</span>),
             TestError {
@@ -5738,7 +5738,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 ),
             }
         );
-        <span class="attribute">#[cfg(any(feature = <span class="string">&quot;unicode-perl&quot;</span>, feature = <span class="string">&quot;unicode-bool&quot;</span>))]
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;unicode-perl&quot;</span>, feature = <span class="string">&quot;unicode-bool&quot;</span>))]
         </span><span class="macro">assert_eq!</span>(
             t_err(<span class="string">r&quot;(?-u)[^\s\S]&quot;</span>),
             TestError {
@@ -5751,10 +5751,10 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>class_bracketed_union() {
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;[a-zA-Z]&quot;</span>), hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)]));
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;[a\pZb]&quot;</span>),
             hir_union(
@@ -5762,7 +5762,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;separator&quot;</span>))
             )
         );
-        <span class="attribute">#[cfg(all(feature = <span class="string">&quot;unicode-gencat&quot;</span>, feature = <span class="string">&quot;unicode-script&quot;</span>))]
+        <span class="attr">#[cfg(all(feature = <span class="string">&quot;unicode-gencat&quot;</span>, feature = <span class="string">&quot;unicode-script&quot;</span>))]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;[\pZ\p{Greek}]&quot;</span>),
             hir_union(
@@ -5770,7 +5770,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;separator&quot;</span>))
             )
         );
-        <span class="attribute">#[cfg(all(
+        <span class="attr">#[cfg(all(
             feature = <span class="string">&quot;unicode-age&quot;</span>,
             feature = <span class="string">&quot;unicode-gencat&quot;</span>,
             feature = <span class="string">&quot;unicode-script&quot;
@@ -5788,7 +5788,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 )
             )
         );
-        <span class="attribute">#[cfg(all(
+        <span class="attr">#[cfg(all(
             feature = <span class="string">&quot;unicode-age&quot;</span>,
             feature = <span class="string">&quot;unicode-gencat&quot;</span>,
             feature = <span class="string">&quot;unicode-script&quot;
@@ -5810,7 +5810,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
             )
         );
 
-        <span class="attribute">#[cfg(all(
+        <span class="attr">#[cfg(all(
             feature = <span class="string">&quot;unicode-age&quot;</span>,
             feature = <span class="string">&quot;unicode-case&quot;</span>,
             feature = <span class="string">&quot;unicode-gencat&quot;</span>,
@@ -5829,7 +5829,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 )
             ))
         );
-        <span class="attribute">#[cfg(all(
+        <span class="attr">#[cfg(all(
             feature = <span class="string">&quot;unicode-age&quot;</span>,
             feature = <span class="string">&quot;unicode-gencat&quot;</span>,
             feature = <span class="string">&quot;unicode-script&quot;
@@ -5847,7 +5847,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 )
             ))
         );
-        <span class="attribute">#[cfg(all(
+        <span class="attr">#[cfg(all(
             feature = <span class="string">&quot;unicode-age&quot;</span>,
             feature = <span class="string">&quot;unicode-case&quot;</span>,
             feature = <span class="string">&quot;unicode-gencat&quot;</span>,
@@ -5868,7 +5868,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>class_bracketed_nested() {
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;[a[^c]]&quot;</span>), hir_negate(hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;c&#39;</span>, <span class="string">&#39;c&#39;</span>)])));
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;[a-b[^c]]&quot;</span>), hir_negate(hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;c&#39;</span>, <span class="string">&#39;c&#39;</span>)])));
@@ -5877,20 +5877,20 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;[^a[^c]]&quot;</span>), hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;c&#39;</span>, <span class="string">&#39;c&#39;</span>)]));
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;[^a-b[^c]]&quot;</span>), hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;c&#39;</span>, <span class="string">&#39;c&#39;</span>)]));
 
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;(?i)[a[^c]]&quot;</span>),
             hir_negate(hir_case_fold(hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;c&#39;</span>, <span class="string">&#39;c&#39;</span>)])))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;(?i)[a-b[^c]]&quot;</span>),
             hir_negate(hir_case_fold(hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;c&#39;</span>, <span class="string">&#39;c&#39;</span>)])))
         );
 
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(t(<span class="string">r&quot;(?i)[^a[^c]]&quot;</span>), hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;C&#39;</span>, <span class="string">&#39;C&#39;</span>), (<span class="string">&#39;c&#39;</span>, <span class="string">&#39;c&#39;</span>)]));
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;(?i)[^a-b[^c]]&quot;</span>),
             hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;C&#39;</span>, <span class="string">&#39;C&#39;</span>), (<span class="string">&#39;c&#39;</span>, <span class="string">&#39;c&#39;</span>)])
@@ -5906,7 +5906,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 ),
             }
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t_err(<span class="string">r&quot;(?i)[^a-c[^c]]&quot;</span>),
             TestError {
@@ -5919,7 +5919,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>class_bracketed_intersect() {
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;[abc&amp;&amp;b-c]&quot;</span>), hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;b&#39;</span>, <span class="string">&#39;c&#39;</span>)]));
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;[abc&amp;&amp;[b-c]]&quot;</span>), hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;b&#39;</span>, <span class="string">&#39;c&#39;</span>)]));
@@ -5938,32 +5938,32 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;(?-u)[c-da-b&amp;&amp;a-d]&quot;</span>), hir_bclass(<span class="kw-2">&amp;</span>[(<span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;d&#39;</span>)]));
         <span class="macro">assert_eq!</span>(t(<span class="string">&quot;(?-u)[a-d&amp;&amp;c-da-b]&quot;</span>), hir_bclass(<span class="kw-2">&amp;</span>[(<span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;d&#39;</span>)]));
 
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i)[abc&amp;&amp;b-c]&quot;</span>),
             hir_case_fold(hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;b&#39;</span>, <span class="string">&#39;c&#39;</span>)]))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i)[abc&amp;&amp;[b-c]]&quot;</span>),
             hir_case_fold(hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;b&#39;</span>, <span class="string">&#39;c&#39;</span>)]))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i)[[abc]&amp;&amp;[b-c]]&quot;</span>),
             hir_case_fold(hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;b&#39;</span>, <span class="string">&#39;c&#39;</span>)]))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i)[a-z&amp;&amp;b-y&amp;&amp;c-x]&quot;</span>),
             hir_case_fold(hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;c&#39;</span>, <span class="string">&#39;x&#39;</span>)]))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i)[c-da-b&amp;&amp;a-d]&quot;</span>),
             hir_case_fold(hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;d&#39;</span>)]))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-case&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">&quot;(?i)[a-d&amp;&amp;c-da-b]&quot;</span>),
             hir_case_fold(hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;d&#39;</span>)]))
@@ -6009,28 +6009,28 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>class_bracketed_intersect_negate() {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-perl&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-perl&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;[^\w&amp;&amp;\d]&quot;</span>),
             hir_negate(hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;digit&quot;</span>)))
         );
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;[^[a-z&amp;&amp;a-c]]&quot;</span>), hir_negate(hir_uclass(<span class="kw-2">&amp;</span>[(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;c&#39;</span>)])));
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-perl&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-perl&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;[^[\w&amp;&amp;\d]]&quot;</span>),
             hir_negate(hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;digit&quot;</span>)))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-perl&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-perl&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;[^[^\w&amp;&amp;\d]]&quot;</span>),
             hir_uclass_query(ClassQuery::Binary(<span class="string">&quot;digit&quot;</span>))
         );
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-perl&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-perl&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(t(<span class="string">r&quot;[[[^\w]&amp;&amp;[^\d]]]&quot;</span>), hir_negate(hir_uclass_perl_word()));
 
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-perl&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-perl&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t_bytes(<span class="string">r&quot;(?-u)[^\w&amp;&amp;\d]&quot;</span>),
             hir_negate(hir_bclass_from_char(ascii_class(
@@ -6059,9 +6059,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>class_bracketed_difference() {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;[\pL--[:ascii:]]&quot;</span>),
             hir_difference(
@@ -6076,9 +6076,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>class_bracketed_symmetric_difference() {
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-script&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-script&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;[\p{sc:Greek}~~\p{scx:Greek}]&quot;</span>),
             hir_uclass(<span class="kw-2">&amp;</span>[
@@ -6095,7 +6095,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>ignore_whitespace() {
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;(?x)\12 3&quot;</span>), hir_lit(<span class="string">&quot;\n3&quot;</span>));
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;(?x)\x { 53 }&quot;</span>), hir_lit(<span class="string">&quot;S&quot;</span>));
@@ -6115,7 +6115,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         );
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;(?x)\x5 3&quot;</span>), hir_lit(<span class="string">&quot;S&quot;</span>));
 
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
         </span><span class="macro">assert_eq!</span>(
             t(<span class="string">r&quot;(?x)\p # comment
 { # comment
@@ -6141,7 +6141,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;(?x)a\  # hi there&quot;</span>), hir_lit(<span class="string">&quot;a &quot;</span>));
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>analysis_is_always_utf8() {
         <span class="comment">// Positive examples.
         </span><span class="macro">assert!</span>(t_bytes(<span class="string">r&quot;a&quot;</span>).is_always_utf8());
@@ -6164,7 +6164,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert!</span>(!t_bytes(<span class="string">r&quot;(?-u)\B&quot;</span>).is_always_utf8());
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>analysis_is_all_assertions() {
         <span class="comment">// Positive examples.
         </span><span class="macro">assert!</span>(t(<span class="string">r&quot;\b&quot;</span>).is_all_assertions());
@@ -6182,7 +6182,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         </span><span class="macro">assert!</span>(!t(<span class="string">r&quot;^a&quot;</span>).is_all_assertions());
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>analysis_is_anchored() {
         <span class="comment">// Positive examples.
         </span><span class="macro">assert!</span>(t(<span class="string">r&quot;^&quot;</span>).is_anchored_start());
@@ -6291,7 +6291,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert!</span>(!t(<span class="string">r&quot;($)*&quot;</span>).is_line_anchored_end());
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>analysis_is_line_anchored() {
         <span class="macro">assert!</span>(t(<span class="string">r&quot;(?m)^(foo|bar)&quot;</span>).is_line_anchored_start());
         <span class="macro">assert!</span>(t(<span class="string">r&quot;(?m)(foo|bar)$&quot;</span>).is_line_anchored_end());
@@ -6309,7 +6309,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert!</span>(t(<span class="string">r&quot;$^|(?m:^$)&quot;</span>).is_line_anchored_end());
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>analysis_is_any_anchored() {
         <span class="comment">// Positive examples.
         </span><span class="macro">assert!</span>(t(<span class="string">r&quot;^&quot;</span>).is_any_anchored_start());
@@ -6324,7 +6324,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert!</span>(!t(<span class="string">r&quot;^&quot;</span>).is_any_anchored_end());
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>analysis_is_match_empty() {
         <span class="comment">// Positive examples.
         </span><span class="macro">assert!</span>(t(<span class="string">r&quot;&quot;</span>).is_match_empty());
@@ -6338,7 +6338,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert!</span>(t(<span class="string">r&quot;a{0,}&quot;</span>).is_match_empty());
         <span class="macro">assert!</span>(t(<span class="string">r&quot;a{0,1}&quot;</span>).is_match_empty());
         <span class="macro">assert!</span>(t(<span class="string">r&quot;a{0,10}&quot;</span>).is_match_empty());
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
         </span><span class="macro">assert!</span>(t(<span class="string">r&quot;\pL*&quot;</span>).is_match_empty());
         <span class="macro">assert!</span>(t(<span class="string">r&quot;a*|b&quot;</span>).is_match_empty());
         <span class="macro">assert!</span>(t(<span class="string">r&quot;b|a*&quot;</span>).is_match_empty());
@@ -6367,7 +6367,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert!</span>(!t(<span class="string">r&quot;a*a+(abcd)*&quot;</span>).is_match_empty());
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>analysis_is_literal() {
         <span class="comment">// Positive examples.
         </span><span class="macro">assert!</span>(t(<span class="string">r&quot;a&quot;</span>).is_literal());
@@ -6386,7 +6386,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert!</span>(!t(<span class="string">r&quot;[a]&quot;</span>).is_literal());
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>analysis_is_alternation_literal() {
         <span class="comment">// Positive examples.
         </span><span class="macro">assert!</span>(t(<span class="string">r&quot;a&quot;</span>).is_alternation_literal());
@@ -6413,4 +6413,4 @@ Defines a translator that converts an `Ast` to an `Hir`.
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

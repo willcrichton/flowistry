@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../anyhow/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../anyhow/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../anyhow/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.66/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../anyhow/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -992,21 +992,21 @@
 <span id="992">992</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::backtrace::Backtrace;
 <span class="kw">use </span><span class="kw">crate</span>::chain::Chain;
-<span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, anyhow_no_ptr_addr_of))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, anyhow_no_ptr_addr_of))]
 </span><span class="kw">use </span><span class="kw">crate</span>::ptr::Mut;
 <span class="kw">use </span><span class="kw">crate</span>::ptr::{Own, Ref};
 <span class="kw">use crate</span>::{Error, StdError};
 <span class="kw">use </span>alloc::boxed::Box;
-<span class="attribute">#[cfg(backtrace)]
+<span class="attr">#[cfg(backtrace)]
 </span><span class="kw">use </span>core::any::Demand;
 <span class="kw">use </span>core::any::TypeId;
 <span class="kw">use </span>core::fmt::{<span class="self">self</span>, Debug, Display};
 <span class="kw">use </span>core::mem::ManuallyDrop;
-<span class="attribute">#[cfg(not(anyhow_no_ptr_addr_of))]
+<span class="attr">#[cfg(not(anyhow_no_ptr_addr_of))]
 </span><span class="kw">use </span>core::ptr;
 <span class="kw">use </span>core::ptr::NonNull;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>core::ops::{Deref, DerefMut};
 
 <span class="kw">impl </span>Error {
@@ -1017,7 +1017,7 @@
     ///
     /// If the error type does not provide a backtrace, a backtrace will be
     /// created here to ensure that a backtrace exists.
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
     #[cold]
     #[must_use]
@@ -1066,7 +1066,7 @@
     ///         .await
     /// }
     /// ```
-    </span><span class="attribute">#[cold]
+    </span><span class="attr">#[cold]
     #[must_use]
     </span><span class="kw">pub fn </span>msg&lt;M&gt;(message: M) -&gt; <span class="self">Self
     </span><span class="kw">where
@@ -1075,7 +1075,7 @@
         Error::from_adhoc(message, <span class="macro">backtrace!</span>())
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[cold]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_std&lt;E&gt;(error: E, backtrace: <span class="prelude-ty">Option</span>&lt;Backtrace&gt;) -&gt; <span class="self">Self
     </span><span class="kw">where
@@ -1084,14 +1084,14 @@
         <span class="kw">let </span>vtable = <span class="kw-2">&amp;</span>ErrorVTable {
             object_drop: object_drop::&lt;E&gt;,
             object_ref: object_ref::&lt;E&gt;,
-            <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+            <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
             </span>object_mut: object_mut::&lt;E&gt;,
             object_boxed: object_boxed::&lt;E&gt;,
             object_downcast: object_downcast::&lt;E&gt;,
-            <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+            <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
             </span>object_downcast_mut: object_downcast_mut::&lt;E&gt;,
             object_drop_rest: object_drop_front::&lt;E&gt;,
-            <span class="attribute">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
+            <span class="attr">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
             </span>object_backtrace: no_backtrace,
         };
 
@@ -1099,7 +1099,7 @@
         </span><span class="kw">unsafe </span>{ Error::construct(error, vtable, backtrace) }
     }
 
-    <span class="attribute">#[cold]
+    <span class="attr">#[cold]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_adhoc&lt;M&gt;(message: M, backtrace: <span class="prelude-ty">Option</span>&lt;Backtrace&gt;) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>M: Display + Debug + Send + Sync + <span class="lifetime">&#39;static</span>,
@@ -1109,14 +1109,14 @@
         <span class="kw">let </span>vtable = <span class="kw-2">&amp;</span>ErrorVTable {
             object_drop: object_drop::&lt;MessageError&lt;M&gt;&gt;,
             object_ref: object_ref::&lt;MessageError&lt;M&gt;&gt;,
-            <span class="attribute">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, anyhow_no_ptr_addr_of))]
+            <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, anyhow_no_ptr_addr_of))]
             </span>object_mut: object_mut::&lt;MessageError&lt;M&gt;&gt;,
             object_boxed: object_boxed::&lt;MessageError&lt;M&gt;&gt;,
             object_downcast: object_downcast::&lt;M&gt;,
-            <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+            <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
             </span>object_downcast_mut: object_downcast_mut::&lt;M&gt;,
             object_drop_rest: object_drop_front::&lt;M&gt;,
-            <span class="attribute">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
+            <span class="attr">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
             </span>object_backtrace: no_backtrace,
         };
 
@@ -1125,7 +1125,7 @@
         </span><span class="kw">unsafe </span>{ Error::construct(error, vtable, backtrace) }
     }
 
-    <span class="attribute">#[cold]
+    <span class="attr">#[cold]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_display&lt;M&gt;(message: M, backtrace: <span class="prelude-ty">Option</span>&lt;Backtrace&gt;) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>M: Display + Send + Sync + <span class="lifetime">&#39;static</span>,
@@ -1135,14 +1135,14 @@
         <span class="kw">let </span>vtable = <span class="kw-2">&amp;</span>ErrorVTable {
             object_drop: object_drop::&lt;DisplayError&lt;M&gt;&gt;,
             object_ref: object_ref::&lt;DisplayError&lt;M&gt;&gt;,
-            <span class="attribute">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, anyhow_no_ptr_addr_of))]
+            <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, anyhow_no_ptr_addr_of))]
             </span>object_mut: object_mut::&lt;DisplayError&lt;M&gt;&gt;,
             object_boxed: object_boxed::&lt;DisplayError&lt;M&gt;&gt;,
             object_downcast: object_downcast::&lt;M&gt;,
-            <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+            <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
             </span>object_downcast_mut: object_downcast_mut::&lt;M&gt;,
             object_drop_rest: object_drop_front::&lt;M&gt;,
-            <span class="attribute">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
+            <span class="attr">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
             </span>object_backtrace: no_backtrace,
         };
 
@@ -1151,7 +1151,7 @@
         </span><span class="kw">unsafe </span>{ Error::construct(error, vtable, backtrace) }
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[cold]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_context&lt;C, E&gt;(context: C, error: E, backtrace: <span class="prelude-ty">Option</span>&lt;Backtrace&gt;) -&gt; <span class="self">Self
     </span><span class="kw">where
@@ -1163,14 +1163,14 @@
         <span class="kw">let </span>vtable = <span class="kw-2">&amp;</span>ErrorVTable {
             object_drop: object_drop::&lt;ContextError&lt;C, E&gt;&gt;,
             object_ref: object_ref::&lt;ContextError&lt;C, E&gt;&gt;,
-            <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+            <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
             </span>object_mut: object_mut::&lt;ContextError&lt;C, E&gt;&gt;,
             object_boxed: object_boxed::&lt;ContextError&lt;C, E&gt;&gt;,
             object_downcast: context_downcast::&lt;C, E&gt;,
-            <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+            <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
             </span>object_downcast_mut: context_downcast_mut::&lt;C, E&gt;,
             object_drop_rest: context_drop_rest::&lt;C, E&gt;,
-            <span class="attribute">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
+            <span class="attr">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
             </span>object_backtrace: no_backtrace,
         };
 
@@ -1178,7 +1178,7 @@
         </span><span class="kw">unsafe </span>{ Error::construct(error, vtable, backtrace) }
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[cold]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_boxed(
         error: Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;,
@@ -1189,14 +1189,14 @@
         <span class="kw">let </span>vtable = <span class="kw-2">&amp;</span>ErrorVTable {
             object_drop: object_drop::&lt;BoxedError&gt;,
             object_ref: object_ref::&lt;BoxedError&gt;,
-            <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+            <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
             </span>object_mut: object_mut::&lt;BoxedError&gt;,
             object_boxed: object_boxed::&lt;BoxedError&gt;,
             object_downcast: object_downcast::&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
-            <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+            <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
             </span>object_downcast_mut: object_downcast_mut::&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
             object_drop_rest: object_drop_front::&lt;Box&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt;&gt;,
-            <span class="attribute">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
+            <span class="attr">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
             </span>object_backtrace: no_backtrace,
         };
 
@@ -1210,7 +1210,7 @@
     //
     // Unsafe because the given vtable must have sensible behavior on the error
     // value of type E.
-    </span><span class="attribute">#[cold]
+    </span><span class="attr">#[cold]
     </span><span class="kw">unsafe fn </span>construct&lt;E&gt;(
         error: E,
         vtable: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>ErrorVTable,
@@ -1288,7 +1288,7 @@
     ///     })
     /// }
     /// ```
-    </span><span class="attribute">#[cold]
+    </span><span class="attr">#[cold]
     #[must_use]
     </span><span class="kw">pub fn </span>context&lt;C&gt;(<span class="self">self</span>, context: C) -&gt; <span class="self">Self
     </span><span class="kw">where
@@ -1302,14 +1302,14 @@
         <span class="kw">let </span>vtable = <span class="kw-2">&amp;</span>ErrorVTable {
             object_drop: object_drop::&lt;ContextError&lt;C, Error&gt;&gt;,
             object_ref: object_ref::&lt;ContextError&lt;C, Error&gt;&gt;,
-            <span class="attribute">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, anyhow_no_ptr_addr_of))]
+            <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, anyhow_no_ptr_addr_of))]
             </span>object_mut: object_mut::&lt;ContextError&lt;C, Error&gt;&gt;,
             object_boxed: object_boxed::&lt;ContextError&lt;C, Error&gt;&gt;,
             object_downcast: context_chain_downcast::&lt;C&gt;,
-            <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+            <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
             </span>object_downcast_mut: context_chain_downcast_mut::&lt;C&gt;,
             object_drop_rest: context_chain_drop_rest::&lt;C&gt;,
-            <span class="attribute">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
+            <span class="attr">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
             </span>object_backtrace: context_backtrace::&lt;C&gt;,
         };
 
@@ -1350,7 +1350,7 @@
     /// ```
     ///
     /// [tracking]: https://github.com/rust-lang/rust/issues/53487
-    </span><span class="attribute">#[cfg(any(backtrace, feature = <span class="string">&quot;backtrace&quot;</span>))]
+    </span><span class="attr">#[cfg(any(backtrace, feature = <span class="string">&quot;backtrace&quot;</span>))]
     #[cfg_attr(doc_cfg, doc(cfg(any(nightly, feature = <span class="string">&quot;backtrace&quot;</span>))))]
     </span><span class="kw">pub fn </span>backtrace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="macro">impl_backtrace!</span>() {
         <span class="kw">unsafe </span>{ ErrorImpl::backtrace(<span class="self">self</span>.inner.by_ref()) }
@@ -1377,7 +1377,7 @@
     ///     None
     /// }
     /// ```
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
     #[cold]
     </span><span class="kw">pub fn </span>chain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Chain {
@@ -1389,7 +1389,7 @@
     ///
     /// The root cause is the last error in the iterator produced by
     /// [`chain()`][Error::chain].
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
     </span><span class="kw">pub fn </span>root_cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>StdError + <span class="lifetime">&#39;static</span>) {
         <span class="self">self</span>.chain().last().unwrap()
@@ -1420,12 +1420,12 @@
         <span class="kw">unsafe </span>{
             <span class="comment">// Use vtable to find NonNull&lt;()&gt; which points to a value of type E
             // somewhere inside the data structure.
-            </span><span class="attribute">#[cfg(not(anyhow_no_ptr_addr_of))]
+            </span><span class="attr">#[cfg(not(anyhow_no_ptr_addr_of))]
             </span><span class="kw">let </span>addr = <span class="kw">match </span>(vtable(inner.ptr).object_downcast)(inner.by_ref(), target) {
                 <span class="prelude-val">Some</span>(addr) =&gt; addr.by_mut().extend(),
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>),
             };
-            <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+            <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
             </span><span class="kw">let </span>addr = <span class="kw">match </span>(vtable(inner.ptr).object_downcast_mut)(inner, target) {
                 <span class="prelude-val">Some</span>(addr) =&gt; addr.extend(),
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>),
@@ -1504,11 +1504,11 @@
             <span class="comment">// Use vtable to find NonNull&lt;()&gt; which points to a value of type E
             // somewhere inside the data structure.
 
-            </span><span class="attribute">#[cfg(not(anyhow_no_ptr_addr_of))]
+            </span><span class="attr">#[cfg(not(anyhow_no_ptr_addr_of))]
             </span><span class="kw">let </span>addr =
                 (vtable(<span class="self">self</span>.inner.ptr).object_downcast)(<span class="self">self</span>.inner.by_ref(), target)<span class="question-mark">?</span>.by_mut();
 
-            <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+            <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
             </span><span class="kw">let </span>addr = (vtable(<span class="self">self</span>.inner.ptr).object_downcast_mut)(<span class="self">self</span>.inner.by_mut(), target)<span class="question-mark">?</span>;
 
             <span class="prelude-val">Some</span>(addr.cast::&lt;E&gt;().deref_mut())
@@ -1516,7 +1516,7 @@
     }
 }
 
-<span class="attribute">#[cfg(backtrace)]
+<span class="attr">#[cfg(backtrace)]
 </span><span class="kw">impl </span>std::any::Provider <span class="kw">for </span>Error {
     <span class="comment">// Called by thiserror when you have `#[source] anyhow::Error`. This provide
     // implementation includes the anyhow::Error&#39;s Backtrace if any, unlike
@@ -1528,20 +1528,20 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
 </span><span class="kw">impl</span>&lt;E&gt; From&lt;E&gt; <span class="kw">for </span>Error
 <span class="kw">where
     </span>E: StdError + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
-    <span class="attribute">#[cold]
+    <span class="attr">#[cold]
     </span><span class="kw">fn </span>from(error: E) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>backtrace = <span class="macro">backtrace_if_absent!</span>(<span class="kw-2">&amp;</span>error);
         Error::from_std(error, backtrace)
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
 </span><span class="kw">impl </span>Deref <span class="kw">for </span>Error {
     <span class="kw">type </span>Target = <span class="kw">dyn </span>StdError + Send + Sync + <span class="lifetime">&#39;static</span>;
@@ -1551,7 +1551,7 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
 </span><span class="kw">impl </span>DerefMut <span class="kw">for </span>Error {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
@@ -1583,14 +1583,14 @@
 <span class="kw">struct </span>ErrorVTable {
     object_drop: <span class="kw">unsafe fn</span>(Own&lt;ErrorImpl&gt;),
     object_ref: <span class="kw">unsafe fn</span>(Ref&lt;ErrorImpl&gt;) -&gt; Ref&lt;<span class="kw">dyn </span>StdError + Send + Sync + <span class="lifetime">&#39;static</span>&gt;,
-    <span class="attribute">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, anyhow_no_ptr_addr_of))]
+    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, anyhow_no_ptr_addr_of))]
     </span>object_mut: <span class="kw">unsafe fn</span>(Mut&lt;ErrorImpl&gt;) -&gt; <span class="kw-2">&amp;mut </span>(<span class="kw">dyn </span>StdError + Send + Sync + <span class="lifetime">&#39;static</span>),
     object_boxed: <span class="kw">unsafe fn</span>(Own&lt;ErrorImpl&gt;) -&gt; Box&lt;<span class="kw">dyn </span>StdError + Send + Sync + <span class="lifetime">&#39;static</span>&gt;,
     object_downcast: <span class="kw">unsafe fn</span>(Ref&lt;ErrorImpl&gt;, TypeId) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;()&gt;&gt;,
-    <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+    <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
     </span>object_downcast_mut: <span class="kw">unsafe fn</span>(Mut&lt;ErrorImpl&gt;, TypeId) -&gt; <span class="prelude-ty">Option</span>&lt;Mut&lt;()&gt;&gt;,
     object_drop_rest: <span class="kw">unsafe fn</span>(Own&lt;ErrorImpl&gt;, TypeId),
-    <span class="attribute">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
+    <span class="attr">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
     </span>object_backtrace: <span class="kw">unsafe fn</span>(Ref&lt;ErrorImpl&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Backtrace&gt;,
 }
 
@@ -1621,18 +1621,18 @@
 
     </span><span class="kw">let </span>unerased = e.cast::&lt;ErrorImpl&lt;E&gt;&gt;();
 
-    <span class="attribute">#[cfg(not(anyhow_no_ptr_addr_of))]
+    <span class="attr">#[cfg(not(anyhow_no_ptr_addr_of))]
     </span><span class="kw">return </span>Ref::from_raw(NonNull::new_unchecked(
         <span class="macro">ptr::addr_of!</span>((<span class="kw-2">*</span>unerased.as_ptr())._object) <span class="kw">as </span><span class="kw-2">*mut </span>E,
     ));
 
-    <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+    <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
     </span><span class="kw">return </span>Ref::new(<span class="kw-2">&amp;</span>unerased.deref()._object);
 }
 
 <span class="comment">// Safety: requires layout of *e to match ErrorImpl&lt;E&gt;, and for `e` to be derived
 // from a `&amp;mut`
-</span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, anyhow_no_ptr_addr_of))]
+</span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, anyhow_no_ptr_addr_of))]
 </span><span class="kw">unsafe fn </span>object_mut&lt;E&gt;(e: Mut&lt;ErrorImpl&gt;) -&gt; <span class="kw-2">&amp;mut </span>(<span class="kw">dyn </span>StdError + Send + Sync + <span class="lifetime">&#39;static</span>)
 <span class="kw">where
     </span>E: StdError + Send + Sync + <span class="lifetime">&#39;static</span>,
@@ -1661,7 +1661,7 @@
 
         </span><span class="kw">let </span>unerased = e.cast::&lt;ErrorImpl&lt;E&gt;&gt;();
 
-        <span class="attribute">#[cfg(not(anyhow_no_ptr_addr_of))]
+        <span class="attr">#[cfg(not(anyhow_no_ptr_addr_of))]
         </span><span class="kw">return </span><span class="prelude-val">Some</span>(
             Ref::from_raw(NonNull::new_unchecked(
                 <span class="macro">ptr::addr_of!</span>((<span class="kw-2">*</span>unerased.as_ptr())._object) <span class="kw">as </span><span class="kw-2">*mut </span>E,
@@ -1669,7 +1669,7 @@
             .cast::&lt;()&gt;(),
         );
 
-        <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+        <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
         </span><span class="kw">return </span><span class="prelude-val">Some</span>(Ref::new(<span class="kw-2">&amp;</span>unerased.deref()._object).cast::&lt;()&gt;());
     } <span class="kw">else </span>{
         <span class="prelude-val">None
@@ -1677,7 +1677,7 @@
 }
 
 <span class="comment">// Safety: requires layout of *e to match ErrorImpl&lt;E&gt;.
-</span><span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+</span><span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
 </span><span class="kw">unsafe fn </span>object_downcast_mut&lt;E&gt;(e: Mut&lt;ErrorImpl&gt;, target: TypeId) -&gt; <span class="prelude-ty">Option</span>&lt;Mut&lt;()&gt;&gt;
 <span class="kw">where
     </span>E: <span class="lifetime">&#39;static</span>,
@@ -1692,14 +1692,14 @@
     </span>}
 }
 
-<span class="attribute">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
+<span class="attr">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
 </span><span class="kw">fn </span>no_backtrace(e: Ref&lt;ErrorImpl&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Backtrace&gt; {
     <span class="kw">let _ </span>= e;
     <span class="prelude-val">None
 </span>}
 
 <span class="comment">// Safety: requires layout of *e to match ErrorImpl&lt;ContextError&lt;C, E&gt;&gt;.
-</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">unsafe fn </span>context_downcast&lt;C, E&gt;(e: Ref&lt;ErrorImpl&gt;, target: TypeId) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;()&gt;&gt;
 <span class="kw">where
     </span>C: <span class="lifetime">&#39;static</span>,
@@ -1717,7 +1717,7 @@
 }
 
 <span class="comment">// Safety: requires layout of *e to match ErrorImpl&lt;ContextError&lt;C, E&gt;&gt;.
-</span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, anyhow_no_ptr_addr_of))]
+</span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, anyhow_no_ptr_addr_of))]
 </span><span class="kw">unsafe fn </span>context_downcast_mut&lt;C, E&gt;(e: Mut&lt;ErrorImpl&gt;, target: TypeId) -&gt; <span class="prelude-ty">Option</span>&lt;Mut&lt;()&gt;&gt;
 <span class="kw">where
     </span>C: <span class="lifetime">&#39;static</span>,
@@ -1735,7 +1735,7 @@
 }
 
 <span class="comment">// Safety: requires layout of *e to match ErrorImpl&lt;ContextError&lt;C, E&gt;&gt;.
-</span><span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">unsafe fn </span>context_drop_rest&lt;C, E&gt;(e: Own&lt;ErrorImpl&gt;, target: TypeId)
 <span class="kw">where
     </span>C: <span class="lifetime">&#39;static</span>,
@@ -1772,7 +1772,7 @@
 }
 
 <span class="comment">// Safety: requires layout of *e to match ErrorImpl&lt;ContextError&lt;C, Error&gt;&gt;.
-</span><span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+</span><span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
 </span><span class="kw">unsafe fn </span>context_chain_downcast_mut&lt;C&gt;(e: Mut&lt;ErrorImpl&gt;, target: TypeId) -&gt; <span class="prelude-ty">Option</span>&lt;Mut&lt;()&gt;&gt;
 <span class="kw">where
     </span>C: <span class="lifetime">&#39;static</span>,
@@ -1814,7 +1814,7 @@
 }
 
 <span class="comment">// Safety: requires layout of *e to match ErrorImpl&lt;ContextError&lt;C, Error&gt;&gt;.
-</span><span class="attribute">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
+</span><span class="attr">#[cfg(all(not(backtrace), feature = <span class="string">&quot;backtrace&quot;</span>))]
 #[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">unsafe fn </span>context_backtrace&lt;C&gt;(e: Ref&lt;ErrorImpl&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Backtrace&gt;
 <span class="kw">where
@@ -1828,7 +1828,7 @@
 <span class="comment">// NOTE: If working with `ErrorImpl&lt;()&gt;`, references should be avoided in favor
 // of raw pointers and `NonNull`.
 // repr C to ensure that E remains in the final position.
-</span><span class="attribute">#[repr(C)]
+</span><span class="attr">#[repr(C)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ErrorImpl&lt;E = ()&gt; {
     vtable: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>ErrorVTable,
     backtrace: <span class="prelude-ty">Option</span>&lt;Backtrace&gt;,
@@ -1846,7 +1846,7 @@
 
 <span class="comment">// repr C to ensure that ContextError&lt;C, E&gt; has the same layout as
 // ContextError&lt;ManuallyDrop&lt;C&gt;, E&gt; and ContextError&lt;C, ManuallyDrop&lt;E&gt;&gt;.
-</span><span class="attribute">#[repr(C)]
+</span><span class="attr">#[repr(C)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ContextError&lt;C, E&gt; {
     <span class="kw">pub </span>context: C,
     <span class="kw">pub </span>error: E,
@@ -1868,21 +1868,21 @@
         </span>(vtable(this.ptr).object_ref)(this).deref()
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>error_mut(this: Mut&lt;<span class="self">Self</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span>(<span class="kw">dyn </span>StdError + Send + Sync + <span class="lifetime">&#39;static</span>) {
         <span class="comment">// Use vtable to attach E&#39;s native StdError vtable for the right
         // original type E.
 
-        </span><span class="attribute">#[cfg(not(anyhow_no_ptr_addr_of))]
+        </span><span class="attr">#[cfg(not(anyhow_no_ptr_addr_of))]
         </span><span class="kw">return </span>(vtable(this.ptr).object_ref)(this.by_ref())
             .by_mut()
             .deref_mut();
 
-        <span class="attribute">#[cfg(anyhow_no_ptr_addr_of)]
+        <span class="attr">#[cfg(anyhow_no_ptr_addr_of)]
         </span><span class="kw">return </span>(vtable(this.ptr).object_mut)(this);
     }
 
-    <span class="attribute">#[cfg(any(backtrace, feature = <span class="string">&quot;backtrace&quot;</span>))]
+    <span class="attr">#[cfg(any(backtrace, feature = <span class="string">&quot;backtrace&quot;</span>))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>backtrace(this: Ref&lt;<span class="self">Self</span>&gt;) -&gt; <span class="kw-2">&amp;</span>Backtrace {
         <span class="comment">// This unwrap can only panic if the underlying error&#39;s backtrace method
         // is nondeterministic, which would only happen in maliciously
@@ -1891,15 +1891,15 @@
             .backtrace
             .as_ref()
             .or_else(|| {
-                <span class="attribute">#[cfg(backtrace)]
+                <span class="attr">#[cfg(backtrace)]
                 </span><span class="kw">return </span><span class="self">Self</span>::error(this).request_ref::&lt;Backtrace&gt;();
-                <span class="attribute">#[cfg(not(backtrace))]
+                <span class="attr">#[cfg(not(backtrace))]
                 </span><span class="kw">return </span>(vtable(this.ptr).object_backtrace)(this);
             })
             .expect(<span class="string">&quot;backtrace capture failed&quot;</span>)
     }
 
-    <span class="attribute">#[cfg(backtrace)]
+    <span class="attr">#[cfg(backtrace)]
     </span><span class="kw">unsafe fn </span>provide&lt;<span class="lifetime">&#39;a</span>&gt;(this: Ref&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;, demand: <span class="kw-2">&amp;mut </span>Demand&lt;<span class="lifetime">&#39;a</span>&gt;) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(backtrace) = <span class="kw-2">&amp;</span>this.deref().backtrace {
             demand.provide_ref(backtrace);
@@ -1907,7 +1907,7 @@
         <span class="self">Self</span>::error(this).provide(demand);
     }
 
-    <span class="attribute">#[cold]
+    <span class="attr">#[cold]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>chain(this: Ref&lt;<span class="self">Self</span>&gt;) -&gt; Chain {
         Chain::new(<span class="self">Self</span>::error(this))
     }
@@ -1921,7 +1921,7 @@
         <span class="kw">unsafe </span>{ ErrorImpl::error(<span class="self">self</span>.erase()).source() }
     }
 
-    <span class="attribute">#[cfg(backtrace)]
+    <span class="attr">#[cfg(backtrace)]
     </span><span class="kw">fn </span>provide&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, demand: <span class="kw-2">&amp;mut </span>Demand&lt;<span class="lifetime">&#39;a</span>&gt;) {
         <span class="kw">unsafe </span>{ ErrorImpl::provide(<span class="self">self</span>.erase(), demand) }
     }
@@ -1946,7 +1946,7 @@
 }
 
 <span class="kw">impl </span>From&lt;Error&gt; <span class="kw">for </span>Box&lt;<span class="kw">dyn </span>StdError + Send + Sync + <span class="lifetime">&#39;static</span>&gt; {
-    <span class="attribute">#[cold]
+    <span class="attr">#[cold]
     </span><span class="kw">fn </span>from(error: Error) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>outer = ManuallyDrop::new(error);
         <span class="kw">unsafe </span>{
@@ -1969,18 +1969,18 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">impl </span>AsRef&lt;<span class="kw">dyn </span>StdError + Send + Sync&gt; <span class="kw">for </span>Error {
     <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>StdError + Send + Sync + <span class="lifetime">&#39;static</span>) {
         <span class="kw-2">&amp;**</span><span class="self">self
     </span>}
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">impl </span>AsRef&lt;<span class="kw">dyn </span>StdError&gt; <span class="kw">for </span>Error {
     <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>StdError + <span class="lifetime">&#39;static</span>) {
         <span class="kw-2">&amp;**</span><span class="self">self
     </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="anyhow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anyhow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

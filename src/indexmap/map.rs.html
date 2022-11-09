@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.9.1/src/map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../indexmap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../indexmap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../indexmap/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.9.1/src/map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b826345d929eb323.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-87108236bf50c158.css"><link rel="stylesheet" disabled href="../../static.files/dark-839c5fb8722cb456.css"><link rel="stylesheet" disabled href="../../static.files/ayu-d48ac194417684c8.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-74087aa2e88f4475.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0dede64717b247ca.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-201a7e04dc4c6fce.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../indexmap/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1952,7 +1952,7 @@
 
 <span class="kw">pub use </span><span class="kw">crate</span>::mutable_keys::MutableKeys;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;rayon&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;rayon&quot;</span>)]
 </span><span class="kw">pub use </span><span class="kw">crate</span>::rayon::map <span class="kw">as </span>rayon;
 
 <span class="kw">use </span><span class="kw">crate</span>::vec::{<span class="self">self</span>, Vec};
@@ -1963,7 +1963,7 @@
 <span class="kw">use </span>::core::ops::{Index, IndexMut, RangeBounds};
 <span class="kw">use </span>::core::slice::{Iter <span class="kw">as </span>SliceIter, IterMut <span class="kw">as </span>SliceIterMut};
 
-<span class="attribute">#[cfg(has_std)]
+<span class="attr">#[cfg(has_std)]
 </span><span class="kw">use </span>std::collections::hash_map::RandomState;
 
 <span class="kw">use </span><span class="self">self</span>::core::IndexMapCore;
@@ -2014,12 +2014,12 @@
 /// assert_eq!(letters[&amp;&#39;u&#39;], 1);
 /// assert_eq!(letters.get(&amp;&#39;y&#39;), None);
 /// ```
-</span><span class="attribute">#[cfg(has_std)]
+</span><span class="attr">#[cfg(has_std)]
 </span><span class="kw">pub struct </span>IndexMap&lt;K, V, S = RandomState&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) core: IndexMapCore&lt;K, V&gt;,
     hash_builder: S,
 }
-<span class="attribute">#[cfg(not(has_std))]
+<span class="attr">#[cfg(not(has_std))]
 </span><span class="kw">pub struct </span>IndexMap&lt;K, V, S&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) core: IndexMapCore&lt;K, V&gt;,
     hash_builder: S,
@@ -2047,17 +2047,17 @@
 <span class="kw">impl</span>&lt;K, V, S&gt; Entries <span class="kw">for </span>IndexMap&lt;K, V, S&gt; {
     <span class="kw">type </span>Entry = Bucket&lt;K, V&gt;;
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_entries(<span class="self">self</span>) -&gt; Vec&lt;<span class="self">Self</span>::Entry&gt; {
         <span class="self">self</span>.core.into_entries()
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_entries(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="self">Self</span>::Entry] {
         <span class="self">self</span>.core.as_entries()
     }
 
-    <span class="attribute">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_entries_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[<span class="self">Self</span>::Entry] {
         <span class="self">self</span>.core.as_entries_mut()
     }
@@ -2087,10 +2087,10 @@
     }
 }
 
-<span class="attribute">#[cfg(has_std)]
+<span class="attr">#[cfg(has_std)]
 </span><span class="kw">impl</span>&lt;K, V&gt; IndexMap&lt;K, V&gt; {
     <span class="doccomment">/// Create a new map. (Does not allocate.)
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::with_capacity(<span class="number">0</span>)
     }
@@ -2099,7 +2099,7 @@
     /// allocate if `n` is zero.)
     ///
     /// Computes in **O(n)** time.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>with_capacity(n: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::with_capacity_and_hasher(n, &lt;<span class="kw">_</span>&gt;::default())
     }
@@ -2110,7 +2110,7 @@
     /// allocate if `n` is zero.)
     ///
     /// Computes in **O(n)** time.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>with_capacity_and_hasher(n: usize, hash_builder: S) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>n == <span class="number">0 </span>{
             <span class="self">Self</span>::with_hasher(hash_builder)
@@ -2146,7 +2146,7 @@
     <span class="doccomment">/// Return the number of key-value pairs in the map.
     ///
     /// Computes in **O(1)** time.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.core.len()
     }
@@ -2154,7 +2154,7 @@
     <span class="doccomment">/// Returns true if the map contains no elements.
     ///
     /// Computes in **O(1)** time.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.len() == <span class="number">0
     </span>}
@@ -2699,7 +2699,7 @@
     /// the key-value pairs with the result.
     ///
     /// The sort is unstable.
-    </span><span class="attribute">#[inline]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>sorted_unstable_by&lt;F&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>cmp: F) -&gt; IntoIter&lt;K, V&gt;
     <span class="kw">where
         </span>F: FnMut(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V, <span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V) -&gt; Ordering,
@@ -3368,7 +3368,7 @@
     }
 }
 
-<span class="attribute">#[cfg(has_std)]
+<span class="attr">#[cfg(has_std)]
 </span><span class="kw">impl</span>&lt;K, V, <span class="kw">const </span>N: usize&gt; From&lt;[(K, V); N]&gt; <span class="kw">for </span>IndexMap&lt;K, V, RandomState&gt;
 <span class="kw">where
     </span>K: Hash + Eq,
@@ -3469,12 +3469,12 @@
 {
 }
 
-<span class="attribute">#[cfg(test)]
+<span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>std::string::String;
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>it_works() {
         <span class="kw">let </span><span class="kw-2">mut </span>map = IndexMap::new();
         <span class="macro">assert_eq!</span>(map.is_empty(), <span class="bool-val">true</span>);
@@ -3485,7 +3485,7 @@
         <span class="macro">assert_eq!</span>(map.is_empty(), <span class="bool-val">false</span>);
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>new() {
         <span class="kw">let </span>map = IndexMap::&lt;String, String&gt;::new();
         <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, map);
@@ -3494,7 +3494,7 @@
         <span class="macro">assert_eq!</span>(map.is_empty(), <span class="bool-val">true</span>);
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>insert() {
         <span class="kw">let </span>insert = [<span class="number">0</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="number">12</span>, <span class="number">8</span>, <span class="number">7</span>, <span class="number">11</span>, <span class="number">5</span>];
         <span class="kw">let </span>not_present = [<span class="number">1</span>, <span class="number">3</span>, <span class="number">6</span>, <span class="number">9</span>, <span class="number">10</span>];
@@ -3514,7 +3514,7 @@
         }
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>insert_full() {
         <span class="kw">let </span>insert = <span class="macro">vec!</span>[<span class="number">9</span>, <span class="number">2</span>, <span class="number">7</span>, <span class="number">1</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">13</span>];
         <span class="kw">let </span>present = <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">6</span>, <span class="number">2</span>];
@@ -3537,7 +3537,7 @@
         }
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>insert_2() {
         <span class="kw">let </span><span class="kw-2">mut </span>map = IndexMap::with_capacity(<span class="number">16</span>);
 
@@ -3562,7 +3562,7 @@
         }
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>insert_order() {
         <span class="kw">let </span>insert = [<span class="number">0</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="number">12</span>, <span class="number">8</span>, <span class="number">7</span>, <span class="number">11</span>, <span class="number">5</span>, <span class="number">3</span>, <span class="number">17</span>, <span class="number">19</span>, <span class="number">22</span>, <span class="number">23</span>];
         <span class="kw">let </span><span class="kw-2">mut </span>map = IndexMap::new();
@@ -3581,7 +3581,7 @@
         }
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>grow() {
         <span class="kw">let </span>insert = [<span class="number">0</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="number">12</span>, <span class="number">8</span>, <span class="number">7</span>, <span class="number">11</span>];
         <span class="kw">let </span>not_present = [<span class="number">1</span>, <span class="number">3</span>, <span class="number">6</span>, <span class="number">9</span>, <span class="number">10</span>];
@@ -3611,7 +3611,7 @@
         }
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>reserve() {
         <span class="kw">let </span><span class="kw-2">mut </span>map = IndexMap::&lt;usize, usize&gt;::new();
         <span class="macro">assert_eq!</span>(map.capacity(), <span class="number">0</span>);
@@ -3631,7 +3631,7 @@
         <span class="macro">assert_eq!</span>(map.get(<span class="kw-2">&amp;</span>capacity), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>std::usize::MAX));
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>shrink_to_fit() {
         <span class="kw">let </span><span class="kw-2">mut </span>map = IndexMap::&lt;usize, usize&gt;::new();
         <span class="macro">assert_eq!</span>(map.capacity(), <span class="number">0</span>);
@@ -3648,7 +3648,7 @@
         }
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>remove() {
         <span class="kw">let </span>insert = [<span class="number">0</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="number">12</span>, <span class="number">8</span>, <span class="number">7</span>, <span class="number">11</span>, <span class="number">5</span>, <span class="number">3</span>, <span class="number">17</span>, <span class="number">19</span>, <span class="number">22</span>, <span class="number">23</span>];
         <span class="kw">let </span><span class="kw-2">mut </span>map = IndexMap::new();
@@ -3684,7 +3684,7 @@
         <span class="macro">assert_eq!</span>(map.keys().count(), insert.len() - remove.len());
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>remove_to_empty() {
         <span class="kw">let </span><span class="kw-2">mut </span>map = <span class="macro">indexmap! </span>{ <span class="number">0 </span>=&gt; <span class="number">0</span>, <span class="number">4 </span>=&gt; <span class="number">4</span>, <span class="number">5 </span>=&gt; <span class="number">5 </span>};
         map.swap_remove(<span class="kw-2">&amp;</span><span class="number">5</span>).unwrap();
@@ -3693,7 +3693,7 @@
         <span class="macro">assert!</span>(map.is_empty());
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>swap_remove_index() {
         <span class="kw">let </span>insert = [<span class="number">0</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="number">12</span>, <span class="number">8</span>, <span class="number">7</span>, <span class="number">11</span>, <span class="number">5</span>, <span class="number">3</span>, <span class="number">17</span>, <span class="number">19</span>, <span class="number">22</span>, <span class="number">23</span>];
         <span class="kw">let </span><span class="kw-2">mut </span>map = IndexMap::new();
@@ -3718,7 +3718,7 @@
         }
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>partial_eq_and_eq() {
         <span class="kw">let </span><span class="kw-2">mut </span>map_a = IndexMap::new();
         map_a.insert(<span class="number">1</span>, <span class="string">&quot;1&quot;</span>);
@@ -3733,7 +3733,7 @@
         <span class="macro">assert_ne!</span>(map_c, map_a);
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>extend() {
         <span class="kw">let </span><span class="kw-2">mut </span>map = IndexMap::new();
         map.extend(<span class="macro">vec!</span>[(<span class="kw-2">&amp;</span><span class="number">1</span>, <span class="kw-2">&amp;</span><span class="number">2</span>), (<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="kw-2">&amp;</span><span class="number">4</span>)]);
@@ -3744,7 +3744,7 @@
         );
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>entry() {
         <span class="kw">let </span><span class="kw-2">mut </span>map = IndexMap::new();
 
@@ -3767,7 +3767,7 @@
         <span class="macro">assert_eq!</span>(e.or_insert(<span class="string">&quot;4&quot;</span>), <span class="kw-2">&amp;</span><span class="string">&quot;2&quot;</span>);
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>entry_and_modify() {
         <span class="kw">let </span><span class="kw-2">mut </span>map = IndexMap::new();
 
@@ -3779,11 +3779,11 @@
         <span class="macro">assert_eq!</span>(<span class="prelude-val">None</span>, map.get(<span class="kw-2">&amp;</span><span class="number">2</span>));
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>entry_or_default() {
         <span class="kw">let </span><span class="kw-2">mut </span>map = IndexMap::new();
 
-        <span class="attribute">#[derive(Debug, PartialEq)]
+        <span class="attr">#[derive(Debug, PartialEq)]
         </span><span class="kw">enum </span>TestEnum {
             DefaultValue,
             NonDefaultValue,
@@ -3801,7 +3801,7 @@
         <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;mut </span>TestEnum::DefaultValue, map.entry(<span class="number">2</span>).or_default());
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>occupied_entry_key() {
         <span class="comment">// These keys match hash and equality, but their addresses are distinct.
         </span><span class="kw">let </span>(k1, k2) = (<span class="kw-2">&amp;mut </span><span class="number">1</span>, <span class="kw-2">&amp;mut </span><span class="number">1</span>);
@@ -3823,7 +3823,7 @@
         }
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>keys() {
         <span class="kw">let </span>vec = <span class="macro">vec!</span>[(<span class="number">1</span>, <span class="string">&#39;a&#39;</span>), (<span class="number">2</span>, <span class="string">&#39;b&#39;</span>), (<span class="number">3</span>, <span class="string">&#39;c&#39;</span>)];
         <span class="kw">let </span>map: IndexMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = vec.into_iter().collect();
@@ -3834,7 +3834,7 @@
         <span class="macro">assert!</span>(keys.contains(<span class="kw-2">&amp;</span><span class="number">3</span>));
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>into_keys() {
         <span class="kw">let </span>vec = <span class="macro">vec!</span>[(<span class="number">1</span>, <span class="string">&#39;a&#39;</span>), (<span class="number">2</span>, <span class="string">&#39;b&#39;</span>), (<span class="number">3</span>, <span class="string">&#39;c&#39;</span>)];
         <span class="kw">let </span>map: IndexMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = vec.into_iter().collect();
@@ -3845,7 +3845,7 @@
         <span class="macro">assert!</span>(keys.contains(<span class="kw-2">&amp;</span><span class="number">3</span>));
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>values() {
         <span class="kw">let </span>vec = <span class="macro">vec!</span>[(<span class="number">1</span>, <span class="string">&#39;a&#39;</span>), (<span class="number">2</span>, <span class="string">&#39;b&#39;</span>), (<span class="number">3</span>, <span class="string">&#39;c&#39;</span>)];
         <span class="kw">let </span>map: IndexMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = vec.into_iter().collect();
@@ -3856,7 +3856,7 @@
         <span class="macro">assert!</span>(values.contains(<span class="kw-2">&amp;</span><span class="string">&#39;c&#39;</span>));
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>values_mut() {
         <span class="kw">let </span>vec = <span class="macro">vec!</span>[(<span class="number">1</span>, <span class="number">1</span>), (<span class="number">2</span>, <span class="number">2</span>), (<span class="number">3</span>, <span class="number">3</span>)];
         <span class="kw">let </span><span class="kw-2">mut </span>map: IndexMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = vec.into_iter().collect();
@@ -3870,7 +3870,7 @@
         <span class="macro">assert!</span>(values.contains(<span class="kw-2">&amp;</span><span class="number">6</span>));
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>into_values() {
         <span class="kw">let </span>vec = <span class="macro">vec!</span>[(<span class="number">1</span>, <span class="string">&#39;a&#39;</span>), (<span class="number">2</span>, <span class="string">&#39;b&#39;</span>), (<span class="number">3</span>, <span class="string">&#39;c&#39;</span>)];
         <span class="kw">let </span>map: IndexMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = vec.into_iter().collect();
@@ -3881,7 +3881,7 @@
         <span class="macro">assert!</span>(values.contains(<span class="kw-2">&amp;</span><span class="string">&#39;c&#39;</span>));
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     #[cfg(has_std)]
     </span><span class="kw">fn </span>from_array() {
         <span class="kw">let </span>map = IndexMap::from([(<span class="number">1</span>, <span class="number">2</span>), (<span class="number">3</span>, <span class="number">4</span>)]);
@@ -3893,4 +3893,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="indexmap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (59e7a308e 2022-09-11)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="indexmap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>
