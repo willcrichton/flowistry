@@ -39,16 +39,14 @@
   associated_type_defaults,  // for crate::indexed::Indexed
   min_specialization,        // for rustc_index::newtype_index
   type_alias_impl_trait,     // for impl Trait in trait definition, eg crate::mir::utils 
-  generic_associated_types,  // for impl Trait in trait definition
-  trait_alias,
-  let_else
+  trait_alias,  
 )]
 #![allow(
   clippy::single_match,
   clippy::needless_lifetimes,
   clippy::needless_return,
   clippy::len_zero,
-  clippy::len_without_is_empty
+  clippy::len_without_is_empty,  
 )]
 
 extern crate either;

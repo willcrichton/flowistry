@@ -196,7 +196,7 @@ pub fn cli_main<T: RustcPlugin>(plugin: T) {
         // If the rmeta files were previously generated for the lib (e.g. by running the plugin
         // on a reverse-dep), then we have to remove them or else Cargo will memoize the plugin.
         let deps_dir = target_dir.join("debug").join("deps");
-        if let Ok(entries) = fs::read_dir(&deps_dir) {
+        if let Ok(entries) = fs::read_dir(deps_dir) {
           let prefix = format!("lib{}", pkg.name.replace('-', "_"));
           for entry in entries {
             let path = entry.unwrap().path();

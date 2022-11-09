@@ -167,9 +167,13 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
       let parent_param_env = tcx.param_env(self.def_id);
       log::debug!("Adding child {child:?} to parent {parent_toplevel_arg:?}");
       for elem in child.projection.iter() {
-        ty = ty.projection_ty_core(tcx, parent_param_env, &elem, |_, field, _| {
-          ty.field_ty(tcx, field)
-        });
+        ty = ty.projection_ty_core(
+          tcx,
+          parent_param_env,
+          &elem,
+          |_, field, _| ty.field_ty(tcx, field),
+          |_, ty| ty,
+        );
         let elem = match elem {
           ProjectionElem::Field(field, _) => ProjectionElem::Field(field, ty.ty),
           elem => elem,

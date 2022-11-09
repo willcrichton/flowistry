@@ -27,19 +27,18 @@ fn implements_trait<'tcx>(
   ty: Ty<'tcx>,
   trait_def_id: DefId,
 ) -> bool {
-  tcx.infer_ctxt().enter(|infcx| {
-    let ty = tcx.erase_regions(ty);
-    let result = infcx.type_implements_trait(
-      trait_def_id,
-      ty,
-      tcx.mk_substs_trait(ty, &[]),
-      param_env,
-    );
-    matches!(
-      result,
-      EvaluationResult::EvaluatedToOk | EvaluationResult::EvaluatedToOkModuloRegions
-    )
-  })
+  let infcx = tcx.infer_ctxt().build();
+  let ty = tcx.erase_regions(ty);
+  let result = infcx.type_implements_trait(
+    trait_def_id,
+    ty,
+    tcx.mk_substs_trait(ty, &[]),
+    param_env,
+  );
+  matches!(
+    result,
+    EvaluationResult::EvaluatedToOk | EvaluationResult::EvaluatedToOkModuloRegions
+  )
 }
 
 pub enum IssueFound {
