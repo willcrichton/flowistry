@@ -80,6 +80,8 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
 </pre><pre class="rust"><code><span class="kw">use </span>log::trace;
 <span class="kw">use </span>rustc_hir::{intravisit::Visitor, BodyId};
 <span class="kw">use </span>rustc_middle::{hir::nested_filter::OnlyBodies, ty::TyCtxt};
@@ -130,7 +132,8 @@
   }
 }
 
-<span class="kw">pub fn </span>find_bodies(tcx: TyCtxt) -&gt; Vec&lt;(Span, BodyId)&gt; {
+<span class="doccomment">/// Finds all bodies in the current crate
+</span><span class="kw">pub fn </span>find_bodies(tcx: TyCtxt) -&gt; Vec&lt;(Span, BodyId)&gt; {
   <span class="macro">block_timer!</span>(<span class="string">&quot;find_bodies&quot;</span>);
   <span class="kw">let </span><span class="kw-2">mut </span>finder = BodyFinder {
     tcx,
@@ -140,7 +143,8 @@
   finder.bodies
 }
 
-<span class="kw">pub fn </span>find_enclosing_bodies(tcx: TyCtxt, sp: Span) -&gt; <span class="kw">impl </span>Iterator&lt;Item = BodyId&gt; {
+<span class="doccomment">/// Finds all the bodies that enclose the given span, from innermost to outermost
+</span><span class="kw">pub fn </span>find_enclosing_bodies(tcx: TyCtxt, sp: Span) -&gt; <span class="kw">impl </span>Iterator&lt;Item = BodyId&gt; {
   <span class="kw">let </span><span class="kw-2">mut </span>bodies = find_bodies(tcx);
   bodies.retain(|(other, <span class="kw">_</span>)| other.contains(sp));
   bodies.sort_by_key(|(span, <span class="kw">_</span>)| span.size());

@@ -725,6 +725,12 @@
 <span id="709">709</span>
 <span id="710">710</span>
 <span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+<span id="716">716</span>
+<span id="717">717</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Alias analysis to determine the points-to set of a reference.
 
 </span><span class="kw">use </span>std::{hash::Hash, ops::ControlFlow, rc::Rc, time::Instant};
@@ -758,10 +764,8 @@
   extensions::{is_extension_active, MutabilityMode, PointerMode},
   indexed::{
     impls::{
-      build_location_arg_domain, LocationOrArg, LocationOrArgDomain, LocationOrArgIndex,
-      LocationOrArgSet, PlaceSet,
-    },
-    IndexMatrix, RefSet, ToIndex,
+      build_location_arg_domain, LocationOrArgDomain, LocationOrArgIndex, PlaceSet,
+    }, ToIndex,
   },
   mir::utils::{<span class="self">self</span>, MutabilityExt, PlaceExt},
   timer::elapsed,
@@ -866,9 +870,11 @@
 <span class="kw">type </span>LoanSet&lt;<span class="lifetime">&#39;tcx</span>&gt; = HashSet&lt;(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, Mutability)&gt;;
 <span class="kw">type </span>LoanMap&lt;<span class="lifetime">&#39;tcx</span>&gt; = HashMap&lt;RegionVid, LoanSet&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;;
 
-<span class="kw">pub const </span>UNKNOWN_REGION: RegionVid = RegionVid::MAX;
+<span class="doccomment">/// Used to describe aliases of owned and raw pointers.
+</span><span class="kw">pub const </span>UNKNOWN_REGION: RegionVid = RegionVid::MAX;
 
-<span class="kw">pub struct </span>Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="doccomment">/// Data structure for computing and storing aliases.
+</span><span class="kw">pub struct </span>Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
   <span class="comment">// Compiler data
   </span><span class="kw">pub </span>tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
   <span class="kw">pub </span>body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
@@ -886,7 +892,7 @@
 }
 
 <span class="macro">rustc_index::newtype_index! </span>{
-  <span class="kw">pub struct </span>RegionSccIndex {
+  <span class="kw">struct </span>RegionSccIndex {
       DEBUG_FORMAT = <span class="string">&quot;rs{}&quot;
   </span>}
 }
@@ -1149,13 +1155,17 @@
     }
   }
 
-  <span class="kw">pub fn </span>normalize(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; Place&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="doccomment">/// Normalizes a place via [`PlaceExt::normalize`] (cached).
+  </span><span class="kw">pub fn </span>normalize(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; Place&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="self">self
       </span>.normalized_cache
       .get(place, |place| place.normalize(<span class="self">self</span>.tcx, <span class="self">self</span>.def_id))
   }
 
-  <span class="kw">pub fn </span>aliases(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="doccomment">/// Computes the aliases of a place (cached).
+  ///
+  /// Note that an alias is NOT guaranteed to be of the same type as `place`!
+  </span><span class="kw">pub fn </span>aliases(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="comment">// note: important that aliases are computed on the unnormalized place
     // which contains region information
     </span><span class="self">self</span>.aliases_cache.get(<span class="self">self</span>.normalize(place), <span class="kw">move </span>|<span class="kw">_</span>| {
@@ -1209,11 +1219,14 @@
     })
   }
 
-  <span class="kw">pub fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-    HashSet::from_iter(place.interior_places(<span class="self">self</span>.tcx, <span class="self">self</span>.body, <span class="self">self</span>.def_id))
+  <span class="doccomment">/// Returns all reachable fields of `place` without going through references.
+  </span><span class="kw">pub fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    PlaceSet::from_iter(place.interior_places(<span class="self">self</span>.tcx, <span class="self">self</span>.body, <span class="self">self</span>.def_id))
   }
 
-  <span class="kw">pub fn </span>conflicts(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="doccomment">/// Returns all places that conflict with `place`, i.e. that a mutation to `place`
+  /// would also be a mutation to the conflicting place.
+  </span><span class="kw">pub fn </span>conflicts(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="self">self</span>.conflicts_cache.get(place, |place| {
       <span class="self">self
         </span>.aliases(place)
@@ -1242,7 +1255,12 @@
     collector.loans
   }
 
-  <span class="kw">pub fn </span>reachable_values(
+  <span class="doccomment">/// Returns all [direct](PlaceExt::is_direct) places that are reachable from `place`
+  /// and can be used at the provided level of [`Mutability`].
+  /// 
+  /// For example, if `x = 0` and `y = (0, &amp;x)`, then `reachable_values(y, Mutability::Not)`
+  /// is `{y, y.0, y.1, x}`. With `Mutability::Mut`, then the output is `{y, y.0, y.1}` (no `x`).
+  </span><span class="kw">pub fn </span>reachable_values(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
     place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     mutability: Mutability,
@@ -1267,7 +1285,9 @@
     })
   }
 
-  <span class="kw">pub fn </span>all_args(
+  <span class="doccomment">/// Returns all [direct](PlaceExt::is_direct) places reachable from arguments
+  /// to the current body.
+  </span><span class="kw">pub fn </span>all_args(
     <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
   ) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, LocationOrArgIndex)&gt; + <span class="lifetime">&#39;a </span>{
     <span class="self">self</span>.body.args_iter().flat_map(|local| {
@@ -1292,17 +1312,9 @@
   <span class="kw">pub fn </span>location_domain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Rc&lt;LocationOrArgDomain&gt; {
     <span class="kw-2">&amp;</span><span class="self">self</span>.location_domain
   }
-
-  <span class="kw">pub fn </span>deps(
-    <span class="kw-2">&amp;</span><span class="self">self</span>,
-    state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexMatrix&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, LocationOrArg&gt;,
-    place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-  ) -&gt; LocationOrArgSet&lt;RefSet&lt;<span class="lifetime">&#39;a</span>, LocationOrArg&gt;&gt; {
-    state.row_set(<span class="self">self</span>.normalize(place))
-  }
 }
 
-<span class="kw">pub fn </span>generate_conservative_constraints&lt;<span class="lifetime">&#39;tcx</span>&gt;(
+<span class="kw">fn </span>generate_conservative_constraints&lt;<span class="lifetime">&#39;tcx</span>&gt;(
   tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
   body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
   region_to_pointers: <span class="kw-2">&amp;</span>HashMap&lt;RegionVid, Vec&lt;(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, Mutability)&gt;&gt;,

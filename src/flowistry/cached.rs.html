@@ -81,6 +81,11 @@
 <span id="65">65</span>
 <span id="66">66</span>
 <span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Data structure for memoizing computations.
 
 </span><span class="kw">use </span>std::{cell::RefCell, hash::Hash, mem, pin::Pin};
@@ -92,21 +97,21 @@
 <span class="kw">impl</span>&lt;In, Out&gt; Cache&lt;In, Out&gt;
 <span class="kw">where
   </span>In: Hash + Eq + Clone,
-  Out: Unpin,
 {
   <span class="kw">pub fn </span>get&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, key: In, compute: <span class="kw">impl </span>FnOnce(In) -&gt; Out) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Out {
     <span class="kw">if </span>!<span class="self">self</span>.<span class="number">0</span>.borrow().contains_key(<span class="kw-2">&amp;</span>key) {
-      <span class="kw">let </span>out = Pin::new(Box::new(compute(key.clone())));
+      <span class="kw">let </span>out = Box::pin(compute(key.clone()));
       <span class="self">self</span>.<span class="number">0</span>.borrow_mut().insert(key.clone(), out);
     }
 
     <span class="kw">let </span>cache = <span class="self">self</span>.<span class="number">0</span>.borrow();
-    <span class="kw">let </span>entry = cache.get(<span class="kw-2">&amp;</span>key).unwrap();
+    <span class="kw">let </span>entry_pin = cache.get(<span class="kw-2">&amp;</span>key).unwrap();
+    <span class="kw">let </span>entry_ref = entry_pin.as_ref().get_ref();
 
     <span class="comment">// SAFETY: because the entry is pinned, it cannot move and this pointer will
     // only be invalidated if Cache is dropped. The returned reference has a lifetime
     // equal to Cache, so Cache cannot be dropped before this reference goes out of scope.
-    </span><span class="kw">unsafe </span>{ mem::transmute::&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Out, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Out&gt;(<span class="kw-2">&amp;**</span>entry) }
+    </span><span class="kw">unsafe </span>{ mem::transmute::&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Out, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Out&gt;(entry_ref) }
   }
 }
 
@@ -137,16 +142,21 @@
   }
 }
 
-<span class="attr">#[test]
-</span><span class="kw">fn </span>test_cached() {
-  <span class="kw">let </span>cache: Cache&lt;usize, usize&gt; = Cache::default();
-  <span class="kw">let </span>x = cache.get(<span class="number">0</span>, |<span class="kw">_</span>| <span class="number">0</span>);
-  <span class="kw">let </span>y = cache.get(<span class="number">1</span>, |<span class="kw">_</span>| <span class="number">1</span>);
-  <span class="kw">let </span>z = cache.get(<span class="number">0</span>, |<span class="kw">_</span>| <span class="number">2</span>);
-  <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>x, <span class="number">0</span>);
-  <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>y, <span class="number">1</span>);
-  <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>z, <span class="number">0</span>);
-  <span class="macro">assert!</span>(std::ptr::eq(x, z));
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+  <span class="kw">use super</span>::<span class="kw-2">*</span>;
+
+  <span class="attr">#[test]
+  </span><span class="kw">fn </span>test_cached() {
+    <span class="kw">let </span>cache: Cache&lt;usize, usize&gt; = Cache::default();
+    <span class="kw">let </span>x = cache.get(<span class="number">0</span>, |<span class="kw">_</span>| <span class="number">0</span>);
+    <span class="kw">let </span>y = cache.get(<span class="number">1</span>, |<span class="kw">_</span>| <span class="number">1</span>);
+    <span class="kw">let </span>z = cache.get(<span class="number">0</span>, |<span class="kw">_</span>| <span class="number">2</span>);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>x, <span class="number">0</span>);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>y, <span class="number">1</span>);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>z, <span class="number">0</span>);
+    <span class="macro">assert!</span>(std::ptr::eq(x, z));
+  }
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="flowistry" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (7eef946fc 2022-11-06)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

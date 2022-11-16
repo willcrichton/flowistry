@@ -270,9 +270,17 @@
 <span id="254">254</span>
 <span id="255">255</span>
 <span id="256">256</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Data structure for sharing [spans][Span] outside rustc.
-
-</span><span class="kw">use </span>std::{default::Default, fs, path::Path};
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+</pre><pre class="rust"><code><span class="kw">use </span>std::{default::Default, fs, path::Path};
 
 <span class="kw">use </span>anyhow::{bail, Context, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>rustc_data_structures::{fx::FxHashMap <span class="kw">as </span>HashMap, sync::Lrc};
@@ -289,7 +297,8 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::cached::Cache;
 
-<span class="kw">pub struct </span>GraphemeIndices {
+<span class="doccomment">/// Provides efficient lookup for mapping byte indices to grapheme indices and vice-versa.
+</span><span class="kw">pub struct </span>GraphemeIndices {
   byte_to_char: HashMap&lt;usize, usize&gt;,
   char_to_byte: Vec&lt;usize&gt;,
 }
@@ -372,7 +381,13 @@
     .with_context(|| <span class="macro">format!</span>(<span class="string">&quot;No function with qpath {}&quot;</span>, finder.qpath))
 }
 
-<span class="attr">#[derive(Serialize, Debug, Clone, Hash, PartialEq, Eq, Default)]
+<span class="doccomment">/// Data structure for sharing spans outside rustc.
+///
+/// Rustc uses byte indexes to describe ranges of source code, whereas
+/// most Javascript-based editors I&#39;ve encountered (e.g. VSCode) use
+/// character-based (really grapheme-based) indexes. This data structure
+/// helps convert between the two representations.
+</span><span class="attr">#[derive(Serialize, Debug, Clone, Hash, PartialEq, Eq, Default)]
 </span><span class="kw">pub struct </span>Range {
   <span class="kw">pub </span>char_start: usize,
   <span class="kw">pub </span>char_end: usize,
@@ -496,7 +511,8 @@
   }
 }
 
-<span class="kw">pub trait </span>ToSpan: Send + Sync {
+<span class="doccomment">/// Used to convert objects into a [`Span`] with access to [`TyCtxt`]
+</span><span class="kw">pub trait </span>ToSpan: Send + Sync {
   <span class="kw">fn </span>to_span(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt) -&gt; <span class="prelude-ty">Result</span>&lt;Span&gt;;
 }
 
@@ -513,9 +529,13 @@
   }
 }
 
-<span class="kw">pub enum </span>FunctionIdentifier {
-  Qpath(String),
-  Range(Range),
+<span class="doccomment">/// An externally-provided identifier of a function
+</span><span class="kw">pub enum </span>FunctionIdentifier {
+  <span class="doccomment">/// Name of a function
+  </span>Qpath(String),
+
+  <span class="doccomment">/// Range of code possibly inside a function
+  </span>Range(Range),
 }
 
 <span class="kw">impl </span>ToSpan <span class="kw">for </span>FunctionIdentifier {

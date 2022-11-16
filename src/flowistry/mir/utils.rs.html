@@ -1024,14 +1024,47 @@
 <span id="1008">1008</span>
 <span id="1009">1009</span>
 <span id="1010">1010</span>
+<span id="1011">1011</span>
+<span id="1012">1012</span>
+<span id="1013">1013</span>
+<span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A potpourri of utilities for working with the MIR, primarily exposed as extension traits.
 
 </span><span class="kw">use </span>std::{
   cmp,
-  collections::hash_map::Entry,
-  hash::Hash,
   io::Write,
-  iter,
   ops::ControlFlow,
   path::Path,
   process::{Command, Stdio},
@@ -1069,8 +1102,10 @@
   mir::aliases::UNKNOWN_REGION,
 };
 
-<span class="kw">pub trait </span>OperandExt&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-  <span class="kw">fn </span>to_place(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;;
+<span class="doccomment">/// Extension trait for [`Operand`].
+</span><span class="kw">pub trait </span>OperandExt&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="doccomment">/// Converts an [`Operand`] to a [`Place`] if possible.
+  </span><span class="kw">fn </span>to_place(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;;
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; OperandExt&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>Operand&lt;<span class="lifetime">&#39;tcx</span>&gt; {
@@ -1082,7 +1117,8 @@
   }
 }
 
-<span class="kw">pub fn </span>arg_mut_ptrs&lt;<span class="lifetime">&#39;tcx</span>&gt;(
+<span class="doccomment">/// Given the arguments to a function, returns all projections of the arguments that are mutable pointers.
+</span><span class="kw">pub fn </span>arg_mut_ptrs&lt;<span class="lifetime">&#39;tcx</span>&gt;(
   args: <span class="kw-2">&amp;</span>[(usize, Place&lt;<span class="lifetime">&#39;tcx</span>&gt;)],
   tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
   body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
@@ -1109,7 +1145,8 @@
     .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
 }
 
-<span class="kw">pub fn </span>arg_places&lt;<span class="lifetime">&#39;tcx</span>&gt;(args: <span class="kw-2">&amp;</span>[Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;]) -&gt; Vec&lt;(usize, Place&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt; {
+<span class="doccomment">/// Given the arguments to a function, returns all places in the arguments.
+</span><span class="kw">pub fn </span>arg_places&lt;<span class="lifetime">&#39;tcx</span>&gt;(args: <span class="kw-2">&amp;</span>[Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;]) -&gt; Vec&lt;(usize, Place&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt; {
   args
     .iter()
     .enumerate()
@@ -1117,30 +1154,17 @@
     .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
 }
 
-<span class="kw">pub fn </span>hashmap_merge&lt;K: Eq + Hash, V&gt;(
-  <span class="kw-2">mut </span>h1: HashMap&lt;K, V&gt;,
-  h2: HashMap&lt;K, V&gt;,
-  conflict: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;mut </span>V, V),
-) -&gt; HashMap&lt;K, V&gt; {
-  <span class="kw">for </span>(k, v) <span class="kw">in </span>h2.into_iter() {
-    <span class="kw">match </span>h1.entry(k) {
-      Entry::Vacant(entry) =&gt; {
-        entry.insert(v);
-      }
-      Entry::Occupied(<span class="kw-2">mut </span>entry) =&gt; {
-        <span class="kw">let </span>entry = entry.get_mut();
-        conflict(entry, v);
-      }
-    }
-  }
-  h1
-}
-
-<span class="attr">#[derive(PartialEq, Eq, Debug)]
+<span class="doccomment">/// Describes the part-whole relationship between two places.
+</span><span class="attr">#[derive(PartialEq, Eq, Debug)]
 </span><span class="kw">pub enum </span>PlaceRelation {
-  Super,
-  Sub,
-  Disjoint,
+  <span class="doccomment">/// A is a parent of B, e.g. foo vs. foo.1
+  </span>Super,
+
+  <span class="doccomment">/// A is a child of B, e.g. foo.1 vs foo
+  </span>Sub,
+
+  <span class="doccomment">/// A is neither a child or parent, e.g. foo.0 vs foo.1
+  </span>Disjoint,
 }
 
 <span class="kw">impl </span>PlaceRelation {
@@ -1287,7 +1311,11 @@
   }
 }
 
-<span class="kw">pub struct </span>SimplifyMir;
+<span class="doccomment">/// MIR pass to remove instructions not important for Flowistry.
+/// 
+/// This pass helps reduce the number of intermediates during dataflow analysis, which
+/// reduces memory usage.
+</span><span class="kw">pub struct </span>SimplifyMir;
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; MirPass&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>SimplifyMir {
   <span class="kw">fn </span>run_pass(<span class="kw-2">&amp;</span><span class="self">self</span>, _tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body: <span class="kw-2">&amp;mut </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
     <span class="kw">let </span>return_blocks = body
@@ -1325,36 +1353,68 @@
   }
 }
 
-<span class="kw">pub trait </span>PlaceExt&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-  <span class="kw">fn </span>make(local: Local, projection: <span class="kw-2">&amp;</span>[PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;], tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self</span>;
-  <span class="kw">fn </span>from_ref(place: PlaceRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self</span>;
-  <span class="kw">fn </span>from_local(local: Local, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self</span>;
-  <span class="kw">fn </span>is_arg(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool;
-  <span class="kw">fn </span>is_direct(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool;
-  <span class="kw">fn </span>refs_in_projection(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SmallVec&lt;[(PlaceRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="kw-2">&amp;</span>[PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;]); <span class="number">2</span>]&gt;;
-  <span class="kw">fn </span>place_and_refs_in_projection(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;)
-    -&gt; SmallVec&lt;[Place&lt;<span class="lifetime">&#39;tcx</span>&gt;; <span class="number">2</span>]&gt;;
-  <span class="kw">fn </span>interior_pointers(
+<span class="doccomment">/// Extension trait for [`Place`].
+</span><span class="kw">pub trait </span>PlaceExt&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="doccomment">/// Creates a new [`Place`].
+  </span><span class="kw">fn </span>make(local: Local, projection: <span class="kw-2">&amp;</span>[PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;], tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self</span>;
+
+  <span class="doccomment">/// Converts a [`PlaceRef`] into an owned [`Place`].
+  </span><span class="kw">fn </span>from_ref(place: PlaceRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self</span>;
+
+  <span class="doccomment">/// Creates a new [`Place`] with an empty projection.
+  </span><span class="kw">fn </span>from_local(local: Local, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self</span>;
+
+  <span class="doccomment">/// Returns true if `self` is a projection of an argument local.
+  </span><span class="kw">fn </span>is_arg(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool;
+
+  <span class="doccomment">/// Returns true if `self` could not be resolved further to another place.
+  ///
+  /// This is true of places with no dereferences in the projection, or of dereferences
+  /// of arguments.
+  </span><span class="kw">fn </span>is_direct(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool;
+
+  <span class="doccomment">/// Returns all prefixes of `self`&#39;s projection that are references, along with
+  /// the suffix of the remaining projection.
+  </span><span class="kw">fn </span>refs_in_projection(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SmallVec&lt;[(PlaceRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="kw-2">&amp;</span>[PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;]); <span class="number">2</span>]&gt;;
+
+  <span class="doccomment">/// Returns all possible projections of `self` that are references.
+  ///
+  /// The output data structure indexes the resultant places based on the region of the references.
+  </span><span class="kw">fn </span>interior_pointers(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
     tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     def_id: DefId,
   ) -&gt; HashMap&lt;RegionVid, Vec&lt;(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, Mutability)&gt;&gt;;
-  <span class="kw">fn </span>interior_places(
-    <span class="kw-2">&amp;</span><span class="self">self</span>,
-    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    def_id: DefId,
-  ) -&gt; Vec&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;;
-  <span class="kw">fn </span>interior_paths(
+
+  <span class="doccomment">/// Returns all possible projections of `self` that do not go through a reference,
+  /// i.e. the set of fields directly in the structure referred by `self`.
+  </span><span class="kw">fn </span>interior_places(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
     tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     def_id: DefId,
   ) -&gt; Vec&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;;
 
-  <span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt;;
-  <span class="kw">fn </span>normalize(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, def_id: DefId) -&gt; Place&lt;<span class="lifetime">&#39;tcx</span>&gt;;
+  <span class="doccomment">/// Returns all possible projections of `self`.
+  </span><span class="kw">fn </span>interior_paths(
+    <span class="kw-2">&amp;</span><span class="self">self</span>,
+    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    def_id: DefId,
+  ) -&gt; Vec&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;;
+
+  <span class="doccomment">/// Provides a nicer debug representation of a place in terms of debug info.
+  </span><span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt;;
+
+  <span class="doccomment">/// Erases/normalizes information in a place to ensure stable comparisons between places
+  ///
+  /// Consider a place `_1: &amp;&#39;1 &lt;T as SomeTrait&gt;::Foo[2]`.
+  ///   We might encounter this type with a different region, e.g. `&amp;&#39;2`.
+  ///   We might encounter this type with a more specific type for the associated type, e.g. `&amp;&#39;1 [i32][0]`.
+  /// To account for this variation, we normalize associated types,
+  ///   erase regions, and normalize projections.
+  </span><span class="kw">fn </span>normalize(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, def_id: DefId) -&gt; Place&lt;<span class="lifetime">&#39;tcx</span>&gt;;
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; PlaceExt&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>Place&lt;<span class="lifetime">&#39;tcx</span>&gt; {
@@ -1398,20 +1458,6 @@
         }
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
       })
-      .collect()
-  }
-
-  <span class="kw">fn </span>place_and_refs_in_projection(
-    <span class="kw-2">&amp;</span><span class="self">self</span>,
-    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-  ) -&gt; SmallVec&lt;[Place&lt;<span class="lifetime">&#39;tcx</span>&gt;; <span class="number">2</span>]&gt; {
-    iter::once(<span class="kw-2">*</span><span class="self">self</span>)
-      .chain(
-        <span class="self">self
-          </span>.refs_in_projection()
-          .into_iter()
-          .map(|(ptr, <span class="kw">_</span>)| Place::from_ref(ptr, tcx)),
-      )
       .collect()
   }
 
@@ -1539,12 +1585,7 @@
   }
 
   <span class="kw">fn </span>normalize(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, def_id: DefId) -&gt; Place&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="comment">// Consider a place _1: &amp;&#39;1 &lt;T as SomeTrait&gt;::Foo[2]
-    //   we might encounter this type with a different region, e.g. &amp;&#39;2
-    //   we might encounter this type with a more specific type for the associated type, e.g. &amp;&#39;1 [i32][0]
-    // to account for this variation, we normalize associated types,
-    //   erase regions, and normalize projections
-    </span><span class="kw">let </span>param_env = tcx.param_env(def_id);
+    <span class="kw">let </span>param_env = tcx.param_env(def_id);
     <span class="kw">let </span>place = tcx.erase_regions(<span class="kw-2">*</span><span class="self">self</span>);
     <span class="kw">let </span>infcx = tcx.infer_ctxt().build();
     <span class="kw">let </span>place = infcx
@@ -1784,19 +1825,26 @@
   }
 }
 
-<span class="kw">pub trait </span>BodyExt&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+<span class="doccomment">/// Extension trait for [`Body`].
+</span><span class="kw">pub trait </span>BodyExt&lt;<span class="lifetime">&#39;tcx</span>&gt; {
   <span class="kw">type </span>AllReturnsIter&lt;<span class="lifetime">&#39;a</span>&gt;: Iterator&lt;Item = Location&gt;
   <span class="kw">where
     </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
-  <span class="kw">fn </span>all_returns(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::AllReturnsIter&lt;<span class="lifetime">&#39;_</span>&gt;;
+
+  <span class="doccomment">/// Returns all the locations of [`TerminatorKind::Return`] instructions in a body.
+  </span><span class="kw">fn </span>all_returns(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::AllReturnsIter&lt;<span class="lifetime">&#39;_</span>&gt;;
 
   <span class="kw">type </span>AllLocationsIter&lt;<span class="lifetime">&#39;a</span>&gt;: Iterator&lt;Item = Location&gt;
   <span class="kw">where
     </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
-  <span class="kw">fn </span>all_locations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::AllLocationsIter&lt;<span class="lifetime">&#39;_</span>&gt;;
+
+  <span class="doccomment">/// Returns all the locations in a body.
+  </span><span class="kw">fn </span>all_locations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::AllLocationsIter&lt;<span class="lifetime">&#39;_</span>&gt;;
 
   <span class="kw">type </span>LocationsIter: Iterator&lt;Item = Location&gt;;
-  <span class="kw">fn </span>locations_in_block(<span class="kw-2">&amp;</span><span class="self">self</span>, block: BasicBlock) -&gt; <span class="self">Self</span>::LocationsIter;
+
+  <span class="doccomment">/// Returns all the locations in a [`BasicBlock`].
+  </span><span class="kw">fn </span>locations_in_block(<span class="kw-2">&amp;</span><span class="self">self</span>, block: BasicBlock) -&gt; <span class="self">Self</span>::LocationsIter;
 
   <span class="kw">fn </span>debug_info_name_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HashMap&lt;Local, Symbol&gt;;
 
@@ -1858,15 +1906,39 @@
   }
 }
 
-<span class="kw">pub trait </span>SpanExt {
-  <span class="kw">fn </span>subtract(<span class="kw-2">&amp;</span><span class="self">self</span>, child_spans: Vec&lt;Span&gt;) -&gt; Vec&lt;Span&gt;;
-  <span class="kw">fn </span>as_local(<span class="kw-2">&amp;</span><span class="self">self</span>, outer_span: Span) -&gt; <span class="prelude-ty">Option</span>&lt;Span&gt;;
-  <span class="kw">fn </span>overlaps_inclusive(<span class="kw-2">&amp;</span><span class="self">self</span>, other: Span) -&gt; bool;
-  <span class="kw">fn </span>trim_end(<span class="kw-2">&amp;</span><span class="self">self</span>, other: Span) -&gt; <span class="prelude-ty">Option</span>&lt;Span&gt;;
-  <span class="kw">fn </span>merge_overlaps(spans: Vec&lt;Span&gt;) -&gt; Vec&lt;Span&gt;;
+<span class="doccomment">/// Extension trait for [`Span`].
+</span><span class="kw">pub trait </span>SpanExt {
+  <span class="doccomment">/// Get spans for regions in `self` not in `child_spans`.
+  ///
+  /// For example:
+  /// ```text
+  /// self:          ---------------
+  /// child_spans:    ---      --  -
+  /// output:        -   ------  --
+  /// ```
+  </span><span class="kw">fn </span>subtract(<span class="kw-2">&amp;</span><span class="self">self</span>, child_spans: Vec&lt;Span&gt;) -&gt; Vec&lt;Span&gt;;
+
+  <span class="doccomment">/// Gets the version of this span that is local to the current
+  /// crate, and must be contained in `outer_span`.
+  </span><span class="kw">fn </span>as_local(<span class="kw-2">&amp;</span><span class="self">self</span>, outer_span: Span) -&gt; <span class="prelude-ty">Option</span>&lt;Span&gt;;
+
+  <span class="doccomment">/// Returns true if `self` overlaps with `other` including boundaries.
+  </span><span class="kw">fn </span>overlaps_inclusive(<span class="kw-2">&amp;</span><span class="self">self</span>, other: Span) -&gt; bool;
+
+  <span class="doccomment">/// Returns a new span whose end is no later than the start of `other`,
+  /// returning `None` if this would return an empty span.
+  </span><span class="kw">fn </span>trim_end(<span class="kw-2">&amp;</span><span class="self">self</span>, other: Span) -&gt; <span class="prelude-ty">Option</span>&lt;Span&gt;;
+
+  <span class="doccomment">/// Merges all overlapping spans in the input vector into single spans.
+  </span><span class="kw">fn </span>merge_overlaps(spans: Vec&lt;Span&gt;) -&gt; Vec&lt;Span&gt;;
+
+  <span class="doccomment">/// Returns a collection of spans inside `self` that have leading whitespace removed.
+  ///
+  /// Returns `None` if [`SourceMap::span_to_snippet`] fails.
+  </span><span class="kw">fn </span>trim_leading_whitespace(<span class="kw-2">&amp;</span><span class="self">self</span>, source_map: <span class="kw-2">&amp;</span>SourceMap) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;Span&gt;&gt;;
+
   <span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; String;
   <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32;
-  <span class="kw">fn </span>trim_leading_whitespace(<span class="kw-2">&amp;</span><span class="self">self</span>, source_map: <span class="kw-2">&amp;</span>SourceMap) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;Span&gt;&gt;;
 }
 
 <span class="kw">impl </span>SpanExt <span class="kw">for </span>Span {
@@ -1880,13 +1952,7 @@
     </span>}
   }
 
-  <span class="doccomment">/// Get spans for regions in `self` not in `child_spans`.
-  ///
-  /// Example:
-  ///  self:          ---------------
-  ///  child_spans:    ---      --  -
-  ///  output:        -   ------  --
-  </span><span class="kw">fn </span>subtract(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>child_spans: Vec&lt;Span&gt;) -&gt; Vec&lt;Span&gt; {
+  <span class="kw">fn </span>subtract(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>child_spans: Vec&lt;Span&gt;) -&gt; Vec&lt;Span&gt; {
     child_spans.retain(|s| s.overlaps_inclusive(<span class="kw-2">*</span><span class="self">self</span>));
 
     <span class="kw">let </span><span class="kw-2">mut </span>outer_spans = <span class="macro">vec!</span>[];
@@ -1997,7 +2063,8 @@
   }
 }
 
-<span class="kw">pub trait </span>SpanDataExt {
+<span class="doccomment">/// Extension trait for [`SpanData`].
+</span><span class="kw">pub trait </span>SpanDataExt {
   <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32;
 }
 
@@ -2007,8 +2074,13 @@
   </span>}
 }
 
-<span class="kw">pub trait </span>MutabilityExt {
-  <span class="kw">fn </span>more_permissive_than(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; bool;
+<span class="doccomment">/// Extension trait for [`Mutability`].
+</span><span class="kw">pub trait </span>MutabilityExt {
+  <span class="doccomment">/// Returns true if `self` is eqully or more permissive than `other`,
+  /// i.e. where `Not` is more permissive than `Mut`.
+  ///
+  /// This corresponds to the operation $\omega_1 \lesssim \omega_2$ in the Flowistry paper.
+  </span><span class="kw">fn </span>more_permissive_than(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; bool;
 }
 
 <span class="kw">impl </span>MutabilityExt <span class="kw">for </span>Mutability {

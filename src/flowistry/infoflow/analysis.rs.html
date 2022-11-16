@@ -295,16 +295,6 @@
 <span id="279">279</span>
 <span id="280">280</span>
 <span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{cell::RefCell, rc::Rc};
 
 <span class="kw">use </span>log::{debug, trace};
@@ -317,7 +307,7 @@
 <span class="kw">use </span>rustc_mir_dataflow::{Analysis, AnalysisDomain, Forward};
 
 <span class="kw">use super</span>::{
-  mutation::{ModularMutationVisitor, MutationStatus},
+  mutation::{ModularMutationVisitor, Mutation, MutationStatus},
   FlowResults,
 };
 <span class="kw">use crate</span>::{
@@ -346,18 +336,19 @@
 /// has roughly the same API. The main difference is that `HybridBitSet` operates only on values that implement the
 /// [`rustc_index::vec::Idx`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/vec/trait.Idx.html) trait (usually created via
 /// the [`rustc_index::newtype_index`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/macro.newtype_index.html) macro). The `indexed`
-/// module has a concept of [`IndexedDomain`] to represent the mapping from a set of values to the indexes those values --- [`LocationDomain`]
+/// module has a concept of [`IndexedDomain`] to represent the mapping from a set of values to the indexes those values --- [`LocationOrArgDomain`]
 /// is the implementation for locations.
 ///
 ///
 /// # Note: arguments as dependencies
 /// Because function arguments are never initialized, there is no &quot;root&quot; location for argument places. This fact poses a problem for
-/// information flow analysis: an instruction `bb[0]: _2 = _1` (where `_1` is an argument) would set $\Theta(\verb|_2|) = \Theta(\verb|_1|) \cup \\{\verb|bb0[0]|\\}\$.
+/// information flow analysis: an instruction `bb[0]: _2 = _1` (where `_1` is an argument) would set $\Theta(\verb|_2|) = \Theta(\verb|_1|) \cup \\{\verb|bb0\[0\]|\\}\$.
 /// However, $\Theta(\verb|_1|)$ would be empty, so it would be imposible to determine that `_2` depends on `_1`. To solve this issue, we
 /// enrich the domain of locations with arguments, using the [`LocationOrArg`] type. Any dependency can be on *either* a location or an argument.
 </span><span class="kw">pub type </span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt; = IndexMatrix&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, LocationOrArg&gt;;
 
-<span class="kw">pub struct </span>FlowAnalysis&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="doccomment">/// Data structure that holds context for performing the information flow analysis.
+</span><span class="kw">pub struct </span>FlowAnalysis&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
   <span class="kw">pub </span>tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
   <span class="kw">pub </span>def_id: DefId,
   <span class="kw">pub </span>body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
@@ -392,10 +383,12 @@
   <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_function(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
     state: <span class="kw-2">&amp;mut </span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    mutated: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    inputs: <span class="kw-2">&amp;</span>[(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;)],
-    location: Location,
-    mutation_status: MutationStatus,
+    Mutation {
+      mutated,
+      inputs,
+      location,
+      status,
+    }: Mutation&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt;,
   ) {
     <span class="macro">debug!</span>(<span class="string">&quot;  Applying mutation to {mutated:?} with inputs {inputs:?}&quot;</span>);
     <span class="kw">let </span>location_domain = <span class="self">self</span>.location_domain();
@@ -406,8 +399,7 @@
     <span class="macro">assert!</span>(!mutated_aliases.is_empty());
 
     <span class="comment">// Clear sub-places of mutated place (if sound to do so)
-    </span><span class="kw">if </span><span class="macro">matches!</span>(mutation_status, MutationStatus::Definitely) &amp;&amp; mutated_aliases.len() == <span class="number">1
-    </span>{
+    </span><span class="kw">if </span><span class="macro">matches!</span>(status, MutationStatus::Definitely) &amp;&amp; mutated_aliases.len() == <span class="number">1 </span>{
       <span class="kw">let </span>mutated_direct = mutated_aliases.iter().next().unwrap();
       <span class="kw">for </span>sub <span class="kw">in </span>all_aliases.children(<span class="kw-2">*</span>mutated_direct).iter() {
         state.clear_row(all_aliases.normalize(<span class="kw-2">*</span>sub));
@@ -551,15 +543,9 @@
     statement: <span class="kw-2">&amp;</span>Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     location: Location,
   ) {
-    ModularMutationVisitor::new(
-      <span class="kw-2">&amp;</span><span class="self">self</span>.aliases,
-      |mutated: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-       inputs: <span class="kw-2">&amp;</span>[(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;)],
-       location: Location,
-       mutation_status: MutationStatus| {
-        <span class="self">self</span>.transfer_function(state, mutated, inputs, location, mutation_status)
-      },
-    )
+    ModularMutationVisitor::new(<span class="kw-2">&amp;</span><span class="self">self</span>.aliases, |mutation| {
+      <span class="self">self</span>.transfer_function(state, mutation)
+    })
     .visit_statement(statement, location);
   }
 
@@ -576,15 +562,9 @@
       <span class="kw">return</span>;
     }
 
-    ModularMutationVisitor::new(
-      <span class="kw-2">&amp;</span><span class="self">self</span>.aliases,
-      |mutated: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-       inputs: <span class="kw-2">&amp;</span>[(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;)],
-       location: Location,
-       mutation_status: MutationStatus| {
-        <span class="self">self</span>.transfer_function(state, mutated, inputs, location, mutation_status)
-      },
-    )
+    ModularMutationVisitor::new(<span class="kw-2">&amp;</span><span class="self">self</span>.aliases, |mutation| {
+      <span class="self">self</span>.transfer_function(state, mutation)
+    })
     .visit_terminator(terminator, location);
   }
 

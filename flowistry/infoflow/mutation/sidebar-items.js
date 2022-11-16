@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["MutationStatus",""]],"struct":[["ModularMutationVisitor",""]]};
+window.SIDEBAR_ITEMS = {"enum":[["MutationStatus","Indicator of certainty about whether a place is being mutated."]],"struct":[["ModularMutationVisitor","MIR visitor that invokes a callback for every [`Mutation`] in the visited object."],["Mutation","Information about a particular mutation."]]};

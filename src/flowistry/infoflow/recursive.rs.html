@@ -238,6 +238,8 @@
 <span id="222">222</span>
 <span id="223">223</span>
 <span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
 </pre><pre class="rust"><code><span class="kw">use </span>log::{debug, info};
 <span class="kw">use </span>rustc_middle::{
   mir::<span class="kw-2">*</span>,
@@ -248,7 +250,10 @@
 <span class="kw">use super</span>::{analysis::FlowAnalysis, BODY_STACK};
 <span class="kw">use crate</span>::{
   extensions::REACHED_LIBRARY,
-  infoflow::{mutation::MutationStatus, FlowDomain},
+  infoflow::{
+    mutation::{Mutation, MutationStatus},
+    FlowDomain,
+  },
   mir::{
     borrowck_facts::get_body_with_borrowck_facts,
     utils::{<span class="self">self</span>, PlaceExt},
@@ -445,17 +450,16 @@
           <span class="string">&quot;child {child:?} \n  / child_deps {child_deps:?}\n--&gt;\nparent {parent:?}\n   / parent_deps {parent_deps:?}&quot;
         </span>);
 
-        <span class="self">self</span>.transfer_function(
-          state,
-          parent,
-          <span class="kw-2">&amp;</span>parent_deps,
+        <span class="self">self</span>.transfer_function(state, Mutation {
+          mutated: parent,
+          inputs: <span class="kw-2">&amp;</span>parent_deps,
           location,
-          <span class="kw">if </span>was_return {
+          status: <span class="kw">if </span>was_return {
             MutationStatus::Definitely
           } <span class="kw">else </span>{
             MutationStatus::Possibly
           },
-        );
+        });
       }
     }
 

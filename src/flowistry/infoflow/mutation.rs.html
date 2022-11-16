@@ -138,7 +138,35 @@
 <span id="122">122</span>
 <span id="123">123</span>
 <span id="124">124</span>
-</pre><pre class="rust"><code><span class="kw">use </span>log::debug;
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Identifies the mutated places in a MIR instruction via modular approximation based on types.
+
+</span><span class="kw">use </span>log::debug;
 <span class="kw">use </span>rustc_middle::mir::{visit::Visitor, <span class="kw-2">*</span>};
 
 <span class="kw">use </span><span class="kw">crate</span>::mir::{
@@ -146,22 +174,41 @@
   utils::{<span class="self">self</span>, OperandExt, PlaceCollector},
 };
 
-<span class="kw">pub enum </span>MutationStatus {
-  Definitely,
-  Possibly,
+<span class="doccomment">/// Indicator of certainty about whether a place is being mutated.
+</span><span class="kw">pub enum </span>MutationStatus {
+  <span class="doccomment">/// A place is definitely mutated, e.g. `x = y` definitely mutates `x`.
+  </span>Definitely,
+
+  <span class="doccomment">/// A place is possibly mutated, e.g. `f(&amp;mut x)` possibly mutates `x`.
+  </span>Possibly,
 }
 
-<span class="comment">// Note: wcrichto tried making FnMut(...) a trait alias, but this
-// interacted poorly with type inference and required ModularMutationVisitor
-// clients to explicitly write out the type parameter of every closure argument.
+<span class="doccomment">/// Information about a particular mutation.
+</span><span class="kw">pub struct </span>Mutation&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="doccomment">/// The place that is being mutated.
+  </span><span class="kw">pub </span>mutated: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+
+  <span class="doccomment">/// The set of inputs to the mutating operation, each paired with
+  /// an optional [`ProjectionElem::Field`] in the case of aggregate constructors.
+  </span><span class="kw">pub </span>inputs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;)],
+
+  <span class="doccomment">/// Where the mutation is occuring.
+  </span><span class="kw">pub </span>location: Location,
+
+  <span class="doccomment">/// The certainty of whether the mutation is happening.
+  </span><span class="kw">pub </span>status: MutationStatus,
+}
+
+<span class="doccomment">/// MIR visitor that invokes a callback for every [`Mutation`] in the visited object.
+///
+/// Construct the visitor with [`ModularMutationVisitor::new`], then call one of the
+/// MIR [`Visitor`] methods.
 </span><span class="kw">pub struct </span>ModularMutationVisitor&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, F&gt;
 <span class="kw">where
-  </span>F: FnMut(
-    Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    <span class="kw-2">&amp;</span>[(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;)],
-    Location,
-    MutationStatus,
-  ),
+  </span><span class="comment">// API design note: wcrichto tried making FnMut(...) a trait alias, but this
+  // interacted poorly with type inference and required ModularMutationVisitor
+  // clients to explicitly write out the type parameter of every closure argument.
+  </span>F: FnMut(Mutation&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt;),
 {
   f: F,
   aliases: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
@@ -169,12 +216,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, F&gt; ModularMutationVisitor&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, F&gt;
 <span class="kw">where
-  </span>F: FnMut(
-    Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    <span class="kw-2">&amp;</span>[(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;)],
-    Location,
-    MutationStatus,
-  ),
+  </span>F: FnMut(Mutation&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt;),
 {
   <span class="kw">pub fn </span>new(aliases: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;, f: F) -&gt; <span class="self">Self </span>{
     ModularMutationVisitor { aliases, f }
@@ -183,12 +225,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>, F&gt; Visitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>ModularMutationVisitor&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>, F&gt;
 <span class="kw">where
-  </span>F: FnMut(
-    Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    <span class="kw-2">&amp;</span>[(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="prelude-ty">Option</span>&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;)],
-    Location,
-    MutationStatus,
-  ),
+  </span>F: FnMut(Mutation&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt;),
 {
   <span class="kw">fn </span>visit_assign(
     <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -202,12 +239,12 @@
       tcx: <span class="self">self</span>.aliases.tcx,
     };
     collector.visit_rvalue(rvalue, location);
-    (<span class="self">self</span>.f)(
-      <span class="kw-2">*</span>place,
-      <span class="kw-2">&amp;</span>collector.places,
+    (<span class="self">self</span>.f)(Mutation {
+      mutated: <span class="kw-2">*</span>place,
+      inputs: <span class="kw-2">&amp;</span>collector.places,
       location,
-      MutationStatus::Definitely,
-    );
+      status: MutationStatus::Definitely,
+    });
   }
 
   <span class="kw">fn </span>visit_terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, terminator: <span class="kw-2">&amp;</span>Terminator&lt;<span class="lifetime">&#39;tcx</span>&gt;, location: Location) {
@@ -237,7 +274,12 @@
         <span class="kw">let </span>empty = <span class="macro">vec!</span>[];
         <span class="kw">let </span>inputs = <span class="kw">if </span>ret_is_unit { <span class="kw-2">&amp;</span>empty } <span class="kw">else </span>{ <span class="kw-2">&amp;</span>arg_inputs };
 
-        (<span class="self">self</span>.f)(<span class="kw-2">*</span>destination, inputs, location, MutationStatus::Definitely);
+        (<span class="self">self</span>.f)(Mutation {
+          mutated: <span class="kw-2">*</span>destination,
+          inputs,
+          location,
+          status: MutationStatus::Definitely,
+        });
 
         <span class="kw">for </span>arg <span class="kw">in </span>arg_places {
           <span class="kw">for </span>arg_mut <span class="kw">in </span><span class="self">self</span>.aliases.reachable_values(arg, Mutability::Mut) {
@@ -247,14 +289,24 @@
               <span class="kw">continue</span>;
             }
 
-            (<span class="self">self</span>.f)(<span class="kw-2">*</span>arg_mut, <span class="kw-2">&amp;</span>arg_inputs, location, MutationStatus::Possibly);
+            (<span class="self">self</span>.f)(Mutation {
+              mutated: <span class="kw-2">*</span>arg_mut,
+              inputs: <span class="kw-2">&amp;</span>arg_inputs,
+              location,
+              status: MutationStatus::Possibly,
+            });
           }
         }
       }
 
       TerminatorKind::DropAndReplace { place, value, .. } =&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(src) = value.to_place() {
-          (<span class="self">self</span>.f)(<span class="kw-2">*</span>place, <span class="kw-2">&amp;</span>[(src, <span class="prelude-val">None</span>)], location, MutationStatus::Definitely);
+          (<span class="self">self</span>.f)(Mutation {
+            mutated: <span class="kw-2">*</span>place,
+            inputs: <span class="kw-2">&amp;</span>[(src, <span class="prelude-val">None</span>)],
+            location,
+            status: MutationStatus::Definitely,
+          });
         }
       }
 

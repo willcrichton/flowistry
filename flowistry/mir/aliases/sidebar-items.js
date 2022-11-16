@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["UNKNOWN_REGION",""]],"fn":[["generate_conservative_constraints",""]],"struct":[["Aliases",""],["RegionSccIndex",""]]};
+window.SIDEBAR_ITEMS = {"constant":[["UNKNOWN_REGION","Used to describe aliases of owned and raw pointers."]],"struct":[["Aliases","Data structure for computing and storing aliases."]]};

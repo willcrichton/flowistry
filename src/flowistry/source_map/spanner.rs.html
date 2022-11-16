@@ -499,6 +499,7 @@
 <span id="483">483</span>
 <span id="484">484</span>
 <span id="485">485</span>
+<span id="486">486</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Mapping source ranges to/from the HIR and MIR.
 
 </span><span class="kw">use </span>either::Either;
@@ -524,10 +525,11 @@
   mir::utils::{<span class="self">self</span>, SpanDataExt, SpanExt},
 };
 
-<span class="kw">pub struct </span>Spanner&lt;<span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-  <span class="kw">pub </span>tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+<span class="doccomment">/// Converts MIR locations to source spans using HIR information.
+</span><span class="kw">pub struct </span>Spanner&lt;<span class="lifetime">&#39;hir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">pub</span>(<span class="kw">super</span>) tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
   <span class="kw">pub</span>(<span class="kw">super</span>) hir_spans: Vec&lt;HirSpannedNode&lt;<span class="lifetime">&#39;hir</span>&gt;&gt;,
-  <span class="kw">pub </span>hir_span_tree: SpanTree&lt;HirSpannedNode&lt;<span class="lifetime">&#39;hir</span>&gt;&gt;,
+  <span class="kw">pub</span>(<span class="kw">super</span>) hir_span_tree: SpanTree&lt;HirSpannedNode&lt;<span class="lifetime">&#39;hir</span>&gt;&gt;,
   <span class="kw">pub</span>(<span class="kw">super</span>) mir_spans: Vec&lt;MirSpannedPlace&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
   <span class="kw">pub </span>mir_span_tree: SpanTree&lt;MirSpannedPlace&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
   <span class="kw">pub </span>body_span: Span,
@@ -582,13 +584,13 @@
     spanner
   }
 
-  <span class="kw">pub fn </span>invalid_span(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span) -&gt; bool {
+  <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>invalid_span(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span) -&gt; bool {
     span.is_dummy()
       || span.source_equal(<span class="self">self</span>.body_span)
       || span.source_equal(<span class="self">self</span>.item_span)
   }
 
-  <span class="kw">pub fn </span>find_matching&lt;<span class="lifetime">&#39;b</span>, T&gt;(
+  <span class="kw">fn </span>find_matching&lt;<span class="lifetime">&#39;b</span>, T&gt;(
     predicate: <span class="kw">impl </span>Fn(SpanData) -&gt; bool,
     query: SpanData,
     spans: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>SpanTree&lt;T&gt;,

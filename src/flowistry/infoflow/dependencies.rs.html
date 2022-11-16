@@ -244,6 +244,26 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{cell::RefCell, iter};
 
 <span class="kw">use </span>either::Either;
@@ -251,19 +271,32 @@
 <span class="kw">use </span>rustc_middle::mir::{visit::Visitor, <span class="kw-2">*</span>};
 <span class="kw">use </span>rustc_span::Span;
 
-<span class="kw">use super</span>::{mutation::ModularMutationVisitor, FlowResults};
+<span class="kw">use super</span>::{mutation::ModularMutationVisitor, FlowDomain, FlowResults};
 <span class="kw">use crate</span>::{
   block_timer,
-  indexed::impls::{LocationOrArg, LocationOrArgSet},
-  mir::utils::{BodyExt, OperandExt, SpanExt},
+  indexed::{
+    impls::{LocationOrArg, LocationOrArgSet},
+    RefSet,
+  },
+  infoflow::mutation::Mutation,
+  mir::{
+    aliases::Aliases,
+    utils::{BodyExt, OperandExt, SpanExt},
+  },
   source_map::{EnclosingHirSpans, Spanner},
 };
 
-<span class="attr">#[derive(Clone, Copy, Debug)]
+<span class="doccomment">/// Which way to look for dependencies
+</span><span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">pub enum </span>Direction {
-  Forward,
-  Backward,
-  Both,
+  <span class="doccomment">/// Things affects by the source
+  </span>Forward,
+
+  <span class="doccomment">/// Things that affect the source
+  </span>Backward,
+
+  <span class="doccomment">/// Both forward and backward
+  </span>Both,
 }
 
 <span class="attr">#[derive(Debug, Clone)]
@@ -316,6 +349,14 @@
       </span>all_forward,
     }
   }
+}
+
+<span class="kw">pub fn </span>deps&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;(
+  state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  aliases: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
+  place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+) -&gt; LocationOrArgSet&lt;RefSet&lt;<span class="lifetime">&#39;a</span>, LocationOrArg&gt;&gt; {
+  state.row_set(aliases.normalize(place))
 }
 
 <span class="doccomment">/// Computes the dependencies of a place $p$ at a location $\ell$ in a given
@@ -379,7 +420,7 @@
     <span class="kw">for </span>location <span class="kw">in </span>body.all_locations() {
       <span class="kw">let </span>state = results.state_at(location);
       <span class="kw">let </span>check = |place| {
-        <span class="kw">let </span>deps = aliases.deps(state, place);
+        <span class="kw">let </span>deps = deps(state, aliases, place);
 
         <span class="kw">for </span>(target_deps, outputs) <span class="kw">in
           </span>iter::zip(<span class="kw-2">&amp;</span>all_target_deps, <span class="kw-2">&amp;mut *</span>outputs.borrow_mut())
@@ -403,12 +444,11 @@
             check(place);
           }
         }
-        <span class="kw">_ </span>=&gt; {
-          ModularMutationVisitor::new(<span class="kw-2">&amp;</span>results.analysis.aliases, |mutated, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
-            check(mutated)
-          })
-          .visit_location(body, location)
-        }
+        <span class="kw">_ </span>=&gt; ModularMutationVisitor::new(
+          <span class="kw-2">&amp;</span>results.analysis.aliases,
+          |Mutation { mutated, .. }| check(mutated),
+        )
+        .visit_location(body, location),
       }
     }
   };
@@ -424,7 +464,7 @@
           <span class="kw">match </span>location {
             LocationOrArg::Arg(..) =&gt; outputs.insert(location),
             LocationOrArg::Location(location) =&gt; {
-              <span class="kw">let </span>deps = aliases.deps(results.state_at(<span class="kw-2">*</span>location), <span class="kw-2">*</span>value);
+              <span class="kw">let </span>deps = deps(results.state_at(<span class="kw-2">*</span>location), aliases, <span class="kw-2">*</span>value);
               outputs.union(<span class="kw-2">&amp;</span>deps);
             }
           }

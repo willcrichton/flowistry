@@ -449,6 +449,8 @@
 <span id="433">433</span>
 <span id="434">434</span>
 <span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Running rustc and Flowistry in tests.
 
 </span><span class="kw">use </span>std::{fs, io, panic, path::Path, process::Command};
@@ -481,16 +483,18 @@
 }
 
 <span class="macro">lazy_static::lazy_static! </span>{
-  <span class="kw">static </span><span class="kw-2">ref </span>SYSROOT: String = String::from_utf8(
-    Command::new(<span class="string">&quot;rustc&quot;</span>)
-      .args([<span class="string">&quot;--print&quot;</span>, <span class="string">&quot;sysroot&quot;</span>])
-      .output()
+  <span class="kw">static </span><span class="kw-2">ref </span>SYSROOT: String = {
+    <span class="kw">let </span>rustc_output =
+      Command::new(<span class="string">&quot;rustc&quot;</span>)
+        .args([<span class="string">&quot;--print&quot;</span>, <span class="string">&quot;sysroot&quot;</span>])
+        .output()
+        .unwrap()
+        .stdout;
+    String::from_utf8(rustc_output)
       .unwrap()
-      .stdout
-  )
-  .unwrap()
-  .trim()
-  .to_owned();
+      .trim()
+      .to_owned()
+  };
 }
 
 <span class="kw">pub fn </span>compile_body_with_range(
