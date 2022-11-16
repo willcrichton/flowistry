@@ -31,10 +31,8 @@ use crate::{
   extensions::{is_extension_active, MutabilityMode, PointerMode},
   indexed::{
     impls::{
-      build_location_arg_domain, LocationOrArg, LocationOrArgDomain, LocationOrArgIndex,
-      LocationOrArgSet, PlaceSet,
-    },
-    IndexMatrix, RefSet, ToIndex,
+      build_location_arg_domain, LocationOrArgDomain, LocationOrArgIndex, PlaceSet,
+    }, ToIndex,
   },
   mir::utils::{self, MutabilityExt, PlaceExt},
   timer::elapsed,
@@ -139,8 +137,10 @@ impl<'tcx> Visitor<'tcx> for FindPlaces<'_, 'tcx> {
 type LoanSet<'tcx> = HashSet<(Place<'tcx>, Mutability)>;
 type LoanMap<'tcx> = HashMap<RegionVid, LoanSet<'tcx>>;
 
+/// Used to describe aliases of owned and raw pointers.
 pub const UNKNOWN_REGION: RegionVid = RegionVid::MAX;
 
+/// Data structure for computing and storing aliases.
 pub struct Aliases<'a, 'tcx> {
   // Compiler data
   pub tcx: TyCtxt<'tcx>,
@@ -159,7 +159,7 @@ pub struct Aliases<'a, 'tcx> {
 }
 
 rustc_index::newtype_index! {
-  pub struct RegionSccIndex {
+  struct RegionSccIndex {
       DEBUG_FORMAT = "rs{}"
   }
 }
@@ -422,12 +422,16 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     }
   }
 
+  /// Normalizes a place via [`PlaceExt::normalize`] (cached).
   pub fn normalize(&self, place: Place<'tcx>) -> Place<'tcx> {
     self
       .normalized_cache
       .get(place, |place| place.normalize(self.tcx, self.def_id))
   }
 
+  /// Computes the aliases of a place (cached).
+  ///
+  /// Note that an alias is NOT guaranteed to be of the same type as `place`!
   pub fn aliases(&self, place: Place<'tcx>) -> &PlaceSet<'tcx> {
     // note: important that aliases are computed on the unnormalized place
     // which contains region information
@@ -482,10 +486,13 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     })
   }
 
+  /// Returns all reachable fields of `place` without going through references.
   pub fn children(&self, place: Place<'tcx>) -> PlaceSet<'tcx> {
-    HashSet::from_iter(place.interior_places(self.tcx, self.body, self.def_id))
+    PlaceSet::from_iter(place.interior_places(self.tcx, self.body, self.def_id))
   }
 
+  /// Returns all places that conflict with `place`, i.e. that a mutation to `place`
+  /// would also be a mutation to the conflicting place.
   pub fn conflicts(&self, place: Place<'tcx>) -> &PlaceSet<'tcx> {
     self.conflicts_cache.get(place, |place| {
       self
@@ -515,6 +522,11 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     collector.loans
   }
 
+  /// Returns all [direct](PlaceExt::is_direct) places that are reachable from `place`
+  /// and can be used at the provided level of [`Mutability`].
+  /// 
+  /// For example, if `x = 0` and `y = (0, &x)`, then `reachable_values(y, Mutability::Not)`
+  /// is `{y, y.0, y.1, x}`. With `Mutability::Mut`, then the output is `{y, y.0, y.1}` (no `x`).
   pub fn reachable_values(
     &self,
     place: Place<'tcx>,
@@ -540,6 +552,8 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     })
   }
 
+  /// Returns all [direct](PlaceExt::is_direct) places reachable from arguments
+  /// to the current body.
   pub fn all_args(
     &'a self,
   ) -> impl Iterator<Item = (Place<'tcx>, LocationOrArgIndex)> + 'a {
@@ -565,17 +579,9 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
   pub fn location_domain(&self) -> &Rc<LocationOrArgDomain> {
     &self.location_domain
   }
-
-  pub fn deps(
-    &self,
-    state: &'a IndexMatrix<Place<'tcx>, LocationOrArg>,
-    place: Place<'tcx>,
-  ) -> LocationOrArgSet<RefSet<'a, LocationOrArg>> {
-    state.row_set(self.normalize(place))
-  }
 }
 
-pub fn generate_conservative_constraints<'tcx>(
+fn generate_conservative_constraints<'tcx>(
   tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,
   region_to_pointers: &HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>,

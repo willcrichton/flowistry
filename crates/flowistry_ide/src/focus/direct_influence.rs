@@ -1,6 +1,6 @@
 use flowistry::{
   indexed::{impls::LocationOrArg, IndexMatrix},
-  infoflow::mutation::ModularMutationVisitor,
+  infoflow::mutation::{ModularMutationVisitor, Mutation},
   mir::aliases::Aliases,
 };
 use rustc_middle::mir::{visit::Visitor, Body, Mutability, Place};
@@ -14,19 +14,27 @@ impl<'a, 'tcx> DirectInfluence<'a, 'tcx> {
   pub fn build(body: &Body<'tcx>, aliases: &'a Aliases<'a, 'tcx>) -> Self {
     let mut influence = IndexMatrix::new(aliases.location_domain());
 
-    ModularMutationVisitor::new(aliases, |mutated, inputs, location, _| {
-      let mut add = |place: Place<'tcx>, mutability: Mutability| {
-        for alias in aliases.reachable_values(place, mutability) {
-          influence.insert(*alias, location);
+    ModularMutationVisitor::new(
+      aliases,
+      |Mutation {
+         mutated,
+         inputs,
+         location,
+         ..
+       }| {
+        let mut add = |place: Place<'tcx>, mutability: Mutability| {
+          for alias in aliases.reachable_values(place, mutability) {
+            influence.insert(*alias, location);
+          }
+        };
+
+        for (input, _) in inputs {
+          add(*input, Mutability::Not);
         }
-      };
 
-      for (input, _) in inputs {
-        add(*input, Mutability::Not);
-      }
-
-      add(mutated, Mutability::Mut);
-    })
+        add(mutated, Mutability::Mut);
+      },
+    )
     .visit_body(body);
 
     DirectInfluence { aliases, influence }

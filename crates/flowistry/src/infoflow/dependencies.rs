@@ -5,18 +5,31 @@ use log::{debug, trace};
 use rustc_middle::mir::{visit::Visitor, *};
 use rustc_span::Span;
 
-use super::{mutation::ModularMutationVisitor, FlowResults};
+use super::{mutation::ModularMutationVisitor, FlowDomain, FlowResults};
 use crate::{
   block_timer,
-  indexed::impls::{LocationOrArg, LocationOrArgSet},
-  mir::utils::{BodyExt, OperandExt, SpanExt},
+  indexed::{
+    impls::{LocationOrArg, LocationOrArgSet},
+    RefSet,
+  },
+  infoflow::mutation::Mutation,
+  mir::{
+    aliases::Aliases,
+    utils::{BodyExt, OperandExt, SpanExt},
+  },
   source_map::{EnclosingHirSpans, Spanner},
 };
 
+/// Which way to look for dependencies
 #[derive(Clone, Copy, Debug)]
 pub enum Direction {
+  /// Things affects by the source
   Forward,
+
+  /// Things that affect the source
   Backward,
+
+  /// Both forward and backward
   Both,
 }
 
@@ -70,6 +83,14 @@ impl TargetDeps {
       all_forward,
     }
   }
+}
+
+pub fn deps<'a, 'tcx>(
+  state: &'a FlowDomain<'tcx>,
+  aliases: &'a Aliases<'a, 'tcx>,
+  place: Place<'tcx>,
+) -> LocationOrArgSet<RefSet<'a, LocationOrArg>> {
+  state.row_set(aliases.normalize(place))
 }
 
 /// Computes the dependencies of a place $p$ at a location $\ell$ in a given
@@ -133,7 +154,7 @@ pub fn compute_dependencies<'tcx>(
     for location in body.all_locations() {
       let state = results.state_at(location);
       let check = |place| {
-        let deps = aliases.deps(state, place);
+        let deps = deps(state, aliases, place);
 
         for (target_deps, outputs) in
           iter::zip(&all_target_deps, &mut *outputs.borrow_mut())
@@ -157,12 +178,11 @@ pub fn compute_dependencies<'tcx>(
             check(place);
           }
         }
-        _ => {
-          ModularMutationVisitor::new(&results.analysis.aliases, |mutated, _, _, _| {
-            check(mutated)
-          })
-          .visit_location(body, location)
-        }
+        _ => ModularMutationVisitor::new(
+          &results.analysis.aliases,
+          |Mutation { mutated, .. }| check(mutated),
+        )
+        .visit_location(body, location),
       }
     }
   };
@@ -178,7 +198,7 @@ pub fn compute_dependencies<'tcx>(
           match location {
             LocationOrArg::Arg(..) => outputs.insert(location),
             LocationOrArg::Location(location) => {
-              let deps = aliases.deps(results.state_at(*location), *value);
+              let deps = deps(results.state_at(*location), aliases, *value);
               outputs.union(&deps);
             }
           }

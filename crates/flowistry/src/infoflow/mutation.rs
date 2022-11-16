@@ -1,3 +1,5 @@
+//! Identifies the mutated places in a MIR instruction via modular approximation based on types.
+
 use log::debug;
 use rustc_middle::mir::{visit::Visitor, *};
 
@@ -6,22 +8,41 @@ use crate::mir::{
   utils::{self, OperandExt, PlaceCollector},
 };
 
+/// Indicator of certainty about whether a place is being mutated.
 pub enum MutationStatus {
+  /// A place is definitely mutated, e.g. `x = y` definitely mutates `x`.
   Definitely,
+
+  /// A place is possibly mutated, e.g. `f(&mut x)` possibly mutates `x`.
   Possibly,
 }
 
-// Note: wcrichto tried making FnMut(...) a trait alias, but this
-// interacted poorly with type inference and required ModularMutationVisitor
-// clients to explicitly write out the type parameter of every closure argument.
+/// Information about a particular mutation.
+pub struct Mutation<'a, 'tcx> {
+  /// The place that is being mutated.
+  pub mutated: Place<'tcx>,
+
+  /// The set of inputs to the mutating operation, each paired with
+  /// an optional [`ProjectionElem::Field`] in the case of aggregate constructors.
+  pub inputs: &'a [(Place<'tcx>, Option<PlaceElem<'tcx>>)],
+
+  /// Where the mutation is occuring.
+  pub location: Location,
+
+  /// The certainty of whether the mutation is happening.
+  pub status: MutationStatus,
+}
+
+/// MIR visitor that invokes a callback for every [`Mutation`] in the visited object.
+///
+/// Construct the visitor with [`ModularMutationVisitor::new`], then call one of the
+/// MIR [`Visitor`] methods.
 pub struct ModularMutationVisitor<'a, 'tcx, F>
 where
-  F: FnMut(
-    Place<'tcx>,
-    &[(Place<'tcx>, Option<PlaceElem<'tcx>>)],
-    Location,
-    MutationStatus,
-  ),
+  // API design note: wcrichto tried making FnMut(...) a trait alias, but this
+  // interacted poorly with type inference and required ModularMutationVisitor
+  // clients to explicitly write out the type parameter of every closure argument.
+  F: FnMut(Mutation<'_, 'tcx>),
 {
   f: F,
   aliases: &'a Aliases<'a, 'tcx>,
@@ -29,12 +50,7 @@ where
 
 impl<'a, 'tcx, F> ModularMutationVisitor<'a, 'tcx, F>
 where
-  F: FnMut(
-    Place<'tcx>,
-    &[(Place<'tcx>, Option<PlaceElem<'tcx>>)],
-    Location,
-    MutationStatus,
-  ),
+  F: FnMut(Mutation<'_, 'tcx>),
 {
   pub fn new(aliases: &'a Aliases<'a, 'tcx>, f: F) -> Self {
     ModularMutationVisitor { aliases, f }
@@ -43,12 +59,7 @@ where
 
 impl<'tcx, F> Visitor<'tcx> for ModularMutationVisitor<'_, 'tcx, F>
 where
-  F: FnMut(
-    Place<'tcx>,
-    &[(Place<'tcx>, Option<PlaceElem<'tcx>>)],
-    Location,
-    MutationStatus,
-  ),
+  F: FnMut(Mutation<'_, 'tcx>),
 {
   fn visit_assign(
     &mut self,
@@ -62,12 +73,12 @@ where
       tcx: self.aliases.tcx,
     };
     collector.visit_rvalue(rvalue, location);
-    (self.f)(
-      *place,
-      &collector.places,
+    (self.f)(Mutation {
+      mutated: *place,
+      inputs: &collector.places,
       location,
-      MutationStatus::Definitely,
-    );
+      status: MutationStatus::Definitely,
+    });
   }
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
@@ -97,7 +108,12 @@ where
         let empty = vec![];
         let inputs = if ret_is_unit { &empty } else { &arg_inputs };
 
-        (self.f)(*destination, inputs, location, MutationStatus::Definitely);
+        (self.f)(Mutation {
+          mutated: *destination,
+          inputs,
+          location,
+          status: MutationStatus::Definitely,
+        });
 
         for arg in arg_places {
           for arg_mut in self.aliases.reachable_values(arg, Mutability::Mut) {
@@ -107,14 +123,24 @@ where
               continue;
             }
 
-            (self.f)(*arg_mut, &arg_inputs, location, MutationStatus::Possibly);
+            (self.f)(Mutation {
+              mutated: *arg_mut,
+              inputs: &arg_inputs,
+              location,
+              status: MutationStatus::Possibly,
+            });
           }
         }
       }
 
       TerminatorKind::DropAndReplace { place, value, .. } => {
         if let Some(src) = value.to_place() {
-          (self.f)(*place, &[(src, None)], location, MutationStatus::Definitely);
+          (self.f)(Mutation {
+            mutated: *place,
+            inputs: &[(src, None)],
+            location,
+            status: MutationStatus::Definitely,
+          });
         }
       }
 

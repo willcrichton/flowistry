@@ -65,12 +65,12 @@ mod recursive;
 pub type FlowResults<'a, 'tcx> = engine::AnalysisResults<'tcx, FlowAnalysis<'a, 'tcx>>;
 
 thread_local! {
-  pub static BODY_STACK: RefCell<Vec<BodyId>> =
+  pub(super) static BODY_STACK: RefCell<Vec<BodyId>> =
     RefCell::new(Vec::new());
 }
 
 /// Computes information flow for a MIR body.
-/// 
+///
 /// See [example.rs](https://github.com/willcrichton/flowistry/tree/master/crates/flowistry/examples/example.rs)
 /// for a complete example of how to call this function.
 ///

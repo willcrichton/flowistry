@@ -3,7 +3,6 @@
 use std::{
   cmp,
   io::Write,
-  iter,
   ops::ControlFlow,
   path::Path,
   process::{Command, Stdio},
@@ -41,9 +40,9 @@ use crate::{
   mir::aliases::UNKNOWN_REGION,
 };
 
-/// Extension trait for [`Operand`]
-pub trait OperandExt<'tcx> { 
-  /// Converts an [`Operand`] to a [`Place`] if possible
+/// Extension trait for [`Operand`].
+pub trait OperandExt<'tcx> {
+  /// Converts an [`Operand`] to a [`Place`] if possible.
   fn to_place(&self) -> Option<Place<'tcx>>;
 }
 
@@ -56,7 +55,7 @@ impl<'tcx> OperandExt<'tcx> for Operand<'tcx> {
   }
 }
 
-/// Given the arguments to a function, returns all projections of the arguments that are mutable pointers
+/// Given the arguments to a function, returns all projections of the arguments that are mutable pointers.
 pub fn arg_mut_ptrs<'tcx>(
   args: &[(usize, Place<'tcx>)],
   tcx: TyCtxt<'tcx>,
@@ -84,7 +83,7 @@ pub fn arg_mut_ptrs<'tcx>(
     .collect::<Vec<_>>()
 }
 
-/// Given the arguments to a function, returns all places in the arguments
+/// Given the arguments to a function, returns all places in the arguments.
 pub fn arg_places<'tcx>(args: &[Operand<'tcx>]) -> Vec<(usize, Place<'tcx>)> {
   args
     .iter()
@@ -93,7 +92,7 @@ pub fn arg_places<'tcx>(args: &[Operand<'tcx>]) -> Vec<(usize, Place<'tcx>)> {
     .collect::<Vec<_>>()
 }
 
-/// Describes the part-whole relationship between two places
+/// Describes the part-whole relationship between two places.
 #[derive(PartialEq, Eq, Debug)]
 pub enum PlaceRelation {
   /// A is a parent of B, e.g. foo vs. foo.1
@@ -250,6 +249,10 @@ pub fn location_to_string(location: LocationOrArg, body: &Body<'_>) -> String {
   }
 }
 
+/// MIR pass to remove instructions not important for Flowistry.
+/// 
+/// This pass helps reduce the number of intermediates during dataflow analysis, which
+/// reduces memory usage.
 pub struct SimplifyMir;
 impl<'tcx> MirPass<'tcx> for SimplifyMir {
   fn run_pass(&self, _tcx: TyCtxt<'tcx>, body: &mut Body<'tcx>) {
@@ -288,41 +291,50 @@ impl<'tcx> MirPass<'tcx> for SimplifyMir {
   }
 }
 
-/// Extension trait for [`Place`]
+/// Extension trait for [`Place`].
 pub trait PlaceExt<'tcx> {
-  /// Creates a new [`Place`]
+  /// Creates a new [`Place`].
   fn make(local: Local, projection: &[PlaceElem<'tcx>], tcx: TyCtxt<'tcx>) -> Self;
 
-  /// Converts a [`PlaceRef`] into an owned [`Place`]
+  /// Converts a [`PlaceRef`] into an owned [`Place`].
   fn from_ref(place: PlaceRef<'tcx>, tcx: TyCtxt<'tcx>) -> Self;
 
-  /// Creates a new [`Place`] with an empty projection
+  /// Creates a new [`Place`] with an empty projection.
   fn from_local(local: Local, tcx: TyCtxt<'tcx>) -> Self;
 
-  /// Returns true if `self` is a projection of an argument local
+  /// Returns true if `self` is a projection of an argument local.
   fn is_arg(&self, body: &Body<'tcx>) -> bool;
 
-  /// Returns true if `self` could not be resolved further to another place
+  /// Returns true if `self` could not be resolved further to another place.
   ///
   /// This is true of places with no dereferences in the projection, or of dereferences
   /// of arguments.
   fn is_direct(&self, body: &Body<'tcx>) -> bool;
-  
+
+  /// Returns all prefixes of `self`'s projection that are references, along with
+  /// the suffix of the remaining projection.
   fn refs_in_projection(&self) -> SmallVec<[(PlaceRef<'tcx>, &[PlaceElem<'tcx>]); 2]>;
-  fn place_and_refs_in_projection(&self, tcx: TyCtxt<'tcx>)
-    -> SmallVec<[Place<'tcx>; 2]>;
+
+  /// Returns all possible projections of `self` that are references.
+  ///
+  /// The output data structure indexes the resultant places based on the region of the references.
   fn interior_pointers(
     &self,
     tcx: TyCtxt<'tcx>,
     body: &Body<'tcx>,
     def_id: DefId,
   ) -> HashMap<RegionVid, Vec<(Place<'tcx>, Mutability)>>;
+
+  /// Returns all possible projections of `self` that do not go through a reference,
+  /// i.e. the set of fields directly in the structure referred by `self`.
   fn interior_places(
     &self,
     tcx: TyCtxt<'tcx>,
     body: &Body<'tcx>,
     def_id: DefId,
   ) -> Vec<Place<'tcx>>;
+
+  /// Returns all possible projections of `self`.
   fn interior_paths(
     &self,
     tcx: TyCtxt<'tcx>,
@@ -330,7 +342,16 @@ pub trait PlaceExt<'tcx> {
     def_id: DefId,
   ) -> Vec<Place<'tcx>>;
 
+  /// Provides a nicer debug representation of a place in terms of debug info.
   fn to_string(&self, tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> Option<String>;
+
+  /// Erases/normalizes information in a place to ensure stable comparisons between places
+  ///
+  /// Consider a place `_1: &'1 <T as SomeTrait>::Foo[2]`.
+  ///   We might encounter this type with a different region, e.g. `&'2`.
+  ///   We might encounter this type with a more specific type for the associated type, e.g. `&'1 [i32][0]`.
+  /// To account for this variation, we normalize associated types,
+  ///   erase regions, and normalize projections.
   fn normalize(&self, tcx: TyCtxt<'tcx>, def_id: DefId) -> Place<'tcx>;
 }
 
@@ -375,20 +396,6 @@ impl<'tcx> PlaceExt<'tcx> for Place<'tcx> {
         }
         _ => None,
       })
-      .collect()
-  }
-
-  fn place_and_refs_in_projection(
-    &self,
-    tcx: TyCtxt<'tcx>,
-  ) -> SmallVec<[Place<'tcx>; 2]> {
-    iter::once(*self)
-      .chain(
-        self
-          .refs_in_projection()
-          .into_iter()
-          .map(|(ptr, _)| Place::from_ref(ptr, tcx)),
-      )
       .collect()
   }
 
@@ -516,11 +523,6 @@ impl<'tcx> PlaceExt<'tcx> for Place<'tcx> {
   }
 
   fn normalize(&self, tcx: TyCtxt<'tcx>, def_id: DefId) -> Place<'tcx> {
-    // Consider a place _1: &'1 <T as SomeTrait>::Foo[2]
-    //   we might encounter this type with a different region, e.g. &'2
-    //   we might encounter this type with a more specific type for the associated type, e.g. &'1 [i32][0]
-    // to account for this variation, we normalize associated types,
-    //   erase regions, and normalize projections
     let param_env = tcx.param_env(def_id);
     let place = tcx.erase_regions(*self);
     let infcx = tcx.infer_ctxt().build();
@@ -761,19 +763,25 @@ impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
   }
 }
 
-/// Extension trait for [`Body`]
+/// Extension trait for [`Body`].
 pub trait BodyExt<'tcx> {
   type AllReturnsIter<'a>: Iterator<Item = Location>
   where
     Self: 'a;
+
+  /// Returns all the locations of [`TerminatorKind::Return`] instructions in a body.
   fn all_returns(&self) -> Self::AllReturnsIter<'_>;
 
   type AllLocationsIter<'a>: Iterator<Item = Location>
   where
     Self: 'a;
+
+  /// Returns all the locations in a body.
   fn all_locations(&self) -> Self::AllLocationsIter<'_>;
 
   type LocationsIter: Iterator<Item = Location>;
+
+  /// Returns all the locations in a [`BasicBlock`].
   fn locations_in_block(&self, block: BasicBlock) -> Self::LocationsIter;
 
   fn debug_info_name_map(&self) -> HashMap<Local, Symbol>;
@@ -836,16 +844,39 @@ impl<'tcx> BodyExt<'tcx> for Body<'tcx> {
   }
 }
 
-/// Extension trait for [`Span`]
+/// Extension trait for [`Span`].
 pub trait SpanExt {
+  /// Get spans for regions in `self` not in `child_spans`.
+  ///
+  /// For example:
+  /// ```text
+  /// self:          ---------------
+  /// child_spans:    ---      --  -
+  /// output:        -   ------  --
+  /// ```
   fn subtract(&self, child_spans: Vec<Span>) -> Vec<Span>;
+
+  /// Gets the version of this span that is local to the current
+  /// crate, and must be contained in `outer_span`.
   fn as_local(&self, outer_span: Span) -> Option<Span>;
+
+  /// Returns true if `self` overlaps with `other` including boundaries.
   fn overlaps_inclusive(&self, other: Span) -> bool;
+
+  /// Returns a new span whose end is no later than the start of `other`,
+  /// returning `None` if this would return an empty span.
   fn trim_end(&self, other: Span) -> Option<Span>;
+
+  /// Merges all overlapping spans in the input vector into single spans.
   fn merge_overlaps(spans: Vec<Span>) -> Vec<Span>;
+
+  /// Returns a collection of spans inside `self` that have leading whitespace removed.
+  ///
+  /// Returns `None` if [`SourceMap::span_to_snippet`] fails.
+  fn trim_leading_whitespace(&self, source_map: &SourceMap) -> Option<Vec<Span>>;
+
   fn to_string(&self, tcx: TyCtxt<'_>) -> String;
   fn size(&self) -> u32;
-  fn trim_leading_whitespace(&self, source_map: &SourceMap) -> Option<Vec<Span>>;
 }
 
 impl SpanExt for Span {
@@ -859,12 +890,6 @@ impl SpanExt for Span {
     }
   }
 
-  /// Get spans for regions in `self` not in `child_spans`.
-  ///
-  /// Example:
-  ///  self:          ---------------
-  ///  child_spans:    ---      --  -
-  ///  output:        -   ------  --
   fn subtract(&self, mut child_spans: Vec<Span>) -> Vec<Span> {
     child_spans.retain(|s| s.overlaps_inclusive(*self));
 
@@ -976,7 +1001,7 @@ impl SpanExt for Span {
   }
 }
 
-/// Extension trait for [`SpanData`]
+/// Extension trait for [`SpanData`].
 pub trait SpanDataExt {
   fn size(&self) -> u32;
 }
@@ -987,8 +1012,12 @@ impl SpanDataExt for SpanData {
   }
 }
 
-/// Extension trait for [`Mutability`]
+/// Extension trait for [`Mutability`].
 pub trait MutabilityExt {
+  /// Returns true if `self` is eqully or more permissive than `other`,
+  /// i.e. where `Not` is more permissive than `Mut`.
+  ///
+  /// This corresponds to the operation $\omega_1 \lesssim \omega_2$ in the Flowistry paper.
   fn more_permissive_than(self, other: Self) -> bool;
 }
 
