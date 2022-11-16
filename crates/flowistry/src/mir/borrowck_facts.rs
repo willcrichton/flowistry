@@ -69,7 +69,7 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tc
 /// For this function to work, you MUST add [`override_queries`] to the
 /// [`rustc_interface::Config`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_interface/interface/struct.Config.html)
 /// inside of your [`rustc_driver::Callbacks`]. For example, see
-/// See [example.rs](https://github.com/willcrichton/flowistry/tree/master/crates/flowistry/examples/example.rs).
+/// [example.rs](https://github.com/willcrichton/flowistry/tree/master/crates/flowistry/examples/example.rs).
 ///
 /// Note that as of May 2022, Polonius can be *very* slow for large functions.
 /// It may take up to 30 seconds to analyze a single body with a large CFG.

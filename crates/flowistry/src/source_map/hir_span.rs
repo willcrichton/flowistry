@@ -55,10 +55,16 @@ impl<'hir> HirVisitor<'hir> for ChildExprSpans {
   }
 }
 
+/// Which parts of a HIR node's span should be included for a matching MIR node
 #[derive(Clone, Copy)]
 pub enum EnclosingHirSpans {
-  OuterOnly,
+  /// The entire span
   Full,
+
+  /// The spans of the node minus its children
+  OuterOnly,
+  
+  /// No span
   None,
 }
 

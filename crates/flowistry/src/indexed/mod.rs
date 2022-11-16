@@ -53,7 +53,7 @@ pub trait IndexedValue: Eq + Hash + Clone + fmt::Debug {
 ///
 /// Useful for enabling a more flexible API where either an element or its
 /// index can be given as input. By convention, `ToIndex` should be implemented
-/// for an index, see [`to_index_impl`].
+/// for an index, see [`to_index_impl!`](crate::to_index_impl).
 pub trait ToIndex<T: IndexedValue> {
   fn to_index(&self, domain: &T::Domain) -> T::Index;
 }

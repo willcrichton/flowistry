@@ -26,26 +26,24 @@ use std::process::Command;
 
 use flowistry::{
   indexed::impls::LocationOrArg,
-  infoflow::{mutation::ModularMutationVisitor, Direction},
+  infoflow::Direction,
   mir::{
-    aliases::Aliases,
     borrowck_facts,
     utils::{BodyExt, PlaceExt, SpanExt},
   },
   source_map::{EnclosingHirSpans, Spanner},
 };
 use rustc_borrowck::BodyWithBorrowckFacts;
-use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir::{BodyId, ItemKind};
 use rustc_middle::{
-  mir::{visit::Visitor, Local, Location, Place},
+  mir::{Local, Place},
   ty::TyCtxt,
 };
 use rustc_span::Span;
 
 // This is the core analysis. Everything below this function is plumbing to
 // call into rustc's API.
-fn all_dependencies<'tcx>(
+fn compute_dependencies<'tcx>(
   tcx: TyCtxt<'tcx>,
   body_id: BodyId,
   body_with_facts: &BodyWithBorrowckFacts<'tcx>,
@@ -69,15 +67,10 @@ fn all_dependencies<'tcx>(
   )
   .remove(0);
 
-  // And print out those forward dependencies. Two important notes here:
-  // 1. The locations output by `compute_flow` will include locations
-  //    that do not exist in the body. These locations represent dependencies
-  //    on function arguments.
-  // 2. While each location has an associated span in the body, i.e. via
-  //      body.source_info(location).span
-  //    these spans are pretty limited so we have our own infrastructure for
-  //    mapping MIR back to source. That's the Spanner class and the
-  //    location_to_span method.
+  // And print out those forward dependencies. Note that while each location has an
+  // associated span in the body, i.e. via `body.source_info(location).span`,
+  // these spans are pretty limited so we have our own infrastructure for mapping MIR
+  // back to source. That's the Spanner class and the location_to_span method.
   println!("The forward dependencies of targets {targets:?} are:");
   let body = &body_with_facts.body;
   let spanner = Spanner::new(tcx, body_id, body);
@@ -96,32 +89,6 @@ fn all_dependencies<'tcx>(
       );
     }
   }
-}
-
-fn direct_dependencies<'tcx>(
-  tcx: TyCtxt<'tcx>,
-  body_id: BodyId,
-  body_with_facts: &BodyWithBorrowckFacts<'tcx>,
-) {
-  println!("Body:\n{}", body_with_facts.body.to_string(tcx).unwrap());
-
-  let aliases = Aliases::build(
-    tcx,
-    tcx.hir().body_owner_def_id(body_id).to_def_id(),
-    body_with_facts,
-  );
-  let mut dependencies: HashMap<Place<'tcx>, HashSet<(Place<'tcx>, Location)>> =
-    HashMap::default();
-  let mut visitor =
-    ModularMutationVisitor::new(&aliases, |place, inputs, location, _| {
-      dependencies
-        .entry(place)
-        .or_default()
-        .extend(inputs.iter().map(|(input, _)| (*input, location)));
-    });
-  visitor.visit_body(&body_with_facts.body);
-
-  println!("{dependencies:#?}");
 }
 
 struct Callbacks;
@@ -151,11 +118,8 @@ impl rustc_driver::Callbacks for Callbacks {
 
       let def_id = hir.body_owner_def_id(body_id);
       let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
-      if std::env::var("DIRECT").is_ok() {
-        direct_dependencies(tcx, body_id, body_with_facts)
-      } else {
-        all_dependencies(tcx, body_id, body_with_facts)
-      }
+
+      compute_dependencies(tcx, body_id, body_with_facts)
     });
     rustc_driver::Compilation::Stop
   }

@@ -30,16 +30,18 @@ impl FileLoader for StringLoader {
 }
 
 lazy_static::lazy_static! {
-  static ref SYSROOT: String = String::from_utf8(
-    Command::new("rustc")
-      .args(["--print", "sysroot"])
-      .output()
+  static ref SYSROOT: String = {
+    let rustc_output =
+      Command::new("rustc")
+        .args(["--print", "sysroot"])
+        .output()
+        .unwrap()
+        .stdout;
+    String::from_utf8(rustc_output)
       .unwrap()
-      .stdout
-  )
-  .unwrap()
-  .trim()
-  .to_owned();
+      .trim()
+      .to_owned()
+  };
 }
 
 pub fn compile_body_with_range(

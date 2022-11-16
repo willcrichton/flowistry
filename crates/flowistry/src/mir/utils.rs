@@ -2,8 +2,6 @@
 
 use std::{
   cmp,
-  collections::hash_map::Entry,
-  hash::Hash,
   io::Write,
   iter,
   ops::ControlFlow,
@@ -43,7 +41,9 @@ use crate::{
   mir::aliases::UNKNOWN_REGION,
 };
 
-pub trait OperandExt<'tcx> {
+/// Extension trait for [`Operand`]
+pub trait OperandExt<'tcx> { 
+  /// Converts an [`Operand`] to a [`Place`] if possible
   fn to_place(&self) -> Option<Place<'tcx>>;
 }
 
@@ -56,6 +56,7 @@ impl<'tcx> OperandExt<'tcx> for Operand<'tcx> {
   }
 }
 
+/// Given the arguments to a function, returns all projections of the arguments that are mutable pointers
 pub fn arg_mut_ptrs<'tcx>(
   args: &[(usize, Place<'tcx>)],
   tcx: TyCtxt<'tcx>,
@@ -83,6 +84,7 @@ pub fn arg_mut_ptrs<'tcx>(
     .collect::<Vec<_>>()
 }
 
+/// Given the arguments to a function, returns all places in the arguments
 pub fn arg_places<'tcx>(args: &[Operand<'tcx>]) -> Vec<(usize, Place<'tcx>)> {
   args
     .iter()
@@ -91,29 +93,16 @@ pub fn arg_places<'tcx>(args: &[Operand<'tcx>]) -> Vec<(usize, Place<'tcx>)> {
     .collect::<Vec<_>>()
 }
 
-pub fn hashmap_merge<K: Eq + Hash, V>(
-  mut h1: HashMap<K, V>,
-  h2: HashMap<K, V>,
-  conflict: impl Fn(&mut V, V),
-) -> HashMap<K, V> {
-  for (k, v) in h2.into_iter() {
-    match h1.entry(k) {
-      Entry::Vacant(entry) => {
-        entry.insert(v);
-      }
-      Entry::Occupied(mut entry) => {
-        let entry = entry.get_mut();
-        conflict(entry, v);
-      }
-    }
-  }
-  h1
-}
-
+/// Describes the part-whole relationship between two places
 #[derive(PartialEq, Eq, Debug)]
 pub enum PlaceRelation {
+  /// A is a parent of B, e.g. foo vs. foo.1
   Super,
+
+  /// A is a child of B, e.g. foo.1 vs foo
   Sub,
+
+  /// A is neither a child or parent, e.g. foo.0 vs foo.1
   Disjoint,
 }
 
@@ -299,12 +288,26 @@ impl<'tcx> MirPass<'tcx> for SimplifyMir {
   }
 }
 
+/// Extension trait for [`Place`]
 pub trait PlaceExt<'tcx> {
+  /// Creates a new [`Place`]
   fn make(local: Local, projection: &[PlaceElem<'tcx>], tcx: TyCtxt<'tcx>) -> Self;
+
+  /// Converts a [`PlaceRef`] into an owned [`Place`]
   fn from_ref(place: PlaceRef<'tcx>, tcx: TyCtxt<'tcx>) -> Self;
+
+  /// Creates a new [`Place`] with an empty projection
   fn from_local(local: Local, tcx: TyCtxt<'tcx>) -> Self;
+
+  /// Returns true if `self` is a projection of an argument local
   fn is_arg(&self, body: &Body<'tcx>) -> bool;
+
+  /// Returns true if `self` could not be resolved further to another place
+  ///
+  /// This is true of places with no dereferences in the projection, or of dereferences
+  /// of arguments.
   fn is_direct(&self, body: &Body<'tcx>) -> bool;
+  
   fn refs_in_projection(&self) -> SmallVec<[(PlaceRef<'tcx>, &[PlaceElem<'tcx>]); 2]>;
   fn place_and_refs_in_projection(&self, tcx: TyCtxt<'tcx>)
     -> SmallVec<[Place<'tcx>; 2]>;
@@ -758,6 +761,7 @@ impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
   }
 }
 
+/// Extension trait for [`Body`]
 pub trait BodyExt<'tcx> {
   type AllReturnsIter<'a>: Iterator<Item = Location>
   where
@@ -832,6 +836,7 @@ impl<'tcx> BodyExt<'tcx> for Body<'tcx> {
   }
 }
 
+/// Extension trait for [`Span`]
 pub trait SpanExt {
   fn subtract(&self, child_spans: Vec<Span>) -> Vec<Span>;
   fn as_local(&self, outer_span: Span) -> Option<Span>;
@@ -971,6 +976,7 @@ impl SpanExt for Span {
   }
 }
 
+/// Extension trait for [`SpanData`]
 pub trait SpanDataExt {
   fn size(&self) -> u32;
 }
@@ -981,6 +987,7 @@ impl SpanDataExt for SpanData {
   }
 }
 
+/// Extension trait for [`Mutability`]
 pub trait MutabilityExt {
   fn more_permissive_than(self, other: Self) -> bool;
 }
