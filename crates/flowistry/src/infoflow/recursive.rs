@@ -8,7 +8,10 @@ use rustc_mir_dataflow::JoinSemiLattice;
 use super::{analysis::FlowAnalysis, BODY_STACK};
 use crate::{
   extensions::REACHED_LIBRARY,
-  infoflow::{mutation::MutationStatus, FlowDomain},
+  infoflow::{
+    mutation::{Mutation, MutationStatus},
+    FlowDomain,
+  },
   mir::{
     borrowck_facts::get_body_with_borrowck_facts,
     utils::{self, PlaceExt},
@@ -205,17 +208,16 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
           "child {child:?} \n  / child_deps {child_deps:?}\n-->\nparent {parent:?}\n   / parent_deps {parent_deps:?}"
         );
 
-        self.transfer_function(
-          state,
-          parent,
-          &parent_deps,
+        self.transfer_function(state, Mutation {
+          mutated: parent,
+          inputs: &parent_deps,
           location,
-          if was_return {
+          status: if was_return {
             MutationStatus::Definitely
           } else {
             MutationStatus::Possibly
           },
-        );
+        });
       }
     }
 

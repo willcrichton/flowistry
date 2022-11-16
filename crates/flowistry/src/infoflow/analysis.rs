@@ -10,7 +10,7 @@ use rustc_middle::{
 use rustc_mir_dataflow::{Analysis, AnalysisDomain, Forward};
 
 use super::{
-  mutation::{ModularMutationVisitor, MutationStatus},
+  mutation::{ModularMutationVisitor, Mutation, MutationStatus},
   FlowResults,
 };
 use crate::{
@@ -50,6 +50,7 @@ use crate::{
 /// enrich the domain of locations with arguments, using the [`LocationOrArg`] type. Any dependency can be on *either* a location or an argument.
 pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, LocationOrArg>;
 
+/// Data structure that holds context for performing the information flow analysis.
 pub struct FlowAnalysis<'a, 'tcx> {
   pub tcx: TyCtxt<'tcx>,
   pub def_id: DefId,
@@ -85,10 +86,12 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
   pub(crate) fn transfer_function(
     &self,
     state: &mut FlowDomain<'tcx>,
-    mutated: Place<'tcx>,
-    inputs: &[(Place<'tcx>, Option<PlaceElem<'tcx>>)],
-    location: Location,
-    mutation_status: MutationStatus,
+    Mutation {
+      mutated,
+      inputs,
+      location,
+      status,
+    }: Mutation<'_, 'tcx>,
   ) {
     debug!("  Applying mutation to {mutated:?} with inputs {inputs:?}");
     let location_domain = self.location_domain();
@@ -99,8 +102,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     assert!(!mutated_aliases.is_empty());
 
     // Clear sub-places of mutated place (if sound to do so)
-    if matches!(mutation_status, MutationStatus::Definitely) && mutated_aliases.len() == 1
-    {
+    if matches!(status, MutationStatus::Definitely) && mutated_aliases.len() == 1 {
       let mutated_direct = mutated_aliases.iter().next().unwrap();
       for sub in all_aliases.children(*mutated_direct).iter() {
         state.clear_row(all_aliases.normalize(*sub));
@@ -244,15 +246,9 @@ impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
     statement: &Statement<'tcx>,
     location: Location,
   ) {
-    ModularMutationVisitor::new(
-      &self.aliases,
-      |mutated: Place<'tcx>,
-       inputs: &[(Place<'tcx>, Option<PlaceElem<'tcx>>)],
-       location: Location,
-       mutation_status: MutationStatus| {
-        self.transfer_function(state, mutated, inputs, location, mutation_status)
-      },
-    )
+    ModularMutationVisitor::new(&self.aliases, |mutation| {
+      self.transfer_function(state, mutation)
+    })
     .visit_statement(statement, location);
   }
 
@@ -269,15 +265,9 @@ impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
       return;
     }
 
-    ModularMutationVisitor::new(
-      &self.aliases,
-      |mutated: Place<'tcx>,
-       inputs: &[(Place<'tcx>, Option<PlaceElem<'tcx>>)],
-       location: Location,
-       mutation_status: MutationStatus| {
-        self.transfer_function(state, mutated, inputs, location, mutation_status)
-      },
-    )
+    ModularMutationVisitor::new(&self.aliases, |mutation| {
+      self.transfer_function(state, mutation)
+    })
     .visit_terminator(terminator, location);
   }
 
