@@ -11,10 +11,9 @@
 //!
 //! This analysis uses the Rust compiler via the
 //! [rustc API](https://doc.rust-lang.org/nightly/nightly-rustc/).
-//! Given a [MIR](https://rustc-dev-guide.rust-lang.org/mir/index.html) body,
+//! Given a [MIR](https://rustc-dev-guide.rust-lang.org/mir/index.html) [`Body`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Body.html),
 //! the function [`infoflow::compute_flow`] computes the information flow
-//! within that body. Check out those docs for more information on the specific
-//! data structure that is computed.
+//! within that body.
 //!
 //! If you are interested in using Flowistry, please reach out directly to
 //! Will Crichton ([wcrichto@cs.stanford.edu](mailto:wcrichto@cs.stanford.edu)) or [join

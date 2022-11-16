@@ -1,6 +1,7 @@
 use intervaltree::IntervalTree;
 use rustc_span::{source_map::Spanned, BytePos, SpanData};
 
+/// Interval tree data structure specialized to spans.
 pub struct SpanTree<T> {
   tree: IntervalTree<BytePos, (SpanData, T)>,
   len: usize,
@@ -27,6 +28,7 @@ impl<T> SpanTree<T> {
     self.tree.iter().map(|el| &el.value.1)
   }
 
+  /// Find all spans that overlap with `query`
   pub fn overlapping<'a>(
     &'a self,
     query: SpanData,

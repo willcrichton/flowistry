@@ -29,10 +29,10 @@ mod recursive;
 /// The output of the information flow analysis.
 ///
 /// Using the metavariables in [the paper](https://arxiv.org/abs/2111.13662): for each
-/// [`Location`](rustc_middle::mir::Location) $\ell$ in a [`Body`](rustc_middle::mir::Body) $f$,
-/// this type contains a [`FlowDomain`] $\Theta$ that maps from a [`Place`](rustc_middle::mir::Place) $p$
-/// to [`LocationOrArgSet`](crate::indexed::impls::LocationOrArgSet) $\kappa$. The domain of $\Theta$
-/// is all places that have been defined up to $\ell$. For each place, $\Theta(p)$ contains the set of locations
+/// [`LocationOrArg`](crate::indexed::impls::LocationOrArg) $\ell$ in a [`Body`](rustc_middle::mir::Body) $f$,
+/// this type contains a [`FlowDomain`] $\Theta_\ell$ that maps from a [`Place`](rustc_middle::mir::Place) $p$
+/// to a [`LocationOrArgSet`](crate::indexed::impls::LocationOrArgSet) $\kappa$. The domain of $\Theta_\ell$
+/// is all places that have been defined up to $\ell$. For each place, $\Theta_\ell(p)$ contains the set of locations
 /// (or arguments) that could influence the value of that place, i.e. the place's dependencies.
 ///
 /// For example, to get the dependencies of the first argument at the first instruction, that would be:
@@ -55,7 +55,7 @@ mod recursive;
 /// To access a [`FlowDomain`] for a given location, use the method [`AnalysisResults::state_at`](engine::AnalysisResults::state_at).
 /// See [`FlowDomain`] for more on how to access the location set for a given place.
 ///
-/// Note: this analysis uses rustc's [dataflow analysis framework](https://rustc-dev-guide.rust-lang.org/mir/dataflow.html),
+/// **Note:** this analysis uses rustc's [dataflow analysis framework](https://rustc-dev-guide.rust-lang.org/mir/dataflow.html),
 /// i.e. [`rustc_mir_dataflow`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/index.html).
 /// You will see several types and traits from that crate here, such as
 /// [`Analysis`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.Analysis.html) and
@@ -70,10 +70,13 @@ thread_local! {
 }
 
 /// Computes information flow for a MIR body.
+/// 
+/// See [example.rs](https://github.com/willcrichton/flowistry/tree/master/crates/flowistry/examples/example.rs)
+/// for a complete example of how to call this function.
 ///
 /// To get a `BodyWithBorrowckFacts`, you can use the
 /// [`get_body_with_borrowck_facts`](crate::mir::borrowck_facts::get_body_with_borrowck_facts)
-/// function. See its docs for details.
+/// function.
 ///
 /// See [`FlowResults`] for an explanation of how to use the return value.
 pub fn compute_flow<'a, 'tcx>(

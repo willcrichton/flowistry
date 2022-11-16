@@ -23,10 +23,11 @@ use crate::{
   mir::utils::{self, SpanDataExt, SpanExt},
 };
 
+/// Converts MIR locations to source spans using HIR information.
 pub struct Spanner<'hir, 'tcx> {
-  pub tcx: TyCtxt<'tcx>,
+  pub(super) tcx: TyCtxt<'tcx>,
   pub(super) hir_spans: Vec<HirSpannedNode<'hir>>,
-  pub hir_span_tree: SpanTree<HirSpannedNode<'hir>>,
+  pub(super) hir_span_tree: SpanTree<HirSpannedNode<'hir>>,
   pub(super) mir_spans: Vec<MirSpannedPlace<'tcx>>,
   pub mir_span_tree: SpanTree<MirSpannedPlace<'tcx>>,
   pub body_span: Span,
@@ -81,13 +82,13 @@ where
     spanner
   }
 
-  pub fn invalid_span(&self, span: Span) -> bool {
+  pub(super) fn invalid_span(&self, span: Span) -> bool {
     span.is_dummy()
       || span.source_equal(self.body_span)
       || span.source_equal(self.item_span)
   }
 
-  pub fn find_matching<'b, T>(
+  fn find_matching<'b, T>(
     predicate: impl Fn(SpanData) -> bool,
     query: SpanData,
     spans: &'b SpanTree<T>,

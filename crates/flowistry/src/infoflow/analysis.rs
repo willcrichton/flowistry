@@ -39,13 +39,13 @@ use crate::{
 /// has roughly the same API. The main difference is that `HybridBitSet` operates only on values that implement the
 /// [`rustc_index::vec::Idx`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/vec/trait.Idx.html) trait (usually created via
 /// the [`rustc_index::newtype_index`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/macro.newtype_index.html) macro). The `indexed`
-/// module has a concept of [`IndexedDomain`] to represent the mapping from a set of values to the indexes those values --- [`LocationDomain`]
+/// module has a concept of [`IndexedDomain`] to represent the mapping from a set of values to the indexes those values --- [`LocationOrArgDomain`]
 /// is the implementation for locations.
 ///
 ///
 /// # Note: arguments as dependencies
 /// Because function arguments are never initialized, there is no "root" location for argument places. This fact poses a problem for
-/// information flow analysis: an instruction `bb[0]: _2 = _1` (where `_1` is an argument) would set $\Theta(\verb|_2|) = \Theta(\verb|_1|) \cup \\{\verb|bb0[0]|\\}\$.
+/// information flow analysis: an instruction `bb[0]: _2 = _1` (where `_1` is an argument) would set $\Theta(\verb|_2|) = \Theta(\verb|_1|) \cup \\{\verb|bb0\[0\]|\\}\$.
 /// However, $\Theta(\verb|_1|)$ would be empty, so it would be imposible to determine that `_2` depends on `_1`. To solve this issue, we
 /// enrich the domain of locations with arguments, using the [`LocationOrArg`] type. Any dependency can be on *either* a location or an argument.
 pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, LocationOrArg>;

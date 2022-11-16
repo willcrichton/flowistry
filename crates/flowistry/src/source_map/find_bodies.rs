@@ -48,6 +48,7 @@ impl<'tcx> Visitor<'tcx> for BodyFinder<'tcx> {
   }
 }
 
+/// Finds all bodies in the current crate
 pub fn find_bodies(tcx: TyCtxt) -> Vec<(Span, BodyId)> {
   block_timer!("find_bodies");
   let mut finder = BodyFinder {
@@ -58,6 +59,7 @@ pub fn find_bodies(tcx: TyCtxt) -> Vec<(Span, BodyId)> {
   finder.bodies
 }
 
+/// Finds all the bodies that enclose the given span, from innermost to outermost
 pub fn find_enclosing_bodies(tcx: TyCtxt, sp: Span) -> impl Iterator<Item = BodyId> {
   let mut bodies = find_bodies(tcx);
   bodies.retain(|(other, _)| other.contains(sp));

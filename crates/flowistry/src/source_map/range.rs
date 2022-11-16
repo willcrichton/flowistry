@@ -1,5 +1,3 @@
-//! Data structure for sharing [spans][Span] outside rustc.
-
 use std::{default::Default, fs, path::Path};
 
 use anyhow::{bail, Context, Result};
@@ -17,6 +15,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use crate::cached::Cache;
 
+/// Provides efficient lookup for mapping byte indices to grapheme indices and vice-versa.
 pub struct GraphemeIndices {
   byte_to_char: HashMap<usize, usize>,
   char_to_byte: Vec<usize>,
@@ -100,6 +99,12 @@ fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
     .with_context(|| format!("No function with qpath {}", finder.qpath))
 }
 
+/// Data structure for sharing spans outside rustc.
+///
+/// Rustc uses byte indexes to describe ranges of source code, whereas
+/// most Javascript-based editors I've encountered (e.g. VSCode) use
+/// character-based (really grapheme-based) indexes. This data structure
+/// helps convert between the two representations.
 #[derive(Serialize, Debug, Clone, Hash, PartialEq, Eq, Default)]
 pub struct Range {
   pub char_start: usize,
@@ -224,6 +229,7 @@ impl Range {
   }
 }
 
+/// Used to convert objects into a [`Span`] with access to [`TyCtxt`]
 pub trait ToSpan: Send + Sync {
   fn to_span(&self, tcx: TyCtxt) -> Result<Span>;
 }
@@ -241,8 +247,12 @@ impl ToSpan for Range {
   }
 }
 
+/// An externally-provided identifier of a function
 pub enum FunctionIdentifier {
+  /// Name of a function
   Qpath(String),
+
+  /// Range of code possibly inside a function
   Range(Range),
 }
 

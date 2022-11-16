@@ -1,7 +1,7 @@
 //! A framework for running up custom cargo commands that use rustc_private.
 //!
 //! Most of this file is either directly copy/pasted, or otherwise generalized
-//! from the Clippy driver: https://github.com/rust-lang/rust-clippy/tree/master/src
+//! from the Clippy driver: <https://github.com/rust-lang/rust-clippy/tree/master/src>
 
 #![feature(rustc_private)]
 
