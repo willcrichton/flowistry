@@ -1,4 +1,5 @@
 import * as cp from "child_process";
+import fs from "fs";
 import _ from "lodash";
 import open from "open";
 import os from "os";
@@ -112,33 +113,56 @@ export let cargo_command = (): [string, string[]] => {
   return [cargo, [toolchain]];
 };
 
-export async function setup(
-  context: vscode.ExtensionContext
-): Promise<CallFlowistry | null> {
+let findWorkspaceRoot = (): string | null => {
   let folders = vscode.workspace.workspaceFolders;
   if (!folders || folders.length === 0) {
     return null;
   }
 
-  let workspace_root = folders[0].uri.fsPath;
+  let hasCargoToml = (dir: string) =>
+    fs.existsSync(path.join(dir, "Cargo.toml"));
+
+  let activeEditor = vscode.window.activeTextEditor;
+  if (!activeEditor) return null;
+
+  let folderPath = folders[0].uri.fsPath;
+  let activeFilePath = activeEditor.document.fileName;
+  let components = path.relative(folderPath, activeFilePath).split(path.sep);
+  let folderSubdirTil = (idx: number) =>
+    path.join(folderPath, ...components.slice(0, idx));
+  let idx = _.range(components.length).find((idx) =>
+    hasCargoToml(folderSubdirTil(idx))
+  );
+  if (idx === undefined) return null;
+
+  return folderSubdirTil(idx);
+};
+
+export async function setup(
+  context: vscode.ExtensionContext
+): Promise<CallFlowistry | null> {
+  let workspace_root = findWorkspaceRoot();
+  if (!workspace_root) return null;
   log("Workspace root", workspace_root);
 
   let [cargo, cargo_args] = cargo_command();
 
   let version;
   try {
-    let output = await exec_notify(
+    version = await exec_notify(
       cargo,
       [...cargo_args, "flowistry", "-V"],
       "Waiting for Flowistry...",
       { cwd: workspace_root }
     );
-    version = output.split(" ")[1];
   } catch (e) {
     version = "";
   }
 
   if (version !== VERSION) {
+    log(
+      `Flowistry binary version ${version} does not match expected IDE version ${VERSION}`
+    );
     let components = TOOLCHAIN.components.map((c) => ["-c", c]).flat();
     try {
       await exec_notify(

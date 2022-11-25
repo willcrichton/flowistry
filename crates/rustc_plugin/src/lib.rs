@@ -64,6 +64,8 @@ pub struct RustcPluginArgs<Args> {
 pub trait RustcPlugin: Sized {
   type Args: Serialize + DeserializeOwned;
 
+  fn version() -> &'static str;
+
   fn bin_name() -> String;
 
   fn args(&self, target_dir: &Utf8Path) -> RustcPluginArgs<Self::Args>;
@@ -84,6 +86,11 @@ const PLUGIN_ARGS: &str = "PLUGIN_ARGS";
 const PLUGIN_TARGET_DIR: &str = "plugin";
 
 pub fn cli_main<T: RustcPlugin>(plugin: T) {
+  if env::args().any(|arg| arg == "-V") {
+    println!("{}", T::version());
+    return;
+  }
+
   let metadata = cargo_metadata::MetadataCommand::new()
     .no_deps()
     .other_options(["--all-features".to_string(), "--offline".to_string()])
