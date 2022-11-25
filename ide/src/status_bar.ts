@@ -51,7 +51,8 @@ const config_for_state: Record<StatusBarState, StatusBarConfig> = {
     background: "statusBarItem.background",
     icon: "question",
     command: "flowistry.focus",
-    tooltip: "Flowistry could not get Cargo to find this file (this is probably a Flowistry bug)"
+    tooltip:
+      "Flowistry could not get Cargo to find this file (this is probably a Flowistry bug)",
   },
 };
 

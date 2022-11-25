@@ -17,7 +17,7 @@ interface AnalysisError {
   error: string;
 }
 interface FileNotFound {
-  type: "FileNotFound"
+  type: "FileNotFound";
 }
 export type FlowistryError = BuildError | AnalysisError | FileNotFound;
 interface FlowistryOutput<T> {

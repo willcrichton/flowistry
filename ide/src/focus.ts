@@ -327,12 +327,12 @@ export class FocusMode {
         this.state.set(filename, doc_state_res.value);
       } else {
         if (doc_state_res.type == "FileNotFound") {
-         this.state.set(filename, "notfound");
+          this.state.set(filename, "notfound");
         } else {
           await show_error(doc_state_res);
           this.set_mode("error");
-          return null;  
-        }        
+          return null;
+        }
       }
     }
 
