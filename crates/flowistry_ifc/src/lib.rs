@@ -33,6 +33,10 @@ impl RustcPlugin for IfcPlugin {
     "ifc-driver".to_owned()
   }
 
+  fn version() -> &'static str {
+    env!("CARGO_PKG_VERSION")
+  }
+
   fn args(&self, _target_dir: &rustc_plugin::Utf8Path) -> RustcPluginArgs<Self::Args> {
     RustcPluginArgs {
       args: (),

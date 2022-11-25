@@ -21,10 +21,7 @@ use rustc_middle::ty::TyCtxt;
 use rustc_plugin::{RustcPlugin, RustcPluginArgs, Utf8Path};
 use serde::{Deserialize, Serialize};
 
-const VERSION: &str = env!("CARGO_PKG_VERSION");
-
 #[derive(Parser, Serialize, Deserialize)]
-#[clap(version = VERSION)]
 pub struct FlowistryPluginArgs {
   #[clap(long)]
   bench: Option<bool>,
@@ -85,6 +82,10 @@ impl RustcPlugin for FlowistryPlugin {
 
   fn bin_name() -> String {
     "flowistry-driver".into()
+  }
+
+  fn version() -> &'static str {
+    env!("CARGO_PKG_VERSION")
   }
 
   fn args(&self, target_dir: &Utf8Path) -> RustcPluginArgs<FlowistryPluginArgs> {
