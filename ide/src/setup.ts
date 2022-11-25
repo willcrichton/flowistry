@@ -1,5 +1,4 @@
 import * as cp from "child_process";
-import fs from "fs";
 import _ from "lodash";
 import open from "open";
 import os from "os";
@@ -113,14 +112,22 @@ export let cargo_command = (): [string, string[]] => {
   return [cargo, [toolchain]];
 };
 
-let findWorkspaceRoot = (): string | null => {
+let findWorkspaceRoot = async (): Promise<string | null> => {
   let folders = vscode.workspace.workspaceFolders;
   if (!folders || folders.length === 0) {
     return null;
   }
 
-  let hasCargoToml = (dir: string) =>
-    fs.existsSync(path.join(dir, "Cargo.toml"));
+  let hasCargoToml = async (dir: string) => {
+    let manifestPath = path.join(dir, "Cargo.toml");
+    let manifestUri = vscode.Uri.file(manifestPath);
+    try {
+      await vscode.workspace.fs.stat(manifestUri);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
 
   let activeEditor = vscode.window.activeTextEditor;
   if (!activeEditor) return null;
@@ -130,18 +137,22 @@ let findWorkspaceRoot = (): string | null => {
   let components = path.relative(folderPath, activeFilePath).split(path.sep);
   let folderSubdirTil = (idx: number) =>
     path.join(folderPath, ...components.slice(0, idx));
-  let idx = _.range(components.length).find((idx) =>
-    hasCargoToml(folderSubdirTil(idx))
+  let prefixHasToml = await Promise.all(
+    _.range(components.length).map((idx) => ({
+      idx,
+      has: hasCargoToml(folderSubdirTil(idx)),
+    }))
   );
-  if (idx === undefined) return null;
+  let entry = prefixHasToml.find(({ has }) => has);
+  if (entry === undefined) return null;
 
-  return folderSubdirTil(idx);
+  return folderSubdirTil(entry.idx);
 };
 
 export async function setup(
   context: vscode.ExtensionContext
 ): Promise<CallFlowistry | null> {
-  let workspace_root = findWorkspaceRoot();
+  let workspace_root = await findWorkspaceRoot();
   if (!workspace_root) return null;
   log("Workspace root", workspace_root);
 
