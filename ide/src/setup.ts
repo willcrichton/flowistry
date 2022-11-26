@@ -134,6 +134,7 @@ let findWorkspaceRoot = async (): Promise<string | null> => {
 
   let folderPath = folders[0].uri.fsPath;
   let activeFilePath = activeEditor.document.fileName;
+  log(`Looking for workspace root between ${folderPath} and ${activeFilePath}`);
   let components = path.relative(folderPath, activeFilePath).split(path.sep);
   let folderSubdirTil = (idx: number) =>
     path.join(folderPath, ...components.slice(0, idx));
@@ -153,7 +154,10 @@ export async function setup(
   context: vscode.ExtensionContext
 ): Promise<CallFlowistry | null> {
   let workspace_root = await findWorkspaceRoot();
-  if (!workspace_root) return null;
+  if (!workspace_root) {
+    log("Failed to find workspace root!");
+    return null;
+  }
   log("Workspace root", workspace_root);
 
   let [cargo, cargo_args] = cargo_command();
