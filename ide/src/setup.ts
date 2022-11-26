@@ -115,6 +115,7 @@ export let cargo_command = (): [string, string[]] => {
 let findWorkspaceRoot = async (): Promise<string | null> => {
   let folders = vscode.workspace.workspaceFolders;
   if (!folders || folders.length === 0) {
+    log("No folders exist");
     return null;
   }
 
@@ -129,12 +130,18 @@ let findWorkspaceRoot = async (): Promise<string | null> => {
     }
   };
 
-  let activeEditor = vscode.window.activeTextEditor;
-  if (!activeEditor) return null;
-
   let folderPath = folders[0].uri.fsPath;
+  if (hasCargoToml(folderPath)) return folderPath;
+
+  let activeEditor = vscode.window.activeTextEditor;
+  if (!activeEditor) {
+    log("No active editor exists");
+    return null;
+  }
+
   let activeFilePath = activeEditor.document.fileName;
   log(`Looking for workspace root between ${folderPath} and ${activeFilePath}`);
+
   let components = path.relative(folderPath, activeFilePath).split(path.sep);
   let folderSubdirTil = (idx: number) =>
     path.join(folderPath, ...components.slice(0, idx));
