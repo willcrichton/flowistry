@@ -321,6 +321,7 @@
 <span id="305">305</span>
 <span id="306">306</span>
 <span id="307">307</span>
+<span id="308">308</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
   env,
   path::PathBuf,
@@ -344,10 +345,7 @@
 <span class="kw">use </span>rustc_plugin::{RustcPlugin, RustcPluginArgs, Utf8Path};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
-<span class="kw">const </span>VERSION: <span class="kw-2">&amp;</span>str = <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>);
-
 <span class="attr">#[derive(Parser, Serialize, Deserialize)]
-#[clap(version = VERSION)]
 </span><span class="kw">pub struct </span>FlowistryPluginArgs {
   <span class="attr">#[clap(long)]
   </span>bench: <span class="prelude-ty">Option</span>&lt;bool&gt;,
@@ -408,6 +406,10 @@
 
   <span class="kw">fn </span>bin_name() -&gt; String {
     <span class="string">&quot;flowistry-driver&quot;</span>.into()
+  }
+
+  <span class="kw">fn </span>version() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>)
   }
 
   <span class="kw">fn </span>args(<span class="kw-2">&amp;</span><span class="self">self</span>, target_dir: <span class="kw-2">&amp;</span>Utf8Path) -&gt; RustcPluginArgs&lt;FlowistryPluginArgs&gt; {

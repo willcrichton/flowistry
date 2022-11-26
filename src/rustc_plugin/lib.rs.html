@@ -357,6 +357,13 @@
 <span id="341">341</span>
 <span id="342">342</span>
 <span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A framework for running up custom cargo commands that use rustc_private.
 //!
 //! Most of this file is either directly copy/pasted, or otherwise generalized
@@ -423,6 +430,8 @@
 <span class="kw">pub trait </span>RustcPlugin: Sized {
   <span class="kw">type </span>Args: Serialize + DeserializeOwned;
 
+  <span class="kw">fn </span>version() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
+
   <span class="kw">fn </span>bin_name() -&gt; String;
 
   <span class="kw">fn </span>args(<span class="kw-2">&amp;</span><span class="self">self</span>, target_dir: <span class="kw-2">&amp;</span>Utf8Path) -&gt; RustcPluginArgs&lt;<span class="self">Self</span>::Args&gt;;
@@ -443,6 +452,11 @@
 </span><span class="kw">const </span>PLUGIN_TARGET_DIR: <span class="kw-2">&amp;</span>str = <span class="string">&quot;plugin&quot;</span>;
 
 <span class="kw">pub fn </span>cli_main&lt;T: RustcPlugin&gt;(plugin: T) {
+  <span class="kw">if </span>env::args().any(|arg| arg == <span class="string">&quot;-V&quot;</span>) {
+    <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, T::version());
+    <span class="kw">return</span>;
+  }
+
   <span class="kw">let </span>metadata = cargo_metadata::MetadataCommand::new()
     .no_deps()
     .other_options([<span class="string">&quot;--all-features&quot;</span>.to_string(), <span class="string">&quot;--offline&quot;</span>.to_string()])
