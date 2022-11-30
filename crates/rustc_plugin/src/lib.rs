@@ -336,8 +336,9 @@ pub fn driver_main<T: RustcPlugin>(plugin: T) {
     let primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
     let normal_rustc = args.iter().any(|arg| arg.starts_with("--print"));
     let is_lib = args.iter().any(|arg| arg == "src/lib.rs");
+    let is_build_script = args.iter().any(|arg| arg == "build.rs");
     let plugin_lib_target = env::var("RUSTC_PLUGIN_LIB_TARGET").is_ok();
-    let run_plugin = primary_package && !normal_rustc && (!is_lib || plugin_lib_target);
+    let run_plugin = primary_package && !normal_rustc && !is_build_script && (!is_lib || plugin_lib_target);
 
     if run_plugin {
       let plugin_args: T::Args =
