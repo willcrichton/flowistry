@@ -364,6 +364,7 @@
 <span id="348">348</span>
 <span id="349">349</span>
 <span id="350">350</span>
+<span id="351">351</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A framework for running up custom cargo commands that use rustc_private.
 //!
 //! Most of this file is either directly copy/pasted, or otherwise generalized
@@ -702,8 +703,9 @@
     </span><span class="kw">let </span>primary_package = env::var(<span class="string">&quot;CARGO_PRIMARY_PACKAGE&quot;</span>).is_ok();
     <span class="kw">let </span>normal_rustc = args.iter().any(|arg| arg.starts_with(<span class="string">&quot;--print&quot;</span>));
     <span class="kw">let </span>is_lib = args.iter().any(|arg| arg == <span class="string">&quot;src/lib.rs&quot;</span>);
+    <span class="kw">let </span>is_build_script = args.iter().any(|arg| arg == <span class="string">&quot;build.rs&quot;</span>);
     <span class="kw">let </span>plugin_lib_target = env::var(<span class="string">&quot;RUSTC_PLUGIN_LIB_TARGET&quot;</span>).is_ok();
-    <span class="kw">let </span>run_plugin = primary_package &amp;&amp; !normal_rustc &amp;&amp; (!is_lib || plugin_lib_target);
+    <span class="kw">let </span>run_plugin = primary_package &amp;&amp; !normal_rustc &amp;&amp; !is_build_script &amp;&amp; (!is_lib || plugin_lib_target);
 
     <span class="kw">if </span>run_plugin {
       <span class="kw">let </span>plugin_args: T::Args =
