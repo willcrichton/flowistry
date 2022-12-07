@@ -1,11 +1,10 @@
-use hir::LoopSource;
-use log::trace;
+use hir::{HirId, LoopSource};
 use rustc_hir::{
   self as hir,
   intravisit::{self, Visitor as HirVisitor},
-  Expr, ExprKind, MatchSource, Node, Param, Stmt,
+  ExprKind, MatchSource, Node,
 };
-use rustc_span::{BytePos, Span, SpanData};
+use rustc_span::{BytePos, Span};
 
 use super::Spanner;
 use crate::mir::utils::SpanExt;
@@ -25,11 +24,17 @@ impl<'hir> HirVisitor<'hir> for ChildExprSpans {
       ExprKind::Block(..) => {
         intravisit::walk_expr(self, ex);
       }
-      // The HIR span for a for-loop desugared to a match is *smaller*
-      // than the span of its children. So we have to explicitly recurse
-      // into the match arm instead of just taking the span for the match.
-      // See `forloop_some_relevant` for where this matters.
-      ExprKind::Match(_, arms, MatchSource::ForLoopDesugar) => {
+      // ForLoopDesgar case:
+      //   The HIR span for a for-loop desugared to a match is *smaller*
+      //   than the span of its children. So we have to explicitly recurse
+      //   into the match arm instead of just taking the span for the match.
+      //   See `forloop_some_relevant` for where this matters.
+      //
+      // Normal case:
+      //   The SwitchInts for a normal match exclusively source-map to the patterns
+      //   in the arms, not the matched expression. So to make sure that `match e { .. }`
+      //   includes `e` when `match` is relevant, we exclude `e` from the child spans.
+      ExprKind::Match(_, arms, MatchSource::ForLoopDesugar | MatchSource::Normal) => {
         for arm in arms {
           intravisit::walk_arm(self, arm);
         }
@@ -63,134 +68,64 @@ pub enum EnclosingHirSpans {
 
   /// The spans of the node minus its children
   OuterOnly,
-  
+
   /// No span
   None,
 }
 
-#[derive(Clone, Debug)]
-pub struct HirSpannedNode<'hir> {
-  pub full: SpanData,
-  pub outer: Vec<Span>,
-  pub node: hir::Node<'hir>,
-}
-
-impl HirSpannedNode<'_> {
-  pub fn get_spans(&self, span_type: EnclosingHirSpans) -> Vec<Span> {
-    match span_type {
-      EnclosingHirSpans::OuterOnly => self.outer.clone(),
-      EnclosingHirSpans::Full => vec![self.full.span()],
-      EnclosingHirSpans::None => Vec::new(),
-    }
-  }
-}
-
-pub struct HirSpanCollector<'a, 'hir, 'tcx>(pub &'a mut Spanner<'hir, 'tcx>);
-
 macro_rules! try_span {
   ($self:expr, $span:expr) => {
-    match $span.as_local($self.0.item_span) {
-      Some(span) if !$self.0.invalid_span(span) => span,
+    match $span.as_local($self.item_span) {
+      Some(span) if !$self.invalid_span(span) => span,
       _ => {
-        return;
+        return None;
       }
     }
   };
 }
 
-fn expr_to_string(ex: &Expr) -> String {
-  rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| s.print_expr(ex))
-}
+impl<'tcx> Spanner<'tcx> {
+  pub fn hir_spans(&self, id: HirId, mode: EnclosingHirSpans) -> Option<Vec<Span>> {
+    let hir = self.tcx.hir();
+    let span = try_span!(self, hir.span(id));
+    let inner_spans = match hir.get(id) {
+      Node::Expr(expr) => match expr.kind {
+        ExprKind::Loop(_, _, loop_source, header) => match loop_source {
+          LoopSource::ForLoop | LoopSource::While => {
+            vec![expr.span.trim_start(header).unwrap_or(expr.span)]
+          }
 
-impl<'hir> HirVisitor<'hir> for HirSpanCollector<'_, 'hir, '_> {
-  fn visit_expr(&mut self, expr: &'hir hir::Expr<'hir>) {
-    intravisit::walk_expr(self, expr);
+          LoopSource::Loop => vec![expr.span.with_lo(expr.span.lo() + BytePos(4))],
+        },
+        ExprKind::Break(..) => return None,
+        _ => {
+          let mut visitor = ChildExprSpans {
+            spans: Vec::new(),
+            item_span: self.item_span,
+          };
+          intravisit::walk_expr(&mut visitor, expr);
 
-    let span = try_span!(self, expr.span);
-
-    let inner_spans = match expr.kind {
-      ExprKind::Loop(_, _, loop_source, header) => match loop_source {
-        LoopSource::ForLoop | LoopSource::While => {
-          vec![expr.span.trim_start(header).unwrap_or(expr.span)]
-        }
-        LoopSource::Loop => {
-          vec![expr.span.with_lo(expr.span.lo() + BytePos(4))]
+          visitor.spans
         }
       },
-      ExprKind::Break(..) => {
-        return;
-      }
-      _ => {
+      Node::Stmt(stmt) => {
         let mut visitor = ChildExprSpans {
           spans: Vec::new(),
-          item_span: self.0.item_span,
+          item_span: self.item_span,
         };
-        intravisit::walk_expr(&mut visitor, expr);
+        intravisit::walk_stmt(&mut visitor, stmt);
         visitor.spans
       }
-    };
-
-    let mut outer_spans = span.subtract(inner_spans.clone());
-
-    // In an expression `match e { .. }` the span of `e` is only stored in a `FakeRead`,
-    // so we have to ensure that the span of the HIR match includes the matched expression.
-    if let ExprKind::Match(matched, _, _) = expr.kind {
-      outer_spans.push(matched.span);
-    }
-
-    trace!(
-      "Expr:\n{}\nhas span: {:?}\nand inner spans: {:?}\nand outer spans: {:?}",
-      expr_to_string(expr),
-      span,
-      inner_spans,
-      outer_spans
-    );
-
-    if outer_spans.is_empty() {
-      return;
-    }
-
-    self.0.hir_spans.push(HirSpannedNode {
-      full: span.data(),
-      outer: outer_spans,
-      node: Node::Expr(expr),
-    });
-  }
-
-  fn visit_stmt(&mut self, stmt: &'hir Stmt<'hir>) {
-    intravisit::walk_stmt(self, stmt);
-
-    let span = try_span!(self, stmt.span);
-
-    let mut visitor = ChildExprSpans {
-      spans: Vec::new(),
-      item_span: self.0.item_span,
-    };
-    intravisit::walk_stmt(&mut visitor, stmt);
-    let outer_spans = span.subtract(visitor.spans);
-
-    self.0.hir_spans.push(HirSpannedNode {
-      full: span.data(),
-      outer: outer_spans,
-      node: Node::Stmt(stmt),
-    });
-  }
-
-  fn visit_param(&mut self, param: &'hir Param<'hir>) {
-    intravisit::walk_param(self, param);
-
-    let span = match param.span.as_local(self.0.item_span) {
-      Some(span) if !self.0.invalid_span(span) => span,
+      Node::Param(_param) => vec![],
       _ => {
-        return;
+        return None;
       }
     };
 
-    // TODO: more precise outer spans
-    self.0.hir_spans.push(HirSpannedNode {
-      full: span.data(),
-      outer: vec![span],
-      node: Node::Param(param),
-    });
+    Some(match mode {
+      EnclosingHirSpans::Full => vec![span],
+      EnclosingHirSpans::OuterOnly => span.subtract(inner_spans),
+      EnclosingHirSpans::None => vec![],
+    })
   }
 }
