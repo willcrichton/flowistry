@@ -89,7 +89,7 @@ pub fn compile(input: impl Into<String>, callback: impl FnOnce(TyCtxt<'_>) + Sen
     callback: Some(callback),
   };
   let args = format!(
-    "rustc dummy.rs --crate-type lib --edition=2021 -Z identify-regions -Z mir-opt-level=0 --allow warnings --sysroot {}",
+    "rustc dummy.rs --crate-type lib --edition=2021 -Z identify-regions -Z mir-opt-level=0 -Z maximal-hir-to-mir-coverage --allow warnings --sysroot {}",
     &*SYSROOT
   );
   let args = args.split(' ').map(|s| s.to_string()).collect::<Vec<_>>();
@@ -292,11 +292,7 @@ fn parse_range_map(
 pub fn test_command_output(
   path: &Path,
   expected: Option<&Path>,
-  output_fn: impl for<'a, 'hir, 'tcx> Fn(
-      infoflow::FlowResults<'a, 'tcx>,
-      Spanner<'hir, 'tcx>,
-      Span,
-    ) -> Vec<Span>
+  output_fn: impl for<'a, 'tcx> Fn(infoflow::FlowResults<'a, 'tcx>, Spanner<'tcx>, Span) -> Vec<Span>
     + Send
     + Sync,
 ) {

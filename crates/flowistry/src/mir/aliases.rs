@@ -32,7 +32,8 @@ use crate::{
   indexed::{
     impls::{
       build_location_arg_domain, LocationOrArgDomain, LocationOrArgIndex, PlaceSet,
-    }, ToIndex,
+    },
+    ToIndex,
   },
   mir::utils::{self, MutabilityExt, PlaceExt},
   timer::elapsed,
@@ -524,7 +525,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
 
   /// Returns all [direct](PlaceExt::is_direct) places that are reachable from `place`
   /// and can be used at the provided level of [`Mutability`].
-  /// 
+  ///
   /// For example, if `x = 0` and `y = (0, &x)`, then `reachable_values(y, Mutability::Not)`
   /// is `{y, y.0, y.1, x}`. With `Mutability::Mut`, then the output is `{y, y.0, y.1}` (no `x`).
   pub fn reachable_values(

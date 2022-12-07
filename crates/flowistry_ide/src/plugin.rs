@@ -106,8 +106,8 @@ impl RustcPlugin for FlowistryPlugin {
         exit(exit_status.code().unwrap_or(-1));
       }
       RustcVersion => {
-        let commit_hash = rustc_interface::util::commit_hash_str().unwrap_or("unknown");
-        println!("{commit_hash}");
+        let version_str = rustc_interface::util::rustc_version_str().unwrap_or("unknown");
+        println!("{version_str}");
         exit(0);
       }
       _ => {}
@@ -205,7 +205,7 @@ pub fn run_with_callbacks(
 ) -> FlowistryResult<()> {
   let mut args = args.to_vec();
   args.extend(
-    "-Z identify-regions -Z mir-opt-level=0 -A warnings"
+    "-Z identify-regions -Z mir-opt-level=0 -A warnings -Z maximal-hir-to-mir-coverage"
       .split(' ')
       .map(|s| s.to_owned()),
   );

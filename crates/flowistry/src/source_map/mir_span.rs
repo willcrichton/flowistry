@@ -25,10 +25,7 @@ pub struct MirSpannedPlace<'tcx> {
   pub locations: SmallVec<[LocationOrArg; 1]>,
 }
 
-pub struct MirSpanCollector<'a, 'hir, 'tcx>(
-  pub &'a mut Spanner<'hir, 'tcx>,
-  pub &'a Body<'tcx>,
-);
+pub struct MirSpanCollector<'a, 'tcx>(pub &'a mut Spanner<'tcx>, pub &'a Body<'tcx>);
 
 macro_rules! try_span {
   ($self:expr, $span:expr) => {
@@ -41,7 +38,7 @@ macro_rules! try_span {
   };
 }
 
-impl<'tcx> MirVisitor<'tcx> for MirSpanCollector<'_, '_, 'tcx> {
+impl<'tcx> MirVisitor<'tcx> for MirSpanCollector<'_, 'tcx> {
   fn visit_body(&mut self, body: &Body<'tcx>) {
     self.super_body(body);
 

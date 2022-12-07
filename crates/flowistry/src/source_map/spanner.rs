@@ -2,9 +2,7 @@
 
 use either::Either;
 use log::trace;
-use rustc_hir::{
-  self as hir, intravisit::Visitor as HirVisitor, BodyId, ExprKind, MatchSource, Node,
-};
+use rustc_hir::{self as hir, BodyId, ExprKind, MatchSource, Node};
 use rustc_middle::{
   mir::{
     self, visit::Visitor as MirVisitor, Body, StatementKind, TerminatorKind, RETURN_PLACE,
@@ -14,20 +12,18 @@ use rustc_middle::{
 use rustc_span::{source_map::Spanned, Span, SpanData};
 
 use super::{
-  hir_span::{EnclosingHirSpans, HirSpanCollector, HirSpannedNode},
+  hir_span::EnclosingHirSpans,
   mir_span::{MirSpanCollector, MirSpannedPlace},
   span_tree::SpanTree,
 };
 use crate::{
   indexed::impls::LocationOrArg,
-  mir::utils::{self, SpanDataExt, SpanExt},
+  mir::utils::{self, BodyExt, SpanDataExt, SpanExt},
 };
 
 /// Converts MIR locations to source spans using HIR information.
-pub struct Spanner<'hir, 'tcx> {
+pub struct Spanner<'tcx> {
   pub(super) tcx: TyCtxt<'tcx>,
-  pub(super) hir_spans: Vec<HirSpannedNode<'hir>>,
-  pub(super) hir_span_tree: SpanTree<HirSpannedNode<'hir>>,
   pub(super) mir_spans: Vec<MirSpannedPlace<'tcx>>,
   pub mir_span_tree: SpanTree<MirSpannedPlace<'tcx>>,
   pub body_span: Span,
@@ -35,10 +31,7 @@ pub struct Spanner<'hir, 'tcx> {
   pub ret_span: Span,
 }
 
-impl<'hir, 'tcx> Spanner<'hir, 'tcx>
-where
-  'tcx: 'hir,
-{
+impl<'tcx> Spanner<'tcx> {
   pub fn new(tcx: TyCtxt<'tcx>, body_id: BodyId, body: &Body<'tcx>) -> Self {
     let hir = tcx.hir();
     let hir_body = hir.body(body_id);
@@ -47,9 +40,7 @@ where
     let ret_span = hir.fn_decl_by_hir_id(owner).unwrap().output.span();
 
     let mut spanner = Spanner {
-      hir_spans: Vec::new(),
       mir_spans: Vec::new(),
-      hir_span_tree: SpanTree::new([]),
       mir_span_tree: SpanTree::new([]),
       body_span: hir_body.value.span,
       item_span,
@@ -62,17 +53,9 @@ where
       spanner.item_span
     );
 
-    let mut hir_collector = HirSpanCollector(&mut spanner);
-    hir_collector.visit_body(hir_body);
-
     let mut mir_collector = MirSpanCollector(&mut spanner, body);
     mir_collector.visit_body(body);
 
-    spanner.hir_span_tree =
-      SpanTree::new(spanner.hir_spans.drain(..).map(|node| Spanned {
-        span: node.full.span(),
-        node,
-      }));
     spanner.mir_span_tree =
       SpanTree::new(spanner.mir_spans.drain(..).map(|node| Spanned {
         span: node.span.span(),
@@ -105,66 +88,54 @@ where
     &self,
     location: LocationOrArg,
     body: &Body,
-    span_type: EnclosingHirSpans,
+    _span_type: EnclosingHirSpans,
   ) -> Vec<Span> {
-    let (target_span, stmt) = match location {
-      LocationOrArg::Arg(local) => (body.local_decls[local].source_info.span, None),
-      LocationOrArg::Location(location) => (
-        body.source_info(location).span,
-        Some(body.stmt_at(location)),
-      ),
+    let (source_info, stmt) = match location {
+      LocationOrArg::Arg(local) => (&body.local_decls[local].source_info, None),
+      LocationOrArg::Location(location) => {
+        (body.source_info(location), Some(body.stmt_at(location)))
+      }
     };
 
-    let target_span = match target_span.as_local(self.item_span) {
+    let hir_id = body.source_info_to_hir_id(source_info);
+
+    let mir_span = match source_info.span.as_local(self.item_span) {
       Some(span) if !self.invalid_span(span) => span,
       _ => {
         return vec![];
       }
     };
 
-    let target_span_data = target_span.data();
-    let mut enclosing_hir = Self::find_matching(
-      |span| span.contains(target_span_data),
-      target_span_data,
-      &self.hir_span_tree,
-    )
-    .collect::<Vec<_>>();
-    // trace!("enclosing_hir={enclosing_hir:?}");
-
-    if enclosing_hir.is_empty() {
-      log::warn!(
-        "Location {location:?} (span {target_span:?}) had no enclosing HIR nodes"
-      );
-      return vec![];
-    }
-
-    // Get the spans of the immediately enclosing HIR node
-    let mut hir_spans = enclosing_hir.remove(0).get_spans(span_type);
+    let mut hir_spans = Vec::new();
 
     // Include the MIR span
-    hir_spans.push(target_span);
+    hir_spans.push(mir_span);
 
-    macro_rules! add_first_where {
-      ($f:expr) => {
-        if let Some(node) = enclosing_hir.iter().find($f) {
-          hir_spans.extend(node.get_spans(span_type));
+    // Include the span for the immediately enclosing HIR node
+    if let Some(spans) = self.hir_spans(hir_id, EnclosingHirSpans::OuterOnly) {
+      hir_spans.extend(spans);
+    }
+
+    let hir = self.tcx.hir();
+    let enclosing_hir = hir.parent_iter(hir_id).collect::<Vec<_>>();
+    macro_rules! add_first_matching {
+      ($p:pat) => {
+        if let Some((id, _)) = enclosing_hir.iter().find(|(_, node)| matches!(node, $p)) {
+          if let Some(spans) = self.hir_spans(*id, EnclosingHirSpans::OuterOnly) {
+            hir_spans.extend(spans);
+          }
         }
       };
     }
 
     // Add the spans of the first enclosing statement
-    add_first_where!(|node| matches!(node.node, Node::Stmt(_)));
+    add_first_matching!(Node::Stmt(..));
 
     // Include `return` keyword if the location is an expression under a return.
-    add_first_where!(|node| {
-      matches!(
-        node.node,
-        Node::Expr(hir::Expr {
-          kind: hir::ExprKind::Ret(_),
-          ..
-        })
-      )
-    });
+    add_first_matching!(Node::Expr(hir::Expr {
+      kind: hir::ExprKind::Ret(..),
+      ..
+    }));
 
     if let Some(Either::Right(mir::Terminator {
       kind: TerminatorKind::SwitchInt { .. },
@@ -172,26 +143,16 @@ where
     })) = stmt
     {
       // If the location is a switch, then include the closest enclosing if or match
-      add_first_where!(|node| {
-        matches!(
-          node.node,
-          Node::Expr(hir::Expr {
-            kind: ExprKind::If(..) | ExprKind::Match(_, _, MatchSource::Normal),
-            ..
-          })
-        )
-      });
+      add_first_matching!(Node::Expr(hir::Expr {
+        kind: ExprKind::If(..) | ExprKind::Match(.., MatchSource::Normal),
+        ..
+      }));
 
       // Also include enclosing loops
-      add_first_where!(|node| {
-        matches!(
-          node.node,
-          Node::Expr(hir::Expr {
-            kind: ExprKind::Loop(..),
-            ..
-          })
-        )
-      });
+      add_first_matching!(Node::Expr(hir::Expr {
+        kind: ExprKind::Loop(..),
+        ..
+      }));
     }
 
     if let Some(Either::Left(mir::Statement {
@@ -215,7 +176,7 @@ where
     trace!(
       "Location {location:?} ({})\n  has loc span:\n  {}\n  and HIR spans:\n  {}",
       utils::location_to_string(location, body),
-      format_spans(&[target_span]),
+      format_spans(&[mir_span]),
       format_spans(&hir_spans)
     );
 
@@ -346,58 +307,6 @@ mod test {
 
     check("desired", missing_desired);
     check("actual", missing_actual);
-  }
-
-  fn hir_spanner_harness(src: &str, expected: &[&[&str]], span_type: EnclosingHirSpans) {
-    harness(src, |tcx, body_id, body, spans| {
-      let spanner = Spanner::new(tcx, body_id, body);
-      let source_map = tcx.sess.source_map();
-      for (input_span, desired) in spans.into_iter().zip(expected) {
-        let mut enclosing = Spanner::find_matching(
-          |span| span.contains(input_span.data()),
-          input_span.data(),
-          &spanner.hir_span_tree,
-        )
-        .collect::<Vec<_>>();
-        let desired_set = desired.into_iter().copied().collect::<HashSet<_>>();
-        let output_snippets = enclosing
-          .remove(0)
-          .get_spans(span_type)
-          .into_iter()
-          .map(|s| source_map.span_to_snippet(s).unwrap())
-          .collect::<HashSet<_>>();
-        compare_sets(&desired_set, &output_snippets);
-      }
-    });
-  }
-
-  #[test]
-  fn test_hir_spanner_outer() {
-    let src = r#"fn foo() {
-      let x = `(1)`;
-      let `(y)` = x + 1;
-      if `(true)``( )`{ let z = 1; }
-      x `(+)` y;
-    }"#;
-    let expected: &[&[&str]] = &[
-      &["1"],
-      &["let y = ", ";"],
-      &["true"],
-      &["if ", " { ", " }"],
-      &[" + "],
-    ];
-    hir_spanner_harness(src, expected, EnclosingHirSpans::OuterOnly)
-  }
-
-  #[test]
-  fn test_hir_spanner_full() {
-    let src = r#"fn foo() {
-      `(let mut x: Vec<()> = Vec::new();)`
-      `(x = Vec::new();)`
-    }"#;
-    let expected: &[&[&str]] =
-      &[&["let mut x: Vec<()> = Vec::new();"], &["x = Vec::new();"]];
-    hir_spanner_harness(src, expected, EnclosingHirSpans::Full)
   }
 
   #[test]

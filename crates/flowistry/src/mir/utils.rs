@@ -13,7 +13,7 @@ use either::Either;
 use log::{trace, warn};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
-use rustc_hir::def_id::DefId;
+use rustc_hir::{def_id::DefId, HirId};
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::{
   mir::{
@@ -31,7 +31,7 @@ use rustc_span::{
   source_map::SourceMap, BytePos, Pos, Span, SpanData, Symbol, SyntaxContext,
 };
 use rustc_target::abi::VariantIdx;
-use rustc_trait_selection::infer::InferCtxtExt;
+use rustc_trait_selection::traits::NormalizeExt;
 use smallvec::SmallVec;
 
 use crate::{
@@ -250,7 +250,7 @@ pub fn location_to_string(location: LocationOrArg, body: &Body<'_>) -> String {
 }
 
 /// MIR pass to remove instructions not important for Flowistry.
-/// 
+///
 /// This pass helps reduce the number of intermediates during dataflow analysis, which
 /// reduces memory usage.
 pub struct SimplifyMir;
@@ -527,7 +527,8 @@ impl<'tcx> PlaceExt<'tcx> for Place<'tcx> {
     let place = tcx.erase_regions(*self);
     let infcx = tcx.infer_ctxt().build();
     let place = infcx
-      .partially_normalize_associated_types_in(ObligationCause::dummy(), param_env, place)
+      .at(&ObligationCause::dummy(), param_env)
+      .normalize(place)
       .value;
 
     let projection = place
@@ -770,7 +771,7 @@ pub trait BodyExt<'tcx> {
     Self: 'a;
 
   /// Returns all the locations of [`TerminatorKind::Return`] instructions in a body.
-  fn all_returns(&self) -> Self::AllReturnsIter<'_>;
+  fn all_returns<'a>(&'a self) -> Self::AllReturnsIter<'a>;
 
   type AllLocationsIter<'a>: Iterator<Item = Location>
   where
@@ -787,10 +788,22 @@ pub trait BodyExt<'tcx> {
   fn debug_info_name_map(&self) -> HashMap<Local, Symbol>;
 
   fn to_string(&self, tcx: TyCtxt<'tcx>) -> Result<String>;
+
+  /// Returns the HirId corresponding to a MIR location.
+  ///
+  /// You **MUST** use the `-Zmaximize-hir-to-mir-mapping` flag for this
+  /// function to work.
+  fn location_to_hir_id(&self, location: Location) -> HirId;
+
+  fn source_info_to_hir_id(&self, info: &SourceInfo) -> HirId;
 }
 
+// https://github.com/rust-lang/rust/issues/66551#issuecomment-629815002
+pub trait Captures<'a> {}
+impl<'a, T> Captures<'a> for T {}
+
 impl<'tcx> BodyExt<'tcx> for Body<'tcx> {
-  type AllReturnsIter<'a> = impl Iterator<Item = Location> + 'a where Self: 'a ;
+  type AllReturnsIter<'a> = impl Iterator<Item = Location> + Captures<'tcx> + 'a where Self: 'a;
   fn all_returns(&self) -> Self::AllReturnsIter<'_> {
     self
       .basic_blocks
@@ -804,7 +817,7 @@ impl<'tcx> BodyExt<'tcx> for Body<'tcx> {
       })
   }
 
-  type AllLocationsIter<'a> = impl Iterator<Item = Location> + 'a    where Self: 'a;
+  type AllLocationsIter<'a> = impl Iterator<Item = Location> + Captures<'tcx> + 'a where Self: 'a;
   fn all_locations(&self) -> Self::AllLocationsIter<'_> {
     self
       .basic_blocks
@@ -841,6 +854,17 @@ impl<'tcx> BodyExt<'tcx> for Body<'tcx> {
     let mut buffer = Vec::new();
     write_mir_fn(tcx, self, &mut |_, _| Ok(()), &mut buffer)?;
     Ok(String::from_utf8(buffer)?)
+  }
+
+  fn location_to_hir_id(&self, location: Location) -> HirId {
+    let source_info = self.source_info(location);
+    self.source_info_to_hir_id(source_info)
+  }
+
+  fn source_info_to_hir_id(&self, info: &SourceInfo) -> HirId {
+    let scope = &self.source_scopes[info.scope];
+    let local_data = scope.local_data.as_ref().assert_crate_local();
+    local_data.lint_root
   }
 }
 

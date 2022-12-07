@@ -29,12 +29,7 @@ fn implements_trait<'tcx>(
 ) -> bool {
   let infcx = tcx.infer_ctxt().build();
   let ty = tcx.erase_regions(ty);
-  let result = infcx.type_implements_trait(
-    trait_def_id,
-    ty,
-    tcx.mk_substs_trait(ty, &[]),
-    param_env,
-  );
+  let result = infcx.type_implements_trait(trait_def_id, [ty], param_env);
   matches!(
     result,
     EvaluationResult::EvaluatedToOk | EvaluationResult::EvaluatedToOkModuloRegions
