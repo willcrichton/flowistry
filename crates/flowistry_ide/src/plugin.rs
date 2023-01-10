@@ -1,5 +1,6 @@
 use std::{
   env,
+  io::{self, Write},
   path::PathBuf,
   process::{exit, Command},
   time::Instant,
@@ -194,7 +195,15 @@ fn postprocess<T: Serialize>(result: FlowistryResult<T>) -> RustcResult<()> {
     },
   };
 
-  println!("{}", serde_json::to_string(&result).unwrap());
+  use base64::Engine;
+  let mut encoder =
+    flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::best());
+  serde_json::to_writer(&mut encoder, &result).unwrap();
+  let buffer = encoder.finish().unwrap();
+  print!("{}", base64::engine::general_purpose::STANDARD.encode(&buffer));
+  // let mut stdout = io::stdout();
+  // stdout.write_all(&buffer).unwrap();
+  // stdout.flush().unwrap();
 
   Ok(())
 }

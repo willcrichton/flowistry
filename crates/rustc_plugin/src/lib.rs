@@ -10,6 +10,7 @@ extern crate rustc_interface;
 
 use std::{
   env, fs,
+  io::{self, Write},
   ops::Deref,
   path::{Path, PathBuf},
   process::{exit, Command},
@@ -249,6 +250,8 @@ pub fn cli_main<T: RustcPlugin>(plugin: T) {
     .wait()
     .expect("failed to wait for cargo?");
 
+  io::stdout().flush().unwrap();
+
   exit(exit_status.code().unwrap_or(-1));
 }
 
@@ -271,6 +274,7 @@ pub fn driver_main<T: RustcPlugin>(plugin: T) {
     let have_sys_root_arg = sys_root_arg.is_some();
     let sys_root = sys_root_arg
         .map(PathBuf::from)
+        .or_else(|| std::env::var("MIRI_SYSROOT").ok().map(PathBuf::from))
         .or_else(|| std::env::var("SYSROOT").ok().map(PathBuf::from))
         .or_else(|| {
             let home = std::env::var("RUSTUP_HOME")

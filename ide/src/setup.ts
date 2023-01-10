@@ -3,8 +3,8 @@ import _ from "lodash";
 import open from "open";
 import os from "os";
 import path from "path";
-import { Readable } from "stream";
 import * as vscode from "vscode";
+import zlib from "zlib";
 
 import { download } from "./download";
 import { FlowistryError, FlowistryResult } from "./errors";
@@ -55,38 +55,37 @@ export const get_flowistry_opts = async (cwd: string) => {
   };
 };
 
-export let exec_notify = async (
+let exec_notify_binary = async (
   cmd: string,
   args: string[],
   title: string,
   opts?: any
-): Promise<string> => {
+): Promise<Buffer> => {
   log("Running command: ", [cmd, ...args].join(" "));
 
   let proc = cp.spawn(cmd, args, opts);
 
-  let read_stream = (stream: Readable): (() => string) => {
-    let buffer: string[] = [];
-    stream.setEncoding("utf8");
-    stream.on("data", (data) => {
-      log(data.toString().trimEnd());
-      buffer.push(data.toString());
-    });
-    return () => buffer.join("").trim();
-  };
+  let stdoutChunks: Buffer[] = [];
+  proc.stdout.on("data", (data) => {
+    stdoutChunks.push(data);
+  });
 
-  let stdout = read_stream(proc.stdout);
-  let stderr = read_stream(proc.stderr);
+  let stderrChunks: string[] = [];
+  proc.stderr.setEncoding("utf8");
+  proc.stderr.on("data", (data) => {
+    log(data);
+    stderrChunks.push(data);
+  });
 
   globals.status_bar.set_state("loading", title);
 
-  return new Promise<string>((resolve, reject) => {
+  return new Promise<Buffer>((resolve, reject) => {
     proc.addListener("close", (_) => {
       globals.status_bar.set_state("idle");
       if (proc.exitCode !== 0) {
-        reject(stderr());
+        reject(stderrChunks.join(""));
       } else {
-        resolve(stdout());
+        resolve(Buffer.concat(stdoutChunks));
       }
     });
     proc.addListener("error", (e) => {
@@ -94,6 +93,17 @@ export let exec_notify = async (
       reject(e.toString());
     });
   });
+};
+
+export let exec_notify = async (
+  cmd: string,
+  args: string[],
+  title: string,
+  opts?: any
+): Promise<string> => {
+  let blob = await exec_notify_binary(cmd, args, title, opts);
+  let text = blob.toString("utf8");
+  return text.trimEnd();
 };
 
 export type CallFlowistry = <T>(
@@ -254,7 +264,7 @@ export async function setup(
         await editor.document.save();
       }
 
-      output = await exec_notify(
+      output = await exec_notify_binary(
         cargo,
         [...cargo_args, "flowistry", ...args],
         "Waiting for Flowistry...",
@@ -276,7 +286,11 @@ export async function setup(
       };
     }
 
-    let output_typed: Result<T> = JSON.parse(output);
+    let output_bytes = Buffer.from(output.toString("utf8"), "base64");
+    let output_decompressed = zlib.gunzipSync(output_bytes);
+    let output_typed: Result<T> = JSON.parse(
+      output_decompressed.toString("utf8")
+    );
     if ("Err" in output_typed) {
       return output_typed.Err;
     } else {
