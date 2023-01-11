@@ -280,7 +280,7 @@ impl<'tcx> MirPass<'tcx> for SimplifyMir {
         TerminatorKind::FalseUnwind { real_target, .. } => TerminatorKind::Goto {
           target: real_target,
         },
-        // Ensures that control dependencies can determine the independence of differnet
+        // Ensures that control dependencies can determine the independence of different
         // return paths
         TerminatorKind::Goto { target } if return_blocks.contains(&target) => {
           TerminatorKind::Return
@@ -1038,7 +1038,7 @@ impl SpanDataExt for SpanData {
 
 /// Extension trait for [`Mutability`].
 pub trait MutabilityExt {
-  /// Returns true if `self` is eqully or more permissive than `other`,
+  /// Returns true if `self` is equally or more permissive than `other`,
   /// i.e. where `Not` is more permissive than `Mut`.
   ///
   /// This corresponds to the operation $\omega_1 \lesssim \omega_2$ in the Flowistry paper.

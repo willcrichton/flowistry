@@ -46,7 +46,7 @@ use crate::{
 /// # Note: arguments as dependencies
 /// Because function arguments are never initialized, there is no "root" location for argument places. This fact poses a problem for
 /// information flow analysis: an instruction `bb[0]: _2 = _1` (where `_1` is an argument) would set $\Theta(\verb|_2|) = \Theta(\verb|_1|) \cup \\{\verb|bb0\[0\]|\\}\$.
-/// However, $\Theta(\verb|_1|)$ would be empty, so it would be imposible to determine that `_2` depends on `_1`. To solve this issue, we
+/// However, $\Theta(\verb|_1|)$ would be empty, so it would be impossible to determine that `_2` depends on `_1`. To solve this issue, we
 /// enrich the domain of locations with arguments, using the [`LocationOrArg`] type. Any dependency can be on *either* a location or an argument.
 pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, LocationOrArg>;
 

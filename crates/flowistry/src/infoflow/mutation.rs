@@ -26,7 +26,7 @@ pub struct Mutation<'a, 'tcx> {
   /// an optional [`ProjectionElem::Field`] in the case of aggregate constructors.
   pub inputs: &'a [(Place<'tcx>, Option<PlaceElem<'tcx>>)],
 
-  /// Where the mutation is occuring.
+  /// Where the mutation is occurring.
   pub location: Location,
 
   /// The certainty of whether the mutation is happening.
