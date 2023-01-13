@@ -2,7 +2,7 @@ use anyhow::Result;
 use flowistry::{
   infoflow::{self, Direction},
   mir::{borrowck_facts::get_body_with_borrowck_facts, utils::SpanExt},
-  source_map::{self, Range},
+  source_map::{self, CharRange},
 };
 use itertools::Itertools;
 use rustc_hir::BodyId;
@@ -14,16 +14,16 @@ mod direct_influence;
 
 #[derive(Debug, Serialize)]
 pub struct PlaceInfo {
-  pub range: Range,
-  pub ranges: Vec<Range>,
-  pub slice: Vec<Range>,
-  pub direct_influence: Vec<Range>,
+  pub range: CharRange,
+  pub ranges: Vec<CharRange>,
+  pub slice: Vec<CharRange>,
+  pub direct_influence: Vec<CharRange>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct FocusOutput {
   pub place_info: Vec<PlaceInfo>,
-  pub containers: Vec<Range>,
+  pub containers: Vec<CharRange>,
 }
 
 pub fn focus(tcx: TyCtxt, body_id: BodyId) -> Result<FocusOutput> {
@@ -84,12 +84,12 @@ pub fn focus(tcx: TyCtxt, body_id: BodyId) -> Result<FocusOutput> {
         v.into_iter()
           .filter_map(|span| span.trim_leading_whitespace(source_map))
           .flatten()
-          .filter_map(|span| Range::from_span(span, source_map).ok())
+          .filter_map(|span| CharRange::from_span(span, source_map).ok())
           .collect::<Vec<_>>()
       };
 
       Some(PlaceInfo {
-        range: Range::from_span(mir_span.span(), source_map).ok()?,
+        range: CharRange::from_span(mir_span.span(), source_map).ok()?,
         ranges: to_ranges(vec![mir_span.span()]),
         slice: to_ranges(slice),
         direct_influence: to_ranges(direct_influence),
@@ -97,8 +97,8 @@ pub fn focus(tcx: TyCtxt, body_id: BodyId) -> Result<FocusOutput> {
     })
     .collect::<Vec<_>>();
 
-  let body_range = Range::from_span(spanner.body_span, source_map)?;
-  let ret_range = Range::from_span(spanner.ret_span, source_map)?;
+  let body_range = CharRange::from_span(spanner.body_span, source_map)?;
+  let ret_range = CharRange::from_span(spanner.ret_span, source_map)?;
   let mut containers = vec![body_range, ret_range];
 
   let hir_body = tcx.hir().body(body_id);
@@ -108,7 +108,7 @@ pub fn focus(tcx: TyCtxt, body_id: BodyId) -> Result<FocusOutput> {
     .map(|param| param.span)
     .reduce(|s1, s2| s1.to(s2));
   if let Some(sp) = arg_span {
-    containers.push(Range::from_span(sp, source_map)?);
+    containers.push(CharRange::from_span(sp, source_map)?);
   }
 
   Ok(FocusOutput {

@@ -35,32 +35,32 @@ export let select_type = vscode.window.createTextEditorDecorationType({
 
 export let invert_ranges = (container: Range, pieces: Range[]): Range[] => {
   let filename = container.filename;
-  let pieces_sorted = _.sortBy(pieces, (r) => r.char_start).filter(
+  let pieces_sorted = _.sortBy(pieces, (r) => r.start).filter(
     (r) =>
-      container.char_start <= r.char_start && r.char_end <= container.char_end
+      container.start <= r.start && r.end <= container.end
   );
 
   let new_ranges: Range[] = [];
-  let start = container.char_start;
+  let start = container.start;
   pieces_sorted.forEach((r) => {
-    if (r.char_start < start) {
-      start = Math.max(r.char_end, start);
+    if (r.start < start) {
+      start = Math.max(r.end, start);
       return;
     }
 
-    let end = r.char_start;
+    let end = r.start;
     new_ranges.push({
-      char_start: start,
-      char_end: end,
+      start: start,
+      end: end,
       filename,
     });
 
-    start = Math.max(start, r.char_end);
+    start = Math.max(start, r.end);
   });
 
   new_ranges.push({
-    char_start: start,
-    char_end: container.char_end,
+    start: start,
+    end: container.end,
     filename,
   });
 

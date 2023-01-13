@@ -9,14 +9,14 @@ use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir::{BodyId, ItemKind};
 use rustc_middle::ty::TyCtxt;
-use rustc_span::{source_map::FileLoader, BytePos, Span, SyntaxContext};
-use unicode_segmentation::UnicodeSegmentation;
+use rustc_span::{source_map::FileLoader, Span, SyntaxContext};
 
 use crate::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
-  infoflow::{self},
+  indexed::impls::{Filename, FilenameIndex},
+  infoflow,
   mir::{borrowck_facts, utils::BodyExt},
-  source_map::{find_enclosing_bodies, GraphemeIndices, Range, Spanner, ToSpan},
+  source_map::{find_enclosing_bodies, BytePos, ByteRange, Spanner, ToSpan},
 };
 
 struct StringLoader(String);
@@ -42,11 +42,12 @@ lazy_static::lazy_static! {
       .trim()
       .to_owned()
   };
+  static ref DUMMY_FILE: FilenameIndex = Filename::intern("dummy.rs");
 }
 
 pub fn compile_body_with_range(
   input: impl Into<String>,
-  target: impl ToSpan,
+  target: ByteRange,
   callback: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &BodyWithBorrowckFacts<'tcx>) + Send,
 ) {
   compile(input, |tcx| {
@@ -128,7 +129,7 @@ where
   }
 }
 
-pub type RangeMap = HashMap<&'static str, Vec<(usize, usize)>>;
+pub type RangeMap = HashMap<&'static str, Vec<ByteRange>>;
 
 pub fn parse_ranges(
   src: impl AsRef<str>,
@@ -169,7 +170,11 @@ pub fn parse_ranges(
       let (start, delim) = stack
         .pop()
         .with_context(|| anyhow!("Missing open delimiter for \"{close}\""))?;
-      ranges.entry(delim).or_default().push((start, out_idx));
+      ranges.entry(delim).or_default().push(ByteRange {
+        start: BytePos(start),
+        end: BytePos(out_idx),
+        filename: *DUMMY_FILE,
+      });
       in_idx += close.len();
       continue;
     }
@@ -187,54 +192,53 @@ pub fn parse_ranges(
   Ok((prog_clean, ranges))
 }
 
-pub fn make_span((lo, hi): (usize, usize)) -> Span {
+pub fn make_span(range: ByteRange) -> Span {
   Span::new(
-    BytePos(lo as u32),
-    BytePos(hi as u32),
+    rustc_span::BytePos(range.start.0 as u32),
+    rustc_span::BytePos(range.end.0 as u32),
     SyntaxContext::root(),
     None,
   )
 }
 
-pub fn color_ranges(prog: &str, all_ranges: Vec<(&str, &HashSet<Range>)>) -> String {
+pub fn color_ranges(prog: &str, all_ranges: Vec<(&str, &HashSet<ByteRange>)>) -> String {
   let mut new_tokens = all_ranges
     .iter()
     .flat_map(|(_, ranges)| {
       ranges.iter().flat_map(|range| {
         let contained = all_ranges.iter().any(|(_, ranges)| {
           ranges.iter().any(|other| {
-            range != other
-              && other.byte_start <= range.byte_end
-              && range.byte_end < other.byte_end
+            range != other && other.start.0 <= range.end.0 && range.end.0 < other.end.0
           })
         });
         let end_marker = if contained { "]" } else { "\x1B[0m]" };
-        [
-          ("[\x1B[31m", range.byte_start),
-          (end_marker, range.byte_end),
-        ]
+        [("[\x1B[31m", range.start), (end_marker, range.end)]
       })
     })
     .collect::<Vec<_>>();
-  new_tokens.sort_by_key(|(_, i)| -(*i as isize));
+  new_tokens.sort_by_key(|(_, i)| -(i.0 as isize));
 
   let mut output = prog.to_owned();
   for (s, i) in new_tokens {
-    output.insert_str(i, s);
+    output.insert_str(i.0, s);
   }
 
   return output;
 }
 
-fn fmt_ranges(prog: &str, s: &HashSet<Range>) -> String {
+fn fmt_ranges(prog: &str, s: &HashSet<ByteRange>) -> String {
   textwrap::indent(&color_ranges(prog, vec![("", s)]), "  ")
 }
 
-pub fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &str) {
+pub fn compare_ranges(
+  expected: HashSet<ByteRange>,
+  actual: HashSet<ByteRange>,
+  prog: &str,
+) {
   let missing = &expected - &actual;
   let extra = &actual - &expected;
 
-  let check = |s: HashSet<Range>, message: &str| {
+  let check = |s: HashSet<ByteRange>, message: &str| {
     if s.len() > 0 {
       println!("Expected ranges:\n{}", fmt_ranges(prog, &expected));
       println!("Actual ranges:\n{}", fmt_ranges(prog, &actual));
@@ -246,47 +250,34 @@ pub fn compare_ranges(expected: HashSet<Range>, actual: HashSet<Range>, prog: &s
   check(extra, "Actual DID have UNEXPECTED");
 }
 
-pub fn bless(path: &Path, contents: String, actual: HashSet<Range>) -> Result<()> {
+pub fn bless(
+  tcx: TyCtxt,
+  path: &Path,
+  contents: String,
+  actual: HashSet<ByteRange>,
+) -> Result<()> {
   let mut delims = actual
     .into_iter()
-    .flat_map(|range| [("`[", range.char_start), ("]`", range.char_end)])
+    .flat_map(|byte_range| {
+      let char_range = byte_range.as_char_range(tcx.sess.source_map());
+      dbg!((byte_range, char_range));
+      [("`[", char_range.start), ("]`", char_range.end)]
+    })
     .collect::<Vec<_>>();
-  delims.sort_by_key(|(_, i)| *i);
+  delims.sort_by_key(|(_, i)| i.0);
 
   let mut output = String::new();
-  for (i, g) in contents.graphemes(true).enumerate() {
-    while delims.len() > 0 && delims[0].1 == i {
+  for (i, g) in contents.chars().enumerate() {
+    while delims.len() > 0 && delims[0].1 .0 == i {
       let (delim, _) = delims.remove(0);
       output.push_str(delim);
     }
-    output.push_str(g);
+    output.push(g);
   }
 
   fs::write(path.with_extension("txt.expected"), output)?;
 
   Ok(())
-}
-
-fn parse_range_map(
-  src: &str,
-  delims: Vec<(&'static str, &'static str)>,
-) -> Result<(String, HashMap<&'static str, Vec<Range>>)> {
-  let (clean, parsed_ranges) = parse_ranges(src, delims)?;
-  let indices = GraphemeIndices::new(&clean);
-  let map = parsed_ranges
-    .into_iter()
-    .map(|(k, vs)| {
-      (
-        k,
-        vs.into_iter()
-          .map(|(byte_start, byte_end)| {
-            Range::from_byte_range(byte_start, byte_end, "dummy.rs", &indices)
-          })
-          .collect::<Vec<_>>(),
-      )
-    })
-    .collect::<HashMap<_, _>>();
-  Ok((clean, map))
 }
 
 pub fn test_command_output(
@@ -300,12 +291,12 @@ pub fn test_command_output(
     info!("Testing {}", path.file_name().unwrap().to_string_lossy());
     let input = String::from_utf8(fs::read(path)?)?;
 
-    let (input_clean, input_ranges) = parse_range_map(&input, vec![("`(", ")`")])?;
-    let target = input_ranges["`("][0].clone();
+    let (input_clean, input_ranges) = parse_ranges(&input, vec![("`(", ")`")])?;
+    let target = input_ranges["`("][0];
 
     compile_body_with_range(
       input_clean.clone(),
-      target.clone(),
+      target,
       move |tcx, body_id, body_with_facts| {
         let header = input.lines().next().unwrap();
         let mut mode = EvalMode::default();
@@ -329,7 +320,7 @@ pub fn test_command_output(
 
         let actual = output_fn(results, spanner, target)
           .into_iter()
-          .map(|span| Range::from_span(span, tcx.sess.source_map()))
+          .map(|span| ByteRange::from_span(span, tcx.sess.source_map()))
           .collect::<Result<HashSet<_>>>()
           .unwrap();
 
@@ -339,7 +330,7 @@ pub fn test_command_output(
             match expected_file {
               Ok(file) => {
                 let (_output_clean, output_ranges) =
-                  parse_range_map(&file, vec![("`[", "]`")]).unwrap();
+                  parse_ranges(&file, vec![("`[", "]`")]).unwrap();
 
                 let expected = match output_ranges.get("`[") {
                   Some(ranges) => ranges.clone().into_iter().collect::<HashSet<_>>(),
@@ -358,7 +349,7 @@ pub fn test_command_output(
             }
           }
           None => {
-            bless(path, input_clean, actual).unwrap();
+            bless(tcx, path, input_clean, actual).unwrap();
           }
         }
       },
@@ -428,6 +419,17 @@ mod test {
     let s = "`[`[f]`oo]`";
     let (clean, ranges) = parse_ranges(s, vec![("`[", "]`")]).unwrap();
     assert_eq!(clean, "foo");
-    assert_eq!(ranges["`["], vec![(0, 1), (0, 3)])
+    assert_eq!(ranges["`["], vec![
+      ByteRange {
+        start: BytePos(0),
+        end: BytePos(1),
+        filename: *DUMMY_FILE
+      },
+      ByteRange {
+        start: BytePos(0),
+        end: BytePos(3),
+        filename: *DUMMY_FILE
+      },
+    ])
   }
 }

@@ -1,4 +1,6 @@
-use std::{default::Default, fs, path::Path};
+use std::{
+  collections::hash_map::Entry, default::Default, ffi::OsStr, path::PathBuf, sync::Mutex,
+};
 
 use anyhow::{bail, Context, Result};
 use rustc_data_structures::{fx::FxHashMap as HashMap, sync::Lrc};
@@ -7,63 +9,253 @@ use rustc_hir::{
   BodyId,
 };
 use rustc_middle::ty::TyCtxt;
-use rustc_span::{
-  source_map::SourceMap, BytePos, FileName, RealFileName, SourceFile, Span,
-};
+use rustc_span::{source_map::SourceMap, FileName, RealFileName, SourceFile, Span};
 use serde::Serialize;
-use unicode_segmentation::UnicodeSegmentation;
 
-use crate::cached::Cache;
+use crate::{
+  cached::Cache,
+  indexed::{
+    impls::{Filename, FilenameDomain, FilenameIndex},
+    IndexedDomain,
+  },
+};
 
-/// Provides efficient lookup for mapping byte indices to grapheme indices and vice-versa.
-pub struct GraphemeIndices {
-  byte_to_char: HashMap<usize, usize>,
-  char_to_byte: Vec<usize>,
+struct CharByteMapping {
+  #[allow(unused)]
+  byte_to_char: HashMap<BytePos, CharPos>,
+  char_to_byte: HashMap<CharPos, BytePos>,
 }
 
-impl GraphemeIndices {
-  pub fn new(s: &str) -> Self {
-    let mut char_to_byte = Vec::new();
-    let mut idx = 0;
-    for g in s.graphemes(true) {
-      char_to_byte.push(idx);
-      idx += g.as_bytes().len();
+impl CharByteMapping {
+  pub fn build(s: &str) -> Self {
+    let mut byte_to_char = HashMap::default();
+    let mut char_to_byte = HashMap::default();
+
+    for (char_idx, (byte_idx, _)) in s.char_indices().enumerate() {
+      byte_to_char.insert(BytePos(byte_idx), CharPos(char_idx));
+      char_to_byte.insert(CharPos(char_idx), BytePos(byte_idx));
     }
-    let byte_to_char = char_to_byte
-      .iter()
-      .enumerate()
-      .map(|(idx, byte)| (*byte, idx))
-      .chain([(char_to_byte.last().unwrap_or(&0) + 1, char_to_byte.len())])
-      .collect::<HashMap<_, _>>();
-    GraphemeIndices {
+
+    CharByteMapping {
       byte_to_char,
       char_to_byte,
     }
   }
+}
 
-  pub fn from_path(path: impl AsRef<Path>) -> Result<Self> {
-    let bytes = fs::read(path)?;
-    let s = std::str::from_utf8(&bytes)?;
-    Ok(Self::new(s))
-  }
+#[derive(Default)]
+pub struct RangeContext {
+  filenames: FilenameDomain,
+  path_mapping: HashMap<FilenameIndex, Lrc<SourceFile>>,
+  char_byte_mapping: Cache<FilenameIndex, CharByteMapping>,
+}
 
-  pub fn byte_to_char(&self, byte: usize) -> usize {
-    *self.byte_to_char.get(&byte).unwrap_or_else(|| {
-      panic!(
-        "Could not find byte {byte:?} in bytes {:?}",
-        self.char_to_byte
-      )
-    })
-  }
+#[derive(Default)]
+struct RangeContextCell(Mutex<RangeContext>);
 
-  pub fn char_to_byte(&self, chr: usize) -> usize {
-    self.char_to_byte[chr]
+lazy_static::lazy_static! {
+  static ref CONTEXT: RangeContextCell = RangeContextCell::default();
+}
+
+// SAFETY: we only ever used RangeContext in two threads: the
+// thread calling Rustc, and the Rustc driver thread. The
+// former needs access to the Filename interner.
+unsafe impl Sync for RangeContextCell {}
+
+impl Filename {
+  pub fn intern<T: ?Sized + AsRef<OsStr>>(t: &T) -> FilenameIndex {
+    let filename = Filename(PathBuf::from(t));
+    let mut ctx = CONTEXT.0.lock().unwrap();
+    ctx.filenames.ensure(&filename)
   }
 }
 
-thread_local! {
-  static GRAPHEME_INDICES: Cache<String, GraphemeIndices> = Cache::default();
-  static SOURCE_FILES: Cache<String, Option<FileName>> = Cache::default();
+impl FilenameIndex {
+  pub fn find_source_file(self, source_map: &SourceMap) -> Result<Lrc<SourceFile>> {
+    let ctx = &mut *CONTEXT.0.lock().unwrap();
+    match ctx.path_mapping.entry(self) {
+      Entry::Occupied(entry) => Ok(Lrc::clone(entry.get())),
+      Entry::Vacant(entry) => {
+        let files = source_map.files();
+        debug_assert!(
+          ctx.filenames.as_vec().get(self).is_some(),
+          "Missing file index!"
+        );
+        let filename = &ctx.filenames.value(self);
+        let filename = filename
+          .canonicalize()
+          .unwrap_or_else(|_| filename.to_path_buf());
+        let rustc_filename = files
+          .iter()
+          .map(|file| &file.name)
+          .find(|name| match &name {
+            // rustc seems to store relative paths to files in the workspace, so if filename is absolute,
+            // we can compare them using Path::ends_with
+            FileName::Real(RealFileName::LocalPath(other)) => {
+              let canonical = other.canonicalize();
+              let other = canonical.as_ref().unwrap_or(other);
+              filename.ends_with(other)
+            }
+            _ => false,
+          })
+          .with_context(|| {
+            format!(
+              "Could not find SourceFile for path: {}. Available SourceFiles were: [{}]",
+              filename.display(),
+              files
+                .iter()
+                .filter_map(|file| match &file.name {
+                  FileName::Real(RealFileName::LocalPath(other)) =>
+                    Some(format!("{}", other.display())),
+                  _ => None,
+                })
+                .collect::<Vec<_>>()
+                .join(", ")
+            )
+          })?;
+        let file = source_map.get_source_file(rustc_filename).unwrap();
+        entry.insert(Lrc::clone(&file));
+        Ok(file)
+      }
+    }
+  }
+}
+
+#[derive(Serialize, Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct BytePos(pub usize);
+
+#[derive(Serialize, Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct CharPos(pub usize);
+
+/// Data structure for sharing spans outside rustc.
+///
+/// Rustc uses byte indexes to describe ranges of source code, whereas
+/// most Javascript-based editors I've encountered (e.g. VSCode) use
+/// character-based (really grapheme-based) indexes. This data structure
+/// helps convert between the two representations.
+#[derive(Serialize, Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct Range<T> {
+  pub start: T,
+  pub end: T,
+  pub filename: FilenameIndex,
+}
+
+pub type ByteRange = Range<BytePos>;
+pub type CharRange = Range<CharPos>;
+
+impl ByteRange {
+  pub fn as_char_range(&self, source_map: &SourceMap) -> CharRange {
+    let file = self.filename.find_source_file(source_map).unwrap();
+    let get_char_pos = |rel_byte: BytePos| {
+      let bpos = file.start_pos + rustc_span::BytePos(rel_byte.0 as u32);
+      let cpos = file.bytepos_to_file_charpos(bpos);
+      CharPos(cpos.0)
+    };
+
+    let char_start = get_char_pos(self.start);
+    let char_end = get_char_pos(self.end);
+
+    CharRange {
+      start: char_start,
+      end: char_end,
+      filename: self.filename,
+    }
+  }
+
+  pub fn from_char_range(
+    char_start: CharPos,
+    char_end: CharPos,
+    filename: FilenameIndex,
+    source_map: &SourceMap,
+  ) -> Result<ByteRange> {
+    let file = filename.find_source_file(source_map)?;
+
+    let ctx = CONTEXT.0.lock().unwrap();
+    let mapping = ctx.char_byte_mapping.get(filename, |_| {
+      CharByteMapping::build(file.src.as_ref().unwrap().as_str())
+    });
+    let byte_start = mapping.char_to_byte[&char_start];
+    let byte_end = mapping.char_to_byte[&char_end];
+    Ok(ByteRange {
+      start: byte_start,
+      end: byte_end,
+      filename,
+    })
+  }
+
+  pub fn from_span(span: Span, source_map: &SourceMap) -> Result<Self> {
+    let mut ctx = CONTEXT.0.lock().unwrap();
+
+    log::trace!("Converting to range: {span:?}");
+    let file = source_map.lookup_source_file(span.lo());
+    let filename = match &file.name {
+      FileName::Real(RealFileName::LocalPath(filename)) => {
+        ctx.filenames.ensure(&Filename(filename.clone()))
+      }
+      filename => bail!("Range::from_span doesn't support {filename:?}"),
+    };
+
+    assert!(
+      source_map.ensure_source_file_source_present(file.clone()),
+      "Could not load source for file: {:?}",
+      file.name
+    );
+    let external = file.external_src.borrow();
+    let _src = file
+      .src
+      .as_ref()
+      .unwrap_or_else(|| external.get_source().as_ref().unwrap());
+
+    let byte_start = BytePos(source_map.lookup_byte_offset(span.lo()).pos.0 as usize);
+    let byte_end = BytePos(source_map.lookup_byte_offset(span.hi()).pos.0 as usize);
+
+    Ok(ByteRange {
+      start: byte_start,
+      end: byte_end,
+      filename,
+    })
+  }
+
+  pub fn substr(&self, s: &str) -> String {
+    s[self.start.0 .. self.end.0].to_string()
+  }
+}
+
+impl CharRange {
+  pub fn from_span(span: Span, source_map: &SourceMap) -> Result<Self> {
+    let byte_range = ByteRange::from_span(span, source_map)?;
+    Ok(byte_range.as_char_range(source_map))
+  }
+}
+
+/// Used to convert objects into a [`Span`] with access to [`TyCtxt`]
+pub trait ToSpan: Send + Sync {
+  fn to_span(&self, tcx: TyCtxt) -> Result<Span>;
+}
+
+impl ToSpan for ByteRange {
+  fn to_span(&self, tcx: TyCtxt) -> Result<Span> {
+    let source_map = tcx.sess.source_map();
+    let source_file = self.filename.find_source_file(source_map)?;
+    let offset = source_file.start_pos;
+
+    Ok(Span::with_root_ctxt(
+      offset + rustc_span::BytePos(self.start.0 as u32),
+      offset + rustc_span::BytePos(self.end.0 as u32),
+    ))
+  }
+}
+
+impl ToSpan for CharRange {
+  fn to_span(&self, tcx: TyCtxt) -> Result<Span> {
+    let range = ByteRange::from_char_range(
+      self.start,
+      self.end,
+      self.filename,
+      tcx.sess.source_map(),
+    )?;
+    range.to_span(tcx)
+  }
 }
 
 fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
@@ -99,161 +291,13 @@ fn qpath_to_span(tcx: TyCtxt, qpath: String) -> Result<Span> {
     .with_context(|| format!("No function with qpath {}", finder.qpath))
 }
 
-/// Data structure for sharing spans outside rustc.
-///
-/// Rustc uses byte indexes to describe ranges of source code, whereas
-/// most Javascript-based editors I've encountered (e.g. VSCode) use
-/// character-based (really grapheme-based) indexes. This data structure
-/// helps convert between the two representations.
-#[derive(Serialize, Debug, Clone, Hash, PartialEq, Eq, Default)]
-pub struct Range {
-  pub char_start: usize,
-  pub char_end: usize,
-  pub byte_start: usize,
-  pub byte_end: usize,
-  pub filename: String,
-}
-
-impl Range {
-  pub fn substr(&self, s: &str) -> String {
-    s[self.byte_start .. self.byte_end].to_string()
-  }
-
-  pub fn from_char_range(
-    char_start: usize,
-    char_end: usize,
-    filename: &str,
-    file: &GraphemeIndices,
-  ) -> Self {
-    let byte_start = file.char_to_byte(char_start);
-    let byte_end = file.char_to_byte(char_end);
-    Range {
-      char_start,
-      char_end,
-      byte_start,
-      byte_end,
-      filename: filename.to_string(),
-    }
-  }
-
-  pub fn from_byte_range(
-    byte_start: usize,
-    byte_end: usize,
-    filename: &str,
-    file: &GraphemeIndices,
-  ) -> Self {
-    let char_start = file.byte_to_char(byte_start);
-    let char_end = file.byte_to_char(byte_end);
-    Range {
-      byte_start,
-      byte_end,
-      char_start,
-      char_end,
-      filename: filename.to_string(),
-    }
-  }
-
-  pub fn from_span(span: Span, source_map: &SourceMap) -> Result<Self> {
-    log::trace!("Converting to range: {span:?}");
-    let file = source_map.lookup_source_file(span.lo());
-    let filename = match &file.name {
-      FileName::Real(RealFileName::LocalPath(filename)) => {
-        filename.to_string_lossy().into_owned()
-      }
-      filename => bail!("Range::from_span doesn't support {filename:?}"),
-    };
-
-    assert!(
-      source_map.ensure_source_file_source_present(file.clone()),
-      "Could not load source for file: {:?}",
-      file.name
-    );
-    let external = file.external_src.borrow();
-    let src = file
-      .src
-      .as_ref()
-      .unwrap_or_else(|| external.get_source().as_ref().unwrap());
-
-    let byte_start = source_map.lookup_byte_offset(span.lo()).pos.0 as usize;
-    let byte_end = source_map.lookup_byte_offset(span.hi()).pos.0 as usize;
-
-    GRAPHEME_INDICES.with(|grapheme_indices| {
-      let indices = grapheme_indices.get(filename.clone(), |_| GraphemeIndices::new(src));
-      Ok(Self::from_byte_range(
-        byte_start, byte_end, &filename, indices,
-      ))
-    })
-  }
-
-  pub fn source_file<'a>(&self, source_map: &'a SourceMap) -> Result<Lrc<SourceFile>> {
-    let files = source_map.files();
-    SOURCE_FILES.with(|source_files| {
-      let filename = source_files.get(self.filename.clone(), |filename| {
-        let filename = Path::new(&filename);
-        let filename = filename
-          .canonicalize()
-          .unwrap_or_else(|_| filename.to_path_buf());
-        files
-          .iter()
-          .map(|file| &file.name)
-          .find(|name| match &name {
-            // rustc seems to store relative paths to files in the workspace, so if filename is absolute,
-            // we can compare them using Path::ends_with
-            FileName::Real(RealFileName::LocalPath(other)) => {
-              let canonical = other.canonicalize();
-              let other = canonical.as_ref().unwrap_or(other);
-              filename.ends_with(other)
-            }
-            _ => false,
-          })
-          .cloned()
-      });
-      let filename = filename.as_ref().with_context(|| {
-        format!(
-          "Could not find SourceFile for path: {}. Available SourceFiles were: [{}]",
-          self.filename,
-          files
-            .iter()
-            .filter_map(|file| match &file.name {
-              FileName::Real(RealFileName::LocalPath(other)) =>
-                Some(format!("{}", other.display())),
-              _ => None,
-            })
-            .collect::<Vec<_>>()
-            .join(", ")
-        )
-      })?;
-
-      Ok(source_map.get_source_file(filename).unwrap())
-    })
-  }
-}
-
-/// Used to convert objects into a [`Span`] with access to [`TyCtxt`]
-pub trait ToSpan: Send + Sync {
-  fn to_span(&self, tcx: TyCtxt) -> Result<Span>;
-}
-
-impl ToSpan for Range {
-  fn to_span(&self, tcx: TyCtxt) -> Result<Span> {
-    let source_map = tcx.sess.source_map();
-    let source_file = self.source_file(source_map)?;
-    let offset = source_file.start_pos;
-
-    Ok(Span::with_root_ctxt(
-      offset + BytePos(self.byte_start as u32),
-      offset + BytePos(self.byte_end as u32),
-    ))
-  }
-}
-
 /// An externally-provided identifier of a function
 pub enum FunctionIdentifier {
   /// Name of a function
   Qpath(String),
 
   /// Range of code possibly inside a function
-  Range(Range),
+  Range(CharRange),
 }
 
 impl ToSpan for FunctionIdentifier {
