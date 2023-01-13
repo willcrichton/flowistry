@@ -271,6 +271,7 @@ pub fn driver_main<T: RustcPlugin>(plugin: T) {
     let have_sys_root_arg = sys_root_arg.is_some();
     let sys_root = sys_root_arg
         .map(PathBuf::from)
+        .or_else(|| std::env::var("MIRI_SYSROOT").ok().map(PathBuf::from))
         .or_else(|| std::env::var("SYSROOT").ok().map(PathBuf::from))
         .or_else(|| {
             let home = std::env::var("RUSTUP_HOME")

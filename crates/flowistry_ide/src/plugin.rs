@@ -6,6 +6,7 @@ use std::{
 };
 
 use anyhow::Context;
+use base64::Engine;
 use clap::{Parser, Subcommand};
 use flowistry::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
@@ -203,7 +204,14 @@ fn postprocess<T: Serialize>(result: FlowistryResult<T>) -> RustcResult<()> {
     },
   };
 
-  println!("{}", serde_json::to_string(&result).unwrap());
+  let mut encoder =
+    flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::best());
+  serde_json::to_writer(&mut encoder, &result).unwrap();
+  let buffer = encoder.finish().unwrap();
+  print!(
+    "{}",
+    base64::engine::general_purpose::STANDARD.encode(buffer)
+  );
 
   Ok(())
 }
