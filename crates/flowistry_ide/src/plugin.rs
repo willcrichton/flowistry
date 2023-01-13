@@ -9,8 +9,9 @@ use anyhow::Context;
 use clap::{Parser, Subcommand};
 use flowistry::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
+  indexed::impls::Filename,
   mir::borrowck_facts,
-  source_map::{self, FunctionIdentifier, GraphemeIndices, Range, ToSpan},
+  source_map::{self, CharPos, CharRange, FunctionIdentifier, ToSpan},
   timer::elapsed,
 };
 use fluid_let::fluid_set;
@@ -144,18 +145,26 @@ impl RustcPlugin for FlowistryPlugin {
 
     use FlowistryCommand::*;
     match plugin_args.command {
-      Spans { file, .. } => postprocess(crate::spans::spans(&compiler_args, file)),
+      Spans { file, .. } => {
+        postprocess(crate::spans::spans(&compiler_args, Filename::intern(&file)))
+      }
       Playground {
         file, start, end, ..
       } => {
-        let indices = GraphemeIndices::from_path(&file).unwrap();
-        let range = Range::from_char_range(start, end, &file, &indices);
+        let range = CharRange {
+          start: CharPos(start),
+          end: CharPos(end),
+          filename: Filename::intern(&file),
+        };
         postprocess(run(crate::playground::playground, range, &compiler_args))
       }
       Focus { file, pos, .. } => {
-        let indices = GraphemeIndices::from_path(&file).unwrap();
-        let id =
-          FunctionIdentifier::Range(Range::from_char_range(pos, pos, &file, &indices));
+        let range = CharRange {
+          start: CharPos(pos),
+          end: CharPos(pos),
+          filename: Filename::intern(&file),
+        };
+        let id = FunctionIdentifier::Range(range);
         postprocess(run(crate::focus::focus, id, &compiler_args))
       }
       Decompose {
@@ -167,7 +176,7 @@ impl RustcPlugin for FlowistryPlugin {
           if #[cfg(feature = "decompose")] {
             let indices = GraphemeIndices::from_path(&_file).unwrap();
             let id =
-              FunctionIdentifier::Range(Range::from_char_range(_pos, _pos, &_file, &indices));
+              FunctionIdentifier::Range(ByteRange::from_char_range(_pos, _pos, &_file, &indices));
             postprocess(run(
               crate::decompose::decompose,
               id,

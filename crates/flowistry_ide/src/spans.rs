@@ -1,15 +1,18 @@
-use flowistry::source_map::{find_bodies, Range};
+use flowistry::{
+  indexed::impls::FilenameIndex,
+  source_map::{find_bodies, ByteRange},
+};
 use serde::Serialize;
 
 use crate::plugin::{FlowistryError, FlowistryResult};
 
 #[derive(Serialize)]
 pub struct SpansOutput {
-  spans: Vec<Range>,
+  spans: Vec<ByteRange>,
 }
 
 struct Callbacks {
-  filename: String,
+  filename: FilenameIndex,
   output: Option<FlowistryResult<SpansOutput>>,
 }
 
@@ -24,22 +27,17 @@ impl rustc_driver::Callbacks for Callbacks {
 
       self.output = Some((|| {
         let source_map = compiler.session().source_map();
-        let source_file = Range {
-          byte_start: 0,
-          byte_end: 0,
-          char_start: 0,
-          char_end: 0,
-          filename: self.filename.clone(),
-        }
-        .source_file(source_map)
-        .map_err(|_| FlowistryError::FileNotFound)?;
+        let source_file = self
+          .filename
+          .find_source_file(source_map)
+          .map_err(|_| FlowistryError::FileNotFound)?;
 
         let spans = spans
           .into_iter()
           .filter(|span| {
             source_map.lookup_source_file(span.lo()).name_hash == source_file.name_hash
           })
-          .filter_map(|span| Range::from_span(span, source_map).ok())
+          .filter_map(|span| ByteRange::from_span(span, source_map).ok())
           .collect::<Vec<_>>();
         Ok(SpansOutput { spans })
       })());
@@ -48,7 +46,7 @@ impl rustc_driver::Callbacks for Callbacks {
   }
 }
 
-pub fn spans(args: &[String], filename: String) -> FlowistryResult<SpansOutput> {
+pub fn spans(args: &[String], filename: FilenameIndex) -> FlowistryResult<SpansOutput> {
   let mut callbacks = Callbacks {
     filename,
     output: None,

@@ -1,7 +1,8 @@
-use std::rc::Rc;
+use std::{ops::Deref, path::PathBuf, rc::Rc};
 
 use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_middle::mir::{Body, Local, Location, Place};
+use serde::Serialize;
 
 use super::{DefaultDomain, IndexSet, IndexedDomain, IndexedValue, OwnedSet, ToIndex};
 use crate::{
@@ -72,3 +73,30 @@ pub fn build_location_arg_domain(body: &Body) -> Rc<LocationOrArgDomain> {
 }
 
 pub type PlaceSet<'tcx> = HashSet<Place<'tcx>>;
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct Filename(pub PathBuf);
+
+rustc_index::newtype_index! {
+  #[derive(Serialize)]
+  pub struct FilenameIndex {
+      DEBUG_FORMAT = "f{}"
+  }
+}
+
+to_index_impl!(Filename);
+
+pub type FilenameDomain = DefaultDomain<FilenameIndex, Filename>;
+
+impl IndexedValue for Filename {
+  type Index = FilenameIndex;
+  type Domain = FilenameDomain;
+}
+
+impl Deref for Filename {
+  type Target = PathBuf;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}

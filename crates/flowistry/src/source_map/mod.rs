@@ -9,6 +9,6 @@ mod spanner;
 
 pub use find_bodies::{find_bodies, find_enclosing_bodies};
 pub use hir_span::EnclosingHirSpans;
-pub use range::{FunctionIdentifier, GraphemeIndices, Range, ToSpan};
+pub use range::{BytePos, ByteRange, CharPos, CharRange, FunctionIdentifier, ToSpan};
 pub use span_tree::SpanTree;
 pub use spanner::Spanner;

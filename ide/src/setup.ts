@@ -69,7 +69,7 @@ export let exec_notify = async (
     let buffer: string[] = [];
     stream.setEncoding("utf8");
     stream.on("data", (data) => {
-      log(data.toString().trimEnd());
+      // log(data.toString().trimEnd());
       buffer.push(data.toString());
     });
     return () => buffer.join("").trim();
@@ -131,7 +131,7 @@ let findWorkspaceRoot = async (): Promise<string | null> => {
   };
 
   let folderPath = folders[0].uri.fsPath;
-  if (hasCargoToml(folderPath)) return folderPath;
+  if (await hasCargoToml(folderPath)) return folderPath;
 
   let activeEditor = vscode.window.activeTextEditor;
   if (!activeEditor) {

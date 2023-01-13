@@ -305,7 +305,7 @@ pub fn driver_main<T: RustcPlugin>(plugin: T) {
 
     if orig_args.iter().any(|a| a == "--version" || a == "-V") {
       let version_info = rustc_tools_util::get_version_info!();
-      println!("{}", version_info);
+      println!("{version_info}");
       exit(0);
     }
 

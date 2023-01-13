@@ -99,6 +99,14 @@ pub trait IndexedDomain {
   fn size(&self) -> usize {
     self.as_vec().len()
   }
+  fn insert(&mut self, value: Self::Value) -> Self::Index;
+  fn ensure(&mut self, value: &Self::Value) -> Self::Index {
+    if !self.contains(value) {
+      self.insert(value.clone())
+    } else {
+      self.index(value)
+    }
+  }
 
   fn as_set(domain: &Rc<<Self::Value as IndexedValue>::Domain>) -> IndexSet<Self::Value> {
     let mut set = IndexSetImpl::new_empty(domain.size());
@@ -114,6 +122,15 @@ pub trait IndexedDomain {
 pub struct DefaultDomain<I: Idx, T> {
   index_to_value: IndexVec<I, T>,
   value_to_index: HashMap<T, I>,
+}
+
+impl<I: Idx, T> Default for DefaultDomain<I, T> {
+  fn default() -> Self {
+    DefaultDomain {
+      index_to_value: IndexVec::default(),
+      value_to_index: HashMap::default(),
+    }
+  }
 }
 
 impl<I: Idx, T: IndexedValue> DefaultDomain<I, T> {
@@ -151,6 +168,12 @@ impl<I: Idx, T: IndexedValue> IndexedDomain for DefaultDomain<I, T> {
 
   fn as_vec(&self) -> &IndexVec<Self::Index, Self::Value> {
     &self.index_to_value
+  }
+
+  fn insert(&mut self, value: Self::Value) -> Self::Index {
+    let idx = self.index_to_value.push(value.clone());
+    self.value_to_index.insert(value, idx);
+    idx
   }
 }
 

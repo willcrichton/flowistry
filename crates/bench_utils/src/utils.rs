@@ -90,8 +90,8 @@ impl TreeLevel {
     field_val: &syn::Expr,
     field_ty: &syn::Type,
   ) -> TreeLevel {
-    let ident = Ident::new(&format!("struct_{}", level), Span::call_site());
-    let instance_ident = Ident::new(&format!("struct_{}_inst", level), Span::call_site());
+    let ident = Ident::new(&format!("struct_{level}"), Span::call_site());
+    let instance_ident = Ident::new(&format!("struct_{level}_inst"), Span::call_site());
     let type_ident =
       Ident::new(&field_ty.to_token_stream().to_string(), Span::call_site());
 
