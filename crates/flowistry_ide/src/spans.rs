@@ -1,5 +1,5 @@
 use flowistry::{
-  indexed::impls::FilenameIndex,
+  indexed::impls::Filename,
   source_map::{find_bodies, ByteRange},
 };
 use serde::Serialize;
@@ -11,8 +11,10 @@ pub struct SpansOutput {
   spans: Vec<ByteRange>,
 }
 
+unsafe impl Send for SpansOutput {}
+
 struct Callbacks {
-  filename: FilenameIndex,
+  filename: String,
   output: Option<FlowistryResult<SpansOutput>>,
 }
 
@@ -27,8 +29,7 @@ impl rustc_driver::Callbacks for Callbacks {
 
       self.output = Some((|| {
         let source_map = compiler.session().source_map();
-        let source_file = self
-          .filename
+        let source_file = Filename::intern(&self.filename)
           .find_source_file(source_map)
           .map_err(|_| FlowistryError::FileNotFound)?;
 
@@ -46,7 +47,7 @@ impl rustc_driver::Callbacks for Callbacks {
   }
 }
 
-pub fn spans(args: &[String], filename: FilenameIndex) -> FlowistryResult<SpansOutput> {
+pub fn spans(args: &[String], filename: String) -> FlowistryResult<SpansOutput> {
   let mut callbacks = Callbacks {
     filename,
     output: None,

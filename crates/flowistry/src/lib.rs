@@ -39,6 +39,7 @@
   min_specialization,        // for rustc_index::newtype_index
   type_alias_impl_trait,     // for impl Trait in trait definition, eg crate::mir::utils 
   trait_alias,
+  negative_impls,
 )]
 #![allow(
   clippy::single_match,

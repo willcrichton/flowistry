@@ -84,6 +84,11 @@ rustc_index::newtype_index! {
   }
 }
 
+// Filenames are interned at the thread-level, so they should only be
+// used within a given thread. Generally sending an index across a thread
+// boundary is a logical error.
+impl !Send for FilenameIndex {}
+
 to_index_impl!(Filename);
 
 pub type FilenameDomain = DefaultDomain<FilenameIndex, Filename>;

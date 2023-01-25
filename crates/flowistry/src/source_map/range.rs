@@ -1,5 +1,6 @@
 use std::{
-  collections::hash_map::Entry, default::Default, ffi::OsStr, path::PathBuf, sync::Mutex,
+  cell::RefCell, collections::hash_map::Entry, default::Default, ffi::OsStr,
+  path::PathBuf,
 };
 
 use anyhow::{bail, Context, Result};
@@ -21,7 +22,6 @@ use crate::{
 };
 
 struct CharByteMapping {
-  #[allow(unused)]
   byte_to_char: HashMap<BytePos, CharPos>,
   char_to_byte: HashMap<CharPos, BytePos>,
 }
@@ -41,6 +41,21 @@ impl CharByteMapping {
       char_to_byte,
     }
   }
+
+  #[allow(unused)]
+  pub fn byte_to_char(&self, pos: BytePos) -> CharPos {
+    *self
+      .byte_to_char
+      .get(&pos)
+      .unwrap_or_else(|| panic!("Could not find char pos for {pos:?}"))
+  }
+
+  pub fn char_to_byte(&self, pos: CharPos) -> BytePos {
+    *self
+      .char_to_byte
+      .get(&pos)
+      .unwrap_or_else(|| panic!("Could not find byte pos for {pos:?}"))
+  }
 }
 
 #[derive(Default)]
@@ -50,74 +65,67 @@ pub struct RangeContext {
   char_byte_mapping: Cache<FilenameIndex, CharByteMapping>,
 }
 
-#[derive(Default)]
-struct RangeContextCell(Mutex<RangeContext>);
-
-lazy_static::lazy_static! {
-  static ref CONTEXT: RangeContextCell = RangeContextCell::default();
+thread_local! {
+  static CONTEXT: RefCell<RangeContext> = RefCell::new(RangeContext::default());
 }
-
-// SAFETY: we only ever used RangeContext in two threads: the
-// thread calling Rustc, and the Rustc driver thread. The
-// former needs access to the Filename interner.
-unsafe impl Sync for RangeContextCell {}
 
 impl Filename {
   pub fn intern<T: ?Sized + AsRef<OsStr>>(t: &T) -> FilenameIndex {
     let filename = Filename(PathBuf::from(t));
-    let mut ctx = CONTEXT.0.lock().unwrap();
-    ctx.filenames.ensure(&filename)
+    CONTEXT.with(|ctx| ctx.borrow_mut().filenames.ensure(&filename))
   }
 }
 
 impl FilenameIndex {
   pub fn find_source_file(self, source_map: &SourceMap) -> Result<Lrc<SourceFile>> {
-    let ctx = &mut *CONTEXT.0.lock().unwrap();
-    match ctx.path_mapping.entry(self) {
-      Entry::Occupied(entry) => Ok(Lrc::clone(entry.get())),
-      Entry::Vacant(entry) => {
-        let files = source_map.files();
-        debug_assert!(
-          ctx.filenames.as_vec().get(self).is_some(),
-          "Missing file index!"
-        );
-        let filename = &ctx.filenames.value(self);
-        let filename = filename
-          .canonicalize()
-          .unwrap_or_else(|_| filename.to_path_buf());
-        let rustc_filename = files
-          .iter()
-          .map(|file| &file.name)
-          .find(|name| match &name {
-            // rustc seems to store relative paths to files in the workspace, so if filename is absolute,
-            // we can compare them using Path::ends_with
-            FileName::Real(RealFileName::LocalPath(other)) => {
-              let canonical = other.canonicalize();
-              let other = canonical.as_ref().unwrap_or(other);
-              filename.ends_with(other)
-            }
-            _ => false,
-          })
-          .with_context(|| {
-            format!(
-              "Could not find SourceFile for path: {}. Available SourceFiles were: [{}]",
-              filename.display(),
-              files
-                .iter()
-                .filter_map(|file| match &file.name {
-                  FileName::Real(RealFileName::LocalPath(other)) =>
-                    Some(format!("{}", other.display())),
-                  _ => None,
-                })
-                .collect::<Vec<_>>()
-                .join(", ")
-            )
-          })?;
-        let file = source_map.get_source_file(rustc_filename).unwrap();
-        entry.insert(Lrc::clone(&file));
-        Ok(file)
+    CONTEXT.with(|ctx| {
+      let ctx = &mut *ctx.borrow_mut();
+      match ctx.path_mapping.entry(self) {
+        Entry::Occupied(entry) => Ok(Lrc::clone(entry.get())),
+        Entry::Vacant(entry) => {
+          let files = source_map.files();
+          debug_assert!(
+            ctx.filenames.as_vec().get(self).is_some(),
+            "Missing file index!"
+          );
+          let filename = &ctx.filenames.value(self);
+          let filename = filename
+            .canonicalize()
+            .unwrap_or_else(|_| filename.to_path_buf());
+          let rustc_filename = files
+            .iter()
+            .map(|file| &file.name)
+            .find(|name| match &name {
+              // rustc seems to store relative paths to files in the workspace, so if filename is absolute,
+              // we can compare them using Path::ends_with
+              FileName::Real(RealFileName::LocalPath(other)) => {
+                let canonical = other.canonicalize();
+                let other = canonical.as_ref().unwrap_or(other);
+                filename.ends_with(other)
+              }
+              _ => false,
+            })
+            .with_context(|| {
+              format!(
+                "Could not find SourceFile for path: {}. Available SourceFiles were: [{}]",
+                filename.display(),
+                files
+                  .iter()
+                  .filter_map(|file| match &file.name {
+                    FileName::Real(RealFileName::LocalPath(other)) =>
+                      Some(format!("{}", other.display())),
+                    _ => None,
+                  })
+                  .collect::<Vec<_>>()
+                  .join(", ")
+              )
+            })?;
+          let file = source_map.get_source_file(rustc_filename).unwrap();
+          entry.insert(Lrc::clone(&file));
+          Ok(file)
+        }
       }
-    }
+    })
   }
 }
 
@@ -170,49 +178,53 @@ impl ByteRange {
   ) -> Result<ByteRange> {
     let file = filename.find_source_file(source_map)?;
 
-    let ctx = CONTEXT.0.lock().unwrap();
-    let mapping = ctx.char_byte_mapping.get(filename, |_| {
-      CharByteMapping::build(file.src.as_ref().unwrap().as_str())
-    });
-    let byte_start = mapping.char_to_byte[&char_start];
-    let byte_end = mapping.char_to_byte[&char_end];
-    Ok(ByteRange {
-      start: byte_start,
-      end: byte_end,
-      filename,
+    CONTEXT.with(|ctx| {
+      let ctx = ctx.borrow();
+      let mapping = ctx.char_byte_mapping.get(filename, |_| {
+        CharByteMapping::build(file.src.as_ref().unwrap().as_str())
+      });
+      let byte_start = mapping.char_to_byte(char_start);
+      let byte_end = mapping.char_to_byte(char_end);
+      Ok(ByteRange {
+        start: byte_start,
+        end: byte_end,
+        filename,
+      })
     })
   }
 
   pub fn from_span(span: Span, source_map: &SourceMap) -> Result<Self> {
-    let mut ctx = CONTEXT.0.lock().unwrap();
+    CONTEXT.with(|ctx| {
+      let mut ctx = ctx.borrow_mut();
 
-    log::trace!("Converting to range: {span:?}");
-    let file = source_map.lookup_source_file(span.lo());
-    let filename = match &file.name {
-      FileName::Real(RealFileName::LocalPath(filename)) => {
-        ctx.filenames.ensure(&Filename(filename.clone()))
-      }
-      filename => bail!("Range::from_span doesn't support {filename:?}"),
-    };
+      log::trace!("Converting to range: {span:?}");
+      let file = source_map.lookup_source_file(span.lo());
+      let filename = match &file.name {
+        FileName::Real(RealFileName::LocalPath(filename)) => {
+          ctx.filenames.ensure(&Filename(filename.clone()))
+        }
+        filename => bail!("Range::from_span doesn't support {filename:?}"),
+      };
 
-    assert!(
-      source_map.ensure_source_file_source_present(file.clone()),
-      "Could not load source for file: {:?}",
-      file.name
-    );
-    let external = file.external_src.borrow();
-    let _src = file
-      .src
-      .as_ref()
-      .unwrap_or_else(|| external.get_source().as_ref().unwrap());
+      assert!(
+        source_map.ensure_source_file_source_present(file.clone()),
+        "Could not load source for file: {:?}",
+        file.name
+      );
+      let external = file.external_src.borrow();
+      let _src = file
+        .src
+        .as_ref()
+        .unwrap_or_else(|| external.get_source().as_ref().unwrap());
 
-    let byte_start = BytePos(source_map.lookup_byte_offset(span.lo()).pos.0 as usize);
-    let byte_end = BytePos(source_map.lookup_byte_offset(span.hi()).pos.0 as usize);
+      let byte_start = BytePos(source_map.lookup_byte_offset(span.lo()).pos.0 as usize);
+      let byte_end = BytePos(source_map.lookup_byte_offset(span.hi()).pos.0 as usize);
 
-    Ok(ByteRange {
-      start: byte_start,
-      end: byte_end,
-      filename,
+      Ok(ByteRange {
+        start: byte_start,
+        end: byte_end,
+        filename,
+      })
     })
   }
 
@@ -229,7 +241,7 @@ impl CharRange {
 }
 
 /// Used to convert objects into a [`Span`] with access to [`TyCtxt`]
-pub trait ToSpan: Send + Sync {
+pub trait ToSpan {
   fn to_span(&self, tcx: TyCtxt) -> Result<Span>;
 }
 

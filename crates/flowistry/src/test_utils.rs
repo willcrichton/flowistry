@@ -9,7 +9,7 @@ use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_hir::{BodyId, ItemKind};
 use rustc_middle::ty::TyCtxt;
-use rustc_span::{source_map::FileLoader, Span, SyntaxContext};
+use rustc_span::{source_map::FileLoader, Span};
 
 use crate::{
   extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
@@ -31,8 +31,6 @@ impl FileLoader for StringLoader {
   }
 }
 
-pub const DUMMY_FILE_NAME: &str = "dummy.rs";
-
 lazy_static::lazy_static! {
   static ref SYSROOT: String = {
     let rustc_output =
@@ -46,25 +44,32 @@ lazy_static::lazy_static! {
       .trim()
       .to_owned()
   };
-  pub static ref DUMMY_FILE: FilenameIndex = Filename::intern(DUMMY_FILE_NAME);
-  pub static ref DUMMY_BYTE_RANGE: ByteRange = ByteRange {
+}
+
+pub const DUMMY_FILE_NAME: &str = "dummy.rs";
+
+thread_local! {
+  pub static DUMMY_FILE: FilenameIndex = Filename::intern(DUMMY_FILE_NAME);
+  pub static DUMMY_BYTE_RANGE: ByteRange = DUMMY_FILE.with(|filename| ByteRange {
     start: BytePos(0),
     end: BytePos(0),
-    filename: *DUMMY_FILE,
-  };
-  pub static ref DUMMY_CHAR_RANGE: CharRange = CharRange {
+    filename: *filename,
+  });
+  pub static DUMMY_CHAR_RANGE: CharRange = DUMMY_FILE.with(|filename| CharRange {
     start: CharPos(0),
     end: CharPos(0),
-    filename: *DUMMY_FILE,
-  };
+    filename: *filename,
+  });
 }
 
 pub fn compile_body_with_range(
   input: impl Into<String>,
-  target: ByteRange,
-  callback: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &BodyWithBorrowckFacts<'tcx>) + Send,
+  compute_target: impl FnOnce() -> ByteRange + Send,
+  callback: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &BodyWithBorrowckFacts<'tcx>, ByteRange)
+    + Send,
 ) {
   compile(input, |tcx| {
+    let target = compute_target();
     let body_id = find_enclosing_bodies(tcx, target.to_span(tcx).unwrap())
       .next()
       .unwrap();
@@ -72,7 +77,7 @@ pub fn compile_body_with_range(
     let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
     debug!("{}", body_with_facts.body.to_string(tcx).unwrap());
 
-    callback(tcx, body_id, body_with_facts);
+    callback(tcx, body_id, body_with_facts, target);
   })
 }
 
@@ -184,11 +189,12 @@ pub fn parse_ranges(
       let (start, delim) = stack
         .pop()
         .with_context(|| anyhow!("Missing open delimiter for \"{close}\""))?;
-      ranges.entry(delim).or_default().push(ByteRange {
+      let range = DUMMY_FILE.with(|filename| ByteRange {
         start: BytePos(start),
         end: BytePos(out_idx),
-        filename: *DUMMY_FILE,
+        filename: *filename,
       });
+      ranges.entry(delim).or_default().push(range);
       in_idx += close.len();
       continue;
     }
@@ -204,15 +210,6 @@ pub fn parse_ranges(
 
   let prog_clean = String::from_utf8(buf)?;
   Ok((prog_clean, ranges))
-}
-
-pub fn make_span(range: ByteRange) -> Span {
-  Span::new(
-    rustc_span::BytePos(range.start.0 as u32),
-    rustc_span::BytePos(range.end.0 as u32),
-    SyntaxContext::root(),
-    None,
-  )
 }
 
 pub fn color_ranges(prog: &str, all_ranges: Vec<(&str, &HashSet<ByteRange>)>) -> String {
@@ -305,13 +302,18 @@ pub fn test_command_output(
     info!("Testing {}", path.file_name().unwrap().to_string_lossy());
     let input = String::from_utf8(fs::read(path)?)?;
 
-    let (input_clean, input_ranges) = parse_ranges(&input, vec![("`(", ")`")])?;
-    let target = input_ranges["`("][0];
-
+    // We have to do a hacky thing where we call `parse_ranges` twice.
+    // Once to clean up the input to pass to rustc to start the session.
+    // A second time to get the `ByteRange`s, which *must* happen *within*
+    // the session thread bc filenames are interned.
+    let (input_clean, _) = parse_ranges(&input, vec![("`(", ")`")])?;    
     compile_body_with_range(
       input_clean.clone(),
-      target,
-      move |tcx, body_id, body_with_facts| {
+      || {
+        let (_, input_ranges) = parse_ranges(&input, vec![("`(", ")`")]).unwrap();
+        input_ranges["`("][0]
+      },
+      |tcx, body_id, body_with_facts, target: ByteRange| {
         let header = input.lines().next().unwrap();
         let mut mode = EvalMode::default();
         if header.starts_with("/*") {
@@ -430,20 +432,22 @@ mod test {
 
   #[test]
   fn test_parse_ranges() {
-    let s = "`[`[f]`oo]`";
-    let (clean, ranges) = parse_ranges(s, vec![("`[", "]`")]).unwrap();
-    assert_eq!(clean, "foo");
-    assert_eq!(ranges["`["], vec![
-      ByteRange {
-        start: BytePos(0),
-        end: BytePos(1),
-        filename: *DUMMY_FILE
-      },
-      ByteRange {
-        start: BytePos(0),
-        end: BytePos(3),
-        filename: *DUMMY_FILE
-      },
-    ])
+    DUMMY_FILE.with(|filename| {
+      let s = "`[`[f]`oo]`";
+      let (clean, ranges) = parse_ranges(s, vec![("`[", "]`")]).unwrap();
+      assert_eq!(clean, "foo");
+      assert_eq!(ranges["`["], vec![
+        ByteRange {
+          start: BytePos(0),
+          end: BytePos(1),
+          filename: *filename,
+        },
+        ByteRange {
+          start: BytePos(0),
+          end: BytePos(3),
+          filename: *filename,
+        },
+      ])
+    });
   }
 }
