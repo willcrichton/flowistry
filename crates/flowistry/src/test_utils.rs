@@ -31,6 +31,8 @@ impl FileLoader for StringLoader {
   }
 }
 
+pub const DUMMY_FILE_NAME: &str = "dummy.rs";
+
 lazy_static::lazy_static! {
   static ref SYSROOT: String = {
     let rustc_output =
@@ -44,7 +46,7 @@ lazy_static::lazy_static! {
       .trim()
       .to_owned()
   };
-  pub static ref DUMMY_FILE: FilenameIndex = Filename::intern("dummy.rs");
+  pub static ref DUMMY_FILE: FilenameIndex = Filename::intern(DUMMY_FILE_NAME);
   pub static ref DUMMY_BYTE_RANGE: ByteRange = ByteRange {
     start: BytePos(0),
     end: BytePos(0),
@@ -102,7 +104,7 @@ pub fn compile(input: impl Into<String>, callback: impl FnOnce(TyCtxt<'_>) + Sen
     callback: Some(callback),
   };
   let args = format!(
-    "rustc dummy.rs --crate-type lib --edition=2021 -Z identify-regions -Z mir-opt-level=0 -Z maximal-hir-to-mir-coverage --allow warnings --sysroot {}",
+    "rustc {DUMMY_FILE_NAME} --crate-type lib --edition=2021 -Z identify-regions -Z mir-opt-level=0 -Z maximal-hir-to-mir-coverage --allow warnings --sysroot {}",
     &*SYSROOT
   );
   let args = args.split(' ').map(|s| s.to_string()).collect::<Vec<_>>();
