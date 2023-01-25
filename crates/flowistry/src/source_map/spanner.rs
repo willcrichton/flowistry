@@ -234,19 +234,20 @@ mod test {
   use test_log::test;
 
   use super::*;
-  use crate::test_utils;
+  use crate::{source_map::ToSpan, test_utils};
 
   fn harness(
     src: &str,
     f: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &Body<'tcx>, Vec<Span>) + Send,
   ) {
-    let (input, mut ranges) = test_utils::parse_ranges(src, [("`(", ")`")]).unwrap();
+    let (input, _) = test_utils::parse_ranges(src, [("`(", ")`")]).unwrap();
     test_utils::compile_body(input, move |tcx, body_id, body_with_facts| {
+      let (_, mut ranges) = test_utils::parse_ranges(src, [("`(", ")`")]).unwrap();
       let spans = ranges
         .remove("`(")
         .unwrap()
         .into_iter()
-        .map(test_utils::make_span)
+        .map(|range| range.to_span(tcx).unwrap())
         .collect::<Vec<_>>();
       f(tcx, body_id, &body_with_facts.body, spans);
     });

@@ -146,27 +146,31 @@ impl RustcPlugin for FlowistryPlugin {
 
     use FlowistryCommand::*;
     match plugin_args.command {
-      Spans { file, .. } => {
-        postprocess(crate::spans::spans(&compiler_args, Filename::intern(&file)))
-      }
+      Spans { file, .. } => postprocess(crate::spans::spans(&compiler_args, file)),
       Playground {
         file, start, end, ..
       } => {
-        let range = CharRange {
+        let compute_target = || CharRange {
           start: CharPos(start),
           end: CharPos(end),
           filename: Filename::intern(&file),
         };
-        postprocess(run(crate::playground::playground, range, &compiler_args))
+        postprocess(run(
+          crate::playground::playground,
+          compute_target,
+          &compiler_args,
+        ))
       }
       Focus { file, pos, .. } => {
-        let range = CharRange {
-          start: CharPos(pos),
-          end: CharPos(pos),
-          filename: Filename::intern(&file),
+        let compute_target = || {
+          let range = CharRange {
+            start: CharPos(pos),
+            end: CharPos(pos),
+            filename: Filename::intern(&file),
+          };
+          FunctionIdentifier::Range(range)
         };
-        let id = FunctionIdentifier::Range(range);
-        postprocess(run(crate::focus::focus, id, &compiler_args))
+        postprocess(run(crate::focus::focus, compute_target, &compiler_args))
       }
       Decompose {
         file: _file,
@@ -233,12 +237,12 @@ pub fn run_with_callbacks(
 
 fn run<A: FlowistryAnalysis, T: ToSpan>(
   analysis: A,
-  target: T,
+  compute_target: impl FnOnce() -> T + Send,
   args: &[String],
 ) -> FlowistryResult<A::Output> {
   let mut callbacks = FlowistryCallbacks {
     analysis: Some(analysis),
-    target,
+    compute_target: Some(compute_target),
     output: None,
     rustc_start: Instant::now(),
     eval_mode: EVAL_MODE.copied(),
@@ -285,16 +289,16 @@ where
   }
 }
 
-struct FlowistryCallbacks<A: FlowistryAnalysis, T: ToSpan> {
+struct FlowistryCallbacks<A: FlowistryAnalysis, T: ToSpan, F: FnOnce() -> T> {
   analysis: Option<A>,
-  target: T,
+  compute_target: Option<F>,
   output: Option<anyhow::Result<A::Output>>,
   rustc_start: Instant,
   eval_mode: Option<EvalMode>,
 }
 
-impl<A: FlowistryAnalysis, T: ToSpan> rustc_driver::Callbacks
-  for FlowistryCallbacks<A, T>
+impl<A: FlowistryAnalysis, T: ToSpan, F: FnOnce() -> T> rustc_driver::Callbacks
+  for FlowistryCallbacks<A, T, F>
 {
   fn config(&mut self, config: &mut rustc_interface::Config) {
     config.override_queries = Some(borrowck_facts::override_queries);
@@ -313,7 +317,7 @@ impl<A: FlowistryAnalysis, T: ToSpan> rustc_driver::Callbacks
       elapsed("global_ctxt", start);
       let mut analysis = self.analysis.take().unwrap();
       self.output = Some((|| {
-        let target = self.target.to_span(tcx)?;
+        let target = (self.compute_target.take().unwrap())().to_span(tcx)?;
         let mut bodies = source_map::find_enclosing_bodies(tcx, target);
         let body = bodies.next().context("Selection did not map to a body")?;
         analysis.analyze(tcx, body)

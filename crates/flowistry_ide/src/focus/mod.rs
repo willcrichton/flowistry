@@ -26,6 +26,8 @@ pub struct FocusOutput {
   pub containers: Vec<CharRange>,
 }
 
+unsafe impl Send for FocusOutput {}
+
 pub fn focus(tcx: TyCtxt, body_id: BodyId) -> Result<FocusOutput> {
   let def_id = tcx.hir().body_owner_def_id(body_id);
   let body_with_facts = get_body_with_borrowck_facts(tcx, def_id);
