@@ -16,7 +16,9 @@ use crate::{
   indexed::impls::{Filename, FilenameIndex},
   infoflow,
   mir::{borrowck_facts, utils::BodyExt},
-  source_map::{find_enclosing_bodies, BytePos, ByteRange, Spanner, ToSpan},
+  source_map::{
+    find_enclosing_bodies, BytePos, ByteRange, CharPos, CharRange, Spanner, ToSpan,
+  },
 };
 
 struct StringLoader(String);
@@ -42,7 +44,17 @@ lazy_static::lazy_static! {
       .trim()
       .to_owned()
   };
-  static ref DUMMY_FILE: FilenameIndex = Filename::intern("dummy.rs");
+  pub static ref DUMMY_FILE: FilenameIndex = Filename::intern("dummy.rs");
+  pub static ref DUMMY_BYTE_RANGE: ByteRange = ByteRange {
+    start: BytePos(0),
+    end: BytePos(0),
+    filename: *DUMMY_FILE,
+  };
+  pub static ref DUMMY_CHAR_RANGE: CharRange = CharRange {
+    start: CharPos(0),
+    end: CharPos(0),
+    filename: *DUMMY_FILE,
+  };
 }
 
 pub fn compile_body_with_range(

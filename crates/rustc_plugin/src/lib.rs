@@ -324,7 +324,7 @@ pub fn driver_main<T: RustcPlugin>(plugin: T) {
     // the driver directly without having to pass --sysroot or anything
     let mut args: Vec<String> = orig_args.clone();
     if !have_sys_root_arg {
-      args.extend(vec!["--sysroot".into(), sys_root]);
+      args.extend(["--sysroot".into(), sys_root]);
     };
 
     // On a given invocation of rustc, we have to decide whether to act as rustc,
