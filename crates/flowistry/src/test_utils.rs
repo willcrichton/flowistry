@@ -306,7 +306,7 @@ pub fn test_command_output(
     // Once to clean up the input to pass to rustc to start the session.
     // A second time to get the `ByteRange`s, which *must* happen *within*
     // the session thread bc filenames are interned.
-    let (input_clean, _) = parse_ranges(&input, vec![("`(", ")`")])?;    
+    let (input_clean, _) = parse_ranges(&input, vec![("`(", ")`")])?;
     compile_body_with_range(
       input_clean.clone(),
       || {
