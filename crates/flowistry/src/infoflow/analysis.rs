@@ -22,7 +22,7 @@ use crate::{
   mir::{
     aliases::Aliases,
     control_dependencies::ControlDependencies,
-    utils::{OperandExt, PlaceExt},
+    utils::{BodyExt, OperandExt, PlaceExt},
   },
 };
 
@@ -55,7 +55,7 @@ pub struct FlowAnalysis<'a, 'tcx> {
   pub tcx: TyCtxt<'tcx>,
   pub def_id: DefId,
   pub body: &'a Body<'tcx>,
-  pub control_dependencies: ControlDependencies,
+  pub control_dependencies: ControlDependencies<BasicBlock>,
   pub aliases: Aliases<'a, 'tcx>,
   pub(crate) recurse_cache: RefCell<HashMap<BodyId, FlowResults<'a, 'tcx>>>,
 }
@@ -66,9 +66,10 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     def_id: DefId,
     body: &'a Body<'tcx>,
     aliases: Aliases<'a, 'tcx>,
-    control_dependencies: ControlDependencies,
   ) -> Self {
     let recurse_cache = RefCell::new(HashMap::default());
+    let control_dependencies = body.control_dependencies();
+    debug!("Control dependencies: {control_dependencies:?}");
     FlowAnalysis {
       tcx,
       def_id,

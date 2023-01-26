@@ -8,96 +8,112 @@
 
 use std::fmt;
 
-use rustc_data_structures::{
-  fx::FxHashMap as HashMap,
-  graph::{vec_graph::VecGraph, *},
+use rustc_data_structures::graph::{
+  dominators::{Dominators, Iter as DominatorsIter},
+  vec_graph::VecGraph,
+  *,
 };
-use rustc_index::bit_set::{BitSet, HybridBitSet, SparseBitMatrix};
-use rustc_middle::mir::*;
+use rustc_index::{
+  bit_set::{BitSet, HybridBitSet, SparseBitMatrix},
+  vec::Idx,
+};
+use smallvec::SmallVec;
 
-use super::utils::BodyExt;
-
-struct BodyReversed<'a, 'tcx> {
-  body: &'a Body<'tcx>,
-  ret: BasicBlock,
-  unreachable: BitSet<BasicBlock>,
+struct ReversedGraph<'a, G: ControlFlowGraph> {
+  graph: &'a G,
+  exit: G::Node,
+  unreachable: BitSet<G::Node>,
 }
 
-fn compute_immediate_post_dominators(
-  body: &Body,
-  ret: BasicBlock,
-) -> HashMap<BasicBlock, BasicBlock> {
-  let nblocks = body.basic_blocks.len();
-  let mut graph = BodyReversed {
-    body,
-    ret,
-    unreachable: BitSet::new_empty(nblocks),
-  };
-
-  let reachable = iterate::post_order_from(&graph, ret);
-  graph.unreachable.insert_all();
-  for n in &reachable {
-    graph.unreachable.remove(*n);
-  }
-
-  let dominators = dominators::dominators(graph);
-  reachable
-    .into_iter()
-    .map(|n| (n, dominators.immediate_dominator(n)))
-    .collect()
+impl<G: ControlFlowGraph> DirectedGraph for ReversedGraph<'_, G> {
+  type Node = G::Node;
 }
 
-impl DirectedGraph for BodyReversed<'_, '_> {
-  type Node = BasicBlock;
-}
-
-impl WithStartNode for BodyReversed<'_, '_> {
+impl<G: ControlFlowGraph> WithStartNode for ReversedGraph<'_, G> {
   fn start_node(&self) -> Self::Node {
-    self.ret
+    self.exit
   }
 }
 
-impl WithNumNodes for BodyReversed<'_, '_> {
+impl<G: ControlFlowGraph> WithNumNodes for ReversedGraph<'_, G> {
   fn num_nodes(&self) -> usize {
-    self.body.basic_blocks.len()
+    self.graph.num_nodes()
   }
 }
 
-impl<'graph> GraphSuccessors<'graph> for BodyReversed<'_, '_> {
-  type Item = BasicBlock;
-  type Iter = Box<dyn Iterator<Item = BasicBlock> + 'graph>;
+impl<'graph, G: ControlFlowGraph> GraphSuccessors<'graph> for ReversedGraph<'_, G> {
+  type Item = G::Node;
+  type Iter = smallvec::IntoIter<[Self::Item; 4]>;
 }
 
-impl WithSuccessors for BodyReversed<'_, '_> {
+impl<G: ControlFlowGraph> WithSuccessors for ReversedGraph<'_, G> {
   fn successors(&self, node: Self::Node) -> <Self as GraphSuccessors<'_>>::Iter {
-    Box::new(
-      self.body.basic_blocks.predecessors()[node]
-        .iter()
-        .filter(|bb| !self.unreachable.contains(**bb))
-        .copied(),
-    )
+    self
+      .graph
+      .predecessors(node)
+      .filter(|bb| !self.unreachable.contains(*bb))
+      // We have to collect -> immediately into_iter because we need to return
+      // an iterator type that doesn't describe closures, which aren't nameable
+      // in the GraphSuccessors trait implementation.
+      .collect::<SmallVec<[G::Node; 4]>>()
+      .into_iter()
   }
 }
 
-impl<'graph> GraphPredecessors<'graph> for BodyReversed<'_, '_> {
-  type Item = BasicBlock;
-  type Iter = Box<dyn Iterator<Item = BasicBlock> + 'graph>;
+impl<'graph, G: ControlFlowGraph> GraphPredecessors<'graph> for ReversedGraph<'_, G> {
+  type Item = G::Node;
+  type Iter = smallvec::IntoIter<[Self::Item; 4]>;
 }
 
-impl WithPredecessors for BodyReversed<'_, '_> {
+impl<G: ControlFlowGraph> WithPredecessors for ReversedGraph<'_, G> {
   fn predecessors(&self, node: Self::Node) -> <Self as GraphPredecessors<'_>>::Iter {
-    Box::new(
-      self.body.basic_blocks[node]
-        .terminator()
-        .successors()
-        .filter(|bb| !self.unreachable.contains(*bb)),
-    )
+    self
+      .graph
+      .successors(node)
+      .filter(|bb| !self.unreachable.contains(*bb))
+      .collect::<SmallVec<[G::Node; 4]>>()
+      .into_iter()
   }
 }
 
-pub struct ControlDependencies(SparseBitMatrix<BasicBlock, BasicBlock>);
+/// Represents the post-dominators of a graph's nodes with respect to a particular exit
+pub struct PostDominators<Node: Idx>(Dominators<Node>);
 
-impl fmt::Debug for ControlDependencies {
+impl<Node: Idx> PostDominators<Node> {
+  /// Constructs the post-dominators by computing the dominators on a reversed graph
+  pub fn build<G: ControlFlowGraph<Node = Node>>(graph: &G, exit: Node) -> Self {
+    let mut reversed = ReversedGraph {
+      graph,
+      exit,
+      unreachable: BitSet::new_empty(graph.num_nodes()),
+    };
+
+    let reachable = iterate::post_order_from(&reversed, exit);
+    reversed.unreachable.insert_all();
+    for n in &reachable {
+      reversed.unreachable.remove(*n);
+    }
+
+    let dominators = dominators::dominators(reversed);
+    PostDominators::<Node>(dominators)
+  }
+
+  /// Gets the node that immediately post-dominators `node`, if one exists
+  pub fn immediate_post_dominator(&self, node: Node) -> Option<Node> {
+    let reachable = self.0.is_reachable(node);
+    reachable.then(|| self.0.immediate_dominator(node))
+  }
+
+  /// Gets all nodes that post-dominate `node`, if they exist
+  pub fn post_dominators(&self, node: Node) -> Option<DominatorsIter<'_, Node>> {
+    let reachable = self.0.is_reachable(node);
+    reachable.then(|| self.0.dominators(node))
+  }
+}
+
+pub struct ControlDependencies<Node: Idx>(SparseBitMatrix<Node, Node>);
+
+impl<Node: Idx> fmt::Debug for ControlDependencies<Node> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     for (i, (bb, bbs)) in self
       .0
@@ -121,60 +137,36 @@ impl fmt::Debug for ControlDependencies {
   }
 }
 
-impl ControlDependencies {
-  /// Compute control dependencies for body.
-  ///
-  /// This computes union of the control dependencies for each return in the body.
-  pub fn build(body: &Body) -> Self {
-    ControlDependencies(
-      body
-        .all_returns()
-        .map(|loc| ControlDependencies::build_for_return(body, loc.block))
-        .fold(
-          SparseBitMatrix::new(body.basic_blocks.len()),
-          |mut deps1, deps2| {
-            for block in deps2.rows() {
-              if let Some(set) = deps2.row(block) {
-                deps1.union_row(block, set);
-              }
-            }
-            deps1
-          },
-        ),
-    )
-  }
-
+impl<Node: Idx + Ord> ControlDependencies<Node> {
   /// Compute control dependencies from post-dominator frontier.
   ///
   /// Frontier algorithm from "An Efficient Method of Computing Single Static Assignment Form", Cytron et al. 89
-  fn build_for_return(
-    body: &Body,
-    ret: BasicBlock,
-  ) -> SparseBitMatrix<BasicBlock, BasicBlock> {
-    let idom = compute_immediate_post_dominators(body, ret);
-    log::debug!("idom={idom:?}");
+  fn build<G: ControlFlowGraph<Node = Node>>(graph: &G, exit: Node) -> Self {
+    let post_dominators = PostDominators::build(graph, exit);
+    let idom = |node| post_dominators.immediate_post_dominator(node);
 
-    let edges = body
-      .basic_blocks
-      .indices()
-      .filter_map(|bb| Some((*idom.get(&bb)?, bb)))
+    let n = graph.num_nodes();
+    let edges = (0 .. n)
+      .filter_map(|i| {
+        let node = Node::new(i);
+        Some((idom(node)?, node))
+      })
       .collect::<Vec<_>>();
-    let n = body.basic_blocks.len();
     let dominator_tree = VecGraph::new(n, edges);
 
-    let traversal = iterate::post_order_from(&dominator_tree, ret);
+    let traversal = iterate::post_order_from(&dominator_tree, exit);
 
     // Only use size = n b/c exit node shouldn't ever have a dominance frontier
     let mut df = SparseBitMatrix::new(n);
     for x in traversal {
-      let local = body.basic_blocks.predecessors()[x].iter().copied();
+      let local = graph.predecessors(x);
       let up = dominator_tree
         .successors(x)
         .iter()
         .flat_map(|z| df.row(*z).into_iter().flat_map(|set| set.iter()));
       let frontier = local
         .chain(up)
-        .filter(|y| idom.get(y).map(|yd| *yd != x).unwrap_or(false))
+        .filter(|y| idom(*y).map(|yd| yd != x).unwrap_or(false))
         .collect::<Vec<_>>();
 
       for y in frontier {
@@ -182,12 +174,29 @@ impl ControlDependencies {
       }
     }
 
-    df
+    ControlDependencies(df)
   }
 
-  /// Returns the set of all blocks that are control-dependent on the given `block`.
-  pub fn dependent_on(&self, block: BasicBlock) -> Option<&HybridBitSet<BasicBlock>> {
-    self.0.row(block)
+  /// Compute the union of control dependencies from multiple exits.
+  pub fn build_many<G: ControlFlowGraph<Node = Node>>(
+    graph: &G,
+    exits: impl IntoIterator<Item = Node>,
+  ) -> Self {
+    let mut all_deps = SparseBitMatrix::new(graph.num_nodes());
+    for exit in exits {
+      let deps = ControlDependencies::build(graph, exit);
+      for node in deps.0.rows() {
+        if let Some(set) = deps.0.row(node) {
+          all_deps.union_row(node, set);
+        }
+      }
+    }
+    ControlDependencies(all_deps)
+  }
+
+  /// Returns the set of all node that are control-dependent on the given `node`.
+  pub fn dependent_on(&self, node: Node) -> Option<&HybridBitSet<Node>> {
+    self.0.row(node)
   }
 }
 
@@ -195,9 +204,9 @@ impl ControlDependencies {
 mod test {
   use log::debug;
   use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
+  use rustc_middle::mir::Location;
   use test_log::test;
 
-  use super::*;
   use crate::{mir::utils::BodyExt, test_utils};
 
   #[test]
@@ -212,7 +221,7 @@ mod test {
     }"#;
     test_utils::compile_body(input, move |tcx, _, body_with_facts| {
       let body = &body_with_facts.body;
-      let control_deps = ControlDependencies::build(body);
+      let control_deps = body.control_dependencies();
 
       let mut snippet_to_loc: HashMap<_, Vec<_>> = HashMap::default();
       for loc in body.all_locations() {

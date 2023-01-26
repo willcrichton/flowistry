@@ -16,9 +16,7 @@ pub use self::{
 };
 use crate::{
   block_timer,
-  mir::{
-    aliases::Aliases, control_dependencies::ControlDependencies, engine, utils::BodyExt,
-  },
+  mir::{aliases::Aliases, engine, utils::BodyExt},
 };
 
 mod analysis;
@@ -98,13 +96,11 @@ pub fn compute_flow<'a, 'tcx>(
     let location_domain = aliases.location_domain().clone();
 
     let body = &body_with_facts.body;
-    let control_dependencies = ControlDependencies::build(body);
-    debug!("Control dependencies: {control_dependencies:?}");
 
     let results = {
       block_timer!("Flow");
 
-      let analysis = FlowAnalysis::new(tcx, def_id, body, aliases, control_dependencies);
+      let analysis = FlowAnalysis::new(tcx, def_id, body, aliases);
       engine::iterate_to_fixpoint(tcx, body, location_domain, analysis)
       // analysis.into_engine(tcx, body).iterate_to_fixpoint()
     };

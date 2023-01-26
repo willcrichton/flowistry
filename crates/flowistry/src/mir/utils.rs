@@ -34,6 +34,7 @@ use rustc_target::abi::VariantIdx;
 use rustc_trait_selection::traits::NormalizeExt;
 use smallvec::SmallVec;
 
+use super::control_dependencies::ControlDependencies;
 use crate::{
   extensions::{is_extension_active, MutabilityMode},
   indexed::impls::LocationOrArg,
@@ -796,6 +797,8 @@ pub trait BodyExt<'tcx> {
   fn location_to_hir_id(&self, location: Location) -> HirId;
 
   fn source_info_to_hir_id(&self, info: &SourceInfo) -> HirId;
+
+  fn control_dependencies(&self) -> ControlDependencies<BasicBlock>;
 }
 
 // https://github.com/rust-lang/rust/issues/66551#issuecomment-629815002
@@ -865,6 +868,13 @@ impl<'tcx> BodyExt<'tcx> for Body<'tcx> {
     let scope = &self.source_scopes[info.scope];
     let local_data = scope.local_data.as_ref().assert_crate_local();
     local_data.lint_root
+  }
+
+  fn control_dependencies(&self) -> ControlDependencies<BasicBlock> {
+    ControlDependencies::build_many(
+      &self.basic_blocks,
+      self.all_returns().map(|loc| loc.block),
+    )
   }
 }
 
