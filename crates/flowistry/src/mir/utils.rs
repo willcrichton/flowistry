@@ -1,7 +1,9 @@
 //! A potpourri of utilities for working with the MIR, primarily exposed as extension traits.
 
 use std::{
+  borrow::Cow,
   cmp,
+  collections::VecDeque,
   io::Write,
   ops::ControlFlow,
   path::Path,
@@ -473,54 +475,95 @@ impl<'tcx> PlaceExt<'tcx> for Place<'tcx> {
   }
 
   fn to_string(&self, tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> Option<String> {
+    // Get the local's debug name from the Body's VarDebugInfo
     let local_name = if self.local == RETURN_PLACE {
-      "RETURN".into()
+      Cow::Borrowed("RETURN")
     } else {
-      body
-        .var_debug_info
-        .iter()
-        .filter_map(|info| match info.value {
-          VarDebugInfoContents::Place(place) if place.local == self.local => info
-            .source_info
-            .span
-            .as_local(body.span)
-            .map(|_| info.name.to_string()),
-          _ => None,
-        })
-        .next()?
+      let get_local_name = |info: &VarDebugInfo<'tcx>| match info.value {
+        VarDebugInfoContents::Place(place) if place.local == self.local => info
+          .source_info
+          .span
+          .as_local(body.span)
+          .map(|_| info.name.to_string()),
+        _ => None,
+      };
+      let local_name = body.var_debug_info.iter().find_map(get_local_name)?;
+      Cow::Owned(local_name)
     };
 
-    let projection_to_string =
-      |s: String, (place, elem): (PlaceRef<'tcx>, PlaceElem<'tcx>)| match elem {
-        ProjectionElem::Deref => format!("*{s}"),
-        ProjectionElem::Field(f, _) => {
+    #[derive(Copy, Clone)]
+    enum ElemPosition {
+      Prefix,
+      Suffix,
+    }
+
+    // Turn each PlaceElem into a prefix (e.g. * for deref) or a suffix
+    // (e.g. .field for projection).
+    let elem_to_string = |(index, (place, elem)): (
+      usize,
+      (PlaceRef<'tcx>, PlaceElem<'tcx>),
+    )|
+     -> (ElemPosition, Cow<'static, str>) {
+      match elem {
+        ProjectionElem::Deref => (ElemPosition::Prefix, "*".into()),
+
+        ProjectionElem::Field(field, _) => {
           let ty = place.ty(&body.local_decls, tcx).ty;
-          let default = || format!("{s}.{}", f.as_usize());
-          if let Some(def) = ty.ty_adt_def() {
-            match def.adt_kind() {
-              AdtKind::Struct => {
-                let name = def.non_enum_variant().fields[f.as_usize()].ident(tcx);
-                format!("{s}.{name}")
-              }
-              _ => default(),
+
+          let field_name = match ty.kind() {
+            TyKind::Adt(def, _substs) => {
+              let fields = match def.adt_kind() {
+                AdtKind::Struct => &def.non_enum_variant().fields,
+                AdtKind::Enum => {
+                  let Some(PlaceElem::Downcast(_, variant_idx)) = self.projection.get(index - 1) else { unimplemented!() } ;
+                  &def.variant(*variant_idx).fields
+                }
+                _ => unimplemented!(),
+              };
+
+              fields[field.as_usize()].ident(tcx).to_string()
             }
-          } else {
-            default()
+
+            TyKind::Tuple(_) => field.as_usize().to_string(),
+
+            _ => unimplemented!(),
+          };
+
+          (ElemPosition::Suffix, format!(".{field_name}").into())
+        }
+        ProjectionElem::Downcast(sym, _) => {
+          let variant = sym.map(|s| s.to_string()).unwrap_or_else(|| "??".into());
+          (ElemPosition::Suffix, format!("@{variant}",).into())
+        }
+
+        ProjectionElem::Index(_) => (ElemPosition::Suffix, "[..]".into()),
+        _ => unimplemented!(),
+      }
+    };
+
+    let (positions, contents): (Vec<_>, Vec<_>) = self
+      .iter_projections()
+      .enumerate()
+      .map(elem_to_string)
+      .unzip();
+
+    // Combine the prefixes and suffixes into a corresponding sequence
+    let mut parts = VecDeque::from([local_name]);
+    for (i, string) in contents.into_iter().enumerate() {
+      match positions[i] {
+        ElemPosition::Prefix => {
+          parts.push_front(string);
+          if matches!(positions.get(i + 1), Some(ElemPosition::Suffix)) {
+            parts.push_front(Cow::Borrowed("("));
+            parts.push_back(Cow::Borrowed(")"));
           }
         }
-        ProjectionElem::Downcast(sym, _) => format!(
-          "{s} as {}",
-          sym.map(|s| s.to_string()).unwrap_or_else(|| "??".into())
-        ),
-        ProjectionElem::Index(_) => format!("{s}[]"),
-        _ => unimplemented!(),
-      };
+        ElemPosition::Suffix => parts.push_back(string),
+      }
+    }
 
-    Some(
-      self
-        .iter_projections()
-        .fold(local_name, projection_to_string),
-    )
+    let full = parts.make_contiguous().join("");
+    Some(full)
   }
 
   fn normalize(&self, tcx: TyCtxt<'tcx>, def_id: DefId) -> Place<'tcx> {
@@ -1066,6 +1109,7 @@ mod test {
   use rustc_span::BytePos;
 
   use super::*;
+  use crate::test_utils;
 
   #[test]
   fn test_span_subtract() {
@@ -1075,6 +1119,65 @@ mod test {
       let inner: Vec<Span> = vec![mk(0, 2), mk(3, 4), mk(3, 5), mk(7, 8), mk(9, 13)];
       let desired: Vec<Span> = vec![mk(2, 3), mk(5, 7), mk(8, 9)];
       assert_eq!(outer.subtract(inner), desired);
+    });
+  }
+
+  #[test]
+  fn test_place_to_string() {
+    let input = r#"
+    struct Point { x: usize, y: usize }
+    fn main() {
+      let x = (0, 0);
+      let y = Some(1);
+      let z = &[Some((0, 1))];    
+      let w = (&y,);
+      let p = &Point { x: 0, y: 0 };
+    }
+    "#;
+    test_utils::compile_body(input, |tcx, _body_id, body_with_facts| {
+      let body = &body_with_facts.body;
+      let name_map = body
+        .debug_info_name_map()
+        .into_iter()
+        .map(|(k, v)| (v.to_string(), k))
+        .collect::<HashMap<_, _>>();
+
+      let downcast = |s: &str, i: usize| {
+        PlaceElem::Downcast(Some(Symbol::intern(s)), VariantIdx::from_usize(i))
+      };
+      let field = |i: usize| PlaceElem::Field(Field::from_usize(i), tcx.mk_unit());
+      let index = |i: usize| PlaceElem::Index(Local::from_usize(i));
+      let deref = || PlaceElem::Deref;
+
+      let x = Place::from_local(name_map["x"], tcx);
+      let x_1 = Place::make(name_map["x"], &[field(1)], tcx);
+      let y_some_0 = Place::make(name_map["y"], &[downcast("Some", 1), field(0)], tcx);
+      let z_deref_some_0_1 = Place::make(
+        name_map["z"],
+        &[deref(), index(0), downcast("Some", 1), field(0), field(1)],
+        tcx,
+      );
+      let w_0_deref = Place::make(name_map["w"], &[field(0), deref()], tcx);
+      let w_0_deref_some = Place::make(
+        name_map["w"],
+        &[field(0), deref(), downcast("Some", 1)],
+        tcx,
+      );
+      let p_deref_x = Place::make(name_map["p"], &[deref(), field(0)], tcx);
+
+      let tests = [
+        (x, "x"),
+        (x_1, "x.1"),
+        (y_some_0, "y@Some.0"),
+        (z_deref_some_0_1, "(*z)[..]@Some.0.1"),
+        (w_0_deref, "*w.0"),
+        (w_0_deref_some, "(*w.0)@Some"),
+        (p_deref_x, "(*p).x"),
+      ];
+
+      for (place, expected) in tests {
+        assert_eq!(place.to_string(tcx, body).unwrap(), expected);
+      }
     });
   }
 }
