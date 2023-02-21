@@ -35,7 +35,7 @@ use crate::{
     },
     ToIndex,
   },
-  mir::utils::{self, MutabilityExt, PlaceExt},
+  mir::utils::{self, AsyncHack, MutabilityExt, PlaceExt},
   timer::elapsed,
 };
 
@@ -195,8 +195,14 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
 
     let mut subset = SparseBitMatrix::new(num_regions);
 
+    let async_hack = AsyncHack::new(tcx, body, def_id);
+    let ignore_regions = async_hack.ignore_regions();
+
     // subset('a, 'b) :- subset_base('a, 'b, _).
     for (a, b, _) in subset_base {
+      if ignore_regions.contains(a) || ignore_regions.contains(b) {
+        continue;
+      }
       subset.insert(*a, *b);
     }
 
@@ -483,6 +489,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
 
       aliases.extend(region_aliases);
       log::trace!("Aliases for place {place:?} are {aliases:?}");
+
       aliases
     })
   }

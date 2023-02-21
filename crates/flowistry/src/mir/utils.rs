@@ -15,7 +15,7 @@ use either::Either;
 use log::{trace, warn};
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_graphviz as dot;
-use rustc_hir::{def_id::DefId, HirId};
+use rustc_hir::{def_id::DefId, GeneratorKind, HirId};
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_middle::{
   mir::{
@@ -25,7 +25,8 @@ use rustc_middle::{
   },
   traits::ObligationCause,
   ty::{
-    self, AdtKind, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeAndMut, TypeVisitor,
+    self, AdtKind, GenericArgKind, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeAndMut,
+    TypeVisitor,
   },
 };
 use rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
@@ -842,6 +843,8 @@ pub trait BodyExt<'tcx> {
   fn source_info_to_hir_id(&self, info: &SourceInfo) -> HirId;
 
   fn control_dependencies(&self) -> ControlDependencies<BasicBlock>;
+
+  fn async_context(&self, tcx: TyCtxt<'tcx>, def_id: DefId) -> Option<Ty<'tcx>>;
 }
 
 // https://github.com/rust-lang/rust/issues/66551#issuecomment-629815002
@@ -918,6 +921,14 @@ impl<'tcx> BodyExt<'tcx> for Body<'tcx> {
       &self.basic_blocks,
       self.all_returns().map(|loc| loc.block),
     )
+  }
+
+  fn async_context(&self, tcx: TyCtxt<'tcx>, def_id: DefId) -> Option<Ty<'tcx>> {
+    if matches!(tcx.generator_kind(def_id), Some(GeneratorKind::Async(..))) {
+      Some(self.local_decls[Local::from_usize(2)].ty)
+    } else {
+      None
+    }
   }
 }
 
@@ -1101,6 +1112,58 @@ pub trait MutabilityExt {
 impl MutabilityExt for Mutability {
   fn more_permissive_than(self, other: Self) -> bool {
     !matches!((self, other), (Mutability::Not, Mutability::Mut))
+  }
+}
+
+// This is a temporary hack to reduce spurious dependencies in generators
+// arising from async functions. The issue is that the &mut std::task::Context
+// variable interferes with both the modular approximation and the alias analysis.
+// As a patch up, we ignore subset constraints arising from lifetimes appearing
+// in the Context type, as well as ignore any place of type Context in function calls.
+//
+// See test: async_two_await
+pub struct AsyncHack<'a, 'tcx> {
+  context_ty: Option<Ty<'tcx>>,
+  tcx: TyCtxt<'tcx>,
+  body: &'a Body<'tcx>,
+}
+
+impl<'a, 'tcx> AsyncHack<'a, 'tcx> {
+  pub fn new(tcx: TyCtxt<'tcx>, body: &'a Body<'tcx>, def_id: DefId) -> Self {
+    let context_ty = body.async_context(tcx, def_id);
+    AsyncHack {
+      context_ty,
+      tcx,
+      body,
+    }
+  }
+
+  pub fn ignore_regions(&self) -> HashSet<RegionVid> {
+    match self.context_ty {
+      Some(context_ty) => context_ty
+        .walk()
+        .filter_map(|part| match part.unpack() {
+          GenericArgKind::Lifetime(r) => match r.kind() {
+            RegionKind::ReVar(rv) => Some(rv),
+            _ => None,
+          },
+          _ => None,
+        })
+        .collect::<HashSet<_>>(),
+      None => HashSet::default(),
+    }
+  }
+
+  pub fn ignore_place(&self, place: Place<'tcx>) -> bool {
+    match self.context_ty {
+      Some(context_ty) => {
+        self
+          .tcx
+          .erase_regions(place.ty(&self.body.local_decls, self.tcx).ty)
+          == self.tcx.erase_regions(context_ty)
+      }
+      None => false,
+    }
   }
 }
 

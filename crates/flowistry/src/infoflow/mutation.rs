@@ -5,7 +5,7 @@ use rustc_middle::mir::{visit::Visitor, *};
 
 use crate::mir::{
   aliases::Aliases,
-  utils::{self, OperandExt, PlaceCollector},
+  utils::{self, AsyncHack, OperandExt, PlaceCollector},
 };
 
 /// Indicator of certainty about whether a place is being mutated.
@@ -92,9 +92,12 @@ where
         destination,
         ..
       } => {
+        let async_hack =
+          AsyncHack::new(self.aliases.tcx, self.aliases.body, self.aliases.def_id);
         let arg_places = utils::arg_places(args)
           .into_iter()
           .map(|(_, place)| place)
+          .filter(|place| !async_hack.ignore_place(*place))
           .collect::<Vec<_>>();
         let arg_inputs = arg_places
           .iter()
