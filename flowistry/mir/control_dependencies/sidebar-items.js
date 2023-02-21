@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ControlDependencies",""]]};
+window.SIDEBAR_ITEMS = {"struct":[["ControlDependencies",""],["PostDominators","Represents the post-dominators of a graph’s nodes with respect to a particular exit"]]};
