@@ -311,7 +311,8 @@ export class FocusMode {
   };
 
   private get_doc_state = async (
-    editor: vscode.TextEditor
+    editor: vscode.TextEditor,
+    userActivated: boolean = false
   ): Promise<FocusDocumentState | null> => {
     if (this.mode !== "active" && this.mode !== "notfound") {
       return null;
@@ -329,7 +330,7 @@ export class FocusMode {
         if (doc_state_res.type == "FileNotFound") {
           this.state.set(filename, "notfound");
         } else {
-          await show_error(doc_state_res);
+          if (userActivated) await show_error(doc_state_res);
           this.set_mode("error");
           return null;
         }
@@ -345,9 +346,9 @@ export class FocusMode {
     }
   };
 
-  private handle_analysis_result = async <T>(result: FlowistryResult<T>) => {
+  private handle_analysis_result = async <T>(result: FlowistryResult<T>, userActivated: boolean = false) => {
     if (!is_ok(result)) {
-      await show_error(result);
+      if (userActivated) await show_error(result);
       this.set_mode("error");
     } else {
       await hide_error();
@@ -355,7 +356,7 @@ export class FocusMode {
     }
   };
 
-  private update_slice = async () => {
+  private update_slice = async (userActivated: boolean = false) => {
     let editor = vscode.window.activeTextEditor;
     if (!editor) {
       return null;
@@ -365,19 +366,19 @@ export class FocusMode {
       return;
     }
 
-    let doc_state = await this.get_doc_state(editor);
+    let doc_state = await this.get_doc_state(editor, userActivated);
     if (doc_state === null) {
       return;
     }
 
     let result = await doc_state.on_change_selection(editor);
-    await this.handle_analysis_result(result);
+    await this.handle_analysis_result(result, userActivated);
   };
 
   private register_callbacks() {
     // rerender when the user's selection changes
     this.selection_change_callback =
-      vscode.window.onDidChangeTextEditorSelection(this.update_slice);
+      vscode.window.onDidChangeTextEditorSelection(() => this.update_slice());
   }
 
   private dispose_callbacks = () => {
@@ -413,14 +414,14 @@ export class FocusMode {
         this.register_callbacks();
       }
 
-      let doc_state = await this.get_doc_state(editor);
+      let doc_state = await this.get_doc_state(editor, true);
       if (doc_state === null) {
         return;
       }
 
       let result = await f(editor, doc_state);
-      await this.handle_analysis_result(result);
-      await this.update_slice();
+      await this.handle_analysis_result(result, true);
+      await this.update_slice(true);
     };
 
   focus_mark = this.focus_subcommand((editor, doc_state) =>
@@ -437,7 +438,7 @@ export class FocusMode {
     if (this.mode === "idle") {
       this.set_mode("active");
       this.register_callbacks();
-      await this.update_slice();
+      await this.update_slice(true);
     } else {
       this.set_mode("idle");
       this.clear_ranges();
