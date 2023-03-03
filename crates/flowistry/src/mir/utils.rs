@@ -537,7 +537,7 @@ impl<'tcx> PlaceExt<'tcx> for Place<'tcx> {
           (ElemPosition::Suffix, format!("@{variant}",).into())
         }
 
-        ProjectionElem::Index(_) => (ElemPosition::Suffix, "[..]".into()),
+        ProjectionElem::Index(_) => (ElemPosition::Suffix, "[_]".into()),
         _ => unimplemented!(),
       }
     };
@@ -1232,7 +1232,7 @@ mod test {
         (x, "x"),
         (x_1, "x.1"),
         (y_some_0, "y@Some.0"),
-        (z_deref_some_0_1, "(*z)[..]@Some.0.1"),
+        (z_deref_some_0_1, "(*z)[_]@Some.0.1"),
         (w_0_deref, "*w.0"),
         (w_0_deref_some, "(*w.0)@Some"),
         (p_deref_x, "(*p).x"),
