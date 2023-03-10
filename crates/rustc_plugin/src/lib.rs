@@ -12,7 +12,7 @@ use std::{
   env, fs,
   ops::Deref,
   path::{Path, PathBuf},
-  process::{exit, Command},
+  process::{exit, Command, Stdio},
 };
 
 pub use cargo_metadata::camino::Utf8Path;
@@ -101,6 +101,7 @@ pub fn cli_main<T: RustcPlugin>(plugin: T) {
   let args = plugin.args(&target_dir);
 
   let mut cmd = Command::new("cargo");
+  cmd.stdout(Stdio::inherit()).stderr(Stdio::inherit());
 
   let mut path = env::current_exe()
     .expect("current executable path invalid")
@@ -243,11 +244,7 @@ pub fn cli_main<T: RustcPlugin>(plugin: T) {
     cmd.args(flags);
   }
 
-  let exit_status = cmd
-    .spawn()
-    .expect("could not run cargo")
-    .wait()
-    .expect("failed to wait for cargo?");
+  let exit_status = cmd.status().expect("failed to wait for cargo?");
 
   exit(exit_status.code().unwrap_or(-1));
 }

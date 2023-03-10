@@ -1,7 +1,10 @@
 //! Identifies the mutated places in a MIR instruction via modular approximation based on types.
 
 use log::debug;
-use rustc_middle::mir::{visit::Visitor, *};
+use rustc_middle::{
+  mir::{visit::Visitor, *},
+  ty::TyKind,
+};
 
 use crate::mir::{
   aliases::Aliases,
@@ -22,9 +25,8 @@ pub struct Mutation<'a, 'tcx> {
   /// The place that is being mutated.
   pub mutated: Place<'tcx>,
 
-  /// The set of inputs to the mutating operation, each paired with
-  /// an optional [`ProjectionElem::Field`] in the case of aggregate constructors.
-  pub inputs: &'a [(Place<'tcx>, Option<PlaceElem<'tcx>>)],
+  /// The set of inputs to the mutating operation.
+  pub inputs: &'a [Place<'tcx>],
 
   /// Where the mutation is occuring.
   pub location: Location,
@@ -63,19 +65,74 @@ where
 {
   fn visit_assign(
     &mut self,
-    place: &Place<'tcx>,
+    mutated: &Place<'tcx>,
     rvalue: &Rvalue<'tcx>,
     location: Location,
   ) {
-    debug!("Checking {location:?}: {place:?} = {rvalue:?}");
-    let mut collector = PlaceCollector {
-      places: Vec::new(),
-      tcx: self.aliases.tcx,
-    };
+    debug!("Checking {location:?}: {mutated:?} = {rvalue:?}");
+    let body = self.aliases.body;
+    let tcx = self.aliases.tcx;
+
+    match rvalue {
+      // In the case of _1 = aggregate { field1: op1, field2: op2, ... },
+      // then destructure this into a series of mutations like
+      // _1.field1 = op1, _1.field2 = op2, and so on.
+      Rvalue::Aggregate(box AggregateKind::Adt(def_id, idx, substs, _, _), ops) => {
+        let adt_def = tcx.adt_def(*def_id);
+        let variant = adt_def.variant(*idx);
+        if variant.fields.len() > 0 {
+          let fields = variant.fields.iter().enumerate().zip(ops.iter()).map(
+            |((i, field), input_op)| {
+              let input_place = input_op.to_place();
+              let field = PlaceElem::Field(Field::from_usize(i), field.ty(tcx, substs));
+              (mutated.project_deeper(&[field], tcx), input_place)
+            },
+          );
+          for (mutated, input) in fields {
+            (self.f)(Mutation {
+              mutated,
+              inputs: input.as_ref().map(std::slice::from_ref).unwrap_or_default(),
+              location,
+              status: MutationStatus::Definitely,
+            });
+          }
+          return;
+        }
+      }
+
+      // In the case of _1 = _2 where _2 : struct Foo { x: T, y: S, .. },
+      // then destructure this into a series of mutations like
+      // _1.x = _2.x, _1.y = _2.y, and so on.
+      Rvalue::Use(Operand::Move(place) | Operand::Copy(place)) => {
+        let place_ty = place.ty(&body.local_decls, tcx).ty;
+        if let TyKind::Adt(adt_def, substs) = place_ty.kind() {
+          if adt_def.is_struct() {
+            let fields = adt_def.all_fields().enumerate().map(|(i, field_def)| {
+              PlaceElem::Field(Field::from_usize(i), field_def.ty(tcx, substs))
+            });
+            for field in fields {
+              let mutated_field = mutated.project_deeper(&[field], tcx);
+              let input_field = place.project_deeper(&[field], tcx);
+              (self.f)(Mutation {
+                mutated: mutated_field,
+                inputs: &[input_field],
+                location,
+                status: MutationStatus::Definitely,
+              });
+            }
+            return;
+          }
+        }
+      }
+
+      _ => {}
+    }
+
+    let mut collector = PlaceCollector::default();
     collector.visit_rvalue(rvalue, location);
     (self.f)(Mutation {
-      mutated: *place,
-      inputs: &collector.places,
+      mutated: *mutated,
+      inputs: &collector.0,
       location,
       status: MutationStatus::Definitely,
     });
@@ -99,10 +156,7 @@ where
           .map(|(_, place)| place)
           .filter(|place| !async_hack.ignore_place(*place))
           .collect::<Vec<_>>();
-        let arg_inputs = arg_places
-          .iter()
-          .map(|place| (*place, None))
-          .collect::<Vec<_>>();
+        let arg_inputs = arg_places.clone();
 
         let ret_is_unit = destination
           .ty(self.aliases.body.local_decls(), tcx)
@@ -140,7 +194,7 @@ where
         if let Some(src) = value.to_place() {
           (self.f)(Mutation {
             mutated: *place,
-            inputs: &[(src, None)],
+            inputs: &[src],
             location,
             status: MutationStatus::Definitely,
           });
