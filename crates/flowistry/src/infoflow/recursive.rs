@@ -201,7 +201,7 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
         let parent_deps = return_state
           .rows()
           .filter(|(_, deps)| child_deps.is_superset(deps))
-          .filter_map(|(row, _)| Some((translate_child_to_parent(row, false)?, None)))
+          .filter_map(|(row, _)| translate_child_to_parent(row, false))
           .collect::<Vec<_>>();
 
         debug!(

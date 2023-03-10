@@ -28,7 +28,7 @@ impl<'a, 'tcx> DirectInfluence<'a, 'tcx> {
           }
         };
 
-        for (input, _) in inputs {
+        for input in inputs {
           add(*input, Mutability::Not);
         }
 

@@ -135,22 +135,8 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     add_deps(mutated, &mut input_location_deps);
 
     // Add deps of all inputs
-    let mut children = Vec::new();
-    for (place, elem) in inputs.iter() {
+    for place in inputs.iter() {
       add_deps(*place, &mut input_location_deps);
-
-      // If the input is associated to a specific projection of the mutated
-      // place, then save that input's dependencies with the projection
-      if let Some(elem) = elem {
-        let mut projection = mutated.projection.to_vec();
-        projection.push(*elem);
-        let mut child_deps = LocationOrArgSet::new(location_domain);
-        add_deps(*place, &mut child_deps);
-        children.push((
-          Place::make(mutated.local, &projection, self.tcx),
-          child_deps,
-        ));
-      }
     }
 
     // Add control dependencies
@@ -168,52 +154,33 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
       }
     }
 
-    if children.len() > 0 {
-      // In the special case of mutated = aggregate { x: .., y: .. }
-      // then we ensure that deps(mutated.x) != deps(mutated)
+    // Union dependencies into all conflicting places of the mutated place
+    let mut mutable_conflicts = all_aliases.conflicts(mutated).to_owned();
 
-      // First, ensure that all children have the current in their deps.
-      // See test struct_read_constant for where this is needed.
-      for child in all_aliases.children(mutated) {
-        state.insert(all_aliases.normalize(child), location);
-      }
-
-      // Then for constructor arguments that were places, add dependencies of those places.
-      for (child, deps) in children {
-        state.union_into_row(all_aliases.normalize(child), &deps);
-      }
-
-      // Finally add input_location_deps *JUST* to mutated, not conflicts of mutated.
-      state.union_into_row(all_aliases.normalize(mutated), &input_location_deps);
-    } else {
-      // Union dependencies into all conflicting places of the mutated place
-      let mut mutable_conflicts = all_aliases.conflicts(mutated).to_owned();
-
-      // Remove any conflicts that aren't actually mutable, e.g. if x : &T ends up
-      // as an alias of y: &mut T. See test function_lifetime_alias_mut for an example.
-      let ignore_mut =
-        is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
-      if !ignore_mut {
-        let body = self.body;
-        let tcx = self.tcx;
-        mutable_conflicts = mutable_conflicts
-          .iter()
-          .filter(|place| {
-            place.iter_projections().all(|(sub_place, _)| {
-              let ty = sub_place.ty(body.local_decls(), tcx).ty;
-              !matches!(ty.ref_mutability(), Some(Mutability::Not))
-            })
+    // Remove any conflicts that aren't actually mutable, e.g. if x : &T ends up
+    // as an alias of y: &mut T. See test function_lifetime_alias_mut for an example.
+    let ignore_mut =
+      is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
+    if !ignore_mut {
+      let body = self.body;
+      let tcx = self.tcx;
+      mutable_conflicts = mutable_conflicts
+        .iter()
+        .filter(|place| {
+          place.iter_projections().all(|(sub_place, _)| {
+            let ty = sub_place.ty(body.local_decls(), tcx).ty;
+            !matches!(ty.ref_mutability(), Some(Mutability::Not))
           })
-          .copied()
-          .collect::<HashSet<_>>();
-      };
+        })
+        .copied()
+        .collect::<HashSet<_>>();
+    };
 
-      debug!("  Mutated conflicting places: {mutable_conflicts:?}");
-      debug!("    with deps {input_location_deps:?}");
+    debug!("  Mutated conflicting places: {mutable_conflicts:?}");
+    debug!("    with deps {input_location_deps:?}");
 
-      for place in mutable_conflicts.into_iter() {
-        state.union_into_row(all_aliases.normalize(place), &input_location_deps);
-      }
+    for place in mutable_conflicts.into_iter() {
+      state.union_into_row(all_aliases.normalize(place), &input_location_deps);
     }
   }
 }
