@@ -13,7 +13,7 @@ extern crate rustc_traits;
 
 mod analysis;
 
-use std::io::Write;
+use std::{borrow::Cow, io::Write};
 
 use analysis::IssueFound;
 use flowistry::{infoflow, mir::borrowck_facts};
@@ -29,12 +29,12 @@ pub struct IfcPlugin;
 impl RustcPlugin for IfcPlugin {
   type Args = ();
 
-  fn bin_name() -> String {
-    "ifc-driver".to_owned()
+  fn driver_name(&self) -> Cow<'static, str> {
+    "ifc-driver".into()
   }
 
-  fn version() -> &'static str {
-    env!("CARGO_PKG_VERSION")
+  fn version(&self) -> Cow<'static, str> {
+    env!("CARGO_PKG_VERSION").into()
   }
 
   fn args(&self, _target_dir: &rustc_plugin::Utf8Path) -> RustcPluginArgs<Self::Args> {
