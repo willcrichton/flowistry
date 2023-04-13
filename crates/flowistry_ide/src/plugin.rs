@@ -314,7 +314,7 @@ impl<A: FlowistryAnalysis, T: ToSpan, F: FnOnce() -> T> rustc_driver::Callbacks
     fluid_set!(EVAL_MODE, self.eval_mode.unwrap_or_default());
 
     let start = Instant::now();
-    queries.global_ctxt().unwrap().take().enter(|tcx| {
+    queries.global_ctxt().unwrap().enter(|tcx| {
       elapsed("global_ctxt", start);
       let mut analysis = self.analysis.take().unwrap();
       self.output = Some((|| {

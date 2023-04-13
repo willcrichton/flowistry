@@ -33,7 +33,7 @@ use rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
 use rustc_span::{
   source_map::SourceMap, BytePos, Pos, Span, SpanData, Symbol, SyntaxContext,
 };
-use rustc_target::abi::VariantIdx;
+use rustc_target::abi::{FieldIdx, VariantIdx};
 use rustc_trait_selection::traits::NormalizeExt;
 use smallvec::SmallVec;
 
@@ -336,7 +336,7 @@ impl<'tcx> PlaceExt<'tcx> for Place<'tcx> {
   fn make(local: Local, projection: &[PlaceElem<'tcx>], tcx: TyCtxt<'tcx>) -> Self {
     Place {
       local,
-      projection: tcx.intern_place_elems(projection),
+      projection: tcx.mk_place_elems(projection),
     }
   }
 
@@ -495,7 +495,7 @@ impl<'tcx> PlaceExt<'tcx> for Place<'tcx> {
                 _ => unimplemented!(),
               };
 
-              fields[field.as_usize()].ident(tcx).to_string()
+              fields[field].ident(tcx).to_string()
             }
 
             TyKind::Tuple(_) => field.as_usize().to_string(),
@@ -587,7 +587,7 @@ struct CollectRegions<'tcx> {
   stop_at: StoppingCondition,
 }
 
-impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
+impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for CollectRegions<'tcx> {
   fn visit_ty(&mut self, ty: Ty<'tcx>) -> ControlFlow<Self::BreakTy> {
     let tcx = self.tcx;
     if self.ty_stack.iter().any(|visited_ty| ty == *visited_ty) {
@@ -603,7 +603,7 @@ impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
 
     match ty.kind() {
       _ if ty.is_box() => {
-        self.visit_region(tcx.mk_region(RegionKind::ReVar(UNKNOWN_REGION)));
+        self.visit_region(tcx.mk_region_from_kind(RegionKind::ReVar(UNKNOWN_REGION)));
         self.place_stack.push(ProjectionElem::Deref);
         self.visit_ty(ty.boxed_ty());
         self.place_stack.pop();
@@ -613,7 +613,7 @@ impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
         for (i, field) in fields.iter().enumerate() {
           self
             .place_stack
-            .push(ProjectionElem::Field(Field::from_usize(i), field));
+            .push(ProjectionElem::Field(FieldIdx::from_usize(i), field));
           self.visit_ty(field);
           self.place_stack.pop();
         }
@@ -629,7 +629,7 @@ impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
             let ty = field.ty(tcx, subst);
             self
               .place_stack
-              .push(ProjectionElem::Field(Field::from_usize(i), ty));
+              .push(ProjectionElem::Field(FieldIdx::from_usize(i), ty));
             self.visit_ty(ty);
             self.place_stack.pop();
           }
@@ -647,7 +647,7 @@ impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
             self.place_stack.push(cast);
             for (j, field) in variant.fields.iter().enumerate() {
               let ty = field.ty(tcx, subst);
-              let field = ProjectionElem::Field(Field::from_usize(j), ty);
+              let field = ProjectionElem::Field(FieldIdx::from_usize(j), ty);
               self.place_stack.push(field);
               self.visit_ty(ty);
               self.place_stack.pop();
@@ -683,16 +683,14 @@ impl<'tcx> TypeVisitor<'tcx> for CollectRegions<'tcx> {
       }
 
       TyKind::RawPtr(TypeAndMut { ty, .. }) => {
-        self.visit_region(tcx.mk_region(RegionKind::ReVar(UNKNOWN_REGION)));
+        self.visit_region(tcx.mk_region_from_kind(RegionKind::ReVar(UNKNOWN_REGION)));
         self.place_stack.push(ProjectionElem::Deref);
         self.visit_ty(*ty);
         self.place_stack.pop();
       }
 
-      TyKind::Projection(..)
-      | TyKind::FnDef(..)
+      TyKind::FnDef(..)
       | TyKind::FnPtr(..)
-      | TyKind::Opaque(..)
       | TyKind::Foreign(..)
       | TyKind::Dynamic(..)
       | TyKind::Param(..)
@@ -1181,7 +1179,7 @@ mod test {
       let downcast = |s: &str, i: usize| {
         PlaceElem::Downcast(Some(Symbol::intern(s)), VariantIdx::from_usize(i))
       };
-      let field = |i: usize| PlaceElem::Field(Field::from_usize(i), tcx.mk_unit());
+      let field = |i: usize| PlaceElem::Field(FieldIdx::from_usize(i), tcx.mk_unit());
       let index = |i: usize| PlaceElem::Index(Local::from_usize(i));
       let deref = || PlaceElem::Deref;
 

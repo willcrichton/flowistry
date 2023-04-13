@@ -24,6 +24,7 @@ use rustc_middle::{
     TypeVisitor,
   },
 };
+use rustc_target::abi::FieldIdx;
 
 use crate::{
   block_timer,
@@ -108,7 +109,7 @@ impl<'tcx> Visitor<'tcx> for FindPlaces<'_, 'tcx> {
       let places = variant.fields.iter().enumerate().map(|(i, field)| {
         let mut projection = place.projection.to_vec();
         projection.push(ProjectionElem::Field(
-          Field::from_usize(i),
+          FieldIdx::from_usize(i),
           field.ty(self.tcx, substs),
         ));
         Place::make(place.local, &projection, self.tcx)
@@ -160,9 +161,8 @@ pub struct Aliases<'a, 'tcx> {
 }
 
 rustc_index::newtype_index! {
-  struct RegionSccIndex {
-      DEBUG_FORMAT = "rs{}"
-  }
+  #[debug_format = "rs{}"]
+  struct RegionSccIndex {}
 }
 
 impl<'a, 'tcx> Aliases<'a, 'tcx> {
@@ -373,7 +373,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
                   let p_proj = if *ty == p_ty {
                     let mut full_proj = p.projection.to_vec();
                     full_proj.extend(proj);
-                    Place::make(p.local, tcx.intern_place_elems(&full_proj), tcx)
+                    Place::make(p.local, tcx.mk_place_elems(&full_proj), tcx)
                   } else {
                     *p
                   };
@@ -521,7 +521,9 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
   fn collect_loans(&self, ty: Ty<'tcx>, mutability: Mutability) -> PlaceSet<'tcx> {
     let mut collector = LoanCollector {
       aliases: self,
-      unknown_region: self.tcx.mk_region(RegionKind::ReVar(UNKNOWN_REGION)),
+      unknown_region: self
+        .tcx
+        .mk_region_from_kind(RegionKind::ReVar(UNKNOWN_REGION)),
       target_mutability: mutability,
       stack: vec![],
       loans: PlaceSet::default(),
@@ -632,7 +634,7 @@ struct LoanCollector<'a, 'tcx> {
   loans: PlaceSet<'tcx>,
 }
 
-impl<'tcx> TypeVisitor<'tcx> for LoanCollector<'_, 'tcx> {
+impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for LoanCollector<'_, 'tcx> {
   type BreakTy = ();
 
   fn visit_ty(&mut self, ty: Ty<'tcx>) -> ControlFlow<Self::BreakTy> {

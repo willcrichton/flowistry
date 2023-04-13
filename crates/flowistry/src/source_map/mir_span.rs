@@ -188,7 +188,6 @@ impl<'tcx> MirVisitor<'tcx> for MirSpanCollector<'_, 'tcx> {
 
     let place = match &terminator.kind {
       mir::TerminatorKind::Call { destination, .. } => *destination,
-      mir::TerminatorKind::DropAndReplace { place, .. } => *place,
       _ => {
         return;
       }

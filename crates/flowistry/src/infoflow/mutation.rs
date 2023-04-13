@@ -5,6 +5,7 @@ use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::TyKind,
 };
+use rustc_target::abi::FieldIdx;
 
 use crate::mir::{
   aliases::Aliases,
@@ -84,7 +85,8 @@ where
           let fields = variant.fields.iter().enumerate().zip(ops.iter()).map(
             |((i, field), input_op)| {
               let input_place = input_op.to_place();
-              let field = PlaceElem::Field(Field::from_usize(i), field.ty(tcx, substs));
+              let field =
+                PlaceElem::Field(FieldIdx::from_usize(i), field.ty(tcx, substs));
               (mutated.project_deeper(&[field], tcx), input_place)
             },
           );
@@ -108,7 +110,7 @@ where
         if let TyKind::Adt(adt_def, substs) = place_ty.kind() {
           if adt_def.is_struct() {
             let fields = adt_def.all_fields().enumerate().map(|(i, field_def)| {
-              PlaceElem::Field(Field::from_usize(i), field_def.ty(tcx, substs))
+              PlaceElem::Field(FieldIdx::from_usize(i), field_def.ty(tcx, substs))
             });
             for field in fields {
               let mutated_field = mutated.project_deeper(&[field], tcx);
@@ -187,17 +189,6 @@ where
               status: MutationStatus::Possibly,
             });
           }
-        }
-      }
-
-      TerminatorKind::DropAndReplace { place, value, .. } => {
-        if let Some(src) = value.to_place() {
-          (self.f)(Mutation {
-            mutated: *place,
-            inputs: &[src],
-            location,
-            status: MutationStatus::Definitely,
-          });
         }
       }
 
