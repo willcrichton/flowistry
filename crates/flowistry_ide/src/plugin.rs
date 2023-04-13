@@ -1,4 +1,5 @@
 use std::{
+  borrow::Cow,
   env,
   path::PathBuf,
   process::{exit, Command},
@@ -82,12 +83,12 @@ pub struct FlowistryPlugin;
 impl RustcPlugin for FlowistryPlugin {
   type Args = FlowistryPluginArgs;
 
-  fn bin_name() -> String {
+  fn driver_name(&self) -> Cow<'static, str> {
     "flowistry-driver".into()
   }
 
-  fn version() -> &'static str {
-    env!("CARGO_PKG_VERSION")
+  fn version(&self) -> Cow<'static, str> {
+    env!("CARGO_PKG_VERSION").into()
   }
 
   fn args(&self, target_dir: &Utf8Path) -> RustcPluginArgs<FlowistryPluginArgs> {
