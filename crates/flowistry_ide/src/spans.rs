@@ -24,7 +24,7 @@ impl rustc_driver::Callbacks for Callbacks {
     compiler: &rustc_interface::interface::Compiler,
     queries: &'tcx rustc_interface::Queries<'tcx>,
   ) -> rustc_driver::Compilation {
-    queries.global_ctxt().unwrap().take().enter(|tcx| {
+    queries.global_ctxt().unwrap().enter(|tcx| {
       let spans = find_bodies(tcx).into_iter().map(|(span, _)| span);
 
       self.output = Some((|| {

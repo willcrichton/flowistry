@@ -50,9 +50,8 @@ impl ToIndex<LocationOrArg> for Local {
 }
 
 rustc_index::newtype_index! {
-  pub struct LocationOrArgIndex {
-      DEBUG_FORMAT = "l{}"
-  }
+  #[debug_format = "l{}"]
+  pub struct LocationOrArgIndex {}
 }
 
 to_index_impl!(LocationOrArg);
@@ -79,9 +78,8 @@ pub struct Filename(pub PathBuf);
 
 rustc_index::newtype_index! {
   #[derive(Serialize)]
-  pub struct FilenameIndex {
-      DEBUG_FORMAT = "f{}"
-  }
+  #[debug_format = "f{}"]
+  pub struct FilenameIndex {}
 }
 
 // Filenames are interned at the thread-level, so they should only be

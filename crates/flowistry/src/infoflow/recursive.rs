@@ -56,7 +56,7 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
     // If a function returns never (fn () -> !) then there are no exit points,
     // so we can't analyze effects on exit
     let fn_sig = tcx.fn_sig(*def_id);
-    if fn_sig.skip_binder().output().is_never() {
+    if fn_sig.skip_binder().output().skip_binder().is_never() {
       debug!("  Func returns never");
       return false;
     }

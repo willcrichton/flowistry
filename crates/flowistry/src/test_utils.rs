@@ -26,8 +26,13 @@ impl FileLoader for StringLoader {
   fn file_exists(&self, _: &Path) -> bool {
     true
   }
+
   fn read_file(&self, _: &Path) -> io::Result<String> {
     Ok(self.0.clone())
+  }
+
+  fn read_binary_file(&self, path: &Path) -> io::Result<Vec<u8>> {
+    fs::read(path)
   }
 }
 
@@ -140,7 +145,7 @@ where
     _compiler: &rustc_interface::interface::Compiler,
     queries: &'tcx rustc_interface::Queries<'tcx>,
   ) -> rustc_driver::Compilation {
-    queries.global_ctxt().unwrap().take().enter(|tcx| {
+    queries.global_ctxt().unwrap().enter(|tcx| {
       let callback = self.callback.take().unwrap();
       callback(tcx);
     });
