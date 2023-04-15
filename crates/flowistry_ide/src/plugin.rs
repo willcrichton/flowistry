@@ -21,7 +21,7 @@ use log::{debug, info};
 use rustc_hir::BodyId;
 use rustc_interface::interface::Result as RustcResult;
 use rustc_middle::ty::TyCtxt;
-use rustc_plugin::{RustcPlugin, RustcPluginArgs, Utf8Path};
+use rustc_plugin::{CrateFilter, RustcPlugin, RustcPluginArgs, Utf8Path};
 use serde::{Deserialize, Serialize};
 
 #[derive(Parser, Serialize, Deserialize)]
@@ -44,34 +44,22 @@ pub struct FlowistryPluginArgs {
 enum FlowistryCommand {
   Spans {
     file: String,
-
-    #[clap(last = true)]
-    flags: Vec<String>,
   },
 
   Focus {
     file: String,
     pos: usize,
-
-    #[clap(last = true)]
-    flags: Vec<String>,
   },
 
   Decompose {
     file: String,
     pos: usize,
-
-    #[clap(last = true)]
-    flags: Vec<String>,
   },
 
   Playground {
     file: String,
     start: usize,
     end: usize,
-
-    #[clap(last = true)]
-    flags: Vec<String>,
   },
 
   Preload,
@@ -116,17 +104,16 @@ impl RustcPlugin for FlowistryPlugin {
       _ => {}
     };
 
-    let (file, flags) = match &args.command {
-      Spans { file, flags } => (file, flags),
-      Focus { file, flags, .. } => (file, flags),
-      Decompose { file, flags, .. } => (file, flags),
-      Playground { file, flags, .. } => (file, flags),
+    let file = match &args.command {
+      Spans { file, .. } => file,
+      Focus { file, .. } => file,
+      Decompose { file, .. } => file,
+      Playground { file, .. } => file,
       _ => unreachable!(),
     };
 
     RustcPluginArgs {
-      flags: Some(flags.clone()),
-      file: Some(PathBuf::from(file)),
+      filter: CrateFilter::CrateContainingFile(PathBuf::from(file)),
       args,
     }
   }
@@ -305,7 +292,7 @@ impl<A: FlowistryAnalysis, T: ToSpan, F: FnOnce() -> T> rustc_driver::Callbacks
     config.override_queries = Some(borrowck_facts::override_queries);
   }
 
-  fn after_parsing<'tcx>(
+  fn after_expansion<'tcx>(
     &mut self,
     _compiler: &rustc_interface::interface::Compiler,
     queries: &'tcx rustc_interface::Queries<'tcx>,

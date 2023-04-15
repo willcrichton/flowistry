@@ -22,7 +22,7 @@ use rustc_hir::{
   BodyId,
 };
 use rustc_middle::{hir::nested_filter::OnlyBodies, ty::TyCtxt};
-use rustc_plugin::{RustcPlugin, RustcPluginArgs};
+use rustc_plugin::{CrateFilter, RustcPlugin, RustcPluginArgs};
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 pub struct IfcPlugin;
 
@@ -40,8 +40,7 @@ impl RustcPlugin for IfcPlugin {
   fn args(&self, _target_dir: &rustc_plugin::Utf8Path) -> RustcPluginArgs<Self::Args> {
     RustcPluginArgs {
       args: (),
-      file: None,
-      flags: None,
+      filter: CrateFilter::OnlyWorkspace,
     }
   }
 
