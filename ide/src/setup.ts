@@ -286,11 +286,19 @@ export async function setup(
       };
     }
 
-    let output_bytes = Buffer.from(output.toString("utf8"), "base64");
-    let output_decompressed = zlib.gunzipSync(output_bytes);
-    let output_typed: Result<T> = JSON.parse(
-      output_decompressed.toString("utf8")
-    );
+    let output_typed: Result<T>;
+    try {
+      let output_bytes = Buffer.from(output.toString("utf8"), "base64");
+      let output_decompressed = zlib.gunzipSync(output_bytes);
+      let output_str = output_decompressed.toString("utf8");
+      output_typed = JSON.parse(output_str);
+    } catch (e: any) {
+      return {
+        type: "AnalysisError",
+        error: e.toString()
+      }
+    }
+   
     if ("Err" in output_typed) {
       return output_typed.Err;
     } else {

@@ -492,7 +492,7 @@ impl<'tcx> PlaceExt<'tcx> for Place<'tcx> {
                   let Some(PlaceElem::Downcast(_, variant_idx)) = self.projection.get(index - 1) else { unimplemented!() } ;
                   &def.variant(*variant_idx).fields
                 }
-                _ => unimplemented!(),
+                kind => unimplemented!("{kind:?}"),
               };
 
               fields[field].ident(tcx).to_string()
@@ -500,7 +500,15 @@ impl<'tcx> PlaceExt<'tcx> for Place<'tcx> {
 
             TyKind::Tuple(_) => field.as_usize().to_string(),
 
-            _ => unimplemented!(),
+            TyKind::Closure(def_id, _substs) => match def_id.as_local() {
+              Some(local_def_id) => {
+                let captures = tcx.closure_captures(local_def_id);
+                captures[field.as_usize()].var_ident.to_string()
+              }
+              None => field.as_usize().to_string(),
+            },
+
+            kind => unimplemented!("{kind:?}"),
           };
 
           (ElemPosition::Suffix, format!(".{field_name}").into())
@@ -511,7 +519,7 @@ impl<'tcx> PlaceExt<'tcx> for Place<'tcx> {
         }
 
         ProjectionElem::Index(_) => (ElemPosition::Suffix, "[_]".into()),
-        _ => unimplemented!(),
+        kind => unimplemented!("{kind:?}"),
       }
     };
 

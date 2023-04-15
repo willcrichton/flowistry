@@ -81,7 +81,7 @@ pub fn get_body_with_borrowck_facts<'tcx>(
 ) -> &'tcx BodyWithBorrowckFacts<'tcx> {
   let _ = tcx.mir_borrowck(def_id);
   MIR_BODIES.with(|cache| {
-    let body = cache.get(def_id, |_| unreachable!());
+    let body = cache.get(def_id, |_| panic!("mir_borrowck override should have stored body for item: {def_id:?}. Are you sure you registered borrowck_facts::override_queries?"));
     unsafe {
       std::mem::transmute::<
         &BodyWithBorrowckFacts<'static>,
