@@ -1,6 +1,5 @@
-use flowistry::{
-  indexed::impls::Filename,
-  source_map::{find_bodies, ByteRange},
+use rustc_utils::source_map::{
+  filename::Filename, find_bodies::find_bodies, range::ByteRange,
 };
 use serde::Serialize;
 

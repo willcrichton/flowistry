@@ -4,6 +4,7 @@ use rustc_middle::{
   ty::{subst::GenericArgKind, ClosureKind, TyKind},
 };
 use rustc_mir_dataflow::JoinSemiLattice;
+use rustc_utils::{mir::borrowck_facts::get_body_with_borrowck_facts, PlaceExt};
 
 use super::{analysis::FlowAnalysis, BODY_STACK};
 use crate::{
@@ -12,10 +13,7 @@ use crate::{
     mutation::{Mutation, MutationStatus},
     FlowDomain,
   },
-  mir::{
-    borrowck_facts::get_body_with_borrowck_facts,
-    utils::{self, PlaceExt},
-  },
+  mir::utils,
 };
 
 impl<'tcx> FlowAnalysis<'_, 'tcx> {

@@ -11,10 +11,7 @@ use anyhow::{Context, Result};
 use criterion::{
   criterion_group, criterion_main, measurement::WallTime, BenchmarkGroup, Criterion,
 };
-use flowistry::{
-  infoflow::Direction,
-  mir::{borrowck_facts, utils::PlaceExt},
-};
+use flowistry::infoflow::Direction;
 use glob::glob;
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_hir::{BodyId, ItemKind};
@@ -22,6 +19,7 @@ use rustc_middle::{
   mir::{Location, Place},
   ty::TyCtxt,
 };
+use rustc_utils::{mir::borrowck_facts, PlaceExt};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum AnalysisType {
@@ -76,6 +74,7 @@ struct Callbacks {
 }
 impl rustc_driver::Callbacks for Callbacks {
   fn config(&mut self, config: &mut rustc_interface::Config) {
+    borrowck_facts::enable_mir_simplification();
     config.override_queries = Some(borrowck_facts::override_queries);
   }
 

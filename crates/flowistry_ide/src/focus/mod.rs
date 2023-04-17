@@ -1,13 +1,17 @@
 use anyhow::Result;
-use flowistry::{
-  infoflow::{self, Direction},
-  mir::{borrowck_facts::get_body_with_borrowck_facts, utils::SpanExt},
-  source_map::{self, CharRange},
-};
+use flowistry::infoflow::{self, Direction};
 use itertools::Itertools;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
+use rustc_utils::{
+  mir::borrowck_facts::get_body_with_borrowck_facts,
+  source_map::{
+    range::CharRange,
+    spanner::{EnclosingHirSpans, Spanner},
+  },
+  SpanExt,
+};
 use serde::Serialize;
 
 mod direct_influence;
@@ -35,7 +39,7 @@ pub fn focus(tcx: TyCtxt, body_id: BodyId) -> Result<FocusOutput> {
   let results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
 
   let source_map = tcx.sess.source_map();
-  let spanner = source_map::Spanner::new(tcx, body_id, body);
+  let spanner = Spanner::new(tcx, body_id, body);
 
   let grouped_spans = spanner
     .mir_span_tree
@@ -75,7 +79,7 @@ pub fn focus(tcx: TyCtxt, body_id: BodyId) -> Result<FocusOutput> {
         .iter()
         .flat_map(|(target, _)| direct.lookup(*target))
         .flat_map(|location| {
-          spanner.location_to_spans(location, body, source_map::EnclosingHirSpans::None)
+          spanner.location_to_spans(location, body, EnclosingHirSpans::None)
         })
         .filter(|span| relevant.iter().any(|slice_span| slice_span.contains(*span)))
         .collect::<Vec<_>>();
