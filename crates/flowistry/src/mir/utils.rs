@@ -1,30 +1,14 @@
 //! A potpourri of utilities for working with the MIR, primarily exposed as extension traits.
 
-use std::{
-  io::Write,
-  path::Path,
-  process::{Command, Stdio},
-};
-
-use anyhow::{bail, Result};
-use either::Either;
 use rustc_data_structures::fx::FxHashSet as HashSet;
-use rustc_graphviz as dot;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{
-  mir::{
-    visit::{PlaceContext, Visitor},
-    *,
-  },
+  mir::*,
   ty::{GenericArgKind, RegionKind, RegionVid, Ty, TyCtxt},
 };
-use rustc_mir_dataflow::{fmt::DebugWithContext, graphviz, Analysis, Results};
 use rustc_utils::{BodyExt, OperandExt, PlaceExt};
 
-use crate::{
-  extensions::{is_extension_active, MutabilityMode},
-  indexed::impls::LocationOrArg,
-};
+use crate::extensions::{is_extension_active, MutabilityMode};
 
 /// Given the arguments to a function, returns all projections of the arguments that are mutable pointers.
 pub fn arg_mut_ptrs<'tcx>(
@@ -61,69 +45,6 @@ pub fn arg_places<'tcx>(args: &[Operand<'tcx>]) -> Vec<(usize, Place<'tcx>)> {
     .enumerate()
     .filter_map(|(i, arg)| arg.as_place().map(move |place| (i, place)))
     .collect::<Vec<_>>()
-}
-
-#[derive(Default)]
-pub struct PlaceCollector<'tcx>(pub Vec<Place<'tcx>>);
-
-impl<'tcx> Visitor<'tcx> for PlaceCollector<'tcx> {
-  fn visit_place(
-    &mut self,
-    place: &Place<'tcx>,
-    _context: PlaceContext,
-    _location: Location,
-  ) {
-    self.0.push(*place);
-  }
-}
-
-pub fn run_dot(path: &Path, buf: Vec<u8>) -> Result<()> {
-  let mut p = Command::new("dot")
-    .args(["-Tpdf", "-o", &path.display().to_string()])
-    .stdin(Stdio::piped())
-    .spawn()?;
-
-  p.stdin.as_mut().unwrap().write_all(&buf)?;
-  let status = p.wait()?;
-
-  if !status.success() {
-    bail!("dot for {} failed", path.display())
-  };
-
-  Ok(())
-}
-
-pub fn dump_results<'tcx, A>(
-  body: &Body<'tcx>,
-  results: &Results<'tcx, A>,
-  _def_id: DefId,
-  _tcx: TyCtxt<'tcx>,
-) -> Result<()>
-where
-  A: Analysis<'tcx>,
-  A::Domain: DebugWithContext<A>,
-{
-  let graphviz =
-    graphviz::Formatter::new(body, results, graphviz::OutputStyle::AfterOnly);
-  let mut buf = Vec::new();
-  dot::render(&graphviz, &mut buf)?;
-
-  let output_dir = Path::new("target");
-  // let fname = tcx.def_path_debug_str(def_id);
-  let fname = "results";
-  let output_path = output_dir.join(format!("{fname}.pdf"));
-
-  run_dot(&output_path, buf)
-}
-
-pub fn location_to_string(location: LocationOrArg, body: &Body<'_>) -> String {
-  match location {
-    LocationOrArg::Arg(local) => format!("{local:?}"),
-    LocationOrArg::Location(location) => match body.stmt_at(location) {
-      Either::Left(stmt) => format!("{:?}", stmt.kind),
-      Either::Right(terminator) => format!("{:?}", terminator.kind),
-    },
-  }
 }
 
 // This is a temporary hack to reduce spurious dependencies in generators
