@@ -6,11 +6,11 @@ use rustc_middle::{
   ty::TyKind,
 };
 use rustc_target::abi::FieldIdx;
-use rustc_utils::OperandExt;
+use rustc_utils::{mir::place::PlaceCollector, OperandExt};
 
 use crate::mir::{
   aliases::Aliases,
-  utils::{self, AsyncHack, PlaceCollector},
+  utils::{self, AsyncHack},
 };
 
 /// Indicator of certainty about whether a place is being mutated.

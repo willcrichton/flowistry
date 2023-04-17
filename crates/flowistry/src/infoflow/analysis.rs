@@ -114,15 +114,11 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
 
     let add_deps = |place: Place<'tcx>, location_deps: &mut LocationOrArgSet| {
       let reachable_values = all_aliases.reachable_values(place, Mutability::Not);
-      let provenance =
-        place
-          .refs_in_projection()
-          .into_iter()
-          .flat_map(|(place_ref, _)| {
-            all_aliases
-              .aliases(Place::from_ref(place_ref, self.tcx))
-              .iter()
-          });
+      let provenance = place.refs_in_projection().flat_map(|(place_ref, _)| {
+        all_aliases
+          .aliases(Place::from_ref(place_ref, self.tcx))
+          .iter()
+      });
       for relevant in reachable_values.iter().chain(provenance) {
         let deps = state.row_set(all_aliases.normalize(*relevant));
         trace!("    For relevant {relevant:?} for input {place:?} adding deps {deps:?}");
