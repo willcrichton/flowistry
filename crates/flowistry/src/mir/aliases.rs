@@ -25,10 +25,14 @@ use rustc_middle::{
   },
 };
 use rustc_target::abi::FieldIdx;
+use rustc_utils::{
+  block_timer,
+  cache::{Cache, CopyCache},
+  timer::elapsed,
+  MutabilityExt, PlaceExt,
+};
 
 use crate::{
-  block_timer,
-  cached::{Cache, CopyCache},
   extensions::{is_extension_active, MutabilityMode, PointerMode},
   indexed::{
     impls::{
@@ -36,8 +40,7 @@ use crate::{
     },
     ToIndex,
   },
-  mir::utils::{self, AsyncHack, MutabilityExt, PlaceExt},
-  timer::elapsed,
+  mir::utils::{self, AsyncHack},
 };
 
 #[derive(Default)]
@@ -693,11 +696,10 @@ impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for LoanCollector<'_, 'tcx> {
 
 #[cfg(test)]
 mod test {
+  use rustc_utils::{BodyExt, PlaceExt};
+
   use super::*;
-  use crate::{
-    mir::utils::{BodyExt, PlaceExt},
-    test_utils,
-  };
+  use crate::test_utils;
 
   #[test]
   fn test_sccs() {

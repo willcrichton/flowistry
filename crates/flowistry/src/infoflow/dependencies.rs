@@ -4,20 +4,20 @@ use either::Either;
 use log::{debug, trace};
 use rustc_middle::mir::{visit::Visitor, *};
 use rustc_span::Span;
+use rustc_utils::{
+  block_timer,
+  source_map::spanner::{EnclosingHirSpans, Spanner},
+  BodyExt, OperandExt, SpanExt,
+};
 
 use super::{mutation::ModularMutationVisitor, FlowDomain, FlowResults};
 use crate::{
-  block_timer,
   indexed::{
     impls::{LocationOrArg, LocationOrArgSet},
     RefSet,
   },
   infoflow::mutation::Mutation,
-  mir::{
-    aliases::Aliases,
-    utils::{BodyExt, OperandExt, SpanExt},
-  },
-  source_map::{EnclosingHirSpans, Spanner},
+  mir::aliases::Aliases,
 };
 
 /// Which way to look for dependencies
@@ -174,7 +174,7 @@ pub fn compute_dependencies<'tcx>(
           kind: TerminatorKind::SwitchInt { discr, .. },
           ..
         }) => {
-          if let Some(place) = discr.to_place() {
+          if let Some(place) = discr.as_place() {
             check(place);
           }
         }

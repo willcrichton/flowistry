@@ -6,10 +6,11 @@ use rustc_middle::{
   ty::TyKind,
 };
 use rustc_target::abi::FieldIdx;
+use rustc_utils::OperandExt;
 
 use crate::mir::{
   aliases::Aliases,
-  utils::{self, AsyncHack, OperandExt, PlaceCollector},
+  utils::{self, AsyncHack, PlaceCollector},
 };
 
 /// Indicator of certainty about whether a place is being mutated.
@@ -84,7 +85,7 @@ where
         if variant.fields.len() > 0 {
           let fields = variant.fields.iter().enumerate().zip(ops.iter()).map(
             |((i, field), input_op)| {
-              let input_place = input_op.to_place();
+              let input_place = input_op.as_place();
               let field =
                 PlaceElem::Field(FieldIdx::from_usize(i), field.ty(tcx, substs));
               (mutated.project_deeper(&[field], tcx), input_place)

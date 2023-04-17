@@ -8,6 +8,9 @@ use rustc_middle::{
   ty::TyCtxt,
 };
 use rustc_mir_dataflow::{Analysis, AnalysisDomain, Forward};
+use rustc_utils::{
+  mir::control_dependencies::ControlDependencies, BodyExt, OperandExt, PlaceExt,
+};
 
 use super::{
   mutation::{ModularMutationVisitor, Mutation, MutationStatus},
@@ -19,11 +22,7 @@ use crate::{
     impls::{LocationOrArg, LocationOrArgDomain, LocationOrArgSet},
     IndexMatrix, IndexedDomain,
   },
-  mir::{
-    aliases::Aliases,
-    control_dependencies::ControlDependencies,
-    utils::{BodyExt, OperandExt, PlaceExt},
-  },
+  mir::aliases::Aliases,
 };
 
 /// Represents the information flows at a given instruction. See [`FlowResults`] for a high-level explanation of this datatype.
@@ -148,7 +147,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
       // Include dependencies of the switch's operand
       let terminator = body.basic_blocks[block].terminator();
       if let TerminatorKind::SwitchInt { discr, .. } = &terminator.kind {
-        if let Some(discr_place) = discr.to_place() {
+        if let Some(discr_place) = discr.as_place() {
           add_deps(discr_place, &mut input_location_deps);
         }
       }

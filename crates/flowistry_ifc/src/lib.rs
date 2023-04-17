@@ -16,13 +16,14 @@ mod analysis;
 use std::{borrow::Cow, io::Write};
 
 use analysis::IssueFound;
-use flowistry::{infoflow, mir::borrowck_facts};
+use flowistry::infoflow;
 use rustc_hir::{
   intravisit::{self, Visitor},
   BodyId,
 };
 use rustc_middle::{hir::nested_filter::OnlyBodies, ty::TyCtxt};
 use rustc_plugin::{CrateFilter, RustcPlugin, RustcPluginArgs};
+use rustc_utils::mir::borrowck_facts;
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 pub struct IfcPlugin;
 
@@ -81,6 +82,7 @@ impl<'tcx> Visitor<'tcx> for IfcVisitor<'tcx> {
 pub struct Callbacks;
 impl rustc_driver::Callbacks for Callbacks {
   fn config(&mut self, config: &mut rustc_interface::Config) {
+    borrowck_facts::enable_mir_simplification();
     config.override_queries = Some(borrowck_facts::override_queries);
   }
 

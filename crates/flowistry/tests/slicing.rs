@@ -4,10 +4,10 @@ extern crate rustc_span;
 
 use flowistry::{
   infoflow::{self, Direction},
-  mir::utils::SpanExt,
   test_utils,
 };
 use rustc_span::Span;
+use rustc_utils::SpanExt;
 use test_log::test;
 
 fn slice(dir: &str, direction: Direction) {
