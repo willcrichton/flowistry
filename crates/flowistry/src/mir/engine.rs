@@ -21,8 +21,8 @@ use rustc_middle::{
   ty::TyCtxt,
 };
 use rustc_mir_dataflow::{Analysis, Direction, JoinSemiLattice, ResultsVisitor};
+use rustc_utils::BodyExt;
 
-use super::utils::BodyExt;
 use crate::indexed::{
   impls::{LocationOrArg, LocationOrArgDomain, LocationOrArgIndex},
   IndexedDomain, ToIndex,

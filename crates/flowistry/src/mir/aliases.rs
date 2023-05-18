@@ -25,10 +25,14 @@ use rustc_middle::{
   },
 };
 use rustc_target::abi::FieldIdx;
+use rustc_utils::{
+  block_timer,
+  cache::{Cache, CopyCache},
+  timer::elapsed,
+  MutabilityExt, PlaceExt,
+};
 
 use crate::{
-  block_timer,
-  cached::{Cache, CopyCache},
   extensions::{is_extension_active, MutabilityMode, PointerMode},
   indexed::{
     impls::{
@@ -36,8 +40,7 @@ use crate::{
     },
     ToIndex,
   },
-  mir::utils::{self, AsyncHack, MutabilityExt, PlaceExt},
-  timer::elapsed,
+  mir::utils::{self, AsyncHack},
 };
 
 #[derive(Default)]
@@ -252,7 +255,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
           .insert((place, kind.to_mutbl_lossy()));
       }
 
-      let def = match place.refs_in_projection().first() {
+      let def = match place.refs_in_projection().next() {
         Some((ptr, proj)) => {
           let ptr_ty = ptr.ty(body.local_decls(), tcx).ty;
           (ptr_ty.builtin_deref(true).unwrap().ty, proj.to_vec())
@@ -452,7 +455,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
       }
 
       // place = after[*ptr]
-      let (ptr, after) = *place.refs_in_projection().last().unwrap();
+      let (ptr, after) = place.refs_in_projection().last().unwrap();
 
       // ptr : &'region orig_ty
       let ptr_ty = ptr.ty(self.body.local_decls(), self.tcx).ty;
@@ -681,8 +684,9 @@ impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for LoanCollector<'_, 'tcx> {
           } else {
             *mutability
           };
-          loan_mutability
-            .more_permissive_than(self.target_mutability)
+          self
+            .target_mutability
+            .is_permissive_as(loan_mutability)
             .then_some(place)
         }))
     }
@@ -693,11 +697,10 @@ impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for LoanCollector<'_, 'tcx> {
 
 #[cfg(test)]
 mod test {
+  use rustc_utils::{BodyExt, PlaceExt};
+
   use super::*;
-  use crate::{
-    mir::utils::{BodyExt, PlaceExt},
-    test_utils,
-  };
+  use crate::test_utils;
 
   #[test]
   fn test_sccs() {
@@ -712,11 +715,7 @@ mod test {
       let body = &body_with_facts.body;
       let def_id = tcx.hir().body_owner_def_id(body_id);
       let aliases = Aliases::build(tcx, def_id.to_def_id(), body_with_facts);
-      let name_map = body
-        .debug_info_name_map()
-        .into_iter()
-        .map(|(k, v)| (v.to_string(), k))
-        .collect::<HashMap<_, _>>();
+      let name_map = body.debug_info_name_map();
 
       let x = Place::from_local(name_map["x"], tcx);
       let y = Place::from_local(name_map["y"], tcx);

@@ -4,7 +4,7 @@ use either::Either;
 use flowistry::{
   indexed::{impls::PlaceSet, IndexMatrix, IndexedDomain},
   infoflow::{mutation::ModularMutationVisitor, FlowResults},
-  mir::utils::{BodyExt, PlaceCollector, PlaceExt},
+  mir::utils::PlaceCollector,
 };
 use petgraph::{algo, graph::DiGraph};
 use rustc_data_structures::fx::FxHashMap as HashMap;
@@ -13,6 +13,7 @@ use rustc_middle::{
   ty::TyCtxt,
 };
 use rustc_span::def_id::DefId;
+use rustc_utils::{BodyExt, PlaceExt};
 
 use super::algo::GraphExt;
 

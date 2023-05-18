@@ -9,12 +9,8 @@ use std::{
 use anyhow::Context;
 use base64::Engine;
 use clap::{Parser, Subcommand};
-use flowistry::{
-  extensions::{ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE},
-  indexed::impls::Filename,
-  mir::borrowck_facts,
-  source_map::{self, CharPos, CharRange, FunctionIdentifier, ToSpan},
-  timer::elapsed,
+use flowistry::extensions::{
+  ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE,
 };
 use fluid_let::fluid_set;
 use log::{debug, info};
@@ -22,6 +18,15 @@ use rustc_hir::BodyId;
 use rustc_interface::interface::Result as RustcResult;
 use rustc_middle::ty::TyCtxt;
 use rustc_plugin::{CrateFilter, RustcPlugin, RustcPluginArgs, Utf8Path};
+use rustc_utils::{
+  mir::borrowck_facts,
+  source_map::{
+    filename::Filename,
+    find_bodies::find_enclosing_bodies,
+    range::{CharPos, CharRange, FunctionIdentifier, ToSpan},
+  },
+  timer::elapsed,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Parser, Serialize, Deserialize)]
@@ -289,6 +294,7 @@ impl<A: FlowistryAnalysis, T: ToSpan, F: FnOnce() -> T> rustc_driver::Callbacks
   for FlowistryCallbacks<A, T, F>
 {
   fn config(&mut self, config: &mut rustc_interface::Config) {
+    borrowck_facts::enable_mir_simplification();
     config.override_queries = Some(borrowck_facts::override_queries);
   }
 
@@ -306,7 +312,7 @@ impl<A: FlowistryAnalysis, T: ToSpan, F: FnOnce() -> T> rustc_driver::Callbacks
       let mut analysis = self.analysis.take().unwrap();
       self.output = Some((|| {
         let target = (self.compute_target.take().unwrap())().to_span(tcx)?;
-        let mut bodies = source_map::find_enclosing_bodies(tcx, target);
+        let mut bodies = find_enclosing_bodies(tcx, target);
         let body = bodies.next().context("Selection did not map to a body")?;
         analysis.analyze(tcx, body)
       })());

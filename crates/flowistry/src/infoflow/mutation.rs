@@ -6,10 +6,11 @@ use rustc_middle::{
   ty::TyKind,
 };
 use rustc_target::abi::FieldIdx;
+use rustc_utils::{mir::place::PlaceCollector, OperandExt};
 
 use crate::mir::{
   aliases::Aliases,
-  utils::{self, AsyncHack, OperandExt, PlaceCollector},
+  utils::{self, AsyncHack},
 };
 
 /// Indicator of certainty about whether a place is being mutated.
@@ -78,27 +79,47 @@ where
       // In the case of _1 = aggregate { field1: op1, field2: op2, ... },
       // then destructure this into a series of mutations like
       // _1.field1 = op1, _1.field2 = op2, and so on.
-      Rvalue::Aggregate(box AggregateKind::Adt(def_id, idx, substs, _, _), ops) => {
-        let adt_def = tcx.adt_def(*def_id);
-        let variant = adt_def.variant(*idx);
-        if variant.fields.len() > 0 {
-          let fields = variant.fields.iter().enumerate().zip(ops.iter()).map(
-            |((i, field), input_op)| {
-              let input_place = input_op.to_place();
-              let field =
-                PlaceElem::Field(FieldIdx::from_usize(i), field.ty(tcx, substs));
-              (mutated.project_deeper(&[field], tcx), input_place)
-            },
-          );
-          for (mutated, input) in fields {
-            (self.f)(Mutation {
-              mutated,
-              inputs: input.as_ref().map(std::slice::from_ref).unwrap_or_default(),
-              location,
-              status: MutationStatus::Definitely,
-            });
+      Rvalue::Aggregate(agg_kind, ops) => {
+        let tys = match &**agg_kind {
+          AggregateKind::Adt(def_id, idx, substs, _, _) => {
+            let adt_def = tcx.adt_def(*def_id);
+            let variant = adt_def.variant(*idx);
+            let fields = variant.fields.iter();
+            let tys = fields
+              .map(|field| field.ty(tcx, substs))
+              .collect::<Vec<_>>();
+            Some(tys)
           }
-          return;
+          AggregateKind::Tuple => {
+            let ty = rvalue.ty(body.local_decls(), tcx);
+            Some(ty.tuple_fields().to_vec())
+          }
+          _ => None,
+        };
+
+        if let Some(tys) = tys {
+          if tys.len() > 0 {
+            let fields =
+              tys
+                .into_iter()
+                .enumerate()
+                .zip(ops.iter())
+                .map(|((i, ty), input_op)| {
+                  let field = PlaceElem::Field(FieldIdx::from_usize(i), ty);
+                  let input_place = input_op.as_place();
+                  (mutated.project_deeper(&[field], tcx), input_place)
+                });
+
+            for (mutated, input) in fields {
+              (self.f)(Mutation {
+                mutated,
+                inputs: input.as_ref().map(std::slice::from_ref).unwrap_or_default(),
+                location,
+                status: MutationStatus::Definitely,
+              });
+            }
+            return;
+          }
         }
       }
 

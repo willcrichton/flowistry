@@ -8,6 +8,9 @@ use rustc_middle::{
   ty::TyCtxt,
 };
 use rustc_mir_dataflow::{Analysis, AnalysisDomain, Forward};
+use rustc_utils::{
+  mir::control_dependencies::ControlDependencies, BodyExt, OperandExt, PlaceExt,
+};
 
 use super::{
   mutation::{ModularMutationVisitor, Mutation, MutationStatus},
@@ -19,11 +22,7 @@ use crate::{
     impls::{LocationOrArg, LocationOrArgDomain, LocationOrArgSet},
     IndexMatrix, IndexedDomain,
   },
-  mir::{
-    aliases::Aliases,
-    control_dependencies::ControlDependencies,
-    utils::{BodyExt, OperandExt, PlaceExt},
-  },
+  mir::aliases::Aliases,
 };
 
 /// Represents the information flows at a given instruction. See [`FlowResults`] for a high-level explanation of this datatype.
@@ -115,15 +114,11 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
 
     let add_deps = |place: Place<'tcx>, location_deps: &mut LocationOrArgSet| {
       let reachable_values = all_aliases.reachable_values(place, Mutability::Not);
-      let provenance =
-        place
-          .refs_in_projection()
-          .into_iter()
-          .flat_map(|(place_ref, _)| {
-            all_aliases
-              .aliases(Place::from_ref(place_ref, self.tcx))
-              .iter()
-          });
+      let provenance = place.refs_in_projection().flat_map(|(place_ref, _)| {
+        all_aliases
+          .aliases(Place::from_ref(place_ref, self.tcx))
+          .iter()
+      });
       for relevant in reachable_values.iter().chain(provenance) {
         let deps = state.row_set(all_aliases.normalize(*relevant));
         trace!("    For relevant {relevant:?} for input {place:?} adding deps {deps:?}");
@@ -148,7 +143,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
       // Include dependencies of the switch's operand
       let terminator = body.basic_blocks[block].terminator();
       if let TerminatorKind::SwitchInt { discr, .. } = &terminator.kind {
-        if let Some(discr_place) = discr.to_place() {
+        if let Some(discr_place) = discr.as_place() {
           add_deps(discr_place, &mut input_location_deps);
         }
       }
