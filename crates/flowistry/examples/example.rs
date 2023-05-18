@@ -24,15 +24,7 @@ extern crate rustc_span;
 
 use std::process::Command;
 
-use flowistry::{
-  indexed::impls::LocationOrArg,
-  infoflow::Direction,
-  mir::{
-    borrowck_facts,
-    utils::{BodyExt, PlaceExt, SpanExt},
-  },
-  source_map::{EnclosingHirSpans, Spanner},
-};
+use flowistry::{indexed::impls::LocationOrArg, infoflow::Direction};
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_hir::{BodyId, ItemKind};
 use rustc_middle::{
@@ -40,6 +32,11 @@ use rustc_middle::{
   ty::TyCtxt,
 };
 use rustc_span::Span;
+use rustc_utils::{
+  mir::borrowck_facts,
+  source_map::spanner::{EnclosingHirSpans, Spanner},
+  BodyExt, PlaceExt, SpanExt,
+};
 
 // This is the core analysis. Everything below this function is plumbing to
 // call into rustc's API.
@@ -95,6 +92,7 @@ struct Callbacks;
 impl rustc_driver::Callbacks for Callbacks {
   fn config(&mut self, config: &mut rustc_interface::Config) {
     // You MUST configure rustc to ensure `get_body_with_borrowck_facts` will work.
+    borrowck_facts::enable_mir_simplification();
     config.override_queries = Some(borrowck_facts::override_queries);
   }
 

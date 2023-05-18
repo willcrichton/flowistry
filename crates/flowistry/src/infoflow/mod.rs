@@ -9,15 +9,13 @@ use log::debug;
 use rustc_borrowck::BodyWithBorrowckFacts;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
+use rustc_utils::{block_timer, BodyExt};
 
 pub use self::{
   analysis::{FlowAnalysis, FlowDomain},
   dependencies::{compute_dependencies, compute_dependency_spans, Direction},
 };
-use crate::{
-  block_timer,
-  mir::{aliases::Aliases, engine, utils::BodyExt},
-};
+use crate::mir::{aliases::Aliases, engine};
 
 mod analysis;
 mod dependencies;
@@ -38,7 +36,8 @@ mod recursive;
 /// # #![feature(rustc_private)]
 /// # extern crate rustc_middle;
 /// # use rustc_middle::{ty::TyCtxt, mir::{Place, Location, Local}};
-/// # use flowistry::{infoflow::{FlowDomain, FlowResults}, mir::utils::PlaceExt, indexed::impls::LocationOrArgSet};
+/// # use flowistry::{infoflow::{FlowDomain, FlowResults}, indexed::impls::LocationOrArgSet};
+/// # use rustc_utils::PlaceExt;
 /// fn example<'tcx>(tcx: TyCtxt<'tcx>, results: &FlowResults<'_, 'tcx>) {
 ///   let ℓ: Location            = Location::START;
 ///   let Θ: &FlowDomain         = results.state_at(ℓ);

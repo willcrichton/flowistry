@@ -4,11 +4,7 @@
 use std::io::Write;
 
 use anyhow::Result;
-use flowistry::{
-  indexed::impls::PlaceSet,
-  infoflow::FlowResults,
-  mir::utils::{BodyExt, PlaceExt, SpanExt},
-};
+use flowistry::{indexed::impls::PlaceSet, infoflow::FlowResults};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::{def::Res, def_id::DefId, BodyId};
 use rustc_infer::traits::EvaluationResult;
@@ -19,6 +15,7 @@ use rustc_middle::{
 use rustc_mir_dataflow::JoinSemiLattice;
 use rustc_span::FileName;
 use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
+use rustc_utils::{BodyExt, PlaceExt, SpanExt};
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 fn implements_trait<'tcx>(
