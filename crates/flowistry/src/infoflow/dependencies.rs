@@ -178,10 +178,11 @@ pub fn compute_dependencies<'tcx>(
             check(place);
           }
         }
-        _ => ModularMutationVisitor::new(
-          &results.analysis.aliases,
-          |Mutation { mutated, .. }| check(mutated),
-        )
+        _ => ModularMutationVisitor::new(&results.analysis.aliases, |_, mutations| {
+          for Mutation { mutated, .. } in mutations {
+            check(mutated);
+          }
+        })
         .visit_location(body, location),
       }
     }
