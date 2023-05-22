@@ -10,7 +10,7 @@ use super::{analysis::FlowAnalysis, BODY_STACK};
 use crate::{
   extensions::REACHED_LIBRARY,
   infoflow::{
-    mutation::{Mutation, MutationStatus},
+    mutation::{Mutation, MutationStatus, ConflictType},
     FlowDomain,
   },
   mir::utils,
@@ -154,8 +154,8 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
       // For example, say we're calling f(_5.0) and child = (*_1).1 where
       // .1 is private to parent. Then:
       //    parent_toplevel_arg = _5.0
-      //    parent_arg_projected = (*_5.0).1
-      //    parent_arg_accessible = (*_5.0)
+      //    child.projection = (*□).1
+      //    parent_arg_projected = (*_5.0)
 
       let parent_toplevel_arg = if child.local == RETURN_PLACE {
         *destination
@@ -170,7 +170,17 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
       let mut ty = parent_toplevel_arg.ty(self.body.local_decls(), tcx);
       let parent_param_env = tcx.param_env(self.def_id);
       log::debug!("Adding child {child:?} to parent {parent_toplevel_arg:?}");
-      for elem in child.projection.iter() {
+      for elem in child.projection.iter() {        
+        // Don't continue if we reach a private field
+        if let ProjectionElem::Field(field, _) = elem {
+          if let Some(adt_def) = ty.ty.ty_adt_def() {
+            let field = adt_def.all_fields().nth(field.as_usize()).unwrap();
+            if !field.vis.is_accessible_from(self.def_id, self.tcx) {
+              break;
+            }
+          }
+        }
+
         ty = ty.projection_ty_core(
           tcx,
           parent_param_env,
@@ -218,10 +228,11 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
         } else {
           MutationStatus::Possibly
         },
+        conflicts: ConflictType::Exclude
       })
     }).collect::<Vec<_>>();
 
-    self.transfer_function(state, mutations, location, true);
+    self.transfer_function(state, mutations, location);
 
     true
   }

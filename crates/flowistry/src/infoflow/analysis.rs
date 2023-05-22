@@ -22,6 +22,7 @@ use crate::{
     impls::{LocationOrArg, LocationOrArgDomain, LocationOrArgSet},
     IndexMatrix, IndexedDomain,
   },
+  infoflow::mutation::ConflictType,
   mir::aliases::Aliases,
 };
 
@@ -89,8 +90,6 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     state: &mut FlowDomain<'tcx>,
     mutations: Vec<Mutation<'tcx>>,
     location: Location,
-    // Small hack for recursive Flowistry that doesn't lookup conflicts of inputs, only aliases
-    recursive: bool,
   ) {
     debug!("  Applying mutations {mutations:?}");
     let location_domain = self.location_domain();
@@ -120,11 +119,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     let add_deps = |state: &mut FlowDomain<'tcx>,
                     place: Place<'tcx>,
                     location_deps: &mut LocationOrArgSet| {
-      let reachable_values = if recursive {
-        all_aliases.aliases(place)
-      } else {
-        all_aliases.reachable_values(place, Mutability::Not)
-      };
+      let reachable_values = all_aliases.reachable_values(place, Mutability::Not);
       let provenance = place.refs_in_projection().flat_map(|(place_ref, _)| {
         all_aliases
           .aliases(Place::from_ref(place_ref, self.tcx))
@@ -167,7 +162,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     let mutable_conflicts = mutations
       .iter()
       .map(|mt| {
-        let mut mutable_conflicts = if recursive {
+        let mut mutable_conflicts = if matches!(mt.conflicts, ConflictType::Exclude) {
           all_aliases.aliases(mt.mutated).to_owned()
         } else {
           all_aliases.conflicts(mt.mutated).to_owned()
@@ -252,7 +247,7 @@ impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
     location: Location,
   ) {
     ModularMutationVisitor::new(&self.aliases, |_, mutations| {
-      self.transfer_function(state, mutations, location, false)
+      self.transfer_function(state, mutations, location)
     })
     .visit_statement(statement, location);
   }
@@ -271,7 +266,7 @@ impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
     }
 
     ModularMutationVisitor::new(&self.aliases, |_, mutations| {
-      self.transfer_function(state, mutations, location, false)
+      self.transfer_function(state, mutations, location)
     })
     .visit_terminator(terminator, location);
   }

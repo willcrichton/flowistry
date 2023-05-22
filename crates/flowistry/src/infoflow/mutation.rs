@@ -6,7 +6,7 @@ use rustc_middle::{
   ty::TyKind,
 };
 use rustc_target::abi::FieldIdx;
-use rustc_utils::{mir::place::PlaceCollector, OperandExt};
+use rustc_utils::{mir::place::PlaceCollector, AdtDefExt, OperandExt};
 
 use crate::mir::{
   aliases::Aliases,
@@ -14,6 +14,7 @@ use crate::mir::{
 };
 
 /// Indicator of certainty about whether a place is being mutated.
+/// Used to determine whether an update should be strong or weak.
 #[derive(Debug)]
 pub enum MutationStatus {
   /// A place is definitely mutated, e.g. `x = y` definitely mutates `x`.
@@ -21,6 +22,12 @@ pub enum MutationStatus {
 
   /// A place is possibly mutated, e.g. `f(&mut x)` possibly mutates `x`.
   Possibly,
+}
+
+#[derive(Debug)]
+pub enum ConflictType {
+  Include,
+  Exclude
 }
 
 /// Information about a particular mutation.
@@ -34,6 +41,8 @@ pub struct Mutation<'tcx> {
 
   /// The certainty of whether the mutation is happening.
   pub status: MutationStatus,
+
+  pub conflicts: ConflictType,
 }
 
 /// MIR visitor that invokes a callback for every [`Mutation`] in the visited object.
@@ -114,6 +123,7 @@ where
                 mutated,
                 inputs: input.into_iter().collect::<Vec<_>>(),
                 status: MutationStatus::Definitely,
+                conflicts: ConflictType::Include
               })
               .collect::<Vec<_>>();
             (self.f)(location, mutations);
@@ -129,9 +139,12 @@ where
         let place_ty = place.ty(&body.local_decls, tcx).ty;
         if let TyKind::Adt(adt_def, substs) = place_ty.kind() {
           if adt_def.is_struct() {
-            let fields = adt_def.all_fields().enumerate().map(|(i, field_def)| {
-              PlaceElem::Field(FieldIdx::from_usize(i), field_def.ty(tcx, substs))
-            });
+            let fields = adt_def
+              .all_visible_fields(self.aliases.def_id, self.aliases.tcx)
+              .enumerate()
+              .map(|(i, field_def)| {
+                PlaceElem::Field(FieldIdx::from_usize(i), field_def.ty(tcx, substs))
+              });
             let mutations = fields
               .map(|field| {
                 let mutated_field = mutated.project_deeper(&[field], tcx);
@@ -140,8 +153,17 @@ where
                   mutated: mutated_field,
                   inputs: vec![input_field],
                   status: MutationStatus::Definitely,
+                  conflicts: ConflictType::Exclude
                 }
               })
+              .chain([
+                Mutation {
+                  mutated: *mutated,
+                  inputs: vec![*place],
+                  status: MutationStatus::Definitely,
+                  conflicts: ConflictType::Exclude,
+                }
+              ])
               .collect::<Vec<_>>();
             (self.f)(location, mutations);
             return;
@@ -158,6 +180,7 @@ where
       mutated: *mutated,
       inputs: collector.0,
       status: MutationStatus::Definitely,
+      conflicts: ConflictType::Include
     }]);
   }
 
@@ -195,6 +218,7 @@ where
           mutated: *destination,
           inputs,
           status: MutationStatus::Definitely,
+          conflicts: ConflictType::Include
         }];
 
         for arg in arg_places {
@@ -209,6 +233,7 @@ where
               mutated: *arg_mut,
               inputs: arg_inputs.clone(),
               status: MutationStatus::Possibly,
+              conflicts: ConflictType::Include
             });
           }
         }
