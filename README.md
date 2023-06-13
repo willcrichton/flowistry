@@ -78,6 +78,9 @@ The documentation is published here: https://willcrichton.net/flowistry/flowistr
 
 ## Usage
 
+Note that the latest Flowistry has a [**Maximum** Supported Rust Version](https://github.com/cognitive-engineering-lab/rustc_plugin/tree/main#maximum-supported-rust-version) of **Rust 1.69**. 
+Flowistry is not guaranteed to work with features implemented after 1.69.
+
 ### Startup
 
 Once you have installed Flowistry, open a Rust workspace in VSCode. You should see this icon in the bottom toolbar:
