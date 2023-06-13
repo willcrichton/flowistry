@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/infoflow/recursive.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>recursive.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-389f8b4a37bc03c9.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../../../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/infoflow/recursive.rs`."><title>recursive.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="flowistry" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -14,7 +14,7 @@
     });
 </script>
 
-</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -240,24 +240,35 @@
 <a href="#224" id="224">224</a>
 <a href="#225" id="225">225</a>
 <a href="#226" id="226">226</a>
-</pre><pre class="rust"><code><span class="kw">use </span>log::{debug, info};
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>log::{debug, info};
 <span class="kw">use </span>rustc_middle::{
   mir::<span class="kw-2">*</span>,
   ty::{subst::GenericArgKind, ClosureKind, TyKind},
 };
 <span class="kw">use </span>rustc_mir_dataflow::JoinSemiLattice;
+<span class="kw">use </span>rustc_utils::{mir::borrowck_facts::get_body_with_borrowck_facts, PlaceExt};
 
 <span class="kw">use super</span>::{analysis::FlowAnalysis, BODY_STACK};
 <span class="kw">use crate</span>::{
   extensions::REACHED_LIBRARY,
   infoflow::{
-    mutation::{Mutation, MutationStatus},
+    mutation::{Mutation, MutationStatus, ConflictType},
     FlowDomain,
   },
-  mir::{
-    borrowck_facts::get_body_with_borrowck_facts,
-    utils::{<span class="self">self</span>, PlaceExt},
-  },
+  mir::utils,
 };
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; FlowAnalysis&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt; {
@@ -298,7 +309,7 @@
     <span class="comment">// If a function returns never (fn () -&gt; !) then there are no exit points,
     // so we can&#39;t analyze effects on exit
     </span><span class="kw">let </span>fn_sig = tcx.fn_sig(<span class="kw-2">*</span>def_id);
-    <span class="kw">if </span>fn_sig.skip_binder().output().is_never() {
+    <span class="kw">if </span>fn_sig.skip_binder().output().skip_binder().is_never() {
       <span class="macro">debug!</span>(<span class="string">&quot;  Func returns never&quot;</span>);
       <span class="kw">return </span><span class="bool-val">false</span>;
     }
@@ -384,34 +395,47 @@
     <span class="kw">let </span>translate_child_to_parent = |child: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
                                      mutated: bool|
      -&gt; <span class="prelude-ty">Option</span>&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-      <span class="kw">if </span>child.local == RETURN_PLACE &amp;&amp; child.projection.len() == <span class="number">0 </span>{
-        <span class="kw">if </span>child.ty(body.local_decls(), tcx).ty.is_unit() {
-          <span class="kw">return </span><span class="prelude-val">None</span>;
-        }
-
-        <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw-2">*</span>destination);
+      <span class="kw">let </span>child_ty = child.ty(body.local_decls(), tcx).ty;
+      <span class="kw">if </span>child_ty.is_unit() {
+        <span class="kw">return </span><span class="prelude-val">None</span>;
       }
 
-      <span class="kw">if </span>!child.is_arg(body) || (mutated &amp;&amp; !child.is_indirect()) {
+      <span class="kw">let </span>can_translate = child.local == RETURN_PLACE
+        || (child.is_arg(body) &amp;&amp; (!mutated || child.is_indirect()));
+      <span class="kw">if </span>!can_translate {
         <span class="kw">return </span><span class="prelude-val">None</span>;
       }
 
       <span class="comment">// For example, say we&#39;re calling f(_5.0) and child = (*_1).1 where
       // .1 is private to parent. Then:
       //    parent_toplevel_arg = _5.0
-      //    parent_arg_projected = (*_5.0).1
-      //    parent_arg_accessible = (*_5.0)
+      //    child.projection = (*□).1
+      //    parent_arg_projected = (*_5.0)
 
-      </span><span class="kw">let </span>parent_toplevel_arg = parent_arg_places
-        .iter()
-        .find(|(j, <span class="kw">_</span>)| child.local.as_usize() - <span class="number">1 </span>== <span class="kw-2">*</span>j)
-        .map(|(<span class="kw">_</span>, place)| place)<span class="question-mark">?</span>;
+      </span><span class="kw">let </span>parent_toplevel_arg = <span class="kw">if </span>child.local == RETURN_PLACE {
+        <span class="kw-2">*</span>destination
+      } <span class="kw">else </span>{
+        parent_arg_places
+          .iter()
+          .find(|(j, <span class="kw">_</span>)| child.local.as_usize() - <span class="number">1 </span>== <span class="kw-2">*</span>j)
+          .map(|(<span class="kw">_</span>, place)| <span class="kw-2">*</span>place)<span class="question-mark">?
+      </span>};
 
       <span class="kw">let </span><span class="kw-2">mut </span>projection = parent_toplevel_arg.projection.to_vec();
       <span class="kw">let </span><span class="kw-2">mut </span>ty = parent_toplevel_arg.ty(<span class="self">self</span>.body.local_decls(), tcx);
       <span class="kw">let </span>parent_param_env = tcx.param_env(<span class="self">self</span>.def_id);
       <span class="macro">log::debug!</span>(<span class="string">&quot;Adding child {child:?} to parent {parent_toplevel_arg:?}&quot;</span>);
-      <span class="kw">for </span>elem <span class="kw">in </span>child.projection.iter() {
+      <span class="kw">for </span>elem <span class="kw">in </span>child.projection.iter() {        
+        <span class="comment">// Don&#39;t continue if we reach a private field
+        </span><span class="kw">if let </span>ProjectionElem::Field(field, <span class="kw">_</span>) = elem {
+          <span class="kw">if let </span><span class="prelude-val">Some</span>(adt_def) = ty.ty.ty_adt_def() {
+            <span class="kw">let </span>field = adt_def.all_fields().nth(field.as_usize()).unwrap();
+            <span class="kw">if </span>!field.vis.is_accessible_from(<span class="self">self</span>.def_id, <span class="self">self</span>.tcx) {
+              <span class="kw">break</span>;
+            }
+          }
+        }
+
         ty = ty.projection_ty_core(
           tcx,
           parent_param_env,
@@ -430,41 +454,42 @@
       <span class="prelude-val">Some</span>(parent_arg_projected)
     };
 
-    <span class="kw">for </span>(child, <span class="kw">_</span>) <span class="kw">in </span>return_state.rows() {
-      <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = translate_child_to_parent(child, <span class="bool-val">true</span>) {
-        <span class="kw">let </span>was_return = child.local == RETURN_PLACE;
-        <span class="comment">// &gt; 1 because arguments will always have their synthetic location in their dep set
-        </span><span class="kw">let </span>was_mutated = return_state.row_set(child).len() &gt; <span class="number">1</span>;
-        <span class="kw">if </span>!was_mutated &amp;&amp; !was_return {
-          <span class="kw">continue</span>;
-        }
+    <span class="kw">let </span>mutations = return_state.rows().filter_map(|(child, <span class="kw">_</span>)| {
+      <span class="kw">let </span>parent = translate_child_to_parent(child, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>child_deps = return_state.row_set(child);
-        <span class="kw">let </span>parent_deps = return_state
-          .rows()
-          .filter(|(<span class="kw">_</span>, deps)| child_deps.is_superset(deps))
-          .filter_map(|(row, <span class="kw">_</span>)| <span class="prelude-val">Some</span>((translate_child_to_parent(row, <span class="bool-val">false</span>)<span class="question-mark">?</span>, <span class="prelude-val">None</span>)))
-          .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-
-        <span class="macro">debug!</span>(
-          <span class="string">&quot;child {child:?} \n  / child_deps {child_deps:?}\n--&gt;\nparent {parent:?}\n   / parent_deps {parent_deps:?}&quot;
-        </span>);
-
-        <span class="self">self</span>.transfer_function(state, Mutation {
-          mutated: parent,
-          inputs: <span class="kw-2">&amp;</span>parent_deps,
-          location,
-          status: <span class="kw">if </span>was_return {
-            MutationStatus::Definitely
-          } <span class="kw">else </span>{
-            MutationStatus::Possibly
-          },
-        });
+      <span class="kw">let </span>was_return: bool = child.local == RETURN_PLACE;
+      <span class="comment">// &gt; 1 because arguments will always have their synthetic location in their dep set
+      </span><span class="kw">let </span>was_mutated = return_state.row_set(child).len() &gt; <span class="number">1</span>;
+      <span class="kw">if </span>!was_mutated &amp;&amp; !was_return {
+        <span class="kw">return </span><span class="prelude-val">None</span>;
       }
-    }
+
+      <span class="kw">let </span>child_deps = return_state.row_set(child);
+      <span class="kw">let </span>parent_deps = return_state
+        .rows()
+        .filter(|(<span class="kw">_</span>, deps)| child_deps.is_superset(deps))
+        .filter_map(|(row, <span class="kw">_</span>)| translate_child_to_parent(row, <span class="bool-val">false</span>))
+        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+
+      <span class="macro">debug!</span>(
+        <span class="string">&quot;child {child:?} \n  / child_deps {child_deps:?}\n--&gt;\nparent {parent:?}\n   / parent_deps {parent_deps:?}&quot;
+      </span>);
+
+      <span class="prelude-val">Some</span>(Mutation {
+        mutated: parent,
+        inputs: parent_deps.clone(),
+        status: <span class="kw">if </span>was_return {
+          MutationStatus::Definitely
+        } <span class="kw">else </span>{
+          MutationStatus::Possibly
+        },
+        conflicts: ConflictType::Exclude
+      })
+    }).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+
+    <span class="self">self</span>.transfer_function(state, mutations, location);
 
     <span class="bool-val">true
   </span>}
 }
-</code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="flowistry" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (b28d30e1e 2022-12-06)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

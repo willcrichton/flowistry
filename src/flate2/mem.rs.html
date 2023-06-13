@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/flate2-1.0.25/src/mem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-389f8b4a37bc03c9.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../flate2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/flate2-1.0.26/src/mem.rs`."><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="flate2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../flate2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -762,31 +762,7 @@
 <a href="#762" id="762">762</a>
 <a href="#763" id="763">763</a>
 <a href="#764" id="764">764</a>
-<a href="#765" id="765">765</a>
-<a href="#766" id="766">766</a>
-<a href="#767" id="767">767</a>
-<a href="#768" id="768">768</a>
-<a href="#769" id="769">769</a>
-<a href="#770" id="770">770</a>
-<a href="#771" id="771">771</a>
-<a href="#772" id="772">772</a>
-<a href="#773" id="773">773</a>
-<a href="#774" id="774">774</a>
-<a href="#775" id="775">775</a>
-<a href="#776" id="776">776</a>
-<a href="#777" id="777">777</a>
-<a href="#778" id="778">778</a>
-<a href="#779" id="779">779</a>
-<a href="#780" id="780">780</a>
-<a href="#781" id="781">781</a>
-<a href="#782" id="782">782</a>
-<a href="#783" id="783">783</a>
-<a href="#784" id="784">784</a>
-<a href="#785" id="785">785</a>
-<a href="#786" id="786">786</a>
-<a href="#787" id="787">787</a>
-<a href="#788" id="788">788</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::error::Error;
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::error::Error;
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::io;
 <span class="kw">use </span>std::slice;
@@ -828,9 +804,10 @@
     inner: Inflate,
 }
 
-<span class="attr">#[derive(Copy, Clone, PartialEq, Eq, Debug)]
-</span><span class="doccomment">/// Values which indicate the form of flushing to be used when compressing
+<span class="doccomment">/// Values which indicate the form of flushing to be used when compressing
 /// in-memory data.
+</span><span class="attr">#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[non_exhaustive]
 </span><span class="kw">pub enum </span>FlushCompress {
     <span class="doccomment">/// A typical parameter for passing to compression/decompression functions,
     /// this indicates that the underlying stream to decide how much data to
@@ -868,14 +845,12 @@
     /// The return value may indicate that the stream is not yet done and more
     /// data has yet to be processed.
     </span>Finish = ffi::MZ_FINISH <span class="kw">as </span>isize,
-
-    <span class="attr">#[doc(hidden)]
-    </span>_Nonexhaustive,
 }
 
-<span class="attr">#[derive(Copy, Clone, PartialEq, Eq, Debug)]
-</span><span class="doccomment">/// Values which indicate the form of flushing to be used when
+<span class="doccomment">/// Values which indicate the form of flushing to be used when
 /// decompressing in-memory data.
+</span><span class="attr">#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[non_exhaustive]
 </span><span class="kw">pub enum </span>FlushDecompress {
     <span class="doccomment">/// A typical parameter for passing to compression/decompression functions,
     /// this indicates that the underlying stream to decide how much data to
@@ -896,9 +871,6 @@
     /// The return value may indicate that the stream is not yet done and more
     /// data has yet to be processed.
     </span>Finish = ffi::MZ_FINISH <span class="kw">as </span>isize,
-
-    <span class="attr">#[doc(hidden)]
-    </span>_Nonexhaustive,
 }
 
 <span class="doccomment">/// The inner state for an error when decompressing
@@ -1003,11 +975,6 @@
     ///
     /// If `window_bits` does not fall into the range 9 ..= 15,
     /// `new_with_window_bits` will panic.
-    ///
-    /// # Note
-    ///
-    /// This constructor is only available when the `zlib` feature is used.
-    /// Other backends currently do not support custom window bits.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
     </span><span class="kw">pub fn </span>new_with_window_bits(
         level: Compression,
@@ -1035,11 +1002,6 @@
     ///
     /// If `window_bits` does not fall into the range 9 ..= 15,
     /// `new_with_window_bits` will panic.
-    ///
-    /// # Note
-    ///
-    /// This constructor is only available when the `zlib` feature is used.
-    /// Other backends currently do not support gzip headers for Compress.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
     </span><span class="kw">pub fn </span>new_gzip(level: Compression, window_bits: u8) -&gt; Compress {
         <span class="macro">assert!</span>(
@@ -1150,7 +1112,7 @@
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>before = <span class="self">self</span>.total_out();
             <span class="kw">let </span>ret = {
-                <span class="kw">let </span>ptr = output.as_mut_ptr().offset(len <span class="kw">as </span>isize);
+                <span class="kw">let </span>ptr = output.as_mut_ptr().add(len);
                 <span class="kw">let </span>out = slice::from_raw_parts_mut(ptr, cap - len);
                 <span class="self">self</span>.compress(input, out, flush)
             };
@@ -1181,11 +1143,6 @@
     ///
     /// If `window_bits` does not fall into the range 9 ..= 15,
     /// `new_with_window_bits` will panic.
-    ///
-    /// # Note
-    ///
-    /// This constructor is only available when the `zlib` feature is used.
-    /// Other backends currently do not support custom window bits.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
     </span><span class="kw">pub fn </span>new_with_window_bits(zlib_header: bool, window_bits: u8) -&gt; Decompress {
         <span class="macro">assert!</span>(
@@ -1206,11 +1163,6 @@
     ///
     /// If `window_bits` does not fall into the range 9 ..= 15,
     /// `new_with_window_bits` will panic.
-    ///
-    /// # Note
-    ///
-    /// This constructor is only available when the `zlib` feature is used.
-    /// Other backends currently do not support gzip headers for Decompress.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
     </span><span class="kw">pub fn </span>new_gzip(window_bits: u8) -&gt; Decompress {
         <span class="macro">assert!</span>(
@@ -1291,7 +1243,7 @@
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>before = <span class="self">self</span>.total_out();
             <span class="kw">let </span>ret = {
-                <span class="kw">let </span>ptr = output.as_mut_ptr().offset(len <span class="kw">as </span>isize);
+                <span class="kw">let </span>ptr = output.as_mut_ptr().add(len);
                 <span class="kw">let </span>out = slice::from_raw_parts_mut(ptr, cap - len);
                 <span class="self">self</span>.decompress(input, out, flush)
             };
@@ -1574,5 +1526,4 @@
         <span class="macro">assert_eq!</span>(err.message(), <span class="prelude-val">Some</span>(<span class="string">&quot;invalid stored block lengths&quot;</span>));
     }
 }
-</code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="flate2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (b28d30e1e 2022-12-06)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

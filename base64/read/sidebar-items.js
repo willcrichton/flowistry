@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["DecoderReader","A `Read` implementation that decodes base64 data read from an underlying reader."]]};
+window.SIDEBAR_ITEMS = {"struct":["DecoderReader"]};

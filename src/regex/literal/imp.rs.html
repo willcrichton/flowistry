@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.1/src/literal/imp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>imp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-389f8b4a37bc03c9.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../../../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../regex/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-1.8.4/src/literal/imp.rs`."><title>imp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -400,11 +400,22 @@
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::mem;
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::mem;
 
-<span class="kw">use </span>aho_corasick::{<span class="self">self</span>, packed, AhoCorasick, AhoCorasickBuilder};
+<span class="kw">use </span>aho_corasick::{<span class="self">self</span>, packed, AhoCorasick};
 <span class="kw">use </span>memchr::{memchr, memchr2, memchr3, memmem};
-<span class="kw">use </span>regex_syntax::hir::literal::{Literal, Literals};
+<span class="kw">use </span>regex_syntax::hir::literal::{Literal, Seq};
 
 <span class="doccomment">/// A prefix extracted from a compiled regular expression.
 ///
@@ -428,7 +439,7 @@
     <span class="doccomment">/// A single substring, using vector accelerated routines when available.
     </span>Memmem(Memmem),
     <span class="doccomment">/// An Aho-Corasick automaton.
-    </span>AC { ac: AhoCorasick&lt;u32&gt;, lits: Vec&lt;Literal&gt; },
+    </span>AC { ac: AhoCorasick, lits: Vec&lt;Literal&gt; },
     <span class="doccomment">/// A packed multiple substring searcher, using SIMD.
     ///
     /// Note that Aho-Corasick will actually use this packed searcher
@@ -441,27 +452,26 @@
 <span class="kw">impl </span>LiteralSearcher {
     <span class="doccomment">/// Returns a matcher that never matches and never advances the input.
     </span><span class="kw">pub fn </span>empty() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(Literals::empty(), Matcher::Empty)
+        <span class="self">Self</span>::new(Seq::infinite(), Matcher::Empty)
     }
 
     <span class="doccomment">/// Returns a matcher for literal prefixes from the given set.
-    </span><span class="kw">pub fn </span>prefixes(lits: Literals) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>prefixes(lits: Seq) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>matcher = Matcher::prefixes(<span class="kw-2">&amp;</span>lits);
         <span class="self">Self</span>::new(lits, matcher)
     }
 
     <span class="doccomment">/// Returns a matcher for literal suffixes from the given set.
-    </span><span class="kw">pub fn </span>suffixes(lits: Literals) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>suffixes(lits: Seq) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>matcher = Matcher::suffixes(<span class="kw-2">&amp;</span>lits);
         <span class="self">Self</span>::new(lits, matcher)
     }
 
-    <span class="kw">fn </span>new(lits: Literals, matcher: Matcher) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>complete = lits.all_complete();
+    <span class="kw">fn </span>new(lits: Seq, matcher: Matcher) -&gt; <span class="self">Self </span>{
         LiteralSearcher {
-            complete,
-            lcp: Memmem::new(lits.longest_common_prefix()),
-            lcs: Memmem::new(lits.longest_common_suffix()),
+            complete: lits.is_exact(),
+            lcp: Memmem::new(lits.longest_common_prefix().unwrap_or(<span class="string">b&quot;&quot;</span>)),
+            lcs: Memmem::new(lits.longest_common_suffix().unwrap_or(<span class="string">b&quot;&quot;</span>)),
             matcher,
         }
     }
@@ -552,7 +562,7 @@
             Empty =&gt; <span class="number">0</span>,
             Bytes(<span class="kw-2">ref </span>sset) =&gt; sset.dense.len(),
             Memmem(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
-            AC { <span class="kw-2">ref </span>ac, .. } =&gt; ac.pattern_count(),
+            AC { <span class="kw-2">ref </span>ac, .. } =&gt; ac.patterns_len(),
             Packed { <span class="kw-2">ref </span>lits, .. } =&gt; lits.len(),
         }
     }
@@ -564,27 +574,31 @@
             Empty =&gt; <span class="number">0</span>,
             Bytes(<span class="kw-2">ref </span>sset) =&gt; sset.approximate_size(),
             Memmem(<span class="kw-2">ref </span>single) =&gt; single.approximate_size(),
-            AC { <span class="kw-2">ref </span>ac, .. } =&gt; ac.heap_bytes(),
-            Packed { <span class="kw-2">ref </span>s, .. } =&gt; s.heap_bytes(),
+            AC { <span class="kw-2">ref </span>ac, .. } =&gt; ac.memory_usage(),
+            Packed { <span class="kw-2">ref </span>s, .. } =&gt; s.memory_usage(),
         }
     }
 }
 
 <span class="kw">impl </span>Matcher {
-    <span class="kw">fn </span>prefixes(lits: <span class="kw-2">&amp;</span>Literals) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>prefixes(lits: <span class="kw-2">&amp;</span>Seq) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>sset = SingleByteSet::prefixes(lits);
         Matcher::new(lits, sset)
     }
 
-    <span class="kw">fn </span>suffixes(lits: <span class="kw-2">&amp;</span>Literals) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>suffixes(lits: <span class="kw-2">&amp;</span>Seq) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>sset = SingleByteSet::suffixes(lits);
         Matcher::new(lits, sset)
     }
 
-    <span class="kw">fn </span>new(lits: <span class="kw-2">&amp;</span>Literals, sset: SingleByteSet) -&gt; <span class="self">Self </span>{
-        <span class="kw">if </span>lits.literals().is_empty() {
+    <span class="kw">fn </span>new(lits: <span class="kw-2">&amp;</span>Seq, sset: SingleByteSet) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span>lits.is_empty() || lits.min_literal_len() == <span class="prelude-val">Some</span>(<span class="number">0</span>) {
             <span class="kw">return </span>Matcher::Empty;
         }
+        <span class="kw">let </span>lits = <span class="kw">match </span>lits.literals() {
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>Matcher::Empty,
+            <span class="prelude-val">Some</span>(members) =&gt; members,
+        };
         <span class="kw">if </span>sset.dense.len() &gt;= <span class="number">26 </span>{
             <span class="comment">// Avoid trying to match a large number of single bytes.
             // This is *very* sensitive to a frequency analysis comparison
@@ -597,26 +611,26 @@
         <span class="kw">if </span>sset.complete {
             <span class="kw">return </span>Matcher::Bytes(sset);
         }
-        <span class="kw">if </span>lits.literals().len() == <span class="number">1 </span>{
-            <span class="kw">return </span>Matcher::Memmem(Memmem::new(<span class="kw-2">&amp;</span>lits.literals()[<span class="number">0</span>]));
+        <span class="kw">if </span>lits.len() == <span class="number">1 </span>{
+            <span class="kw">return </span>Matcher::Memmem(Memmem::new(lits[<span class="number">0</span>].as_bytes()));
         }
 
-        <span class="kw">let </span>pats = lits.literals().to_owned();
+        <span class="kw">let </span>pats: Vec&lt;<span class="kw-2">&amp;</span>[u8]&gt; = lits.iter().map(|lit| lit.as_bytes()).collect();
         <span class="kw">let </span>is_aho_corasick_fast = sset.dense.len() &lt;= <span class="number">1 </span>&amp;&amp; sset.all_ascii;
-        <span class="kw">if </span>lits.literals().len() &lt;= <span class="number">100 </span>&amp;&amp; !is_aho_corasick_fast {
+        <span class="kw">if </span>lits.len() &lt;= <span class="number">100 </span>&amp;&amp; !is_aho_corasick_fast {
             <span class="kw">let </span><span class="kw-2">mut </span>builder = packed::Config::new()
                 .match_kind(packed::MatchKind::LeftmostFirst)
                 .builder();
             <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = builder.extend(<span class="kw-2">&amp;</span>pats).build() {
-                <span class="kw">return </span>Matcher::Packed { s, lits: pats };
+                <span class="kw">return </span>Matcher::Packed { s, lits: lits.to_owned() };
             }
         }
-        <span class="kw">let </span>ac = AhoCorasickBuilder::new()
+        <span class="kw">let </span>ac = AhoCorasick::builder()
             .match_kind(aho_corasick::MatchKind::LeftmostFirst)
-            .dfa(<span class="bool-val">true</span>)
-            .build_with_size::&lt;u32, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>pats)
+            .kind(<span class="prelude-val">Some</span>(aho_corasick::AhoCorasickKind::DFA))
+            .build(<span class="kw-2">&amp;</span>pats)
             .unwrap();
-        Matcher::AC { ac, lits: pats }
+        Matcher::AC { ac, lits: lits.to_owned() }
     }
 }
 
@@ -659,7 +673,7 @@
                 </span>} <span class="kw">else </span>{
                     <span class="kw">let </span>next = <span class="kw-2">&amp;</span>lits[<span class="number">0</span>];
                     <span class="kw-2">*</span>lits = <span class="kw-2">&amp;</span>lits[<span class="number">1</span>..];
-                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;**</span>next)
+                    <span class="prelude-val">Some</span>(next.as_bytes())
                 }
             }
             LiteralIter::Packed(<span class="kw-2">ref mut </span>lits) =&gt; {
@@ -668,7 +682,7 @@
                 </span>} <span class="kw">else </span>{
                     <span class="kw">let </span>next = <span class="kw-2">&amp;</span>lits[<span class="number">0</span>];
                     <span class="kw-2">*</span>lits = <span class="kw-2">&amp;</span>lits[<span class="number">1</span>..];
-                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;**</span>next)
+                    <span class="prelude-val">Some</span>(next.as_bytes())
                 }
             }
         }
@@ -693,11 +707,15 @@
         }
     }
 
-    <span class="kw">fn </span>prefixes(lits: <span class="kw-2">&amp;</span>Literals) -&gt; SingleByteSet {
+    <span class="kw">fn </span>prefixes(lits: <span class="kw-2">&amp;</span>Seq) -&gt; SingleByteSet {
         <span class="kw">let </span><span class="kw-2">mut </span>sset = SingleByteSet::new();
-        <span class="kw">for </span>lit <span class="kw">in </span>lits.literals() {
+        <span class="kw">let </span>lits = <span class="kw">match </span>lits.literals() {
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>sset,
+            <span class="prelude-val">Some</span>(lits) =&gt; lits,
+        };
+        <span class="kw">for </span>lit <span class="kw">in </span>lits.iter() {
             sset.complete = sset.complete &amp;&amp; lit.len() == <span class="number">1</span>;
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) = lit.get(<span class="number">0</span>) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) = lit.as_bytes().get(<span class="number">0</span>) {
                 <span class="kw">if </span>!sset.sparse[b <span class="kw">as </span>usize] {
                     <span class="kw">if </span>b &gt; <span class="number">0x7F </span>{
                         sset.all_ascii = <span class="bool-val">false</span>;
@@ -710,11 +728,15 @@
         sset
     }
 
-    <span class="kw">fn </span>suffixes(lits: <span class="kw-2">&amp;</span>Literals) -&gt; SingleByteSet {
+    <span class="kw">fn </span>suffixes(lits: <span class="kw-2">&amp;</span>Seq) -&gt; SingleByteSet {
         <span class="kw">let </span><span class="kw-2">mut </span>sset = SingleByteSet::new();
-        <span class="kw">for </span>lit <span class="kw">in </span>lits.literals() {
+        <span class="kw">let </span>lits = <span class="kw">match </span>lits.literals() {
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>sset,
+            <span class="prelude-val">Some</span>(lits) =&gt; lits,
+        };
+        <span class="kw">for </span>lit <span class="kw">in </span>lits.iter() {
             sset.complete = sset.complete &amp;&amp; lit.len() == <span class="number">1</span>;
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) = lit.get(lit.len().checked_sub(<span class="number">1</span>).unwrap()) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>b) = lit.as_bytes().last() {
                 <span class="kw">if </span>!sset.sparse[b <span class="kw">as </span>usize] {
                     <span class="kw">if </span>b &gt; <span class="number">0x7F </span>{
                         sset.all_ascii = <span class="bool-val">false</span>;
@@ -802,5 +824,4 @@
 <span class="kw">fn </span>char_len_lossy(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
     String::from_utf8_lossy(bytes).chars().count()
 }
-</code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (b28d30e1e 2022-12-06)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

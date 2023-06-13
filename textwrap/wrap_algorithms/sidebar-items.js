@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["WrapAlgorithm","Describes how to wrap words into lines."]],"fn":[["wrap_first_fit","Wrap abstract fragments into lines with a first-fit algorithm."]]};
+window.SIDEBAR_ITEMS = {"enum":["WrapAlgorithm"],"fn":["wrap_first_fit","wrap_optimal_fit"],"struct":["OverflowError","Penalties"]};

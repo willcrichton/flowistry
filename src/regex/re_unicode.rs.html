@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.1/src/re_unicode.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>re_unicode.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-389f8b4a37bc03c9.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-1.8.4/src/re_unicode.rs`."><title>re_unicode.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1309,7 +1309,111 @@
 <a href="#1309" id="1309">1309</a>
 <a href="#1310" id="1310">1310</a>
 <a href="#1311" id="1311">1311</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
+<a href="#1344" id="1344">1344</a>
+<a href="#1345" id="1345">1345</a>
+<a href="#1346" id="1346">1346</a>
+<a href="#1347" id="1347">1347</a>
+<a href="#1348" id="1348">1348</a>
+<a href="#1349" id="1349">1349</a>
+<a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
+<a href="#1360" id="1360">1360</a>
+<a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
+<a href="#1393" id="1393">1393</a>
+<a href="#1394" id="1394">1394</a>
+<a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
+<a href="#1401" id="1401">1401</a>
+<a href="#1402" id="1402">1402</a>
+<a href="#1403" id="1403">1403</a>
+<a href="#1404" id="1404">1404</a>
+<a href="#1405" id="1405">1405</a>
+<a href="#1406" id="1406">1406</a>
+<a href="#1407" id="1407">1407</a>
+<a href="#1408" id="1408">1408</a>
+<a href="#1409" id="1409">1409</a>
+<a href="#1410" id="1410">1410</a>
+<a href="#1411" id="1411">1411</a>
+<a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::iter::FusedIterator;
@@ -1336,7 +1440,7 @@
 <span class="doccomment">/// Match represents a single match of a regex in a haystack.
 ///
 /// The lifetime parameter `&#39;t` refers to the lifetime of the matched text.
-</span><span class="attr">#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+</span><span class="attr">#[derive(Copy, Clone, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Match&lt;<span class="lifetime">&#39;t</span>&gt; {
     text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str,
     start: usize,
@@ -1356,6 +1460,18 @@
         <span class="self">self</span>.end
     }
 
+    <span class="doccomment">/// Returns true if and only if this match has a length of zero.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.start == <span class="self">self</span>.end
+    }
+
+    <span class="doccomment">/// Returns the length, in bytes, of this match.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.end - <span class="self">self</span>.start
+    }
+
     <span class="doccomment">/// Returns the range over the starting and ending byte offsets of the
     /// match in the haystack.
     </span><span class="attr">#[inline]
@@ -1373,6 +1489,16 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>new(haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str, start: usize, end: usize) -&gt; Match&lt;<span class="lifetime">&#39;t</span>&gt; {
         Match { text: haystack, start, end }
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; std::fmt::Debug <span class="kw">for </span>Match&lt;<span class="lifetime">&#39;t</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">&quot;Match&quot;</span>)
+            .field(<span class="string">&quot;start&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.start)
+            .field(<span class="string">&quot;end&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.end)
+            .field(<span class="string">&quot;string&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.as_str())
+            .finish()
     }
 }
 
@@ -1620,12 +1746,7 @@
     /// The `0`th capture group is always unnamed, so it must always be
     /// accessed with `get(0)` or `[0]`.
     </span><span class="kw">pub fn </span>captures&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Captures&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>locs = <span class="self">self</span>.capture_locations();
-        <span class="self">self</span>.captures_read_at(<span class="kw-2">&amp;mut </span>locs, text, <span class="number">0</span>).map(<span class="kw">move </span>|<span class="kw">_</span>| Captures {
-            text,
-            locs: locs.<span class="number">0</span>,
-            named_groups: <span class="self">self</span>.<span class="number">0</span>.capture_name_idx().clone(),
-        })
+        <span class="self">self</span>.captures_at(text, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns an iterator over all the non-overlapping capture groups matched
@@ -1906,7 +2027,14 @@
     /// This method may have the same performance characteristics as
     /// `is_match`, except it provides an end location for a match. In
     /// particular, the location returned *may be shorter* than the proper end
-    /// of the leftmost-first match.
+    /// of the leftmost-first match that you would find via `Regex::find`.
+    ///
+    /// Note that it is not guaranteed that this routine finds the shortest or
+    /// &quot;earliest&quot; possible match. Instead, the main idea of this API is that
+    /// it returns the offset at the point at which the internal regex engine
+    /// has determined that a match has occurred. This may vary depending on
+    /// which internal regex engine is used, and thus, the offset itself may
+    /// change.
     ///
     /// # Example
     ///
@@ -1926,12 +2054,12 @@
         <span class="self">self</span>.shortest_match_at(text, <span class="number">0</span>)
     }
 
-    <span class="doccomment">/// Returns the same as shortest_match, but starts the search at the given
-    /// offset.
+    <span class="doccomment">/// Returns the same as `shortest_match`, but starts the search at the
+    /// given offset.
     ///
     /// The significance of the starting point is that it takes the surrounding
-    /// context into consideration. For example, the `\A` anchor can only
-    /// match when `start == 0`.
+    /// context into consideration. For example, the `\A` anchor can only match
+    /// when `start == 0`.
     </span><span class="kw">pub fn </span>shortest_match_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         text: <span class="kw-2">&amp;</span>str,
@@ -1965,6 +2093,25 @@
             </span>.searcher_str()
             .find_at(text, start)
             .map(|(s, e)| Match::new(text, s, e))
+    }
+
+    <span class="doccomment">/// Returns the same as [`Regex::captures`], but starts the search at the
+    /// given offset.
+    ///
+    /// The significance of the starting point is that it takes the surrounding
+    /// context into consideration. For example, the `\A` anchor can only
+    /// match when `start == 0`.
+    </span><span class="kw">pub fn </span>captures_at&lt;<span class="lifetime">&#39;t</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str,
+        start: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Captures&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>locs = <span class="self">self</span>.capture_locations();
+        <span class="self">self</span>.captures_read_at(<span class="kw-2">&amp;mut </span>locs, text, start).map(<span class="kw">move </span>|<span class="kw">_</span>| Captures {
+            text,
+            locs: locs.<span class="number">0</span>,
+            named_groups: <span class="self">self</span>.<span class="number">0</span>.capture_name_idx().clone(),
+        })
     }
 
     <span class="doccomment">/// This is like `captures`, but uses
@@ -2034,6 +2181,46 @@
     <span class="doccomment">/// Returns the number of captures.
     </span><span class="kw">pub fn </span>captures_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.<span class="number">0</span>.capture_names().len()
+    }
+
+    <span class="doccomment">/// Returns the total number of capturing groups that appear in every
+    /// possible match.
+    ///
+    /// If the number of capture groups can vary depending on the match, then
+    /// this returns `None`. That is, a value is only returned when the number
+    /// of matching groups is invariant or &quot;static.&quot;
+    ///
+    /// Note that like [`Regex::captures_len`], this **does** include the
+    /// implicit capturing group corresponding to the entire match. Therefore,
+    /// when a non-None value is returned, it is guaranteed to be at least `1`.
+    /// Stated differently, a return value of `Some(0)` is impossible.
+    ///
+    /// # Example
+    ///
+    /// This shows a few cases where a static number of capture groups is
+    /// available and a few cases where it is not.
+    ///
+    /// ```
+    /// use regex::Regex;
+    ///
+    /// let len = |pattern| {
+    ///     Regex::new(pattern).map(|re| re.static_captures_len())
+    /// };
+    ///
+    /// assert_eq!(Some(1), len(&quot;a&quot;)?);
+    /// assert_eq!(Some(2), len(&quot;(a)&quot;)?);
+    /// assert_eq!(Some(2), len(&quot;(a)|(b)&quot;)?);
+    /// assert_eq!(Some(3), len(&quot;(a)(b)|(c)(d)&quot;)?);
+    /// assert_eq!(None, len(&quot;(a)|b&quot;)?);
+    /// assert_eq!(None, len(&quot;a|(b)&quot;)?);
+    /// assert_eq!(None, len(&quot;(b)*&quot;)?);
+    /// assert_eq!(Some(2), len(&quot;(b)+&quot;)?);
+    ///
+    /// # Ok::&lt;(), Box&lt;dyn std::error::Error&gt;&gt;(())
+    /// ```
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>static_captures_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.static_captures_len().map(|len| len.saturating_add(<span class="number">1</span>))
     }
 
     <span class="doccomment">/// Returns an empty set of capture locations that can be reused in
@@ -2177,6 +2364,27 @@
 /// In order to build a value of this type, you&#39;ll need to call the
 /// `capture_locations` method on the `Regex` being used to execute the search.
 /// The value returned can then be reused in subsequent searches.
+///
+/// # Example
+///
+/// This example shows how to create and use `CaptureLocations` in a search.
+///
+/// ```
+/// use regex::Regex;
+///
+/// let re = Regex::new(r&quot;(?&lt;first&gt;\w+)\s+(?&lt;last&gt;\w+)&quot;).unwrap();
+/// let mut locs = re.capture_locations();
+/// let m = re.captures_read(&amp;mut locs, &quot;Bruce Springsteen&quot;).unwrap();
+/// assert_eq!(0..17, m.range());
+/// assert_eq!(Some((0, 17)), locs.get(0));
+/// assert_eq!(Some((0, 5)), locs.get(1));
+/// assert_eq!(Some((6, 17)), locs.get(2));
+///
+/// // Asking for an invalid capture group always returns None.
+/// assert_eq!(None, locs.get(3));
+/// assert_eq!(None, locs.get(34973498648));
+/// assert_eq!(None, locs.get(9944060567225171988));
+/// ```
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>CaptureLocations(re_trait::Locations);
 
@@ -2620,5 +2828,4 @@
         <span class="prelude-val">Some</span>(Cow::Borrowed(<span class="self">self</span>.<span class="number">0</span>))
     }
 }
-</code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (b28d30e1e 2022-12-06)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

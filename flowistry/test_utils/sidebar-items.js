@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["DUMMY_BYTE_RANGE",""],["DUMMY_CHAR_RANGE",""],["DUMMY_FILE",""],["DUMMY_FILE_NAME",""]],"fn":[["bless",""],["color_ranges",""],["compare_ranges",""],["compile",""],["compile_body",""],["compile_body_with_range",""],["parse_ranges",""],["run_tests",""],["test_command_output",""]],"type":[["RangeMap",""]]};
+window.SIDEBAR_ITEMS = {"fn":["bless","compare_ranges","compile_body","compile_body_with_range","fmt_ranges","parse_ranges","run_tests","test_command_output"]};

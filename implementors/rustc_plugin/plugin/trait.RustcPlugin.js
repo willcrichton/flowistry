@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"flowistry_ide":[["impl <a class=\"trait\" href=\"rustc_plugin/plugin/trait.RustcPlugin.html\" title=\"trait rustc_plugin::plugin::RustcPlugin\">RustcPlugin</a> for <a class=\"struct\" href=\"flowistry_ide/struct.FlowistryPlugin.html\" title=\"struct flowistry_ide::FlowistryPlugin\">FlowistryPlugin</a>"]],
+"flowistry_ifc":[["impl <a class=\"trait\" href=\"rustc_plugin/plugin/trait.RustcPlugin.html\" title=\"trait rustc_plugin::plugin::RustcPlugin\">RustcPlugin</a> for <a class=\"struct\" href=\"flowistry_ifc/struct.IfcPlugin.html\" title=\"struct flowistry_ifc::IfcPlugin\">IfcPlugin</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

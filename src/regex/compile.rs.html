@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.1/src/compile.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compile.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-389f8b4a37bc03c9.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-1.8.4/src/compile.rs`."><title>compile.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1262,13 +1262,82 @@
 <a href="#1262" id="1262">1262</a>
 <a href="#1263" id="1263">1263</a>
 <a href="#1264" id="1264">1264</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
+<a href="#1265" id="1265">1265</a>
+<a href="#1266" id="1266">1266</a>
+<a href="#1267" id="1267">1267</a>
+<a href="#1268" id="1268">1268</a>
+<a href="#1269" id="1269">1269</a>
+<a href="#1270" id="1270">1270</a>
+<a href="#1271" id="1271">1271</a>
+<a href="#1272" id="1272">1272</a>
+<a href="#1273" id="1273">1273</a>
+<a href="#1274" id="1274">1274</a>
+<a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
+<a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
+<a href="#1281" id="1281">1281</a>
+<a href="#1282" id="1282">1282</a>
+<a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
+<a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::iter;
 <span class="kw">use </span>std::result;
 <span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">use </span>regex_syntax::hir::{<span class="self">self</span>, Hir};
+<span class="kw">use </span>regex_syntax::hir::{<span class="self">self</span>, Hir, Look};
 <span class="kw">use </span>regex_syntax::is_word_byte;
 <span class="kw">use </span>regex_syntax::utf8::{Utf8Range, Utf8Sequence, Utf8Sequences};
 
@@ -1401,13 +1470,24 @@
     }
 
     <span class="kw">fn </span>compile_one(<span class="kw-2">mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>Hir) -&gt; result::Result&lt;Program, Error&gt; {
+        <span class="kw">if </span><span class="self">self</span>.compiled.only_utf8
+            &amp;&amp; expr.properties().look_set().contains(Look::WordAsciiNegate)
+        {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Syntax(
+                <span class="string">&quot;ASCII-only \\B is not allowed in Unicode regexes \
+                 because it may result in invalid UTF-8 matches&quot;
+                    </span>.to_string(),
+            ));
+        }
         <span class="comment">// If we&#39;re compiling a forward DFA and we aren&#39;t anchored, then
         // add a `.*?` before the first capture group.
         // Other matching engines handle this by baking the logic into the
         // matching engine itself.
         </span><span class="kw">let </span><span class="kw-2">mut </span>dotstar_patch = Patch { hole: Hole::None, entry: <span class="number">0 </span>};
-        <span class="self">self</span>.compiled.is_anchored_start = expr.is_anchored_start();
-        <span class="self">self</span>.compiled.is_anchored_end = expr.is_anchored_end();
+        <span class="self">self</span>.compiled.is_anchored_start =
+            expr.properties().look_set_prefix().contains(Look::Start);
+        <span class="self">self</span>.compiled.is_anchored_end =
+            expr.properties().look_set_suffix().contains(Look::End);
         <span class="kw">if </span><span class="self">self</span>.compiled.needs_dotstar() {
             dotstar_patch = <span class="self">self</span>.c_dotstar()<span class="question-mark">?</span>;
             <span class="self">self</span>.compiled.start = dotstar_patch.entry;
@@ -1423,6 +1503,8 @@
         <span class="self">self</span>.fill_to_next(patch.hole);
         <span class="self">self</span>.compiled.matches = <span class="macro">vec!</span>[<span class="self">self</span>.insts.len()];
         <span class="self">self</span>.push_compiled(Inst::Match(<span class="number">0</span>));
+        <span class="self">self</span>.compiled.static_captures_len =
+            expr.properties().static_explicit_captures_len();
         <span class="self">self</span>.compile_finish()
     }
 
@@ -1432,10 +1514,12 @@
     ) -&gt; result::Result&lt;Program, Error&gt; {
         <span class="macro">debug_assert!</span>(exprs.len() &gt; <span class="number">1</span>);
 
-        <span class="self">self</span>.compiled.is_anchored_start =
-            exprs.iter().all(|e| e.is_anchored_start());
-        <span class="self">self</span>.compiled.is_anchored_end =
-            exprs.iter().all(|e| e.is_anchored_end());
+        <span class="self">self</span>.compiled.is_anchored_start = exprs
+            .iter()
+            .all(|e| e.properties().look_set_prefix().contains(Look::Start));
+        <span class="self">self</span>.compiled.is_anchored_end = exprs
+            .iter()
+            .all(|e| e.properties().look_set_suffix().contains(Look::End));
         <span class="kw">let </span><span class="kw-2">mut </span>dotstar_patch = Patch { hole: Hole::None, entry: <span class="number">0 </span>};
         <span class="kw">if </span><span class="self">self</span>.compiled.needs_dotstar() {
             dotstar_patch = <span class="self">self</span>.c_dotstar()<span class="question-mark">?</span>;
@@ -1536,17 +1620,21 @@
         <span class="self">self</span>.check_size()<span class="question-mark">?</span>;
         <span class="kw">match </span><span class="kw-2">*</span>expr.kind() {
             Empty =&gt; <span class="self">self</span>.c_empty(),
-            Literal(hir::Literal::Unicode(c)) =&gt; <span class="self">self</span>.c_char(c),
-            Literal(hir::Literal::Byte(b)) =&gt; {
-                <span class="macro">assert!</span>(<span class="self">self</span>.compiled.uses_bytes());
-                <span class="self">self</span>.c_byte(b)
+            Literal(hir::Literal(<span class="kw-2">ref </span>bytes)) =&gt; {
+                <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse {
+                    <span class="kw">let </span><span class="kw-2">mut </span>bytes = bytes.to_vec();
+                    bytes.reverse();
+                    <span class="self">self</span>.c_literal(<span class="kw-2">&amp;</span>bytes)
+                } <span class="kw">else </span>{
+                    <span class="self">self</span>.c_literal(bytes)
+                }
             }
             Class(hir::Class::Unicode(<span class="kw-2">ref </span>cls)) =&gt; <span class="self">self</span>.c_class(cls.ranges()),
             Class(hir::Class::Bytes(<span class="kw-2">ref </span>cls)) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.compiled.uses_bytes() {
                     <span class="self">self</span>.c_class_bytes(cls.ranges())
                 } <span class="kw">else </span>{
-                    <span class="macro">assert!</span>(cls.is_all_ascii());
+                    <span class="macro">assert!</span>(cls.is_ascii());
                     <span class="kw">let </span><span class="kw-2">mut </span>char_ranges = <span class="macro">vec!</span>[];
                     <span class="kw">for </span>r <span class="kw">in </span>cls.iter() {
                         <span class="kw">let </span>(s, e) = (r.start() <span class="kw">as </span>char, r.end() <span class="kw">as </span>char);
@@ -1555,92 +1643,94 @@
                     <span class="self">self</span>.c_class(<span class="kw-2">&amp;</span>char_ranges)
                 }
             }
-            Anchor(hir::Anchor::StartLine) <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse =&gt; {
-                <span class="self">self</span>.byte_classes.set_range(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
-                <span class="self">self</span>.c_empty_look(prog::EmptyLook::EndLine)
-            }
-            Anchor(hir::Anchor::StartLine) =&gt; {
-                <span class="self">self</span>.byte_classes.set_range(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
-                <span class="self">self</span>.c_empty_look(prog::EmptyLook::StartLine)
-            }
-            Anchor(hir::Anchor::EndLine) <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse =&gt; {
-                <span class="self">self</span>.byte_classes.set_range(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
-                <span class="self">self</span>.c_empty_look(prog::EmptyLook::StartLine)
-            }
-            Anchor(hir::Anchor::EndLine) =&gt; {
-                <span class="self">self</span>.byte_classes.set_range(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
-                <span class="self">self</span>.c_empty_look(prog::EmptyLook::EndLine)
-            }
-            Anchor(hir::Anchor::StartText) <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse =&gt; {
-                <span class="self">self</span>.c_empty_look(prog::EmptyLook::EndText)
-            }
-            Anchor(hir::Anchor::StartText) =&gt; {
-                <span class="self">self</span>.c_empty_look(prog::EmptyLook::StartText)
-            }
-            Anchor(hir::Anchor::EndText) <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse =&gt; {
-                <span class="self">self</span>.c_empty_look(prog::EmptyLook::StartText)
-            }
-            Anchor(hir::Anchor::EndText) =&gt; {
-                <span class="self">self</span>.c_empty_look(prog::EmptyLook::EndText)
-            }
-            WordBoundary(hir::WordBoundary::Unicode) =&gt; {
-                <span class="kw">if </span>!<span class="macro">cfg!</span>(feature = <span class="string">&quot;unicode-perl&quot;</span>) {
+            Look(<span class="kw-2">ref </span>look) =&gt; <span class="kw">match </span><span class="kw-2">*</span>look {
+                hir::Look::Start <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse =&gt; {
+                    <span class="self">self</span>.c_empty_look(prog::EmptyLook::EndText)
+                }
+                hir::Look::Start =&gt; {
+                    <span class="self">self</span>.c_empty_look(prog::EmptyLook::StartText)
+                }
+                hir::Look::End <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse =&gt; {
+                    <span class="self">self</span>.c_empty_look(prog::EmptyLook::StartText)
+                }
+                hir::Look::End =&gt; <span class="self">self</span>.c_empty_look(prog::EmptyLook::EndText),
+                hir::Look::StartLF <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse =&gt; {
+                    <span class="self">self</span>.byte_classes.set_range(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
+                    <span class="self">self</span>.c_empty_look(prog::EmptyLook::EndLine)
+                }
+                hir::Look::StartLF =&gt; {
+                    <span class="self">self</span>.byte_classes.set_range(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
+                    <span class="self">self</span>.c_empty_look(prog::EmptyLook::StartLine)
+                }
+                hir::Look::EndLF <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse =&gt; {
+                    <span class="self">self</span>.byte_classes.set_range(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
+                    <span class="self">self</span>.c_empty_look(prog::EmptyLook::StartLine)
+                }
+                hir::Look::EndLF =&gt; {
+                    <span class="self">self</span>.byte_classes.set_range(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
+                    <span class="self">self</span>.c_empty_look(prog::EmptyLook::EndLine)
+                }
+                hir::Look::StartCRLF | hir::Look::EndCRLF =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Syntax(
-                        <span class="string">&quot;Unicode word boundaries are unavailable when \
-                         the unicode-perl feature is disabled&quot;
+                        <span class="string">&quot;CRLF-aware line anchors are not supported yet&quot;
                             </span>.to_string(),
                     ));
                 }
-                <span class="self">self</span>.compiled.has_unicode_word_boundary = <span class="bool-val">true</span>;
-                <span class="self">self</span>.byte_classes.set_word_boundary();
-                <span class="comment">// We also make sure that all ASCII bytes are in a different
-                // class from non-ASCII bytes. Otherwise, it&#39;s possible for
-                // ASCII bytes to get lumped into the same class as non-ASCII
-                // bytes. This in turn may cause the lazy DFA to falsely start
-                // when it sees an ASCII byte that maps to a byte class with
-                // non-ASCII bytes. This ensures that never happens.
-                </span><span class="self">self</span>.byte_classes.set_range(<span class="number">0</span>, <span class="number">0x7F</span>);
-                <span class="self">self</span>.c_empty_look(prog::EmptyLook::WordBoundary)
-            }
-            WordBoundary(hir::WordBoundary::UnicodeNegate) =&gt; {
-                <span class="kw">if </span>!<span class="macro">cfg!</span>(feature = <span class="string">&quot;unicode-perl&quot;</span>) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Syntax(
-                        <span class="string">&quot;Unicode word boundaries are unavailable when \
+                hir::Look::WordAscii =&gt; {
+                    <span class="self">self</span>.byte_classes.set_word_boundary();
+                    <span class="self">self</span>.c_empty_look(prog::EmptyLook::WordBoundaryAscii)
+                }
+                hir::Look::WordAsciiNegate =&gt; {
+                    <span class="self">self</span>.byte_classes.set_word_boundary();
+                    <span class="self">self</span>.c_empty_look(prog::EmptyLook::NotWordBoundaryAscii)
+                }
+                hir::Look::WordUnicode =&gt; {
+                    <span class="kw">if </span>!<span class="macro">cfg!</span>(feature = <span class="string">&quot;unicode-perl&quot;</span>) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Syntax(
+                            <span class="string">&quot;Unicode word boundaries are unavailable when \
                          the unicode-perl feature is disabled&quot;
-                            </span>.to_string(),
-                    ));
-                }
-                <span class="self">self</span>.compiled.has_unicode_word_boundary = <span class="bool-val">true</span>;
-                <span class="self">self</span>.byte_classes.set_word_boundary();
-                <span class="comment">// See comments above for why we set the ASCII range here.
-                </span><span class="self">self</span>.byte_classes.set_range(<span class="number">0</span>, <span class="number">0x7F</span>);
-                <span class="self">self</span>.c_empty_look(prog::EmptyLook::NotWordBoundary)
-            }
-            WordBoundary(hir::WordBoundary::Ascii) =&gt; {
-                <span class="self">self</span>.byte_classes.set_word_boundary();
-                <span class="self">self</span>.c_empty_look(prog::EmptyLook::WordBoundaryAscii)
-            }
-            WordBoundary(hir::WordBoundary::AsciiNegate) =&gt; {
-                <span class="self">self</span>.byte_classes.set_word_boundary();
-                <span class="self">self</span>.c_empty_look(prog::EmptyLook::NotWordBoundaryAscii)
-            }
-            Group(<span class="kw-2">ref </span>g) =&gt; <span class="kw">match </span>g.kind {
-                hir::GroupKind::NonCapturing =&gt; <span class="self">self</span>.c(<span class="kw-2">&amp;</span>g.hir),
-                hir::GroupKind::CaptureIndex(index) =&gt; {
-                    <span class="kw">if </span>index <span class="kw">as </span>usize &gt;= <span class="self">self</span>.compiled.captures.len() {
-                        <span class="self">self</span>.compiled.captures.push(<span class="prelude-val">None</span>);
+                                </span>.to_string(),
+                        ));
                     }
-                    <span class="self">self</span>.c_capture(<span class="number">2 </span>* index <span class="kw">as </span>usize, <span class="kw-2">&amp;</span>g.hir)
+                    <span class="self">self</span>.compiled.has_unicode_word_boundary = <span class="bool-val">true</span>;
+                    <span class="self">self</span>.byte_classes.set_word_boundary();
+                    <span class="comment">// We also make sure that all ASCII bytes are in a different
+                    // class from non-ASCII bytes. Otherwise, it&#39;s possible for
+                    // ASCII bytes to get lumped into the same class as non-ASCII
+                    // bytes. This in turn may cause the lazy DFA to falsely start
+                    // when it sees an ASCII byte that maps to a byte class with
+                    // non-ASCII bytes. This ensures that never happens.
+                    </span><span class="self">self</span>.byte_classes.set_range(<span class="number">0</span>, <span class="number">0x7F</span>);
+                    <span class="self">self</span>.c_empty_look(prog::EmptyLook::WordBoundary)
                 }
-                hir::GroupKind::CaptureName { index, <span class="kw-2">ref </span>name } =&gt; {
-                    <span class="kw">if </span>index <span class="kw">as </span>usize &gt;= <span class="self">self</span>.compiled.captures.len() {
-                        <span class="kw">let </span>n = name.to_string();
-                        <span class="self">self</span>.compiled.captures.push(<span class="prelude-val">Some</span>(n.clone()));
-                        <span class="self">self</span>.capture_name_idx.insert(n, index <span class="kw">as </span>usize);
+                hir::Look::WordUnicodeNegate =&gt; {
+                    <span class="kw">if </span>!<span class="macro">cfg!</span>(feature = <span class="string">&quot;unicode-perl&quot;</span>) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Syntax(
+                            <span class="string">&quot;Unicode word boundaries are unavailable when \
+                         the unicode-perl feature is disabled&quot;
+                                </span>.to_string(),
+                        ));
                     }
-                    <span class="self">self</span>.c_capture(<span class="number">2 </span>* index <span class="kw">as </span>usize, <span class="kw-2">&amp;</span>g.hir)
+                    <span class="self">self</span>.compiled.has_unicode_word_boundary = <span class="bool-val">true</span>;
+                    <span class="self">self</span>.byte_classes.set_word_boundary();
+                    <span class="comment">// See comments above for why we set the ASCII range here.
+                    </span><span class="self">self</span>.byte_classes.set_range(<span class="number">0</span>, <span class="number">0x7F</span>);
+                    <span class="self">self</span>.c_empty_look(prog::EmptyLook::NotWordBoundary)
                 }
             },
+            Capture(hir::Capture { index, <span class="kw-2">ref </span>name, <span class="kw-2">ref </span>sub }) =&gt; {
+                <span class="kw">if </span>index <span class="kw">as </span>usize &gt;= <span class="self">self</span>.compiled.captures.len() {
+                    <span class="kw">let </span>name = <span class="kw">match </span><span class="kw-2">*</span>name {
+                        <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
+                        <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>boxed_str) =&gt; <span class="prelude-val">Some</span>(boxed_str.to_string()),
+                    };
+                    <span class="self">self</span>.compiled.captures.push(name.clone());
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
+                        <span class="self">self</span>.capture_name_idx.insert(name, index <span class="kw">as </span>usize);
+                    }
+                }
+                <span class="self">self</span>.c_capture(<span class="number">2 </span>* index <span class="kw">as </span>usize, sub)
+            }
             Concat(<span class="kw-2">ref </span>es) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.compiled.is_reverse {
                     <span class="self">self</span>.c_concat(es.iter().rev())
@@ -1684,21 +1774,19 @@
     }
 
     <span class="kw">fn </span>c_dotstar(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result </span>{
-        <span class="prelude-val">Ok</span>(<span class="kw">if </span>!<span class="self">self</span>.compiled.only_utf8() {
-            <span class="self">self</span>.c(<span class="kw-2">&amp;</span>Hir::repetition(hir::Repetition {
-                kind: hir::RepetitionKind::ZeroOrMore,
-                greedy: <span class="bool-val">false</span>,
-                hir: Box::new(Hir::any(<span class="bool-val">true</span>)),
-            }))<span class="question-mark">?
-            </span>.unwrap()
+        <span class="kw">let </span>hir = <span class="kw">if </span><span class="self">self</span>.compiled.only_utf8() {
+            Hir::dot(hir::Dot::AnyChar)
         } <span class="kw">else </span>{
-            <span class="self">self</span>.c(<span class="kw-2">&amp;</span>Hir::repetition(hir::Repetition {
-                kind: hir::RepetitionKind::ZeroOrMore,
+            Hir::dot(hir::Dot::AnyByte)
+        };
+        <span class="prelude-val">Ok</span>(<span class="self">self
+            </span>.c(<span class="kw-2">&amp;</span>Hir::repetition(hir::Repetition {
+                min: <span class="number">0</span>,
+                max: <span class="prelude-val">None</span>,
                 greedy: <span class="bool-val">false</span>,
-                hir: Box::new(Hir::any(<span class="bool-val">false</span>)),
+                sub: Box::new(hir),
             }))<span class="question-mark">?
-            </span>.unwrap()
-        })
+            </span>.unwrap())
     }
 
     <span class="kw">fn </span>c_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; ResultOrEmpty {
@@ -1721,7 +1809,11 @@
     <span class="kw">fn </span>c_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ranges: <span class="kw-2">&amp;</span>[hir::ClassUnicodeRange]) -&gt; ResultOrEmpty {
         <span class="kw">use </span>std::mem::size_of;
 
-        <span class="macro">assert!</span>(!ranges.is_empty());
+        <span class="kw">if </span>ranges.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Syntax(
+                <span class="string">&quot;empty character classes are not allowed&quot;</span>.to_string(),
+            ));
+        }
         <span class="kw">if </span><span class="self">self</span>.compiled.uses_bytes() {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CompileClass { c: <span class="self">self</span>, ranges }.compile()<span class="question-mark">?</span>))
         } <span class="kw">else </span>{
@@ -1746,7 +1838,11 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ranges: <span class="kw-2">&amp;</span>[hir::ClassBytesRange],
     ) -&gt; ResultOrEmpty {
-        <span class="macro">debug_assert!</span>(!ranges.is_empty());
+        <span class="kw">if </span>ranges.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Syntax(
+                <span class="string">&quot;empty character classes are not allowed&quot;</span>.to_string(),
+            ));
+        }
 
         <span class="kw">let </span>first_split_entry = <span class="self">self</span>.insts.len();
         <span class="kw">let </span><span class="kw-2">mut </span>holes = <span class="macro">vec!</span>[];
@@ -1775,6 +1871,52 @@
     <span class="kw">fn </span>c_empty_look(<span class="kw-2">&amp;mut </span><span class="self">self</span>, look: EmptyLook) -&gt; ResultOrEmpty {
         <span class="kw">let </span>hole = <span class="self">self</span>.push_hole(InstHole::EmptyLook { look });
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole, entry: <span class="self">self</span>.insts.len() - <span class="number">1 </span>}))
+    }
+
+    <span class="kw">fn </span>c_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; ResultOrEmpty {
+        <span class="kw">match </span>core::str::from_utf8(bytes) {
+            <span class="prelude-val">Ok</span>(string) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>it = string.chars();
+                <span class="kw">let </span>Patch { <span class="kw-2">mut </span>hole, entry } = <span class="kw">loop </span>{
+                    <span class="kw">match </span>it.next() {
+                        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="self">self</span>.c_empty(),
+                        <span class="prelude-val">Some</span>(ch) =&gt; {
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = <span class="self">self</span>.c_char(ch)<span class="question-mark">? </span>{
+                                <span class="kw">break </span>p;
+                            }
+                        }
+                    }
+                };
+                <span class="kw">for </span>ch <span class="kw">in </span>it {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = <span class="self">self</span>.c_char(ch)<span class="question-mark">? </span>{
+                        <span class="self">self</span>.fill(hole, p.entry);
+                        hole = p.hole;
+                    }
+                }
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole, entry }))
+            }
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                <span class="macro">assert!</span>(<span class="self">self</span>.compiled.uses_bytes());
+                <span class="kw">let </span><span class="kw-2">mut </span>it = bytes.iter().copied();
+                <span class="kw">let </span>Patch { <span class="kw-2">mut </span>hole, entry } = <span class="kw">loop </span>{
+                    <span class="kw">match </span>it.next() {
+                        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="self">self</span>.c_empty(),
+                        <span class="prelude-val">Some</span>(byte) =&gt; {
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = <span class="self">self</span>.c_byte(byte)<span class="question-mark">? </span>{
+                                <span class="kw">break </span>p;
+                            }
+                        }
+                    }
+                };
+                <span class="kw">for </span>byte <span class="kw">in </span>it {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = <span class="self">self</span>.c_byte(byte)<span class="question-mark">? </span>{
+                        <span class="self">self</span>.fill(hole, p.entry);
+                        hole = p.hole;
+                    }
+                }
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Patch { hole, entry }))
+            }
+        }
     }
 
     <span class="kw">fn </span>c_concat&lt;<span class="lifetime">&#39;a</span>, I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, exprs: I) -&gt; ResultOrEmpty
@@ -1851,19 +1993,15 @@
     }
 
     <span class="kw">fn </span>c_repeat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rep: <span class="kw-2">&amp;</span>hir::Repetition) -&gt; ResultOrEmpty {
-        <span class="kw">use </span>regex_syntax::hir::RepetitionKind::<span class="kw-2">*</span>;
-        <span class="kw">match </span>rep.kind {
-            ZeroOrOne =&gt; <span class="self">self</span>.c_repeat_zero_or_one(<span class="kw-2">&amp;</span>rep.hir, rep.greedy),
-            ZeroOrMore =&gt; <span class="self">self</span>.c_repeat_zero_or_more(<span class="kw-2">&amp;</span>rep.hir, rep.greedy),
-            OneOrMore =&gt; <span class="self">self</span>.c_repeat_one_or_more(<span class="kw-2">&amp;</span>rep.hir, rep.greedy),
-            Range(hir::RepetitionRange::Exactly(min_max)) =&gt; {
-                <span class="self">self</span>.c_repeat_range(<span class="kw-2">&amp;</span>rep.hir, rep.greedy, min_max, min_max)
+        <span class="kw">match </span>(rep.min, rep.max) {
+            (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>)) =&gt; <span class="self">self</span>.c_repeat_zero_or_one(<span class="kw-2">&amp;</span>rep.sub, rep.greedy),
+            (<span class="number">0</span>, <span class="prelude-val">None</span>) =&gt; <span class="self">self</span>.c_repeat_zero_or_more(<span class="kw-2">&amp;</span>rep.sub, rep.greedy),
+            (<span class="number">1</span>, <span class="prelude-val">None</span>) =&gt; <span class="self">self</span>.c_repeat_one_or_more(<span class="kw-2">&amp;</span>rep.sub, rep.greedy),
+            (min, <span class="prelude-val">None</span>) =&gt; {
+                <span class="self">self</span>.c_repeat_range_min_or_more(<span class="kw-2">&amp;</span>rep.sub, rep.greedy, min)
             }
-            Range(hir::RepetitionRange::AtLeast(min)) =&gt; {
-                <span class="self">self</span>.c_repeat_range_min_or_more(<span class="kw-2">&amp;</span>rep.hir, rep.greedy, min)
-            }
-            Range(hir::RepetitionRange::Bounded(min, max)) =&gt; {
-                <span class="self">self</span>.c_repeat_range(<span class="kw-2">&amp;</span>rep.hir, rep.greedy, min, max)
+            (min, <span class="prelude-val">Some</span>(max)) =&gt; {
+                <span class="self">self</span>.c_repeat_range(<span class="kw-2">&amp;</span>rep.sub, rep.greedy, min, max)
             }
         }
     }
@@ -2526,5 +2664,4 @@
         <span class="macro">assert_eq!</span>(set.byte_classes().len(), <span class="number">256</span>);
     }
 }
-</code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (b28d30e1e 2022-12-06)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

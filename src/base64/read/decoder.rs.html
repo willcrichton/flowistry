@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.21.0/src/read/decoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-389f8b4a37bc03c9.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../../../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../base64/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64-0.21.2/src/read/decoder.rs`."><title>decoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../base64/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -293,7 +293,28 @@
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
 <a href="#295" id="295">295</a>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{engine::Engine, DecodeError};
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{engine::Engine, DecodeError, PAD_BYTE};
 <span class="kw">use </span>std::{cmp, fmt, io};
 
 <span class="comment">// This should be large, but it has to fit on the stack.
@@ -341,13 +362,15 @@
     // Technically we only need to hold 2 bytes but then we&#39;d need a separate temporary buffer to
     // decode 3 bytes into and then juggle copying one byte into the provided read buf and the rest
     // into here, which seems like a lot of complexity for 1 extra byte of storage.
-    </span>decoded_buffer: [u8; <span class="number">3</span>],
+    </span>decoded_buffer: [u8; DECODED_CHUNK_SIZE],
     <span class="comment">// index of start of decoded data
     </span>decoded_offset: usize,
     <span class="comment">// length of decoded data
     </span>decoded_len: usize,
     <span class="comment">// used to provide accurate offsets in errors
     </span>total_b64_decoded: usize,
+    <span class="comment">// offset of previously seen padding, if any
+    </span>padding_offset: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;e</span>, E: Engine, R: io::Read&gt; fmt::Debug <span class="kw">for </span>DecoderReader&lt;<span class="lifetime">&#39;e</span>, E, R&gt; {
@@ -359,6 +382,7 @@
             .field(<span class="string">&quot;decoded_offset&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.decoded_offset)
             .field(<span class="string">&quot;decoded_len&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.decoded_len)
             .field(<span class="string">&quot;total_b64_decoded&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_b64_decoded)
+            .field(<span class="string">&quot;padding_offset&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.padding_offset)
             .finish()
     }
 }
@@ -376,6 +400,7 @@
             decoded_offset: <span class="number">0</span>,
             decoded_len: <span class="number">0</span>,
             total_b64_decoded: <span class="number">0</span>,
+            padding_offset: <span class="prelude-val">None</span>,
         }
     }
 
@@ -422,21 +447,29 @@
     /// caller&#39;s responsibility to choose the number of b64 bytes to decode correctly.
     ///
     /// Returns a Result with the number of decoded bytes written to `buf`.
-    </span><span class="kw">fn </span>decode_to_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>, num_bytes: usize, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
-        <span class="macro">debug_assert!</span>(<span class="self">self</span>.b64_len &gt;= num_bytes);
+    </span><span class="kw">fn </span>decode_to_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>, b64_len_to_decode: usize, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.b64_len &gt;= b64_len_to_decode);
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.b64_offset + <span class="self">self</span>.b64_len &lt;= BUF_SIZE);
         <span class="macro">debug_assert!</span>(!buf.is_empty());
 
-        <span class="kw">let </span>decoded = <span class="self">self
+        <span class="kw">let </span>b64_to_decode = <span class="kw-2">&amp;</span><span class="self">self</span>.b64_buffer[<span class="self">self</span>.b64_offset..<span class="self">self</span>.b64_offset + b64_len_to_decode];
+        <span class="kw">let </span>decode_metadata = <span class="self">self
             </span>.engine
             .internal_decode(
-                <span class="kw-2">&amp;</span><span class="self">self</span>.b64_buffer[<span class="self">self</span>.b64_offset..<span class="self">self</span>.b64_offset + num_bytes],
+                b64_to_decode,
                 buf,
-                <span class="self">self</span>.engine.internal_decoded_len_estimate(num_bytes),
+                <span class="self">self</span>.engine.internal_decoded_len_estimate(b64_len_to_decode),
             )
             .map_err(|e| <span class="kw">match </span>e {
                 DecodeError::InvalidByte(offset, byte) =&gt; {
-                    DecodeError::InvalidByte(<span class="self">self</span>.total_b64_decoded + offset, byte)
+                    <span class="comment">// This can be incorrect, but not in a way that probably matters to anyone:
+                    // if there was padding handled in a previous decode, and we are now getting
+                    // InvalidByte due to more padding, we should arguably report InvalidByte with
+                    // PAD_BYTE at the original padding position (`self.padding_offset`), but we
+                    // don&#39;t have a good way to tie those two cases together, so instead we
+                    // just report the invalid byte as if the previous padding, and its possibly
+                    // related downgrade to a now invalid byte, didn&#39;t happen.
+                    </span>DecodeError::InvalidByte(<span class="self">self</span>.total_b64_decoded + offset, byte)
                 }
                 DecodeError::InvalidLength =&gt; DecodeError::InvalidLength,
                 DecodeError::InvalidLastSymbol(offset, byte) =&gt; {
@@ -446,13 +479,27 @@
             })
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))<span class="question-mark">?</span>;
 
-        <span class="self">self</span>.total_b64_decoded += num_bytes;
-        <span class="self">self</span>.b64_offset += num_bytes;
-        <span class="self">self</span>.b64_len -= num_bytes;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = <span class="self">self</span>.padding_offset {
+            <span class="comment">// we&#39;ve already seen padding
+            </span><span class="kw">if </span>decode_metadata.decoded_len &gt; <span class="number">0 </span>{
+                <span class="comment">// we read more after already finding padding; report error at first padding byte
+                </span><span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    DecodeError::InvalidByte(offset, PAD_BYTE),
+                ));
+            }
+        }
+
+        <span class="self">self</span>.padding_offset = <span class="self">self</span>.padding_offset.or(decode_metadata
+            .padding_offset
+            .map(|offset| <span class="self">self</span>.total_b64_decoded + offset));
+        <span class="self">self</span>.total_b64_decoded += b64_len_to_decode;
+        <span class="self">self</span>.b64_offset += b64_len_to_decode;
+        <span class="self">self</span>.b64_len -= b64_len_to_decode;
 
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.b64_offset + <span class="self">self</span>.b64_len &lt;= BUF_SIZE);
 
-        <span class="prelude-val">Ok</span>(decoded)
+        <span class="prelude-val">Ok</span>(decode_metadata.decoded_len)
     }
 
     <span class="doccomment">/// Unwraps this `DecoderReader`, returning the base reader which it reads base64 encoded
@@ -500,9 +547,9 @@
             <span class="self">self</span>.decoded_offset &lt; DECODED_CHUNK_SIZE
         });
 
-        <span class="comment">// We shouldn&#39;t ever decode into here when we can&#39;t immediately write at least one byte into
-        // the provided buf, so the effective length should only be 3 momentarily between when we
-        // decode and when we copy into the target buffer.
+        <span class="comment">// We shouldn&#39;t ever decode into decoded_buffer when we can&#39;t immediately write at least one
+        // byte into the provided buf, so the effective length should only be 3 momentarily between
+        // when we decode and when we copy into the target buffer.
         </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.decoded_len &lt; DECODED_CHUNK_SIZE);
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.decoded_len + <span class="self">self</span>.decoded_offset &lt;= DECODED_CHUNK_SIZE);
 
@@ -512,20 +559,15 @@
         } <span class="kw">else </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>at_eof = <span class="bool-val">false</span>;
             <span class="kw">while </span><span class="self">self</span>.b64_len &lt; BASE64_CHUNK_SIZE {
-                <span class="comment">// Work around lack of copy_within, which is only present in 1.37
-                // Copy any bytes we have to the start of the buffer.
-                // We know we have &lt; 1 chunk, so we can use a tiny tmp buffer.
-                </span><span class="kw">let </span><span class="kw-2">mut </span>memmove_buf = [<span class="number">0_u8</span>; BASE64_CHUNK_SIZE];
-                memmove_buf[..<span class="self">self</span>.b64_len].copy_from_slice(
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.b64_buffer[<span class="self">self</span>.b64_offset..<span class="self">self</span>.b64_offset + <span class="self">self</span>.b64_len],
-                );
-                <span class="self">self</span>.b64_buffer[<span class="number">0</span>..<span class="self">self</span>.b64_len].copy_from_slice(<span class="kw-2">&amp;</span>memmove_buf[..<span class="self">self</span>.b64_len]);
+                <span class="comment">// Copy any bytes we have to the start of the buffer.
+                </span><span class="self">self</span>.b64_buffer
+                    .copy_within(<span class="self">self</span>.b64_offset..<span class="self">self</span>.b64_offset + <span class="self">self</span>.b64_len, <span class="number">0</span>);
                 <span class="self">self</span>.b64_offset = <span class="number">0</span>;
 
                 <span class="comment">// then fill in more data
                 </span><span class="kw">let </span>read = <span class="self">self</span>.read_from_delegate()<span class="question-mark">?</span>;
                 <span class="kw">if </span>read == <span class="number">0 </span>{
-                    <span class="comment">// we never pass in an empty buf, so 0 =&gt; we&#39;ve hit EOF
+                    <span class="comment">// we never read into an empty buf, so 0 =&gt; we&#39;ve hit EOF
                     </span>at_eof = <span class="bool-val">true</span>;
                     <span class="kw">break</span>;
                 }
@@ -588,5 +630,4 @@
         }
     }
 }
-</code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (b28d30e1e 2022-12-06)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</code></pre></div></section></main></body></html>
