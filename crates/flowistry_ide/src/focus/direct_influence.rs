@@ -14,27 +14,24 @@ impl<'a, 'tcx> DirectInfluence<'a, 'tcx> {
   pub fn build(body: &Body<'tcx>, aliases: &'a Aliases<'a, 'tcx>) -> Self {
     let mut influence = IndexMatrix::new(aliases.location_domain());
 
-    ModularMutationVisitor::new(
-      aliases,
-      |Mutation {
-         mutated,
-         inputs,
-         location,
-         ..
-       }| {
-        let mut add = |place: Place<'tcx>, mutability: Mutability| {
-          for alias in aliases.reachable_values(place, mutability) {
-            influence.insert(*alias, location);
-          }
-        };
+    ModularMutationVisitor::new(aliases, |location, mutations| {
+      let mut add = |place: Place<'tcx>, mutability: Mutability| {
+        for alias in aliases.reachable_values(place, mutability) {
+          influence.insert(*alias, location);
+        }
+      };
 
+      for Mutation {
+        mutated, inputs, ..
+      } in mutations
+      {
         for input in inputs {
-          add(*input, Mutability::Not);
+          add(input, Mutability::Not);
         }
 
         add(mutated, Mutability::Mut);
-      },
-    )
+      }
+    })
     .visit_body(body);
 
     DirectInfluence { aliases, influence }
