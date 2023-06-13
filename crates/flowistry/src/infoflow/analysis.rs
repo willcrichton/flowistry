@@ -22,6 +22,7 @@ use crate::{
     impls::{LocationOrArg, LocationOrArgDomain, LocationOrArgSet},
     IndexMatrix, IndexedDomain,
   },
+  infoflow::mutation::ConflictType,
   mir::aliases::Aliases,
 };
 
@@ -83,36 +84,41 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     self.aliases.location_domain()
   }
 
+  // This function expects *ALL* the mutations that occur within a given [`Location`] at once.
   pub(crate) fn transfer_function(
     &self,
     state: &mut FlowDomain<'tcx>,
-    Mutation {
-      mutated,
-      inputs,
-      location,
-      status,
-    }: Mutation<'_, 'tcx>,
+    mutations: Vec<Mutation<'tcx>>,
+    location: Location,
   ) {
-    debug!("  Applying mutation to {mutated:?} with inputs {inputs:?}");
+    debug!("  Applying mutations {mutations:?}");
     let location_domain = self.location_domain();
 
     let all_aliases = &self.aliases;
-    let mutated_aliases = all_aliases.aliases(mutated);
-    trace!("    Mutated aliases: {mutated_aliases:?}");
-    assert!(!mutated_aliases.is_empty());
+    let all_mutated_aliases = mutations
+      .iter()
+      .map(|mt| {
+        let mutated_aliases = all_aliases.aliases(mt.mutated);
+        assert!(!mutated_aliases.is_empty());
+        trace!(
+          "    Mutated aliases for {:?}: {mutated_aliases:?}",
+          mt.mutated
+        );
+        mutated_aliases
+      })
+      .collect::<Vec<_>>();
 
-    // Clear sub-places of mutated place (if sound to do so)
-    if matches!(status, MutationStatus::Definitely) && mutated_aliases.len() == 1 {
-      let mutated_direct = mutated_aliases.iter().next().unwrap();
-      for sub in all_aliases.children(*mutated_direct).iter() {
-        state.clear_row(all_aliases.normalize(*sub));
-      }
-    }
+    let mut input_location_deps = (0 .. mutations.len())
+      .map(|_| {
+        let mut deps = LocationOrArgSet::new(location_domain);
+        deps.insert(location);
+        deps
+      })
+      .collect::<Vec<_>>();
 
-    let mut input_location_deps = LocationOrArgSet::new(location_domain);
-    input_location_deps.insert(location);
-
-    let add_deps = |place: Place<'tcx>, location_deps: &mut LocationOrArgSet| {
+    let add_deps = |state: &mut FlowDomain<'tcx>,
+                    place: Place<'tcx>,
+                    location_deps: &mut LocationOrArgSet| {
       let reachable_values = all_aliases.reachable_values(place, Mutability::Not);
       let provenance = place.refs_in_projection().flat_map(|(place_ref, _)| {
         all_aliases
@@ -126,56 +132,87 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
       }
     };
 
-    // Add deps of mutated to include provenance of mutated pointers
-    add_deps(mutated, &mut input_location_deps);
-
-    // Add deps of all inputs
-    for place in inputs.iter() {
-      add_deps(*place, &mut input_location_deps);
+    for (mt, deps) in mutations.iter().zip(&mut input_location_deps) {
+      // Add deps of all inputs
+      for input in &mt.inputs {
+        add_deps(state, *input, deps);
+      }
     }
 
     // Add control dependencies
     let controlled_by = self.control_dependencies.dependent_on(location.block);
     let body = self.body;
     for block in controlled_by.into_iter().flat_map(|set| set.iter()) {
-      input_location_deps.insert(body.terminator_loc(block));
+      for deps in &mut input_location_deps {
+        deps.insert(body.terminator_loc(block));
+      }
 
       // Include dependencies of the switch's operand
       let terminator = body.basic_blocks[block].terminator();
       if let TerminatorKind::SwitchInt { discr, .. } = &terminator.kind {
         if let Some(discr_place) = discr.as_place() {
-          add_deps(discr_place, &mut input_location_deps);
+          for deps in &mut input_location_deps {
+            add_deps(state, discr_place, deps);
+          }
         }
       }
     }
 
     // Union dependencies into all conflicting places of the mutated place
-    let mut mutable_conflicts = all_aliases.conflicts(mutated).to_owned();
+    let mutable_conflicts = mutations
+      .iter()
+      .map(|mt| {
+        let mut mutable_conflicts = if matches!(mt.conflicts, ConflictType::Exclude) {
+          all_aliases.aliases(mt.mutated).to_owned()
+        } else {
+          all_aliases.conflicts(mt.mutated).to_owned()
+        };
 
-    // Remove any conflicts that aren't actually mutable, e.g. if x : &T ends up
-    // as an alias of y: &mut T. See test function_lifetime_alias_mut for an example.
-    let ignore_mut =
-      is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
-    if !ignore_mut {
-      let body = self.body;
-      let tcx = self.tcx;
-      mutable_conflicts = mutable_conflicts
-        .iter()
-        .filter(|place| {
-          place.iter_projections().all(|(sub_place, _)| {
-            let ty = sub_place.ty(body.local_decls(), tcx).ty;
-            !matches!(ty.ref_mutability(), Some(Mutability::Not))
-          })
-        })
-        .copied()
-        .collect::<HashSet<_>>();
-    };
+        // Remove any conflicts that aren't actually mutable, e.g. if x : &T ends up
+        // as an alias of y: &mut T. See test function_lifetime_alias_mut for an example.
+        let ignore_mut =
+          is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
+        if !ignore_mut {
+          let body = self.body;
+          let tcx = self.tcx;
+          mutable_conflicts = mutable_conflicts
+            .iter()
+            .filter(|place| {
+              place.iter_projections().all(|(sub_place, _)| {
+                let ty = sub_place.ty(body.local_decls(), tcx).ty;
+                !matches!(ty.ref_mutability(), Some(Mutability::Not))
+              })
+            })
+            .copied()
+            .collect::<HashSet<_>>();
+        };
 
-    debug!("  Mutated conflicting places: {mutable_conflicts:?}");
-    debug!("    with deps {input_location_deps:?}");
+        mutable_conflicts
+      })
+      .collect::<Vec<_>>();
 
-    for place in mutable_conflicts.into_iter() {
-      state.union_into_row(all_aliases.normalize(place), &input_location_deps);
+    // Clear sub-places of mutated place (if sound to do so)
+    for (mt, aliases) in mutations.iter().zip(&all_mutated_aliases) {
+      if matches!(mt.status, MutationStatus::Definitely) && aliases.len() == 1 {
+        let mutated_direct = aliases.iter().next().unwrap();
+        for sub in all_aliases.children(*mutated_direct).iter() {
+          state.clear_row(all_aliases.normalize(*sub));
+        }
+      }
+    }
+
+    for (mt, deps) in mutations.iter().zip(&mut input_location_deps) {
+      // Add deps of mutated to include provenance of mutated pointers
+      add_deps(state, mt.mutated, deps);
+    }
+
+    for (conflicts, deps) in mutable_conflicts.into_iter().zip(input_location_deps) {
+      debug!("  Mutated conflicting places: {conflicts:?}");
+      debug!("    with deps {deps:?}");
+
+      for place in conflicts.into_iter() {
+        state.union_into_row(all_aliases.normalize(place), &deps);
+      }
     }
   }
 }
@@ -209,8 +246,8 @@ impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
     statement: &Statement<'tcx>,
     location: Location,
   ) {
-    ModularMutationVisitor::new(&self.aliases, |mutation| {
-      self.transfer_function(state, mutation)
+    ModularMutationVisitor::new(&self.aliases, |_, mutations| {
+      self.transfer_function(state, mutations, location)
     })
     .visit_statement(statement, location);
   }
@@ -228,8 +265,8 @@ impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
       return;
     }
 
-    ModularMutationVisitor::new(&self.aliases, |mutation| {
-      self.transfer_function(state, mutation)
+    ModularMutationVisitor::new(&self.aliases, |_, mutations| {
+      self.transfer_function(state, mutations, location)
     })
     .visit_terminator(terminator, location);
   }

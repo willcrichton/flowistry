@@ -10,7 +10,7 @@ use super::{analysis::FlowAnalysis, BODY_STACK};
 use crate::{
   extensions::REACHED_LIBRARY,
   infoflow::{
-    mutation::{Mutation, MutationStatus},
+    mutation::{Mutation, MutationStatus, ConflictType},
     FlowDomain,
   },
   mir::utils,
@@ -140,34 +140,47 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
     let translate_child_to_parent = |child: Place<'tcx>,
                                      mutated: bool|
      -> Option<Place<'tcx>> {
-      if child.local == RETURN_PLACE && child.projection.len() == 0 {
-        if child.ty(body.local_decls(), tcx).ty.is_unit() {
-          return None;
-        }
-
-        return Some(*destination);
+      let child_ty = child.ty(body.local_decls(), tcx).ty;
+      if child_ty.is_unit() {
+        return None;
       }
 
-      if !child.is_arg(body) || (mutated && !child.is_indirect()) {
+      let can_translate = child.local == RETURN_PLACE
+        || (child.is_arg(body) && (!mutated || child.is_indirect()));
+      if !can_translate {
         return None;
       }
 
       // For example, say we're calling f(_5.0) and child = (*_1).1 where
       // .1 is private to parent. Then:
       //    parent_toplevel_arg = _5.0
-      //    parent_arg_projected = (*_5.0).1
-      //    parent_arg_accessible = (*_5.0)
+      //    child.projection = (*□).1
+      //    parent_arg_projected = (*_5.0)
 
-      let parent_toplevel_arg = parent_arg_places
-        .iter()
-        .find(|(j, _)| child.local.as_usize() - 1 == *j)
-        .map(|(_, place)| place)?;
+      let parent_toplevel_arg = if child.local == RETURN_PLACE {
+        *destination
+      } else {
+        parent_arg_places
+          .iter()
+          .find(|(j, _)| child.local.as_usize() - 1 == *j)
+          .map(|(_, place)| *place)?
+      };
 
       let mut projection = parent_toplevel_arg.projection.to_vec();
       let mut ty = parent_toplevel_arg.ty(self.body.local_decls(), tcx);
       let parent_param_env = tcx.param_env(self.def_id);
       log::debug!("Adding child {child:?} to parent {parent_toplevel_arg:?}");
-      for elem in child.projection.iter() {
+      for elem in child.projection.iter() {        
+        // Don't continue if we reach a private field
+        if let ProjectionElem::Field(field, _) = elem {
+          if let Some(adt_def) = ty.ty.ty_adt_def() {
+            let field = adt_def.all_fields().nth(field.as_usize()).unwrap();
+            if !field.vis.is_accessible_from(self.def_id, self.tcx) {
+              break;
+            }
+          }
+        }
+
         ty = ty.projection_ty_core(
           tcx,
           parent_param_env,
@@ -186,38 +199,40 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
       Some(parent_arg_projected)
     };
 
-    for (child, _) in return_state.rows() {
-      if let Some(parent) = translate_child_to_parent(child, true) {
-        let was_return = child.local == RETURN_PLACE;
-        // > 1 because arguments will always have their synthetic location in their dep set
-        let was_mutated = return_state.row_set(child).len() > 1;
-        if !was_mutated && !was_return {
-          continue;
-        }
+    let mutations = return_state.rows().filter_map(|(child, _)| {
+      let parent = translate_child_to_parent(child, true)?;
 
-        let child_deps = return_state.row_set(child);
-        let parent_deps = return_state
-          .rows()
-          .filter(|(_, deps)| child_deps.is_superset(deps))
-          .filter_map(|(row, _)| translate_child_to_parent(row, false))
-          .collect::<Vec<_>>();
-
-        debug!(
-          "child {child:?} \n  / child_deps {child_deps:?}\n-->\nparent {parent:?}\n   / parent_deps {parent_deps:?}"
-        );
-
-        self.transfer_function(state, Mutation {
-          mutated: parent,
-          inputs: &parent_deps,
-          location,
-          status: if was_return {
-            MutationStatus::Definitely
-          } else {
-            MutationStatus::Possibly
-          },
-        });
+      let was_return: bool = child.local == RETURN_PLACE;
+      // > 1 because arguments will always have their synthetic location in their dep set
+      let was_mutated = return_state.row_set(child).len() > 1;
+      if !was_mutated && !was_return {
+        return None;
       }
-    }
+
+      let child_deps = return_state.row_set(child);
+      let parent_deps = return_state
+        .rows()
+        .filter(|(_, deps)| child_deps.is_superset(deps))
+        .filter_map(|(row, _)| translate_child_to_parent(row, false))
+        .collect::<Vec<_>>();
+
+      debug!(
+        "child {child:?} \n  / child_deps {child_deps:?}\n-->\nparent {parent:?}\n   / parent_deps {parent_deps:?}"
+      );
+
+      Some(Mutation {
+        mutated: parent,
+        inputs: parent_deps.clone(),
+        status: if was_return {
+          MutationStatus::Definitely
+        } else {
+          MutationStatus::Possibly
+        },
+        conflicts: ConflictType::Exclude
+      })
+    }).collect::<Vec<_>>();
+
+    self.transfer_function(state, mutations, location);
 
     true
   }
