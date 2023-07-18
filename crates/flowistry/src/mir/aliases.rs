@@ -43,6 +43,9 @@ use crate::{
   mir::utils::{self, AsyncHack},
 };
 
+extern crate polonius_engine;
+type BorrowckLocationIndex = <rustc_borrowck::consumers::RustcFacts as polonius_engine::FactTypes>::Point;
+
 #[derive(Default)]
 struct GatherBorrows<'tcx> {
   borrows: Vec<(RegionVid, BorrowKind, Place<'tcx>)>,
@@ -128,7 +131,7 @@ impl<'tcx> Visitor<'tcx> for FindPlaces<'_, 'tcx> {
       TerminatorKind::Call { args, .. } => {
         let arg_places = utils::arg_places(args);
         let arg_mut_ptrs =
-          utils::arg_mut_ptrs(&arg_places, self.tcx, self.body, self.def_id);
+          utils::arg_mut_ptrs(arg_places.as_slice(), self.tcx, self.body, self.def_id);
         self
           .places
           .extend(arg_mut_ptrs.into_iter().map(|(_, place)| place));
@@ -169,15 +172,21 @@ rustc_index::newtype_index! {
 }
 
 impl<'a, 'tcx> Aliases<'a, 'tcx> {
-  fn compute_loans(
+  fn compute_loans<F: Fn(RegionVid, RegionVid, BorrowckLocationIndex) -> bool>(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
     body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
+    constraint_selector: F,
   ) -> LoanMap<'tcx> {
     let start = Instant::now();
     let body = &body_with_facts.body;
     let static_region = RegionVid::from_usize(0);
-    let subset_base = &body_with_facts.input_facts.subset_base;
+    let ref subset_base =
+      body_with_facts.input_facts.subset_base
+        .iter()
+        .cloned()
+        .filter(|(r1, r2, i)| constraint_selector(*r1, *r2, *i))
+        .collect::<Vec<_>>();
 
     let all_pointers = body
       .local_decls()
@@ -416,7 +425,34 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     let body = &body_with_facts.body;
     let location_domain = build_location_arg_domain(body);
 
-    let loans = Self::compute_loans(tcx, def_id, body_with_facts);
+    let loans = Self::compute_loans(tcx, def_id, body_with_facts, |_, _, _| true);
+    debug!("Loans: {loans:?}");
+
+    Aliases {
+      loans,
+      tcx,
+      body,
+      def_id,
+      location_domain,
+      aliases_cache: Cache::default(),
+      normalized_cache: CopyCache::default(),
+      conflicts_cache: Cache::default(),
+      reachable_cache: Cache::default(),
+    }
+  }
+  pub fn build_with_fact_selection<F: Fn(RegionVid, RegionVid, BorrowckLocationIndex) -> bool>(
+    tcx: TyCtxt<'tcx>,
+    def_id: DefId,
+    body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
+    fact_selector: F
+  ) -> Self {
+    block_timer!("aliases");
+
+    let body = &body_with_facts.body;
+
+    let location_domain = build_location_arg_domain(&body);
+
+    let loans = Self::compute_loans(tcx, def_id, body_with_facts, fact_selector);
     debug!("Loans: {loans:?}");
 
     Aliases {
