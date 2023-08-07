@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_json-1.0.96/src/de.rs`."><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_json" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../serde_json/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_json-1.0.104/src/de.rs`."><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_json" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../serde_json/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2604,6 +2604,43 @@
 <a href="#2604" id="2604">2604</a>
 <a href="#2605" id="2605">2605</a>
 <a href="#2606" id="2606">2606</a>
+<a href="#2607" id="2607">2607</a>
+<a href="#2608" id="2608">2608</a>
+<a href="#2609" id="2609">2609</a>
+<a href="#2610" id="2610">2610</a>
+<a href="#2611" id="2611">2611</a>
+<a href="#2612" id="2612">2612</a>
+<a href="#2613" id="2613">2613</a>
+<a href="#2614" id="2614">2614</a>
+<a href="#2615" id="2615">2615</a>
+<a href="#2616" id="2616">2616</a>
+<a href="#2617" id="2617">2617</a>
+<a href="#2618" id="2618">2618</a>
+<a href="#2619" id="2619">2619</a>
+<a href="#2620" id="2620">2620</a>
+<a href="#2621" id="2621">2621</a>
+<a href="#2622" id="2622">2622</a>
+<a href="#2623" id="2623">2623</a>
+<a href="#2624" id="2624">2624</a>
+<a href="#2625" id="2625">2625</a>
+<a href="#2626" id="2626">2626</a>
+<a href="#2627" id="2627">2627</a>
+<a href="#2628" id="2628">2628</a>
+<a href="#2629" id="2629">2629</a>
+<a href="#2630" id="2630">2630</a>
+<a href="#2631" id="2631">2631</a>
+<a href="#2632" id="2632">2632</a>
+<a href="#2633" id="2633">2633</a>
+<a href="#2634" id="2634">2634</a>
+<a href="#2635" id="2635">2635</a>
+<a href="#2636" id="2636">2636</a>
+<a href="#2637" id="2637">2637</a>
+<a href="#2638" id="2638">2638</a>
+<a href="#2639" id="2639">2639</a>
+<a href="#2640" id="2640">2640</a>
+<a href="#2641" id="2641">2641</a>
+<a href="#2642" id="2642">2642</a>
+<a href="#2643" id="2643">2643</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Deserialize JSON data to a Rust data structure.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::error::{Error, ErrorCode, <span class="prelude-ty">Result</span>};
@@ -2815,7 +2852,7 @@
         <span class="self">self</span>.disable_recursion_limit = <span class="bool-val">true</span>;
     }
 
-    <span class="kw">fn </span>peek(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u8&gt;&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>peek(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u8&gt;&gt; {
         <span class="self">self</span>.read.peek()
     }
 
@@ -2854,7 +2891,7 @@
     </span><span class="kw">fn </span>parse_whitespace(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u8&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.peek()) {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39; &#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;\n&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;\t&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;\r&#39;</span>) =&gt; {
+                <span class="prelude-val">Some</span>(<span class="string">b&#39; &#39; </span>| <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\t&#39; </span>| <span class="string">b&#39;\r&#39;</span>) =&gt; {
                     <span class="self">self</span>.eat_char();
                 }
                 other =&gt; {
@@ -2915,9 +2952,9 @@
         <span class="self">self</span>.fix_position(err)
     }
 
-    <span class="kw">fn </span>deserialize_number&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deserialize_number&lt;<span class="lifetime">&#39;any</span>, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">&#39;any</span>&gt;,
     {
         <span class="kw">let </span>peek = <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.parse_whitespace()) {
             <span class="prelude-val">Some</span>(b) =&gt; b,
@@ -2933,6 +2970,79 @@
             }
             <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <span class="macro">tri!</span>(<span class="self">self</span>.parse_integer(<span class="bool-val">true</span>)).visit(visitor),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.peek_invalid_type(<span class="kw-2">&amp;</span>visitor)),
+        };
+
+        <span class="kw">match </span>value {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(value),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.fix_position(err)),
+        }
+    }
+
+    <span class="attr">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>do_deserialize_f32&lt;<span class="lifetime">&#39;any</span>, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: de::Visitor&lt;<span class="lifetime">&#39;any</span>&gt;,
+    {
+        <span class="self">self</span>.single_precision = <span class="bool-val">true</span>;
+        <span class="kw">let </span>val = <span class="self">self</span>.deserialize_number(visitor);
+        <span class="self">self</span>.single_precision = <span class="bool-val">false</span>;
+        val
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>do_deserialize_i128&lt;<span class="lifetime">&#39;any</span>, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: de::Visitor&lt;<span class="lifetime">&#39;any</span>&gt;,
+    {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+
+        <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.parse_whitespace()) {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
+                <span class="self">self</span>.eat_char();
+                buf.push(<span class="string">&#39;-&#39;</span>);
+            }
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.peek_error(ErrorCode::EofWhileParsingValue));
+            }
+        };
+
+        <span class="macro">tri!</span>(<span class="self">self</span>.scan_integer128(<span class="kw-2">&amp;mut </span>buf));
+
+        <span class="kw">let </span>value = <span class="kw">match </span>buf.parse() {
+            <span class="prelude-val">Ok</span>(int) =&gt; visitor.visit_i128(int),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(ErrorCode::NumberOutOfRange));
+            }
+        };
+
+        <span class="kw">match </span>value {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(value),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.fix_position(err)),
+        }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>do_deserialize_u128&lt;<span class="lifetime">&#39;any</span>, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: de::Visitor&lt;<span class="lifetime">&#39;any</span>&gt;,
+    {
+        <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.parse_whitespace()) {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.peek_error(ErrorCode::NumberOutOfRange));
+            }
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.peek_error(ErrorCode::EofWhileParsingValue));
+            }
+        }
+
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+        <span class="macro">tri!</span>(<span class="self">self</span>.scan_integer128(<span class="kw-2">&amp;mut </span>buf));
+
+        <span class="kw">let </span>value = <span class="kw">match </span>buf.parse() {
+            <span class="prelude-val">Ok</span>(int) =&gt; visitor.visit_u128(int),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(ErrorCode::NumberOutOfRange));
+            }
         };
 
         <span class="kw">match </span>value {
@@ -3466,7 +3576,7 @@
         <span class="kw">if </span>!positive {
             buf.push(<span class="string">&#39;-&#39;</span>);
         }
-        <span class="self">self</span>.scan_integer(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
+        <span class="macro">tri!</span>(<span class="self">self</span>.scan_integer(<span class="kw-2">&amp;mut </span>buf));
         <span class="kw">if </span>positive {
             <span class="kw">if let </span><span class="prelude-val">Ok</span>(unsigned) = buf.parse() {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(ParserNumber::U64(unsigned));
@@ -3519,7 +3629,7 @@
     </span><span class="kw">fn </span>scan_number(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>String) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.peek_or_null()) {
             <span class="string">b&#39;.&#39; </span>=&gt; <span class="self">self</span>.scan_decimal(buf),
-            e @ <span class="string">b&#39;e&#39; </span>| e @ <span class="string">b&#39;E&#39; </span>=&gt; <span class="self">self</span>.scan_exponent(e <span class="kw">as </span>char, buf),
+            e @ (<span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39;</span>) =&gt; <span class="self">self</span>.scan_exponent(e <span class="kw">as </span>char, buf),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
         }
     }
@@ -3544,7 +3654,7 @@
         }
 
         <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.peek_or_null()) {
-            e @ <span class="string">b&#39;e&#39; </span>| e @ <span class="string">b&#39;E&#39; </span>=&gt; <span class="self">self</span>.scan_exponent(e <span class="kw">as </span>char, buf),
+            e @ (<span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39;</span>) =&gt; <span class="self">self</span>.scan_exponent(e <span class="kw">as </span>char, buf),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
         }
     }
@@ -3665,7 +3775,7 @@
                     <span class="macro">tri!</span>(<span class="self">self</span>.read.ignore_str());
                     <span class="prelude-val">None
                 </span>}
-                frame @ <span class="string">b&#39;[&#39; </span>| frame @ <span class="string">b&#39;{&#39; </span>=&gt; {
+                frame @ (<span class="string">b&#39;[&#39; </span>| <span class="string">b&#39;{&#39;</span>) =&gt; {
                     <span class="self">self</span>.scratch.extend(enclosing.take());
                     <span class="self">self</span>.eat_char();
                     <span class="prelude-val">Some</span>(frame)
@@ -3810,9 +3920,9 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="self">self</span>.parse_whitespace()<span class="question-mark">?</span>;
+        <span class="macro">tri!</span>(<span class="self">self</span>.parse_whitespace());
         <span class="self">self</span>.read.begin_raw_buffering();
-        <span class="self">self</span>.ignore_value()<span class="question-mark">?</span>;
+        <span class="macro">tri!</span>(<span class="self">self</span>.ignore_value());
         <span class="self">self</span>.read.end_raw_buffering(visitor)
     }
 }
@@ -3864,11 +3974,15 @@
 
 <span class="macro">macro_rules! </span>deserialize_number {
     (<span class="macro-nonterminal">$method</span>:ident) =&gt; {
+        <span class="macro">deserialize_number!</span>(<span class="macro-nonterminal">$method</span>, deserialize_number);
+    };
+
+    (<span class="macro-nonterminal">$method</span>:ident, <span class="macro-nonterminal">$using</span>:ident) =&gt; {
         <span class="kw">fn </span><span class="macro-nonterminal">$method</span>&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
         <span class="kw">where
             </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
         {
-            <span class="self">self</span>.deserialize_number(visitor)
+            <span class="self">self</span>.<span class="macro-nonterminal">$using</span>(visitor)
         }
     };
 }
@@ -4030,77 +4144,9 @@
     <span class="macro">deserialize_number!</span>(deserialize_f64);
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
-    </span><span class="kw">fn </span>deserialize_f32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
-    <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
-    {
-        <span class="self">self</span>.single_precision = <span class="bool-val">true</span>;
-        <span class="kw">let </span>val = <span class="self">self</span>.deserialize_number(visitor);
-        <span class="self">self</span>.single_precision = <span class="bool-val">false</span>;
-        val
-    }
-
-    <span class="kw">fn </span>deserialize_i128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
-    <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
-    {
-        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
-
-        <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.parse_whitespace()) {
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
-                <span class="self">self</span>.eat_char();
-                buf.push(<span class="string">&#39;-&#39;</span>);
-            }
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
-            <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.peek_error(ErrorCode::EofWhileParsingValue));
-            }
-        };
-
-        <span class="macro">tri!</span>(<span class="self">self</span>.scan_integer128(<span class="kw-2">&amp;mut </span>buf));
-
-        <span class="kw">let </span>value = <span class="kw">match </span>buf.parse() {
-            <span class="prelude-val">Ok</span>(int) =&gt; visitor.visit_i128(int),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(ErrorCode::NumberOutOfRange));
-            }
-        };
-
-        <span class="kw">match </span>value {
-            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(value),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.fix_position(err)),
-        }
-    }
-
-    <span class="kw">fn </span>deserialize_u128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
-    <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
-    {
-        <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.parse_whitespace()) {
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.peek_error(ErrorCode::NumberOutOfRange));
-            }
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
-            <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.peek_error(ErrorCode::EofWhileParsingValue));
-            }
-        }
-
-        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
-        <span class="macro">tri!</span>(<span class="self">self</span>.scan_integer128(<span class="kw-2">&amp;mut </span>buf));
-
-        <span class="kw">let </span>value = <span class="kw">match </span>buf.parse() {
-            <span class="prelude-val">Ok</span>(int) =&gt; visitor.visit_u128(int),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(ErrorCode::NumberOutOfRange));
-            }
-        };
-
-        <span class="kw">match </span>value {
-            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(value),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.fix_position(err)),
-        }
-    }
+    </span><span class="macro">deserialize_number!</span>(deserialize_f32, do_deserialize_f32);
+    <span class="macro">deserialize_number!</span>(deserialize_i128, do_deserialize_i128);
+    <span class="macro">deserialize_number!</span>(deserialize_u128, do_deserialize_u128);
 
     <span class="kw">fn </span>deserialize_char&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
@@ -4724,22 +4770,45 @@
     de: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;R&gt;,
 }
 
-<span class="macro">macro_rules! </span>deserialize_integer_key {
-    (<span class="macro-nonterminal">$method</span>:ident =&gt; <span class="macro-nonterminal">$visit</span>:ident) =&gt; {
+<span class="macro">macro_rules! </span>deserialize_numeric_key {
+    (<span class="macro-nonterminal">$method</span>:ident) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$method</span>&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+        <span class="kw">where
+            </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        {
+            <span class="self">self</span>.deserialize_number(visitor)
+        }
+    };
+
+    (<span class="macro-nonterminal">$method</span>:ident, <span class="macro-nonterminal">$delegate</span>:ident) =&gt; {
         <span class="kw">fn </span><span class="macro-nonterminal">$method</span>&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
         <span class="kw">where
             </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
         {
             <span class="self">self</span>.de.eat_char();
-            <span class="self">self</span>.de.scratch.clear();
-            <span class="kw">let </span>string = <span class="macro">tri!</span>(<span class="self">self</span>.de.read.parse_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>.de.scratch));
-            <span class="kw">match </span>(string.parse(), string) {
-                (<span class="prelude-val">Ok</span>(integer), <span class="kw">_</span>) =&gt; visitor.<span class="macro-nonterminal">$visit</span>(integer),
-                (<span class="prelude-val">Err</span>(<span class="kw">_</span>), Reference::Borrowed(s)) =&gt; visitor.visit_borrowed_str(s),
-                (<span class="prelude-val">Err</span>(<span class="kw">_</span>), Reference::Copied(s)) =&gt; visitor.visit_str(s),
+
+            <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.de.peek()) {
+                <span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>| <span class="string">b&#39;-&#39;</span>) =&gt; {}
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.de.error(ErrorCode::ExpectedNumericKey)),
             }
+
+            <span class="kw">let </span>value = <span class="macro">tri!</span>(<span class="self">self</span>.de.<span class="macro-nonterminal">$delegate</span>(visitor));
+
+            <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.de.peek()) {
+                <span class="prelude-val">Some</span>(<span class="string">b&#39;&quot;&#39;</span>) =&gt; <span class="self">self</span>.de.eat_char(),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.de.peek_error(ErrorCode::ExpectedDoubleQuote)),
+            }
+
+            <span class="prelude-val">Ok</span>(value)
         }
     };
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, R&gt; MapKey&lt;<span class="lifetime">&#39;a</span>, R&gt;
+<span class="kw">where
+    </span>R: Read&lt;<span class="lifetime">&#39;de</span>&gt;,
+{
+    <span class="macro">deserialize_numeric_key!</span>(deserialize_number, deserialize_number);
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, R&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>MapKey&lt;<span class="lifetime">&#39;a</span>, R&gt;
@@ -4761,16 +4830,21 @@
         }
     }
 
-    <span class="macro">deserialize_integer_key!</span>(deserialize_i8 =&gt; visit_i8);
-    <span class="macro">deserialize_integer_key!</span>(deserialize_i16 =&gt; visit_i16);
-    <span class="macro">deserialize_integer_key!</span>(deserialize_i32 =&gt; visit_i32);
-    <span class="macro">deserialize_integer_key!</span>(deserialize_i64 =&gt; visit_i64);
-    <span class="macro">deserialize_integer_key!</span>(deserialize_i128 =&gt; visit_i128);
-    <span class="macro">deserialize_integer_key!</span>(deserialize_u8 =&gt; visit_u8);
-    <span class="macro">deserialize_integer_key!</span>(deserialize_u16 =&gt; visit_u16);
-    <span class="macro">deserialize_integer_key!</span>(deserialize_u32 =&gt; visit_u32);
-    <span class="macro">deserialize_integer_key!</span>(deserialize_u64 =&gt; visit_u64);
-    <span class="macro">deserialize_integer_key!</span>(deserialize_u128 =&gt; visit_u128);
+    <span class="macro">deserialize_numeric_key!</span>(deserialize_i8);
+    <span class="macro">deserialize_numeric_key!</span>(deserialize_i16);
+    <span class="macro">deserialize_numeric_key!</span>(deserialize_i32);
+    <span class="macro">deserialize_numeric_key!</span>(deserialize_i64);
+    <span class="macro">deserialize_numeric_key!</span>(deserialize_i128, deserialize_i128);
+    <span class="macro">deserialize_numeric_key!</span>(deserialize_u8);
+    <span class="macro">deserialize_numeric_key!</span>(deserialize_u16);
+    <span class="macro">deserialize_numeric_key!</span>(deserialize_u32);
+    <span class="macro">deserialize_numeric_key!</span>(deserialize_u64);
+    <span class="macro">deserialize_numeric_key!</span>(deserialize_u128, deserialize_u128);
+    <span class="attr">#[cfg(not(feature = <span class="string">&quot;float_roundtrip&quot;</span>))]
+    </span><span class="macro">deserialize_numeric_key!</span>(deserialize_f32);
+    <span class="attr">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
+    </span><span class="macro">deserialize_numeric_key!</span>(deserialize_f32, deserialize_f32);
+    <span class="macro">deserialize_numeric_key!</span>(deserialize_f64);
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -4827,8 +4901,8 @@
     }
 
     <span class="macro">forward_to_deserialize_any! </span>{
-        bool f32 f64 char str string unit unit_struct seq tuple tuple_struct map
-        <span class="kw">struct </span>identifier ignored_any
+        bool char str string unit unit_struct seq tuple tuple_struct map <span class="kw">struct
+        </span>identifier ignored_any
     }
 }
 
@@ -4924,8 +4998,8 @@
 
     <span class="kw">fn </span>peek_end_of_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">match </span><span class="macro">tri!</span>(<span class="self">self</span>.de.peek()) {
-            <span class="prelude-val">Some</span>(<span class="string">b&#39; &#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;\n&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;\t&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;\r&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;&quot;&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;[&#39;</span>)
-            | <span class="prelude-val">Some</span>(<span class="string">b&#39;]&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;{&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;}&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;,&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;:&#39;</span>) | <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(()),
+            <span class="prelude-val">Some</span>(<span class="string">b&#39; &#39; </span>| <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\t&#39; </span>| <span class="string">b&#39;\r&#39; </span>| <span class="string">b&#39;&quot;&#39; </span>| <span class="string">b&#39;[&#39; </span>| <span class="string">b&#39;]&#39; </span>| <span class="string">b&#39;{&#39; </span>| <span class="string">b&#39;}&#39; </span>| <span class="string">b&#39;,&#39; </span>| <span class="string">b&#39;:&#39;</span>)
+            | <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(()),
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
                 <span class="kw">let </span>position = <span class="self">self</span>.de.read.peek_position();
                 <span class="prelude-val">Err</span>(Error::syntax(
@@ -5014,9 +5088,9 @@
     <span class="prelude-val">Ok</span>(value)
 }
 
-<span class="doccomment">/// Deserialize an instance of type `T` from an IO stream of JSON.
+<span class="doccomment">/// Deserialize an instance of type `T` from an I/O stream of JSON.
 ///
-/// The content of the IO stream is deserialized directly from the stream
+/// The content of the I/O stream is deserialized directly from the stream
 /// without being buffered in memory by serde_json.
 ///
 /// When reading from a source against which short reads are not efficient, such

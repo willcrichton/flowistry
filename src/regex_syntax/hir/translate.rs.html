@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-syntax-0.7.2/src/hir/translate.rs`."><title>translate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-syntax-0.7.4/src/hir/translate.rs`."><title>translate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3581,6 +3581,52 @@
 <a href="#3581" id="3581">3581</a>
 <a href="#3582" id="3582">3582</a>
 <a href="#3583" id="3583">3583</a>
+<a href="#3584" id="3584">3584</a>
+<a href="#3585" id="3585">3585</a>
+<a href="#3586" id="3586">3586</a>
+<a href="#3587" id="3587">3587</a>
+<a href="#3588" id="3588">3588</a>
+<a href="#3589" id="3589">3589</a>
+<a href="#3590" id="3590">3590</a>
+<a href="#3591" id="3591">3591</a>
+<a href="#3592" id="3592">3592</a>
+<a href="#3593" id="3593">3593</a>
+<a href="#3594" id="3594">3594</a>
+<a href="#3595" id="3595">3595</a>
+<a href="#3596" id="3596">3596</a>
+<a href="#3597" id="3597">3597</a>
+<a href="#3598" id="3598">3598</a>
+<a href="#3599" id="3599">3599</a>
+<a href="#3600" id="3600">3600</a>
+<a href="#3601" id="3601">3601</a>
+<a href="#3602" id="3602">3602</a>
+<a href="#3603" id="3603">3603</a>
+<a href="#3604" id="3604">3604</a>
+<a href="#3605" id="3605">3605</a>
+<a href="#3606" id="3606">3606</a>
+<a href="#3607" id="3607">3607</a>
+<a href="#3608" id="3608">3608</a>
+<a href="#3609" id="3609">3609</a>
+<a href="#3610" id="3610">3610</a>
+<a href="#3611" id="3611">3611</a>
+<a href="#3612" id="3612">3612</a>
+<a href="#3613" id="3613">3613</a>
+<a href="#3614" id="3614">3614</a>
+<a href="#3615" id="3615">3615</a>
+<a href="#3616" id="3616">3616</a>
+<a href="#3617" id="3617">3617</a>
+<a href="#3618" id="3618">3618</a>
+<a href="#3619" id="3619">3619</a>
+<a href="#3620" id="3620">3620</a>
+<a href="#3621" id="3621">3621</a>
+<a href="#3622" id="3622">3622</a>
+<a href="#3623" id="3623">3623</a>
+<a href="#3624" id="3624">3624</a>
+<a href="#3625" id="3625">3625</a>
+<a href="#3626" id="3626">3626</a>
+<a href="#3627" id="3627">3627</a>
+<a href="#3628" id="3628">3628</a>
+<a href="#3629" id="3629">3629</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/*!
 Defines a translator that converts an `Ast` to an `Hir`.
 */
@@ -3602,6 +3648,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>TranslatorBuilder {
     utf8: bool,
+    line_terminator: u8,
     flags: Flags,
 }
 
@@ -3614,7 +3661,11 @@ Defines a translator that converts an `Ast` to an `Hir`.
 <span class="kw">impl </span>TranslatorBuilder {
     <span class="doccomment">/// Create a new translator builder with a default c onfiguration.
     </span><span class="kw">pub fn </span>new() -&gt; TranslatorBuilder {
-        TranslatorBuilder { utf8: <span class="bool-val">true</span>, flags: Flags::default() }
+        TranslatorBuilder {
+            utf8: <span class="bool-val">true</span>,
+            line_terminator: <span class="string">b&#39;\n&#39;</span>,
+            flags: Flags::default(),
+        }
     }
 
     <span class="doccomment">/// Build a translator using the current configuration.
@@ -3623,6 +3674,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
             stack: RefCell::new(<span class="macro">vec!</span>[]),
             flags: Cell::new(<span class="self">self</span>.flags),
             utf8: <span class="self">self</span>.utf8,
+            line_terminator: <span class="self">self</span>.line_terminator,
         }
     }
 
@@ -3643,6 +3695,31 @@ Defines a translator that converts an `Ast` to an `Hir`.
     /// that split a codepoint).
     </span><span class="kw">pub fn </span>utf8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>TranslatorBuilder {
         <span class="self">self</span>.utf8 = yes;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the line terminator for use with `(?u-s:.)` and `(?-us:.)`.
+    ///
+    /// Namely, instead of `.` (by default) matching everything except for `\n`,
+    /// this will cause `.` to match everything except for the byte given.
+    ///
+    /// If `.` is used in a context where Unicode mode is enabled and this byte
+    /// isn&#39;t ASCII, then an error will be returned. When Unicode mode is
+    /// disabled, then any byte is permitted, but will return an error if UTF-8
+    /// mode is enabled and it is a non-ASCII byte.
+    ///
+    /// In short, any ASCII value for a line terminator is always okay. But a
+    /// non-ASCII byte might result in an error depending on whether Unicode
+    /// mode or UTF-8 mode are enabled.
+    ///
+    /// Note that if `R` mode is enabled then it always takes precedence and
+    /// the line terminator will be treated as `\r` and `\n` simultaneously.
+    ///
+    /// Note also that this *doesn&#39;t* impact the look-around assertions
+    /// `(?m:^)` and `(?m:$)`. That&#39;s usually controlled by additional
+    /// configuration in the regex engine itself.
+    </span><span class="kw">pub fn </span>line_terminator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte: u8) -&gt; <span class="kw-2">&amp;mut </span>TranslatorBuilder {
+        <span class="self">self</span>.line_terminator = byte;
         <span class="self">self
     </span>}
 
@@ -3703,6 +3780,8 @@ Defines a translator that converts an `Ast` to an `Hir`.
     </span>flags: Cell&lt;Flags&gt;,
     <span class="doccomment">/// Whether we&#39;re allowed to produce HIR that can match arbitrary bytes.
     </span>utf8: bool,
+    <span class="doccomment">/// The line terminator to use for `.`.
+    </span>line_terminator: u8,
 }
 
 <span class="kw">impl </span>Translator {
@@ -4445,10 +4524,38 @@ Defines a translator that converts an `Ast` to an `Hir`.
     }
 
     <span class="kw">fn </span>hir_dot(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span) -&gt; <span class="prelude-ty">Result</span>&lt;Hir&gt; {
-        <span class="kw">if </span>!<span class="self">self</span>.flags().unicode() &amp;&amp; <span class="self">self</span>.trans().utf8 {
+        <span class="kw">let </span>(utf8, lineterm, flags) =
+            (<span class="self">self</span>.trans().utf8, <span class="self">self</span>.trans().line_terminator, <span class="self">self</span>.flags());
+        <span class="kw">if </span>utf8 &amp;&amp; (!flags.unicode() || !lineterm.is_ascii()) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(span, ErrorKind::InvalidUtf8));
         }
-        <span class="prelude-val">Ok</span>(Hir::dot(<span class="self">self</span>.flags().dot()))
+        <span class="kw">let </span>dot = <span class="kw">if </span>flags.dot_matches_new_line() {
+            <span class="kw">if </span>flags.unicode() {
+                hir::Dot::AnyChar
+            } <span class="kw">else </span>{
+                hir::Dot::AnyByte
+            }
+        } <span class="kw">else </span>{
+            <span class="kw">if </span>flags.unicode() {
+                <span class="kw">if </span>flags.crlf() {
+                    hir::Dot::AnyCharExceptCRLF
+                } <span class="kw">else </span>{
+                    <span class="kw">if </span>!lineterm.is_ascii() {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(
+                            <span class="self">self</span>.error(span, ErrorKind::InvalidLineTerminator)
+                        );
+                    }
+                    hir::Dot::AnyCharExcept(char::from(lineterm))
+                }
+            } <span class="kw">else </span>{
+                <span class="kw">if </span>flags.crlf() {
+                    hir::Dot::AnyByteExceptCRLF
+                } <span class="kw">else </span>{
+                    hir::Dot::AnyByteExcept(lineterm)
+                }
+            }
+        };
+        <span class="prelude-val">Ok</span>(Hir::dot(dot))
     }
 
     <span class="kw">fn </span>hir_assertion(<span class="kw-2">&amp;</span><span class="self">self</span>, asst: <span class="kw-2">&amp;</span>ast::Assertion) -&gt; <span class="prelude-ty">Result</span>&lt;Hir&gt; {
@@ -4789,30 +4896,6 @@ Defines a translator that converts an `Ast` to an `Hir`.
         }
         <span class="kw">if </span><span class="self">self</span>.crlf.is_none() {
             <span class="self">self</span>.crlf = previous.crlf;
-        }
-    }
-
-    <span class="kw">fn </span>dot(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; hir::Dot {
-        <span class="kw">if </span><span class="self">self</span>.dot_matches_new_line() {
-            <span class="kw">if </span><span class="self">self</span>.unicode() {
-                hir::Dot::AnyChar
-            } <span class="kw">else </span>{
-                hir::Dot::AnyByte
-            }
-        } <span class="kw">else </span>{
-            <span class="kw">if </span><span class="self">self</span>.unicode() {
-                <span class="kw">if </span><span class="self">self</span>.crlf() {
-                    hir::Dot::AnyCharExceptCRLF
-                } <span class="kw">else </span>{
-                    hir::Dot::AnyCharExceptLF
-                }
-            } <span class="kw">else </span>{
-                <span class="kw">if </span><span class="self">self</span>.crlf() {
-                    hir::Dot::AnyByteExceptCRLF
-                } <span class="kw">else </span>{
-                    hir::Dot::AnyByteExceptLF
-                }
-            }
         }
     }
 
@@ -7070,6 +7153,15 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert!</span>(!props(<span class="string">r&quot;(?:a)|b&quot;</span>).is_alternation_literal());
         <span class="macro">assert!</span>(!props(<span class="string">r&quot;a|(?:b)&quot;</span>).is_alternation_literal());
         <span class="macro">assert!</span>(!props(<span class="string">r&quot;(?:z|xx)@|xx&quot;</span>).is_alternation_literal());
+    }
+
+    <span class="comment">// This tests that the smart Hir::repetition constructors does some basic
+    // simplifications.
+    </span><span class="attr">#[test]
+    </span><span class="kw">fn </span>smart_repetition() {
+        <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;a{0}&quot;</span>), Hir::empty());
+        <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;a{1}&quot;</span>), hir_lit(<span class="string">&quot;a&quot;</span>));
+        <span class="macro">assert_eq!</span>(t(<span class="string">r&quot;\B{32111}&quot;</span>), hir_look(hir::Look::WordUnicodeNegate));
     }
 
     <span class="comment">// This tests that the smart Hir::concat constructor simplifies the given

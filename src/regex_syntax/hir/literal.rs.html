@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-syntax-0.7.2/src/hir/literal.rs`."><title>literal.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-syntax-0.7.4/src/hir/literal.rs`."><title>literal.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3163,6 +3163,60 @@
 <a href="#3163" id="3163">3163</a>
 <a href="#3164" id="3164">3164</a>
 <a href="#3165" id="3165">3165</a>
+<a href="#3166" id="3166">3166</a>
+<a href="#3167" id="3167">3167</a>
+<a href="#3168" id="3168">3168</a>
+<a href="#3169" id="3169">3169</a>
+<a href="#3170" id="3170">3170</a>
+<a href="#3171" id="3171">3171</a>
+<a href="#3172" id="3172">3172</a>
+<a href="#3173" id="3173">3173</a>
+<a href="#3174" id="3174">3174</a>
+<a href="#3175" id="3175">3175</a>
+<a href="#3176" id="3176">3176</a>
+<a href="#3177" id="3177">3177</a>
+<a href="#3178" id="3178">3178</a>
+<a href="#3179" id="3179">3179</a>
+<a href="#3180" id="3180">3180</a>
+<a href="#3181" id="3181">3181</a>
+<a href="#3182" id="3182">3182</a>
+<a href="#3183" id="3183">3183</a>
+<a href="#3184" id="3184">3184</a>
+<a href="#3185" id="3185">3185</a>
+<a href="#3186" id="3186">3186</a>
+<a href="#3187" id="3187">3187</a>
+<a href="#3188" id="3188">3188</a>
+<a href="#3189" id="3189">3189</a>
+<a href="#3190" id="3190">3190</a>
+<a href="#3191" id="3191">3191</a>
+<a href="#3192" id="3192">3192</a>
+<a href="#3193" id="3193">3193</a>
+<a href="#3194" id="3194">3194</a>
+<a href="#3195" id="3195">3195</a>
+<a href="#3196" id="3196">3196</a>
+<a href="#3197" id="3197">3197</a>
+<a href="#3198" id="3198">3198</a>
+<a href="#3199" id="3199">3199</a>
+<a href="#3200" id="3200">3200</a>
+<a href="#3201" id="3201">3201</a>
+<a href="#3202" id="3202">3202</a>
+<a href="#3203" id="3203">3203</a>
+<a href="#3204" id="3204">3204</a>
+<a href="#3205" id="3205">3205</a>
+<a href="#3206" id="3206">3206</a>
+<a href="#3207" id="3207">3207</a>
+<a href="#3208" id="3208">3208</a>
+<a href="#3209" id="3209">3209</a>
+<a href="#3210" id="3210">3210</a>
+<a href="#3211" id="3211">3211</a>
+<a href="#3212" id="3212">3212</a>
+<a href="#3213" id="3213">3213</a>
+<a href="#3214" id="3214">3214</a>
+<a href="#3215" id="3215">3215</a>
+<a href="#3216" id="3216">3216</a>
+<a href="#3217" id="3217">3217</a>
+<a href="#3218" id="3218">3218</a>
+<a href="#3219" id="3219">3219</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/*!
 Provides literal extraction from `Hir` expressions.
 
@@ -3188,7 +3242,7 @@ effective literal optimizations:
 to lead to substring search that is only a little faster than a regex search,
 and thus the overhead of using literal optimizations in the first place might
 make things slower overall.
-* The literals in your [`Seq`] shoudn&#39;t be too short. In general, longer is
+* The literals in your [`Seq`] shouldn&#39;t be too short. In general, longer is
 better. A sequence corresponding to single bytes that occur frequently in the
 haystack, for example, is probably a bad literal optimization because it&#39;s
 likely to produce many false positive candidates. Longer literals are less
@@ -3216,7 +3270,7 @@ the &quot;trickier&quot; parts are how to combine literal sequences, and that is
 implemented on [`Seq`].
 */
 
-</span><span class="kw">use </span>core::{cmp, mem};
+</span><span class="kw">use </span>core::{cmp, mem, num::NonZeroUsize};
 
 <span class="kw">use </span>alloc::{vec, vec::Vec};
 
@@ -3642,7 +3696,7 @@ implemented on [`Seq`].
                 }
                 seq
             }
-            hir::Repetition { min, max: <span class="prelude-val">Some</span>(max), .. } <span class="kw">if </span>min &lt; max =&gt; {
+            hir::Repetition { min, .. } =&gt; {
                 <span class="macro">assert!</span>(min &gt; <span class="number">0</span>); <span class="comment">// handled above
                 </span><span class="kw">let </span>limit =
                     u32::try_from(<span class="self">self</span>.limit_repeat).unwrap_or(u32::MAX);
@@ -3655,10 +3709,6 @@ implemented on [`Seq`].
                 }
                 seq.make_inexact();
                 seq
-            }
-            hir::Repetition { .. } =&gt; {
-                subseq.make_inexact();
-                subseq
             }
         }
     }
@@ -3857,7 +3907,7 @@ implemented on [`Seq`].
 /// from making assumptions about what literals are required in order to match
 /// a particular [`Hir`] expression. Generally speaking, when a set is in this
 /// state, literal optimizations are inhibited. A good example of a regex that
-/// will cause this sort of set to apppear is `[A-Za-z]`. The character class
+/// will cause this sort of set to appear is `[A-Za-z]`. The character class
 /// is just too big (and also too narrow) to be usefully expanded into 52
 /// different literals. (Note that the decision for when a seq should become
 /// infinite is determined by the caller. A seq itself has no hard-coded
@@ -4736,7 +4786,7 @@ implemented on [`Seq`].
     /// unioning `self` with `other`. If either set is infinite, then this
     /// returns `None`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>max_union_len(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Seq) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+    </span><span class="kw">pub fn </span>max_union_len(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Seq) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="kw">let </span>len1 = <span class="self">self</span>.len()<span class="question-mark">?</span>;
         <span class="kw">let </span>len2 = other.len()<span class="question-mark">?</span>;
         <span class="prelude-val">Some</span>(len1.saturating_add(len2))
@@ -4746,7 +4796,7 @@ implemented on [`Seq`].
     /// cross product of `self` with `other`. If either set is infinite, then
     /// this returns `None`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>max_cross_len(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Seq) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+    </span><span class="kw">pub fn </span>max_cross_len(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Seq) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="kw">let </span>len1 = <span class="self">self</span>.len()<span class="question-mark">?</span>;
         <span class="kw">let </span>len2 = other.len()<span class="question-mark">?</span>;
         <span class="prelude-val">Some</span>(len1.saturating_mul(len2))
@@ -5006,6 +5056,14 @@ implemented on [`Seq`].
             <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
             <span class="prelude-val">Some</span>(len) =&gt; len,
         };
+        <span class="comment">// Just give up now if our sequence contains an empty string.
+        </span><span class="kw">if </span><span class="self">self</span>.min_literal_len().map_or(<span class="bool-val">false</span>, |len| len == <span class="number">0</span>) {
+            <span class="comment">// We squash the sequence so that nobody else gets any bright
+            // ideas to try and use it. An empty string implies a match at
+            // every position. A prefilter cannot help you here.
+            </span><span class="self">self</span>.make_infinite();
+            <span class="kw">return</span>;
+        }
         <span class="comment">// Make sure we start with the smallest sequence possible. We use a
         // special version of preference minimization that retains exactness.
         // This is legal because optimization is only expected to occur once
@@ -5075,34 +5133,41 @@ implemented on [`Seq`].
                 // longest common prefix to be subject to the poison check.
             </span>}
         }
-        <span class="comment">// Everything below this check is more-or-less about trying to
-        // heuristically reduce the false positive rate of a prefilter. But
-        // if our sequence is completely exact, then it&#39;s possible the regex
-        // engine can be skipped entirely. In this case, the false positive
-        // rate is zero because every literal match corresponds to a regex
-        // match.
+        <span class="comment">// If we have an exact sequence, we *probably* just want to keep it
+        // as-is. But there are some cases where we don&#39;t. So we save a copy of
+        // the exact sequence now, and then try to do some more optimizations
+        // below. If those don&#39;t work out, we go back to this exact sequence.
         //
-        // This is OK even if the sequence contains a poison literal. Remember,
-        // a literal is only poisononous because of what we assume about its
-        // impact on the false positive rate. However, we do still check for
-        // an empty string. Empty strings are weird and it&#39;s best to let the
-        // regex engine handle those.
+        // The specific motivation for this is that we sometimes wind up with
+        // an exact sequence with a hefty number of literals. Say, 100. If we
+        // stuck with that, it would be too big for Teddy and would result in
+        // using Aho-Corasick. Which is fine... but the lazy DFA is plenty
+        // suitable in such cases. The real issue is that we will wind up not
+        // using a fast prefilter at all. So in cases like this, even though
+        // we have an exact sequence, it would be better to try and shrink the
+        // sequence (which we do below) and use it as a prefilter that can
+        // produce false positive matches.
         //
-        // We do currently do this check after the longest common prefix (or
-        // suffix) check, under the theory that single-substring search is so
-        // fast that we want that even if we&#39;d end up turning an exact sequence
-        // into an inexact one. But this might be wrong...
-        </span><span class="kw">if </span><span class="self">self</span>.is_exact()
-            &amp;&amp; <span class="self">self</span>.min_literal_len().map_or(<span class="bool-val">false</span>, |len| len &gt; <span class="number">0</span>)
-        {
-            <span class="kw">return</span>;
-        }
+        // But if the shrinking below results in a sequence that &quot;sucks,&quot; then
+        // we don&#39;t want to use that because we already have an exact sequence
+        // in hand.
+        </span><span class="kw">let </span>exact: <span class="prelude-ty">Option</span>&lt;Seq&gt; =
+            <span class="kw">if </span><span class="self">self</span>.is_exact() { <span class="prelude-val">Some</span>(<span class="self">self</span>.clone()) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
         <span class="comment">// Now we attempt to shorten the sequence. The idea here is that we
         // don&#39;t want to look for too many literals, but we want to shorten
         // our sequence enough to improve our odds of using better algorithms
         // downstream (such as Teddy).
+        //
+        // The pair of numbers in this list corresponds to the maximal prefix
+        // (in bytes) to keep for all literals and the length of the sequence
+        // at which to do it.
+        //
+        // So for example, the pair (3, 500) would mean, &quot;if we have more than
+        // 500 literals in our sequence, then truncate all of our literals
+        // such that they are at most 3 bytes in length and the minimize the
+        // sequence.&quot;
         </span><span class="kw">const </span>ATTEMPTS: [(usize, usize); <span class="number">5</span>] =
-            [(<span class="number">5</span>, <span class="number">64</span>), (<span class="number">4</span>, <span class="number">64</span>), (<span class="number">3</span>, <span class="number">64</span>), (<span class="number">2</span>, <span class="number">64</span>), (<span class="number">1</span>, <span class="number">10</span>)];
+            [(<span class="number">5</span>, <span class="number">10</span>), (<span class="number">4</span>, <span class="number">10</span>), (<span class="number">3</span>, <span class="number">64</span>), (<span class="number">2</span>, <span class="number">64</span>), (<span class="number">1</span>, <span class="number">10</span>)];
         <span class="kw">for </span>(keep, limit) <span class="kw">in </span>ATTEMPTS {
             <span class="kw">let </span>len = <span class="kw">match </span><span class="self">self</span>.len() {
                 <span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
@@ -5116,7 +5181,11 @@ implemented on [`Seq`].
             } <span class="kw">else </span>{
                 <span class="self">self</span>.keep_last_bytes(keep);
             }
-            <span class="self">self</span>.minimize_by_preference();
+            <span class="kw">if </span>prefix {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>lits) = <span class="self">self</span>.literals {
+                    PreferenceTrie::minimize(lits, <span class="bool-val">true</span>);
+                }
+            }
         }
         <span class="comment">// Check for a poison literal. A poison literal is one that is short
         // and is believed to have a very high match count. These poisons
@@ -5133,6 +5202,30 @@ implemented on [`Seq`].
                 <span class="self">self</span>.make_infinite();
             }
         }
+        <span class="comment">// OK, if we had an exact sequence before attempting more optimizations
+        // above and our post-optimized sequence sucks for some reason or
+        // another, then we go back to the exact sequence.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(exact) = exact {
+            <span class="comment">// If optimizing resulted in dropping our literals, then certainly
+            // backup and use the exact sequence that we had.
+            </span><span class="kw">if </span>!<span class="self">self</span>.is_finite() {
+                <span class="kw-2">*</span><span class="self">self </span>= exact;
+                <span class="kw">return</span>;
+            }
+            <span class="comment">// If our optimized sequence contains a short literal, then it&#39;s
+            // *probably* not so great. So throw it away and revert to the
+            // exact sequence.
+            </span><span class="kw">if </span><span class="self">self</span>.min_literal_len().map_or(<span class="bool-val">true</span>, |len| len &lt;= <span class="number">2</span>) {
+                <span class="kw-2">*</span><span class="self">self </span>= exact;
+                <span class="kw">return</span>;
+            }
+            <span class="comment">// Finally, if our optimized sequence is &quot;big&quot; (i.e., can&#39;t use
+            // Teddy), then also don&#39;t use it and rely on the exact sequence.
+            </span><span class="kw">if </span><span class="self">self</span>.len().map_or(<span class="bool-val">true</span>, |len| len &gt; <span class="number">64</span>) {
+                <span class="kw-2">*</span><span class="self">self </span>= exact;
+                <span class="kw">return</span>;
+            }
+        }
     }
 }
 
@@ -5142,7 +5235,7 @@ implemented on [`Seq`].
         <span class="kw">if let </span><span class="prelude-val">Some</span>(lits) = <span class="self">self</span>.literals() {
             f.debug_list().entries(lits.iter()).finish()
         } <span class="kw">else </span>{
-            <span class="macro">write!</span>(f, <span class="string">&quot;[∅]&quot;</span>)
+            <span class="macro">write!</span>(f, <span class="string">&quot;[∞]&quot;</span>)
         }
     }
 }
@@ -5325,12 +5418,19 @@ implemented on [`Seq`].
 /// never seen this show up on a profile. Because of the heuristic limits
 /// imposed on literal extractions, the size of the inputs here is usually
 /// very small.)
-</span><span class="attr">#[derive(Debug, Default)]
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>PreferenceTrie {
     <span class="doccomment">/// The states in this trie. The index of a state in this vector is its ID.
     </span>states: Vec&lt;State&gt;,
+    <span class="doccomment">/// This vec indicates which states are match states. It always has
+    /// the same length as `states` and is indexed by the same state ID.
+    /// A state with identifier `sid` is a match state if and only if
+    /// `matches[sid].is_some()`. The option contains the index of the literal
+    /// corresponding to the match. The index is offset by 1 so that it fits in
+    /// a NonZeroUsize.
+    </span>matches: Vec&lt;<span class="prelude-ty">Option</span>&lt;NonZeroUsize&gt;&gt;,
     <span class="doccomment">/// The index to allocate to the next literal added to this trie. Starts at
-    /// 0 and increments by 1 for every literal successfully added to the trie.
+    /// 1 and increments by 1 for every literal successfully added to the trie.
     </span>next_literal_index: usize,
 }
 
@@ -5341,9 +5441,6 @@ implemented on [`Seq`].
     /// are sorted by byte. There is at most one such transition for any
     /// particular byte.
     </span>trans: Vec&lt;(u8, usize)&gt;,
-    <span class="doccomment">/// Whether this is a matching state or not. If it is, then it contains the
-    /// index to the matching literal.
-    </span>literal_index: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 }
 
 <span class="kw">impl </span>PreferenceTrie {
@@ -5360,14 +5457,18 @@ implemented on [`Seq`].
         <span class="kw">use </span>core::cell::RefCell;
 
         <span class="comment">// MSRV(1.61): Use retain_mut here to avoid interior mutability.
-        </span><span class="kw">let </span>trie = RefCell::new(PreferenceTrie::default());
+        </span><span class="kw">let </span>trie = RefCell::new(PreferenceTrie {
+            states: <span class="macro">vec!</span>[],
+            matches: <span class="macro">vec!</span>[],
+            next_literal_index: <span class="number">1</span>,
+        });
         <span class="kw">let </span><span class="kw-2">mut </span>make_inexact = <span class="macro">vec!</span>[];
         literals.retain(|lit| {
             <span class="kw">match </span>trie.borrow_mut().insert(lit.as_bytes()) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
                 <span class="prelude-val">Err</span>(i) =&gt; {
                     <span class="kw">if </span>!keep_exact {
-                        make_inexact.push(i);
+                        make_inexact.push(i.checked_sub(<span class="number">1</span>).unwrap());
                     }
                     <span class="bool-val">false
                 </span>}
@@ -5390,15 +5491,15 @@ implemented on [`Seq`].
     /// search.
     </span><span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize, usize&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>prev = <span class="self">self</span>.root();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = <span class="self">self</span>.states[prev].literal_index {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(idx);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = <span class="self">self</span>.matches[prev] {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(idx.get());
         }
         <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span>bytes.iter() {
             <span class="kw">match </span><span class="self">self</span>.states[prev].trans.binary_search_by_key(<span class="kw-2">&amp;</span>b, |t| t.<span class="number">0</span>) {
                 <span class="prelude-val">Ok</span>(i) =&gt; {
                     prev = <span class="self">self</span>.states[prev].trans[i].<span class="number">1</span>;
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = <span class="self">self</span>.states[prev].literal_index {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(idx);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = <span class="self">self</span>.matches[prev] {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(idx.get());
                     }
                 }
                 <span class="prelude-val">Err</span>(i) =&gt; {
@@ -5410,7 +5511,7 @@ implemented on [`Seq`].
         }
         <span class="kw">let </span>idx = <span class="self">self</span>.next_literal_index;
         <span class="self">self</span>.next_literal_index += <span class="number">1</span>;
-        <span class="self">self</span>.states[prev].literal_index = <span class="prelude-val">Some</span>(idx);
+        <span class="self">self</span>.matches[prev] = NonZeroUsize::new(idx);
         <span class="prelude-val">Ok</span>(idx)
     }
 
@@ -5427,6 +5528,7 @@ implemented on [`Seq`].
     </span><span class="kw">fn </span>create_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; usize {
         <span class="kw">let </span>id = <span class="self">self</span>.states.len();
         <span class="self">self</span>.states.push(State::default());
+        <span class="self">self</span>.matches.push(<span class="prelude-val">None</span>);
         id
     }
 }
@@ -5768,6 +5870,12 @@ implemented on [`Seq`].
             ]),
             e(<span class="string">r&quot;(ab|cd)(ef|gh)(ij|kl)&quot;</span>)
         );
+
+        <span class="macro">assert_eq!</span>(inexact([E(<span class="string">&quot;abab&quot;</span>)], [E(<span class="string">&quot;abab&quot;</span>)]), e(<span class="string">r&quot;(ab){2}&quot;</span>));
+
+        <span class="macro">assert_eq!</span>(inexact([I(<span class="string">&quot;abab&quot;</span>)], [I(<span class="string">&quot;abab&quot;</span>)]), e(<span class="string">r&quot;(ab){2,3}&quot;</span>));
+
+        <span class="macro">assert_eq!</span>(inexact([I(<span class="string">&quot;abab&quot;</span>)], [I(<span class="string">&quot;abab&quot;</span>)]), e(<span class="string">r&quot;(ab){2,}&quot;</span>));
     }
 
     <span class="attr">#[test]
@@ -5980,13 +6088,13 @@ implemented on [`Seq`].
     // repeats.
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>crazy_repeats() {
-        <span class="macro">assert_eq!</span>(inexact([I(<span class="string">&quot;&quot;</span>)], [I(<span class="string">&quot;&quot;</span>)]), e(<span class="string">r&quot;(?:){4294967295}&quot;</span>));
+        <span class="macro">assert_eq!</span>(inexact([E(<span class="string">&quot;&quot;</span>)], [E(<span class="string">&quot;&quot;</span>)]), e(<span class="string">r&quot;(?:){4294967295}&quot;</span>));
         <span class="macro">assert_eq!</span>(
-            inexact([I(<span class="string">&quot;&quot;</span>)], [I(<span class="string">&quot;&quot;</span>)]),
+            inexact([E(<span class="string">&quot;&quot;</span>)], [E(<span class="string">&quot;&quot;</span>)]),
             e(<span class="string">r&quot;(?:){64}{64}{64}{64}{64}{64}&quot;</span>)
         );
-        <span class="macro">assert_eq!</span>(inexact([I(<span class="string">&quot;&quot;</span>)], [I(<span class="string">&quot;&quot;</span>)]), e(<span class="string">r&quot;x{0}{4294967295}&quot;</span>));
-        <span class="macro">assert_eq!</span>(inexact([I(<span class="string">&quot;&quot;</span>)], [I(<span class="string">&quot;&quot;</span>)]), e(<span class="string">r&quot;(?:|){4294967295}&quot;</span>));
+        <span class="macro">assert_eq!</span>(inexact([E(<span class="string">&quot;&quot;</span>)], [E(<span class="string">&quot;&quot;</span>)]), e(<span class="string">r&quot;x{0}{4294967295}&quot;</span>));
+        <span class="macro">assert_eq!</span>(inexact([E(<span class="string">&quot;&quot;</span>)], [E(<span class="string">&quot;&quot;</span>)]), e(<span class="string">r&quot;(?:|){4294967295}&quot;</span>));
 
         <span class="macro">assert_eq!</span>(
             inexact([E(<span class="string">&quot;&quot;</span>)], [E(<span class="string">&quot;&quot;</span>)]),

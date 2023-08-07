@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/proc-macro2-1.0.60/src/fallback.rs`."><title>fallback.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="proc_macro2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../proc_macro2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/proc-macro2-1.0.66/src/fallback.rs`."><title>fallback.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="proc_macro2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../proc_macro2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1084,24 +1084,6 @@
 <a href="#1084" id="1084">1084</a>
 <a href="#1085" id="1085">1085</a>
 <a href="#1086" id="1086">1086</a>
-<a href="#1087" id="1087">1087</a>
-<a href="#1088" id="1088">1088</a>
-<a href="#1089" id="1089">1089</a>
-<a href="#1090" id="1090">1090</a>
-<a href="#1091" id="1091">1091</a>
-<a href="#1092" id="1092">1092</a>
-<a href="#1093" id="1093">1093</a>
-<a href="#1094" id="1094">1094</a>
-<a href="#1095" id="1095">1095</a>
-<a href="#1096" id="1096">1096</a>
-<a href="#1097" id="1097">1097</a>
-<a href="#1098" id="1098">1098</a>
-<a href="#1099" id="1099">1099</a>
-<a href="#1100" id="1100">1100</a>
-<a href="#1101" id="1101">1101</a>
-<a href="#1102" id="1102">1102</a>
-<a href="#1103" id="1103">1103</a>
-<a href="#1104" id="1104">1104</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(span_locations)]
 </span><span class="kw">use </span><span class="kw">crate</span>::location::LineColumn;
 <span class="kw">use </span><span class="kw">crate</span>::parse::{<span class="self">self</span>, Cursor};
@@ -1112,7 +1094,6 @@
 <span class="attr">#[cfg(span_locations)]
 </span><span class="kw">use </span>core::cmp;
 <span class="kw">use </span>core::fmt::{<span class="self">self</span>, Debug, Display, Write};
-<span class="kw">use </span>core::iter::FromIterator;
 <span class="kw">use </span>core::mem::ManuallyDrop;
 <span class="kw">use </span>core::ops::RangeBounds;
 <span class="kw">use </span>core::ptr;
@@ -1175,8 +1156,7 @@
 <span class="kw">fn </span>push_token_from_proc_macro(<span class="kw-2">mut </span>vec: RcVecMut&lt;TokenTree&gt;, token: TokenTree) {
     <span class="comment">// https://github.com/dtolnay/proc-macro2/issues/235
     </span><span class="kw">match </span>token {
-        <span class="attr">#[cfg(not(no_bind_by_move_pattern_guard))]
-        </span>TokenTree::Literal(<span class="kw">crate</span>::Literal {
+        TokenTree::Literal(<span class="kw">crate</span>::Literal {
             <span class="attr">#[cfg(wrap_proc_macro)]
                 </span>inner: <span class="kw">crate</span>::imp::Literal::Fallback(literal),
             <span class="attr">#[cfg(not(wrap_proc_macro))]
@@ -1184,20 +1164,6 @@
             ..
         }) <span class="kw">if </span>literal.repr.starts_with(<span class="string">&#39;-&#39;</span>) =&gt; {
             push_negative_literal(vec, literal);
-        }
-        <span class="attr">#[cfg(no_bind_by_move_pattern_guard)]
-        </span>TokenTree::Literal(<span class="kw">crate</span>::Literal {
-            <span class="attr">#[cfg(wrap_proc_macro)]
-                </span>inner: <span class="kw">crate</span>::imp::Literal::Fallback(literal),
-            <span class="attr">#[cfg(not(wrap_proc_macro))]
-                </span>inner: literal,
-            ..
-        }) =&gt; {
-            <span class="kw">if </span>literal.repr.starts_with(<span class="string">&#39;-&#39;</span>) {
-                push_negative_literal(vec, literal);
-            } <span class="kw">else </span>{
-                vec.push(TokenTree::Literal(<span class="kw">crate</span>::Literal::_new_fallback(literal)));
-            }
         }
         <span class="kw">_ </span>=&gt; vec.push(token),
     }
@@ -1583,8 +1549,7 @@
         Span { lo: <span class="number">0</span>, hi: <span class="number">0 </span>}
     }
 
-    <span class="attr">#[cfg(not(no_hygiene))]
-    </span><span class="kw">pub fn </span>mixed_site() -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>mixed_site() -&gt; <span class="self">Self </span>{
         Span::call_site()
     }
 
@@ -1873,7 +1838,7 @@
         <span class="macro">panic!</span>(<span class="string">&quot;Ident is not allowed to be empty; use Option&lt;Ident&gt;&quot;</span>);
     }
 
-    <span class="kw">if </span>string.bytes().all(|digit| digit &gt;= <span class="string">b&#39;0&#39; </span>&amp;&amp; digit &lt;= <span class="string">b&#39;9&#39;</span>) {
+    <span class="kw">if </span>string.bytes().all(|digit| <span class="string">b&#39;0&#39; </span>&lt;= digit &amp;&amp; digit &lt;= <span class="string">b&#39;9&#39;</span>) {
         <span class="macro">panic!</span>(<span class="string">&quot;Ident cannot be a number; use Literal instead&quot;</span>);
     }
 
@@ -2124,27 +2089,26 @@
 
         <span class="attr">#[cfg(span_locations)]
         </span>{
-            <span class="kw">use </span><span class="kw">crate</span>::convert::usize_to_u32;
             <span class="kw">use </span>core::ops::Bound;
 
             <span class="kw">let </span>lo = <span class="kw">match </span>range.start_bound() {
                 Bound::Included(start) =&gt; {
-                    <span class="kw">let </span>start = usize_to_u32(<span class="kw-2">*</span>start)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>start = u32::try_from(<span class="kw-2">*</span>start).ok()<span class="question-mark">?</span>;
                     <span class="self">self</span>.span.lo.checked_add(start)<span class="question-mark">?
                 </span>}
                 Bound::Excluded(start) =&gt; {
-                    <span class="kw">let </span>start = usize_to_u32(<span class="kw-2">*</span>start)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>start = u32::try_from(<span class="kw-2">*</span>start).ok()<span class="question-mark">?</span>;
                     <span class="self">self</span>.span.lo.checked_add(start)<span class="question-mark">?</span>.checked_add(<span class="number">1</span>)<span class="question-mark">?
                 </span>}
                 Bound::Unbounded =&gt; <span class="self">self</span>.span.lo,
             };
             <span class="kw">let </span>hi = <span class="kw">match </span>range.end_bound() {
                 Bound::Included(end) =&gt; {
-                    <span class="kw">let </span>end = usize_to_u32(<span class="kw-2">*</span>end)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>end = u32::try_from(<span class="kw-2">*</span>end).ok()<span class="question-mark">?</span>;
                     <span class="self">self</span>.span.lo.checked_add(end)<span class="question-mark">?</span>.checked_add(<span class="number">1</span>)<span class="question-mark">?
                 </span>}
                 Bound::Excluded(end) =&gt; {
-                    <span class="kw">let </span>end = usize_to_u32(<span class="kw-2">*</span>end)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>end = u32::try_from(<span class="kw-2">*</span>end).ok()<span class="question-mark">?</span>;
                     <span class="self">self</span>.span.lo.checked_add(end)<span class="question-mark">?
                 </span>}
                 Bound::Unbounded =&gt; <span class="self">self</span>.span.hi,

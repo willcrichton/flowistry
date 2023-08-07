@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.3.4/src/builder/arg.rs`."><title>arg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.3.19/src/builder/arg.rs`."><title>arg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -4790,6 +4790,14 @@
 <a href="#4790" id="4790">4790</a>
 <a href="#4791" id="4791">4791</a>
 <a href="#4792" id="4792">4792</a>
+<a href="#4793" id="4793">4793</a>
+<a href="#4794" id="4794">4794</a>
+<a href="#4795" id="4795">4795</a>
+<a href="#4796" id="4796">4796</a>
+<a href="#4797" id="4797">4797</a>
+<a href="#4798" id="4798">4798</a>
+<a href="#4799" id="4799">4799</a>
+<a href="#4800" id="4800">4800</a>
 </pre></div><pre class="rust"><code><span class="comment">// Std
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;env&quot;</span>)]
 </span><span class="kw">use </span>std::env;
@@ -5650,21 +5658,15 @@
 
     <span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>setting&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, setting: F) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>F: Into&lt;ArgFlags&gt;,
-    {
-        <span class="self">self</span>.settings.insert(setting.into());
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>setting(<span class="kw-2">mut </span><span class="self">self</span>, setting: ArgSettings) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.settings.set(setting);
         <span class="self">self
     </span>}
 
     <span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unset_setting&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, setting: F) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>F: Into&lt;ArgFlags&gt;,
-    {
-        <span class="self">self</span>.settings.remove(setting.into());
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unset_setting(<span class="kw-2">mut </span><span class="self">self</span>, setting: ArgSettings) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.settings.unset(setting);
         <span class="self">self
     </span>}
 }
@@ -6448,6 +6450,8 @@
     /// at runtime, nor were the conditions met for `Arg::default_value_if`, the `Arg::default_value`
     /// will be applied.
     ///
+    /// Like with command-line values, this will be split by [`Arg::value_delimiter`].
+    ///
     /// # Examples
     ///
     /// First we use the default value without providing any value at runtime.
@@ -6544,6 +6548,8 @@
     /// [`.num_args(0..N)`][Arg::num_args] and the
     /// [`.require_equals(true)`][Arg::require_equals] configuration option. These are required in
     /// order to unambiguously determine what, if any, value was supplied for the argument.
+    ///
+    /// Like with command-line values, this will be split by [`Arg::value_delimiter`].
     ///
     /// # Examples
     ///
@@ -6690,6 +6696,8 @@
     /// - When [`Arg::action(ArgAction::Set)`] is set,
     ///   [`ArgMatches::get_one`][crate::ArgMatches::get_one] will
     ///   return the default specified.
+    ///
+    /// Like with command-line values, this will be split by [`Arg::value_delimiter`].
     ///
     /// # Examples
     ///
@@ -6967,12 +6975,15 @@
 
     <span class="doccomment">/// Allows custom ordering of args within the help message.
     ///
-    /// Args with a lower value will be displayed first in the help message. This is helpful when
-    /// one would like to emphasise frequently used args, or prioritize those towards the top of
-    /// the list. Args with duplicate display orders will be displayed in the order they are
-    /// defined.
+    /// `Arg`s with a lower value will be displayed first in the help message.
+    /// Those with the same display order will be sorted.
     ///
-    /// **NOTE:** The default is 999 for all arguments.
+    /// `Arg`s are automatically assigned a display order based on the order they are added to the
+    /// [`Command`][crate::Command].
+    /// Overriding this is helpful when the order arguments are added in isn&#39;t the same as the
+    /// display order, whether in one-off cases or to automatically sort arguments.
+    ///
+    /// To change, see [`Command::next_display_order`][crate::Command::next_display_order].
     ///
     /// **NOTE:** This setting is ignored for [positional arguments] which are always displayed in
     /// [index] order.
@@ -6984,22 +6995,23 @@
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
     /// let m = Command::new(&quot;prog&quot;)
-    ///     .arg(Arg::new(&quot;a&quot;) // Typically args are grouped alphabetically by name.
-    ///                              // Args without a display_order have a value of 999 and are
-    ///                              // displayed alphabetically with all other 999 valued args.
-    ///         .long(&quot;long-option&quot;)
-    ///         .short(&#39;o&#39;)
+    ///     .arg(Arg::new(&quot;boat&quot;)
+    ///         .short(&#39;b&#39;)
+    ///         .long(&quot;boat&quot;)
     ///         .action(ArgAction::Set)
+    ///         .display_order(0)  // Sort
     ///         .help(&quot;Some help and text&quot;))
-    ///     .arg(Arg::new(&quot;b&quot;)
-    ///         .long(&quot;other-option&quot;)
-    ///         .short(&#39;O&#39;)
+    ///     .arg(Arg::new(&quot;airplane&quot;)
+    ///         .short(&#39;a&#39;)
+    ///         .long(&quot;airplane&quot;)
     ///         .action(ArgAction::Set)
-    ///         .display_order(1)   // In order to force this arg to appear *first*
-    ///                             // all we have to do is give it a value lower than 999.
-    ///                             // Any other args with a value of 1 will be displayed
-    ///                             // alphabetically with this one...then 2 values, then 3, etc.
+    ///         .display_order(0)  // Sort
     ///         .help(&quot;I should be first!&quot;))
+    ///     .arg(Arg::new(&quot;custom-help&quot;)
+    ///         .short(&#39;?&#39;)
+    ///         .action(ArgAction::Help)
+    ///         .display_order(100)  // Don&#39;t sort
+    ///         .help(&quot;Alt help&quot;))
     ///     .get_matches_from(vec![
     ///         &quot;prog&quot;, &quot;--help&quot;
     ///     ]);
@@ -7014,10 +7026,10 @@
     /// Usage: cust-ord [OPTIONS]
     ///
     /// Options:
-    ///     -h, --help                Print help information
-    ///     -V, --version             Print version information
-    ///     -O, --other-option &lt;b&gt;    I should be first!
-    ///     -o, --long-option &lt;a&gt;     Some help and text
+    ///     -a, --airplane &lt;airplane&gt;    I should be first!
+    ///     -b, --boat &lt;boar&gt;            Some help and text
+    ///     -h, --help                   Print help information
+    ///     -?                           Alt help
     /// ```
     /// [positional arguments]: Arg::index()
     /// [index]: Arg::index()
@@ -7528,6 +7540,8 @@
     /// and `Arg::default_value_if`, and the user **did not** provide this arg at runtime, nor were
     /// the conditions met for `Arg::default_value_if`, the `Arg::default_value` will be applied.
     ///
+    /// Like with command-line values, this will be split by [`Arg::value_delimiter`].
+    ///
     /// # Examples
     ///
     /// First we use the default value only if another arg is present at runtime.
@@ -7666,6 +7680,8 @@
     ///
     /// **NOTE**: The conditions are stored in order and evaluated in the same order. I.e. the first
     /// if multiple conditions are true, the first one found will be applied and the ultimate value.
+    ///
+    /// Like with command-line values, this will be split by [`Arg::value_delimiter`].
     ///
     /// # Examples
     ///

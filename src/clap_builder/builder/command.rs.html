@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.3.4/src/builder/command.rs`."><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.3.19/src/builder/command.rs`."><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -4730,12 +4730,6 @@
 <a href="#4730" id="4730">4730</a>
 <a href="#4731" id="4731">4731</a>
 <a href="#4732" id="4732">4732</a>
-<a href="#4733" id="4733">4733</a>
-<a href="#4734" id="4734">4734</a>
-<a href="#4735" id="4735">4735</a>
-<a href="#4736" id="4736">4736</a>
-<a href="#4737" id="4737">4737</a>
-<a href="#4738" id="4738">4738</a>
 </pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;usage&quot;</span>), allow(unused_mut))]
 
 </span><span class="comment">// Std
@@ -5849,9 +5843,14 @@
     ///
     /// ```no_run
     /// # use clap_builder as clap;
-    /// # use clap::{Command, ColorChoice, builder::Styles};
+    /// # use clap::{Command, ColorChoice, builder::styling};
+    /// let styles = styling::Styles::styled()
+    ///     .header(styling::AnsiColor::Green.on_default() | styling::Effects::BOLD)
+    ///     .usage(styling::AnsiColor::Green.on_default() | styling::Effects::BOLD)
+    ///     .literal(styling::AnsiColor::Blue.on_default() | styling::Effects::BOLD)
+    ///     .placeholder(styling::AnsiColor::Cyan.on_default());
     /// Command::new(&quot;myprog&quot;)
-    ///     .styles(Styles::styled().usage(Default::default()))
+    ///     .styles(styles)
     ///     .get_matches();
     /// ```
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
@@ -5869,6 +5868,9 @@
     ///
     /// Defaults to current terminal width when `wrap_help` feature flag is enabled.  If current
     /// width cannot be determined, the default is 100.
+    ///
+    /// **`unstable-v5` feature**: Defaults to unbound, being subject to
+    /// [`Command::max_term_width`].
     ///
     /// **NOTE:** This setting applies globally and *not* on a per-command basis.
     ///
@@ -5896,7 +5898,9 @@
     /// This only applies when [`term_width`][Command::term_width] is unset so that the current
     /// terminal&#39;s width will be used.  See [`Command::term_width`] for more details.
     ///
-    /// Using `0` will ignore terminal widths and use source formatting (default).
+    /// Using `0` will ignore this, always respecting [`Command::term_width`] (default).
+    ///
+    /// **`unstable-v5` feature**: Defaults to 100.
     ///
     /// **NOTE:** This setting applies globally and *not* on a per-command basis.
     ///
@@ -6645,21 +6649,15 @@
 
     <span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>setting&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, setting: F) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>F: Into&lt;AppFlags&gt;,
-    {
-        <span class="self">self</span>.settings.insert(setting.into());
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>setting(<span class="kw-2">mut </span><span class="self">self</span>, setting: AppSettings) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.settings.set(setting);
         <span class="self">self
     </span>}
 
     <span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unset_setting&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, setting: F) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>F: Into&lt;AppFlags&gt;,
-    {
-        <span class="self">self</span>.settings.remove(setting.into());
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unset_setting(<span class="kw-2">mut </span><span class="self">self</span>, setting: AppSettings) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.settings.unset(setting);
         <span class="self">self
     </span>}
 
@@ -7336,13 +7334,13 @@
 
     <span class="doccomment">/// Set the placement of this subcommand within the help.
     ///
-    /// Subcommands with a lower value will be displayed first in the help message.  Subcommands
-    /// with duplicate display orders will be displayed in order they are defined.
+    /// Subcommands with a lower value will be displayed first in the help message.
+    /// Those with the same display order will be sorted.
     ///
-    /// This is helpful when one would like to emphasize frequently used subcommands, or prioritize
-    /// those towards the top of the list.
-    ///
-    /// **NOTE:** The default is 999 for all subcommands.
+    /// `Command`s are automatically assigned a display order based on the order they are added to
+    /// their parent [`Command`].
+    /// Overriding this is helpful when the order commands are added in isn&#39;t the same as the
+    /// display order, whether in one-off cases or to automatically sort commands.
     ///
     /// # Examples
     ///
@@ -7351,17 +7349,11 @@
     /// # use clap_builder as clap;
     /// # use clap::{Command, };
     /// let m = Command::new(&quot;cust-ord&quot;)
-    ///     .subcommand(Command::new(&quot;alpha&quot;) // typically subcommands are grouped
-    ///                                                // alphabetically by name. Subcommands
-    ///                                                // without a display_order have a value of
-    ///                                                // 999 and are displayed alphabetically with
-    ///                                                // all other 999 subcommands
-    ///         .about(&quot;Some help and text&quot;))
     ///     .subcommand(Command::new(&quot;beta&quot;)
-    ///         .display_order(1)   // In order to force this subcommand to appear *first*
-    ///                             // all we have to do is give it a value lower than 999.
-    ///                             // Any other subcommands with a value of 1 will be displayed
-    ///                             // alphabetically with this one...then 2 values, then 3, etc.
+    ///         .display_order(0)  // Sort
+    ///         .about(&quot;Some help and text&quot;))
+    ///     .subcommand(Command::new(&quot;alpha&quot;)
+    ///         .display_order(0)  // Sort
     ///         .about(&quot;I should be first!&quot;))
     ///     .get_matches_from(vec![
     ///         &quot;cust-ord&quot;, &quot;--help&quot;
@@ -7377,8 +7369,9 @@
     /// Usage: cust-ord [OPTIONS]
     ///
     /// Commands:
-    ///     beta    I should be first!
-    ///     alpha   Some help and text
+    ///     alpha    I should be first!
+    ///     beta     Some help and text
+    ///     help     Print help for the subcommand(s)
     ///
     /// Options:
     ///     -h, --help       Print help
@@ -8553,7 +8546,7 @@
         <span class="comment">// do the real parsing
         </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(<span class="self">self</span>);
         <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = parser.get_matches_with(<span class="kw-2">&amp;mut </span>matcher, raw_args, args_cursor) {
-            <span class="kw">if </span><span class="self">self</span>.is_set(AppSettings::IgnoreErrors) {
+            <span class="kw">if </span><span class="self">self</span>.is_set(AppSettings::IgnoreErrors) &amp;&amp; error.use_stderr() {
                 <span class="macro">debug!</span>(<span class="string">&quot;Command::_do_parse: ignoring error: {error}&quot;</span>);
             } <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(error);
@@ -8595,26 +8588,22 @@
             </span><span class="self">self</span>.settings = <span class="self">self</span>.settings | <span class="self">self</span>.g_settings;
 
             <span class="kw">if </span><span class="self">self</span>.is_multicall_set() {
-                <span class="self">self</span>.settings.insert(AppSettings::SubcommandRequired.into());
-                <span class="self">self</span>.settings.insert(AppSettings::DisableHelpFlag.into());
-                <span class="self">self</span>.settings.insert(AppSettings::DisableVersionFlag.into());
+                <span class="self">self</span>.settings.set(AppSettings::SubcommandRequired);
+                <span class="self">self</span>.settings.set(AppSettings::DisableHelpFlag);
+                <span class="self">self</span>.settings.set(AppSettings::DisableVersionFlag);
             }
             <span class="kw">if </span>!<span class="macro">cfg!</span>(feature = <span class="string">&quot;help&quot;</span>) &amp;&amp; <span class="self">self</span>.get_override_help().is_none() {
-                <span class="self">self</span>.settings.insert(AppSettings::DisableHelpFlag.into());
-                <span class="self">self</span>.settings
-                    .insert(AppSettings::DisableHelpSubcommand.into());
+                <span class="self">self</span>.settings.set(AppSettings::DisableHelpFlag);
+                <span class="self">self</span>.settings.set(AppSettings::DisableHelpSubcommand);
             }
             <span class="kw">if </span><span class="self">self</span>.is_set(AppSettings::ArgsNegateSubcommands) {
-                <span class="self">self</span>.settings
-                    .insert(AppSettings::SubcommandsNegateReqs.into());
+                <span class="self">self</span>.settings.set(AppSettings::SubcommandsNegateReqs);
             }
             <span class="kw">if </span><span class="self">self</span>.external_value_parser.is_some() {
-                <span class="self">self</span>.settings
-                    .insert(AppSettings::AllowExternalSubcommands.into());
+                <span class="self">self</span>.settings.set(AppSettings::AllowExternalSubcommands);
             }
             <span class="kw">if </span>!<span class="self">self</span>.has_subcommands() {
-                <span class="self">self</span>.settings
-                    .insert(AppSettings::DisableHelpSubcommand.into());
+                <span class="self">self</span>.settings.set(AppSettings::DisableHelpSubcommand);
             }
 
             <span class="self">self</span>._propagate();
@@ -8667,14 +8656,13 @@
                 <span class="kw">let </span>is_allow_negative_numbers_set = <span class="self">self</span>.is_allow_negative_numbers_set();
                 <span class="kw">for </span>arg <span class="kw">in </span><span class="self">self</span>.args.args_mut() {
                     <span class="kw">if </span>is_allow_hyphen_values_set &amp;&amp; arg.is_takes_value_set() {
-                        arg.settings.insert(ArgSettings::AllowHyphenValues.into());
+                        arg.settings.set(ArgSettings::AllowHyphenValues);
                     }
                     <span class="kw">if </span>is_allow_negative_numbers_set &amp;&amp; arg.is_takes_value_set() {
-                        arg.settings
-                            .insert(ArgSettings::AllowNegativeNumbers.into());
+                        arg.settings.set(ArgSettings::AllowNegativeNumbers);
                     }
                     <span class="kw">if </span>is_trailing_var_arg_set &amp;&amp; arg.get_index() == <span class="prelude-val">Some</span>(highest_idx) {
-                        arg.settings.insert(ArgSettings::TrailingVarArg.into());
+                        arg.settings.set(ArgSettings::TrailingVarArg);
                     }
                 }
             }

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-syntax-0.7.2/src/hir/print.rs`."><title>print.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-syntax-0.7.4/src/hir/print.rs`."><title>print.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -575,6 +575,13 @@
 <a href="#575" id="575">575</a>
 <a href="#576" id="576">576</a>
 <a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/*!
 This module provides a regular expression printer for `Hir`.
 */
@@ -666,9 +673,16 @@ This module provides a regular expression printer for `Hir`.
 
     <span class="kw">fn </span>visit_pre(<span class="kw-2">&amp;mut </span><span class="self">self</span>, hir: <span class="kw-2">&amp;</span>Hir) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">*</span>hir.kind() {
-            <span class="comment">// Empty is represented by nothing in the concrete syntax, and
-            // repetition operators are strictly suffix oriented.
-            </span>HirKind::Empty | HirKind::Repetition(<span class="kw">_</span>) =&gt; {}
+            HirKind::Empty =&gt; {
+                <span class="comment">// Technically an empty sub-expression could be &quot;printed&quot; by
+                // just ignoring it, but in practice, you could have a
+                // repetition operator attached to an empty expression, and you
+                // really need something in the concrete syntax to make that
+                // work as you&#39;d expect.
+                </span><span class="self">self</span>.wtr.write_str(<span class="string">r&quot;(?:)&quot;</span>)<span class="question-mark">?</span>;
+            }
+            <span class="comment">// Repetition operators are strictly suffix oriented.
+            </span>HirKind::Repetition(<span class="kw">_</span>) =&gt; {}
             HirKind::Literal(hir::Literal(<span class="kw-2">ref </span>bytes)) =&gt; {
                 <span class="comment">// See the comment on the &#39;Concat&#39; and &#39;Alternation&#39; case below
                 // for why we put parens here. Literals are, conceptually,
@@ -1001,20 +1015,20 @@ This module provides a regular expression printer for `Hir`.
         <span class="comment">// Test that various zero-length repetitions always translate to an
         // empty regex. This is more a property of HIR&#39;s smart constructors
         // than the printer though.
-        </span>roundtrip(<span class="string">&quot;a{0}&quot;</span>, <span class="string">&quot;&quot;</span>);
-        roundtrip(<span class="string">&quot;(?:ab){0}&quot;</span>, <span class="string">&quot;&quot;</span>);
+        </span>roundtrip(<span class="string">&quot;a{0}&quot;</span>, <span class="string">&quot;(?:)&quot;</span>);
+        roundtrip(<span class="string">&quot;(?:ab){0}&quot;</span>, <span class="string">&quot;(?:)&quot;</span>);
         <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-gencat&quot;</span>)]
         </span>{
-            roundtrip(<span class="string">r&quot;\p{any}{0}&quot;</span>, <span class="string">&quot;&quot;</span>);
-            roundtrip(<span class="string">r&quot;\P{any}{0}&quot;</span>, <span class="string">&quot;&quot;</span>);
+            roundtrip(<span class="string">r&quot;\p{any}{0}&quot;</span>, <span class="string">&quot;(?:)&quot;</span>);
+            roundtrip(<span class="string">r&quot;\P{any}{0}&quot;</span>, <span class="string">&quot;(?:)&quot;</span>);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>print_group() {
-        roundtrip(<span class="string">&quot;()&quot;</span>, <span class="string">&quot;()&quot;</span>);
-        roundtrip(<span class="string">&quot;(?P&lt;foo&gt;)&quot;</span>, <span class="string">&quot;(?P&lt;foo&gt;)&quot;</span>);
-        roundtrip(<span class="string">&quot;(?:)&quot;</span>, <span class="string">&quot;&quot;</span>);
+        roundtrip(<span class="string">&quot;()&quot;</span>, <span class="string">&quot;((?:))&quot;</span>);
+        roundtrip(<span class="string">&quot;(?P&lt;foo&gt;)&quot;</span>, <span class="string">&quot;(?P&lt;foo&gt;(?:))&quot;</span>);
+        roundtrip(<span class="string">&quot;(?:)&quot;</span>, <span class="string">&quot;(?:)&quot;</span>);
 
         roundtrip(<span class="string">&quot;(a)&quot;</span>, <span class="string">&quot;(a)&quot;</span>);
         roundtrip(<span class="string">&quot;(?P&lt;foo&gt;a)&quot;</span>, <span class="string">&quot;(?P&lt;foo&gt;a)&quot;</span>);
@@ -1025,8 +1039,8 @@ This module provides a regular expression printer for `Hir`.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>print_alternation() {
-        roundtrip(<span class="string">&quot;|&quot;</span>, <span class="string">&quot;(?:|)&quot;</span>);
-        roundtrip(<span class="string">&quot;||&quot;</span>, <span class="string">&quot;(?:||)&quot;</span>);
+        roundtrip(<span class="string">&quot;|&quot;</span>, <span class="string">&quot;(?:(?:)|(?:))&quot;</span>);
+        roundtrip(<span class="string">&quot;||&quot;</span>, <span class="string">&quot;(?:(?:)|(?:)|(?:))&quot;</span>);
 
         roundtrip(<span class="string">&quot;a|b&quot;</span>, <span class="string">&quot;[ab]&quot;</span>);
         roundtrip(<span class="string">&quot;ab|cd&quot;</span>, <span class="string">&quot;(?:(?:ab)|(?:cd))&quot;</span>);
@@ -1080,7 +1094,7 @@ This module provides a regular expression printer for `Hir`.
             }),
             Hir::look(hir::Look::End),
         ]);
-        <span class="macro">assert_eq!</span>(<span class="string">r&quot;(?:\A(?:\A\z)+\z)&quot;</span>, expr.to_string());
+        <span class="macro">assert_eq!</span>(<span class="string">r&quot;(?:\A\A\z\z)&quot;</span>, expr.to_string());
     }
 
     <span class="comment">// Just like regression_repetition_concat, but with the repetition using
@@ -1117,7 +1131,7 @@ This module provides a regular expression printer for `Hir`.
             }),
             Hir::look(hir::Look::End),
         ]);
-        <span class="macro">assert_eq!</span>(<span class="string">r&quot;(?:\A(?:\A|\z)+\z)&quot;</span>, expr.to_string());
+        <span class="macro">assert_eq!</span>(<span class="string">r&quot;(?:\A(?:\A|\z)\z)&quot;</span>, expr.to_string());
     }
 
     <span class="comment">// This regression test is very similar in flavor to

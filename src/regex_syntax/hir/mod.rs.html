@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-syntax-0.7.2/src/hir/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-syntax-0.7.4/src/hir/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3737,6 +3737,51 @@
 <a href="#3737" id="3737">3737</a>
 <a href="#3738" id="3738">3738</a>
 <a href="#3739" id="3739">3739</a>
+<a href="#3740" id="3740">3740</a>
+<a href="#3741" id="3741">3741</a>
+<a href="#3742" id="3742">3742</a>
+<a href="#3743" id="3743">3743</a>
+<a href="#3744" id="3744">3744</a>
+<a href="#3745" id="3745">3745</a>
+<a href="#3746" id="3746">3746</a>
+<a href="#3747" id="3747">3747</a>
+<a href="#3748" id="3748">3748</a>
+<a href="#3749" id="3749">3749</a>
+<a href="#3750" id="3750">3750</a>
+<a href="#3751" id="3751">3751</a>
+<a href="#3752" id="3752">3752</a>
+<a href="#3753" id="3753">3753</a>
+<a href="#3754" id="3754">3754</a>
+<a href="#3755" id="3755">3755</a>
+<a href="#3756" id="3756">3756</a>
+<a href="#3757" id="3757">3757</a>
+<a href="#3758" id="3758">3758</a>
+<a href="#3759" id="3759">3759</a>
+<a href="#3760" id="3760">3760</a>
+<a href="#3761" id="3761">3761</a>
+<a href="#3762" id="3762">3762</a>
+<a href="#3763" id="3763">3763</a>
+<a href="#3764" id="3764">3764</a>
+<a href="#3765" id="3765">3765</a>
+<a href="#3766" id="3766">3766</a>
+<a href="#3767" id="3767">3767</a>
+<a href="#3768" id="3768">3768</a>
+<a href="#3769" id="3769">3769</a>
+<a href="#3770" id="3770">3770</a>
+<a href="#3771" id="3771">3771</a>
+<a href="#3772" id="3772">3772</a>
+<a href="#3773" id="3773">3773</a>
+<a href="#3774" id="3774">3774</a>
+<a href="#3775" id="3775">3775</a>
+<a href="#3776" id="3776">3776</a>
+<a href="#3777" id="3777">3777</a>
+<a href="#3778" id="3778">3778</a>
+<a href="#3779" id="3779">3779</a>
+<a href="#3780" id="3780">3780</a>
+<a href="#3781" id="3781">3781</a>
+<a href="#3782" id="3782">3782</a>
+<a href="#3783" id="3783">3783</a>
+<a href="#3784" id="3784">3784</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/*!
 Defines a high-level intermediate (HIR) representation for regular expressions.
 
@@ -3827,6 +3872,9 @@ to its simplified structure.
     <span class="doccomment">/// This error occurs when translating a pattern that could match a byte
     /// sequence that isn&#39;t UTF-8 and `utf8` was enabled.
     </span>InvalidUtf8,
+    <span class="doccomment">/// This error occurs when one uses a non-ASCII byte for a line terminator,
+    /// but where Unicode mode is enabled and UTF-8 mode is disabled.
+    </span>InvalidLineTerminator,
     <span class="doccomment">/// This occurs when an unrecognized Unicode property name could not
     /// be found.
     </span>UnicodePropertyNotFound,
@@ -3859,6 +3907,7 @@ to its simplified structure.
         <span class="kw">let </span>msg = <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             UnicodeNotAllowed =&gt; <span class="string">&quot;Unicode not allowed here&quot;</span>,
             InvalidUtf8 =&gt; <span class="string">&quot;pattern can match invalid UTF-8&quot;</span>,
+            InvalidLineTerminator =&gt; <span class="string">&quot;invalid line terminator, must be ASCII&quot;</span>,
             UnicodePropertyNotFound =&gt; <span class="string">&quot;Unicode property not found&quot;</span>,
             UnicodePropertyValueNotFound =&gt; <span class="string">&quot;Unicode property value not found&quot;</span>,
             UnicodePerlClassNotFound =&gt; {
@@ -3919,7 +3968,7 @@ to its simplified structure.
 /// matches.
 ///
 /// For empty matches, those can occur at any position. It is the
-/// repsonsibility of the regex engine to determine whether empty matches are
+/// responsibility of the regex engine to determine whether empty matches are
 /// permitted between the code units of a single codepoint.
 ///
 /// # Stack space
@@ -4094,7 +4143,13 @@ to its simplified structure.
 
     <span class="doccomment">/// Creates a repetition HIR expression.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>repetition(rep: Repetition) -&gt; Hir {
+    </span><span class="kw">pub fn </span>repetition(<span class="kw-2">mut </span>rep: Repetition) -&gt; Hir {
+        <span class="comment">// If the sub-expression of a repetition can only match the empty
+        // string, then we force its maximum to be at most 1.
+        </span><span class="kw">if </span>rep.sub.properties().maximum_len() == <span class="prelude-val">Some</span>(<span class="number">0</span>) {
+            rep.min = cmp::min(rep.min, <span class="number">1</span>);
+            rep.max = rep.max.map(|n| cmp::min(n, <span class="number">1</span>)).or(<span class="prelude-val">Some</span>(<span class="number">1</span>));
+        }
         <span class="comment">// The regex &#39;a{0}&#39; is always equivalent to the empty regex. This is
         // true even when &#39;a&#39; is an expression that never matches anything
         // (like &#39;\P{any}&#39;).
@@ -4286,7 +4341,7 @@ to its simplified structure.
         <span class="comment">// We rebuild the alternation by simplifying it. We proceed similarly
         // as the concatenation case. But in this case, there&#39;s no literal
         // simplification happening. We&#39;re just flattening alternations.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>new = <span class="macro">vec!</span>[];
+        </span><span class="kw">let </span><span class="kw-2">mut </span>new = Vec::with_capacity(subs.len());
         <span class="kw">for </span>sub <span class="kw">in </span>subs {
             <span class="kw">let </span>(kind, props) = sub.into_parts();
             <span class="kw">match </span>kind {
@@ -4381,6 +4436,12 @@ to its simplified structure.
                 cls.push(ClassBytesRange::new(<span class="string">b&#39;\0&#39;</span>, <span class="string">b&#39;\xFF&#39;</span>));
                 Hir::class(Class::Bytes(cls))
             }
+            Dot::AnyCharExcept(ch) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>cls =
+                    ClassUnicode::new([ClassUnicodeRange::new(ch, ch)]);
+                cls.negate();
+                Hir::class(Class::Unicode(cls))
+            }
             Dot::AnyCharExceptLF =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>cls = ClassUnicode::empty();
                 cls.push(ClassUnicodeRange::new(<span class="string">&#39;\0&#39;</span>, <span class="string">&#39;\x09&#39;</span>));
@@ -4393,6 +4454,12 @@ to its simplified structure.
                 cls.push(ClassUnicodeRange::new(<span class="string">&#39;\x0B&#39;</span>, <span class="string">&#39;\x0C&#39;</span>));
                 cls.push(ClassUnicodeRange::new(<span class="string">&#39;\x0E&#39;</span>, <span class="string">&#39;\u{10FFFF}&#39;</span>));
                 Hir::class(Class::Unicode(cls))
+            }
+            Dot::AnyByteExcept(byte) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>cls =
+                    ClassBytes::new([ClassBytesRange::new(byte, byte)]);
+                cls.negate();
+                Hir::class(Class::Bytes(cls))
             }
             Dot::AnyByteExceptLF =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>cls = ClassBytes::empty();
@@ -5505,6 +5572,18 @@ to its simplified structure.
     ///
     /// This is equivalent to `(?s-u:.)` and also `(?-u:[\x00-\xFF])`.
     </span>AnyByte,
+    <span class="doccomment">/// Matches the UTF-8 encoding of any Unicode scalar value except for the
+    /// `char` given.
+    ///
+    /// This is equivalent to using `(?u-s:.)` with the line terminator set
+    /// to a particular ASCII byte. (Because of peculiarities in the regex
+    /// engines, a line terminator must be a single byte. It follows that when
+    /// UTF-8 mode is enabled, this single byte must also be a Unicode scalar
+    /// value. That is, ti must be ASCII.)
+    ///
+    /// (This and `AnyCharExceptLF` both exist because of legacy reasons.
+    /// `AnyCharExceptLF` will be dropped in the next breaking change release.)
+    </span>AnyCharExcept(char),
     <span class="doccomment">/// Matches the UTF-8 encoding of any Unicode scalar value except for `\n`.
     ///
     /// This is equivalent to `(?u-s:.)` and also `[\p{any}--\n]`.
@@ -5514,6 +5593,17 @@ to its simplified structure.
     ///
     /// This is equivalent to `(?uR-s:.)` and also `[\p{any}--\r\n]`.
     </span>AnyCharExceptCRLF,
+    <span class="doccomment">/// Matches any byte value except for the `u8` given.
+    ///
+    /// This is equivalent to using `(?-us:.)` with the line terminator set
+    /// to a particular ASCII byte. (Because of peculiarities in the regex
+    /// engines, a line terminator must be a single byte. It follows that when
+    /// UTF-8 mode is enabled, this single byte must also be a Unicode scalar
+    /// value. That is, ti must be ASCII.)
+    ///
+    /// (This and `AnyByteExceptLF` both exist because of legacy reasons.
+    /// `AnyByteExceptLF` will be dropped in the next breaking change release.)
+    </span>AnyByteExcept(u8),
     <span class="doccomment">/// Matches any byte value except for `\n`.
     ///
     /// This is equivalent to `(?-su:.)` and also `(?-u:[[\x00-\xFF]--\n])`.
@@ -6149,10 +6239,10 @@ to its simplified structure.
             inner.look_set_prefix = p.look_set_prefix();
             inner.look_set_suffix = p.look_set_suffix();
         }
-        <span class="comment">// If the static captures len of the sub-expression is not known or is
-        // zero, then it automatically propagates to the repetition, regardless
-        // of the repetition. Otherwise, it might change, but only when the
-        // repetition can match 0 times.
+        <span class="comment">// If the static captures len of the sub-expression is not known or
+        // is greater than zero, then it automatically propagates to the
+        // repetition, regardless of the repetition. Otherwise, it might
+        // change, but only when the repetition can match 0 times.
         </span><span class="kw">if </span>rep.min == <span class="number">0
             </span>&amp;&amp; inner.static_explicit_captures_len.map_or(<span class="bool-val">false</span>, |len| len &gt; <span class="number">0</span>)
         {

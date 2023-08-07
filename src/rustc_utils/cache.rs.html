@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc_utils-0.6.0-nightly-2023-04-12/src/cache.rs`."><title>cache.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustc_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rustc_utils/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc_utils-0.6.1-nightly-2023-04-12/src/cache.rs`."><title>cache.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustc_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rustc_utils/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -76,36 +76,259 @@
 <a href="#76" id="76">76</a>
 <a href="#77" id="77">77</a>
 <a href="#78" id="78">78</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Data structure for memoizing computations.
-
-</span><span class="kw">use </span>std::{cell::RefCell, hash::Hash, mem, pin::Pin};
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Data structures for memoizing computations.
+//!
+//! Contruct new caches using [`Default::default`], then construct/retrieve
+//! elements with [`get`](Cache::get). `get` should only ever be used with one,
+//! `compute` function[^inconsistent].
+//!
+//! In terms of choice,
+//! - [`CopyCache`] should be used for expensive computations that create cheap
+//!   (i.e. small) values.
+//! - [`Cache`] should be used for expensive computations that create expensive
+//!   (i.e. large) values.
+//!
+//! Both types of caches implement **recursion breaking**. In general because
+//! caches are supposed to be used as simple `&amp;` (no `mut`) the reference may be
+//! freely copied, including into the `compute` closure. What this means is that
+//! a `compute` may call [`get`](Cache::get) on the cache again. This is usually
+//! safe and can be used to compute data structures that recursively depend on
+//! one another, dynamic-programming style. However if a `get` on a key `k`
+//! itself calls `get` again on the same `k` this will either create an infinite
+//! recursion or an inconsistent cache[^inconsistent].
+//!
+//! Consider a simple example where we compute the Fibonacci Series with a
+//! [`CopyCache`]:
+//!
+//! ```rs
+//! struct Fib(CopyCache&lt;u32, u32&gt;);
+//!
+//! impl Fib {
+//!   fn get(&amp;self, i: u32) -&gt; u32 {
+//!     self.0.get(i, |_| {
+//!       if this &lt;= 1 {
+//!         return this;
+//!       }
+//!       let fib_1 = self.get(this - 1);
+//!       let fib_2 = self.get(this - 2);
+//!       fib_1 + fib_2
+//!     })
+//!   }
+//! }
+//!
+//! let cache = Fib(Default::default());
+//! let fib_5 = cache.get(5);
+//! ```
+//!
+//! This use of recursive [`get`](CopyCache::get) calls is perfectly legal.
+//! However if we made an error and called `chache.get(this, ...)` (forgetting
+//! the decrement) we would have created an inadvertend infinite recursion.
+//!
+//! To avoid this scenario both caches are implemented to detect when a
+//! recursive call as described is performed and `get` will panic. If your code
+//! uses recursive construction and would like to handle this case gracefully
+//! use [`get_maybe_recursive`](Cache::get_maybe_recursive) instead wich returns
+//! `None` from `get(k)` *iff* `k` this call (potentially transitively)
+//! originates from another `get(k)` call.
+//!
+//! [^inconsistent]: For any given cache value `get` should only ever be used
+//!     with one, referentially transparent `compute` function. Essentially this
+//!     means running `compute(k)` should always return the same value
+//!     *independent of the state of it&#39;s environment*. Violation of this rule
+//!     can introduces non-determinism in your program.
+</span><span class="kw">use </span>std::{cell::RefCell, hash::Hash, pin::Pin};
 
 <span class="kw">use </span>rustc_data_structures::fx::FxHashMap <span class="kw">as </span>HashMap;
 
 <span class="doccomment">/// Cache for non-copyable types.
-</span><span class="kw">pub struct </span>Cache&lt;In, Out&gt;(RefCell&lt;HashMap&lt;In, Pin&lt;Box&lt;Out&gt;&gt;&gt;&gt;);
+</span><span class="kw">pub struct </span>Cache&lt;In, Out&gt;(RefCell&lt;HashMap&lt;In, <span class="prelude-ty">Option</span>&lt;Pin&lt;Box&lt;Out&gt;&gt;&gt;&gt;&gt;);
 
 <span class="kw">impl</span>&lt;In, Out&gt; Cache&lt;In, Out&gt;
 <span class="kw">where
   </span>In: Hash + Eq + Clone,
 {
+  <span class="doccomment">/// Size of the cache
+  </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    <span class="self">self</span>.<span class="number">0</span>.borrow().len()
+  }
   <span class="doccomment">/// Returns the cached value for the given key, or runs `compute` if
   /// the value is not in cache.
-  </span><span class="kw">pub fn </span>get&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, key: In, compute: <span class="kw">impl </span>FnOnce(In) -&gt; Out) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Out {
+  ///
+  /// # Panics
+  ///
+  /// If this is a recursive invocation for this key.
+  </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: In, compute: <span class="kw">impl </span>FnOnce(In) -&gt; Out) -&gt; <span class="kw-2">&amp;</span>Out {
+    <span class="self">self
+      </span>.get_maybe_recursive(key, compute)
+      .unwrap_or_else(recursion_panic)
+  }
+  <span class="doccomment">/// Returns the cached value for the given key, or runs `compute` if
+  /// the value is not in cache.
+  ///
+  /// Returns `None` if this is a recursive invocation of `get` for key `key`.
+  </span><span class="kw">pub fn </span>get_maybe_recursive&lt;<span class="lifetime">&#39;a</span>&gt;(
+    <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+    key: In,
+    compute: <span class="kw">impl </span>FnOnce(In) -&gt; Out,
+  ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Out&gt; {
     <span class="kw">if </span>!<span class="self">self</span>.<span class="number">0</span>.borrow().contains_key(<span class="kw-2">&amp;</span>key) {
+      <span class="self">self</span>.<span class="number">0</span>.borrow_mut().insert(key.clone(), <span class="prelude-val">None</span>);
       <span class="kw">let </span>out = Box::pin(compute(key.clone()));
-      <span class="self">self</span>.<span class="number">0</span>.borrow_mut().insert(key.clone(), out);
+      <span class="self">self</span>.<span class="number">0</span>.borrow_mut().insert(key.clone(), <span class="prelude-val">Some</span>(out));
     }
 
     <span class="kw">let </span>cache = <span class="self">self</span>.<span class="number">0</span>.borrow();
-    <span class="kw">let </span>entry_pin = cache.get(<span class="kw-2">&amp;</span>key).unwrap();
-    <span class="kw">let </span>entry_ref = entry_pin.as_ref().get_ref();
+    <span class="comment">// Important here to first `unwrap` the `Option` created by `get`, then
+    // propagate the potential option stored in the map.
+    </span><span class="kw">let </span>entry = cache.get(<span class="kw-2">&amp;</span>key).expect(<span class="string">&quot;invariant broken&quot;</span>).as_ref()<span class="question-mark">?</span>;
 
     <span class="comment">// SAFETY: because the entry is pinned, it cannot move and this pointer will
     // only be invalidated if Cache is dropped. The returned reference has a lifetime
     // equal to Cache, so Cache cannot be dropped before this reference goes out of scope.
-    </span><span class="kw">unsafe </span>{ mem::transmute::&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Out, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Out&gt;(entry_ref) }
+    </span><span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ std::mem::transmute::&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Out, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Out&gt;(<span class="kw-2">&amp;**</span>entry) })
   }
+}
+
+<span class="kw">fn </span>recursion_panic&lt;A&gt;() -&gt; A {
+  <span class="macro">panic!</span>(<span class="string">&quot;Recursion detected! The computation of a value tried to retrieve the same from the cache. Using `get_maybe_recursive` to handle this case gracefully.&quot;</span>)
 }
 
 <span class="kw">impl</span>&lt;In, Out&gt; Default <span class="kw">for </span>Cache&lt;In, Out&gt; {
@@ -115,20 +338,45 @@
 }
 
 <span class="doccomment">/// Cache for copyable types.
-</span><span class="kw">pub struct </span>CopyCache&lt;In, Out&gt;(RefCell&lt;HashMap&lt;In, Out&gt;&gt;);
+</span><span class="kw">pub struct </span>CopyCache&lt;In, Out&gt;(RefCell&lt;HashMap&lt;In, <span class="prelude-ty">Option</span>&lt;Out&gt;&gt;&gt;);
 
 <span class="kw">impl</span>&lt;In, Out&gt; CopyCache&lt;In, Out&gt;
 <span class="kw">where
   </span>In: Hash + Eq + Clone,
   Out: Copy,
 {
+  <span class="doccomment">/// Size of the cache
+  </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    <span class="self">self</span>.<span class="number">0</span>.borrow().len()
+  }
   <span class="doccomment">/// Returns the cached value for the given key, or runs `compute` if
   /// the value is not in cache.
+  ///
+  /// # Panics
+  ///
+  /// If this is a recursive invocation for this key.
   </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: In, compute: <span class="kw">impl </span>FnOnce(In) -&gt; Out) -&gt; Out {
-    <span class="kw">let </span><span class="kw-2">mut </span>cache = <span class="self">self</span>.<span class="number">0</span>.borrow_mut();
-    <span class="kw-2">*</span>cache
-      .entry(key.clone())
-      .or_insert_with(<span class="kw">move </span>|| compute(key))
+    <span class="self">self
+      </span>.get_maybe_recursive(key, compute)
+      .unwrap_or_else(recursion_panic)
+  }
+
+  <span class="doccomment">/// Returns the cached value for the given key, or runs `compute` if
+  /// the value is not in cache.
+  ///
+  /// Returns `None` if this is a recursive invocation of `get` for key `key`.
+  </span><span class="kw">pub fn </span>get_maybe_recursive(
+    <span class="kw-2">&amp;</span><span class="self">self</span>,
+    key: In,
+    compute: <span class="kw">impl </span>FnOnce(In) -&gt; Out,
+  ) -&gt; <span class="prelude-ty">Option</span>&lt;Out&gt; {
+    <span class="kw">if </span>!<span class="self">self</span>.<span class="number">0</span>.borrow().contains_key(<span class="kw-2">&amp;</span>key) {
+      <span class="self">self</span>.<span class="number">0</span>.borrow_mut().insert(key.clone(), <span class="prelude-val">None</span>);
+      <span class="kw">let </span>out = compute(key.clone());
+      <span class="self">self</span>.<span class="number">0</span>.borrow_mut().insert(key.clone(), <span class="prelude-val">Some</span>(out));
+    }
+
+    <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>.borrow_mut().get(<span class="kw-2">&amp;</span>key).expect(<span class="string">&quot;invariant broken&quot;</span>)
   }
 }
 
@@ -152,6 +400,34 @@
     <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>y, <span class="number">1</span>);
     <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>z, <span class="number">0</span>);
     <span class="macro">assert!</span>(std::ptr::eq(x, z));
+  }
+
+  <span class="attr">#[test]
+  </span><span class="kw">fn </span>test_recursion_breaking() {
+    <span class="kw">struct </span>RecursiveUse(Cache&lt;i32, i32&gt;);
+    <span class="kw">impl </span>RecursiveUse {
+      <span class="kw">fn </span>get_infinite_recursion(<span class="kw-2">&amp;</span><span class="self">self</span>, i: i32) -&gt; i32 {
+        <span class="self">self
+          </span>.<span class="number">0
+          </span>.get_maybe_recursive(i, |<span class="kw">_</span>| i + <span class="self">self</span>.get_infinite_recursion(i))
+          .copied()
+          .unwrap_or(-<span class="number">18</span>)
+      }
+      <span class="kw">fn </span>get_safe_recursion(<span class="kw-2">&amp;</span><span class="self">self</span>, i: i32) -&gt; i32 {
+        <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>.get(i, |<span class="kw">_</span>| {
+          <span class="kw">if </span>i == <span class="number">0 </span>{
+            <span class="number">0
+          </span>} <span class="kw">else </span>{
+            <span class="self">self</span>.get_safe_recursion(i - <span class="number">1</span>) + i
+          }
+        })
+      }
+    }
+
+    <span class="kw">let </span>cache = RecursiveUse(Default::default());
+
+    <span class="macro">assert_eq!</span>(cache.get_infinite_recursion(<span class="number">60</span>), <span class="number">42</span>);
+    <span class="macro">assert_eq!</span>(cache.get_safe_recursion(<span class="number">5</span>), <span class="number">15</span>);
   }
 }
 </code></pre></div></section></main></body></html>

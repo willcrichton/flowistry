@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.3.4/src/builder/value_parser.rs`."><title>value_parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.3.19/src/builder/value_parser.rs`."><title>value_parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2469,6 +2469,59 @@
 <a href="#2469" id="2469">2469</a>
 <a href="#2470" id="2470">2470</a>
 <a href="#2471" id="2471">2471</a>
+<a href="#2472" id="2472">2472</a>
+<a href="#2473" id="2473">2473</a>
+<a href="#2474" id="2474">2474</a>
+<a href="#2475" id="2475">2475</a>
+<a href="#2476" id="2476">2476</a>
+<a href="#2477" id="2477">2477</a>
+<a href="#2478" id="2478">2478</a>
+<a href="#2479" id="2479">2479</a>
+<a href="#2480" id="2480">2480</a>
+<a href="#2481" id="2481">2481</a>
+<a href="#2482" id="2482">2482</a>
+<a href="#2483" id="2483">2483</a>
+<a href="#2484" id="2484">2484</a>
+<a href="#2485" id="2485">2485</a>
+<a href="#2486" id="2486">2486</a>
+<a href="#2487" id="2487">2487</a>
+<a href="#2488" id="2488">2488</a>
+<a href="#2489" id="2489">2489</a>
+<a href="#2490" id="2490">2490</a>
+<a href="#2491" id="2491">2491</a>
+<a href="#2492" id="2492">2492</a>
+<a href="#2493" id="2493">2493</a>
+<a href="#2494" id="2494">2494</a>
+<a href="#2495" id="2495">2495</a>
+<a href="#2496" id="2496">2496</a>
+<a href="#2497" id="2497">2497</a>
+<a href="#2498" id="2498">2498</a>
+<a href="#2499" id="2499">2499</a>
+<a href="#2500" id="2500">2500</a>
+<a href="#2501" id="2501">2501</a>
+<a href="#2502" id="2502">2502</a>
+<a href="#2503" id="2503">2503</a>
+<a href="#2504" id="2504">2504</a>
+<a href="#2505" id="2505">2505</a>
+<a href="#2506" id="2506">2506</a>
+<a href="#2507" id="2507">2507</a>
+<a href="#2508" id="2508">2508</a>
+<a href="#2509" id="2509">2509</a>
+<a href="#2510" id="2510">2510</a>
+<a href="#2511" id="2511">2511</a>
+<a href="#2512" id="2512">2512</a>
+<a href="#2513" id="2513">2513</a>
+<a href="#2514" id="2514">2514</a>
+<a href="#2515" id="2515">2515</a>
+<a href="#2516" id="2516">2516</a>
+<a href="#2517" id="2517">2517</a>
+<a href="#2518" id="2518">2518</a>
+<a href="#2519" id="2519">2519</a>
+<a href="#2520" id="2520">2520</a>
+<a href="#2521" id="2521">2521</a>
+<a href="#2522" id="2522">2522</a>
+<a href="#2523" id="2523">2523</a>
+<a href="#2524" id="2524">2524</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::convert::TryInto;
 <span class="kw">use </span>std::ops::RangeBounds;
 
@@ -4608,17 +4661,37 @@
         ValueParser::string() <span class="comment">// Default `clap_derive` to optimized implementation
     </span>}
 }
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>Box&lt;str&gt; {
+    <span class="kw">type </span>Parser = MapValueParser&lt;StringValueParser, <span class="kw">fn</span>(String) -&gt; Box&lt;str&gt;&gt;;
+    <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
+        StringValueParser::new().map(String::into_boxed_str)
+    }
+}
 <span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>std::ffi::OsString {
     <span class="kw">type </span>Parser = ValueParser;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
         ValueParser::os_string() <span class="comment">// Default `clap_derive` to optimized implementation
     </span>}
 }
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>Box&lt;std::ffi::OsStr&gt; {
+    <span class="kw">type </span>Parser =
+        MapValueParser&lt;OsStringValueParser, <span class="kw">fn</span>(std::ffi::OsString) -&gt; Box&lt;std::ffi::OsStr&gt;&gt;;
+    <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
+        OsStringValueParser::new().map(std::ffi::OsString::into_boxed_os_str)
+    }
+}
 <span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>std::path::PathBuf {
     <span class="kw">type </span>Parser = ValueParser;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
         ValueParser::path_buf() <span class="comment">// Default `clap_derive` to optimized implementation
     </span>}
+}
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>Box&lt;std::path::Path&gt; {
+    <span class="kw">type </span>Parser =
+        MapValueParser&lt;PathBufValueParser, <span class="kw">fn</span>(std::path::PathBuf) -&gt; Box&lt;std::path::Path&gt;&gt;;
+    <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
+        PathBufValueParser::new().map(std::path::PathBuf::into_boxed_path)
+    }
 }
 <span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>bool {
     <span class="kw">type </span>Parser = ValueParser;
@@ -4674,16 +4747,49 @@
         RangedI64ValueParser::new().range(start..=end)
     }
 }
+<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>u64 {
+    <span class="kw">type </span>Parser = RangedU64ValueParser&lt;u64&gt;;
+    <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
+        RangedU64ValueParser::new()
+    }
+}
 <span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>i64 {
     <span class="kw">type </span>Parser = RangedI64ValueParser&lt;i64&gt;;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
         RangedI64ValueParser::new()
     }
 }
-<span class="kw">impl </span>ValueParserFactory <span class="kw">for </span>u64 {
-    <span class="kw">type </span>Parser = RangedU64ValueParser&lt;u64&gt;;
+<span class="kw">impl</span>&lt;T&gt; ValueParserFactory <span class="kw">for </span>std::num::Wrapping&lt;T&gt;
+<span class="kw">where
+    </span>T: ValueParserFactory,
+    &lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser: TypedValueParser&lt;Value = T&gt;,
+    T: Send + Sync + Clone,
+{
+    <span class="kw">type </span>Parser = MapValueParser&lt;&lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser, <span class="kw">fn</span>(T) -&gt; std::num::Wrapping&lt;T&gt;&gt;;
     <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
-        RangedU64ValueParser::new()
+        T::value_parser().map(std::num::Wrapping)
+    }
+}
+<span class="kw">impl</span>&lt;T&gt; ValueParserFactory <span class="kw">for </span>Box&lt;T&gt;
+<span class="kw">where
+    </span>T: ValueParserFactory,
+    &lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser: TypedValueParser&lt;Value = T&gt;,
+    T: Send + Sync + Clone,
+{
+    <span class="kw">type </span>Parser = MapValueParser&lt;&lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser, <span class="kw">fn</span>(T) -&gt; Box&lt;T&gt;&gt;;
+    <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
+        T::value_parser().map(Box::new)
+    }
+}
+<span class="kw">impl</span>&lt;T&gt; ValueParserFactory <span class="kw">for </span>std::sync::Arc&lt;T&gt;
+<span class="kw">where
+    </span>T: ValueParserFactory,
+    &lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser: TypedValueParser&lt;Value = T&gt;,
+    T: Send + Sync + Clone,
+{
+    <span class="kw">type </span>Parser = MapValueParser&lt;&lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser, <span class="kw">fn</span>(T) -&gt; std::sync::Arc&lt;T&gt;&gt;;
+    <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
+        T::value_parser().map(std::sync::Arc::new)
     }
 }
 
