@@ -27,7 +27,7 @@ pub enum MutationStatus {
 #[derive(Debug)]
 pub enum ConflictType {
   Include,
-  Exclude
+  Exclude,
 }
 
 /// Information about a particular mutation.
@@ -123,7 +123,7 @@ where
                 mutated,
                 inputs: input.into_iter().collect::<Vec<_>>(),
                 status: MutationStatus::Definitely,
-                conflicts: ConflictType::Include
+                conflicts: ConflictType::Include,
               })
               .collect::<Vec<_>>();
             (self.f)(location, mutations);
@@ -153,17 +153,15 @@ where
                   mutated: mutated_field,
                   inputs: vec![input_field],
                   status: MutationStatus::Definitely,
-                  conflicts: ConflictType::Exclude
-                }
-              })
-              .chain([
-                Mutation {
-                  mutated: *mutated,
-                  inputs: vec![*place],
-                  status: MutationStatus::Definitely,
                   conflicts: ConflictType::Exclude,
                 }
-              ])
+              })
+              .chain([Mutation {
+                mutated: *mutated,
+                inputs: vec![*place],
+                status: MutationStatus::Definitely,
+                conflicts: ConflictType::Exclude,
+              }])
               .collect::<Vec<_>>();
             (self.f)(location, mutations);
             return;
@@ -180,7 +178,7 @@ where
       mutated: *mutated,
       inputs: collector.0,
       status: MutationStatus::Definitely,
-      conflicts: ConflictType::Include
+      conflicts: ConflictType::Include,
     }]);
   }
 
@@ -218,7 +216,7 @@ where
           mutated: *destination,
           inputs,
           status: MutationStatus::Definitely,
-          conflicts: ConflictType::Include
+          conflicts: ConflictType::Include,
         }];
 
         for arg in arg_places {
@@ -233,7 +231,7 @@ where
               mutated: *arg_mut,
               inputs: arg_inputs.clone(),
               status: MutationStatus::Possibly,
-              conflicts: ConflictType::Include
+              conflicts: ConflictType::Include,
             });
           }
         }
