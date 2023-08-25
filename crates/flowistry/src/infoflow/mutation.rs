@@ -9,7 +9,7 @@ use rustc_target::abi::FieldIdx;
 use rustc_utils::{mir::place::PlaceCollector, AdtDefExt, OperandExt};
 
 use crate::mir::{
-  aliases::Aliases,
+  placeinfo::PlaceInfo,
   utils::{self, AsyncHack},
 };
 
@@ -49,15 +49,15 @@ where
   F: FnMut(Location, Vec<Mutation<'tcx>>),
 {
   f: F,
-  aliases: &'a Aliases<'a, 'tcx>,
+  place_info: &'a PlaceInfo<'a, 'tcx>,
 }
 
 impl<'a, 'tcx, F> ModularMutationVisitor<'a, 'tcx, F>
 where
   F: FnMut(Location, Vec<Mutation<'tcx>>),
 {
-  pub fn new(aliases: &'a Aliases<'a, 'tcx>, f: F) -> Self {
-    ModularMutationVisitor { aliases, f }
+  pub fn new(place_info: &'a PlaceInfo<'a, 'tcx>, f: F) -> Self {
+    ModularMutationVisitor { place_info, f }
   }
 }
 
@@ -72,8 +72,8 @@ where
     location: Location,
   ) {
     debug!("Checking {location:?}: {mutated:?} = {rvalue:?}");
-    let body = self.aliases.body;
-    let tcx = self.aliases.tcx;
+    let body = self.place_info.body;
+    let tcx = self.place_info.tcx;
 
     match rvalue {
       // In the case of _1 = aggregate { field1: op1, field2: op2, ... },
@@ -138,7 +138,7 @@ where
         if let TyKind::Adt(adt_def, substs) = place_ty.kind() {
           if adt_def.is_struct() {
             let fields = adt_def
-              .all_visible_fields(self.aliases.def_id, self.aliases.tcx)
+              .all_visible_fields(self.place_info.def_id, self.place_info.tcx)
               .enumerate()
               .map(|(i, field_def)| {
                 PlaceElem::Field(FieldIdx::from_usize(i), field_def.ty(tcx, substs))
@@ -182,7 +182,7 @@ where
 
   fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
     debug!("Checking {location:?}: {:?}", terminator.kind);
-    let tcx = self.aliases.tcx;
+    let tcx = self.place_info.tcx;
 
     match &terminator.kind {
       TerminatorKind::Call {
@@ -191,8 +191,11 @@ where
         destination,
         ..
       } => {
-        let async_hack =
-          AsyncHack::new(self.aliases.tcx, self.aliases.body, self.aliases.def_id);
+        let async_hack = AsyncHack::new(
+          self.place_info.tcx,
+          self.place_info.body,
+          self.place_info.def_id,
+        );
         let arg_places = utils::arg_places(args)
           .into_iter()
           .map(|(_, place)| place)
@@ -201,7 +204,7 @@ where
         let arg_inputs = arg_places.clone();
 
         let ret_is_unit = destination
-          .ty(self.aliases.body.local_decls(), tcx)
+          .ty(self.place_info.body.local_decls(), tcx)
           .ty
           .is_unit();
         let inputs = if ret_is_unit {
@@ -217,7 +220,7 @@ where
         }];
 
         for arg in arg_places {
-          for arg_mut in self.aliases.reachable_values(arg, Mutability::Mut) {
+          for arg_mut in self.place_info.reachable_values(arg, Mutability::Mut) {
             mutations.push(Mutation {
               mutated: *arg_mut,
               inputs: arg_inputs.clone(),

@@ -23,7 +23,7 @@ use crate::{
     impls::{LocationOrArg, LocationOrArgDomain, LocationOrArgSet},
     IndexMatrix, IndexedDomain,
   },
-  mir::aliases::Aliases,
+  mir::placeinfo::PlaceInfo,
 };
 
 /// Represents the information flows at a given instruction. See [`FlowResults`] for a high-level explanation of this datatype.
@@ -56,7 +56,7 @@ pub struct FlowAnalysis<'a, 'tcx> {
   pub def_id: DefId,
   pub body: &'a Body<'tcx>,
   pub control_dependencies: ControlDependencies<BasicBlock>,
-  pub aliases: Aliases<'a, 'tcx>,
+  pub place_info: PlaceInfo<'a, 'tcx>,
   pub(crate) recurse_cache: RefCell<HashMap<BodyId, FlowResults<'a, 'tcx>>>,
 }
 
@@ -65,7 +65,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
     body: &'a Body<'tcx>,
-    aliases: Aliases<'a, 'tcx>,
+    place_info: PlaceInfo<'a, 'tcx>,
   ) -> Self {
     let recurse_cache = RefCell::new(HashMap::default());
     let control_dependencies = body.control_dependencies();
@@ -74,25 +74,29 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
       tcx,
       def_id,
       body,
-      aliases,
+      place_info,
       control_dependencies,
       recurse_cache,
     }
   }
 
   pub fn location_domain(&self) -> &Rc<LocationOrArgDomain> {
-    self.aliases.location_domain()
+    self.place_info.location_domain()
   }
 
   fn influences(&self, place: Place<'tcx>) -> SmallVec<[Place<'tcx>; 8]> {
-    let conflicts = self.aliases.conflicts(place);
+    let conflicts = self
+      .place_info
+      .aliases(place)
+      .iter()
+      .flat_map(|alias| self.place_info.conflicts(*alias));
     let provenance = place.refs_in_projection().flat_map(|(place_ref, _)| {
       self
-        .aliases
+        .place_info
         .aliases(Place::from_ref(place_ref, self.tcx))
         .iter()
     });
-    conflicts.iter().chain(provenance).copied().collect()
+    conflicts.chain(provenance).copied().collect()
   }
 
   pub fn deps_for(
@@ -102,12 +106,12 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
   ) -> LocationOrArgSet {
     let mut deps = LocationOrArgSet::new(self.location_domain());
     for subplace in self
-      .aliases
+      .place_info
       .reachable_values(place, Mutability::Not)
       .iter()
       .flat_map(|place| self.influences(*place))
     {
-      deps.union(&state.row_set(self.aliases.normalize(subplace)));
+      deps.union(&state.row_set(self.place_info.normalize(subplace)));
     }
     deps
   }
@@ -134,7 +138,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
                     input,
                     target_deps: &mut LocationOrArgSet| {
       for relevant in self.influences(input) {
-        let relevant_deps = state.row_set(self.aliases.normalize(relevant));
+        let relevant_deps = state.row_set(self.place_info.normalize(relevant));
         trace!("    For relevant {relevant:?} for input {input:?} adding deps {relevant_deps:?}");
         target_deps.union(&relevant_deps);
       }
@@ -171,30 +175,36 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     for (mt, deps) in mutations.iter().zip(&mut all_deps) {
       // Clear sub-places of mutated place (if sound to do so)
       if matches!(mt.status, MutationStatus::Definitely)
-        && self.aliases.aliases(mt.mutated).len() == 1
+        && self.place_info.aliases(mt.mutated).len() == 1
       {
-        for sub in self.aliases.children(mt.mutated).iter() {
-          state.clear_row(self.aliases.normalize(*sub));
+        for sub in self.place_info.children(mt.mutated).iter() {
+          state.clear_row(self.place_info.normalize(*sub));
         }
       }
 
       // Add deps of mutated to include provenance of mutated pointers
       add_deps(state, mt.mutated, deps);
 
-      debug!("  Mutated places: {:?}", mt.mutated);
+      let mutable_aliases = self
+        .place_info
+        .aliases(mt.mutated)
+        .iter()
+        .filter(|alias| {
+          // Remove any conflicts that aren't actually mutable, e.g. if x : &T ends up
+          // as an alias of y: &mut T. See test function_lifetime_alias_mut for an example.
+          let has_immut = alias.iter_projections().any(|(sub_place, _)| {
+            let ty = sub_place.ty(body.local_decls(), self.tcx).ty;
+            matches!(ty.ref_mutability(), Some(Mutability::Not))
+          });
+          !has_immut || ignore_mut
+        })
+        .collect::<SmallVec<[_; 8]>>();
+
+      debug!("  Mutated places: {mutable_aliases:?}");
       debug!("    with deps {deps:?}");
 
-      let mutable_aliases = self.aliases.aliases(mt.mutated).iter().filter(|alias| {
-        // Remove any conflicts that aren't actually mutable, e.g. if x : &T ends up
-        // as an alias of y: &mut T. See test function_lifetime_alias_mut for an example.
-        let has_immut = alias.iter_projections().any(|(sub_place, _)| {
-          let ty = sub_place.ty(body.local_decls(), self.tcx).ty;
-          matches!(ty.ref_mutability(), Some(Mutability::Not))
-        });
-        !has_immut || ignore_mut
-      });
       for alias in mutable_aliases {
-        state.union_into_row(self.aliases.normalize(*alias), deps);
+        state.union_into_row(self.place_info.normalize(*alias), deps);
       }
     }
   }
@@ -210,13 +220,13 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
   }
 
   fn initialize_start_block(&self, _body: &Body<'tcx>, state: &mut Self::Domain) {
-    for (arg, loc) in self.aliases.all_args() {
-      for place in self.aliases.conflicts(arg) {
+    for (arg, loc) in self.place_info.all_args() {
+      for place in self.place_info.conflicts(arg) {
         debug!(
           "arg={arg:?} / place={place:?} / loc={:?}",
           self.location_domain().value(loc)
         );
-        state.insert(self.aliases.normalize(*place), loc);
+        state.insert(self.place_info.normalize(*place), loc);
       }
     }
   }
@@ -229,7 +239,7 @@ impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
     statement: &Statement<'tcx>,
     location: Location,
   ) {
-    ModularMutationVisitor::new(&self.aliases, |_, mutations| {
+    ModularMutationVisitor::new(&self.place_info, |_, mutations| {
       self.transfer_function(state, mutations, location)
     })
     .visit_statement(statement, location);
@@ -248,7 +258,7 @@ impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
       return;
     }
 
-    ModularMutationVisitor::new(&self.aliases, |_, mutations| {
+    ModularMutationVisitor::new(&self.place_info, |_, mutations| {
       self.transfer_function(state, mutations, location)
     })
     .visit_terminator(terminator, location);
