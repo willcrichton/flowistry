@@ -10,7 +10,7 @@ use super::{analysis::FlowAnalysis, BODY_STACK};
 use crate::{
   extensions::REACHED_LIBRARY,
   infoflow::{
-    mutation::{ConflictType, Mutation, MutationStatus},
+    mutation::{Mutation, MutationStatus},
     FlowDomain,
   },
   mir::utils,
@@ -228,7 +228,6 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
         } else {
           MutationStatus::Possibly
         },
-        conflicts: ConflictType::Exclude
       })
     }).collect::<Vec<_>>();
 
