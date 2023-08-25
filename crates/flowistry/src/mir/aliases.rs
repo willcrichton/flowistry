@@ -539,7 +539,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
   /// and can be used at the provided level of [`Mutability`].
   ///
   /// For example, if `x = 0` and `y = (0, &x)`, then `reachable_values(y, Mutability::Not)`
-  /// is `{y, y.0, y.1, x}`. With `Mutability::Mut`, then the output is `{y, y.0, y.1}` (no `x`).
+  /// is `{y, x}`. With `Mutability::Mut`, then the output is `{y}` (no `x`).
   pub fn reachable_values(
     &self,
     place: Place<'tcx>,
@@ -551,7 +551,6 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
       loans
         .into_iter()
         .chain([place])
-        .flat_map(|place| self.aliases(place).iter().copied())
         .filter(|place| {
           if let Some((place, _)) = place.refs_in_projection().last() {
             let ty = place.ty(self.body.local_decls(), self.tcx).ty;

@@ -3,7 +3,7 @@
 use log::debug;
 use rustc_middle::{
   mir::{visit::Visitor, *},
-  ty::TyKind,
+  ty::{AdtKind, TyKind},
 };
 use rustc_target::abi::FieldIdx;
 use rustc_utils::{mir::place::PlaceCollector, AdtDefExt, OperandExt};
@@ -24,12 +24,6 @@ pub enum MutationStatus {
   Possibly,
 }
 
-#[derive(Debug)]
-pub enum ConflictType {
-  Include,
-  Exclude,
-}
-
 /// Information about a particular mutation.
 #[derive(Debug)]
 pub struct Mutation<'tcx> {
@@ -41,8 +35,6 @@ pub struct Mutation<'tcx> {
 
   /// The certainty of whether the mutation is happening.
   pub status: MutationStatus,
-
-  pub conflicts: ConflictType,
 }
 
 /// MIR visitor that invokes a callback for every [`Mutation`] in the visited object.
@@ -88,24 +80,31 @@ where
       // then destructure this into a series of mutations like
       // _1.field1 = op1, _1.field2 = op2, and so on.
       Rvalue::Aggregate(agg_kind, ops) => {
-        let tys = match &**agg_kind {
+        let info = match &**agg_kind {
           AggregateKind::Adt(def_id, idx, substs, _, _) => {
             let adt_def = tcx.adt_def(*def_id);
             let variant = adt_def.variant(*idx);
+            let mutated = match adt_def.adt_kind() {
+              AdtKind::Enum => mutated.project_deeper(
+                &[ProjectionElem::Downcast(Some(variant.name), *idx)],
+                tcx,
+              ),
+              AdtKind::Struct | AdtKind::Union => *mutated,
+            };
             let fields = variant.fields.iter();
             let tys = fields
               .map(|field| field.ty(tcx, substs))
               .collect::<Vec<_>>();
-            Some(tys)
+            Some((mutated, tys))
           }
           AggregateKind::Tuple => {
             let ty = rvalue.ty(body.local_decls(), tcx);
-            Some(ty.tuple_fields().to_vec())
+            Some((*mutated, ty.tuple_fields().to_vec()))
           }
           _ => None,
         };
 
-        if let Some(tys) = tys {
+        if let Some((mutated, tys)) = info {
           if tys.len() > 0 {
             let fields =
               tys
@@ -123,7 +122,6 @@ where
                 mutated,
                 inputs: input.into_iter().collect::<Vec<_>>(),
                 status: MutationStatus::Definitely,
-                conflicts: ConflictType::Include,
               })
               .collect::<Vec<_>>();
             (self.f)(location, mutations);
@@ -145,7 +143,7 @@ where
               .map(|(i, field_def)| {
                 PlaceElem::Field(FieldIdx::from_usize(i), field_def.ty(tcx, substs))
               });
-            let mutations = fields
+            let mut mutations = fields
               .map(|field| {
                 let mutated_field = mutated.project_deeper(&[field], tcx);
                 let input_field = place.project_deeper(&[field], tcx);
@@ -153,16 +151,17 @@ where
                   mutated: mutated_field,
                   inputs: vec![input_field],
                   status: MutationStatus::Definitely,
-                  conflicts: ConflictType::Exclude,
                 }
               })
-              .chain([Mutation {
+              .collect::<Vec<_>>();
+
+            if mutations.is_empty() {
+              mutations.push(Mutation {
                 mutated: *mutated,
                 inputs: vec![*place],
                 status: MutationStatus::Definitely,
-                conflicts: ConflictType::Exclude,
-              }])
-              .collect::<Vec<_>>();
+              });
+            }
             (self.f)(location, mutations);
             return;
           }
@@ -178,7 +177,6 @@ where
       mutated: *mutated,
       inputs: collector.0,
       status: MutationStatus::Definitely,
-      conflicts: ConflictType::Include,
     }]);
   }
 
@@ -216,22 +214,14 @@ where
           mutated: *destination,
           inputs,
           status: MutationStatus::Definitely,
-          conflicts: ConflictType::Include,
         }];
 
         for arg in arg_places {
           for arg_mut in self.aliases.reachable_values(arg, Mutability::Mut) {
-            // The argument itself can never be modified in a caller-visible way,
-            // because it's either getting moved or copied.
-            if arg == *arg_mut {
-              continue;
-            }
-
             mutations.push(Mutation {
               mutated: *arg_mut,
               inputs: arg_inputs.clone(),
               status: MutationStatus::Possibly,
-              conflicts: ConflictType::Include,
             });
           }
         }

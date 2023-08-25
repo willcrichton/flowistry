@@ -191,17 +191,13 @@ pub fn compute_dependencies<'tcx>(
   let backward = || {
     for (targets, outputs) in iter::zip(&all_targets, &mut *outputs.borrow_mut()) {
       for (place, location) in targets {
-        for value in results
-          .analysis
-          .aliases
-          .reachable_values(*place, Mutability::Not)
-        {
-          match location {
-            LocationOrArg::Arg(..) => outputs.insert(location),
-            LocationOrArg::Location(location) => {
-              let deps = deps(results.state_at(*location), aliases, *value);
-              outputs.union(&deps);
-            }
+        match location {
+          LocationOrArg::Arg(..) => outputs.insert(location),
+          LocationOrArg::Location(location) => {
+            let deps = results
+              .analysis
+              .deps_for(results.state_at(*location), *place);
+            outputs.union(&deps);
           }
         }
       }

@@ -108,9 +108,9 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<IssueFound> {
 
   let mut errors = Vec::new();
   for secure in secure_places.iter() {
-    let secure_deps = final_state.row_set(*secure);
+    let secure_deps = results.analysis.deps_for(&final_state, *secure);
     for insecure in insecure_places.iter() {
-      let insecure_deps = final_state.row_set(*insecure);
+      let insecure_deps = results.analysis.deps_for(&final_state, *insecure);
       if insecure_deps.is_superset(&secure_deps) {
         errors.push((secure, insecure));
       }
