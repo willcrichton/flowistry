@@ -1,6 +1,6 @@
 //! Alias analysis to determine the points-to set of a reference.
 
-use std::{hash::Hash, ops::ControlFlow, rc::Rc, time::Instant};
+use std::{hash::Hash, time::Instant};
 
 use log::{debug, info};
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
@@ -15,32 +15,15 @@ use rustc_index::{
   vec::IndexVec,
 };
 use rustc_middle::{
-  mir::{
-    visit::{PlaceContext, Visitor},
-    *,
-  },
-  ty::{
-    Region, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeAndMut, TypeSuperVisitable,
-    TypeVisitor,
-  },
+  mir::{visit::Visitor, *},
+  ty::{Region, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeAndMut},
 };
-use rustc_target::abi::FieldIdx;
-use rustc_utils::{
-  block_timer,
-  cache::{Cache, CopyCache},
-  timer::elapsed,
-  MutabilityExt, PlaceExt,
-};
+use rustc_utils::{mir::place::UNKNOWN_REGION, timer::elapsed, PlaceExt};
 
 use crate::{
-  extensions::{is_extension_active, MutabilityMode, PointerMode},
-  indexed::{
-    impls::{
-      build_location_arg_domain, LocationOrArgDomain, LocationOrArgIndex, PlaceSet,
-    },
-    ToIndex,
-  },
-  mir::utils::{self, AsyncHack},
+  extensions::{is_extension_active, PointerMode},
+  indexed::impls::PlaceSet,
+  mir::utils::AsyncHack,
 };
 
 #[derive(Default)]
@@ -67,100 +50,14 @@ impl<'tcx> Visitor<'tcx> for GatherBorrows<'tcx> {
   }
 }
 
-struct FindPlaces<'a, 'tcx> {
-  tcx: TyCtxt<'tcx>,
-  body: &'a Body<'tcx>,
-  def_id: DefId,
-  places: Vec<Place<'tcx>>,
-}
-
-impl<'tcx> Visitor<'tcx> for FindPlaces<'_, 'tcx> {
-  // this is needed for eval? not sure why locals wouldn't show up in the body as places,
-  // maybe optimized out or something
-  fn visit_local_decl(&mut self, local: Local, _local_decl: &LocalDecl<'tcx>) {
-    self.places.push(Place::from_local(local, self.tcx));
-  }
-
-  fn visit_place(
-    &mut self,
-    place: &Place<'tcx>,
-    _context: PlaceContext,
-    _location: Location,
-  ) {
-    self.places.push(*place);
-  }
-
-  fn visit_assign(
-    &mut self,
-    place: &Place<'tcx>,
-    rvalue: &Rvalue<'tcx>,
-    location: Location,
-  ) {
-    self.super_assign(place, rvalue, location);
-
-    let is_borrow = matches!(rvalue, Rvalue::Ref(..));
-    if is_borrow {
-      self.places.push(self.tcx.mk_place_deref(*place));
-    }
-
-    // See PlaceCollector for where this matters
-    if let Rvalue::Aggregate(box AggregateKind::Adt(def_id, idx, substs, _, _), _) =
-      rvalue
-    {
-      let adt_def = self.tcx.adt_def(*def_id);
-      let variant = adt_def.variant(*idx);
-      let places = variant.fields.iter().enumerate().map(|(i, field)| {
-        let mut projection = place.projection.to_vec();
-        projection.push(ProjectionElem::Field(
-          FieldIdx::from_usize(i),
-          field.ty(self.tcx, substs),
-        ));
-        Place::make(place.local, &projection, self.tcx)
-      });
-      self.places.extend(places);
-    }
-  }
-
-  fn visit_terminator(&mut self, terminator: &Terminator<'tcx>, location: Location) {
-    self.super_terminator(terminator, location);
-
-    match &terminator.kind {
-      TerminatorKind::Call { args, .. } => {
-        let arg_places = utils::arg_places(args);
-        let arg_mut_ptrs =
-          utils::arg_mut_ptrs(&arg_places, self.tcx, self.body, self.def_id);
-        self
-          .places
-          .extend(arg_mut_ptrs.into_iter().map(|(_, place)| place));
-      }
-
-      _ => {}
-    }
-  }
-}
-
 type LoanSet<'tcx> = HashSet<(Place<'tcx>, Mutability)>;
 type LoanMap<'tcx> = HashMap<RegionVid, LoanSet<'tcx>>;
 
-/// Used to describe aliases of owned and raw pointers.
-pub const UNKNOWN_REGION: RegionVid = RegionVid::MAX;
-
 /// Data structure for computing and storing aliases.
 pub struct Aliases<'a, 'tcx> {
-  // Compiler data
-  pub tcx: TyCtxt<'tcx>,
-  pub body: &'a Body<'tcx>,
-  pub def_id: DefId,
-  location_domain: Rc<LocationOrArgDomain>,
-
-  // Core computed data structure
-  loans: LoanMap<'tcx>,
-
-  // Caching for derived analysis
-  normalized_cache: CopyCache<Place<'tcx>, Place<'tcx>>,
-  aliases_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
-  conflicts_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
-  reachable_cache: Cache<(Place<'tcx>, Mutability), PlaceSet<'tcx>>,
+  tcx: TyCtxt<'tcx>,
+  body: &'a Body<'tcx>,
+  pub(super) loans: LoanMap<'tcx>,
 }
 
 rustc_index::newtype_index! {
@@ -169,6 +66,19 @@ rustc_index::newtype_index! {
 }
 
 impl<'a, 'tcx> Aliases<'a, 'tcx> {
+  pub fn build(
+    tcx: TyCtxt<'tcx>,
+    def_id: DefId,
+    body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
+  ) -> Self {
+    let loans = Self::compute_loans(tcx, def_id, body_with_facts);
+    Aliases {
+      tcx,
+      body: &body_with_facts.body,
+      loans,
+    }
+  }
+
   fn compute_loans(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
@@ -407,190 +317,55 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     contains
   }
 
-  pub fn build(
-    tcx: TyCtxt<'tcx>,
-    def_id: DefId,
-    body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
-  ) -> Self {
-    block_timer!("aliases");
-    let body = &body_with_facts.body;
-    let location_domain = build_location_arg_domain(body);
+  pub fn aliases(&self, place: Place<'tcx>) -> PlaceSet<'tcx> {
+    let mut aliases = HashSet::default();
+    aliases.insert(place);
 
-    let loans = Self::compute_loans(tcx, def_id, body_with_facts);
-    debug!("Loans: {loans:?}");
-
-    Aliases {
-      loans,
-      tcx,
-      body,
-      def_id,
-      location_domain,
-      aliases_cache: Cache::default(),
-      normalized_cache: CopyCache::default(),
-      conflicts_cache: Cache::default(),
-      reachable_cache: Cache::default(),
+    // Places with no derefs, or derefs from arguments, have no aliases
+    if place.is_direct(self.body) {
+      return aliases;
     }
-  }
 
-  /// Normalizes a place via [`PlaceExt::normalize`] (cached).
-  pub fn normalize(&self, place: Place<'tcx>) -> Place<'tcx> {
-    self
-      .normalized_cache
-      .get(place, |place| place.normalize(self.tcx, self.def_id))
-  }
+    // place = after[*ptr]
+    let (ptr, after) = place.refs_in_projection().last().unwrap();
 
-  /// Computes the aliases of a place (cached).
-  ///
-  /// Note that an alias is NOT guaranteed to be of the same type as `place`!
-  pub fn aliases(&self, place: Place<'tcx>) -> &PlaceSet<'tcx> {
-    // note: important that aliases are computed on the unnormalized place
-    // which contains region information
-    self.aliases_cache.get(self.normalize(place), move |_| {
-      let mut aliases = HashSet::default();
-      aliases.insert(place);
-
-      // Places with no derefs, or derefs from arguments, have no aliases
-      if place.is_direct(self.body) {
+    // ptr : &'region orig_ty
+    let ptr_ty = ptr.ty(self.body.local_decls(), self.tcx).ty;
+    let (region, orig_ty) = match ptr_ty.kind() {
+      _ if ptr_ty.is_box() => (UNKNOWN_REGION, ptr_ty.boxed_ty()),
+      TyKind::RawPtr(TypeAndMut { ty, .. }) => (UNKNOWN_REGION, *ty),
+      TyKind::Ref(Region(Interned(RegionKind::ReVar(region), _)), ty, _) => {
+        (*region, *ty)
+      }
+      _ => {
         return aliases;
       }
-
-      // place = after[*ptr]
-      let (ptr, after) = place.refs_in_projection().last().unwrap();
-
-      // ptr : &'region orig_ty
-      let ptr_ty = ptr.ty(self.body.local_decls(), self.tcx).ty;
-      let (region, orig_ty) = match ptr_ty.kind() {
-        _ if ptr_ty.is_box() => (UNKNOWN_REGION, ptr_ty.boxed_ty()),
-        TyKind::RawPtr(TypeAndMut { ty, .. }) => (UNKNOWN_REGION, *ty),
-        TyKind::Ref(Region(Interned(RegionKind::ReVar(region), _)), ty, _) => {
-          (*region, *ty)
-        }
-        _ => {
-          return aliases;
-        }
-      };
-
-      // For each p ∈ loans('region),
-      //   if p : orig_ty then add: after[p]
-      //   else add: p
-      let region_loans = self
-        .loans
-        .get(&region)
-        .map(|loans| loans.iter())
-        .into_iter()
-        .flatten();
-      let region_aliases = region_loans.map(|(loan, _)| {
-        let loan_ty = loan.ty(self.body.local_decls(), self.tcx).ty;
-        if orig_ty == loan_ty {
-          let mut projection = loan.projection.to_vec();
-          projection.extend(after.iter().copied());
-          Place::make(loan.local, &projection, self.tcx)
-        } else {
-          *loan
-        }
-      });
-
-      aliases.extend(region_aliases);
-      log::trace!("Aliases for place {place:?} are {aliases:?}");
-
-      aliases
-    })
-  }
-
-  /// Returns all reachable fields of `place` without going through references.
-  pub fn children(&self, place: Place<'tcx>) -> PlaceSet<'tcx> {
-    PlaceSet::from_iter(place.interior_places(self.tcx, self.body, self.def_id))
-  }
-
-  /// Returns all places that conflict with `place`, i.e. that a mutation to `place`
-  /// would also be a mutation to the conflicting place.
-  pub fn conflicts(&self, place: Place<'tcx>) -> &PlaceSet<'tcx> {
-    self.conflicts_cache.get(place, |place| {
-      self
-        .aliases(place)
-        .iter()
-        .flat_map(|alias| {
-          let children = self.children(*alias);
-          let parents = alias
-            .iter_projections()
-            .take_while(|(_, elem)| !matches!(elem, PlaceElem::Deref))
-            .map(|(place_ref, _)| Place::from_ref(place_ref, self.tcx));
-          children.into_iter().chain(parents)
-        })
-        .collect()
-    })
-  }
-
-  fn collect_loans(&self, ty: Ty<'tcx>, mutability: Mutability) -> PlaceSet<'tcx> {
-    let mut collector = LoanCollector {
-      aliases: self,
-      unknown_region: self
-        .tcx
-        .mk_region_from_kind(RegionKind::ReVar(UNKNOWN_REGION)),
-      target_mutability: mutability,
-      stack: vec![],
-      loans: PlaceSet::default(),
     };
-    collector.visit_ty(ty);
-    collector.loans
-  }
 
-  /// Returns all [direct](PlaceExt::is_direct) places that are reachable from `place`
-  /// and can be used at the provided level of [`Mutability`].
-  ///
-  /// For example, if `x = 0` and `y = (0, &x)`, then `reachable_values(y, Mutability::Not)`
-  /// is `{y, y.0, y.1, x}`. With `Mutability::Mut`, then the output is `{y, y.0, y.1}` (no `x`).
-  pub fn reachable_values(
-    &self,
-    place: Place<'tcx>,
-    mutability: Mutability,
-  ) -> &PlaceSet<'tcx> {
-    self.reachable_cache.get((place, mutability), |_| {
-      let ty = place.ty(self.body.local_decls(), self.tcx).ty;
-      let loans = self.collect_loans(ty, mutability);
-      loans
-        .into_iter()
-        .chain([place])
-        .flat_map(|place| self.aliases(place).iter().copied())
-        .filter(|place| {
-          if let Some((place, _)) = place.refs_in_projection().last() {
-            let ty = place.ty(self.body.local_decls(), self.tcx).ty;
-            if ty.is_box() || ty.is_unsafe_ptr() {
-              return true;
-            }
-          }
-          place.is_direct(self.body)
-        })
-        .collect()
-    })
-  }
+    // For each p ∈ loans('region),
+    //   if p : orig_ty then add: after[p]
+    //   else add: p
+    let region_loans = self
+      .loans
+      .get(&region)
+      .map(|loans| loans.iter())
+      .into_iter()
+      .flatten();
+    let region_aliases = region_loans.map(|(loan, _)| {
+      let loan_ty = loan.ty(self.body.local_decls(), self.tcx).ty;
+      if orig_ty == loan_ty {
+        let mut projection = loan.projection.to_vec();
+        projection.extend(after.iter().copied());
+        Place::make(loan.local, &projection, self.tcx)
+      } else {
+        *loan
+      }
+    });
 
-  /// Returns all [direct](PlaceExt::is_direct) places reachable from arguments
-  /// to the current body.
-  pub fn all_args(
-    &'a self,
-  ) -> impl Iterator<Item = (Place<'tcx>, LocationOrArgIndex)> + 'a {
-    self.body.args_iter().flat_map(|local| {
-      let location = local.to_index(&self.location_domain);
-      let place = Place::from_local(local, self.tcx);
-      let ptrs = place
-        .interior_pointers(self.tcx, self.body, self.def_id)
-        .into_values()
-        .flat_map(|ptrs| {
-          ptrs
-            .into_iter()
-            .filter(|(ptr, _)| ptr.projection.len() <= 2)
-            .map(|(ptr, _)| self.tcx.mk_place_deref(ptr))
-        });
-      ptrs
-        .chain([place])
-        .flat_map(|place| place.interior_places(self.tcx, self.body, self.def_id))
-        .map(move |place| (place, location))
-    })
-  }
+    aliases.extend(region_aliases);
+    log::trace!("Aliases for place {place:?} are {aliases:?}");
 
-  pub fn location_domain(&self) -> &Rc<LocationOrArgDomain> {
-    &self.location_domain
+    aliases
   }
 }
 
@@ -627,100 +402,88 @@ fn generate_conservative_constraints<'tcx>(
     .collect::<Vec<_>>()
 }
 
-// TODO: this visitor shares some structure with the PlaceCollector in mir utils.
-// Can we consolidate these?
-struct LoanCollector<'a, 'tcx> {
-  aliases: &'a Aliases<'a, 'tcx>,
-  unknown_region: Region<'tcx>,
-  target_mutability: Mutability,
-  stack: Vec<Mutability>,
-  loans: PlaceSet<'tcx>,
-}
-
-impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for LoanCollector<'_, 'tcx> {
-  type BreakTy = ();
-
-  fn visit_ty(&mut self, ty: Ty<'tcx>) -> ControlFlow<Self::BreakTy> {
-    match ty.kind() {
-      TyKind::Ref(_, _, mutability) => {
-        self.stack.push(*mutability);
-        ty.super_visit_with(self);
-        self.stack.pop();
-        return ControlFlow::Break(());
-      }
-      _ if ty.is_box() || ty.is_unsafe_ptr() => {
-        self.visit_region(self.unknown_region);
-      }
-      _ => {}
-    };
-
-    ty.super_visit_with(self);
-    ControlFlow::Continue(())
-  }
-
-  fn visit_region(&mut self, region: Region<'tcx>) -> ControlFlow<Self::BreakTy> {
-    let region = match region.kind() {
-      RegionKind::ReVar(region) => region,
-      RegionKind::ReStatic => RegionVid::from_usize(0),
-      // TODO: do we need to handle bound regions?
-      // e.g. shows up with closures, for<'a> ...
-      RegionKind::ReErased | RegionKind::ReLateBound(_, _) => {
-        return ControlFlow::Continue(());
-      }
-      _ => unreachable!("{region:?}"),
-    };
-    if let Some(loans) = self.aliases.loans.get(&region) {
-      let under_immut_ref = self.stack.iter().any(|m| *m == Mutability::Not);
-      let ignore_mut =
-        is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
-      self
-        .loans
-        .extend(loans.iter().filter_map(|(place, mutability)| {
-          if ignore_mut {
-            return Some(place);
-          }
-          let loan_mutability = if under_immut_ref {
-            Mutability::Not
-          } else {
-            *mutability
-          };
-          self
-            .target_mutability
-            .is_permissive_as(loan_mutability)
-            .then_some(place)
-        }))
-    }
-
-    ControlFlow::Continue(())
-  }
-}
-
 #[cfg(test)]
 mod test {
-  use rustc_utils::{BodyExt, PlaceExt};
+  use rustc_utils::{
+    hashset,
+    test_utils::{compare_sets, Placer},
+  };
 
   use super::*;
   use crate::test_utils;
 
-  #[test]
-  fn test_sccs() {
-    let input = r#"
-    fn main() {
-      let mut x = 1;
-      let y = &mut x;
-      *y;
-    }
-    "#;
+  fn alias_harness(
+    input: &str,
+    f: impl for<'tcx> FnOnce(TyCtxt<'tcx>, &Body<'tcx>, Aliases<'_, 'tcx>) + Send,
+  ) {
     test_utils::compile_body(input, |tcx, body_id, body_with_facts| {
       let body = &body_with_facts.body;
       let def_id = tcx.hir().body_owner_def_id(body_id);
       let aliases = Aliases::build(tcx, def_id.to_def_id(), body_with_facts);
-      let name_map = body.debug_info_name_map();
 
-      let x = Place::from_local(name_map["x"], tcx);
-      let y = Place::from_local(name_map["y"], tcx);
-      let y_deref = tcx.mk_place_deref(y);
-      assert!(aliases.aliases(y_deref).contains(&x));
-    })
+      f(tcx, body, aliases)
+    });
+  }
+
+  #[test]
+  fn test_aliases_basic() {
+    let input = r#"
+    fn main() {
+      fn foo<'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32 { x }
+
+      let a = 1;
+      let b = 2;
+      let c = &a;
+      let d = &b;
+      let e = foo(c, d);      
+    }
+    "#;
+    alias_harness(input, |tcx, body, aliases| {
+      let p = Placer::new(tcx, body);
+      let d_deref = p.local("d").deref().mk();
+      let e_deref = p.local("e").deref().mk();
+
+      // `*e` aliases only `a` (not `b`) because of the lifetime constraints on `foo`
+      compare_sets(
+        aliases.aliases(e_deref),
+        hashset! { p.local("a").mk(), e_deref },
+      );
+
+      // `*e` aliases only `b` because nothing might relate it to `a`
+      compare_sets(
+        aliases.aliases(d_deref),
+        hashset! { p.local("b").mk(), d_deref },
+      );
+    });
+  }
+
+  #[test]
+  fn test_aliases_projection() {
+    let input = r#"
+fn main() {
+  let a = vec![0];
+  let b = a.get(0).unwrap();
+
+  let c = (0, 0);
+  let d = &c.1;
+}
+    "#;
+    alias_harness(input, |tcx, body, aliases| {
+      let p = Placer::new(tcx, body);
+      let b_deref = p.local("b").deref().mk();
+      let d_deref = p.local("d").deref().mk();
+
+      // `*b` only aliases `a` because we don't have a projection for `a`
+      compare_sets(
+        aliases.aliases(b_deref),
+        hashset! { p.local("a").mk(), b_deref },
+      );
+
+      // `*d` aliases `c.1` because we know the projection from the source
+      compare_sets(
+        aliases.aliases(d_deref),
+        hashset! { p.local("c").field(1).mk(), d_deref },
+      );
+    });
   }
 }
