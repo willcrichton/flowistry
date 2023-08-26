@@ -93,6 +93,8 @@ pub fn focus(tcx: TyCtxt, body_id: BodyId) -> Result<FocusOutput> {
           .collect::<Vec<_>>()
       };
 
+      log::debug!("{:#?}", to_ranges(slice.clone()));
+
       Some(PlaceInfo {
         range: CharRange::from_span(mir_span.span(), source_map).ok()?,
         ranges: to_ranges(vec![mir_span.span()]),
