@@ -234,7 +234,7 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
 
 impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
   fn apply_statement_effect(
-    &self,
+    &mut self,
     state: &mut Self::Domain,
     statement: &Statement<'tcx>,
     location: Location,
@@ -245,30 +245,32 @@ impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
     .visit_statement(statement, location);
   }
 
-  fn apply_terminator_effect(
-    &self,
+  fn apply_terminator_effect<'mir>(
+    &mut self,
     state: &mut Self::Domain,
-    terminator: &Terminator<'tcx>,
+    terminator: &'mir Terminator<'tcx>,
     location: Location,
-  ) {
+  ) -> TerminatorEdges<'mir, 'tcx> {
     if matches!(terminator.kind, TerminatorKind::Call { .. })
       && is_extension_active(|mode| mode.context_mode == ContextMode::Recurse)
       && self.recurse_into_call(state, &terminator.kind, location)
     {
-      return;
+      return terminator.edges();
     }
 
     ModularMutationVisitor::new(&self.place_info, |_, mutations| {
       self.transfer_function(state, mutations, location)
     })
     .visit_terminator(terminator, location);
+
+    terminator.edges()
   }
 
   fn apply_call_return_effect(
-    &self,
+    &mut self,
     _state: &mut Self::Domain,
     _block: BasicBlock,
-    _return_places: rustc_mir_dataflow::CallReturnPlaces<'_, 'tcx>,
+    _return_places: CallReturnPlaces<'_, 'tcx>,
   ) {
   }
 }

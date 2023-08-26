@@ -78,8 +78,8 @@ The documentation is published here: https://willcrichton.net/flowistry/flowistr
 
 ## Usage
 
-Note that the latest Flowistry has a [**Maximum** Supported Rust Version](https://github.com/cognitive-engineering-lab/rustc_plugin/tree/main#maximum-supported-rust-version) of **Rust 1.69**. 
-Flowistry is not guaranteed to work with features implemented after 1.69.
+Note that the latest Flowistry has a [**Maximum** Supported Rust Version](https://github.com/cognitive-engineering-lab/rustc_plugin/tree/main#maximum-supported-rust-version) of **Rust 1.73**. 
+Flowistry is not guaranteed to work with features implemented after 1.73.
 
 ### Startup
 
@@ -182,7 +182,7 @@ If rustup fails, especially with an error like "could not rename downloaded file
 To solve the issue, go to the command line and run:
 
 ```
-rustup toolchain install nightly-2023-04-12 -c rust-src -c rustc-dev -c llvm-tools-preview
+rustup toolchain install nightly-2023-08-25 -c rust-src -c rustc-dev -c llvm-tools-preview
 ```
 
 Then go back to VSCode and click "Continue" to let Flowistry continue installing.

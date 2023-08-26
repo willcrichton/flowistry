@@ -29,11 +29,12 @@ class FocusBodyState {
   focus: Focus;
   places: RangeTree<PlaceInfo>;
 
-  constructor(focus: Focus) {
+  constructor(focus: Focus, doc: vscode.TextDocument) {
     this.mark = null;
     this.focus = focus;
     this.places = new RangeTree(
-      focus.place_info.map((info) => ({ range: info.range, value: info }))
+      focus.place_info.map((info) => ({ range: info.range, value: info })),
+      doc
     );
   }
 
@@ -44,15 +45,17 @@ class FocusBodyState {
     let cmd = [
       "focus",
       doc.fileName,
-      doc.offsetAt(selection.anchor).toString(),
+      selection.anchor.line.toString(),
+      selection.anchor.character.toString(),
     ];
     let focus_res = await globals.call_flowistry<Focus>(cmd);
+    console.log(focus_res);
 
     if (!is_ok(focus_res)) {
       return focus_res;
     }
 
-    return ok(new FocusBodyState(focus_res.value));
+    return ok(new FocusBodyState(focus_res.value, doc));
   };
 
   private find_slice_at_selection = (
@@ -60,7 +63,6 @@ class FocusBodyState {
     doc: vscode.TextDocument
   ): { seeds: Range[]; slice: Range[]; direct_influence: Range[] } => {
     let query = this.places.selection_to_interval(
-      doc,
       this.mark || editor.selection
     );
     let result = this.places.search(query);
@@ -92,7 +94,7 @@ class FocusBodyState {
     if (seeds.length > 0) {
       if (select) {
         editor.selections = slice.map((range) => {
-          let vsc_range = to_vsc_range(range, doc);
+          let vsc_range = to_vsc_range(range);
           return new vscode.Selection(vsc_range.start, vsc_range.end);
         });
       } else {
@@ -131,9 +133,10 @@ class FocusDocumentState {
   // vscode.TextEditor to reduce API complexity. But those references were
   // seemingly invalidated after changing documents, so the editor must be
   // passed in anew each time.
-  constructor(spans: Spans) {
+  constructor(spans: Spans, doc: vscode.TextDocument) {
     this.bodies = new RangeTree(
-      spans.spans.map((range) => ({ range, value: new Cell(null) }))
+      spans.spans.map((range) => ({ range, value: new Cell(null) })),
+      doc
     );
   }
 
@@ -142,11 +145,12 @@ class FocusDocumentState {
   ): Promise<FlowistryResult<FocusDocumentState>> => {
     let cmd = ["spans", editor.document.fileName];
     let spans = await globals.call_flowistry<Spans>(cmd);
+    console.log("spans", spans);
     if (!is_ok(spans)) {
       return spans;
     }
 
-    return ok(new FocusDocumentState(spans.value));
+    return ok(new FocusDocumentState(spans.value, editor.document));
   };
 
   on_change_selection = async (
@@ -171,7 +175,7 @@ class FocusDocumentState {
   ): Promise<FlowistryResult<FocusBodyState> | null> => {
     // Find all bodies that contain the user's selection.
     let result = this.bodies.search(
-      this.bodies.selection_to_interval(editor.document, editor.selection)
+      this.bodies.selection_to_interval(editor.selection)
     );
 
     // If the user hasn't selected a body, then return null
@@ -346,7 +350,10 @@ export class FocusMode {
     }
   };
 
-  private handle_analysis_result = async <T>(result: FlowistryResult<T>, userActivated: boolean = false) => {
+  private handle_analysis_result = async <T>(
+    result: FlowistryResult<T>,
+    userActivated: boolean = false
+  ) => {
     if (!is_ok(result)) {
       if (userActivated) await show_error(result);
       this.set_mode("error");

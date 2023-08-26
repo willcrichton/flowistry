@@ -144,9 +144,7 @@ impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
   fn collect_loans(&self, ty: Ty<'tcx>, mutability: Mutability) -> PlaceSet<'tcx> {
     let mut collector = LoanCollector {
       aliases: &self.aliases,
-      unknown_region: self
-        .tcx
-        .mk_region_from_kind(RegionKind::ReVar(UNKNOWN_REGION)),
+      unknown_region: Region::new_var(self.tcx, UNKNOWN_REGION),
       target_mutability: mutability,
       stack: vec![],
       loans: PlaceSet::default(),

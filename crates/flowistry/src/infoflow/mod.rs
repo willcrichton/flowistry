@@ -6,7 +6,7 @@
 use std::cell::RefCell;
 
 use log::debug;
-use rustc_borrowck::BodyWithBorrowckFacts;
+use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
 use rustc_utils::{block_timer, BodyExt};
