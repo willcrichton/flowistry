@@ -18,6 +18,7 @@ use rustc_hir::BodyId;
 use rustc_interface::interface::Result as RustcResult;
 use rustc_middle::ty::TyCtxt;
 use rustc_plugin::{CrateFilter, RustcPlugin, RustcPluginArgs, Utf8Path};
+use rustc_span::ErrorGuaranteed;
 use rustc_utils::{
   mir::borrowck_facts,
   source_map::{
@@ -218,9 +219,7 @@ fn postprocess<T: Serialize>(result: FlowistryResult<T>) -> RustcResult<()> {
   let result = match result {
     Ok(output) => Ok(output),
     Err(e) => match e {
-      FlowistryError::BuildError => {
-        return Err(rustc_errors::ErrorGuaranteed::unchecked_claim_error_was_emitted());
-      }
+      FlowistryError::BuildError(e) => return Err(e),
       e => Err(e),
     },
   };
@@ -249,7 +248,7 @@ pub fn run_with_callbacks(
   );
 
   let compiler = rustc_driver::RunCompiler::new(&args, callbacks);
-  compiler.run().map_err(|_| FlowistryError::BuildError)
+  compiler.run().map_err(FlowistryError::BuildError)
 }
 
 fn run<A: FlowistryAnalysis, T: ToSpan>(
@@ -281,7 +280,7 @@ fn run<A: FlowistryAnalysis, T: ToSpan>(
 #[derive(Debug, Serialize)]
 #[serde(tag = "type")]
 pub enum FlowistryError {
-  BuildError,
+  BuildError(#[serde(skip_serializing)] ErrorGuaranteed),
   AnalysisError { error: String },
   FileNotFound,
 }
