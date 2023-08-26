@@ -1,7 +1,7 @@
 use log::{debug, info};
 use rustc_middle::{
   mir::*,
-  ty::{subst::GenericArgKind, ClosureKind, TyKind},
+  ty::{ClosureKind, GenericArgKind, TyKind},
 };
 use rustc_mir_dataflow::JoinSemiLattice;
 use rustc_utils::{mir::borrowck_facts::get_body_with_borrowck_facts, PlaceExt};

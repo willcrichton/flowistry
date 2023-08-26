@@ -15,7 +15,7 @@ use std::rc::Rc;
 
 use either::Either;
 use rustc_data_structures::{graph::WithSuccessors, work_queue::WorkQueue};
-use rustc_index::vec::IndexVec;
+use rustc_index::IndexVec;
 use rustc_middle::{
   mir::{traversal, Body, Location},
   ty::TyCtxt,
@@ -39,7 +39,7 @@ pub struct AnalysisResults<'tcx, A: Analysis<'tcx>> {
 impl<'tcx, A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
   pub fn visit_reachable_with<'mir, V>(&self, body: &'mir Body<'tcx>, visitor: &mut V)
   where
-    V: ResultsVisitor<'mir, 'tcx, FlowState = A::Domain>,
+    V: ResultsVisitor<'mir, 'tcx, Self, FlowState = A::Domain>,
   {
     for (block, data) in traversal::reachable(body) {
       for statement_index in 0 ..= data.statements.len() {
@@ -51,17 +51,19 @@ impl<'tcx, A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
         let state = &self.state[loc_index];
 
         if statement_index == 0 {
-          visitor.visit_block_start(state, data, block);
+          visitor.visit_block_start(self, state, data, block);
         }
 
         if statement_index == data.statements.len() {
           visitor.visit_terminator_after_primary_effect(
+            self,
             state,
             data.terminator(),
             location,
           )
         } else {
           visitor.visit_statement_after_primary_effect(
+            self,
             state,
             &data.statements[statement_index],
             location,
@@ -85,7 +87,7 @@ pub fn iterate_to_fixpoint<'tcx, A: Analysis<'tcx>>(
   _tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,
   location_domain: Rc<LocationOrArgDomain>,
-  analysis: A,
+  mut analysis: A,
 ) -> AnalysisResults<'tcx, A> {
   let bottom_value = analysis.bottom_value(body);
 

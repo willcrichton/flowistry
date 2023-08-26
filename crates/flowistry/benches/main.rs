@@ -13,7 +13,7 @@ use criterion::{
 };
 use flowistry::infoflow::Direction;
 use glob::glob;
-use rustc_borrowck::BodyWithBorrowckFacts;
+use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_hir::{BodyId, ItemKind};
 use rustc_middle::{
   mir::{Location, Place},

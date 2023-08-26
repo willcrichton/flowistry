@@ -12,7 +12,7 @@ use rustc_data_structures::{
 use rustc_hir::def_id::DefId;
 use rustc_index::{
   bit_set::{HybridBitSet, SparseBitMatrix},
-  vec::IndexVec,
+  IndexVec,
 };
 use rustc_middle::{
   mir::{visit::Visitor, *},
@@ -87,7 +87,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     let start = Instant::now();
     let body = &body_with_facts.body;
     let static_region = RegionVid::from_usize(0);
-    let subset_base = &body_with_facts.input_facts.subset_base;
+    let subset_base = &body_with_facts.input_facts.as_ref().unwrap().subset_base;
 
     let all_pointers = body
       .local_decls()
