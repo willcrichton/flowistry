@@ -5,7 +5,7 @@ use std::{fs, io, panic, path::Path};
 use anyhow::Result;
 use fluid_let::fluid_set;
 use log::info;
-use rustc_borrowck::BodyWithBorrowckFacts;
+use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
