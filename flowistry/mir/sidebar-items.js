@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["aliases","engine","utils"]};
+window.SIDEBAR_ITEMS = {"mod":["aliases","engine","placeinfo","utils"]};

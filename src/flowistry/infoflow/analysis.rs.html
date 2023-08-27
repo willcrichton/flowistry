@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/infoflow/analysis.rs`."><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="flowistry" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/infoflow/analysis.rs`."><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="flowistry" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -14,7 +14,7 @@
     });
 </script>
 
-</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+</head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -290,15 +290,10 @@
 <a href="#274" id="274">274</a>
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
-<a href="#280" id="280">280</a>
-<a href="#281" id="281">281</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::RefCell, rc::Rc};
 
 <span class="kw">use </span>log::{debug, trace};
-<span class="kw">use </span>rustc_data_structures::fx::{FxHashMap <span class="kw">as </span>HashMap, FxHashSet <span class="kw">as </span>HashSet};
+<span class="kw">use </span>rustc_data_structures::fx::FxHashMap <span class="kw">as </span>HashMap;
 <span class="kw">use </span>rustc_hir::{def_id::DefId, BodyId};
 <span class="kw">use </span>rustc_middle::{
   mir::{visit::Visitor, <span class="kw-2">*</span>},
@@ -308,6 +303,7 @@
 <span class="kw">use </span>rustc_utils::{
   mir::control_dependencies::ControlDependencies, BodyExt, OperandExt, PlaceExt,
 };
+<span class="kw">use </span>smallvec::SmallVec;
 
 <span class="kw">use super</span>::{
   mutation::{ModularMutationVisitor, Mutation, MutationStatus},
@@ -319,8 +315,7 @@
     impls::{LocationOrArg, LocationOrArgDomain, LocationOrArgSet},
     IndexMatrix, IndexedDomain,
   },
-  infoflow::mutation::ConflictType,
-  mir::aliases::Aliases,
+  mir::placeinfo::PlaceInfo,
 };
 
 <span class="doccomment">/// Represents the information flows at a given instruction. See [`FlowResults`] for a high-level explanation of this datatype.
@@ -353,7 +348,7 @@
   <span class="kw">pub </span>def_id: DefId,
   <span class="kw">pub </span>body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
   <span class="kw">pub </span>control_dependencies: ControlDependencies&lt;BasicBlock&gt;,
-  <span class="kw">pub </span>aliases: Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
+  <span class="kw">pub </span>place_info: PlaceInfo&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
   <span class="kw">pub</span>(<span class="kw">crate</span>) recurse_cache: RefCell&lt;HashMap&lt;BodyId, FlowResults&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt;&gt;,
 }
 
@@ -362,7 +357,7 @@
     tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     def_id: DefId,
     body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    aliases: Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
+    place_info: PlaceInfo&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
   ) -&gt; <span class="self">Self </span>{
     <span class="kw">let </span>recurse_cache = RefCell::new(HashMap::default());
     <span class="kw">let </span>control_dependencies = body.control_dependencies();
@@ -371,14 +366,46 @@
       tcx,
       def_id,
       body,
-      aliases,
+      place_info,
       control_dependencies,
       recurse_cache,
     }
   }
 
   <span class="kw">pub fn </span>location_domain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Rc&lt;LocationOrArgDomain&gt; {
-    <span class="self">self</span>.aliases.location_domain()
+    <span class="self">self</span>.place_info.location_domain()
+  }
+
+  <span class="kw">fn </span>influences(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; SmallVec&lt;[Place&lt;<span class="lifetime">&#39;tcx</span>&gt;; <span class="number">8</span>]&gt; {
+    <span class="kw">let </span>conflicts = <span class="self">self
+      </span>.place_info
+      .aliases(place)
+      .iter()
+      .flat_map(|alias| <span class="self">self</span>.place_info.conflicts(<span class="kw-2">*</span>alias));
+    <span class="kw">let </span>provenance = place.refs_in_projection().flat_map(|(place_ref, <span class="kw">_</span>)| {
+      <span class="self">self
+        </span>.place_info
+        .aliases(Place::from_ref(place_ref, <span class="self">self</span>.tcx))
+        .iter()
+    });
+    conflicts.chain(provenance).copied().collect()
+  }
+
+  <span class="kw">pub fn </span>deps_for(
+    <span class="kw-2">&amp;</span><span class="self">self</span>,
+    state: <span class="kw-2">&amp;</span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  ) -&gt; LocationOrArgSet {
+    <span class="kw">let </span><span class="kw-2">mut </span>deps = LocationOrArgSet::new(<span class="self">self</span>.location_domain());
+    <span class="kw">for </span>subplace <span class="kw">in </span><span class="self">self
+      </span>.place_info
+      .reachable_values(place, Mutability::Not)
+      .iter()
+      .flat_map(|place| <span class="self">self</span>.influences(<span class="kw-2">*</span>place))
+    {
+      deps.union(<span class="kw-2">&amp;</span>state.row_set(<span class="self">self</span>.place_info.normalize(subplace)));
+    }
+    deps
   }
 
   <span class="comment">// This function expects *ALL* the mutations that occur within a given [`Location`] at once.
@@ -391,124 +418,85 @@
     <span class="macro">debug!</span>(<span class="string">&quot;  Applying mutations {mutations:?}&quot;</span>);
     <span class="kw">let </span>location_domain = <span class="self">self</span>.location_domain();
 
-    <span class="kw">let </span>all_aliases = <span class="kw-2">&amp;</span><span class="self">self</span>.aliases;
-    <span class="kw">let </span>all_mutated_aliases = mutations
-      .iter()
-      .map(|mt| {
-        <span class="kw">let </span>mutated_aliases = all_aliases.aliases(mt.mutated);
-        <span class="macro">assert!</span>(!mutated_aliases.is_empty());
-        <span class="macro">trace!</span>(
-          <span class="string">&quot;    Mutated aliases for {:?}: {mutated_aliases:?}&quot;</span>,
-          mt.mutated
-        );
-        mutated_aliases
-      })
-      .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+    <span class="comment">// Initialize dependencies to include current location of mutation.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>all_deps = {
+      <span class="kw">let </span><span class="kw-2">mut </span>deps = LocationOrArgSet::new(location_domain);
+      deps.insert(location);
+      <span class="macro">vec!</span>[deps; mutations.len()]
+    };
 
-    <span class="kw">let </span><span class="kw-2">mut </span>input_location_deps = (<span class="number">0 </span>.. mutations.len())
-      .map(|<span class="kw">_</span>| {
-        <span class="kw">let </span><span class="kw-2">mut </span>deps = LocationOrArgSet::new(location_domain);
-        deps.insert(location);
-        deps
-      })
-      .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-
-    <span class="kw">let </span>add_deps = |state: <span class="kw-2">&amp;mut </span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-                    place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-                    location_deps: <span class="kw-2">&amp;mut </span>LocationOrArgSet| {
-      <span class="kw">let </span>reachable_values = all_aliases.reachable_values(place, Mutability::Not);
-      <span class="kw">let </span>provenance = place.refs_in_projection().flat_map(|(place_ref, <span class="kw">_</span>)| {
-        all_aliases
-          .aliases(Place::from_ref(place_ref, <span class="self">self</span>.tcx))
-          .iter()
-      });
-      <span class="kw">for </span>relevant <span class="kw">in </span>reachable_values.iter().chain(provenance) {
-        <span class="kw">let </span>deps = state.row_set(all_aliases.normalize(<span class="kw-2">*</span>relevant));
-        <span class="macro">trace!</span>(<span class="string">&quot;    For relevant {relevant:?} for input {place:?} adding deps {deps:?}&quot;</span>);
-        location_deps.union(<span class="kw-2">&amp;</span>deps);
+    <span class="comment">// Add every influence on `input` to `deps`.
+    </span><span class="kw">let </span>add_deps = |state: <span class="kw-2">&amp;</span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+                    input,
+                    target_deps: <span class="kw-2">&amp;mut </span>LocationOrArgSet| {
+      <span class="kw">for </span>relevant <span class="kw">in </span><span class="self">self</span>.influences(input) {
+        <span class="kw">let </span>relevant_deps = state.row_set(<span class="self">self</span>.place_info.normalize(relevant));
+        <span class="macro">trace!</span>(<span class="string">&quot;    For relevant {relevant:?} for input {input:?} adding deps {relevant_deps:?}&quot;</span>);
+        target_deps.union(<span class="kw-2">&amp;</span>relevant_deps);
       }
     };
 
-    <span class="kw">for </span>(mt, deps) <span class="kw">in </span>mutations.iter().zip(<span class="kw-2">&amp;mut </span>input_location_deps) {
-      <span class="comment">// Add deps of all inputs
-      </span><span class="kw">for </span>input <span class="kw">in </span><span class="kw-2">&amp;</span>mt.inputs {
+    <span class="comment">// Register every explicitly provided input as an input.
+    </span><span class="kw">for </span>(mt, deps) <span class="kw">in </span>mutations.iter().zip(<span class="kw-2">&amp;mut </span>all_deps) {
+      <span class="kw">for </span>input <span class="kw">in </span><span class="kw-2">&amp;</span>mt.inputs {
         add_deps(state, <span class="kw-2">*</span>input, deps);
       }
     }
 
-    <span class="comment">// Add control dependencies
+    <span class="comment">// Add location of every control dependency.
     </span><span class="kw">let </span>controlled_by = <span class="self">self</span>.control_dependencies.dependent_on(location.block);
     <span class="kw">let </span>body = <span class="self">self</span>.body;
     <span class="kw">for </span>block <span class="kw">in </span>controlled_by.into_iter().flat_map(|set| set.iter()) {
-      <span class="kw">for </span>deps <span class="kw">in </span><span class="kw-2">&amp;mut </span>input_location_deps {
+      <span class="kw">for </span>deps <span class="kw">in </span><span class="kw-2">&amp;mut </span>all_deps {
         deps.insert(body.terminator_loc(block));
       }
 
-      <span class="comment">// Include dependencies of the switch&#39;s operand
+      <span class="comment">// Include dependencies of the switch&#39;s operand.
       </span><span class="kw">let </span>terminator = body.basic_blocks[block].terminator();
       <span class="kw">if let </span>TerminatorKind::SwitchInt { discr, .. } = <span class="kw-2">&amp;</span>terminator.kind {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(discr_place) = discr.as_place() {
-          <span class="kw">for </span>deps <span class="kw">in </span><span class="kw-2">&amp;mut </span>input_location_deps {
+          <span class="kw">for </span>deps <span class="kw">in </span><span class="kw-2">&amp;mut </span>all_deps {
             add_deps(state, discr_place, deps);
           }
         }
       }
     }
 
-    <span class="comment">// Union dependencies into all conflicting places of the mutated place
-    </span><span class="kw">let </span>mutable_conflicts = mutations
-      .iter()
-      .map(|mt| {
-        <span class="kw">let </span><span class="kw-2">mut </span>mutable_conflicts = <span class="kw">if </span><span class="macro">matches!</span>(mt.conflicts, ConflictType::Exclude) {
-          all_aliases.aliases(mt.mutated).to_owned()
-        } <span class="kw">else </span>{
-          all_aliases.conflicts(mt.mutated).to_owned()
-        };
-
-        <span class="comment">// Remove any conflicts that aren&#39;t actually mutable, e.g. if x : &amp;T ends up
-        // as an alias of y: &amp;mut T. See test function_lifetime_alias_mut for an example.
-        </span><span class="kw">let </span>ignore_mut =
-          is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
-        <span class="kw">if </span>!ignore_mut {
-          <span class="kw">let </span>body = <span class="self">self</span>.body;
-          <span class="kw">let </span>tcx = <span class="self">self</span>.tcx;
-          mutable_conflicts = mutable_conflicts
-            .iter()
-            .filter(|place| {
-              place.iter_projections().all(|(sub_place, <span class="kw">_</span>)| {
-                <span class="kw">let </span>ty = sub_place.ty(body.local_decls(), tcx).ty;
-                !<span class="macro">matches!</span>(ty.ref_mutability(), <span class="prelude-val">Some</span>(Mutability::Not))
-              })
-            })
-            .copied()
-            .collect::&lt;HashSet&lt;<span class="kw">_</span>&gt;&gt;();
-        };
-
-        mutable_conflicts
-      })
-      .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-
-    <span class="comment">// Clear sub-places of mutated place (if sound to do so)
-    </span><span class="kw">for </span>(mt, aliases) <span class="kw">in </span>mutations.iter().zip(<span class="kw-2">&amp;</span>all_mutated_aliases) {
-      <span class="kw">if </span><span class="macro">matches!</span>(mt.status, MutationStatus::Definitely) &amp;&amp; aliases.len() == <span class="number">1 </span>{
-        <span class="kw">let </span>mutated_direct = aliases.iter().next().unwrap();
-        <span class="kw">for </span>sub <span class="kw">in </span>all_aliases.children(<span class="kw-2">*</span>mutated_direct).iter() {
-          state.clear_row(all_aliases.normalize(<span class="kw-2">*</span>sub));
+    <span class="kw">let </span>ignore_mut =
+      is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
+    <span class="kw">for </span>(mt, deps) <span class="kw">in </span>mutations.iter().zip(<span class="kw-2">&amp;mut </span>all_deps) {
+      <span class="comment">// Clear sub-places of mutated place (if sound to do so)
+      </span><span class="kw">if </span><span class="macro">matches!</span>(mt.status, MutationStatus::Definitely)
+        &amp;&amp; <span class="self">self</span>.place_info.aliases(mt.mutated).len() == <span class="number">1
+      </span>{
+        <span class="kw">for </span>sub <span class="kw">in </span><span class="self">self</span>.place_info.children(mt.mutated).iter() {
+          state.clear_row(<span class="self">self</span>.place_info.normalize(<span class="kw-2">*</span>sub));
         }
       }
-    }
 
-    <span class="kw">for </span>(mt, deps) <span class="kw">in </span>mutations.iter().zip(<span class="kw-2">&amp;mut </span>input_location_deps) {
       <span class="comment">// Add deps of mutated to include provenance of mutated pointers
       </span>add_deps(state, mt.mutated, deps);
-    }
 
-    <span class="kw">for </span>(conflicts, deps) <span class="kw">in </span>mutable_conflicts.into_iter().zip(input_location_deps) {
-      <span class="macro">debug!</span>(<span class="string">&quot;  Mutated conflicting places: {conflicts:?}&quot;</span>);
+      <span class="kw">let </span>mutable_aliases = <span class="self">self
+        </span>.place_info
+        .aliases(mt.mutated)
+        .iter()
+        .filter(|alias| {
+          <span class="comment">// Remove any conflicts that aren&#39;t actually mutable, e.g. if x : &amp;T ends up
+          // as an alias of y: &amp;mut T. See test function_lifetime_alias_mut for an example.
+          </span><span class="kw">let </span>has_immut = alias.iter_projections().any(|(sub_place, <span class="kw">_</span>)| {
+            <span class="kw">let </span>ty = sub_place.ty(body.local_decls(), <span class="self">self</span>.tcx).ty;
+            <span class="macro">matches!</span>(ty.ref_mutability(), <span class="prelude-val">Some</span>(Mutability::Not))
+          });
+          !has_immut || ignore_mut
+        })
+        .collect::&lt;SmallVec&lt;[<span class="kw">_</span>; <span class="number">8</span>]&gt;&gt;();
+
+      <span class="macro">debug!</span>(<span class="string">&quot;  Mutated places: {mutable_aliases:?}&quot;</span>);
       <span class="macro">debug!</span>(<span class="string">&quot;    with deps {deps:?}&quot;</span>);
 
-      <span class="kw">for </span>place <span class="kw">in </span>conflicts.into_iter() {
-        state.union_into_row(all_aliases.normalize(place), <span class="kw-2">&amp;</span>deps);
+      <span class="kw">for </span>alias <span class="kw">in </span>mutable_aliases {
+        state.union_into_row(<span class="self">self</span>.place_info.normalize(<span class="kw-2">*</span>alias), deps);
       }
     }
   }
@@ -524,13 +512,13 @@
   }
 
   <span class="kw">fn </span>initialize_start_block(<span class="kw-2">&amp;</span><span class="self">self</span>, _body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Domain) {
-    <span class="kw">for </span>(arg, loc) <span class="kw">in </span><span class="self">self</span>.aliases.all_args() {
-      <span class="kw">for </span>place <span class="kw">in </span><span class="self">self</span>.aliases.conflicts(arg) {
+    <span class="kw">for </span>(arg, loc) <span class="kw">in </span><span class="self">self</span>.place_info.all_args() {
+      <span class="kw">for </span>place <span class="kw">in </span><span class="self">self</span>.place_info.conflicts(arg) {
         <span class="macro">debug!</span>(
           <span class="string">&quot;arg={arg:?} / place={place:?} / loc={:?}&quot;</span>,
           <span class="self">self</span>.location_domain().value(loc)
         );
-        state.insert(<span class="self">self</span>.aliases.normalize(<span class="kw-2">*</span>place), loc);
+        state.insert(<span class="self">self</span>.place_info.normalize(<span class="kw-2">*</span>place), loc);
       }
     }
   }
@@ -538,41 +526,43 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; Analysis&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>FlowAnalysis&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
   <span class="kw">fn </span>apply_statement_effect(
-    <span class="kw-2">&amp;</span><span class="self">self</span>,
+    <span class="kw-2">&amp;mut </span><span class="self">self</span>,
     state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Domain,
     statement: <span class="kw-2">&amp;</span>Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     location: Location,
   ) {
-    ModularMutationVisitor::new(<span class="kw-2">&amp;</span><span class="self">self</span>.aliases, |<span class="kw">_</span>, mutations| {
+    ModularMutationVisitor::new(<span class="kw-2">&amp;</span><span class="self">self</span>.place_info, |<span class="kw">_</span>, mutations| {
       <span class="self">self</span>.transfer_function(state, mutations, location)
     })
     .visit_statement(statement, location);
   }
 
-  <span class="kw">fn </span>apply_terminator_effect(
-    <span class="kw-2">&amp;</span><span class="self">self</span>,
+  <span class="kw">fn </span>apply_terminator_effect&lt;<span class="lifetime">&#39;mir</span>&gt;(
+    <span class="kw-2">&amp;mut </span><span class="self">self</span>,
     state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Domain,
-    terminator: <span class="kw-2">&amp;</span>Terminator&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    terminator: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>Terminator&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     location: Location,
-  ) {
+  ) -&gt; TerminatorEdges&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">if </span><span class="macro">matches!</span>(terminator.kind, TerminatorKind::Call { .. })
       &amp;&amp; is_extension_active(|mode| mode.context_mode == ContextMode::Recurse)
       &amp;&amp; <span class="self">self</span>.recurse_into_call(state, <span class="kw-2">&amp;</span>terminator.kind, location)
     {
-      <span class="kw">return</span>;
+      <span class="kw">return </span>terminator.edges();
     }
 
-    ModularMutationVisitor::new(<span class="kw-2">&amp;</span><span class="self">self</span>.aliases, |<span class="kw">_</span>, mutations| {
+    ModularMutationVisitor::new(<span class="kw-2">&amp;</span><span class="self">self</span>.place_info, |<span class="kw">_</span>, mutations| {
       <span class="self">self</span>.transfer_function(state, mutations, location)
     })
     .visit_terminator(terminator, location);
+
+    terminator.edges()
   }
 
   <span class="kw">fn </span>apply_call_return_effect(
-    <span class="kw-2">&amp;</span><span class="self">self</span>,
+    <span class="kw-2">&amp;mut </span><span class="self">self</span>,
     _state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Domain,
     _block: BasicBlock,
-    _return_places: rustc_mir_dataflow::CallReturnPlaces&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt;,
+    _return_places: CallReturnPlaces&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt;,
   ) {
   }
 }

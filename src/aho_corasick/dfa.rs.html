@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/aho-corasick-1.0.2/src/dfa.rs`."><title>dfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/aho-corasick-1.0.4/src/dfa.rs`."><title>dfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -796,6 +796,24 @@
 <a href="#796" id="796">796</a>
 <a href="#797" id="797">797</a>
 <a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/*!
 Provides direct access to a DFA implementation of Aho-Corasick.
 
@@ -891,15 +909,9 @@ when one needs access to the [`Automaton`] trait implementation.
     /// instead of the IDs being 0, 1, 2, 3, ..., they are 0*stride, 1*stride,
     /// 2*stride, 3*stride, ...
     </span>trans: Vec&lt;StateID&gt;,
-    <span class="doccomment">/// The matches for every match state in this DFA. This is indexed by order
-    /// of match states in the DFA. Namely, as constructed, match states are
-    /// always laid out sequentially and contiguously in memory. Thus, after
-    /// converting a match state ID to a match state index, the indices are
-    /// all adjacent.
-    ///
-    /// More concretely, when a search enters a match state with id &#39;sid&#39;, then
-    /// the matching patterns are at &#39;matches[(sid &gt;&gt; stride2) - 2]&#39;. The &#39;- 2&#39;
-    /// is to offset the first two states of a DFA: the dead and fail states.
+    <span class="doccomment">/// The matches for every match state in this DFA. This is first indexed by
+    /// state index (so that&#39;s `sid &gt;&gt; stride2`) and then by order in which the
+    /// matches are meant to occur.
     </span>matches: Vec&lt;Vec&lt;PatternID&gt;&gt;,
     <span class="doccomment">/// The amount of heap memory used, in bytes, by the inner Vecs of
     /// &#39;matches&#39;.
@@ -972,13 +984,21 @@ when one needs access to the [`Automaton`] trait implementation.
 
     <span class="doccomment">/// Adds the given pattern IDs as matches to the given state and also
     /// records the added memory usage.
-    </span><span class="kw">fn </span>set_matches(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sid: StateID, pids: <span class="kw-2">&amp;</span>[PatternID]) {
+    </span><span class="kw">fn </span>set_matches(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        sid: StateID,
+        pids: <span class="kw">impl </span>Iterator&lt;Item = PatternID&gt;,
+    ) {
         <span class="kw">use </span>core::mem::size_of;
 
-        <span class="macro">assert!</span>(!pids.is_empty(), <span class="string">&quot;match state must have non-empty pids&quot;</span>);
         <span class="kw">let </span>index = (sid.as_usize() &gt;&gt; <span class="self">self</span>.stride2).checked_sub(<span class="number">2</span>).unwrap();
-        <span class="self">self</span>.matches[index].extend_from_slice(pids);
-        <span class="self">self</span>.matches_memory_usage += size_of::&lt;PatternID&gt;() * pids.len();
+        <span class="kw">let </span><span class="kw-2">mut </span>at_least_one = <span class="bool-val">false</span>;
+        <span class="kw">for </span>pid <span class="kw">in </span>pids {
+            <span class="self">self</span>.matches[index].push(pid);
+            <span class="self">self</span>.matches_memory_usage += PatternID::SIZE;
+            at_least_one = <span class="bool-val">true</span>;
+        }
+        <span class="macro">assert!</span>(at_least_one, <span class="string">&quot;match state must have non-empty pids&quot;</span>);
     }
 }
 
@@ -1322,7 +1342,19 @@ when one needs access to the [`Automaton`] trait implementation.
             dfa.byte_classes.alphabet_len(),
             dfa.byte_classes.stride(),
         );
-        <span class="prelude-val">Ok</span>(dfa)
+        <span class="comment">// The vectors can grow ~twice as big during construction because a
+        // Vec amortizes growth. But here, let&#39;s shrink things back down to
+        // what we actually need since we&#39;re never going to add more to it.
+        </span>dfa.trans.shrink_to_fit();
+        dfa.pattern_lens.shrink_to_fit();
+        dfa.matches.shrink_to_fit();
+        <span class="comment">// TODO: We might also want to shrink each Vec inside of `dfa.matches`,
+        // or even better, convert it to one contiguous allocation. But I think
+        // I went with nested allocs for good reason (can&#39;t remember), so this
+        // may be tricky to do. I decided not to shrink them here because it
+        // might require a fair bit of work to do. It&#39;s unclear whether it&#39;s
+        // worth it.
+        </span><span class="prelude-val">Ok</span>(dfa)
     }
 
     <span class="doccomment">/// Finishes building a DFA for either unanchored or anchored searches,
@@ -1341,11 +1373,12 @@ when one needs access to the [`Automaton`] trait implementation.
         };
         <span class="kw">for </span>(oldsid, state) <span class="kw">in </span>nnfa.states().iter().with_state_ids() {
             <span class="kw">let </span>newsid = old2new(oldsid);
-            <span class="kw">if </span>!state.matches.is_empty() {
-                dfa.set_matches(newsid, <span class="kw-2">&amp;</span>state.matches);
+            <span class="kw">if </span>state.is_match() {
+                dfa.set_matches(newsid, nnfa.iter_matches(oldsid));
             }
             sparse_iter(
-                state,
+                nnfa,
+                oldsid,
                 <span class="kw-2">&amp;</span>dfa.byte_classes,
                 |byte, class, <span class="kw-2">mut </span>oldnextsid| {
                     <span class="kw">if </span>oldnextsid == noncontiguous::NFA::FAIL {
@@ -1354,7 +1387,7 @@ when one needs access to the [`Automaton`] trait implementation.
                         } <span class="kw">else </span>{
                             oldnextsid = nnfa.next_state(
                                 Anchored::No,
-                                state.fail,
+                                state.fail(),
                                 byte,
                             );
                         }
@@ -1418,11 +1451,12 @@ when one needs access to the [`Automaton`] trait implementation.
                     remap_anchored[oldsid] = newsid;
                     is_anchored[newsid.as_usize() &gt;&gt; stride2] = <span class="bool-val">true</span>;
                 }
-                <span class="kw">if </span>!state.matches.is_empty() {
-                    dfa.set_matches(newsid, <span class="kw-2">&amp;</span>state.matches);
+                <span class="kw">if </span>state.is_match() {
+                    dfa.set_matches(newsid, nnfa.iter_matches(oldsid));
                 }
                 sparse_iter(
-                    state,
+                    nnfa,
+                    oldsid,
                     <span class="kw-2">&amp;</span>dfa.byte_classes,
                     |<span class="kw">_</span>, class, oldnextsid| {
                         <span class="kw">let </span>class = usize::from(class);
@@ -1443,18 +1477,19 @@ when one needs access to the [`Automaton`] trait implementation.
                 remap_unanchored[oldsid] = unewsid;
                 remap_anchored[oldsid] = anewsid;
                 is_anchored[anewsid.as_usize() &gt;&gt; stride2] = <span class="bool-val">true</span>;
-                <span class="kw">if </span>!state.matches.is_empty() {
-                    dfa.set_matches(unewsid, <span class="kw-2">&amp;</span>state.matches);
-                    dfa.set_matches(anewsid, <span class="kw-2">&amp;</span>state.matches);
+                <span class="kw">if </span>state.is_match() {
+                    dfa.set_matches(unewsid, nnfa.iter_matches(oldsid));
+                    dfa.set_matches(anewsid, nnfa.iter_matches(oldsid));
                 }
                 sparse_iter(
-                    state,
+                    nnfa,
+                    oldsid,
                     <span class="kw-2">&amp;</span>dfa.byte_classes,
                     |byte, class, oldnextsid| {
                         <span class="kw">let </span>class = usize::from(class);
                         <span class="kw">if </span>oldnextsid == noncontiguous::NFA::FAIL {
                             dfa.trans[unewsid.as_usize() + class] = nnfa
-                                .next_state(Anchored::No, state.fail, byte);
+                                .next_state(Anchored::No, state.fail(), byte);
                         } <span class="kw">else </span>{
                             dfa.trans[unewsid.as_usize() + class] = oldnextsid;
                             dfa.trans[anewsid.as_usize() + class] = oldnextsid;
@@ -1561,14 +1596,15 @@ when one needs access to the [`Automaton`] trait implementation.
 /// `byte_classes.alphabet_len()` times, once for every possible class in
 /// ascending order.
 </span><span class="kw">fn </span>sparse_iter&lt;F: FnMut(u8, u8, StateID)&gt;(
-    state: <span class="kw-2">&amp;</span>noncontiguous::State,
+    nnfa: <span class="kw-2">&amp;</span>noncontiguous::NFA,
+    oldsid: StateID,
     classes: <span class="kw-2">&amp;</span>ByteClasses,
     <span class="kw-2">mut </span>f: F,
 ) {
     <span class="kw">let </span><span class="kw-2">mut </span>prev_class = <span class="prelude-val">None</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>byte = <span class="number">0usize</span>;
-    <span class="kw">for </span><span class="kw-2">&amp;</span>(b, id) <span class="kw">in </span>state.trans.iter() {
-        <span class="kw">while </span>byte &lt; usize::from(b) {
+    <span class="kw">for </span>t <span class="kw">in </span>nnfa.iter_trans(oldsid) {
+        <span class="kw">while </span>byte &lt; usize::from(t.byte()) {
             <span class="kw">let </span>rep = byte.as_u8();
             <span class="kw">let </span>class = classes.get(rep);
             byte += <span class="number">1</span>;
@@ -1577,11 +1613,11 @@ when one needs access to the [`Automaton`] trait implementation.
                 prev_class = <span class="prelude-val">Some</span>(class);
             }
         }
-        <span class="kw">let </span>rep = b;
+        <span class="kw">let </span>rep = t.byte();
         <span class="kw">let </span>class = classes.get(rep);
         byte += <span class="number">1</span>;
         <span class="kw">if </span>prev_class != <span class="prelude-val">Some</span>(class) {
-            f(rep, class, id);
+            f(rep, class, t.next());
             prev_class = <span class="prelude-val">Some</span>(class);
         }
     }

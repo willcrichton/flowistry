@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["UNKNOWN_REGION"],"struct":["Aliases"]};
+window.SIDEBAR_ITEMS = {"struct":["Aliases"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["WrapAlgorithm"],"fn":["wrap_first_fit","wrap_optimal_fit"],"struct":["OverflowError","Penalties"]};

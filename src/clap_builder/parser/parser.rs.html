@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.3.21/src/parser/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-63a85fc7cf22dee2.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (9df3a39fb 2023-04-11)" data-search-js="search-bc5a112813b5d712.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-1159a395118aa44e.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.0/src/parser/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1610,6 +1610,13 @@
 <a href="#1610" id="1610">1610</a>
 <a href="#1611" id="1611">1611</a>
 <a href="#1612" id="1612">1612</a>
+<a href="#1613" id="1613">1613</a>
+<a href="#1614" id="1614">1614</a>
+<a href="#1615" id="1615">1615</a>
+<a href="#1616" id="1616">1616</a>
+<a href="#1617" id="1617">1617</a>
+<a href="#1618" id="1618">1618</a>
+<a href="#1619" id="1619">1619</a>
 </pre></div><pre class="rust"><code><span class="comment">// Std
 </span><span class="kw">use </span>std::{
     cell::Cell,
@@ -2033,7 +2040,12 @@
                 sc_m.start_occurrence_of_external(<span class="self">self</span>.cmd);
 
                 <span class="kw">for </span>raw_val <span class="kw">in </span>raw_args.remaining(<span class="kw-2">&amp;mut </span>args_cursor) {
-                    <span class="kw">let </span>val = <span class="macro">ok!</span>(external_parser.parse_ref(<span class="self">self</span>.cmd, <span class="prelude-val">None</span>, raw_val));
+                    <span class="kw">let </span>val = <span class="macro">ok!</span>(external_parser.parse_ref(
+                        <span class="self">self</span>.cmd,
+                        <span class="prelude-val">None</span>,
+                        raw_val,
+                        ValueSource::CommandLine
+                    ));
                     <span class="kw">let </span>external_id = Id::from_static_ref(Id::EXTERNAL);
                     sc_m.add_val_to(<span class="kw-2">&amp;</span>external_id, val, raw_val.to_os_string());
                 }
@@ -2644,6 +2656,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         arg: <span class="kw-2">&amp;</span>Arg,
         raw_vals: Vec&lt;OsString&gt;,
+        source: ValueSource,
         matcher: <span class="kw-2">&amp;mut </span>ArgMatcher,
     ) -&gt; ClapResult&lt;()&gt; {
         <span class="macro">debug!</span>(<span class="string">&quot;Parser::push_arg_values: {raw_vals:?}&quot;</span>);
@@ -2656,7 +2669,7 @@
                 <span class="self">self</span>.cur_idx.get()
             );
             <span class="kw">let </span>value_parser = arg.get_value_parser();
-            <span class="kw">let </span>val = <span class="macro">ok!</span>(value_parser.parse_ref(<span class="self">self</span>.cmd, <span class="prelude-val">Some</span>(arg), <span class="kw-2">&amp;</span>raw_val));
+            <span class="kw">let </span>val = <span class="macro">ok!</span>(value_parser.parse_ref(<span class="self">self</span>.cmd, <span class="prelude-val">Some</span>(arg), <span class="kw-2">&amp;</span>raw_val, source));
 
             matcher.add_val_to(arg.get_id(), val, raw_val);
             matcher.add_index_to(arg.get_id(), <span class="self">self</span>.cur_idx.get());
@@ -2765,7 +2778,7 @@
                     ));
                 }
                 <span class="self">self</span>.start_custom_arg(matcher, arg, source);
-                <span class="macro">ok!</span>(<span class="self">self</span>.push_arg_values(arg, raw_vals, matcher));
+                <span class="macro">ok!</span>(<span class="self">self</span>.push_arg_values(arg, raw_vals, source, matcher));
                 <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) &amp;&amp; matcher.needs_more_vals(arg) {
                     <span class="macro">debug!</span>(
                         <span class="string">&quot;Parser::react not enough values passed in, leaving it to the validator to complain&quot;</span>,
@@ -2782,7 +2795,7 @@
                     <span class="macro">debug!</span>(<span class="string">&quot;Parser::react: cur_idx:={}&quot;</span>, <span class="self">self</span>.cur_idx.get());
                 }
                 <span class="self">self</span>.start_custom_arg(matcher, arg, source);
-                <span class="macro">ok!</span>(<span class="self">self</span>.push_arg_values(arg, raw_vals, matcher));
+                <span class="macro">ok!</span>(<span class="self">self</span>.push_arg_values(arg, raw_vals, source, matcher));
                 <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) &amp;&amp; matcher.needs_more_vals(arg) {
                     <span class="macro">debug!</span>(
                         <span class="string">&quot;Parser::react not enough values passed in, leaving it to the validator to complain&quot;</span>,
@@ -2808,7 +2821,7 @@
                     ));
                 }
                 <span class="self">self</span>.start_custom_arg(matcher, arg, source);
-                <span class="macro">ok!</span>(<span class="self">self</span>.push_arg_values(arg, raw_vals, matcher));
+                <span class="macro">ok!</span>(<span class="self">self</span>.push_arg_values(arg, raw_vals, source, matcher));
                 <span class="prelude-val">Ok</span>(ParseResult::ValuesDone)
             }
             ArgAction::SetFalse =&gt; {
@@ -2829,7 +2842,7 @@
                     ));
                 }
                 <span class="self">self</span>.start_custom_arg(matcher, arg, source);
-                <span class="macro">ok!</span>(<span class="self">self</span>.push_arg_values(arg, raw_vals, matcher));
+                <span class="macro">ok!</span>(<span class="self">self</span>.push_arg_values(arg, raw_vals, source, matcher));
                 <span class="prelude-val">Ok</span>(ParseResult::ValuesDone)
             }
             ArgAction::Count =&gt; {
@@ -2845,7 +2858,7 @@
 
                 matcher.remove(arg.get_id());
                 <span class="self">self</span>.start_custom_arg(matcher, arg, source);
-                <span class="macro">ok!</span>(<span class="self">self</span>.push_arg_values(arg, raw_vals, matcher));
+                <span class="macro">ok!</span>(<span class="self">self</span>.push_arg_values(arg, raw_vals, source, matcher));
                 <span class="prelude-val">Ok</span>(ParseResult::ValuesDone)
             }
             ArgAction::Help =&gt; {
@@ -3133,6 +3146,7 @@
                 <span class="self">self</span>.start_custom_arg(matcher, arg, ValueSource::CommandLine);
             }
         }
+        <span class="kw">let </span>did_you_mean = did_you_mean.map(|(arg, cmd)| (<span class="macro">format!</span>(<span class="string">&quot;--{arg}&quot;</span>), cmd));
 
         <span class="kw">let </span>required = <span class="self">self</span>.cmd.required_graph();
         <span class="kw">let </span>used: Vec&lt;Id&gt; = matcher

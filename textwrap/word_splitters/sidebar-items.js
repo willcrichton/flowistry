@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["WordSplitter"],"fn":["split_words"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":["block_timer"],"mod":["cache","hir","mir","source_map","test_utils","timer"]};
+window.SIDEBAR_ITEMS = {"macro":["block_timer","hashset"],"mod":["cache","hir","mir","source_map","timer"]};

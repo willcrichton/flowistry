@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ConflictType","MutationStatus"],"struct":["ModularMutationVisitor","Mutation"]};
+window.SIDEBAR_ITEMS = {"enum":["MutationStatus"],"struct":["ModularMutationVisitor","Mutation"]};

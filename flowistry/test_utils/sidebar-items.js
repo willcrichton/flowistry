@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["bless","compare_ranges","compile_body","compile_body_with_range","fmt_ranges","parse_ranges","run_tests","test_command_output"]};

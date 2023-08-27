@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":["to_index_impl"],"mod":["extensions","indexed","infoflow","mir","test_utils"]};
+window.SIDEBAR_ITEMS = {"macro":["to_index_impl"],"mod":["extensions","indexed","infoflow","mir"]};

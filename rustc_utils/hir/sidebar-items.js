@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["region","ty"]};
+window.SIDEBAR_ITEMS = {"mod":["ty"]};
