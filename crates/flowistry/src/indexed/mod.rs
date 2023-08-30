@@ -9,7 +9,7 @@
 //! Therefore if we want to encode a set of locations (e.g. for the [`FlowDomain`](crate::infoflow::FlowDomain)),
 //! then we can assign each `Location` a numeric index and use a compact bit-set instead of, say,
 //! a hash set. Concretely, this means:
-//! 1. Defining a type `LocationOrArgIndex` that implements the [`Idx`](rustc_index::vec::Idx) trait.
+//! 1. Defining a type `LocationOrArgIndex` that implements the [`Idx`](rustc_index::Idx) trait.
 //! 2. Creating a mapping ("domain") from `Location`s to `LocationOrArgIndex`.
 //! 3. Constructing a `LocationSet` out of a [`BitSet`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/struct.BitSet.html)`<LocationOrArgIndex>`.
 //!
@@ -35,10 +35,7 @@ use std::{
 };
 
 use rustc_data_structures::fx::FxHashMap as HashMap;
-use rustc_index::{
-  bit_set::BitSet,
-  vec::{Idx, IndexVec},
-};
+use rustc_index::{bit_set::BitSet, Idx, IndexVec};
 use rustc_mir_dataflow::{fmt::DebugWithContext, JoinSemiLattice};
 
 pub mod impls;

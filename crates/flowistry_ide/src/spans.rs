@@ -1,5 +1,5 @@
 use rustc_utils::source_map::{
-  filename::Filename, find_bodies::find_bodies, range::ByteRange,
+  filename::Filename, find_bodies::find_bodies, range::CharRange,
 };
 use serde::Serialize;
 
@@ -7,7 +7,7 @@ use crate::plugin::{FlowistryError, FlowistryResult};
 
 #[derive(Serialize)]
 pub struct SpansOutput {
-  spans: Vec<ByteRange>,
+  spans: Vec<CharRange>,
 }
 
 unsafe impl Send for SpansOutput {}
@@ -37,7 +37,7 @@ impl rustc_driver::Callbacks for Callbacks {
           .filter(|span| {
             source_map.lookup_source_file(span.lo()).name_hash == source_file.name_hash
           })
-          .filter_map(|span| ByteRange::from_span(span, source_map).ok())
+          .filter_map(|span| CharRange::from_span(span, source_map).ok())
           .collect::<Vec<_>>();
         Ok(SpansOutput { spans })
       })());

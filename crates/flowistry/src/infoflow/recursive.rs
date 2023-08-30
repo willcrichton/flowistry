@@ -1,7 +1,7 @@
 use log::{debug, info};
 use rustc_middle::{
   mir::*,
-  ty::{subst::GenericArgKind, ClosureKind, TyKind},
+  ty::{ClosureKind, GenericArgKind, TyKind},
 };
 use rustc_mir_dataflow::JoinSemiLattice;
 use rustc_utils::{mir::borrowck_facts::get_body_with_borrowck_facts, PlaceExt};
@@ -10,7 +10,7 @@ use super::{analysis::FlowAnalysis, BODY_STACK};
 use crate::{
   extensions::REACHED_LIBRARY,
   infoflow::{
-    mutation::{Mutation, MutationStatus, ConflictType},
+    mutation::{Mutation, MutationStatus},
     FlowDomain,
   },
   mir::utils,
@@ -170,7 +170,7 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
       let mut ty = parent_toplevel_arg.ty(self.body.local_decls(), tcx);
       let parent_param_env = tcx.param_env(self.def_id);
       log::debug!("Adding child {child:?} to parent {parent_toplevel_arg:?}");
-      for elem in child.projection.iter() {        
+      for elem in child.projection.iter() {
         // Don't continue if we reach a private field
         if let ProjectionElem::Field(field, _) = elem {
           if let Some(adt_def) = ty.ty.ty_adt_def() {
@@ -228,7 +228,6 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
         } else {
           MutationStatus::Possibly
         },
-        conflicts: ConflictType::Exclude
       })
     }).collect::<Vec<_>>();
 

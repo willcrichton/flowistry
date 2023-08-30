@@ -18,6 +18,7 @@ use rustc_hir::BodyId;
 use rustc_interface::interface::Result as RustcResult;
 use rustc_middle::ty::TyCtxt;
 use rustc_plugin::{CrateFilter, RustcPlugin, RustcPluginArgs, Utf8Path};
+use rustc_span::ErrorGuaranteed;
 use rustc_utils::{
   mir::borrowck_facts,
   source_map::{
@@ -53,7 +54,8 @@ enum FlowistryCommand {
 
   Focus {
     file: String,
-    pos: usize,
+    pos_line: usize,
+    pos_column: usize,
   },
 
   Decompose {
@@ -63,8 +65,10 @@ enum FlowistryCommand {
 
   Playground {
     file: String,
-    start: usize,
-    end: usize,
+    start_line: usize,
+    start_column: usize,
+    end_line: usize,
+    end_column: usize,
   },
 
   Preload,
@@ -141,11 +145,22 @@ impl RustcPlugin for FlowistryPlugin {
     match plugin_args.command {
       Spans { file, .. } => postprocess(crate::spans::spans(&compiler_args, file)),
       Playground {
-        file, start, end, ..
+        file,
+        start_line,
+        start_column,
+        end_line,
+        end_column,
+        ..
       } => {
         let compute_target = || CharRange {
-          start: CharPos(start),
-          end: CharPos(end),
+          start: CharPos {
+            line: start_line,
+            column: start_column,
+          },
+          end: CharPos {
+            line: end_line,
+            column: end_column,
+          },
           filename: Filename::intern(&file),
         };
         postprocess(run(
@@ -154,13 +169,23 @@ impl RustcPlugin for FlowistryPlugin {
           &compiler_args,
         ))
       }
-      Focus { file, pos, .. } => {
+      Focus {
+        file,
+        pos_line,
+        pos_column,
+        ..
+      } => {
         let compute_target = || {
+          let cpos = CharPos {
+            line: pos_line,
+            column: pos_column,
+          };
           let range = CharRange {
-            start: CharPos(pos),
-            end: CharPos(pos),
+            start: cpos,
+            end: cpos,
             filename: Filename::intern(&file),
           };
+          debug!("eyo WTF {range:?} {file}");
           FunctionIdentifier::Range(range)
         };
         postprocess(run(crate::focus::focus, compute_target, &compiler_args))
@@ -194,9 +219,7 @@ fn postprocess<T: Serialize>(result: FlowistryResult<T>) -> RustcResult<()> {
   let result = match result {
     Ok(output) => Ok(output),
     Err(e) => match e {
-      FlowistryError::BuildError => {
-        return Err(rustc_errors::ErrorGuaranteed::unchecked_claim_error_was_emitted());
-      }
+      FlowistryError::BuildError(e) => return Err(e),
       e => Err(e),
     },
   };
@@ -225,7 +248,7 @@ pub fn run_with_callbacks(
   );
 
   let compiler = rustc_driver::RunCompiler::new(&args, callbacks);
-  compiler.run().map_err(|_| FlowistryError::BuildError)
+  compiler.run().map_err(FlowistryError::BuildError)
 }
 
 fn run<A: FlowistryAnalysis, T: ToSpan>(
@@ -257,7 +280,7 @@ fn run<A: FlowistryAnalysis, T: ToSpan>(
 #[derive(Debug, Serialize)]
 #[serde(tag = "type")]
 pub enum FlowistryError {
-  BuildError,
+  BuildError(#[serde(skip_serializing)] ErrorGuaranteed),
   AnalysisError { error: String },
   FileNotFound,
 }
@@ -312,6 +335,7 @@ impl<A: FlowistryAnalysis, T: ToSpan, F: FnOnce() -> T> rustc_driver::Callbacks
       let mut analysis = self.analysis.take().unwrap();
       self.output = Some((|| {
         let target = (self.compute_target.take().unwrap())().to_span(tcx)?;
+        debug!("target span: {target:?}");
         let mut bodies = find_enclosing_bodies(tcx, target);
         let body = bodies.next().context("Selection did not map to a body")?;
         analysis.analyze(tcx, body)

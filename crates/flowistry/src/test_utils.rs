@@ -5,7 +5,7 @@ use std::{fs, io, panic, path::Path};
 use anyhow::Result;
 use fluid_let::fluid_set;
 use log::info;
-use rustc_borrowck::BodyWithBorrowckFacts;
+use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
@@ -14,7 +14,7 @@ pub use rustc_utils::test_utils::{compare_ranges, fmt_ranges, parse_ranges};
 use rustc_utils::{
   mir::borrowck_facts,
   source_map::{
-    range::{ByteRange, ToSpan},
+    range::{ByteRange, CharPos, ToSpan},
     spanner::Spanner,
   },
   test_utils,
@@ -57,15 +57,18 @@ pub fn bless(
       [("`[", char_range.start), ("]`", char_range.end)]
     })
     .collect::<Vec<_>>();
-  delims.sort_by_key(|(_, i)| i.0);
+  delims.sort_by_key(|(_, i)| (i.line, i.column));
 
   let mut output = String::new();
-  for (i, g) in contents.chars().enumerate() {
-    while delims.len() > 0 && delims[0].1 .0 == i {
-      let (delim, _) = delims.remove(0);
-      output.push_str(delim);
+  for (line, line_str) in contents.lines().enumerate() {
+    for (column, chr) in line_str.chars().enumerate() {
+      while delims.len() > 0 && delims[0].1 == (CharPos { line, column }) {
+        let (delim, _) = delims.remove(0);
+        output.push_str(delim);
+      }
+      output.push(chr);
     }
-    output.push(g);
+    output.push('\n');
   }
 
   fs::write(path.with_extension("txt.expected"), output)?;

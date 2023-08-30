@@ -6,7 +6,7 @@
 use std::cell::RefCell;
 
 use log::debug;
-use rustc_borrowck::BodyWithBorrowckFacts;
+use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
 use rustc_utils::{block_timer, BodyExt};
@@ -15,7 +15,7 @@ pub use self::{
   analysis::{FlowAnalysis, FlowDomain},
   dependencies::{compute_dependencies, compute_dependency_spans, Direction},
 };
-use crate::mir::{aliases::Aliases, engine};
+use crate::mir::{engine, placeinfo::PlaceInfo};
 
 mod analysis;
 mod dependencies;
@@ -91,15 +91,15 @@ pub fn compute_flow<'a, 'tcx>(
     debug!("{}", body_with_facts.body.to_string(tcx).unwrap());
 
     let def_id = tcx.hir().body_owner_def_id(body_id).to_def_id();
-    let aliases = Aliases::build(tcx, def_id, body_with_facts);
-    let location_domain = aliases.location_domain().clone();
+    let place_info = PlaceInfo::build(tcx, def_id, body_with_facts);
+    let location_domain = place_info.location_domain().clone();
 
     let body = &body_with_facts.body;
 
     let results = {
       block_timer!("Flow");
 
-      let analysis = FlowAnalysis::new(tcx, def_id, body, aliases);
+      let analysis = FlowAnalysis::new(tcx, def_id, body, place_info);
       engine::iterate_to_fixpoint(tcx, body, location_domain, analysis)
       // analysis.into_engine(tcx, body).iterate_to_fixpoint()
     };

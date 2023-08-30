@@ -65,7 +65,8 @@ pub fn focus(tcx: TyCtxt, body_id: BodyId) -> Result<FocusOutput> {
   let relevant =
     infoflow::compute_dependency_spans(results, targets, Direction::Both, &spanner);
 
-  let direct = direct_influence::DirectInfluence::build(body, &results.analysis.aliases);
+  let direct =
+    direct_influence::DirectInfluence::build(body, &results.analysis.place_info);
 
   let slices = grouped_spans
     .iter()
@@ -91,6 +92,8 @@ pub fn focus(tcx: TyCtxt, body_id: BodyId) -> Result<FocusOutput> {
           .filter_map(|span| CharRange::from_span(span, source_map).ok())
           .collect::<Vec<_>>()
       };
+
+      log::debug!("{:#?}", to_ranges(slice.clone()));
 
       Some(PlaceInfo {
         range: CharRange::from_span(mir_span.span(), source_map).ok()?,
