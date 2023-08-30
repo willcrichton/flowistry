@@ -25,7 +25,7 @@ extern crate rustc_span;
 use std::process::Command;
 
 use flowistry::{indexed::impls::LocationOrArg, infoflow::Direction};
-use rustc_borrowck::BodyWithBorrowckFacts;
+use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_hir::{BodyId, ItemKind};
 use rustc_middle::{
   mir::{Local, Place},

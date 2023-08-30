@@ -17,7 +17,7 @@ use crate::{
     RefSet,
   },
   infoflow::mutation::Mutation,
-  mir::aliases::Aliases,
+  mir::placeinfo::PlaceInfo,
 };
 
 /// Which way to look for dependencies
@@ -43,12 +43,12 @@ impl TargetDeps {
     targets: &[(Place<'tcx>, LocationOrArg)],
     results: &FlowResults<'_, 'tcx>,
   ) -> Self {
-    let aliases = &results.analysis.aliases;
+    let place_info = &results.analysis.place_info;
     let location_domain = results.analysis.location_domain();
     // let mut backward = LocationSet::new(location_domain);
 
     let expanded_targets = targets.iter().flat_map(|(place, location)| {
-      aliases
+      place_info
         .reachable_values(*place, Mutability::Not)
         .iter()
         .map(move |reachable| (*reachable, *location))
@@ -65,7 +65,7 @@ impl TargetDeps {
 
         let mut forward = LocationOrArgSet::new(location_domain);
         forward.insert_all();
-        for conflict in aliases.children(aliases.normalize(place)) {
+        for conflict in place_info.children(place_info.normalize(place)) {
           // conflict should already be normalized because the input to aliases.children is normalized
           let deps = state.row_set(conflict);
           trace!("place={place:?}, conflict={conflict:?}, deps={deps:?}");
@@ -87,10 +87,10 @@ impl TargetDeps {
 
 pub fn deps<'a, 'tcx>(
   state: &'a FlowDomain<'tcx>,
-  aliases: &'a Aliases<'a, 'tcx>,
+  place_info: &'a PlaceInfo<'a, 'tcx>,
   place: Place<'tcx>,
 ) -> LocationOrArgSet<RefSet<'a, LocationOrArg>> {
-  state.row_set(aliases.normalize(place))
+  state.row_set(place_info.normalize(place))
 }
 
 /// Computes the dependencies of a place $p$ at a location $\ell$ in a given
@@ -111,7 +111,7 @@ pub fn compute_dependencies<'tcx>(
   log::info!("Computing dependencies for {} targets", all_targets.len());
   debug!("all_targets={all_targets:#?}");
 
-  let aliases = &results.analysis.aliases;
+  let aliases = &results.analysis.place_info;
   let body = results.analysis.body;
   let location_domain = results.analysis.location_domain();
 
@@ -178,7 +178,7 @@ pub fn compute_dependencies<'tcx>(
             check(place);
           }
         }
-        _ => ModularMutationVisitor::new(&results.analysis.aliases, |_, mutations| {
+        _ => ModularMutationVisitor::new(&results.analysis.place_info, |_, mutations| {
           for Mutation { mutated, .. } in mutations {
             check(mutated);
           }
@@ -191,17 +191,13 @@ pub fn compute_dependencies<'tcx>(
   let backward = || {
     for (targets, outputs) in iter::zip(&all_targets, &mut *outputs.borrow_mut()) {
       for (place, location) in targets {
-        for value in results
-          .analysis
-          .aliases
-          .reachable_values(*place, Mutability::Not)
-        {
-          match location {
-            LocationOrArg::Arg(..) => outputs.insert(location),
-            LocationOrArg::Location(location) => {
-              let deps = deps(results.state_at(*location), aliases, *value);
-              outputs.union(&deps);
-            }
+        match location {
+          LocationOrArg::Arg(..) => outputs.insert(location),
+          LocationOrArg::Location(location) => {
+            let deps = results
+              .analysis
+              .deps_for(results.state_at(*location), *place);
+            outputs.union(&deps);
           }
         }
       }

@@ -5,7 +5,7 @@ extern crate rustc_driver;
 extern crate rustc_hir;
 extern crate rustc_interface;
 extern crate rustc_middle;
-use std::process::Command;
+use std::{env::consts::DLL_SUFFIX, process::Command};
 
 use anyhow::{Context, Result};
 use criterion::{
@@ -13,7 +13,7 @@ use criterion::{
 };
 use flowistry::infoflow::Direction;
 use glob::glob;
-use rustc_borrowck::BodyWithBorrowckFacts;
+use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_hir::{BodyId, ItemKind};
 use rustc_middle::{
   mir::{Location, Place},
@@ -132,7 +132,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     let test_dir = curr_dir.join("../../../crates/flowistry/benches/tests");
 
     // The shared object for the bench_utils crate should also be in deps/
-    let bench_crate_pattern = curr_dir.join("*libbench_utils*.so");
+    let bench_crate_pattern = curr_dir.join(format!("*libbench_utils*{}", DLL_SUFFIX));
 
     let print_sysroot = Command::new("rustc")
       .args(&["--print", "sysroot"])
@@ -144,7 +144,12 @@ fn criterion_benchmark(c: &mut Criterion) {
     // Find bench_utils .so file
     let shared_object = glob(bench_crate_pattern.to_str().unwrap())?
       .nth(0)
-      .context("Failed to find bench_utils shared object")??;
+      .with_context(|| {
+        format!(
+          "Failed to find bench_utils shared object in dir {}",
+          curr_dir.display()
+        )
+      })??;
 
     let mut run_bench = |test: (&str, &str)| {
       // Stress types correspond to bench files within ./tests/

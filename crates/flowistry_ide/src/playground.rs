@@ -17,9 +17,8 @@ pub fn playground(tcx: TyCtxt, body_id: BodyId) -> Result<PlaygroundOutput> {
   let body = &body_with_facts.body;
   debug!("{}", body.to_string(tcx).unwrap());
 
-  let outlives = body_with_facts
-    .input_facts
-    .subset_base
+  let subset_base = &body_with_facts.input_facts.as_ref().unwrap().subset_base;
+  let outlives = subset_base
     .iter()
     .map(|(sup, sub, _)| (format!("{sup:?}"), format!("{sub:?}")))
     .collect::<HashSet<_>>();

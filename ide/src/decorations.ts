@@ -1,7 +1,13 @@
 import _ from "lodash";
 import * as vscode from "vscode";
 
-import { Range, to_vsc_range } from "./range";
+import {
+  Interval,
+  Range,
+  interval_to_range,
+  range_to_interval,
+  to_vsc_range,
+} from "./range";
 
 export let highlight_type = vscode.window.createTextEditorDecorationType({
   backgroundColor: new vscode.ThemeColor("editor.symbolHighlightBackground"),
@@ -33,38 +39,36 @@ export let select_type = vscode.window.createTextEditorDecorationType({
   },
 });
 
-export let invert_ranges = (container: Range, pieces: Range[]): Range[] => {
+export let invert_ranges = (
+  container: Range,
+  pieces: Range[],
+  doc: vscode.TextDocument
+): Range[] => {
+  let icontainer = range_to_interval(container, doc);
+  let ipieces = pieces.map((piece) => range_to_interval(piece, doc));
+
   let filename = container.filename;
-  let pieces_sorted = _.sortBy(pieces, (r) => r.start).filter(
-    (r) =>
-      container.start <= r.start && r.end <= container.end
+  let pieces_sorted = _.sortBy(ipieces, (r) => r[0]).filter(
+    (r) => icontainer[0] <= r[0] && r[1] <= icontainer[1]
   );
 
-  let new_ranges: Range[] = [];
-  let start = container.start;
+  let new_ranges: Interval[] = [];
+  let start = icontainer[0];
   pieces_sorted.forEach((r) => {
-    if (r.start < start) {
-      start = Math.max(r.end, start);
+    if (r[0] < start) {
+      start = Math.max(r[1], start);
       return;
     }
 
-    let end = r.start;
-    new_ranges.push({
-      start: start,
-      end: end,
-      filename,
-    });
+    let end = r[0];
+    new_ranges.push([start, end]);
 
-    start = Math.max(start, r.end);
+    start = Math.max(start, r[1]);
   });
 
-  new_ranges.push({
-    start: start,
-    end: container.end,
-    filename,
-  });
+  new_ranges.push([start, icontainer[1]]);
 
-  return new_ranges;
+  return new_ranges.map((intvl) => interval_to_range(intvl, filename, doc));
 };
 
 export let highlight_slice = (
@@ -76,7 +80,7 @@ export let highlight_slice = (
 ) => {
   highlight_ranges(seeds, editor, select_type);
   let hide_ranges = containers
-    .map((container) => invert_ranges(container, slice))
+    .map((container) => invert_ranges(container, slice, editor.document))
     .flat();
   highlight_ranges(hide_ranges, editor, hide_type);
   highlight_ranges(slice, editor, slice_type);
@@ -90,7 +94,7 @@ export function highlight_ranges(
 ) {
   editor.setDecorations(
     type,
-    ranges.map((range) => to_vsc_range(range, editor.document))
+    ranges.map((range) => to_vsc_range(range))
   );
 }
 
