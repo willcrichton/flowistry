@@ -26,6 +26,9 @@ use crate::{
   mir::utils::AsyncHack,
 };
 
+type BorrowckLocationIndex =
+  <rustc_borrowck::consumers::RustcFacts as crate::polonius_engine::FactTypes>::Point;
+
 #[derive(Default)]
 struct GatherBorrows<'tcx> {
   borrows: Vec<(RegionVid, BorrowKind, Place<'tcx>)>,
@@ -71,7 +74,21 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     def_id: DefId,
     body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
   ) -> Self {
-    let loans = Self::compute_loans(tcx, def_id, body_with_facts);
+    let loans = Self::compute_loans(tcx, def_id, body_with_facts, |_, _, _| true);
+    Aliases {
+      tcx,
+      body: &body_with_facts.body,
+      loans,
+    }
+  }
+
+  pub fn build_with_fact_selection(
+    tcx: TyCtxt<'tcx>,
+    def_id: DefId,
+    body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
+    selector: impl Fn(RegionVid, RegionVid, BorrowckLocationIndex) -> bool,
+  ) -> Self {
+    let loans = Self::compute_loans(tcx, def_id, body_with_facts, selector);
     Aliases {
       tcx,
       body: &body_with_facts.body,
@@ -83,11 +100,20 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
     body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
+    constraint_selector: impl Fn(RegionVid, RegionVid, BorrowckLocationIndex) -> bool,
   ) -> LoanMap<'tcx> {
     let start = Instant::now();
     let body = &body_with_facts.body;
     let static_region = RegionVid::from_usize(0);
-    let subset_base = &body_with_facts.input_facts.as_ref().unwrap().subset_base;
+    let ref subset_base = body_with_facts
+      .input_facts
+      .as_ref()
+      .unwrap()
+      .subset_base
+      .iter()
+      .cloned()
+      .filter(|(r1, r2, i)| constraint_selector(*r1, *r2, *i))
+      .collect::<Vec<_>>();
 
     let all_pointers = body
       .local_decls()
