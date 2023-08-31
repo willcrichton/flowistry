@@ -186,7 +186,9 @@ pub fn compute_dependencies<'tcx>(
     for (targets, outputs) in iter::zip(&all_targets, &mut *outputs.borrow_mut()) {
       for (place, location) in targets {
         match location {
-          LocationOrArg::Arg(..) => outputs.insert(*location),
+          LocationOrArg::Arg(..) => {
+            outputs.insert(*location);
+          }
           LocationOrArg::Location(location) => {
             let deps = results
               .analysis
