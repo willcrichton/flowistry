@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1693519998492,
+  "lastUpdate": 1693520173475,
   "repoUrl": "https://github.com/willcrichton/flowistry",
   "entries": {
     "Benchmark": [
@@ -15115,6 +15115,170 @@ window.BENCHMARK_DATA = {
             "name": "Nested Structs (max)/Flow + Deps",
             "value": 54627416,
             "range": "± 325195",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "willcrichton",
+            "username": "willcrichton"
+          },
+          "committer": {
+            "name": "willcrichton",
+            "username": "willcrichton"
+          },
+          "id": "7777ff6c7294c0bbef04134da83073c25e7b582c",
+          "message": "Migrate indexed module into new indexical crate",
+          "timestamp": "2023-08-28T13:28:57Z",
+          "url": "https://github.com/willcrichton/flowistry/pull/81/commits/7777ff6c7294c0bbef04134da83073c25e7b582c"
+        },
+        "date": 1693520162683,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "Locations (min)/Flow",
+            "value": 262675,
+            "range": "± 391",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Locations (min)/Flow + Deps",
+            "value": 321115,
+            "range": "± 1388",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Locations (max)/Flow",
+            "value": 1333367,
+            "range": "± 13920",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Locations (max)/Flow + Deps",
+            "value": 1725334,
+            "range": "± 17992",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Unique Lifetimes (min)/Flow",
+            "value": 7929861,
+            "range": "± 224521",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Unique Lifetimes (min)/Flow + Deps",
+            "value": 14262556,
+            "range": "± 298724",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Unique Lifetimes (max)/Flow",
+            "value": 231964140,
+            "range": "± 5275906",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Unique Lifetimes (max)/Flow + Deps",
+            "value": 445495993,
+            "range": "± 7028144",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Infoflow (min)/Flow",
+            "value": 7900060,
+            "range": "± 203553",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Infoflow (min)/Flow + Deps",
+            "value": 16724527,
+            "range": "± 216535",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Infoflow (max)/Flow",
+            "value": 231535135,
+            "range": "± 629374",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Infoflow (max)/Flow + Deps",
+            "value": 538563189,
+            "range": "± 1015431",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Places (min)/Flow",
+            "value": 391856,
+            "range": "± 650",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Places (min)/Flow + Deps",
+            "value": 501985,
+            "range": "± 1674",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Places (max)/Flow",
+            "value": 1950896,
+            "range": "± 22699",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Places (max)/Flow + Deps",
+            "value": 2465376,
+            "range": "± 12684",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Same Lifetime (min)/Flow",
+            "value": 39665064,
+            "range": "± 154580",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Same Lifetime (min)/Flow + Deps",
+            "value": 100363999,
+            "range": "± 3611454",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Same Lifetime (max)/Flow",
+            "value": 1325991900,
+            "range": "± 9811062",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Same Lifetime (max)/Flow + Deps",
+            "value": 6204914273,
+            "range": "± 28678536",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Nested Structs (min)/Flow",
+            "value": 3240684,
+            "range": "± 3253",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Nested Structs (min)/Flow + Deps",
+            "value": 4720294,
+            "range": "± 7132",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Nested Structs (max)/Flow",
+            "value": 49638256,
+            "range": "± 474872",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Nested Structs (max)/Flow + Deps",
+            "value": 70892181,
+            "range": "± 803306",
             "unit": "ns/iter"
           }
         ]
