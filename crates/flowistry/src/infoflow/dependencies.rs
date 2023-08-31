@@ -6,19 +6,13 @@ use rustc_middle::mir::{visit::Visitor, *};
 use rustc_span::Span;
 use rustc_utils::{
   block_timer,
+  mir::location_or_arg::{index::LocationOrArgSet, LocationOrArg},
   source_map::spanner::{EnclosingHirSpans, Spanner},
   BodyExt, OperandExt, SpanExt,
 };
 
 use super::{mutation::ModularMutationVisitor, FlowDomain, FlowResults};
-use crate::{
-  indexed::{
-    impls::{LocationOrArg, LocationOrArgSet},
-    RefSet,
-  },
-  infoflow::mutation::Mutation,
-  mir::placeinfo::PlaceInfo,
-};
+use crate::{infoflow::mutation::Mutation, mir::placeinfo::PlaceInfo};
 
 /// Which way to look for dependencies
 #[derive(Clone, Copy, Debug)]
@@ -67,7 +61,7 @@ impl TargetDeps {
         forward.insert_all();
         for conflict in place_info.children(place_info.normalize(place)) {
           // conflict should already be normalized because the input to aliases.children is normalized
-          let deps = state.row_set(conflict);
+          let deps = state.row_set(&conflict);
           trace!("place={place:?}, conflict={conflict:?}, deps={deps:?}");
           forward.intersect(&deps);
         }
@@ -89,8 +83,8 @@ pub fn deps<'a, 'tcx>(
   state: &'a FlowDomain<'tcx>,
   place_info: &'a PlaceInfo<'a, 'tcx>,
   place: Place<'tcx>,
-) -> LocationOrArgSet<RefSet<'a, LocationOrArg>> {
-  state.row_set(place_info.normalize(place))
+) -> &'a LocationOrArgSet {
+  state.row_set(&place_info.normalize(place))
 }
 
 /// Computes the dependencies of a place $p$ at a location $\ell$ in a given
@@ -192,7 +186,7 @@ pub fn compute_dependencies<'tcx>(
     for (targets, outputs) in iter::zip(&all_targets, &mut *outputs.borrow_mut()) {
       for (place, location) in targets {
         match location {
-          LocationOrArg::Arg(..) => outputs.insert(location),
+          LocationOrArg::Arg(..) => outputs.insert(*location),
           LocationOrArg::Location(location) => {
             let deps = results
               .analysis

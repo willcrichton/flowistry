@@ -22,8 +22,7 @@ use rustc_utils::{mir::place::UNKNOWN_REGION, timer::elapsed, PlaceExt};
 
 use crate::{
   extensions::{is_extension_active, PointerMode},
-  indexed::impls::PlaceSet,
-  mir::utils::AsyncHack,
+  mir::utils::{AsyncHack, PlaceSet},
 };
 
 #[derive(Default)]
