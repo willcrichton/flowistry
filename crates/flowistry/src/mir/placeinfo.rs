@@ -2,6 +2,7 @@
 
 use std::{ops::ControlFlow, rc::Rc};
 
+use indexical::ToIndex;
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{
@@ -13,20 +14,18 @@ use rustc_middle::{
 use rustc_utils::{
   block_timer,
   cache::{Cache, CopyCache},
-  mir::place::UNKNOWN_REGION,
-  MutabilityExt, PlaceExt,
+  mir::{
+    location_or_arg::{
+      index::{LocationOrArgDomain, LocationOrArgIndex},
+      LocationOrArg,
+    },
+    place::UNKNOWN_REGION,
+  },
+  BodyExt, MutabilityExt, PlaceExt,
 };
 
-use super::aliases::Aliases;
-use crate::{
-  extensions::{is_extension_active, MutabilityMode},
-  indexed::{
-    impls::{
-      build_location_arg_domain, LocationOrArgDomain, LocationOrArgIndex, PlaceSet,
-    },
-    ToIndex,
-  },
-};
+use super::{aliases::Aliases, utils::PlaceSet};
+use crate::extensions::{is_extension_active, MutabilityMode};
 
 /// Utilities for analyzing places: children, aliases, etc.
 pub struct PlaceInfo<'a, 'tcx> {
@@ -43,6 +42,13 @@ pub struct PlaceInfo<'a, 'tcx> {
   aliases_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
   conflicts_cache: Cache<Place<'tcx>, PlaceSet<'tcx>>,
   reachable_cache: Cache<(Place<'tcx>, Mutability), PlaceSet<'tcx>>,
+}
+
+pub fn build_location_arg_domain(body: &Body) -> Rc<LocationOrArgDomain> {
+  let all_locations = body.all_locations().map(LocationOrArg::Location);
+  let all_locals = body.args_iter().map(LocationOrArg::Arg);
+  let domain = all_locations.chain(all_locals).collect();
+  Rc::new(LocationOrArgDomain::new(domain))
 }
 
 impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {

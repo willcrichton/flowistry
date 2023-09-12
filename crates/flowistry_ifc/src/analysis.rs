@@ -4,7 +4,7 @@
 use std::io::Write;
 
 use anyhow::Result;
-use flowistry::{indexed::impls::PlaceSet, infoflow::FlowResults};
+use flowistry::{infoflow::FlowResults, mir::utils::PlaceSet};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::{def::Res, def_id::DefId, BodyId};
 use rustc_infer::traits::EvaluationResult;

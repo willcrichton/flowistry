@@ -10,6 +10,8 @@ use rustc_utils::{BodyExt, OperandExt, PlaceExt};
 
 use crate::extensions::{is_extension_active, MutabilityMode};
 
+pub type PlaceSet<'tcx> = HashSet<Place<'tcx>>;
+
 /// Given the arguments to a function, returns all projections of the arguments that are mutable pointers.
 pub fn arg_mut_ptrs<'tcx>(
   args: &[(usize, Place<'tcx>)],

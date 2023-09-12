@@ -14,6 +14,7 @@
 use std::rc::Rc;
 
 use either::Either;
+use indexical::ToIndex;
 use rustc_data_structures::{graph::WithSuccessors, work_queue::WorkQueue};
 use rustc_index::IndexVec;
 use rustc_middle::{
@@ -21,11 +22,12 @@ use rustc_middle::{
   ty::TyCtxt,
 };
 use rustc_mir_dataflow::{Analysis, Direction, JoinSemiLattice, ResultsVisitor};
-use rustc_utils::BodyExt;
-
-use crate::indexed::{
-  impls::{LocationOrArg, LocationOrArgDomain, LocationOrArgIndex},
-  IndexedDomain, ToIndex,
+use rustc_utils::{
+  mir::location_or_arg::{
+    index::{LocationOrArgDomain, LocationOrArgIndex},
+    LocationOrArg,
+  },
+  BodyExt,
 };
 
 /// An alternative implementation of
