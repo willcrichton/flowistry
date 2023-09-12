@@ -72,7 +72,6 @@ extern crate rustc_trait_selection;
 extern crate smallvec;
 
 pub mod extensions;
-pub mod indexed;
 pub mod infoflow;
 pub mod mir;
 #[cfg(feature = "test")]

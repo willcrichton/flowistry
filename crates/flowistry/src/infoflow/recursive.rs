@@ -200,7 +200,7 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
     };
 
     let mutations = return_state.rows().filter_map(|(child, _)| {
-      let parent = translate_child_to_parent(child, true)?;
+      let parent = translate_child_to_parent(*child, true)?;
 
       let was_return: bool = child.local == RETURN_PLACE;
       // > 1 because arguments will always have their synthetic location in their dep set
@@ -213,7 +213,7 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
       let parent_deps = return_state
         .rows()
         .filter(|(_, deps)| child_deps.is_superset(deps))
-        .filter_map(|(row, _)| translate_child_to_parent(row, false))
+        .filter_map(|(row, _)| translate_child_to_parent(*row, false))
         .collect::<Vec<_>>();
 
       debug!(

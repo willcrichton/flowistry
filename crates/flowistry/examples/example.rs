@@ -24,7 +24,7 @@ extern crate rustc_span;
 
 use std::process::Command;
 
-use flowistry::{indexed::impls::LocationOrArg, infoflow::Direction};
+use flowistry::infoflow::Direction;
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_hir::{BodyId, ItemKind};
 use rustc_middle::{
@@ -33,7 +33,7 @@ use rustc_middle::{
 };
 use rustc_span::Span;
 use rustc_utils::{
-  mir::borrowck_facts,
+  mir::{borrowck_facts, location_or_arg::LocationOrArg},
   source_map::spanner::{EnclosingHirSpans, Spanner},
   BodyExt, PlaceExt, SpanExt,
 };

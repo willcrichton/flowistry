@@ -1,5 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
+use indexical::impls::RustcIndexMatrix;
 use log::{debug, trace};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::{def_id::DefId, BodyId};
@@ -9,7 +10,14 @@ use rustc_middle::{
 };
 use rustc_mir_dataflow::{Analysis, AnalysisDomain, Forward};
 use rustc_utils::{
-  mir::control_dependencies::ControlDependencies, BodyExt, OperandExt, PlaceExt,
+  mir::{
+    control_dependencies::ControlDependencies,
+    location_or_arg::{
+      index::{LocationOrArgDomain, LocationOrArgSet},
+      LocationOrArg,
+    },
+  },
+  BodyExt, OperandExt, PlaceExt,
 };
 use smallvec::SmallVec;
 
@@ -19,10 +27,6 @@ use super::{
 };
 use crate::{
   extensions::{is_extension_active, ContextMode, MutabilityMode},
-  indexed::{
-    impls::{LocationOrArg, LocationOrArgDomain, LocationOrArgSet},
-    IndexMatrix, IndexedDomain,
-  },
   mir::placeinfo::PlaceInfo,
 };
 
@@ -48,7 +52,7 @@ use crate::{
 /// information flow analysis: an instruction `bb[0]: _2 = _1` (where `_1` is an argument) would set $\Theta(\verb|_2|) = \Theta(\verb|_1|) \cup \\{\verb|bb0\[0\]|\\}\$.
 /// However, $\Theta(\verb|_1|)$ would be empty, so it would be imposible to determine that `_2` depends on `_1`. To solve this issue, we
 /// enrich the domain of locations with arguments, using the [`LocationOrArg`] type. Any dependency can be on *either* a location or an argument.
-pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, LocationOrArg>;
+pub type FlowDomain<'tcx> = RustcIndexMatrix<Place<'tcx>, LocationOrArg>;
 
 /// Data structure that holds context for performing the information flow analysis.
 pub struct FlowAnalysis<'a, 'tcx> {
@@ -111,7 +115,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
       .iter()
       .flat_map(|place| self.influences(*place))
     {
-      deps.union(&state.row_set(self.place_info.normalize(subplace)));
+      deps.union(&state.row_set(&self.place_info.normalize(subplace)));
     }
     deps
   }
@@ -138,7 +142,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
                     input,
                     target_deps: &mut LocationOrArgSet| {
       for relevant in self.influences(input) {
-        let relevant_deps = state.row_set(self.place_info.normalize(relevant));
+        let relevant_deps = state.row_set(&self.place_info.normalize(relevant));
         trace!("    For relevant {relevant:?} for input {input:?} adding deps {relevant_deps:?}");
         target_deps.union(&relevant_deps);
       }
@@ -178,7 +182,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
         && self.place_info.aliases(mt.mutated).len() == 1
       {
         for sub in self.place_info.children(mt.mutated).iter() {
-          state.clear_row(self.place_info.normalize(*sub));
+          state.clear_row(&self.place_info.normalize(*sub));
         }
       }
 
