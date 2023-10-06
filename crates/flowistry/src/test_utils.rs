@@ -1,5 +1,7 @@
 //! Running rustc and Flowistry in tests.
 
+#![allow(missing_docs)]
+
 use std::{fs, io, panic, path::Path};
 
 use anyhow::Result;

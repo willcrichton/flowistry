@@ -63,7 +63,7 @@ impl TargetDeps {
           // conflict should already be normalized because the input to aliases.children is normalized
           let deps = state.row_set(&conflict);
           trace!("place={place:?}, conflict={conflict:?}, deps={deps:?}");
-          forward.intersect(&deps);
+          forward.intersect(deps);
         }
 
         forward.insert(location);
