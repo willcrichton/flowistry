@@ -48,6 +48,7 @@
   clippy::len_zero,
   clippy::len_without_is_empty
 )]
+#![warn(missing_docs)]
 
 extern crate either;
 extern crate polonius_engine;

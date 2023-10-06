@@ -68,6 +68,7 @@ rustc_index::newtype_index! {
 }
 
 impl<'a, 'tcx> Aliases<'a, 'tcx> {
+  /// Runs the alias analysis on a given `body_with_facts`.
   pub fn build(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
@@ -81,6 +82,9 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     }
   }
 
+  /// Alternative constructor if you need to filter out certain borrowck facts.
+  /// 
+  /// Just use [`Aliases::build`] unless you know what you're doing.
   pub fn build_with_fact_selection(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
@@ -104,7 +108,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     let start = Instant::now();
     let body = &body_with_facts.body;
     let static_region = RegionVid::from_usize(0);
-    let ref subset_base = body_with_facts
+    let subset_base = &body_with_facts
       .input_facts
       .as_ref()
       .unwrap()
@@ -342,6 +346,22 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     contains
   }
 
+  /// Given a `place`, returns the set of direct places it could refer to.
+  ///
+  /// For example, in the program:
+  /// ```
+  /// let x = 1;
+  /// let y = &x;
+  /// ```
+  ///
+  /// The place `*y` (but NOT `y`) is an alias for `x`. Similarly, in the program:
+  ///
+  /// ```
+  /// let v = vec![1, 2, 3];
+  /// let n = &v[0];
+  /// ```
+  ///
+  /// The place `*n` is an alias for `v` (even though they have different types!).
   pub fn aliases(&self, place: Place<'tcx>) -> PlaceSet<'tcx> {
     let mut aliases = HashSet::default();
     aliases.insert(place);

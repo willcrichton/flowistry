@@ -1,12 +1,17 @@
 //! Extra features for evaluating / ablating the precision of Flowistry's algorithm.
+#![allow(missing_docs)]
+
 use std::{cell::RefCell, str::FromStr};
 
 use fluid_let::fluid_let;
 use serde::{Deserialize, Serialize};
 
+/// Whether Flowistry should ignore the distinction between mutable and immtuable references
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Hash)]
 pub enum MutabilityMode {
+  /// Precise behavior, distinguish them
   DistinguishMut,
+  /// Imprecise behavior, do not distinguish them (assume everything is mutable)
   IgnoreMut,
 }
 
@@ -21,9 +26,12 @@ impl FromStr for MutabilityMode {
   }
 }
 
+/// Whether Flowistry should attempt to recurse into call-sites to analyze them
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Hash)]
 pub enum ContextMode {
+  /// Imprecise behavior, only use the modular approximation
   SigOnly,
+  /// Precise behavior, recurse into call sites when possible
   Recurse,
 }
 
@@ -38,9 +46,12 @@ impl FromStr for ContextMode {
   }
 }
 
+/// Whether Flowistry should use lifetimes to distinguish pointers
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Hash)]
 pub enum PointerMode {
+  /// Precise behavior, use lifetimes
   Precise,
+  /// Imprecise behavior, assume all pointers alias
   Conservative,
 }
 
@@ -55,6 +66,7 @@ impl FromStr for PointerMode {
   }
 }
 
+/// A combination of all the precision levers.
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Hash)]
 pub struct EvalMode {
   pub mutability_mode: MutabilityMode,
