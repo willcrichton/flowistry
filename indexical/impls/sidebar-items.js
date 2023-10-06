@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["bit_set"],"struct":["BitSet"],"type":["RustcArcIndexMatrix","RustcArcIndexSet","RustcIndexMatrix","RustcIndexSet","RustcRefIndexMatrix","RustcRefIndexSet"]};

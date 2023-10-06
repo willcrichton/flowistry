@@ -71,21 +71,23 @@
 <a href="#55" id="55">55</a>
 <a href="#56" id="56">56</a>
 <a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>flowistry::{
-  indexed::{impls::LocationOrArg, IndexMatrix},
   infoflow::mutation::{ModularMutationVisitor, Mutation},
   mir::placeinfo::PlaceInfo,
 };
+<span class="kw">use </span>indexical::impls::RustcIndexMatrix;
 <span class="kw">use </span>rustc_middle::mir::{visit::Visitor, Body, Mutability, Place};
+<span class="kw">use </span>rustc_utils::mir::location_or_arg::LocationOrArg;
 
 <span class="kw">pub struct </span>DirectInfluence&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
   place_info: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PlaceInfo&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
-  influence: IndexMatrix&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, LocationOrArg&gt;,
+  influence: RustcIndexMatrix&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, LocationOrArg&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; DirectInfluence&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
   <span class="kw">pub fn </span>build(body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, place_info: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PlaceInfo&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
-    <span class="kw">let </span><span class="kw-2">mut </span>influence = IndexMatrix::new(place_info.location_domain());
+    <span class="kw">let </span><span class="kw-2">mut </span>influence = RustcIndexMatrix::new(place_info.location_domain());
 
     ModularMutationVisitor::new(place_info, |location, mutations| {
       <span class="kw">let </span><span class="kw-2">mut </span>add = |place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, mutability: Mutability| {
@@ -120,7 +122,7 @@
       .flat_map(|target_alias| {
         <span class="self">self
           </span>.influence
-          .row_set(<span class="kw-2">*</span>target_alias)
+          .row_set(target_alias)
           .iter()
           .copied()
           .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()

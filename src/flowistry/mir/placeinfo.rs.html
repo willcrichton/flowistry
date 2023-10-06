@@ -351,10 +351,19 @@
 <a href="#335" id="335">335</a>
 <a href="#336" id="336">336</a>
 <a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Utilities for analyzing places: children, aliases, etc.
 
 </span><span class="kw">use </span>std::{ops::ControlFlow, rc::Rc};
 
+<span class="kw">use </span>indexical::ToIndex;
 <span class="kw">use </span>rustc_borrowck::consumers::BodyWithBorrowckFacts;
 <span class="kw">use </span>rustc_hir::def_id::DefId;
 <span class="kw">use </span>rustc_middle::{
@@ -366,26 +375,24 @@
 <span class="kw">use </span>rustc_utils::{
   block_timer,
   cache::{Cache, CopyCache},
-  mir::place::UNKNOWN_REGION,
-  MutabilityExt, PlaceExt,
+  mir::{
+    location_or_arg::{
+      index::{LocationOrArgDomain, LocationOrArgIndex},
+      LocationOrArg,
+    },
+    place::UNKNOWN_REGION,
+  },
+  BodyExt, MutabilityExt, PlaceExt,
 };
 
-<span class="kw">use </span><span class="kw">super</span>::aliases::Aliases;
-<span class="kw">use crate</span>::{
-  extensions::{is_extension_active, MutabilityMode},
-  indexed::{
-    impls::{
-      build_location_arg_domain, LocationOrArgDomain, LocationOrArgIndex, PlaceSet,
-    },
-    ToIndex,
-  },
-};
+<span class="kw">use super</span>::{aliases::Aliases, utils::PlaceSet};
+<span class="kw">use </span><span class="kw">crate</span>::extensions::{is_extension_active, MutabilityMode};
 
 <span class="doccomment">/// Utilities for analyzing places: children, aliases, etc.
 </span><span class="kw">pub struct </span>PlaceInfo&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-  <span class="kw">pub </span>tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-  <span class="kw">pub </span>body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-  <span class="kw">pub </span>def_id: DefId,
+  <span class="kw">pub</span>(<span class="kw">crate</span>) tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  <span class="kw">pub</span>(<span class="kw">crate</span>) body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  <span class="kw">pub</span>(<span class="kw">crate</span>) def_id: DefId,
   location_domain: Rc&lt;LocationOrArgDomain&gt;,
 
   <span class="comment">// Core computed data structure
@@ -399,14 +406,22 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; PlaceInfo&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-  <span class="kw">pub fn </span>build(
+  <span class="kw">fn </span>build_location_arg_domain(body: <span class="kw-2">&amp;</span>Body) -&gt; Rc&lt;LocationOrArgDomain&gt; {
+    <span class="kw">let </span>all_locations = body.all_locations().map(LocationOrArg::Location);
+    <span class="kw">let </span>all_locals = body.args_iter().map(LocationOrArg::Arg);
+    <span class="kw">let </span>domain = all_locations.chain(all_locals).collect();
+    Rc::new(LocationOrArgDomain::new(domain))
+  }
+
+  <span class="doccomment">/// Computes all the metadata about places used within the infoflow analysis.
+  </span><span class="kw">pub fn </span>build(
     tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     def_id: DefId,
     body_with_facts: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;tcx</span>&gt;,
   ) -&gt; <span class="self">Self </span>{
     <span class="macro">block_timer!</span>(<span class="string">&quot;aliases&quot;</span>);
     <span class="kw">let </span>body = <span class="kw-2">&amp;</span>body_with_facts.body;
-    <span class="kw">let </span>location_domain = build_location_arg_domain(body);
+    <span class="kw">let </span>location_domain = <span class="self">Self</span>::build_location_arg_domain(body);
     <span class="kw">let </span>aliases = Aliases::build(tcx, def_id, body_with_facts);
 
     PlaceInfo {
@@ -530,7 +545,8 @@
     })
   }
 
-  <span class="kw">pub fn </span>location_domain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Rc&lt;LocationOrArgDomain&gt; {
+  <span class="doccomment">/// Returns the [`LocationOrArgDomain`] for the current body.
+  </span><span class="kw">pub fn </span>location_domain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Rc&lt;LocationOrArgDomain&gt; {
     <span class="kw-2">&amp;</span><span class="self">self</span>.location_domain
   }
 }

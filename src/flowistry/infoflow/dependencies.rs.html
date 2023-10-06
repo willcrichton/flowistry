@@ -257,10 +257,6 @@
 <a href="#241" id="241">241</a>
 <a href="#242" id="242">242</a>
 <a href="#243" id="243">243</a>
-<a href="#244" id="244">244</a>
-<a href="#245" id="245">245</a>
-<a href="#246" id="246">246</a>
-<a href="#247" id="247">247</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::RefCell, iter};
 
 <span class="kw">use </span>either::Either;
@@ -269,19 +265,13 @@
 <span class="kw">use </span>rustc_span::Span;
 <span class="kw">use </span>rustc_utils::{
   block_timer,
+  mir::location_or_arg::{index::LocationOrArgSet, LocationOrArg},
   source_map::spanner::{EnclosingHirSpans, Spanner},
   BodyExt, OperandExt, SpanExt,
 };
 
 <span class="kw">use super</span>::{mutation::ModularMutationVisitor, FlowDomain, FlowResults};
-<span class="kw">use crate</span>::{
-  indexed::{
-    impls::{LocationOrArg, LocationOrArgSet},
-    RefSet,
-  },
-  infoflow::mutation::Mutation,
-  mir::placeinfo::PlaceInfo,
-};
+<span class="kw">use crate</span>::{infoflow::mutation::Mutation, mir::placeinfo::PlaceInfo};
 
 <span class="doccomment">/// Which way to look for dependencies
 </span><span class="attr">#[derive(Clone, Copy, Debug)]
@@ -330,9 +320,9 @@
         forward.insert_all();
         <span class="kw">for </span>conflict <span class="kw">in </span>place_info.children(place_info.normalize(place)) {
           <span class="comment">// conflict should already be normalized because the input to aliases.children is normalized
-          </span><span class="kw">let </span>deps = state.row_set(conflict);
+          </span><span class="kw">let </span>deps = state.row_set(<span class="kw-2">&amp;</span>conflict);
           <span class="macro">trace!</span>(<span class="string">&quot;place={place:?}, conflict={conflict:?}, deps={deps:?}&quot;</span>);
-          forward.intersect(<span class="kw-2">&amp;</span>deps);
+          forward.intersect(deps);
         }
 
         forward.insert(location);
@@ -352,8 +342,8 @@
   state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt;,
   place_info: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PlaceInfo&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
   place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-) -&gt; LocationOrArgSet&lt;RefSet&lt;<span class="lifetime">&#39;a</span>, LocationOrArg&gt;&gt; {
-  state.row_set(place_info.normalize(place))
+) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>LocationOrArgSet {
+  state.row_set(<span class="kw-2">&amp;</span>place_info.normalize(place))
 }
 
 <span class="doccomment">/// Computes the dependencies of a place $p$ at a location $\ell$ in a given
@@ -455,7 +445,9 @@
     <span class="kw">for </span>(targets, outputs) <span class="kw">in </span>iter::zip(<span class="kw-2">&amp;</span>all_targets, <span class="kw-2">&amp;mut *</span>outputs.borrow_mut()) {
       <span class="kw">for </span>(place, location) <span class="kw">in </span>targets {
         <span class="kw">match </span>location {
-          LocationOrArg::Arg(..) =&gt; outputs.insert(location),
+          LocationOrArg::Arg(..) =&gt; {
+            outputs.insert(<span class="kw-2">*</span>location);
+          }
           LocationOrArg::Location(location) =&gt; {
             <span class="kw">let </span>deps = results
               .analysis

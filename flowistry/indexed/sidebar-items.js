@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["impls"],"struct":["DefaultDomain","IndexMatrix","IndexSet","MutSet","OwnedSet","RefSet"],"trait":["IndexSetIteratorExt","IndexedDomain","IndexedValue","ToIndex","ToSet","ToSetMut"],"traitalias":["RowBounds"],"type":["IndexSetImpl"]};

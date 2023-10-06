@@ -250,8 +250,6 @@
 <a href="#234" id="234">234</a>
 <a href="#235" id="235">235</a>
 <a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Identifies the mutated places in a MIR instruction via modular approximation based on types.
 
 </span><span class="kw">use </span>log::debug;
@@ -297,9 +295,6 @@
 /// MIR [`Visitor`] methods.
 </span><span class="kw">pub struct </span>ModularMutationVisitor&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, F&gt;
 <span class="kw">where
-  </span><span class="comment">// API design note: wcrichto tried making FnMut(...) a trait alias, but this
-  // interacted poorly with type inference and required ModularMutationVisitor
-  // clients to explicitly write out the type parameter of every closure argument.
   </span>F: FnMut(Location, Vec&lt;Mutation&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;),
 {
   f: F,
@@ -310,7 +305,8 @@
 <span class="kw">where
   </span>F: FnMut(Location, Vec&lt;Mutation&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;),
 {
-  <span class="kw">pub fn </span>new(place_info: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PlaceInfo&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;, f: F) -&gt; <span class="self">Self </span>{
+  <span class="doccomment">/// Constructs a new visitor.
+  </span><span class="kw">pub fn </span>new(place_info: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PlaceInfo&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;, f: F) -&gt; <span class="self">Self </span>{
     ModularMutationVisitor { place_info, f }
   }
 }

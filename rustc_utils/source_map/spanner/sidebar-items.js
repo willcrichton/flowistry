@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["EnclosingHirSpans","LocationOrArg"],"struct":["Spanner"]};
+window.SIDEBAR_ITEMS = {"enum":["EnclosingHirSpans"],"struct":["Spanner"]};

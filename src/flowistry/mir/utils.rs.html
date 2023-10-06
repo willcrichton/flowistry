@@ -114,6 +114,15 @@
 <a href="#98" id="98">98</a>
 <a href="#99" id="99">99</a>
 <a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A potpourri of utilities for working with the MIR, primarily exposed as extension traits.
 
 </span><span class="kw">use </span>rustc_data_structures::fx::FxHashSet <span class="kw">as </span>HashSet;
@@ -125,6 +134,13 @@
 <span class="kw">use </span>rustc_utils::{BodyExt, OperandExt, PlaceExt};
 
 <span class="kw">use </span><span class="kw">crate</span>::extensions::{is_extension_active, MutabilityMode};
+
+<span class="doccomment">/// An unordered collections of MIR [`Place`]s.
+///
+/// *Note:* this used to be implemented as an [`IndexSet`](indexical::IndexSet),
+/// but in practice it was very hard to determine up-front a fixed domain of
+/// [`Place`]s that was not &quot;every possible place in the body&quot;.
+</span><span class="kw">pub type </span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; = HashSet&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;;
 
 <span class="doccomment">/// Given the arguments to a function, returns all projections of the arguments that are mutable pointers.
 </span><span class="kw">pub fn </span>arg_mut_ptrs&lt;<span class="lifetime">&#39;tcx</span>&gt;(
@@ -163,14 +179,16 @@
     .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
 }
 
-<span class="comment">// This is a temporary hack to reduce spurious dependencies in generators
-// arising from async functions. The issue is that the &amp;mut std::task::Context
-// variable interferes with both the modular approximation and the alias analysis.
-// As a patch up, we ignore subset constraints arising from lifetimes appearing
-// in the Context type, as well as ignore any place of type Context in function calls.
-//
-// See test: async_two_await
-</span><span class="kw">pub struct </span>AsyncHack&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="doccomment">/// A hack to temporary hack to reduce spurious dependencies in generators
+/// arising from async functions.
+///
+/// The issue is that the `&amp;mut std::task::Context` variable interferes with both
+/// the modular approximation and the alias analysis. As a patch up, we ignore subset
+/// constraints arising from lifetimes appearing in the Context type, as well as ignore
+/// any place of type Context in function calls.
+///
+/// See test: async_two_await
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AsyncHack&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
   context_ty: <span class="prelude-ty">Option</span>&lt;Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
   tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
   body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/aho-corasick-1.0.4/src/nfa/noncontiguous.rs`."><title>noncontiguous.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../aho_corasick/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/aho-corasick-1.1.1/src/nfa/noncontiguous.rs`."><title>noncontiguous.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../aho_corasick/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1708,6 +1708,58 @@
 <a href="#1708" id="1708">1708</a>
 <a href="#1709" id="1709">1709</a>
 <a href="#1710" id="1710">1710</a>
+<a href="#1711" id="1711">1711</a>
+<a href="#1712" id="1712">1712</a>
+<a href="#1713" id="1713">1713</a>
+<a href="#1714" id="1714">1714</a>
+<a href="#1715" id="1715">1715</a>
+<a href="#1716" id="1716">1716</a>
+<a href="#1717" id="1717">1717</a>
+<a href="#1718" id="1718">1718</a>
+<a href="#1719" id="1719">1719</a>
+<a href="#1720" id="1720">1720</a>
+<a href="#1721" id="1721">1721</a>
+<a href="#1722" id="1722">1722</a>
+<a href="#1723" id="1723">1723</a>
+<a href="#1724" id="1724">1724</a>
+<a href="#1725" id="1725">1725</a>
+<a href="#1726" id="1726">1726</a>
+<a href="#1727" id="1727">1727</a>
+<a href="#1728" id="1728">1728</a>
+<a href="#1729" id="1729">1729</a>
+<a href="#1730" id="1730">1730</a>
+<a href="#1731" id="1731">1731</a>
+<a href="#1732" id="1732">1732</a>
+<a href="#1733" id="1733">1733</a>
+<a href="#1734" id="1734">1734</a>
+<a href="#1735" id="1735">1735</a>
+<a href="#1736" id="1736">1736</a>
+<a href="#1737" id="1737">1737</a>
+<a href="#1738" id="1738">1738</a>
+<a href="#1739" id="1739">1739</a>
+<a href="#1740" id="1740">1740</a>
+<a href="#1741" id="1741">1741</a>
+<a href="#1742" id="1742">1742</a>
+<a href="#1743" id="1743">1743</a>
+<a href="#1744" id="1744">1744</a>
+<a href="#1745" id="1745">1745</a>
+<a href="#1746" id="1746">1746</a>
+<a href="#1747" id="1747">1747</a>
+<a href="#1748" id="1748">1748</a>
+<a href="#1749" id="1749">1749</a>
+<a href="#1750" id="1750">1750</a>
+<a href="#1751" id="1751">1751</a>
+<a href="#1752" id="1752">1752</a>
+<a href="#1753" id="1753">1753</a>
+<a href="#1754" id="1754">1754</a>
+<a href="#1755" id="1755">1755</a>
+<a href="#1756" id="1756">1756</a>
+<a href="#1757" id="1757">1757</a>
+<a href="#1758" id="1758">1758</a>
+<a href="#1759" id="1759">1759</a>
+<a href="#1760" id="1760">1760</a>
+<a href="#1761" id="1761">1761</a>
+<a href="#1762" id="1762">1762</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/*!
 Provides a noncontiguous NFA implementation of Aho-Corasick.
 
@@ -2019,25 +2071,27 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
         })
     }
 
-    <span class="doccomment">/// Return the transition following the one given. If the one given is the
-    /// last transition for the given state, then return `None`.
+    <span class="doccomment">/// Return the link following the one given. If the one given is the last
+    /// link for the given state, then return `None`.
     ///
-    /// If no previous transition is given, then this returns the first
-    /// transition in the state, if one exists.
+    /// If no previous link is given, then this returns the first link in the
+    /// state, if one exists.
     ///
     /// This is useful for manually iterating over the transitions in a single
     /// state without borrowing the NFA. This permits mutating other parts of
-    /// the NFA during iteration.
-    </span><span class="kw">fn </span>next_transition(
+    /// the NFA during iteration. Namely, one can access the transition pointed
+    /// to by the link via `self.sparse[link]`.
+    </span><span class="kw">fn </span>next_link(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         sid: StateID,
-        prev: <span class="prelude-ty">Option</span>&lt;Transition&gt;,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Transition&gt; {
-        <span class="kw">let </span>link = prev.map_or(<span class="self">self</span>.states[sid].sparse, |t| t.link);
+        prev: <span class="prelude-ty">Option</span>&lt;StateID&gt;,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;StateID&gt; {
+        <span class="kw">let </span>link =
+            prev.map_or(<span class="self">self</span>.states[sid].sparse, |p| <span class="self">self</span>.sparse[p].link);
         <span class="kw">if </span>link == StateID::ZERO {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<span class="self">self</span>.sparse[link])
+            <span class="prelude-val">Some</span>(link)
         }
     }
 
@@ -2130,6 +2184,46 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
         <span class="prelude-val">Ok</span>(())
     }
 
+    <span class="doccomment">/// This sets every possible transition (all 255 of them) for the given
+    /// state to the name `next` value.
+    ///
+    /// This is useful for efficiently initializing start/dead states.
+    ///
+    /// # Panics
+    ///
+    /// This requires that the state has no transitions added to it already.
+    /// If it has any transitions, then this panics. It will also panic if
+    /// the state has been densified prior to calling this.
+    </span><span class="kw">fn </span>init_full_state(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        prev: StateID,
+        next: StateID,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), BuildError&gt; {
+        <span class="macro">assert_eq!</span>(
+            StateID::ZERO,
+            <span class="self">self</span>.states[prev].dense,
+            <span class="string">&quot;state must not be dense yet&quot;
+        </span>);
+        <span class="macro">assert_eq!</span>(
+            StateID::ZERO,
+            <span class="self">self</span>.states[prev].sparse,
+            <span class="string">&quot;state must have zero transitions&quot;
+        </span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>prev_link = StateID::ZERO;
+        <span class="kw">for </span>byte <span class="kw">in </span><span class="number">0</span>..=<span class="number">255 </span>{
+            <span class="kw">let </span>new_link = <span class="self">self</span>.alloc_transition()<span class="question-mark">?</span>;
+            <span class="self">self</span>.sparse[new_link] =
+                Transition { byte, next, link: StateID::ZERO };
+            <span class="kw">if </span>prev_link == StateID::ZERO {
+                <span class="self">self</span>.states[prev].sparse = new_link;
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.sparse[prev_link].link = new_link;
+            }
+            prev_link = new_link;
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
     <span class="doccomment">/// Add a match for the given pattern ID to the state for the given ID.
     </span><span class="kw">fn </span>add_match(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -2141,14 +2235,8 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
         <span class="kw">while </span><span class="self">self</span>.matches[link].link != StateID::ZERO {
             link = <span class="self">self</span>.matches[link].link;
         }
-        <span class="kw">let </span>new_match_link =
-            StateID::new(<span class="self">self</span>.matches.len()).map_err(|e| {
-                BuildError::state_id_overflow(
-                    StateID::MAX.as_u64(),
-                    e.attempted(),
-                )
-            })<span class="question-mark">?</span>;
-        <span class="self">self</span>.matches.push(Match { pid, link: StateID::ZERO });
+        <span class="kw">let </span>new_match_link = <span class="self">self</span>.alloc_match()<span class="question-mark">?</span>;
+        <span class="self">self</span>.matches[new_match_link].pid = pid;
         <span class="kw">if </span>link == StateID::ZERO {
             <span class="self">self</span>.states[sid].matches = new_match_link;
         } <span class="kw">else </span>{
@@ -2361,8 +2449,6 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
 
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>memory_usage(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="kw">use </span>core::mem::size_of;
-
         <span class="self">self</span>.states.len() * core::mem::size_of::&lt;State&gt;()
             + <span class="self">self</span>.sparse.len() * core::mem::size_of::&lt;Transition&gt;()
             + <span class="self">self</span>.matches.len() * core::mem::size_of::&lt;Match&gt;()
@@ -2377,10 +2463,7 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
     }
 }
 
-<span class="comment">// BREADCRUMBS: Add `dense` field below that is non-zero when the state&#39;s
-// transitions are defined in a dense table.
-
-</span><span class="doccomment">/// A representation of a sparse NFA state for an Aho-Corasick automaton.
+<span class="doccomment">/// A representation of a sparse NFA state for an Aho-Corasick automaton.
 ///
 /// It contains the transitions to the next state, a failure transition for
 /// cases where there exists no other transition for the current input byte
@@ -2664,7 +2747,11 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
         </span><span class="self">self</span>.nfa.special.start_anchored_id = <span class="self">self</span>.nfa.alloc_state(<span class="number">0</span>)<span class="question-mark">?</span>;
         <span class="comment">// Initialize the unanchored starting state in order to make it dense,
         // and thus make transition lookups on this state faster.
-        </span><span class="self">self</span>.init_unanchored_start_state();
+        </span><span class="self">self</span>.init_unanchored_start_state()<span class="question-mark">?</span>;
+        <span class="comment">// Set all transitions on the DEAD state to point to itself. This way,
+        // the DEAD state can never be escaped. It MUST be used as a sentinel
+        // in any correct search.
+        </span><span class="self">self</span>.add_dead_state_loop()<span class="question-mark">?</span>;
         <span class="comment">// Build the base trie from the given patterns.
         </span><span class="self">self</span>.build_trie(patterns)<span class="question-mark">?</span>;
         <span class="self">self</span>.nfa.states.shrink_to_fit();
@@ -2682,10 +2769,6 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
         <span class="comment">// Rewrite transitions to the FAIL state on the unanchored start state
         // as self-transitions. This keeps the start state active at all times.
         </span><span class="self">self</span>.add_unanchored_start_state_loop();
-        <span class="comment">// Set all transitions on the DEAD state to point to itself. This way,
-        // the DEAD state can never be escaped. It MUST be used as a sentinel
-        // in any correct search.
-        </span><span class="self">self</span>.add_dead_state_loop();
         <span class="comment">// Make some (possibly zero) states use a dense representation for
         // transitions. It&#39;s important to do this right after the states
         // and non-failure transitions are solidified. That way, subsequent
@@ -2813,17 +2896,17 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
                     prev = next;
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>next = <span class="self">self</span>.nfa.alloc_state(depth)<span class="question-mark">?</span>;
-                    <span class="self">self</span>.nfa.add_transition(prev, b, next);
+                    <span class="self">self</span>.nfa.add_transition(prev, b, next)<span class="question-mark">?</span>;
                     <span class="kw">if </span><span class="self">self</span>.builder.ascii_case_insensitive {
                         <span class="kw">let </span>b = opposite_ascii_case(b);
-                        <span class="self">self</span>.nfa.add_transition(prev, b, next);
+                        <span class="self">self</span>.nfa.add_transition(prev, b, next)<span class="question-mark">?</span>;
                     }
                     prev = next;
                 }
             }
             <span class="comment">// Once the pattern has been added, log the match in the final
             // state that it reached.
-            </span><span class="self">self</span>.nfa.add_match(prev, pid);
+            </span><span class="self">self</span>.nfa.add_match(prev, pid)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -2960,9 +3043,10 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
         // transitions, then this would never terminate.
         </span><span class="kw">let </span><span class="kw-2">mut </span>queue = VecDeque::new();
         <span class="kw">let </span><span class="kw-2">mut </span>seen = <span class="self">self</span>.queued_set();
-        <span class="kw">let </span><span class="kw-2">mut </span>prevt = <span class="prelude-val">None</span>;
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(t) = <span class="self">self</span>.nfa.next_transition(start_uid, prevt) {
-            prevt = <span class="prelude-val">Some</span>(t);
+        <span class="kw">let </span><span class="kw-2">mut </span>prev_link = <span class="prelude-val">None</span>;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(link) = <span class="self">self</span>.nfa.next_link(start_uid, prev_link) {
+            prev_link = <span class="prelude-val">Some</span>(link);
+            <span class="kw">let </span>t = <span class="self">self</span>.nfa.sparse[link];
 
             <span class="comment">// Skip anything we&#39;ve seen before and any self-transitions on the
             // start state.
@@ -2984,9 +3068,10 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
             }
         }
         <span class="kw">while let </span><span class="prelude-val">Some</span>(id) = queue.pop_front() {
-            <span class="kw">let </span><span class="kw-2">mut </span>prevt = <span class="prelude-val">None</span>;
-            <span class="kw">while let </span><span class="prelude-val">Some</span>(t) = <span class="self">self</span>.nfa.next_transition(id, prevt) {
-                prevt = <span class="prelude-val">Some</span>(t);
+            <span class="kw">let </span><span class="kw-2">mut </span>prev_link = <span class="prelude-val">None</span>;
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(link) = <span class="self">self</span>.nfa.next_link(id, prev_link) {
+                prev_link = <span class="prelude-val">Some</span>(link);
+                <span class="kw">let </span>t = <span class="self">self</span>.nfa.sparse[link];
 
                 <span class="kw">if </span>seen.contains(t.next) {
                     <span class="comment">// The only way to visit a duplicate state in a transition
@@ -3188,12 +3273,14 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
                 <span class="kw">continue</span>;
             }
             <span class="kw">let </span>dense = <span class="self">self</span>.nfa.alloc_dense_state()<span class="question-mark">?</span>;
-            <span class="kw">let </span><span class="kw-2">mut </span>prevt = <span class="prelude-val">None</span>;
-            <span class="kw">while let </span><span class="prelude-val">Some</span>(t) = <span class="self">self</span>.nfa.next_transition(sid, prevt) {
+            <span class="kw">let </span><span class="kw-2">mut </span>prev_link = <span class="prelude-val">None</span>;
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(link) = <span class="self">self</span>.nfa.next_link(sid, prev_link) {
+                prev_link = <span class="prelude-val">Some</span>(link);
+                <span class="kw">let </span>t = <span class="self">self</span>.nfa.sparse[link];
+
                 <span class="kw">let </span>class = usize::from(<span class="self">self</span>.nfa.byte_classes.get(t.byte));
                 <span class="kw">let </span>index = dense.as_usize() + class;
                 <span class="self">self</span>.nfa.dense[index] = t.next;
-                prevt = <span class="prelude-val">Some</span>(t);
             }
             <span class="self">self</span>.nfa.states[sid].dense = dense;
         }
@@ -3221,11 +3308,12 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
     /// make the unanchored starting state dense, and thus in turn make
     /// transition lookups on it faster. (Which is worth doing because it&#39;s
     /// the most active state.)
-    </span><span class="kw">fn </span>init_unanchored_start_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    </span><span class="kw">fn </span>init_unanchored_start_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), BuildError&gt; {
         <span class="kw">let </span>start_uid = <span class="self">self</span>.nfa.special.start_unanchored_id;
-        <span class="kw">for </span>byte <span class="kw">in </span><span class="number">0</span>..=<span class="number">255 </span>{
-            <span class="self">self</span>.nfa.add_transition(start_uid, byte, NFA::FAIL);
-        }
+        <span class="kw">let </span>start_aid = <span class="self">self</span>.nfa.special.start_anchored_id;
+        <span class="self">self</span>.nfa.init_full_state(start_uid, NFA::FAIL)<span class="question-mark">?</span>;
+        <span class="self">self</span>.nfa.init_full_state(start_aid, NFA::FAIL)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Setup the anchored start state by copying all of the transitions and
@@ -3235,10 +3323,18 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
     </span><span class="kw">fn </span>set_anchored_start_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), BuildError&gt; {
         <span class="kw">let </span>start_uid = <span class="self">self</span>.nfa.special.start_unanchored_id;
         <span class="kw">let </span>start_aid = <span class="self">self</span>.nfa.special.start_anchored_id;
-        <span class="kw">let </span><span class="kw-2">mut </span>prevt = <span class="prelude-val">None</span>;
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(t) = <span class="self">self</span>.nfa.next_transition(start_uid, prevt) {
-            prevt = <span class="prelude-val">Some</span>(t);
-            <span class="self">self</span>.nfa.add_transition(start_aid, t.byte, t.next)<span class="question-mark">?</span>;
+        <span class="kw">let </span>(<span class="kw-2">mut </span>uprev_link, <span class="kw-2">mut </span>aprev_link) = (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>unext = <span class="self">self</span>.nfa.next_link(start_uid, uprev_link);
+            <span class="kw">let </span>anext = <span class="self">self</span>.nfa.next_link(start_aid, aprev_link);
+            <span class="kw">let </span>(ulink, alink) = <span class="kw">match </span>(unext, anext) {
+                (<span class="prelude-val">Some</span>(ulink), <span class="prelude-val">Some</span>(alink)) =&gt; (ulink, alink),
+                (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="kw">break</span>,
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+            };
+            uprev_link = <span class="prelude-val">Some</span>(ulink);
+            aprev_link = <span class="prelude-val">Some</span>(alink);
+            <span class="self">self</span>.nfa.sparse[alink].next = <span class="self">self</span>.nfa.sparse[ulink].next;
         }
         <span class="self">self</span>.nfa.copy_matches(start_uid, start_aid)<span class="question-mark">?</span>;
         <span class="comment">// This is the main difference between the unanchored and anchored
@@ -3262,9 +3358,11 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
     /// state already exists or not.
     </span><span class="kw">fn </span>add_unanchored_start_state_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span>start_uid = <span class="self">self</span>.nfa.special.start_unanchored_id;
-        <span class="kw">for </span>b <span class="kw">in </span><span class="number">0</span>..=<span class="number">255 </span>{
-            <span class="kw">if </span><span class="self">self</span>.nfa.follow_transition(start_uid, b) == NFA::FAIL {
-                <span class="self">self</span>.nfa.add_transition(start_uid, b, start_uid);
+        <span class="kw">let </span><span class="kw-2">mut </span>prev_link = <span class="prelude-val">None</span>;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(link) = <span class="self">self</span>.nfa.next_link(start_uid, prev_link) {
+            prev_link = <span class="prelude-val">Some</span>(link);
+            <span class="kw">if </span><span class="self">self</span>.nfa.sparse[link].next() == NFA::FAIL {
+                <span class="self">self</span>.nfa.sparse[link].next = start_uid;
             }
         }
     }
@@ -3284,11 +3382,18 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
     </span><span class="kw">fn </span>close_start_state_loop_for_leftmost(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span>start_uid = <span class="self">self</span>.nfa.special.start_unanchored_id;
         <span class="kw">let </span>start = <span class="kw-2">&amp;mut </span><span class="self">self</span>.nfa.states[start_uid];
+        <span class="kw">let </span>dense = start.dense;
         <span class="kw">if </span><span class="self">self</span>.builder.match_kind.is_leftmost() &amp;&amp; start.is_match() {
-            <span class="kw">for </span>b <span class="kw">in </span><span class="number">0</span>..=<span class="number">255 </span>{
-                <span class="kw">if </span><span class="self">self</span>.nfa.follow_transition_sparse(start_uid, b) == start_uid
-                {
-                    <span class="self">self</span>.nfa.add_transition(start_uid, b, NFA::DEAD);
+            <span class="kw">let </span><span class="kw-2">mut </span>prev_link = <span class="prelude-val">None</span>;
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(link) = <span class="self">self</span>.nfa.next_link(start_uid, prev_link) {
+                prev_link = <span class="prelude-val">Some</span>(link);
+                <span class="kw">if </span><span class="self">self</span>.nfa.sparse[link].next() == start_uid {
+                    <span class="self">self</span>.nfa.sparse[link].next = NFA::DEAD;
+                    <span class="kw">if </span>dense != StateID::ZERO {
+                        <span class="kw">let </span>b = <span class="self">self</span>.nfa.sparse[link].byte;
+                        <span class="kw">let </span>class = usize::from(<span class="self">self</span>.nfa.byte_classes.get(b));
+                        <span class="self">self</span>.nfa.dense[dense.as_usize() + class] = NFA::DEAD;
+                    }
                 }
             }
         }
@@ -3297,10 +3402,9 @@ only necessary when one needs access to the [`Automaton`] trait implementation.
     <span class="doccomment">/// Sets all transitions on the dead state to point back to the dead state.
     /// Normally, missing transitions map back to the failure state, but the
     /// point of the dead state is to act as a sink that can never be escaped.
-    </span><span class="kw">fn </span>add_dead_state_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">for </span>b <span class="kw">in </span><span class="number">0</span>..=<span class="number">255 </span>{
-            <span class="self">self</span>.nfa.add_transition(NFA::DEAD, b, NFA::DEAD);
-        }
+    </span><span class="kw">fn </span>add_dead_state_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), BuildError&gt; {
+        <span class="self">self</span>.nfa.init_full_state(NFA::DEAD, NFA::DEAD)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
     }
 }
 

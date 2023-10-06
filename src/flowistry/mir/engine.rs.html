@@ -166,6 +166,10 @@
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module re-implements [`rustc_mir_dataflow::Engine`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Engine.html) for performance reasons.
 //!
 //! The Engine implementation in rustc optimizes for minimizing memory usage
@@ -182,6 +186,7 @@
 </span><span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use </span>either::Either;
+<span class="kw">use </span>indexical::ToIndex;
 <span class="kw">use </span>rustc_data_structures::{graph::WithSuccessors, work_queue::WorkQueue};
 <span class="kw">use </span>rustc_index::IndexVec;
 <span class="kw">use </span>rustc_middle::{
@@ -189,23 +194,26 @@
   ty::TyCtxt,
 };
 <span class="kw">use </span>rustc_mir_dataflow::{Analysis, Direction, JoinSemiLattice, ResultsVisitor};
-<span class="kw">use </span>rustc_utils::BodyExt;
-
-<span class="kw">use </span><span class="kw">crate</span>::indexed::{
-  impls::{LocationOrArg, LocationOrArgDomain, LocationOrArgIndex},
-  IndexedDomain, ToIndex,
+<span class="kw">use </span>rustc_utils::{
+  mir::location_or_arg::{
+    index::{LocationOrArgDomain, LocationOrArgIndex},
+    LocationOrArg,
+  },
+  BodyExt,
 };
 
 <span class="doccomment">/// An alternative implementation of
 /// [`rustc_mir_dataflow::Results`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Results.html).
 </span><span class="kw">pub struct </span>AnalysisResults&lt;<span class="lifetime">&#39;tcx</span>, A: Analysis&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-  <span class="kw">pub </span>analysis: A,
+  <span class="doccomment">/// The underlying analysis that was used to generate the results.
+  </span><span class="kw">pub </span>analysis: A,
   location_domain: Rc&lt;LocationOrArgDomain&gt;,
   state: IndexVec&lt;LocationOrArgIndex, A::Domain&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>, A: Analysis&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; AnalysisResults&lt;<span class="lifetime">&#39;tcx</span>, A&gt; {
-  <span class="kw">pub fn </span>visit_reachable_with&lt;<span class="lifetime">&#39;mir</span>, V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, visitor: <span class="kw-2">&amp;mut </span>V)
+  <span class="doccomment">/// Same as [`rustc_mir_dataflow::Results::visit_reachable_with`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Results.html#method.visit_reachable_with).
+  </span><span class="kw">pub fn </span>visit_reachable_with&lt;<span class="lifetime">&#39;mir</span>, V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, visitor: <span class="kw-2">&amp;mut </span>V)
   <span class="kw">where
     </span>V: ResultsVisitor&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>, <span class="self">Self</span>, FlowState = A::Domain&gt;,
   {

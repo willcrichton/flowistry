@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":["define_index_type","index_box","index_vec"],"struct":["IndexSlice","IndexVec"],"trait":["Idx","IdxRangeBounds","IdxSliceIndex"],"type":["IndexBox"]};

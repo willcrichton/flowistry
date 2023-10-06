@@ -1,0 +1,116 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Generate the boilerplate for a newtyped index struct, for use with `IndexVec`."><title>define_index_type in index_vec - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="index_vec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../index_vec/index.html"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><h2></h2></nav><nav class="sidebar"><a class="logo-container" href="../index_vec/index.html"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><div class="sidebar-elems"><h2><a href="index.html">In index_vec</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Macro <a href="index.html">index_vec</a>::<wbr><a class="macro" href="#">define_index_type</a><button id="copy-path" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../src/index_vec/macros.rs.html#156-173">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><span class="macro">macro_rules! </span>define_index_type {
+    (
+        $(<span class="attr">#[<span class="macro-nonterminal">$attrs</span>:meta]</span>)*
+        <span class="macro-nonterminal">$v</span>:vis <span class="kw">struct </span><span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ident </span>= <span class="macro-nonterminal">$raw</span>:ident;
+        $(<span class="macro-nonterminal">$CONFIG_NAME</span>:ident = <span class="macro-nonterminal">$value</span>:expr;)* $(;)<span class="question-mark">?
+    </span>) =&gt; { ... };
+}</pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Generate the boilerplate for a newtyped index struct, for use with
+<code>IndexVec</code>.</p>
+<p>In the future, if the compile-time overhead of doing so is reduced, this may
+be replaced with a proc macro.</p>
+<h3 id="usage"><a href="#usage">Usage</a></h3><h4 id="standard"><a href="#standard">Standard</a></h4>
+<p>The rough usage pattern of this macro is:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">index_vec::define_index_type! </span>{
+    <span class="comment">// Note that isn&#39;t actually a type alias, `MyIndex` is
+    // actually defined as a struct. XXX is this too confusing?
+    </span><span class="kw">pub struct </span>MyIndex = u32;
+    <span class="comment">// optional extra configuration here of the form:
+    // `OPTION_NAME = stuff;`
+    // See below for details.
+</span>}</code></pre></div>
+<p>Note that you can use other index types than <code>u32</code>, and you can set it to be
+<code>MyIndex(pub u32)</code> as well. Currently, the wrapped item be a tuple struct,
+however (patches welcome).</p>
+<h4 id="customization"><a href="#customization">Customization</a></h4>
+<p>After the struct declaration, there are a number of configuration options
+the macro uses to customize how the type it generates behaves. For example:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">index_vec::define_index_type! </span>{
+    <span class="kw">pub struct </span>Span = u32;
+
+    <span class="comment">// Don&#39;t allow any spans with values higher this.
+    </span>MAX_INDEX = <span class="number">0x7fff_ff00</span>;
+
+    <span class="comment">// But I also am not too worried about it, so only
+    // perform the asserts in debug builds.
+    </span>DISABLE_MAX_INDEX_CHECK = <span class="macro">cfg!</span>(not(debug_assertions));
+}</code></pre></div>
+<h3 id="configuration-options"><a href="#configuration-options">Configuration options</a></h3>
+<p>This macro has a few ways you can customize it’s output behavior. There’s
+not really any great syntax I can think of for them, but, well.</p>
+<h5 id="max_index--expr-producing-usize"><a href="#max_index--expr-producing-usize"><code>MAX_INDEX = &lt;expr producing usize&gt;</code></a></h5>
+<p>Assert if anything tries to construct an index above that value.</p>
+<p>By default, this is <code>$raw_type::max_value() as usize</code>, e.g. we check that
+our cast from <code>usize</code> to our wrapper is lossless, but we assume any all
+instance of <code>$raw_type</code> is valid in this index domain.</p>
+<p>Note that these tests can be disabled entirely, or conditionally, with
+<code>DISABLE_MAX_INDEX_CHECK</code>. Additionally, the generated type has
+<code>from_usize_unchecked</code> and <code>from_raw_unchecked</code> functions which can be used
+to ignore these checks.</p>
+<h5 id="disable_max_index_check--expr"><a href="#disable_max_index_check--expr"><code>DISABLE_MAX_INDEX_CHECK = &lt;expr&gt;;</code></a></h5>
+<p>Set to true to disable the assertions mentioned above. False by default.</p>
+<p>To be clear, if this is set to false, we blindly assume all casts between
+<code>usize</code> and <code>$raw_type</code> succeed.</p>
+<p>A common use is setting <code>DISABLE_MAX_INDEX_CHECK = !cfg!(debug_assertions)</code>
+to avoid the tests at compile time</p>
+<p>For the sake of clarity, disabling this cannot lead to memory unsafety – we
+still go through bounds checks when accessing slices, and no unsafe code
+should rely on on these checks (unless you write some, and don’t! only use
+this for correctness!).</p>
+<h5 id="default--expr"><a href="#default--expr"><code>DEFAULT = &lt;expr&gt;;</code></a></h5>
+<p>If provided, we’ll implement <code>Default</code> for the index type using this
+expresson.</p>
+<p>Example:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">index_vec::define_index_type! </span>{
+    <span class="kw">pub struct </span>MyIdx = u16;
+    MAX_INDEX = (u16::max_value() - <span class="number">1</span>) <span class="kw">as </span>usize;
+    <span class="comment">// Set the default index to be an invalid index, as
+    // a hacky way of having this type behave somewhat
+    // like it were an Option&lt;MyIdx&gt; without consuming
+    // extra space.
+    </span>DEFAULT = (MyIdx::from_raw_unchecked(u16::max_value()));
+}</code></pre></div>
+<h5 id="debug_format--expr"><a href="#debug_format--expr"><code>DEBUG_FORMAT = &lt;expr&gt;;</code></a></h5>
+<p>By default we write the underlying integer out in a Debug implementation
+with <code>{:?}</code>. Sometimes you’d like more info though. For example, the type of
+the index. This can be done via <code>DEBUG_FORMAT</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">index_vec::define_index_type! </span>{
+    <span class="kw">struct </span>FooIdx = usize;
+    DEBUG_FORMAT = <span class="string">&quot;Foo({})&quot;</span>;
+}
+<span class="comment">// Then ...
+</span><span class="kw">let </span>v = FooIdx::new(<span class="number">10</span>);
+<span class="macro">assert_eq!</span>(<span class="string">&quot;Foo(10)&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, v));</code></pre></div>
+<h5 id="display_format--expr"><a href="#display_format--expr"><code>DISPLAY_FORMAT = &lt;expr&gt;;</code></a></h5>
+<p>Similarly to <code>DEBUG_FORMAT</code>, we can implement Display for you. Unlike
+<code>DEBUG_FORMAT</code>, if you do not set this, we will not implement <code>Display</code> for
+the index type.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">index_vec::define_index_type! </span>{
+    <span class="kw">struct </span>FooIdx = usize;
+    DISPLAY_FORMAT = <span class="string">&quot;{}&quot;</span>;
+    <span class="comment">// Note that you can use both DEBUG_FORMAT and DISPLAY_FORMAT.
+    </span>DEBUG_FORMAT = <span class="string">&quot;#&lt;foo {}&gt;&quot;</span>;
+}
+<span class="comment">// Then ...
+</span><span class="kw">let </span>v = FooIdx::new(<span class="number">10</span>);
+<span class="macro">assert_eq!</span>(<span class="string">&quot;10&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, v));
+<span class="macro">assert_eq!</span>(<span class="string">&quot;#&lt;foo 10&gt;&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, v));</code></pre></div>
+<h5 id="impl_raw_conversions--true"><a href="#impl_raw_conversions--true"><code>IMPL_RAW_CONVERSIONS = true;</code></a></h5>
+<p>We always automatically implement <code>From&lt;usize&gt; for YourIndex</code> and
+<code>From&lt;YourIndex&gt; for usize</code>. We don’t do this for the “raw” type (e.g. <code>u32</code>
+if your type is declared as <code>struct FooIdx = u32;</code>), unless you request it
+via this option. It’s an error to use this if your raw type is usize.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">index_vec::define_index_type! </span>{
+    <span class="kw">struct </span>FooIdx = u32;
+    IMPL_RAW_CONVERSIONS = <span class="bool-val">true</span>;
+}
+
+<span class="kw">let </span>as_index = FooIdx::from(<span class="number">5u32</span>);
+<span class="kw">let </span>as_u32 = u32::from(as_index);
+<span class="macro">assert_eq!</span>(as_u32, <span class="number">5</span>);</code></pre></div>
+</div></details></section></div></main></body></html>

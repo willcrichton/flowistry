@@ -94,16 +94,33 @@
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
 <a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Extra features for evaluating / ablating the precision of Flowistry&#39;s algorithm.
+</span><span class="attr">#![allow(missing_docs)]
+
 </span><span class="kw">use </span>std::{cell::RefCell, str::FromStr};
 
 <span class="kw">use </span>fluid_let::fluid_let;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
-<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Hash)]
+<span class="doccomment">/// Whether Flowistry should ignore the distinction between mutable and immtuable references
+</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Hash)]
 </span><span class="kw">pub enum </span>MutabilityMode {
-  DistinguishMut,
-  IgnoreMut,
+  <span class="doccomment">/// Precise behavior, distinguish them
+  </span>DistinguishMut,
+  <span class="doccomment">/// Imprecise behavior, do not distinguish them (assume everything is mutable)
+  </span>IgnoreMut,
 }
 
 <span class="kw">impl </span>FromStr <span class="kw">for </span>MutabilityMode {
@@ -117,10 +134,13 @@
   }
 }
 
-<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Hash)]
+<span class="doccomment">/// Whether Flowistry should attempt to recurse into call-sites to analyze them
+</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Hash)]
 </span><span class="kw">pub enum </span>ContextMode {
-  SigOnly,
-  Recurse,
+  <span class="doccomment">/// Imprecise behavior, only use the modular approximation
+  </span>SigOnly,
+  <span class="doccomment">/// Precise behavior, recurse into call sites when possible
+  </span>Recurse,
 }
 
 <span class="kw">impl </span>FromStr <span class="kw">for </span>ContextMode {
@@ -134,10 +154,13 @@
   }
 }
 
-<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Hash)]
+<span class="doccomment">/// Whether Flowistry should use lifetimes to distinguish pointers
+</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Hash)]
 </span><span class="kw">pub enum </span>PointerMode {
-  Precise,
-  Conservative,
+  <span class="doccomment">/// Precise behavior, use lifetimes
+  </span>Precise,
+  <span class="doccomment">/// Imprecise behavior, assume all pointers alias
+  </span>Conservative,
 }
 
 <span class="kw">impl </span>FromStr <span class="kw">for </span>PointerMode {
@@ -151,7 +174,8 @@
   }
 }
 
-<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Hash)]
+<span class="doccomment">/// A combination of all the precision levers.
+</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Hash)]
 </span><span class="kw">pub struct </span>EvalMode {
   <span class="kw">pub </span>mutability_mode: MutabilityMode,
   <span class="kw">pub </span>context_mode: ContextMode,

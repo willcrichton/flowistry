@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/aho-corasick-1.0.4/src/packed/api.rs`."><title>api.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../aho_corasick/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/aho-corasick-1.1.1/src/packed/api.rs`."><title>api.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="aho_corasick" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../aho_corasick/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -652,12 +652,43 @@
 <a href="#652" id="652">652</a>
 <a href="#653" id="653">653</a>
 <a href="#654" id="654">654</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    packed::{
-        pattern::Patterns,
-        rabinkarp::RabinKarp,
-        teddy::{<span class="self">self</span>, Teddy},
-    },
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>alloc::sync::Arc;
+
+<span class="kw">use crate</span>::{
+    packed::{pattern::Patterns, rabinkarp::RabinKarp, teddy},
     util::search::{Match, Span},
 };
 
@@ -731,7 +762,9 @@
 ///     .collect();
 /// assert_eq!(vec![PatternID::must(1)], matches);
 /// # Some(()) }
-/// # if cfg!(all(feature = &quot;std&quot;, target_arch = &quot;x86_64&quot;)) {
+/// # if cfg!(all(feature = &quot;std&quot;, any(
+/// #     target_arch = &quot;x86_64&quot;, target_arch = &quot;aarch64&quot;,
+/// # ))) {
 /// #     example().unwrap()
 /// # } else {
 /// #     assert!(example().is_none());
@@ -741,8 +774,9 @@
 </span><span class="kw">pub struct </span>Config {
     kind: MatchKind,
     force: <span class="prelude-ty">Option</span>&lt;ForceAlgorithm&gt;,
-    force_teddy_fat: <span class="prelude-ty">Option</span>&lt;bool&gt;,
-    force_avx: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+    only_teddy_fat: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+    only_teddy_256bit: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+    heuristic_pattern_limits: bool,
 }
 
 <span class="doccomment">/// An internal option for forcing the use of a particular packed algorithm.
@@ -769,8 +803,9 @@
         Config {
             kind: MatchKind::LeftmostFirst,
             force: <span class="prelude-val">None</span>,
-            force_teddy_fat: <span class="prelude-val">None</span>,
-            force_avx: <span class="prelude-val">None</span>,
+            only_teddy_fat: <span class="prelude-val">None</span>,
+            only_teddy_256bit: <span class="prelude-val">None</span>,
+            heuristic_pattern_limits: <span class="bool-val">true</span>,
         }
     }
 
@@ -792,7 +827,7 @@
     /// should not use it as it is not part of the API stability guarantees of
     /// this crate.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub fn </span>force_teddy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>Config {
+    </span><span class="kw">pub fn </span>only_teddy(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>Config {
         <span class="kw">if </span>yes {
             <span class="self">self</span>.force = <span class="prelude-val">Some</span>(ForceAlgorithm::Teddy);
         } <span class="kw">else </span>{
@@ -807,8 +842,8 @@
     /// should not use it as it is not part of the API stability guarantees of
     /// this crate.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub fn </span>force_teddy_fat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <span class="prelude-ty">Option</span>&lt;bool&gt;) -&gt; <span class="kw-2">&amp;mut </span>Config {
-        <span class="self">self</span>.force_teddy_fat = yes;
+    </span><span class="kw">pub fn </span>only_teddy_fat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <span class="prelude-ty">Option</span>&lt;bool&gt;) -&gt; <span class="kw-2">&amp;mut </span>Config {
+        <span class="self">self</span>.only_teddy_fat = yes;
         <span class="self">self
     </span>}
 
@@ -819,8 +854,8 @@
     /// should not use it as it is not part of the API stability guarantees of
     /// this crate.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub fn </span>force_avx(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <span class="prelude-ty">Option</span>&lt;bool&gt;) -&gt; <span class="kw-2">&amp;mut </span>Config {
-        <span class="self">self</span>.force_avx = yes;
+    </span><span class="kw">pub fn </span>only_teddy_256bit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: <span class="prelude-ty">Option</span>&lt;bool&gt;) -&gt; <span class="kw-2">&amp;mut </span>Config {
+        <span class="self">self</span>.only_teddy_256bit = yes;
         <span class="self">self
     </span>}
 
@@ -830,12 +865,23 @@
     /// should not use it as it is not part of the API stability guarantees of
     /// this crate.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub fn </span>force_rabin_karp(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>Config {
+    </span><span class="kw">pub fn </span>only_rabin_karp(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>Config {
         <span class="kw">if </span>yes {
             <span class="self">self</span>.force = <span class="prelude-val">Some</span>(ForceAlgorithm::RabinKarp);
         } <span class="kw">else </span>{
             <span class="self">self</span>.force = <span class="prelude-val">None</span>;
         }
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Request that heuristic limitations on the number of patterns be
+    /// employed. This useful to disable for benchmarking where one wants to
+    /// explore how Teddy performs on large number of patterns even if the
+    /// heuristics would otherwise refuse construction.
+    ///
+    /// This is enabled by default.
+    </span><span class="kw">pub fn </span>heuristic_pattern_limits(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>Config {
+        <span class="self">self</span>.heuristic_pattern_limits = yes;
         <span class="self">self
     </span>}
 }
@@ -861,7 +907,9 @@
 ///     .collect();
 /// assert_eq!(vec![PatternID::ZERO], matches);
 /// # Some(()) }
-/// # if cfg!(all(feature = &quot;std&quot;, target_arch = &quot;x86_64&quot;)) {
+/// # if cfg!(all(feature = &quot;std&quot;, any(
+/// #     target_arch = &quot;x86_64&quot;, target_arch = &quot;aarch64&quot;,
+/// # ))) {
 /// #     example().unwrap()
 /// # } else {
 /// #     assert!(example().is_none());
@@ -895,6 +943,7 @@
         }
         <span class="kw">let </span><span class="kw-2">mut </span>patterns = <span class="self">self</span>.patterns.clone();
         patterns.set_match_kind(<span class="self">self</span>.config.kind);
+        <span class="kw">let </span>patterns = Arc::new(patterns);
         <span class="kw">let </span>rabinkarp = RabinKarp::new(<span class="kw-2">&amp;</span>patterns);
         <span class="comment">// Effectively, we only want to return a searcher if we can use Teddy,
         // since Teddy is our only fast packed searcher at the moment.
@@ -904,7 +953,7 @@
         </span><span class="kw">let </span>(search_kind, minimum_len) = <span class="kw">match </span><span class="self">self</span>.config.force {
             <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(ForceAlgorithm::Teddy) =&gt; {
                 <span class="macro">debug!</span>(<span class="string">&quot;trying to build Teddy packed matcher&quot;</span>);
-                <span class="kw">let </span>teddy = <span class="kw">match </span><span class="self">self</span>.build_teddy(<span class="kw-2">&amp;</span>patterns) {
+                <span class="kw">let </span>teddy = <span class="kw">match </span><span class="self">self</span>.build_teddy(Arc::clone(<span class="kw-2">&amp;</span>patterns)) {
                     <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
                     <span class="prelude-val">Some</span>(teddy) =&gt; teddy,
                 };
@@ -919,11 +968,12 @@
         <span class="prelude-val">Some</span>(Searcher { patterns, rabinkarp, search_kind, minimum_len })
     }
 
-    <span class="kw">fn </span>build_teddy(<span class="kw-2">&amp;</span><span class="self">self</span>, patterns: <span class="kw-2">&amp;</span>Patterns) -&gt; <span class="prelude-ty">Option</span>&lt;Teddy&gt; {
+    <span class="kw">fn </span>build_teddy(<span class="kw-2">&amp;</span><span class="self">self</span>, patterns: Arc&lt;Patterns&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;teddy::Searcher&gt; {
         teddy::Builder::new()
-            .avx(<span class="self">self</span>.config.force_avx)
-            .fat(<span class="self">self</span>.config.force_teddy_fat)
-            .build(<span class="kw-2">&amp;</span>patterns)
+            .only_256bit(<span class="self">self</span>.config.only_teddy_256bit)
+            .only_fat(<span class="self">self</span>.config.only_teddy_fat)
+            .heuristic_pattern_limits(<span class="self">self</span>.config.heuristic_pattern_limits)
+            .build(patterns)
     }
 
     <span class="doccomment">/// Add the given pattern to this set to match.
@@ -981,6 +1031,16 @@
         }
         <span class="self">self
     </span>}
+
+    <span class="doccomment">/// Returns the number of patterns added to this builder.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.patterns.len()
+    }
+
+    <span class="doccomment">/// Returns the length, in bytes, of the shortest pattern added.
+    </span><span class="kw">pub fn </span>minimum_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.patterns.minimum_len()
+    }
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Builder {
@@ -1011,7 +1071,9 @@
 ///     .collect();
 /// assert_eq!(vec![PatternID::ZERO], matches);
 /// # Some(()) }
-/// # if cfg!(all(feature = &quot;std&quot;, target_arch = &quot;x86_64&quot;)) {
+/// # if cfg!(all(feature = &quot;std&quot;, any(
+/// #     target_arch = &quot;x86_64&quot;, target_arch = &quot;aarch64&quot;,
+/// # ))) {
 /// #     example().unwrap()
 /// # } else {
 /// #     assert!(example().is_none());
@@ -1019,7 +1081,7 @@
 /// ```
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Searcher {
-    patterns: Patterns,
+    patterns: Arc&lt;Patterns&gt;,
     rabinkarp: RabinKarp,
     search_kind: SearchKind,
     minimum_len: usize,
@@ -1027,7 +1089,7 @@
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">enum </span>SearchKind {
-    Teddy(Teddy),
+    Teddy(teddy::Searcher),
     RabinKarp,
 }
 
@@ -1054,7 +1116,9 @@
     ///     .collect();
     /// assert_eq!(vec![PatternID::ZERO], matches);
     /// # Some(()) }
-    /// # if cfg!(all(feature = &quot;std&quot;, target_arch = &quot;x86_64&quot;)) {
+    /// # if cfg!(all(feature = &quot;std&quot;, any(
+    /// #     target_arch = &quot;x86_64&quot;, target_arch = &quot;aarch64&quot;,
+    /// # ))) {
     /// #     example().unwrap()
     /// # } else {
     /// #     assert!(example().is_none());
@@ -1102,7 +1166,9 @@
     /// assert_eq!(0, mat.start());
     /// assert_eq!(6, mat.end());
     /// # Some(()) }
-    /// # if cfg!(all(feature = &quot;std&quot;, target_arch = &quot;x86_64&quot;)) {
+    /// # if cfg!(all(feature = &quot;std&quot;, any(
+    /// #     target_arch = &quot;x86_64&quot;, target_arch = &quot;aarch64&quot;,
+    /// # ))) {
     /// #     example().unwrap()
     /// # } else {
     /// #     assert!(example().is_none());
@@ -1138,7 +1204,9 @@
     /// assert_eq!(3, mat.start());
     /// assert_eq!(9, mat.end());
     /// # Some(()) }
-    /// # if cfg!(all(feature = &quot;std&quot;, target_arch = &quot;x86_64&quot;)) {
+    /// # if cfg!(all(feature = &quot;std&quot;, any(
+    /// #     target_arch = &quot;x86_64&quot;, target_arch = &quot;aarch64&quot;,
+    /// # ))) {
     /// #     example().unwrap()
     /// # } else {
     /// #     assert!(example().is_none());
@@ -1156,17 +1224,11 @@
                 <span class="kw">if </span>haystack[span].len() &lt; teddy.minimum_len() {
                     <span class="kw">return </span><span class="self">self</span>.find_in_slow(haystack, span);
                 }
-                teddy.find_at(
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.patterns,
-                    <span class="kw-2">&amp;</span>haystack[..span.end],
-                    span.start,
-                )
+                teddy.find(<span class="kw-2">&amp;</span>haystack[..span.end], span.start)
             }
-            SearchKind::RabinKarp =&gt; <span class="self">self</span>.rabinkarp.find_at(
-                <span class="kw-2">&amp;</span><span class="self">self</span>.patterns,
-                <span class="kw-2">&amp;</span>haystack[..span.end],
-                span.start,
-            ),
+            SearchKind::RabinKarp =&gt; {
+                <span class="self">self</span>.rabinkarp.find_at(<span class="kw-2">&amp;</span>haystack[..span.end], span.start)
+            }
         }
     }
 
@@ -1193,12 +1255,15 @@
     ///     PatternID::must(1),
     /// ], matches);
     /// # Some(()) }
-    /// # if cfg!(all(feature = &quot;std&quot;, target_arch = &quot;x86_64&quot;)) {
+    /// # if cfg!(all(feature = &quot;std&quot;, any(
+    /// #     target_arch = &quot;x86_64&quot;, target_arch = &quot;aarch64&quot;,
+    /// # ))) {
     /// #     example().unwrap()
     /// # } else {
     /// #     assert!(example().is_none());
     /// # }
     /// ```
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>find_iter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, B: <span class="question-mark">?</span>Sized + AsRef&lt;[u8]&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
         haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>B,
@@ -1222,12 +1287,15 @@
     /// // leftmost-first is the default.
     /// assert_eq!(&amp;MatchKind::LeftmostFirst, searcher.match_kind());
     /// # Some(()) }
-    /// # if cfg!(all(feature = &quot;std&quot;, target_arch = &quot;x86_64&quot;)) {
+    /// # if cfg!(all(feature = &quot;std&quot;, any(
+    /// #     target_arch = &quot;x86_64&quot;, target_arch = &quot;aarch64&quot;,
+    /// # ))) {
     /// #     example().unwrap()
     /// # } else {
     /// #     assert!(example().is_none());
     /// # }
     /// ```
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>match_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>MatchKind {
         <span class="self">self</span>.patterns.match_kind()
     }
@@ -1242,12 +1310,14 @@
     /// want to avoid ever using the slower variant, which one can do by
     /// never passing a haystack shorter than the minimum length returned by
     /// this method.
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>minimum_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.minimum_len
     }
 
     <span class="doccomment">/// Returns the approximate total amount of heap used by this searcher, in
     /// units of bytes.
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>memory_usage(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.patterns.memory_usage()
             + <span class="self">self</span>.rabinkarp.memory_usage()
@@ -1261,11 +1331,7 @@
     /// built but the haystack is smaller than ~34 bytes, then Teddy might not
     /// be able to run.
     </span><span class="kw">fn </span>find_in_slow(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>[u8], span: Span) -&gt; <span class="prelude-ty">Option</span>&lt;Match&gt; {
-        <span class="self">self</span>.rabinkarp.find_at(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.patterns,
-            <span class="kw-2">&amp;</span>haystack[..span.end],
-            span.start,
-        )
+        <span class="self">self</span>.rabinkarp.find_at(<span class="kw-2">&amp;</span>haystack[..span.end], span.start)
     }
 }
 

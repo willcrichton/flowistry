@@ -454,7 +454,7 @@
     };
 
     <span class="kw">let </span>mutations = return_state.rows().filter_map(|(child, <span class="kw">_</span>)| {
-      <span class="kw">let </span>parent = translate_child_to_parent(child, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+      <span class="kw">let </span>parent = translate_child_to_parent(<span class="kw-2">*</span>child, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
       <span class="kw">let </span>was_return: bool = child.local == RETURN_PLACE;
       <span class="comment">// &gt; 1 because arguments will always have their synthetic location in their dep set
@@ -467,7 +467,7 @@
       <span class="kw">let </span>parent_deps = return_state
         .rows()
         .filter(|(<span class="kw">_</span>, deps)| child_deps.is_superset(deps))
-        .filter_map(|(row, <span class="kw">_</span>)| translate_child_to_parent(row, <span class="bool-val">false</span>))
+        .filter_map(|(row, <span class="kw">_</span>)| translate_child_to_parent(<span class="kw-2">*</span>row, <span class="bool-val">false</span>))
         .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
       <span class="macro">debug!</span>(
