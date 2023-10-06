@@ -25,9 +25,9 @@ mod recursive;
 /// The output of the information flow analysis.
 ///
 /// Using the metavariables in [the paper](https://arxiv.org/abs/2111.13662): for each
-/// [`LocationOrArg`](crate::indexed::impls::LocationOrArg) $\ell$ in a [`Body`](rustc_middle::mir::Body) $f$,
+/// [`LocationOrArg`](rustc_utils::mir::location_or_arg::LocationOrArg) $\ell$ in a [`Body`](rustc_middle::mir::Body) $f$,
 /// this type contains a [`FlowDomain`] $\Theta_\ell$ that maps from a [`Place`](rustc_middle::mir::Place) $p$
-/// to a [`LocationOrArgSet`](crate::indexed::impls::LocationOrArgSet) $\kappa$. The domain of $\Theta_\ell$
+/// to a [`LocationOrArgSet`](rustc_utils::mir::location_or_arg::index::LocationOrArgSet) $\kappa$. The domain of $\Theta_\ell$
 /// is all places that have been defined up to $\ell$. For each place, $\Theta_\ell(p)$ contains the set of locations
 /// (or arguments) that could influence the value of that place, i.e. the place's dependencies.
 ///
@@ -39,10 +39,10 @@ mod recursive;
 /// # use flowistry::{infoflow::{FlowDomain, FlowResults}};
 /// # use rustc_utils::{mir::location_or_arg::index::LocationOrArgSet, PlaceExt};
 /// fn example<'tcx>(tcx: TyCtxt<'tcx>, results: &FlowResults<'_, 'tcx>) {
-///   let ℓ: Location          = Location::START;
-///   let Θ: &FlowDomain       = results.state_at(ℓ);
-///   let p: Place             = Place::make(Local::from_usize(1), &[], tcx);
-///   let κ: &LocationOrArgSet = Θ.row_set(&p);
+///   let ℓ: Location         = Location::START;
+///   let Θ: &FlowDomain      = results.state_at(ℓ);
+///   let p: Place            = Place::make(Local::from_usize(1), &[], tcx);
+///   let κ: LocationOrArgSet = results.analysis.deps_for(Θ, p);
 ///   for ℓ2 in κ.iter() {
 ///     println!("at location {ℓ:?}, place {p:?} depends on location {ℓ2:?}");
 ///   }
@@ -72,7 +72,7 @@ thread_local! {
 /// for a complete example of how to call this function.
 ///
 /// To get a `BodyWithBorrowckFacts`, you can use the
-/// [`get_body_with_borrowck_facts`](crate::mir::borrowck_facts::get_body_with_borrowck_facts)
+/// [`get_body_with_borrowck_facts`](rustc_utils::mir::borrowck_facts::get_body_with_borrowck_facts)
 /// function.
 ///
 /// See [`FlowResults`] for an explanation of how to use the return value.

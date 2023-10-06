@@ -10,6 +10,11 @@ use rustc_utils::{BodyExt, OperandExt, PlaceExt};
 
 use crate::extensions::{is_extension_active, MutabilityMode};
 
+/// An unordered collections of MIR [`Place`]s.
+///
+/// *Note:* this used to be implemented as an [`IndexSet`](indexical::IndexSet),
+/// but in practice it was very hard to determine up-front a fixed domain of
+/// [`Place`]s that was not "every possible place in the body".
 pub type PlaceSet<'tcx> = HashSet<Place<'tcx>>;
 
 /// Given the arguments to a function, returns all projections of the arguments that are mutable pointers.
@@ -49,14 +54,16 @@ pub fn arg_places<'tcx>(args: &[Operand<'tcx>]) -> Vec<(usize, Place<'tcx>)> {
     .collect::<Vec<_>>()
 }
 
-// This is a temporary hack to reduce spurious dependencies in generators
-// arising from async functions. The issue is that the &mut std::task::Context
-// variable interferes with both the modular approximation and the alias analysis.
-// As a patch up, we ignore subset constraints arising from lifetimes appearing
-// in the Context type, as well as ignore any place of type Context in function calls.
-//
-// See test: async_two_await
-pub struct AsyncHack<'a, 'tcx> {
+/// A hack to temporary hack to reduce spurious dependencies in generators
+/// arising from async functions.
+///
+/// The issue is that the `&mut std::task::Context` variable interferes with both
+/// the modular approximation and the alias analysis. As a patch up, we ignore subset
+/// constraints arising from lifetimes appearing in the Context type, as well as ignore
+/// any place of type Context in function calls.
+///
+/// See test: async_two_await
+pub(crate) struct AsyncHack<'a, 'tcx> {
   context_ty: Option<Ty<'tcx>>,
   tcx: TyCtxt<'tcx>,
   body: &'a Body<'tcx>,

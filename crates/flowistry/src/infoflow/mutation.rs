@@ -43,9 +43,6 @@ pub struct Mutation<'tcx> {
 /// MIR [`Visitor`] methods.
 pub struct ModularMutationVisitor<'a, 'tcx, F>
 where
-  // API design note: wcrichto tried making FnMut(...) a trait alias, but this
-  // interacted poorly with type inference and required ModularMutationVisitor
-  // clients to explicitly write out the type parameter of every closure argument.
   F: FnMut(Location, Vec<Mutation<'tcx>>),
 {
   f: F,
@@ -56,6 +53,7 @@ impl<'a, 'tcx, F> ModularMutationVisitor<'a, 'tcx, F>
 where
   F: FnMut(Location, Vec<Mutation<'tcx>>),
 {
+  /// Constructs a new visitor.
   pub fn new(place_info: &'a PlaceInfo<'a, 'tcx>, f: F) -> Self {
     ModularMutationVisitor { place_info, f }
   }

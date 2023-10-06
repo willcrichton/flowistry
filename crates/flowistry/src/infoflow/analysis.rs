@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use indexical::impls::RustcIndexMatrix;
+use indexical::impls::RustcIndexMatrix as IndexMatrix;
 use log::{debug, trace};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::{def_id::DefId, BodyId};
@@ -34,37 +34,49 @@ use crate::{
 ///
 /// `FlowDomain` represents $\Theta$ that maps from places $p$ to dependencies $\kappa$. To efficiently represent $\kappa$, a set of locations,
 /// we use the bit-set data structures in [`rustc_index::bit_set`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/index.html).
-/// However instead of using those datatypes directly, we provide several abstractions in the [`indexed`](crate::indexed)
-/// module that have a more ergonomic interface and more efficient implementation than their `bit_set` counterparts.
+/// However instead of using a bit-set directly, we use the [`indexical`] crate to map between raw indices and the objects they represent.
 ///
 /// The [`IndexMatrix`] maps from a [`Place`] to a [`LocationOrArgSet`] via the [`IndexMatrix::row_set`] method. The [`LocationOrArgSet`] is an
-/// [`IndexSet`](crate::indexed::IndexSet) of locations (or arguments, see note below), which wraps a
+/// [`IndexSet`](indexical::IndexSet) of locations (or arguments, see note below), which wraps a
 /// [`rustc_index::bit_set::HybridBitSet`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/bit_set/enum.HybridBitSet.html) and
-/// has roughly the same API. The main difference is that `HybridBitSet` operates only on values that implement the
-/// [`rustc_index::vec::Idx`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/vec/trait.Idx.html) trait (usually created via
-/// the [`rustc_index::newtype_index`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_index/macro.newtype_index.html) macro). The `indexed`
-/// module has a concept of [`IndexedDomain`] to represent the mapping from a set of values to the indexes those values --- [`LocationOrArgDomain`]
-/// is the implementation for locations.
+/// has roughly the same API. The [`indexical`] crate has a concept of an [`IndexedDomain`](indexical::IndexedDomain) to represent the mapping from 
+/// a set of values to the indexes those values --- [`LocationOrArgDomain`] is the implementation for locations.
 ///
+/// # **Note:** reading dependencies from `FlowDomain`
+/// In general, you should *not* use [`FlowDomain::row_set`] directly. This is because the `FlowDomain` does not have exactly the same structure as 
+/// the $\Theta$ described in the paper. Based on performance profiling, we have determined that the size of the `FlowDomain` is the primary factor that
+/// increases Flowistry's memory usage and runtime. So we generally trade-off making `FlowDomain` smaller in exchange for making dependency lookups more
+/// computationally expensive.
+/// 
+/// Instead, you should use [`FlowAnalysis::deps_for`](crate::infoflow::FlowAnalysis::deps_for) to read a place's dependencies out of a given `FlowDomain`.
 ///
-/// # Note: arguments as dependencies
+/// # **Note:** arguments as dependencies
 /// Because function arguments are never initialized, there is no "root" location for argument places. This fact poses a problem for
 /// information flow analysis: an instruction `bb[0]: _2 = _1` (where `_1` is an argument) would set $\Theta(\verb|_2|) = \Theta(\verb|_1|) \cup \\{\verb|bb0\[0\]|\\}\$.
 /// However, $\Theta(\verb|_1|)$ would be empty, so it would be imposible to determine that `_2` depends on `_1`. To solve this issue, we
 /// enrich the domain of locations with arguments, using the [`LocationOrArg`] type. Any dependency can be on *either* a location or an argument.
-pub type FlowDomain<'tcx> = RustcIndexMatrix<Place<'tcx>, LocationOrArg>;
+pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, LocationOrArg>;
 
 /// Data structure that holds context for performing the information flow analysis.
 pub struct FlowAnalysis<'a, 'tcx> {
+  /// The type context used for the analysis.
   pub tcx: TyCtxt<'tcx>,
+
+  /// The ID of the body being analyzed.
   pub def_id: DefId,
+
+  /// The body being analyzed.
   pub body: &'a Body<'tcx>,
-  pub control_dependencies: ControlDependencies<BasicBlock>,
+
+  /// The metadata about places used in the analysis.
   pub place_info: PlaceInfo<'a, 'tcx>,
+
+  pub(crate) control_dependencies: ControlDependencies<BasicBlock>,
   pub(crate) recurse_cache: RefCell<HashMap<BodyId, FlowResults<'a, 'tcx>>>,
 }
 
 impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
+  /// Constructs (but does not execute) a new FlowAnalysis.
   pub fn new(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
@@ -84,6 +96,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     }
   }
 
+  /// Returns the [`LocationOrArgDomain`] used by the analysis.
   pub fn location_domain(&self) -> &Rc<LocationOrArgDomain> {
     self.place_info.location_domain()
   }
@@ -103,6 +116,10 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     conflicts.chain(provenance).copied().collect()
   }
 
+  /// Returns all the dependencies of `place` within `state`.
+  ///
+  /// Prefer using this method instead of accessing `FlowDomain` directly,
+  /// unless you *really* know what you're doing.
   pub fn deps_for(
     &self,
     state: &FlowDomain<'tcx>,
@@ -115,7 +132,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
       .iter()
       .flat_map(|place| self.influences(*place))
     {
-      deps.union(&state.row_set(&self.place_info.normalize(subplace)));
+      deps.union(state.row_set(&self.place_info.normalize(subplace)));
     }
     deps
   }
@@ -144,7 +161,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
       for relevant in self.influences(input) {
         let relevant_deps = state.row_set(&self.place_info.normalize(relevant));
         trace!("    For relevant {relevant:?} for input {input:?} adding deps {relevant_deps:?}");
-        target_deps.union(&relevant_deps);
+        target_deps.union(relevant_deps);
       }
     };
 

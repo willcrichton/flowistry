@@ -29,9 +29,9 @@ use crate::extensions::{is_extension_active, MutabilityMode};
 
 /// Utilities for analyzing places: children, aliases, etc.
 pub struct PlaceInfo<'a, 'tcx> {
-  pub tcx: TyCtxt<'tcx>,
-  pub body: &'a Body<'tcx>,
-  pub def_id: DefId,
+  pub(crate) tcx: TyCtxt<'tcx>,
+  pub(crate) body: &'a Body<'tcx>,
+  pub(crate) def_id: DefId,
   location_domain: Rc<LocationOrArgDomain>,
 
   // Core computed data structure
@@ -44,14 +44,15 @@ pub struct PlaceInfo<'a, 'tcx> {
   reachable_cache: Cache<(Place<'tcx>, Mutability), PlaceSet<'tcx>>,
 }
 
-pub fn build_location_arg_domain(body: &Body) -> Rc<LocationOrArgDomain> {
-  let all_locations = body.all_locations().map(LocationOrArg::Location);
-  let all_locals = body.args_iter().map(LocationOrArg::Arg);
-  let domain = all_locations.chain(all_locals).collect();
-  Rc::new(LocationOrArgDomain::new(domain))
-}
-
 impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
+  fn build_location_arg_domain(body: &Body) -> Rc<LocationOrArgDomain> {
+    let all_locations = body.all_locations().map(LocationOrArg::Location);
+    let all_locals = body.args_iter().map(LocationOrArg::Arg);
+    let domain = all_locations.chain(all_locals).collect();
+    Rc::new(LocationOrArgDomain::new(domain))
+  }
+
+  /// Computes all the metadata about places used within the infoflow analysis.
   pub fn build(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
@@ -59,7 +60,7 @@ impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
   ) -> Self {
     block_timer!("aliases");
     let body = &body_with_facts.body;
-    let location_domain = build_location_arg_domain(body);
+    let location_domain = Self::build_location_arg_domain(body);
     let aliases = Aliases::build(tcx, def_id, body_with_facts);
 
     PlaceInfo {
@@ -183,6 +184,7 @@ impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
     })
   }
 
+  /// Returns the [`LocationOrArgDomain`] for the current body.
   pub fn location_domain(&self) -> &Rc<LocationOrArgDomain> {
     &self.location_domain
   }
