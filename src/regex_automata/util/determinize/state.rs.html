@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-automata-0.3.9/src/util/determinize/state.rs`."><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="regex_automata" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../regex_automata/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-automata-0.4.3/src/util/determinize/state.rs`."><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="regex_automata" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../regex_automata/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -904,6 +904,7 @@
 <a href="#904" id="904">904</a>
 <a href="#905" id="905">905</a>
 <a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/*!
 This module defines a DFA state representation and builders for constructing
 DFA states.
@@ -1103,7 +1104,7 @@ as long as everything in this module agrees.
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_matches(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; StateBuilderMatches {
-        <span class="self">self</span>.<span class="number">0</span>.extend_from_slice(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]);
+        <span class="self">self</span>.<span class="number">0</span>.extend_from_slice(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]);
         StateBuilderMatches(<span class="self">self</span>.<span class="number">0</span>)
     }
 
@@ -1254,16 +1255,17 @@ as long as everything in this module agrees.
 /// generated by a transition over a &quot;word&quot; byte. (Callers may not always set
 /// this. For example, if the NFA has no word boundary assertion, then needing
 /// to track whether a state came from a word byte or not is superfluous and
-/// wasteful.)
+/// wasteful.) Bit 3 is set to 1 if the state was generated by a transition
+/// from a `\r` (forward search) or a `\n` (reverse search) when CRLF mode is
+/// enabled.
 ///
-/// Byte 1 corresponds to the look-behind assertions that were satisfied by
-/// the transition that created this state. This generally only includes the
-/// StartLF and Start assertions. (Look-ahead assertions are not tracked as
-/// part of states. Instead, these are applied by re-computing the epsilon
-/// closure of a state when computing the transition function. See `next` in
-/// the parent module.)
+/// Bytes 1..5 correspond to the look-behind assertions that were satisfied
+/// by the transition that created this state. (Look-ahead assertions are not
+/// tracked as part of states. Instead, these are applied by re-computing the
+/// epsilon closure of a state when computing the transition function. See
+/// `next` in the parent module.)
 ///
-/// Byte 2 corresponds to the set of look-around assertions (including both
+/// Bytes 5..9 correspond to the set of look-around assertions (including both
 /// look-behind and look-ahead) that appear somewhere in this state&#39;s set of
 /// NFA state IDs. This is used to determine whether this state&#39;s epsilon
 /// closure should be re-computed when computing the transition function.
@@ -1272,7 +1274,7 @@ as long as everything in this module agrees.
 /// function, we should only re-compute the epsilon closure if those new
 /// assertions are relevant to this particular state.
 ///
-/// Bytes 3..7 correspond to a 32-bit native-endian encoded integer
+/// Bytes 9..13 correspond to a 32-bit native-endian encoded integer
 /// corresponding to the number of patterns encoded in this state. If the state
 /// is not a match state (byte 0 bit 0 is 0) or if it&#39;s only pattern ID is
 /// PatternID::ZERO, then no integer is encoded at this position. Instead, byte
@@ -1358,7 +1360,7 @@ as long as everything in this module agrees.
     /// state has no conditional epsilon transitions, then there is no need
     /// to re-compute the epsilon closure.
     </span><span class="kw">fn </span>look_need(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LookSet {
-        LookSet::read_repr(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[<span class="number">3</span>..])
+        LookSet::read_repr(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[<span class="number">5</span>..])
     }
 
     <span class="doccomment">/// Returns the total number of match pattern IDs in this state.
@@ -1382,7 +1384,7 @@ as long as everything in this module agrees.
         <span class="kw">if </span>!<span class="self">self</span>.has_pattern_ids() {
             PatternID::ZERO
         } <span class="kw">else </span>{
-            <span class="kw">let </span>offset = <span class="number">9 </span>+ index * PatternID::SIZE;
+            <span class="kw">let </span>offset = <span class="number">13 </span>+ index * PatternID::SIZE;
             <span class="comment">// This is OK since we only ever serialize valid PatternIDs to
             // states.
             </span>wire::read_pattern_id_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[offset..]).<span class="number">0
@@ -1413,7 +1415,7 @@ as long as everything in this module agrees.
             f(PatternID::ZERO);
             <span class="kw">return</span>;
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>pids = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[<span class="number">9</span>..<span class="self">self</span>.pattern_offset_end()];
+        <span class="kw">let </span><span class="kw-2">mut </span>pids = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[<span class="number">13</span>..<span class="self">self</span>.pattern_offset_end()];
         <span class="kw">while </span>!pids.is_empty() {
             <span class="kw">let </span>pid = wire::read_u32(pids);
             pids = <span class="kw-2">&amp;</span>pids[PatternID::SIZE..];
@@ -1445,11 +1447,11 @@ as long as everything in this module agrees.
     </span><span class="kw">fn </span>pattern_offset_end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="kw">let </span>encoded = <span class="self">self</span>.encoded_pattern_len();
         <span class="kw">if </span>encoded == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="number">5</span>;
+            <span class="kw">return </span><span class="number">9</span>;
         }
         <span class="comment">// This arithmetic is OK since we were able to address this many bytes
         // when writing to the state, thus, it must fit into a usize.
-        </span>encoded.checked_mul(<span class="number">4</span>).unwrap().checked_add(<span class="number">9</span>).unwrap()
+        </span>encoded.checked_mul(<span class="number">4</span>).unwrap().checked_add(<span class="number">13</span>).unwrap()
     }
 
     <span class="doccomment">/// Returns the total number of *encoded* pattern IDs in this state.
@@ -1463,7 +1465,7 @@ as long as everything in this module agrees.
         }
         <span class="comment">// This unwrap is OK since the total number of patterns is always
         // guaranteed to fit into a usize.
-        </span>usize::try_from(wire::read_u32(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[<span class="number">5</span>..<span class="number">9</span>])).unwrap()
+        </span>usize::try_from(wire::read_u32(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[<span class="number">9</span>..<span class="number">13</span>])).unwrap()
     }
 }
 
@@ -1549,7 +1551,7 @@ as long as everything in this module agrees.
     <span class="doccomment">/// Mutate the set of look-around (both behind and ahead) assertions that
     /// appear at least once in this state&#39;s set of NFA states.
     </span><span class="kw">fn </span>set_look_need(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>set: <span class="kw">impl </span>FnMut(LookSet) -&gt; LookSet) {
-        set(<span class="self">self</span>.look_need()).write_repr(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>[<span class="number">3</span>..]);
+        set(<span class="self">self</span>.look_need()).write_repr(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>[<span class="number">5</span>..]);
     }
 
     <span class="doccomment">/// Add a pattern ID to this state. All match states must have at least
@@ -1609,14 +1611,14 @@ as long as everything in this module agrees.
             <span class="kw">return</span>;
         }
         <span class="kw">let </span>patsize = PatternID::SIZE;
-        <span class="kw">let </span>pattern_bytes = <span class="self">self</span>.<span class="number">0</span>.len() - <span class="number">9</span>;
+        <span class="kw">let </span>pattern_bytes = <span class="self">self</span>.<span class="number">0</span>.len() - <span class="number">13</span>;
         <span class="comment">// Every pattern ID uses 4 bytes, so number of bytes should be
         // divisible by 4.
         </span><span class="macro">assert_eq!</span>(pattern_bytes % patsize, <span class="number">0</span>);
         <span class="comment">// This unwrap is OK since we are guaranteed that the maximum number
         // of possible patterns fits into a u32.
         </span><span class="kw">let </span>count32 = u32::try_from(pattern_bytes / patsize).unwrap();
-        wire::NE::write_u32(count32, <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>[<span class="number">5</span>..<span class="number">9</span>]);
+        wire::NE::write_u32(count32, <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>[<span class="number">9</span>..<span class="number">13</span>]);
     }
 
     <span class="doccomment">/// Add an NFA state ID to this state. The order in which NFA states are

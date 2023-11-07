@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-automata-0.3.9/src/util/determinize/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="regex_automata" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../regex_automata/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-automata-0.4.3/src/util/determinize/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="regex_automata" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../regex_automata/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -608,6 +608,78 @@
 <a href="#608" id="608">608</a>
 <a href="#609" id="609">609</a>
 <a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/*!
 This module contains types and routines for implementing determinization.
 
@@ -755,9 +827,10 @@ it into logical sub-components works better.
             }
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
             <span class="prelude-val">None </span>=&gt; {
-                look_have = look_have.insert(Look::End);
-                look_have = look_have.insert(Look::EndLF);
-                look_have = look_have.insert(Look::EndCRLF);
+                look_have = look_have
+                    .insert(Look::End)
+                    .insert(Look::EndLF)
+                    .insert(Look::EndCRLF);
             }
         }
         <span class="kw">if </span>unit.is_byte(lookm.get_line_terminator()) {
@@ -770,11 +843,26 @@ it into logical sub-components works better.
             look_have = look_have.insert(Look::StartCRLF);
         }
         <span class="kw">if </span>state.is_from_word() == unit.is_word_byte() {
-            look_have = look_have.insert(Look::WordUnicodeNegate);
-            look_have = look_have.insert(Look::WordAsciiNegate);
+            look_have = look_have
+                .insert(Look::WordAsciiNegate)
+                .insert(Look::WordUnicodeNegate);
         } <span class="kw">else </span>{
-            look_have = look_have.insert(Look::WordUnicode);
-            look_have = look_have.insert(Look::WordAscii);
+            look_have =
+                look_have.insert(Look::WordAscii).insert(Look::WordUnicode);
+        }
+        <span class="kw">if </span>!unit.is_word_byte() {
+            look_have = look_have
+                .insert(Look::WordEndHalfAscii)
+                .insert(Look::WordEndHalfUnicode);
+        }
+        <span class="kw">if </span>state.is_from_word() &amp;&amp; !unit.is_word_byte() {
+            look_have = look_have
+                .insert(Look::WordEndAscii)
+                .insert(Look::WordEndUnicode);
+        } <span class="kw">else if </span>!state.is_from_word() &amp;&amp; unit.is_word_byte() {
+            look_have = look_have
+                .insert(Look::WordStartAscii)
+                .insert(Look::WordStartUnicode);
         }
         <span class="comment">// If we have new assertions satisfied that are among the set of
         // assertions that exist in this state (that is, just because we added
@@ -829,6 +917,14 @@ it into logical sub-components works better.
         &amp;&amp; ((rev &amp;&amp; unit.is_byte(<span class="string">b&#39;\r&#39;</span>)) || (!rev &amp;&amp; unit.is_byte(<span class="string">b&#39;\n&#39;</span>)))
     {
         builder.set_look_have(|have| have.insert(Look::StartCRLF));
+    }
+    <span class="comment">// And also for the start-half word boundary assertions. As long as the
+    // look-behind byte is not a word char, then the assertions are satisfied.
+    </span><span class="kw">if </span>nfa.look_set_any().contains_word() &amp;&amp; !unit.is_word_byte() {
+        builder.set_look_have(|have| {
+            have.insert(Look::WordStartHalfAscii)
+                .insert(Look::WordStartHalfUnicode)
+        });
     }
     <span class="kw">for </span>nfa_id <span class="kw">in </span>sparses.set1.iter() {
         <span class="kw">match </span><span class="kw-2">*</span>nfa.state(nfa_id) {
@@ -1173,47 +1269,95 @@ it into logical sub-components works better.
 ) {
     <span class="kw">let </span>rev = nfa.is_reverse();
     <span class="kw">let </span>lineterm = nfa.look_matcher().get_line_terminator();
+    <span class="kw">let </span>lookset = nfa.look_set_any();
     <span class="kw">match </span><span class="kw-2">*</span>start {
-        Start::NonWordByte =&gt; {}
+        Start::NonWordByte =&gt; {
+            <span class="kw">if </span>lookset.contains_word() {
+                builder.set_look_have(|have| {
+                    have.insert(Look::WordStartHalfAscii)
+                        .insert(Look::WordStartHalfUnicode)
+                });
+            }
+        }
         Start::WordByte =&gt; {
-            builder.set_is_from_word();
+            <span class="kw">if </span>lookset.contains_word() {
+                builder.set_is_from_word();
+            }
         }
         Start::Text =&gt; {
-            builder.set_look_have(|have| {
-                have.insert(Look::Start)
-                    .insert(Look::StartLF)
-                    .insert(Look::StartCRLF)
-            });
+            <span class="kw">if </span>lookset.contains_anchor_haystack() {
+                builder.set_look_have(|have| have.insert(Look::Start));
+            }
+            <span class="kw">if </span>lookset.contains_anchor_line() {
+                builder.set_look_have(|have| {
+                    have.insert(Look::StartLF).insert(Look::StartCRLF)
+                });
+            }
+            <span class="kw">if </span>lookset.contains_word() {
+                builder.set_look_have(|have| {
+                    have.insert(Look::WordStartHalfAscii)
+                        .insert(Look::WordStartHalfUnicode)
+                });
+            }
         }
         Start::LineLF =&gt; {
             <span class="kw">if </span>rev {
-                builder.set_is_half_crlf();
-                builder.set_look_have(|have| have.insert(Look::StartLF));
+                <span class="kw">if </span>lookset.contains_anchor_crlf() {
+                    builder.set_is_half_crlf();
+                }
+                <span class="kw">if </span>lookset.contains_anchor_line() {
+                    builder.set_look_have(|have| have.insert(Look::StartLF));
+                }
             } <span class="kw">else </span>{
-                builder.set_look_have(|have| have.insert(Look::StartCRLF));
+                <span class="kw">if </span>lookset.contains_anchor_line() {
+                    builder.set_look_have(|have| have.insert(Look::StartCRLF));
+                }
             }
-            <span class="kw">if </span>lineterm == <span class="string">b&#39;\n&#39; </span>{
+            <span class="kw">if </span>lookset.contains_anchor_line() &amp;&amp; lineterm == <span class="string">b&#39;\n&#39; </span>{
                 builder.set_look_have(|have| have.insert(Look::StartLF));
+            }
+            <span class="kw">if </span>lookset.contains_word() {
+                builder.set_look_have(|have| {
+                    have.insert(Look::WordStartHalfAscii)
+                        .insert(Look::WordStartHalfUnicode)
+                });
             }
         }
         Start::LineCR =&gt; {
-            <span class="kw">if </span>rev {
-                builder.set_look_have(|have| have.insert(Look::StartCRLF));
-            } <span class="kw">else </span>{
-                builder.set_is_half_crlf();
+            <span class="kw">if </span>lookset.contains_anchor_crlf() {
+                <span class="kw">if </span>rev {
+                    builder.set_look_have(|have| have.insert(Look::StartCRLF));
+                } <span class="kw">else </span>{
+                    builder.set_is_half_crlf();
+                }
             }
-            <span class="kw">if </span>lineterm == <span class="string">b&#39;\r&#39; </span>{
+            <span class="kw">if </span>lookset.contains_anchor_line() &amp;&amp; lineterm == <span class="string">b&#39;\r&#39; </span>{
                 builder.set_look_have(|have| have.insert(Look::StartLF));
+            }
+            <span class="kw">if </span>lookset.contains_word() {
+                builder.set_look_have(|have| {
+                    have.insert(Look::WordStartHalfAscii)
+                        .insert(Look::WordStartHalfUnicode)
+                });
             }
         }
         Start::CustomLineTerminator =&gt; {
-            builder.set_look_have(|have| have.insert(Look::StartLF));
+            <span class="kw">if </span>lookset.contains_anchor_line() {
+                builder.set_look_have(|have| have.insert(Look::StartLF));
+            }
             <span class="comment">// This is a bit of a tricky case, but if the line terminator was
             // set to a word byte, then we also need to behave as if the start
             // configuration is Start::WordByte. That is, we need to mark our
             // state as having come from a word byte.
-            </span><span class="kw">if </span>utf8::is_word_byte(lineterm) {
-                builder.set_is_from_word();
+            </span><span class="kw">if </span>lookset.contains_word() {
+                <span class="kw">if </span>utf8::is_word_byte(lineterm) {
+                    builder.set_is_from_word();
+                } <span class="kw">else </span>{
+                    builder.set_look_have(|have| {
+                        have.insert(Look::WordStartHalfAscii)
+                            .insert(Look::WordStartHalfUnicode)
+                    });
+                }
             }
         }
     }

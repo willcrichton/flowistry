@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-syntax-0.7.5/src/hir/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-syntax-0.8.2/src/hir/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../regex_syntax/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3782,6 +3782,83 @@
 <a href="#3782" id="3782">3782</a>
 <a href="#3783" id="3783">3783</a>
 <a href="#3784" id="3784">3784</a>
+<a href="#3785" id="3785">3785</a>
+<a href="#3786" id="3786">3786</a>
+<a href="#3787" id="3787">3787</a>
+<a href="#3788" id="3788">3788</a>
+<a href="#3789" id="3789">3789</a>
+<a href="#3790" id="3790">3790</a>
+<a href="#3791" id="3791">3791</a>
+<a href="#3792" id="3792">3792</a>
+<a href="#3793" id="3793">3793</a>
+<a href="#3794" id="3794">3794</a>
+<a href="#3795" id="3795">3795</a>
+<a href="#3796" id="3796">3796</a>
+<a href="#3797" id="3797">3797</a>
+<a href="#3798" id="3798">3798</a>
+<a href="#3799" id="3799">3799</a>
+<a href="#3800" id="3800">3800</a>
+<a href="#3801" id="3801">3801</a>
+<a href="#3802" id="3802">3802</a>
+<a href="#3803" id="3803">3803</a>
+<a href="#3804" id="3804">3804</a>
+<a href="#3805" id="3805">3805</a>
+<a href="#3806" id="3806">3806</a>
+<a href="#3807" id="3807">3807</a>
+<a href="#3808" id="3808">3808</a>
+<a href="#3809" id="3809">3809</a>
+<a href="#3810" id="3810">3810</a>
+<a href="#3811" id="3811">3811</a>
+<a href="#3812" id="3812">3812</a>
+<a href="#3813" id="3813">3813</a>
+<a href="#3814" id="3814">3814</a>
+<a href="#3815" id="3815">3815</a>
+<a href="#3816" id="3816">3816</a>
+<a href="#3817" id="3817">3817</a>
+<a href="#3818" id="3818">3818</a>
+<a href="#3819" id="3819">3819</a>
+<a href="#3820" id="3820">3820</a>
+<a href="#3821" id="3821">3821</a>
+<a href="#3822" id="3822">3822</a>
+<a href="#3823" id="3823">3823</a>
+<a href="#3824" id="3824">3824</a>
+<a href="#3825" id="3825">3825</a>
+<a href="#3826" id="3826">3826</a>
+<a href="#3827" id="3827">3827</a>
+<a href="#3828" id="3828">3828</a>
+<a href="#3829" id="3829">3829</a>
+<a href="#3830" id="3830">3830</a>
+<a href="#3831" id="3831">3831</a>
+<a href="#3832" id="3832">3832</a>
+<a href="#3833" id="3833">3833</a>
+<a href="#3834" id="3834">3834</a>
+<a href="#3835" id="3835">3835</a>
+<a href="#3836" id="3836">3836</a>
+<a href="#3837" id="3837">3837</a>
+<a href="#3838" id="3838">3838</a>
+<a href="#3839" id="3839">3839</a>
+<a href="#3840" id="3840">3840</a>
+<a href="#3841" id="3841">3841</a>
+<a href="#3842" id="3842">3842</a>
+<a href="#3843" id="3843">3843</a>
+<a href="#3844" id="3844">3844</a>
+<a href="#3845" id="3845">3845</a>
+<a href="#3846" id="3846">3846</a>
+<a href="#3847" id="3847">3847</a>
+<a href="#3848" id="3848">3848</a>
+<a href="#3849" id="3849">3849</a>
+<a href="#3850" id="3850">3850</a>
+<a href="#3851" id="3851">3851</a>
+<a href="#3852" id="3852">3852</a>
+<a href="#3853" id="3853">3853</a>
+<a href="#3854" id="3854">3854</a>
+<a href="#3855" id="3855">3855</a>
+<a href="#3856" id="3856">3856</a>
+<a href="#3857" id="3857">3857</a>
+<a href="#3858" id="3858">3858</a>
+<a href="#3859" id="3859">3859</a>
+<a href="#3860" id="3860">3860</a>
+<a href="#3861" id="3861">3861</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/*!
 Defines a high-level intermediate (HIR) representation for regular expressions.
 
@@ -4581,12 +4658,17 @@ to its simplified structure.
 <span class="doccomment">/// The high-level intermediate representation of a character class.
 ///
 /// A character class corresponds to a set of characters. A character is either
-/// defined by a Unicode scalar value or a byte. Unicode characters are used
-/// by default, while bytes are used when Unicode mode (via the `u` flag) is
-/// disabled.
+/// defined by a Unicode scalar value or a byte.
 ///
 /// A character class, regardless of its character type, is represented by a
 /// sequence of non-overlapping non-adjacent ranges of characters.
+///
+/// There are no guarantees about which class variant is used. Generally
+/// speaking, the Unicode variat is used whenever a class needs to contain
+/// non-ASCII Unicode scalar values. But the Unicode variant can be used even
+/// when Unicode mode is disabled. For example, at the time of writing, the
+/// regex `(?-u:a|\xc2\xa0)` will compile down to HIR for the Unicode class
+/// `[a\u00A0]` due to optimizations.
 ///
 /// Note that `Bytes` variant may be produced even when it exclusively matches
 /// valid UTF-8. This is because a `Bytes` variant represents an intention by
@@ -5110,8 +5192,9 @@ to its simplified structure.
     }
 }
 
-<span class="doccomment">/// A set of characters represented by arbitrary bytes (where one byte
-/// corresponds to one character).
+<span class="doccomment">/// A set of characters represented by arbitrary bytes.
+///
+/// Each byte corresponds to one character.
 </span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>ClassBytes {
     set: IntervalSet&lt;ClassBytesRange&gt;,
@@ -5413,6 +5496,42 @@ to its simplified structure.
     </span>WordUnicode = <span class="number">1 </span>&lt;&lt; <span class="number">8</span>,
     <span class="doccomment">/// Match a Unicode-aware negation of a word boundary.
     </span>WordUnicodeNegate = <span class="number">1 </span>&lt;&lt; <span class="number">9</span>,
+    <span class="doccomment">/// Match the start of an ASCII-only word boundary. That is, this matches a
+    /// position at either the beginning of the haystack or where the previous
+    /// character is not a word character and the following character is a word
+    /// character.
+    </span>WordStartAscii = <span class="number">1 </span>&lt;&lt; <span class="number">10</span>,
+    <span class="doccomment">/// Match the end of an ASCII-only word boundary. That is, this matches
+    /// a position at either the end of the haystack or where the previous
+    /// character is a word character and the following character is not a word
+    /// character.
+    </span>WordEndAscii = <span class="number">1 </span>&lt;&lt; <span class="number">11</span>,
+    <span class="doccomment">/// Match the start of a Unicode word boundary. That is, this matches a
+    /// position at either the beginning of the haystack or where the previous
+    /// character is not a word character and the following character is a word
+    /// character.
+    </span>WordStartUnicode = <span class="number">1 </span>&lt;&lt; <span class="number">12</span>,
+    <span class="doccomment">/// Match the end of a Unicode word boundary. That is, this matches a
+    /// position at either the end of the haystack or where the previous
+    /// character is a word character and the following character is not a word
+    /// character.
+    </span>WordEndUnicode = <span class="number">1 </span>&lt;&lt; <span class="number">13</span>,
+    <span class="doccomment">/// Match the start half of an ASCII-only word boundary. That is, this
+    /// matches a position at either the beginning of the haystack or where the
+    /// previous character is not a word character.
+    </span>WordStartHalfAscii = <span class="number">1 </span>&lt;&lt; <span class="number">14</span>,
+    <span class="doccomment">/// Match the end half of an ASCII-only word boundary. That is, this
+    /// matches a position at either the end of the haystack or where the
+    /// following character is not a word character.
+    </span>WordEndHalfAscii = <span class="number">1 </span>&lt;&lt; <span class="number">15</span>,
+    <span class="doccomment">/// Match the start half of a Unicode word boundary. That is, this matches
+    /// a position at either the beginning of the haystack or where the
+    /// previous character is not a word character.
+    </span>WordStartHalfUnicode = <span class="number">1 </span>&lt;&lt; <span class="number">16</span>,
+    <span class="doccomment">/// Match the end half of a Unicode word boundary. That is, this matches
+    /// a position at either the end of the haystack or where the following
+    /// character is not a word character.
+    </span>WordEndHalfUnicode = <span class="number">1 </span>&lt;&lt; <span class="number">17</span>,
 }
 
 <span class="kw">impl </span>Look {
@@ -5434,6 +5553,14 @@ to its simplified structure.
             Look::WordAsciiNegate =&gt; Look::WordAsciiNegate,
             Look::WordUnicode =&gt; Look::WordUnicode,
             Look::WordUnicodeNegate =&gt; Look::WordUnicodeNegate,
+            Look::WordStartAscii =&gt; Look::WordEndAscii,
+            Look::WordEndAscii =&gt; Look::WordStartAscii,
+            Look::WordStartUnicode =&gt; Look::WordEndUnicode,
+            Look::WordEndUnicode =&gt; Look::WordStartUnicode,
+            Look::WordStartHalfAscii =&gt; Look::WordEndHalfAscii,
+            Look::WordEndHalfAscii =&gt; Look::WordStartHalfAscii,
+            Look::WordStartHalfUnicode =&gt; Look::WordEndHalfUnicode,
+            Look::WordEndHalfUnicode =&gt; Look::WordStartHalfUnicode,
         }
     }
 
@@ -5442,28 +5569,36 @@ to its simplified structure.
     /// constructor is guaranteed to return the same look-around variant that
     /// one started with within a semver compatible release of this crate.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>as_repr(<span class="self">self</span>) -&gt; u16 {
+    </span><span class="kw">pub const fn </span>as_repr(<span class="self">self</span>) -&gt; u32 {
         <span class="comment">// AFAIK, &#39;as&#39; is the only way to zero-cost convert an int enum to an
         // actual int.
-        </span><span class="self">self </span><span class="kw">as </span>u16
+        </span><span class="self">self </span><span class="kw">as </span>u32
     }
 
     <span class="doccomment">/// Given the underlying representation of a `Look` value, return the
     /// corresponding `Look` value if the representation is valid. Otherwise
     /// `None` is returned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>from_repr(repr: u16) -&gt; <span class="prelude-ty">Option</span>&lt;Look&gt; {
+    </span><span class="kw">pub const fn </span>from_repr(repr: u32) -&gt; <span class="prelude-ty">Option</span>&lt;Look&gt; {
         <span class="kw">match </span>repr {
-            <span class="number">0b00_0000_0001 </span>=&gt; <span class="prelude-val">Some</span>(Look::Start),
-            <span class="number">0b00_0000_0010 </span>=&gt; <span class="prelude-val">Some</span>(Look::End),
-            <span class="number">0b00_0000_0100 </span>=&gt; <span class="prelude-val">Some</span>(Look::StartLF),
-            <span class="number">0b00_0000_1000 </span>=&gt; <span class="prelude-val">Some</span>(Look::EndLF),
-            <span class="number">0b00_0001_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::StartCRLF),
-            <span class="number">0b00_0010_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::EndCRLF),
-            <span class="number">0b00_0100_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordAscii),
-            <span class="number">0b00_1000_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordAsciiNegate),
-            <span class="number">0b01_0000_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordUnicode),
-            <span class="number">0b10_0000_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordUnicodeNegate),
+            <span class="number">0b00_0000_0000_0000_0001 </span>=&gt; <span class="prelude-val">Some</span>(Look::Start),
+            <span class="number">0b00_0000_0000_0000_0010 </span>=&gt; <span class="prelude-val">Some</span>(Look::End),
+            <span class="number">0b00_0000_0000_0000_0100 </span>=&gt; <span class="prelude-val">Some</span>(Look::StartLF),
+            <span class="number">0b00_0000_0000_0000_1000 </span>=&gt; <span class="prelude-val">Some</span>(Look::EndLF),
+            <span class="number">0b00_0000_0000_0001_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::StartCRLF),
+            <span class="number">0b00_0000_0000_0010_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::EndCRLF),
+            <span class="number">0b00_0000_0000_0100_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordAscii),
+            <span class="number">0b00_0000_0000_1000_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordAsciiNegate),
+            <span class="number">0b00_0000_0001_0000_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordUnicode),
+            <span class="number">0b00_0000_0010_0000_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordUnicodeNegate),
+            <span class="number">0b00_0000_0100_0000_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordStartAscii),
+            <span class="number">0b00_0000_1000_0000_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordEndAscii),
+            <span class="number">0b00_0001_0000_0000_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordStartUnicode),
+            <span class="number">0b00_0010_0000_0000_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordEndUnicode),
+            <span class="number">0b00_0100_0000_0000_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordStartHalfAscii),
+            <span class="number">0b00_1000_0000_0000_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordEndHalfAscii),
+            <span class="number">0b01_0000_0000_0000_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordStartHalfUnicode),
+            <span class="number">0b10_0000_0000_0000_0000 </span>=&gt; <span class="prelude-val">Some</span>(Look::WordEndHalfUnicode),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -5488,6 +5623,14 @@ to its simplified structure.
             Look::WordAsciiNegate =&gt; <span class="string">&#39;B&#39;</span>,
             Look::WordUnicode =&gt; <span class="string">&#39;𝛃&#39;</span>,
             Look::WordUnicodeNegate =&gt; <span class="string">&#39;𝚩&#39;</span>,
+            Look::WordStartAscii =&gt; <span class="string">&#39;&lt;&#39;</span>,
+            Look::WordEndAscii =&gt; <span class="string">&#39;&gt;&#39;</span>,
+            Look::WordStartUnicode =&gt; <span class="string">&#39;〈&#39;</span>,
+            Look::WordEndUnicode =&gt; <span class="string">&#39;〉&#39;</span>,
+            Look::WordStartHalfAscii =&gt; <span class="string">&#39;◁&#39;</span>,
+            Look::WordEndHalfAscii =&gt; <span class="string">&#39;▷&#39;</span>,
+            Look::WordStartHalfUnicode =&gt; <span class="string">&#39;◀&#39;</span>,
+            Look::WordEndHalfUnicode =&gt; <span class="string">&#39;▶&#39;</span>,
         }
     }
 }
@@ -6378,7 +6521,7 @@ to its simplified structure.
     /// range of `u16` values to be represented. For example, even if the
     /// current implementation only makes use of the 10 least significant bits,
     /// it may use more bits in a future semver compatible release.
-    </span><span class="kw">pub </span>bits: u16,
+    </span><span class="kw">pub </span>bits: u32,
 }
 
 <span class="kw">impl </span>LookSet {
@@ -6481,13 +6624,22 @@ to its simplified structure.
     </span><span class="kw">pub fn </span>contains_word_unicode(<span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.contains(Look::WordUnicode)
             || <span class="self">self</span>.contains(Look::WordUnicodeNegate)
+            || <span class="self">self</span>.contains(Look::WordStartUnicode)
+            || <span class="self">self</span>.contains(Look::WordEndUnicode)
+            || <span class="self">self</span>.contains(Look::WordStartHalfUnicode)
+            || <span class="self">self</span>.contains(Look::WordEndHalfUnicode)
     }
 
     <span class="doccomment">/// Returns true if and only if this set contains any ASCII word boundary
     /// or negated ASCII word boundary assertions.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>contains_word_ascii(<span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.contains(Look::WordAscii) || <span class="self">self</span>.contains(Look::WordAsciiNegate)
+        <span class="self">self</span>.contains(Look::WordAscii)
+            || <span class="self">self</span>.contains(Look::WordAsciiNegate)
+            || <span class="self">self</span>.contains(Look::WordStartAscii)
+            || <span class="self">self</span>.contains(Look::WordEndAscii)
+            || <span class="self">self</span>.contains(Look::WordStartHalfAscii)
+            || <span class="self">self</span>.contains(Look::WordEndHalfAscii)
     }
 
     <span class="doccomment">/// Returns an iterator over all of the look-around assertions in this set.
@@ -6566,29 +6718,31 @@ to its simplified structure.
         <span class="kw-2">*</span><span class="self">self </span>= <span class="self">self</span>.intersect(other);
     }
 
-    <span class="doccomment">/// Return a `LookSet` from the slice given as a native endian 16-bit
+    <span class="doccomment">/// Return a `LookSet` from the slice given as a native endian 32-bit
     /// integer.
     ///
     /// # Panics
     ///
-    /// This panics if `slice.len() &lt; 2`.
+    /// This panics if `slice.len() &lt; 4`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>read_repr(slice: <span class="kw-2">&amp;</span>[u8]) -&gt; LookSet {
-        <span class="kw">let </span>bits = u16::from_ne_bytes(slice[..<span class="number">2</span>].try_into().unwrap());
+        <span class="kw">let </span>bits = u32::from_ne_bytes(slice[..<span class="number">4</span>].try_into().unwrap());
         LookSet { bits }
     }
 
-    <span class="doccomment">/// Write a `LookSet` as a native endian 16-bit integer to the beginning
+    <span class="doccomment">/// Write a `LookSet` as a native endian 32-bit integer to the beginning
     /// of the slice given.
     ///
     /// # Panics
     ///
-    /// This panics if `slice.len() &lt; 2`.
+    /// This panics if `slice.len() &lt; 4`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>write_repr(<span class="self">self</span>, slice: <span class="kw-2">&amp;mut </span>[u8]) {
         <span class="kw">let </span>raw = <span class="self">self</span>.bits.to_ne_bytes();
         slice[<span class="number">0</span>] = raw[<span class="number">0</span>];
         slice[<span class="number">1</span>] = raw[<span class="number">1</span>];
+        slice[<span class="number">2</span>] = raw[<span class="number">2</span>];
+        slice[<span class="number">3</span>] = raw[<span class="number">3</span>];
     }
 }
 
@@ -6621,9 +6775,9 @@ to its simplified structure.
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
         <span class="comment">// We&#39;ll never have more than u8::MAX distinct look-around assertions,
-        // so &#39;repr&#39; will always fit into a u16.
-        </span><span class="kw">let </span>repr = u16::try_from(<span class="self">self</span>.set.bits.trailing_zeros()).unwrap();
-        <span class="kw">let </span>look = Look::from_repr(<span class="number">1 </span>&lt;&lt; repr)<span class="question-mark">?</span>;
+        // so &#39;bit&#39; will always fit into a u16.
+        </span><span class="kw">let </span>bit = u16::try_from(<span class="self">self</span>.set.bits.trailing_zeros()).unwrap();
+        <span class="kw">let </span>look = Look::from_repr(<span class="number">1 </span>&lt;&lt; bit)<span class="question-mark">?</span>;
         <span class="self">self</span>.set = <span class="self">self</span>.set.remove(look);
         <span class="prelude-val">Some</span>(look)
     }
@@ -7545,7 +7699,7 @@ to its simplified structure.
         <span class="macro">assert_eq!</span>(<span class="number">0</span>, set.iter().count());
 
         <span class="kw">let </span>set = LookSet::full();
-        <span class="macro">assert_eq!</span>(<span class="number">10</span>, set.iter().count());
+        <span class="macro">assert_eq!</span>(<span class="number">18</span>, set.iter().count());
 
         <span class="kw">let </span>set =
             LookSet::empty().insert(Look::StartLF).insert(Look::WordUnicode);
@@ -7563,7 +7717,7 @@ to its simplified structure.
         <span class="kw">let </span>res = <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, LookSet::empty());
         <span class="macro">assert_eq!</span>(<span class="string">&quot;∅&quot;</span>, res);
         <span class="kw">let </span>res = <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, LookSet::full());
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;Az^$rRbB𝛃𝚩&quot;</span>, res);
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;Az^$rRbB𝛃𝚩&lt;&gt;〈〉◁▷◀▶&quot;</span>, res);
     }
 }
 </code></pre></div></section></main></body></html>
