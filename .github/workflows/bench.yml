@@ -1,0 +1,21 @@
+name: Benchmark
+
+on:
+  push:
+    branches:
+      - master
+    tags-ignore:
+      - "v*"
+
+jobs:
+  bench:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - run: cargo bench --bench main -- --output-format bencher | tee crates/flowistry/benches/output.txt
+      - uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: 'cargo'
+          output-file-path: crates/flowistry/benches/output.txt
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
