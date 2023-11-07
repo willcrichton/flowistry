@@ -16,8 +16,8 @@ export const createProxy = async (zip: string, port = PROXY_PORT) => {
     const server = mockttp.getLocal({ https });
 
     // Intercept only requests made for zips on Github
-    server.anyRequest().thenPassThrough();
-    server.get(/github.com.*.zip/).thenFromFile(200, path.resolve(zip));
+    server.forAnyRequest().thenPassThrough();
+    server.forGet(/github.com.*.zip/).thenFromFile(200, path.resolve(zip));
 
     await server.start(port);
     return server;
