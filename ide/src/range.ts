@@ -112,7 +112,7 @@ export class RangeTree<T> {
 
     ["contained", "containing", "overlapping"].forEach((k) => {
       let final_ = final as any;
-      final_[k] = _.sortBy(final_[k], ({ range }) => range.end - range.start);
+      final_[k] = _.orderBy(final_[k], ({ range }) => [range.end.line - range.start.line, range.end.column - range.start.column]);
     });
 
     console.log("Querying", query, "for result", final);
