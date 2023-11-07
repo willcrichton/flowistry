@@ -59,8 +59,7 @@ class FocusBodyState {
   };
 
   private find_slice_at_selection = (
-    editor: vscode.TextEditor,
-    doc: vscode.TextDocument
+    editor: vscode.TextEditor
   ): { seeds: Range[]; slice: Range[]; direct_influence: Range[] } => {
     let query = this.places.selection_to_interval(
       this.mark || editor.selection
@@ -74,6 +73,8 @@ class FocusBodyState {
       sliced = result.overlapping.concat(first_containing);
     }
 
+    console.log("query:", query, result, sliced);
+
     let seeds = sliced.map(({ value }) => value.ranges).flat();
     seeds = _.uniqWith(seeds, _.isEqual);
     let slice = sliced.map(({ value }) => value.slice).flat();
@@ -86,10 +87,8 @@ class FocusBodyState {
 
   render = async (editor: vscode.TextEditor, select = false) => {
     let doc = editor.document;
-    let { seeds, slice, direct_influence } = this.find_slice_at_selection(
-      editor,
-      doc
-    );
+    let { seeds, slice, direct_influence } =
+      this.find_slice_at_selection(editor);
 
     if (seeds.length > 0) {
       if (select) {
