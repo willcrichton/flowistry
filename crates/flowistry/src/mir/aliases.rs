@@ -83,7 +83,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
   }
 
   /// Alternative constructor if you need to filter out certain borrowck facts.
-  /// 
+  ///
   /// Just use [`Aliases::build`] unless you know what you're doing.
   pub fn build_with_fact_selection(
     tcx: TyCtxt<'tcx>,
@@ -364,10 +364,10 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
   /// The place `*n` is an alias for `v` (even though they have different types!).
   pub fn aliases(&self, place: Place<'tcx>) -> PlaceSet<'tcx> {
     let mut aliases = HashSet::default();
-    aliases.insert(place);
 
     // Places with no derefs, or derefs from arguments, have no aliases
     if place.is_direct(self.body) {
+      aliases.insert(place);
       return aliases;
     }
 
@@ -489,16 +489,10 @@ mod test {
       let e_deref = p.local("e").deref().mk();
 
       // `*e` aliases only `a` (not `b`) because of the lifetime constraints on `foo`
-      compare_sets(
-        aliases.aliases(e_deref),
-        hashset! { p.local("a").mk(), e_deref },
-      );
+      compare_sets(aliases.aliases(e_deref), hashset! { p.local("a").mk()});
 
       // `*e` aliases only `b` because nothing might relate it to `a`
-      compare_sets(
-        aliases.aliases(d_deref),
-        hashset! { p.local("b").mk(), d_deref },
-      );
+      compare_sets(aliases.aliases(d_deref), hashset! { p.local("b").mk() });
     });
   }
 
@@ -519,15 +513,12 @@ fn main() {
       let d_deref = p.local("d").deref().mk();
 
       // `*b` only aliases `a` because we don't have a projection for `a`
-      compare_sets(
-        aliases.aliases(b_deref),
-        hashset! { p.local("a").mk(), b_deref },
-      );
+      compare_sets(aliases.aliases(b_deref), hashset! { p.local("a").mk() });
 
       // `*d` aliases `c.1` because we know the projection from the source
       compare_sets(
         aliases.aliases(d_deref),
-        hashset! { p.local("c").field(1).mk(), d_deref },
+        hashset! { p.local("c").field(1).mk() },
       );
     });
   }

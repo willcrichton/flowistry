@@ -58,6 +58,10 @@ enum FlowistryCommand {
     pos_column: usize,
   },
 
+  Graph {
+    file: String,
+  },
+
   Decompose {
     file: String,
     pos: usize,
@@ -116,6 +120,7 @@ impl RustcPlugin for FlowistryPlugin {
     let file = match &args.command {
       Spans { file, .. } => file,
       Focus { file, .. } => file,
+      Graph { file, .. } => file,
       Decompose { file, .. } => file,
       Playground { file, .. } => file,
       _ => unreachable!(),
@@ -190,6 +195,7 @@ impl RustcPlugin for FlowistryPlugin {
         };
         postprocess(run(crate::focus::focus, compute_target, &compiler_args))
       }
+      Graph { .. } => postprocess(crate::graph::graph(&compiler_args)),
       Decompose {
         file: _file,
         pos: _pos,

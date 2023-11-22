@@ -56,6 +56,7 @@ extern crate rustc_borrowck;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_graphviz;
+extern crate rustc_hash;
 extern crate rustc_hir;
 extern crate rustc_hir_pretty;
 extern crate rustc_index;
@@ -75,5 +76,7 @@ extern crate smallvec;
 pub mod extensions;
 pub mod infoflow;
 pub mod mir;
+#[cfg(feature = "pdg")]
+pub mod pdg;
 #[cfg(feature = "test")]
 pub mod test_utils;

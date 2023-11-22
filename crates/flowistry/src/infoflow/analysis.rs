@@ -102,18 +102,18 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
   }
 
   fn influences(&self, place: Place<'tcx>) -> SmallVec<[Place<'tcx>; 8]> {
-    let conflicts = self
-      .place_info
-      .aliases(place)
-      .iter()
-      .flat_map(|alias| self.place_info.conflicts(*alias));
+    let conflicts = self.place_info.aliases(place).iter();
     let provenance = place.refs_in_projection().flat_map(|(place_ref, _)| {
       self
         .place_info
         .aliases(Place::from_ref(place_ref, self.tcx))
         .iter()
     });
-    conflicts.chain(provenance).copied().collect()
+    conflicts
+      .chain(provenance)
+      .flat_map(|alias| self.place_info.conflicts(*alias))
+      .copied()
+      .collect()
   }
 
   /// Returns all the dependencies of `place` within `state`.
