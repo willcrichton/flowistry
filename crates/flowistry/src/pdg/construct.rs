@@ -1,20 +1,27 @@
 use df::JoinSemiLattice;
+use log::debug;
 use petgraph::graph::DiGraph;
 use rustc_borrowck::consumers::{
   places_conflict, BodyWithBorrowckFacts, PlaceConflictBias,
 };
 use rustc_data_structures::graph::{self as rustc_graph, WithStartNode};
 use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_hir::BodyId;
+use rustc_hir::{def_id::LocalDefId, BodyId};
 use rustc_index::IndexVec;
 use rustc_middle::{
-  mir::{visit::Visitor, BasicBlock, Body, Location, Place, TerminatorKind},
-  ty::TyCtxt,
+  mir::{
+    visit::Visitor, BasicBlock, Body, HasLocalDecls, Location, Operand, Place,
+    ProjectionElem, TerminatorKind, RETURN_PLACE,
+  },
+  ty::{TyCtxt, TyKind},
 };
 use rustc_mir_dataflow::{self as df};
-use rustc_utils::{mir::control_dependencies::ControlDependencies, BodyExt, PlaceExt};
+use rustc_utils::{
+  mir::{borrowck_facts, control_dependencies::ControlDependencies},
+  BodyExt, PlaceExt,
+};
 
-use super::graph::{DepEdge, DepGraph, DepNode, LocationOrStart};
+use super::graph::{DepEdge, DepGraph, DepNode, GlobalLocation, LocationOrStart};
 use crate::{
   infoflow::mutation::{ModularMutationVisitor, Mutation, MutationStatus},
   mir::placeinfo::PlaceInfo,
@@ -50,6 +57,7 @@ pub struct GraphConstructor<'a, 'tcx> {
   place_info: PlaceInfo<'a, 'tcx>,
   control_dependencies: ControlDependencies<BasicBlock>,
   start_loc: FxHashSet<LocationOrStart>,
+  def_id: LocalDefId,
 }
 
 impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
@@ -59,8 +67,8 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
   ) -> Self {
     let body = &body_with_facts.body;
-    let def_id = tcx.hir().body_owner_def_id(body_id).to_def_id();
-    let place_info = PlaceInfo::build(tcx, def_id, body_with_facts);
+    let def_id = tcx.hir().body_owner_def_id(body_id);
+    let place_info = PlaceInfo::build(tcx, def_id.to_def_id(), body_with_facts);
     let control_dependencies = body.control_dependencies();
 
     let mut start_loc = FxHashSet::default();
@@ -72,12 +80,20 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       place_info,
       control_dependencies,
       start_loc,
+      def_id,
+    }
+  }
+
+  fn globalize(&self, location: impl Into<LocationOrStart>) -> GlobalLocation {
+    GlobalLocation {
+      function: self.def_id,
+      location: location.into(),
     }
   }
 
   fn add_input_to_op(
     &self,
-    graph: &mut PartialGraph<'tcx>,
+    state: &mut PartialGraph<'tcx>,
     input: Place<'tcx>,
     op: DepNode<'tcx>,
   ) {
@@ -97,7 +113,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     for alias in aliases.iter().chain(provenance).copied() {
       // **FIELD-SENSITIVITY:**
       // Find all places that have been mutated which conflict with `alias.`
-      let conflicts = graph
+      let conflicts = state
         .last_mutation
         .keys()
         .filter(|place| {
@@ -109,7 +125,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
             PlaceConflictBias::Overlap,
           )
         })
-        .map(|place| (*place, &graph.last_mutation[place]));
+        .map(|place| (*place, &state.last_mutation[place]));
 
       // Special case: if the `alias` is an un-mutated argument, then include it as a conflict
       // coming from the special start location.
@@ -126,9 +142,9 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
           // Add an edge from (CONFLICT @ LAST_MUT_LOC) -> OP.
           let input_node = DepNode::Place {
             place: conflict,
-            at: *loc,
+            at: self.globalize(*loc),
           };
-          graph.edges.insert((input_node, op, DepEdge::Data));
+          state.edges.insert((input_node, op, DepEdge::Data));
         }
       }
     }
@@ -139,9 +155,8 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     state: &mut PartialGraph<'tcx>,
     location: Location,
     op_node: DepNode<'tcx>,
-    Mutation {
-      mutated, status, ..
-    }: Mutation<'tcx>,
+    mutated: Place<'tcx>,
+    status: MutationStatus,
   ) {
     // **POINTER-SENSITIVITY:**
     // If `mutated` involves indirection via dereferences, then resolve it to the direct places it could point to.
@@ -155,7 +170,10 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       // Add an edge from OP -> (DST @ CURRENT_LOC).
       let dst_node = DepNode::Place {
         place: *dst,
-        at: LocationOrStart::Location(location),
+        at: GlobalLocation {
+          location: LocationOrStart::Location(location),
+          function: self.def_id,
+        },
       };
       state.edges.insert((op_node, dst_node, DepEdge::Data));
 
@@ -178,13 +196,13 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     location: Location,
     mutations: Vec<Mutation<'tcx>>,
   ) {
-    let op_node = DepNode::Op(location);
+    let op_node = DepNode::Op(self.globalize(location));
 
     // **CONTROL-DEPENDENCE:**
     // Add control edges from blocks CTRL -> OP where OP is control-dependent on CTRL.
     if let Some(ctrl_deps) = self.control_dependencies.dependent_on(location.block) {
       let ctrl_edges = ctrl_deps.iter().map(|block| {
-        let ctrl_node = DepNode::Op(self.body.terminator_loc(block));
+        let ctrl_node = DepNode::Op(self.globalize(self.body.terminator_loc(block)));
         (ctrl_node, op_node, DepEdge::Control)
       });
       state.edges.extend(ctrl_edges);
@@ -199,26 +217,174 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       }
 
       // Add a data edge for OP -> MUTATED.
-      self.add_op_to_mutated(state, location, op_node, mutation);
+      self.add_op_to_mutated(state, location, op_node, mutation.mutated, mutation.status);
     }
   }
 
-  fn visit_basic_block(&self, block: BasicBlock, state: &mut PartialGraph<'tcx>) {
-    // For each statement in the block,
-    //   for each mutation in the statement,
-    //     update the PDG based on the mutation.
-    ModularMutationVisitor::new(&self.place_info, |location, mutations| {
-      self.apply_mutations(state, location, mutations)
-    })
-    .visit_basic_block_data(block, &self.body.basic_blocks[block]);
+  fn handle_call(
+    &self,
+    state: &mut PartialGraph<'tcx>,
+    location: Location,
+    func: &Operand<'tcx>,
+    args: &[Operand<'tcx>],
+    destination: Place<'tcx>,
+  ) -> bool {
+    let tcx = self.tcx;
 
-    // Special case: if the current block is a SwitchInt, then other blocks could be control-dependent on it.
-    // We need to register that the SwitchInt's input is a dependency of the switch operation.
-    let terminator = self.body.basic_blocks[block].terminator();
-    if let TerminatorKind::SwitchInt { discr, .. } = &terminator.kind {
-      if let Some(place) = discr.place() {
-        self.add_input_to_op(state, place, DepNode::Op(self.body.terminator_loc(block)));
+    let child_def_id = match func {
+      Operand::Constant(func) => match func.literal.ty().kind() {
+        TyKind::FnDef(def_id, _) => *def_id,
+        _ => return false,
+      },
+      Operand::Copy(_place) | Operand::Move(_place) => {
+        // TODO: control-flow analysis to deduce fn for inlined closures
+        return false;
       }
+    };
+
+    let child_local_def_id = match child_def_id.as_local() {
+      Some(local_def_id) => local_def_id,
+      None => return false,
+    };
+
+    let child_body_id = tcx.hir().body_owned_by(child_local_def_id);
+
+    let child_body_with_facts =
+      borrowck_facts::get_body_with_borrowck_facts(tcx, child_local_def_id);
+    let child_body = &child_body_with_facts.body;
+    let mut child_graph =
+      GraphConstructor::new(tcx, child_body_id, child_body_with_facts)
+        .construct_partial();
+
+    let parent_body = self.body;
+    let parent_param_env = tcx.param_env(self.def_id);
+
+    let translate_to_parent = |child: Place<'tcx>| -> Option<Place<'tcx>> {
+      let parent_place = if child.local == RETURN_PLACE {
+        destination
+      } else {
+        args[child.local.as_usize() - 1].place()?
+      };
+
+      let mut projection = parent_place.projection.to_vec();
+      let mut ty = parent_place.ty(parent_body.local_decls(), tcx);
+
+      for elem in child.projection.iter() {
+        // Don't continue if we reach a private field
+        if let ProjectionElem::Field(field, _) = elem {
+          if let Some(adt_def) = ty.ty.ty_adt_def() {
+            let field = adt_def.all_fields().nth(field.as_usize()).unwrap();
+            if !field.vis.is_accessible_from(self.def_id, self.tcx) {
+              break;
+            }
+          }
+        }
+
+        ty = ty.projection_ty_core(
+          tcx,
+          parent_param_env,
+          &elem,
+          |_, field, _| ty.field_ty(tcx, field),
+          |_, ty| ty,
+        );
+        let elem = match elem {
+          ProjectionElem::Field(field, _) => ProjectionElem::Field(field, ty.ty),
+          elem => elem,
+        };
+        projection.push(elem);
+      }
+
+      let parent_place_projected = Place::make(parent_place.local, &projection, tcx);
+      Some(parent_place_projected)
+    };
+
+    let is_arg = |child_node: &DepNode<'tcx>| match child_node {
+      DepNode::Place { place, .. } => {
+        place.local == RETURN_PLACE || place.is_arg(child_body)
+      }
+      _ => false,
+    };
+    let parent_srcs = child_graph
+      .edges
+      .iter()
+      .map(|(src, _, _)| *src)
+      .filter(is_arg);
+    let parent_dsts = child_graph
+      .edges
+      .iter()
+      .map(|(_, dst, _)| *dst)
+      .filter(is_arg);
+
+    for src in parent_srcs {
+      let child_place = src.expect_place();
+      if let Some(parent_place) = translate_to_parent(child_place) {
+        self.add_input_to_op(state, parent_place, src);
+      }
+    }
+
+    for dst in parent_dsts {
+      let child_place = dst.expect_place();
+      if let Some(parent_place) = translate_to_parent(child_place) {
+        self.add_op_to_mutated(
+          state,
+          location,
+          dst,
+          parent_place,
+          // PRECISION TODO: if `child_place` is guaranteed to have been overwritten,
+          // then we can make this into a `Definitely`
+          MutationStatus::Possibly,
+        );
+      }
+    }
+
+    state.edges.extend(child_graph.edges);
+
+    true
+  }
+
+  fn visit_basic_block(&self, block: BasicBlock, state: &mut PartialGraph<'tcx>) {
+    macro_rules! visitor {
+      () => {
+        ModularMutationVisitor::new(&self.place_info, |location, mutations| {
+          self.apply_mutations(state, location, mutations)
+        })
+      };
+    }
+
+    let block_data = &self.body.basic_blocks[block];
+    for (statement_index, statement) in block_data.statements.iter().enumerate() {
+      let location = Location {
+        statement_index,
+        block,
+      };
+      visitor!().visit_statement(statement, location);
+    }
+
+    let terminator = self.body.basic_blocks[block].terminator();
+    let terminator_loc = self.body.terminator_loc(block);
+    match &terminator.kind {
+      // Special case: if the current block is a SwitchInt, then other blocks could be control-dependent on it.
+      // We need to register that the SwitchInt's input is a dependency of the switch operation.
+      TerminatorKind::SwitchInt { discr, .. } => {
+        if let Some(place) = discr.place() {
+          self.add_input_to_op(state, place, DepNode::Op(self.globalize(terminator_loc)));
+        }
+      }
+
+      // Special case: need to deal with context-sensitivity for function calls.
+      TerminatorKind::Call {
+        func,
+        args,
+        destination,
+        ..
+      } => {
+        if !self.handle_call(state, terminator_loc, func, args, *destination) {
+          visitor!().visit_terminator(terminator, terminator_loc)
+        }
+      }
+
+      // Fallback: call the visitor
+      _ => visitor!().visit_terminator(terminator, terminator_loc),
     }
   }
 
@@ -239,7 +405,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     DepGraph { graph }
   }
 
-  pub fn construct(&self) -> DepGraph<'tcx> {
+  fn construct_partial(&self) -> PartialGraph<'tcx> {
     let bb_graph = &self.body.basic_blocks;
     let blocks =
       rustc_graph::iterate::reverse_post_order(bb_graph, bb_graph.start_node());
@@ -264,7 +430,10 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       first.join(other);
     }
 
-    let domain = domains[first_return.block].clone();
-    self.domain_to_petgraph(domain)
+    domains[first_return.block].clone()
+  }
+
+  pub fn construct(&self) -> DepGraph<'tcx> {
+    self.domain_to_petgraph(self.construct_partial())
   }
 }

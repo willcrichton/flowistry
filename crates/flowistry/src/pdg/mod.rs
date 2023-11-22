@@ -17,9 +17,6 @@ pub fn compute_pdg<'a, 'tcx>(
   body_id: BodyId,
   body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
 ) -> DepGraph<'tcx> {
-  let body = &body_with_facts.body;
-  debug!("{}", body.to_string(tcx).unwrap());
-
   let constructor = GraphConstructor::new(tcx, body_id, body_with_facts);
   constructor.construct()
 }

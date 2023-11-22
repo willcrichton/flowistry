@@ -45,6 +45,14 @@ pub fn compile_body(
   test_utils::compile_body(input, callback)
 }
 
+pub fn compile(
+  input: impl Into<String>,
+  callback: impl for<'tcx> FnOnce(TyCtxt<'tcx>) + Send,
+) {
+  borrowck_facts::enable_mir_simplification();
+  test_utils::compile(input, callback)
+}
+
 pub fn bless(
   tcx: TyCtxt,
   path: &Path,

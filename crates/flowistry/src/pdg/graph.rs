@@ -1,7 +1,11 @@
 use std::{fmt, path::Path};
 
 use petgraph::{dot, graph::DiGraph};
-use rustc_middle::mir::{Location, Place};
+use rustc_hir::def_id::LocalDefId;
+use rustc_middle::{
+  mir::{Location, Place},
+  ty::tls,
+};
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub enum LocationOrStart {
@@ -12,9 +16,31 @@ pub enum LocationOrStart {
 impl fmt::Debug for LocationOrStart {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      LocationOrStart::Location(loc) => write!(f, "{loc:?}"),
+      LocationOrStart::Location(loc) => loc.fmt(f),
       LocationOrStart::Start => write!(f, "start"),
     }
+  }
+}
+
+impl Into<LocationOrStart> for Location {
+  fn into(self) -> LocationOrStart {
+    LocationOrStart::Location(self)
+  }
+}
+
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+pub struct GlobalLocation {
+  pub function: LocalDefId,
+  pub location: LocationOrStart,
+}
+
+impl fmt::Debug for GlobalLocation {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{:?}::", self.location)?;
+    tls::with_opt(|opt_tcx| match opt_tcx {
+      Some(tcx) => write!(f, "{}", tcx.item_name(self.function.to_def_id())),
+      None => write!(f, "{:?}", self.function),
+    })
   }
 }
 
@@ -22,9 +48,18 @@ impl fmt::Debug for LocationOrStart {
 pub enum DepNode<'tcx> {
   Place {
     place: Place<'tcx>,
-    at: LocationOrStart,
+    at: GlobalLocation,
   },
-  Op(Location),
+  Op(GlobalLocation),
+}
+
+impl<'tcx> DepNode<'tcx> {
+  pub fn expect_place(self) -> Place<'tcx> {
+    match self {
+      DepNode::Place { place, .. } => place,
+      DepNode::Op(..) => panic!("Expected a place, got an op"),
+    }
+  }
 }
 
 impl fmt::Debug for DepNode<'_> {
