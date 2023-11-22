@@ -123,6 +123,6 @@ fn main() {
   let c = a.1;
 }"#;
   pdg(input, |_graph| {
-    viz(&_graph);
+    // todo
   })
 }

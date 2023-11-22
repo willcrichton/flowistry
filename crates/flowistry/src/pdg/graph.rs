@@ -22,9 +22,9 @@ impl fmt::Debug for LocationOrStart {
   }
 }
 
-impl Into<LocationOrStart> for Location {
-  fn into(self) -> LocationOrStart {
-    LocationOrStart::Location(self)
+impl From<Location> for LocationOrStart {
+  fn from(value: Location) -> Self {
+    LocationOrStart::Location(value)
   }
 }
 

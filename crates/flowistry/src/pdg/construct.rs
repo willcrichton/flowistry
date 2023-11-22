@@ -1,5 +1,4 @@
 use df::JoinSemiLattice;
-use log::debug;
 use petgraph::graph::DiGraph;
 use rustc_borrowck::consumers::{
   places_conflict, BodyWithBorrowckFacts, PlaceConflictBias,
@@ -229,8 +228,12 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     args: &[Operand<'tcx>],
     destination: Place<'tcx>,
   ) -> bool {
+    // Note: my comments here will use "child" to refer to the callee and
+    // "parent" to refer to the caller, since the words are most visually distinct.
+
     let tcx = self.tcx;
 
+    // Figure out which function the `func` is referring to, if possible.
     let child_def_id = match func {
       Operand::Constant(func) => match func.literal.ty().kind() {
         TyKind::FnDef(def_id, _) => *def_id,
@@ -242,23 +245,28 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       }
     };
 
+    // Only consider functions defined in the current crate.
+    // We can't access their bodies otherwise.
+    // LONG-TERM TODO: could load a serialized version of their graphs.
     let child_local_def_id = match child_def_id.as_local() {
       Some(local_def_id) => local_def_id,
       None => return false,
     };
 
+    // Get the input facts about the child function.
     let child_body_id = tcx.hir().body_owned_by(child_local_def_id);
-
     let child_body_with_facts =
       borrowck_facts::get_body_with_borrowck_facts(tcx, child_local_def_id);
     let child_body = &child_body_with_facts.body;
-    let mut child_graph =
-      GraphConstructor::new(tcx, child_body_id, child_body_with_facts)
-        .construct_partial();
 
+    // Recursively generate the PDG for the child function.
+    let child_graph = GraphConstructor::new(tcx, child_body_id, child_body_with_facts)
+      .construct_partial();
+
+    // A helper to translate an argument (or return) in the child into a place in the parent.
+    // The major complexity is translating *projections* from the child to the parent.
     let parent_body = self.body;
     let parent_param_env = tcx.param_env(self.def_id);
-
     let translate_to_parent = |child: Place<'tcx>| -> Option<Place<'tcx>> {
       let parent_place = if child.local == RETURN_PLACE {
         destination
@@ -298,31 +306,39 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       Some(parent_place_projected)
     };
 
+    // Find every reference to a parent-able node in the child's graph.
     let is_arg = |child_node: &DepNode<'tcx>| match child_node {
       DepNode::Place { place, .. } => {
         place.local == RETURN_PLACE || place.is_arg(child_body)
       }
       _ => false,
     };
-    let parent_srcs = child_graph
+    let parentable_srcs = child_graph
       .edges
       .iter()
       .map(|(src, _, _)| *src)
       .filter(is_arg);
-    let parent_dsts = child_graph
+    let parentable_dsts = child_graph
       .edges
       .iter()
       .map(|(_, dst, _)| *dst)
       .filter(is_arg);
 
-    for src in parent_srcs {
+    // For each source node CHILD that is parentable to PLACE,
+    // add an edge from PLACE -> CHILD.
+    for src in parentable_srcs {
       let child_place = src.expect_place();
       if let Some(parent_place) = translate_to_parent(child_place) {
         self.add_input_to_op(state, parent_place, src);
       }
     }
 
-    for dst in parent_dsts {
+    // For each destination node CHILD that is parentable to PLACE,
+    // add an edge from CHILD -> PLACE.
+    //
+    // PRECISION TODO: for a given child place, we only want to connect
+    // the *last* nodes in the child function to the parent, not *all* of them.
+    for dst in parentable_dsts {
       let child_place = dst.expect_place();
       if let Some(parent_place) = translate_to_parent(child_place) {
         self.add_op_to_mutated(
@@ -351,6 +367,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       };
     }
 
+    // For each statement, register any mutations contained in the statement.
     let block_data = &self.body.basic_blocks[block];
     for (statement_index, statement) in block_data.statements.iter().enumerate() {
       let location = Location {

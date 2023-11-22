@@ -1,10 +1,8 @@
 #![allow(missing_docs)]
 
-use log::debug;
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
-use rustc_utils::BodyExt;
 
 use self::graph::DepGraph;
 use crate::pdg::construct::GraphConstructor;

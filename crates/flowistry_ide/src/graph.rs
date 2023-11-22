@@ -26,7 +26,8 @@ impl rustc_driver::Callbacks for Callbacks {
       let main_def_id = main_def_id.expect_local();
       let body_with_facts = get_body_with_borrowck_facts(tcx, main_def_id);
       let body_id = tcx.hir().body_owned_by(main_def_id);
-      let _todo = flowistry::pdg::compute_pdg(tcx, body_id, body_with_facts);
+      let graph = flowistry::pdg::compute_pdg(tcx, body_id, body_with_facts);
+      graph.generate_graphviz("target/graph.pdf").unwrap();
 
       self.output = Some(Ok(GraphOutput {}))
     });
