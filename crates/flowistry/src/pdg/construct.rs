@@ -1,5 +1,4 @@
-use df::{AnalysisDomain, JoinSemiLattice};
-use log::debug;
+use df::JoinSemiLattice;
 use petgraph::graph::DiGraph;
 use rustc_borrowck::consumers::{
   places_conflict, BodyWithBorrowckFacts, PlaceConflictBias,
@@ -82,7 +81,11 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     input: Place<'tcx>,
     op: DepNode<'tcx>,
   ) {
+    // **POINTER-SENSITIVITY:**
+    // If `input` involves indirection via dereferences, then resolve it to the direct places it could point to.
     let aliases = self.place_info.aliases(input);
+
+    // Include all sources of indirection (each reference in the chain) as relevant places.
     let provenance = input.refs_in_projection().flat_map(|(place_ref, _)| {
       self
         .place_info
@@ -90,7 +93,10 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
         .iter()
     });
 
+    // For each input `alias`:
     for alias in aliases.iter().chain(provenance).copied() {
+      // **FIELD-SENSITIVITY:**
+      // Find all places that have been mutated which conflict with `alias.`
       let conflicts = graph
         .last_mutation
         .keys()
@@ -105,15 +111,19 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
         })
         .map(|place| (*place, &graph.last_mutation[place]));
 
+      // Special case: if the `alias` is an un-mutated argument, then include it as a conflict
+      // coming from the special start location.
       let alias_last_mut = if alias.is_arg(self.body) {
         Some((alias, &self.start_loc))
       } else {
         None
       };
 
+      // For each `conflict`` last mutated at the locations `last_mut`:
       for (conflict, last_mut) in conflicts.chain(alias_last_mut) {
+        // For each last mutated location:
         for loc in last_mut {
-          debug!("mutation from {conflict:?} at {loc:?} to op");
+          // Add an edge from (CONFLICT @ LAST_MUT_LOC) -> OP.
           let input_node = DepNode::Place {
             place: conflict,
             at: *loc,
@@ -133,18 +143,31 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       mutated, status, ..
     }: Mutation<'tcx>,
   ) {
+    // **POINTER-SENSITIVITY:**
+    // If `mutated` involves indirection via dereferences, then resolve it to the direct places it could point to.
     let dsts = self.place_info.aliases(mutated);
+
+    // **FIELD-SENSITIVITY:** we do NOT deal with fields on *writes* (in this function),
+    // only on *reads* (in `add_input_to_op`).
+
+    // For each mutated `dst`:
     for dst in dsts {
+      // Add an edge from OP -> (DST @ CURRENT_LOC).
       let dst_node = DepNode::Place {
         place: *dst,
         at: LocationOrStart::Location(location),
       };
       state.edges.insert((op_node, dst_node, DepEdge::Data));
 
+      // **STRONG UPDATES:**
+      // If the mutated place has no aliases AND the mutation definitely occurs,
+      // then clear all previous locations of mutation.
       let dst_mutations = state.last_mutation.entry(*dst).or_default();
       if dsts.len() == 1 && matches!(status, MutationStatus::Definitely) {
         dst_mutations.clear();
       }
+
+      // Register that `dst` is mutated at the current location.
       dst_mutations.insert(LocationOrStart::Location(location));
     }
   }
@@ -157,6 +180,8 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
   ) {
     let op_node = DepNode::Op(location);
 
+    // **CONTROL-DEPENDENCE:**
+    // Add control edges from blocks CTRL -> OP where OP is control-dependent on CTRL.
     if let Some(ctrl_deps) = self.control_dependencies.dependent_on(location.block) {
       let ctrl_edges = ctrl_deps.iter().map(|block| {
         let ctrl_node = DepNode::Op(self.body.terminator_loc(block));
@@ -165,21 +190,30 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       state.edges.extend(ctrl_edges);
     }
 
+    // **DATA-DEPENDENCE:**
+    // For each mutation, create a data chain for INPUT -> OP -> MUTATED.
     for mutation in mutations {
+      // Add data edges for each INPUT -> OP.
       for input in &mutation.inputs {
         self.add_input_to_op(state, *input, op_node);
       }
 
+      // Add a data edge for OP -> MUTATED.
       self.add_op_to_mutated(state, location, op_node, mutation);
     }
   }
 
   fn visit_basic_block(&self, block: BasicBlock, state: &mut PartialGraph<'tcx>) {
+    // For each statement in the block,
+    //   for each mutation in the statement,
+    //     update the PDG based on the mutation.
     ModularMutationVisitor::new(&self.place_info, |location, mutations| {
       self.apply_mutations(state, location, mutations)
     })
     .visit_basic_block_data(block, &self.body.basic_blocks[block]);
 
+    // Special case: if the current block is a SwitchInt, then other blocks could be control-dependent on it.
+    // We need to register that the SwitchInt's input is a dependency of the switch operation.
     let terminator = self.body.basic_blocks[block].terminator();
     if let TerminatorKind::SwitchInt { discr, .. } = &terminator.kind {
       if let Some(place) = discr.place() {
@@ -210,9 +244,8 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     let blocks =
       rustc_graph::iterate::reverse_post_order(bb_graph, bb_graph.start_node());
 
-    let bot = self.bottom_value(self.body);
+    let bot = PartialGraph::default();
     let mut domains = IndexVec::<BasicBlock, _>::from_elem_n(bot, bb_graph.len());
-
     for block in blocks {
       for parent in bb_graph.predecessors()[block].iter() {
         let (child, parent) = domains.pick2_mut(block, *parent);
@@ -224,7 +257,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
 
     let mut all_returns = self.body.all_returns();
     let Some(first_return) = all_returns.next() else {
-      todo!()
+      todo!("what to do with ! type blocks?")
     };
     for other_return in all_returns {
       let (first, other) = domains.pick2_mut(first_return.block, other_return.block);
@@ -234,16 +267,4 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     let domain = domains[first_return.block].clone();
     self.domain_to_petgraph(domain)
   }
-}
-
-impl<'a, 'tcx> df::AnalysisDomain<'tcx> for GraphConstructor<'a, 'tcx> {
-  type Domain = PartialGraph<'tcx>;
-  type Direction = df::Forward;
-  const NAME: &'static str = "GraphConstructor";
-
-  fn bottom_value(&self, _body: &Body<'tcx>) -> Self::Domain {
-    PartialGraph::default()
-  }
-
-  fn initialize_start_block(&self, _body: &Body<'tcx>, _state: &mut Self::Domain) {}
 }
