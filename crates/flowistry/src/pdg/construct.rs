@@ -85,7 +85,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
 
   fn globalize(&self, location: impl Into<LocationOrStart>) -> GlobalLocation {
     GlobalLocation {
-      function: self.def_id,
+      function: self.def_id.to_def_id(),
       location: location.into(),
     }
   }
@@ -171,7 +171,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
         place: *dst,
         at: GlobalLocation {
           location: LocationOrStart::Location(location),
-          function: self.def_id,
+          function: self.def_id.to_def_id(),
         },
       };
       state.edges.insert((op_node, dst_node, DepEdge::Data));
