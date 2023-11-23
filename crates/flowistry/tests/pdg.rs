@@ -10,7 +10,7 @@ use petgraph::{
   graph::DiGraph,
   visit::{GraphBase, Visitable},
 };
-use rustc_middle::ty::TyCtxt;
+use rustc_middle::{mir::TerminatorKind, ty::TyCtxt};
 use rustc_utils::{
   mir::borrowck_facts, source_map::find_bodies::find_bodies, BodyExt, PlaceExt,
 };
@@ -59,11 +59,25 @@ fn connects<'tcx>(
     .node_indices()
     .filter_map(|node| match &g.graph[node] {
       DepNode::Place { place, at } => {
-        let def_id = at.function.as_local()?;
-        let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
+        let body_with_facts =
+          borrowck_facts::get_body_with_borrowck_facts(tcx, at.function);
         Some((place.to_string(tcx, &body_with_facts.body)?, node))
       }
-      DepNode::Op(loc) => Some((tcx.item_name(loc.function).to_string(), node)),
+      DepNode::Op(loc) => {
+        let body_with_facts =
+          borrowck_facts::get_body_with_borrowck_facts(tcx, loc.function);
+        let term = body_with_facts
+          .body
+          .stmt_at(loc.location.expect_location())
+          .right()?;
+        match &term.kind {
+          TerminatorKind::Call { func, .. } => {
+            let (def_id, _) = func.const_fn_def()?;
+            Some((tcx.item_name(def_id).to_string(), node))
+          }
+          _ => None,
+        }
+      }
     })
     .into_group_map();
 
@@ -105,7 +119,10 @@ macro_rules! pdg_test {
     fn $name() {
       let input = stringify!($($i)*);
       pdg(input, |tcx, g| {
-        // g.generate_graphviz("../../target/graph.pdf").unwrap();
+        if std::env::var("VIZ").is_ok() {
+            g.generate_graphviz(format!("../../target/{}.pdf", stringify!($name))).unwrap();
+        }
+
         let mut space = DfsSpace::new(&g.graph);
         $(pdg_constraint!($cs, tcx, &g, &mut space));*
       })
@@ -218,4 +235,18 @@ pdg_test! {
   },
   (foo -> b),
   (foo -/> c)
+}
+
+pdg_test! {
+  external_funcs,
+  {
+    fn main() {
+      let mut v = vec![1, 2, 3];
+      v.push(4);
+      v.len();
+    }
+  },
+  (push -> v),
+  (len -/> v),
+  (push -> len)
 }

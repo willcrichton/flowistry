@@ -12,7 +12,7 @@ use rustc_middle::{
     visit::Visitor, BasicBlock, Body, HasLocalDecls, Location, Operand, Place,
     ProjectionElem, TerminatorKind, RETURN_PLACE,
   },
-  ty::{TyCtxt, TyKind},
+  ty::{ParamEnv, TyCtxt, TyKind},
 };
 use rustc_mir_dataflow::{self as df};
 use rustc_utils::{
@@ -85,7 +85,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
 
   fn globalize(&self, location: impl Into<LocationOrStart>) -> GlobalLocation {
     GlobalLocation {
-      function: self.def_id.to_def_id(),
+      function: self.def_id,
       location: location.into(),
     }
   }
@@ -171,7 +171,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
         place: *dst,
         at: GlobalLocation {
           location: LocationOrStart::Location(location),
-          function: self.def_id.to_def_id(),
+          function: self.def_id,
         },
       };
       state.edges.insert((op_node, dst_node, DepEdge::Data));
@@ -218,6 +218,46 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       // Add a data edge for OP -> MUTATED.
       self.add_op_to_mutated(state, location, op_node, mutation.mutated, mutation.status);
     }
+  }
+
+  fn move_child_projection_to_parent(
+    &self,
+    parent_place: Place<'tcx>,
+    parent_body: &Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
+    child: Place<'tcx>,
+    parent_param_env: ParamEnv<'tcx>,
+  ) -> Place<'tcx> {
+    let mut projection = parent_place.projection.to_vec();
+    let mut ty = parent_place.ty(parent_body.local_decls(), tcx);
+
+    for elem in child.projection.iter() {
+      // Don't continue if we reach a private field
+      if let ProjectionElem::Field(field, _) = elem {
+        if let Some(adt_def) = ty.ty.ty_adt_def() {
+          let field = adt_def.all_fields().nth(field.as_usize()).unwrap();
+          if !field.vis.is_accessible_from(self.def_id, self.tcx) {
+            break;
+          }
+        }
+      }
+
+      ty = ty.projection_ty_core(
+        tcx,
+        parent_param_env,
+        &elem,
+        |_, field, _| ty.field_ty(tcx, field),
+        |_, ty| ty,
+      );
+      let elem = match elem {
+        ProjectionElem::Field(field, _) => ProjectionElem::Field(field, ty.ty),
+        elem => elem,
+      };
+      projection.push(elem);
+    }
+
+    let parent_place_projected = Place::make(parent_place.local, &projection, tcx);
+    parent_place_projected
   }
 
   fn handle_call(
@@ -273,37 +313,13 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       } else {
         args[child.local.as_usize() - 1].place()?
       };
-
-      let mut projection = parent_place.projection.to_vec();
-      let mut ty = parent_place.ty(parent_body.local_decls(), tcx);
-
-      for elem in child.projection.iter() {
-        // Don't continue if we reach a private field
-        if let ProjectionElem::Field(field, _) = elem {
-          if let Some(adt_def) = ty.ty.ty_adt_def() {
-            let field = adt_def.all_fields().nth(field.as_usize()).unwrap();
-            if !field.vis.is_accessible_from(self.def_id, self.tcx) {
-              break;
-            }
-          }
-        }
-
-        ty = ty.projection_ty_core(
-          tcx,
-          parent_param_env,
-          &elem,
-          |_, field, _| ty.field_ty(tcx, field),
-          |_, ty| ty,
-        );
-        let elem = match elem {
-          ProjectionElem::Field(field, _) => ProjectionElem::Field(field, ty.ty),
-          elem => elem,
-        };
-        projection.push(elem);
-      }
-
-      let parent_place_projected = Place::make(parent_place.local, &projection, tcx);
-      Some(parent_place_projected)
+      Some(self.move_child_projection_to_parent(
+        parent_place,
+        parent_body,
+        tcx,
+        child,
+        parent_param_env,
+      ))
     };
 
     // Find every reference to a parent-able node in the child's graph.
