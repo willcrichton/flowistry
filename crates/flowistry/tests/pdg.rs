@@ -1,10 +1,11 @@
 #![feature(rustc_private)]
 
+extern crate either;
 extern crate rustc_middle;
 
+use either::Either;
 use flowistry::pdg::graph::{DepEdge, DepGraph, DepNode};
 use itertools::Itertools;
-use log::debug;
 use petgraph::{
   algo::DfsSpace,
   graph::DiGraph,
@@ -24,12 +25,13 @@ fn pdg(
     let (body_id, def_id) = find_bodies(tcx)
       .into_iter()
       .map(|(_, body_id)| (body_id, tcx.hir().body_owner_def_id(body_id)))
-      .find(|(_, def_id)| tcx.item_name(def_id.to_def_id()).as_str() == "main")
+      .find(|(_, def_id)| match tcx.opt_item_name(def_id.to_def_id()) {
+        Some(name) => name.as_str() == "main",
+        None => false,
+      })
       .expect("Missing main");
 
     let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
-    debug!("{}", body_with_facts.body.to_string(tcx).unwrap());
-
     let pdg = flowistry::pdg::compute_pdg(tcx, body_id, body_with_facts);
     f(tcx, pdg)
   })
@@ -60,25 +62,33 @@ fn connects<'tcx>(
     .filter_map(|node| match &g.graph[node] {
       DepNode::Place { place, at } => {
         let body_with_facts =
-          borrowck_facts::get_body_with_borrowck_facts(tcx, at.function);
-        Some((place.to_string(tcx, &body_with_facts.body)?, node))
+          borrowck_facts::get_body_with_borrowck_facts(tcx, at.root().function);
+        Some(vec![(place.to_string(tcx, &body_with_facts.body)?, node)])
       }
       DepNode::Op(loc) => {
+        let root = loc.root();
+        let mut pairs = vec![(
+          tcx.opt_item_name(root.function.to_def_id())?.to_string(),
+          node,
+        )];
+
         let body_with_facts =
-          borrowck_facts::get_body_with_borrowck_facts(tcx, loc.function);
-        let term = body_with_facts
+          borrowck_facts::get_body_with_borrowck_facts(tcx, root.function);
+        let stmt = body_with_facts
           .body
-          .stmt_at(loc.location.expect_location())
-          .right()?;
-        match &term.kind {
-          TerminatorKind::Call { func, .. } => {
-            let (def_id, _) = func.const_fn_def()?;
-            Some((tcx.item_name(def_id).to_string(), node))
+          .stmt_at(root.location.expect_location());
+        if let Either::Right(term) = stmt {
+          if let TerminatorKind::Call { func, .. } = &term.kind {
+            if let Some((def_id, _)) = func.const_fn_def() {
+              pairs.push((tcx.item_name(def_id).to_string(), node));
+            }
           }
-          _ => None,
         }
+
+        Some(pairs)
       }
     })
+    .flatten()
     .into_group_map();
 
   let mut lookup = |mut k: &str| {
@@ -250,3 +260,74 @@ pdg_test! {
   (len -/> v),
   (push -> len)
 }
+
+pdg_test! {
+  function_cloning,
+  {
+    fn id(t: i32) -> i32 { t }
+
+    fn main() {
+      let x = 1;
+      let y = 2;
+
+      let a = id(x);
+      let b = id(y);
+    }
+  },
+  (x -/> b)
+}
+
+pdg_test! {
+  closure_simple,
+  {
+    fn main() {
+      let a = 0;
+      let b = 1;
+      let c = 2;
+      let d = 3;
+      let f = (|x, y| {
+        let e = a;
+        b + x
+      })(c, d);
+    }
+  },
+  (a -/> f),
+  (d -/> f),
+  (b -> f),
+  (c -> f)
+}
+
+pdg_test! {
+  cfa_simple,
+  {
+    fn call(f: impl Fn() -> i32)  -> i32 { f() }
+    fn main() {
+      let a = 0;
+      let b = 1;
+      let d = call(|| {
+        let c = a;
+        b
+      });
+    }
+  },
+  // TODO: (a -/> d),
+  (b -> d)
+}
+
+/*
+pdg_test! {
+  async_simple,
+  {
+    async fn foo(x: i32, y: i32) -> i32 {
+      x
+    }
+
+    async fn bar() {
+      let a = 1;
+      let b = 2;
+      let c = foo(a, b).await;
+    }
+  },
+  (a -> c)
+}
+*/
