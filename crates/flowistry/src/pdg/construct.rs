@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 
-use df::{lattice::FlatSet, Analysis, JoinSemiLattice};
+use df::{Analysis, JoinSemiLattice};
+use either::Either;
 use itertools::Itertools;
 use log::{debug, trace};
 use petgraph::graph::DiGraph;
@@ -10,15 +11,13 @@ use rustc_borrowck::consumers::{
 };
 use rustc_data_structures::graph::{self as rustc_graph, WithStartNode};
 use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_hir::{
-  def_id::{DefId, LocalDefId},
-  BodyId,
-};
+use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_index::IndexVec;
 use rustc_middle::{
   mir::{
-    visit::Visitor, BasicBlock, Body, HasLocalDecls, Local, Location, Operand, Place,
-    PlaceElem, ProjectionElem, TerminatorKind, RETURN_PLACE,
+    visit::Visitor, AggregateKind, BasicBlock, Body, HasLocalDecls, Local, Location,
+    Operand, Place, PlaceElem, ProjectionElem, Rvalue, Statement, StatementKind,
+    Terminator, TerminatorKind, RETURN_PLACE,
   },
   ty::{ParamEnv, TyCtxt, TyKind},
 };
@@ -30,7 +29,7 @@ use rustc_utils::{
 
 use super::{
   graph::{CallString, DepEdge, DepGraph, DepNode, GlobalLocation, LocationOrStart},
-  value::{ArgValues, Value, ValueAnalysis},
+  value::{ArgValues, Value, ValueAnalysis, ValueDomain},
 };
 use crate::{
   infoflow::mutation::{ModularMutationVisitor, Mutation, MutationStatus},
@@ -62,6 +61,42 @@ impl<'tcx> df::JoinSemiLattice for PartialGraph<'tcx> {
   }
 }
 
+#[derive(Clone)]
+pub struct CallingContext<'tcx> {
+  arg_values: ArgValues<'tcx>,
+  call_string: CallString,
+}
+
+impl CallingContext<'_> {
+  pub fn empty() -> Self {
+    CallingContext {
+      arg_values: Default::default(),
+      call_string: CallString::new(Vec::new()),
+    }
+  }
+}
+
+type BodyAssignments = FxHashMap<Local, Vec<Location>>;
+
+fn find_body_assignments(body: &Body<'_>) -> BodyAssignments {
+  body
+    .all_locations()
+    .filter_map(|location| match body.stmt_at(location) {
+      Either::Left(Statement {
+        kind: StatementKind::Assign(box (lhs, _)),
+        ..
+      }) => Some((lhs.as_local()?, location)),
+      Either::Right(Terminator {
+        kind: TerminatorKind::Call { destination, .. },
+        ..
+      }) => Some((destination.as_local()?, location)),
+      _ => None,
+    })
+    .into_group_map()
+    .into_iter()
+    .collect()
+}
+
 pub struct GraphConstructor<'a, 'tcx> {
   tcx: TyCtxt<'tcx>,
   body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
@@ -77,19 +112,29 @@ pub struct GraphConstructor<'a, 'tcx> {
       df::Results<'tcx, ValueAnalysis<'tcx>>,
     >,
   >,
+  calling_context: CallingContext<'tcx>,
+  body_assignments: BodyAssignments,
+}
+
+macro_rules! trylet {
+  ($p:pat = $e:expr, $($arg:tt)*) => {
+    let $p = $e else {
+      trace!($($arg)*);
+      return None;
+    };
+  }
 }
 
 impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
   pub fn new(
     tcx: TyCtxt<'tcx>,
-    body_id: BodyId,
-    body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
-    arg_values: ArgValues<'tcx>,
+    def_id: LocalDefId,
+    calling_context: CallingContext<'tcx>,
   ) -> Self {
+    let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
     let body = &body_with_facts.body;
     debug!("{}", body.to_string(tcx).unwrap());
 
-    let def_id = tcx.hir().body_owner_def_id(body_id);
     let place_info = PlaceInfo::build(tcx, def_id.to_def_id(), body_with_facts);
     let control_dependencies = body.control_dependencies();
 
@@ -97,11 +142,13 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     start_loc.insert(LocationOrStart::Start);
 
     let values = RefCell::new(
-      ValueAnalysis::new(arg_values)
+      ValueAnalysis::new(calling_context.arg_values.clone())
         .into_engine(tcx, body)
         .iterate_to_fixpoint()
         .into_results_cursor(body),
     );
+
+    let body_assignments = find_body_assignments(body);
 
     GraphConstructor {
       tcx,
@@ -111,6 +158,8 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       start_loc,
       def_id,
       values,
+      calling_context,
+      body_assignments,
     }
   }
 
@@ -125,8 +174,11 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     }
   }
 
-  fn make_root_call_string(&self, location: impl Into<LocationOrStart>) -> CallString {
-    CallString::new(vec![self.make_global_loc(location)])
+  fn make_call_string(&self, location: impl Into<LocationOrStart>) -> CallString {
+    self
+      .calling_context
+      .call_string
+      .extend(self.make_global_loc(location))
   }
 
   fn add_input_to_op(
@@ -180,7 +232,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
           // Add an edge from (CONFLICT @ LAST_MUT_LOC) -> OP.
           let input_node = DepNode::Place {
             place: conflict,
-            at: self.make_root_call_string(*loc),
+            at: self.make_call_string(*loc),
           };
           state.edges.insert((input_node, op, DepEdge::Data));
         }
@@ -208,7 +260,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       // Add an edge from OP -> (DST @ CURRENT_LOC).
       let dst_node = DepNode::Place {
         place: *dst,
-        at: self.make_root_call_string(location),
+        at: self.make_call_string(location),
       };
       state.edges.insert((op_node, dst_node, DepEdge::Data));
 
@@ -231,14 +283,17 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     location: Location,
     mutations: Vec<Mutation<'tcx>>,
   ) {
-    let op_node = DepNode::Op(self.make_root_call_string(location));
+    let op_node = DepNode::Op {
+      at: self.make_call_string(location),
+    };
 
     // **CONTROL-DEPENDENCE:**
     // Add control edges from blocks CTRL -> OP where OP is control-dependent on CTRL.
     if let Some(ctrl_deps) = self.control_dependencies.dependent_on(location.block) {
       let ctrl_edges = ctrl_deps.iter().map(|block| {
-        let ctrl_node =
-          DepNode::Op(self.make_root_call_string(self.body().terminator_loc(block)));
+        let ctrl_node = DepNode::Op {
+          at: self.make_call_string(self.body().terminator_loc(block)),
+        };
         (ctrl_node, op_node, DepEdge::Control)
       });
       state.edges.extend(ctrl_edges);
@@ -289,7 +344,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       ty = ty.projection_ty_core(
         tcx,
         parent_param_env,
-        &elem,
+        elem,
         |_, field, _| ty.field_ty(tcx, field),
         |_, ty| ty,
       );
@@ -300,8 +355,135 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       projection.push(elem);
     }
 
-    let parent_place_projected = Place::make(parent_place.local, &projection, tcx);
-    parent_place_projected
+    Place::make(parent_place.local, &projection, tcx)
+  }
+
+  fn find_indirect_call<'b>(
+    &'b self,
+    args: &'b [Operand<'tcx>],
+    values: &'b ValueDomain<'tcx>,
+  ) -> Option<(
+    &'b IndexVec<FieldIdx, Operand<'tcx>>,
+    LocalDefId,
+    &'b IndexVec<FieldIdx, Operand<'tcx>>,
+  )> {
+    trylet!(
+      Some(func_place) = args[0].place(),
+      "Func argument is not a place: {:?}",
+      args[0]
+    );
+    trylet!(
+      Some(arg_place) = args[1].place(),
+      "Arg argument is not a place: {:?}",
+      args[1]
+    );
+    trylet!(
+      Some(arg_local) = arg_place.as_local(),
+      "Arg argument is not a local: {arg_place:?}"
+    );
+    let aliases = self.place_info.aliases(self.tcx.mk_place_deref(func_place));
+    if aliases.len() != 1 {
+      trace!("More than one alias for func place: {func_place:?}");
+      return None;
+    }
+    trylet!(
+      Some(borrowed_local) = aliases.iter().next().unwrap().as_local(),
+      "Borrowed func is not a local"
+    );
+    trylet!(
+      Some(Value::FunctionDef { def_id, env }) = values.value(borrowed_local),
+      "Borrowed func does not have a known value: {borrowed_local:?}",
+    );
+    trylet!(
+      Some(local_def_id) = def_id.as_local(),
+      "Borrowed func is not a local function",
+    );
+    trylet!(
+      Some(Value::Tuple(args)) = values.value(arg_local),
+      "Arg local does not have a value"
+    );
+    Some((env, local_def_id, args))
+  }
+
+  fn find_async_future<'b>(
+    &'b self,
+    args: &'b [Operand<'tcx>],
+  ) -> Option<(&'b Operand<'tcx>, &'b [Operand<'tcx>])> {
+    let get_def_for_op = |op: &Operand<'tcx>| -> Option<Location> {
+      trylet!(Some(place) = op.place(), "Arg is not a place");
+      trylet!(Some(local) = place.as_local(), "Place is not a local");
+      trylet!(
+        Some(locs) = &self.body_assignments.get(&local),
+        "Local has no assignments"
+      );
+      debug_assert!(locs.len() == 1);
+      Some(locs[0])
+    };
+
+    trylet!(
+      Either::Right(Terminator {
+        kind: TerminatorKind::Call {
+          args: new_pin_args,
+          ..
+        },
+        ..
+      }) = self.body().stmt_at(get_def_for_op(&args[0])?),
+      "Pinned assignment is not a call"
+    );
+    debug_assert!(new_pin_args.len() == 1);
+
+    let future_aliases = self
+      .place_info
+      .aliases(self.tcx.mk_place_deref(new_pin_args[0].place().unwrap()));
+    debug_assert!(future_aliases.len() == 1);
+    let future = *future_aliases.iter().next().unwrap();
+
+    trylet!(
+      Either::Left(Statement {
+        kind: StatementKind::Assign(box (_, Rvalue::Use(future2))),
+        ..
+      }) = self.body().stmt_at(get_def_for_op(&Operand::Move(future))?),
+      "Assignment to pin::new input is not a statement"
+    );
+
+    trylet!(
+      Either::Right(Terminator {
+        kind: TerminatorKind::Call {
+          args: into_future_args,
+          ..
+        },
+        ..
+      }) = self.body().stmt_at(get_def_for_op(future2)?),
+      "Assignment to alias of pin::new input is not a call"
+    );
+
+    trylet!(
+      Either::Right(Terminator {
+        kind: TerminatorKind::Call { func, args, .. },
+        ..
+      }) = self.body().stmt_at(get_def_for_op(&into_future_args[0])?),
+      "Assignment to into_future input is not a call"
+    );
+
+    Some((func, args))
+  }
+
+  fn resolve_func(&self, func: &Operand<'tcx>) -> Option<DefId> {
+    // Figure out which function the `func` is referring to, if possible.
+    match func {
+      Operand::Constant(func) => match func.literal.ty().kind() {
+        TyKind::FnDef(def_id, _) => Some(*def_id),
+        ty => {
+          trace!("Bailing from handle_call because func is literal with type: {ty:?}");
+          None
+        }
+      },
+      Operand::Copy(place) | Operand::Move(place) => {
+        // TODO: control-flow analysis to deduce fn for inlined closures
+        trace!("Bailing from handle_call because func is place {place:?}");
+        None
+      }
+    }
   }
 
   fn handle_call(
@@ -311,27 +493,19 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     func: &Operand<'tcx>,
     args: &[Operand<'tcx>],
     destination: Place<'tcx>,
-  ) -> bool {
+  ) -> Option<()> {
     // Note: my comments here will use "child" to refer to the callee and
     // "parent" to refer to the caller, since the words are most visually distinct.
 
     let tcx = self.tcx;
 
     // Figure out which function the `func` is referring to, if possible.
-    let child_def_id = match func {
-      Operand::Constant(func) => match func.literal.ty().kind() {
-        TyKind::FnDef(def_id, _) => *def_id,
-        ty => {
-          trace!("Bailing from handle_call because func is literal with type: {ty:?}");
-          return false;
-        }
-      },
-      Operand::Copy(place) | Operand::Move(place) => {
-        // TODO: control-flow analysis to deduce fn for inlined closures
-        trace!("Bailing from handle_call because func is place {place:?}");
-        return false;
-      }
-    };
+    let child_def_id = self.resolve_func(func)?;
+
+    if tcx.asyncness(child_def_id).is_async() {
+      trace!("Bailing from handle_call because func is async");
+      return Some(());
+    }
 
     let mut value_analysis = self.values.borrow_mut();
     value_analysis.seek_before_primary_effect(location);
@@ -343,63 +517,32 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     enum CallType<'a, 'tcx> {
       Direct(&'a [Operand<'tcx>]),
       Indirect(&'a Fields<'tcx>, &'a Fields<'tcx>),
+      AsyncPoll(&'a [Operand<'tcx>]),
     }
     let (child_local_def_id, args) = match child_def_id.as_local() {
       Some(local_def_id) => (local_def_id, CallType::Direct(args)),
-      None => {
-        if tcx.def_path_str(child_def_id) == "std::ops::Fn::call" {
-          let Some(func_place) = args[0].place() else {
-            trace!("Func argument is not a place: {:?}", args[0]);
-            return false;
-          };
-
-          let Some(arg_place) = args[1].place() else {
-            trace!("Arg argument is not a place: {:?}", args[1]);
-            return false;
-          };
-
-          let Some(arg_local) = arg_place.as_local() else {
-            trace!("Arg argument is not a local: {arg_place:?}");
-            return false;
-          };
-
-          let aliases = self.place_info.aliases(self.tcx.mk_place_deref(func_place));
-          if aliases.len() != 1 {
-            trace!("More than one alias for func place: {func_place:?}");
-            return false;
-          }
-
-          let Some(borrowed_local) = aliases.iter().next().unwrap().as_local() else {
-            trace!("Borrowed func is not a local");
-            return false;
-          };
-
-          let Some(Value::FunctionDef { def_id, env }) = values.value(borrowed_local)
-          else {
-            trace!("Borrowed func does not have a known value: {borrowed_local:?}");
-            return false;
-          };
-
-          let Some(local_def_id) = def_id.as_local() else {
-            trace!("Borrowed func is not a local function");
-            return false;
-          };
-
-          let Some(Value::Tuple(args)) = values.value(arg_local) else {
-            trace!("Arg local does not have a value");
-            return false;
-          };
-
+      None => match tcx.def_path_str(child_def_id).as_str() {
+        "std::ops::Fn::call" => {
+          let (env, local_def_id, args) = self.find_indirect_call(args, values)?;
           (local_def_id, CallType::Indirect(env, args))
-        } else {
-          trace!("Bailing from handle_call because func is non-local: {child_def_id:?}");
-          return false;
         }
-      }
+        "std::future::Future::poll" => {
+          let (func, args) = self.find_async_future(args)?;
+          let local_def_id = self.resolve_func(func)?.as_local()?;
+          let _body_id = self.tcx.hir().body_owned_by(local_def_id);
+          let body_with_facts =
+            borrowck_facts::get_body_with_borrowck_facts(self.tcx, local_def_id);
+          let (generator_def_id, _) = Self::async_generator(&body_with_facts.body);
+          (generator_def_id, CallType::AsyncPoll(args))
+        }
+        def_path => {
+          trace!("Bailing from handle_call because func is non-local: `{def_path}`");
+          return None;
+        }
+      },
     };
 
     // Get the input facts about the child function.
-    let child_body_id = tcx.hir().body_owned_by(child_local_def_id);
     let child_body_with_facts =
       borrowck_facts::get_body_with_borrowck_facts(tcx, child_local_def_id);
     let child_body = &child_body_with_facts.body;
@@ -407,7 +550,9 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
 
     // Summarize known facts about arguments.
     let args_iter = match args {
-      CallType::Direct(args) => args.iter().zip(child_body.args_iter()).collect_vec(),
+      CallType::Direct(args) | CallType::AsyncPoll(args) => {
+        args.iter().zip(child_body.args_iter()).collect_vec()
+      }
       CallType::Indirect(_, args) => args
         .iter()
         .zip(child_body.args_iter().skip(1))
@@ -421,13 +566,25 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
         let def = values.value(parent_local)?;
         let child_def = match def {
           Value::FunctionDef { def_id, env } => {
-            return None;
-            let child_env =
+            // TODO: issue is that converting closure environment into child places
+            // is ill-typed due to generics. Eg (x: [<closure>]).0 is defined in the parent,
+            // but (x: impl Fn).0 is not defined in the child.
+            if !env.is_empty() {
+              return None;
+            }
+
+            let child_env: IndexVec<FieldIdx, Operand<'_>> =
               IndexVec::from_iter(env.iter_enumerated().map(|(idx, op)| match op {
                 Operand::Constant(_) => op.clone(),
                 Operand::Copy(place) | Operand::Move(place) => {
-                  // TODO
-                  todo!()
+                  let ty =
+                    tcx.erase_regions(place.ty(self.body().local_decls(), self.tcx));
+                  let child_place = Place::make(
+                    child_local,
+                    &[PlaceElem::Deref, PlaceElem::Field(idx, ty.ty)],
+                    self.tcx,
+                  );
+                  Operand::Move(child_place)
                 }
               }));
             Value::FunctionDef {
@@ -435,36 +592,21 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
               env: child_env,
             }
           }
-          Value::Tuple(places) => return None,
+          Value::Tuple(_places) => return None,
         };
         Some((child_local, child_def))
       })
       .collect::<FxHashMap<_, _>>();
 
-    // Recursively generate the PDG for the child function.
-    let mut child_graph =
-      GraphConstructor::new(tcx, child_body_id, child_body_with_facts, arg_values)
-        .construct_partial();
-
-    // Add the location of this call to the child's call string.
-    let call_loc = self.make_global_loc(location);
-    let extend_call_string = |node: DepNode<'tcx>| -> DepNode<'tcx> {
-      let extend = |cs: CallString| -> CallString {
-        CallString::new(cs.iter().chain([call_loc]).collect::<Vec<_>>())
-      };
-      match node {
-        DepNode::Place { place, at } => DepNode::Place {
-          place,
-          at: extend(at),
-        },
-        DepNode::Op(loc) => DepNode::Op(extend(loc)),
-      }
+    let call_string = self.make_call_string(location);
+    let calling_context = CallingContext {
+      arg_values,
+      call_string,
     };
-    child_graph.edges = child_graph
-      .edges
-      .into_iter()
-      .map(|(src, dst, kind)| (extend_call_string(src), extend_call_string(dst), kind))
-      .collect();
+
+    // Recursively generate the PDG for the child function.
+    let child_graph =
+      GraphConstructor::new(tcx, child_local_def_id, calling_context).construct_partial();
 
     // A helper to translate an argument (or return) in the child into a place in the parent.
     // The major complexity is translating *projections* from the child to the parent.
@@ -479,6 +621,16 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
             args[child.local.as_usize() - 1].place()?,
             &child.projection[..],
           ),
+          CallType::AsyncPoll(args) => {
+            if child.local.as_usize() == 1 {
+              let PlaceElem::Field(idx, _) = child.projection[0] else {
+                panic!("Unexpected non-projection of async context")
+              };
+              (args[idx.as_usize()].place()?, &child.projection[1 ..])
+            } else {
+              return None;
+            }
+          }
           CallType::Indirect(env, args) => {
             if child.local.as_usize() == 1 {
               if child.projection.len() < 2 {
@@ -559,7 +711,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
 
     state.edges.extend(child_graph.edges);
 
-    true
+    Some(())
   }
 
   fn visit_basic_block(&self, block: BasicBlock, state: &mut PartialGraph<'tcx>) {
@@ -588,11 +740,9 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       // We need to register that the SwitchInt's input is a dependency of the switch operation.
       TerminatorKind::SwitchInt { discr, .. } => {
         if let Some(place) = discr.place() {
-          self.add_input_to_op(
-            state,
-            place,
-            DepNode::Op(self.make_root_call_string(terminator_loc)),
-          );
+          self.add_input_to_op(state, place, DepNode::Op {
+            at: self.make_call_string(terminator_loc),
+          });
         }
       }
 
@@ -603,7 +753,10 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
         destination,
         ..
       } => {
-        if !self.handle_call(state, terminator_loc, func, args, *destination) {
+        if self
+          .handle_call(state, terminator_loc, func, args, *destination)
+          .is_none()
+        {
           visitor!().visit_terminator(terminator, terminator_loc)
         }
       }
@@ -630,7 +783,36 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     DepGraph { graph }
   }
 
+  fn async_generator(body: &Body) -> (LocalDefId, Location) {
+    let block = BasicBlock::from_usize(0);
+    let location = Location {
+      block,
+      statement_index: body.basic_blocks[block].statements.len() - 1,
+    };
+    let stmt = body
+      .stmt_at(location)
+      .expect_left("Async fn should have a statement");
+    let StatementKind::Assign(box (
+      _,
+      Rvalue::Aggregate(box AggregateKind::Generator(def_id, _, _), _args),
+    )) = &stmt.kind
+    else {
+      panic!("Async fn should assign to a generator")
+    };
+    (def_id.expect_local(), location)
+  }
+
   fn construct_partial(&self) -> PartialGraph<'tcx> {
+    if self.tcx.asyncness(self.def_id).is_async() {
+      let (local_def_id, location) = Self::async_generator(self.body());
+      let calling_context = CallingContext {
+        arg_values: ArgValues::default(),
+        call_string: self.make_call_string(location),
+      };
+      return GraphConstructor::new(self.tcx, local_def_id, calling_context)
+        .construct_partial();
+    }
+
     let bb_graph = &self.body().basic_blocks;
     let blocks =
       rustc_graph::iterate::reverse_post_order(bb_graph, bb_graph.start_node());

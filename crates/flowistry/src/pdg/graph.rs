@@ -1,4 +1,4 @@
-use std::{fmt, path::Path};
+use std::{fmt, iter, path::Path};
 
 use either::Either;
 use internment::Intern;
@@ -10,6 +10,7 @@ use rustc_middle::{
 };
 use rustc_utils::{mir::borrowck_facts, PlaceExt};
 
+/// Extends a MIR body's `Location` with `Start` to represent facts about arguments before the first instruction.
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub enum LocationOrStart {
   Location(Location),
@@ -40,6 +41,7 @@ impl From<Location> for LocationOrStart {
   }
 }
 
+/// A [`LocationOrStart`] localized to a specific [`LocalDefId`].
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct GlobalLocation {
   pub function: LocalDefId,
@@ -48,17 +50,23 @@ pub struct GlobalLocation {
 
 impl fmt::Debug for GlobalLocation {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{:?}::", self.location)?;
     tls::with_opt(|opt_tcx| match opt_tcx {
       Some(tcx) => match tcx.opt_item_name(self.function.to_def_id()) {
         Some(name) => write!(f, "{name}"),
         None => write!(f, "<closure>"),
       },
       None => write!(f, "{:?}", self.function),
-    })
+    })?;
+    write!(f, "::{:?}", self.location)
   }
 }
 
+/// A location within the global call-graph.
+///
+/// The 0-th location is the root location, and every subsequent location
+/// is a call-site to the one before it.
+///
+/// This type is copyable due to interning.
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub struct CallString(Intern<Vec<GlobalLocation>>);
 
@@ -67,12 +75,16 @@ impl CallString {
     CallString(Intern::new(locs))
   }
 
-  pub fn root(&self) -> GlobalLocation {
+  pub fn root(self) -> GlobalLocation {
     self.0[0]
   }
 
   pub fn iter(&self) -> impl Iterator<Item = GlobalLocation> + '_ {
     self.0.iter().copied()
+  }
+
+  pub fn extend(self, loc: GlobalLocation) -> Self {
+    CallString::new(iter::once(loc).chain(self.iter()).collect())
   }
 }
 
@@ -80,7 +92,7 @@ impl fmt::Debug for CallString {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     for (i, loc) in self.0.iter().enumerate() {
       if i > 0 {
-        write!(f, "->")?;
+        write!(f, "←")?;
       }
       loc.fmt(f)?;
     }
@@ -88,17 +100,20 @@ impl fmt::Debug for CallString {
   }
 }
 
+/// A node in the PDG.
+///
+/// A node is either data ([`DepNode::Place`]) or an operation ([`DepNode::Op`]).
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub enum DepNode<'tcx> {
   Place { place: Place<'tcx>, at: CallString },
-  Op(CallString),
+  Op { at: CallString },
 }
 
 impl<'tcx> DepNode<'tcx> {
   pub fn expect_place(self) -> Place<'tcx> {
     match self {
       DepNode::Place { place, .. } => place,
-      DepNode::Op(..) => panic!("Expected a place, got an op"),
+      DepNode::Op { .. } => panic!("Expected a place, got an op"),
     }
   }
 }
@@ -123,23 +138,19 @@ impl fmt::Debug for DepNode<'_> {
           };
           write!(f, "{place_str} @ {at:?}")
         }
-        DepNode::Op(global_loc) => {
-          let root = global_loc.root();
+        DepNode::Op { at } => {
+          let root = at.root();
           let loc_str = match root.location {
             LocationOrStart::Start => "start".to_string(),
             LocationOrStart::Location(loc) => {
               let body = borrowck_facts::get_body_with_borrowck_facts(tcx, root.function);
               match body.body.stmt_at(loc) {
-                Either::Left(stmt) => format!("{:?}", stmt.kind),
+                Either::Left(stmt) => format!("{:?}", stmt),
                 Either::Right(term) => format!("{:?}", term.kind),
               }
             }
           };
-          write!(f, "{loc_str} @ ")?;
-          match tcx.opt_item_name(root.function.to_def_id()) {
-            Some(name) => write!(f, "{name}"),
-            None => write!(f, "<closure>"),
-          }
+          write!(f, "{loc_str} @ {at:?}")
         }
       },
       None => todo!(),
@@ -159,7 +170,20 @@ pub struct DepGraph<'tcx> {
 
 impl<'tcx> DepGraph<'tcx> {
   pub fn generate_graphviz(&self, path: impl AsRef<Path>) -> anyhow::Result<()> {
-    let graph_dot = format!("{:?}", dot::Dot::with_config(&self.graph, &[]));
+    let graph_dot = format!(
+      "{:?}",
+      dot::Dot::with_attr_getters(&self.graph, &[], &|_, _| String::new(), &|_,
+                                                                             (
+        _,
+        node,
+      )| {
+        let shape = match node {
+          DepNode::Op { .. } => "rectangle",
+          DepNode::Place { .. } => "ellipse",
+        };
+        format!("shape=\"{shape}\" fontname=\"Courier New\"")
+      })
+    );
     rustc_utils::mir::body::run_dot(path.as_ref(), graph_dot.into_bytes())
   }
 }

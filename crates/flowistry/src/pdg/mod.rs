@@ -1,10 +1,9 @@
 #![allow(missing_docs)]
 
-use rustc_borrowck::consumers::BodyWithBorrowckFacts;
-use rustc_hir::BodyId;
+use rustc_hir::def_id::LocalDefId;
 use rustc_middle::ty::TyCtxt;
 
-use self::{graph::DepGraph, value::ArgValues};
+use self::{construct::CallingContext, graph::DepGraph};
 use crate::pdg::construct::GraphConstructor;
 
 // mod cfa;
@@ -12,12 +11,7 @@ mod construct;
 pub mod graph;
 mod value;
 
-pub fn compute_pdg<'a, 'tcx>(
-  tcx: TyCtxt<'tcx>,
-  body_id: BodyId,
-  body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
-) -> DepGraph<'tcx> {
-  let constructor =
-    GraphConstructor::new(tcx, body_id, body_with_facts, ArgValues::default());
+pub fn compute_pdg<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> DepGraph<'tcx> {
+  let constructor = GraphConstructor::new(tcx, def_id, CallingContext::empty());
   constructor.construct()
 }

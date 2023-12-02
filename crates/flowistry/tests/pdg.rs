@@ -12,9 +12,7 @@ use petgraph::{
   visit::{GraphBase, Visitable},
 };
 use rustc_middle::{mir::TerminatorKind, ty::TyCtxt};
-use rustc_utils::{
-  mir::borrowck_facts, source_map::find_bodies::find_bodies, BodyExt, PlaceExt,
-};
+use rustc_utils::{mir::borrowck_facts, source_map::find_bodies::find_bodies, PlaceExt};
 
 fn pdg(
   input: impl Into<String>,
@@ -22,17 +20,16 @@ fn pdg(
 ) {
   let _ = env_logger::try_init();
   flowistry::test_utils::compile(input, move |tcx| {
-    let (body_id, def_id) = find_bodies(tcx)
+    let def_id = find_bodies(tcx)
       .into_iter()
-      .map(|(_, body_id)| (body_id, tcx.hir().body_owner_def_id(body_id)))
-      .find(|(_, def_id)| match tcx.opt_item_name(def_id.to_def_id()) {
+      .map(|(_, body_id)| tcx.hir().body_owner_def_id(body_id))
+      .find(|def_id| match tcx.opt_item_name(def_id.to_def_id()) {
         Some(name) => name.as_str() == "main",
         None => false,
       })
       .expect("Missing main");
 
-    let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
-    let pdg = flowistry::pdg::compute_pdg(tcx, body_id, body_with_facts);
+    let pdg = flowistry::pdg::compute_pdg(tcx, def_id);
     f(tcx, pdg)
   })
 }
@@ -65,8 +62,8 @@ fn connects<'tcx>(
           borrowck_facts::get_body_with_borrowck_facts(tcx, at.root().function);
         Some(vec![(place.to_string(tcx, &body_with_facts.body)?, node)])
       }
-      DepNode::Op(loc) => {
-        let root = loc.root();
+      DepNode::Op { at } => {
+        let root = at.root();
         let mut pairs = vec![(
           tcx.opt_item_name(root.function.to_def_id())?.to_string(),
           node,
@@ -202,7 +199,8 @@ pdg_test! {
     }
     fn main() {
       let a = 1;
-      let b = foo(a);
+      let c = foo(a);
+      let b = c;
     }
   },
   (a -> x),
@@ -310,24 +308,37 @@ pdg_test! {
       });
     }
   },
-  // TODO: (a -/> d),
+  // TOD: (a -/> d),
   (b -> d)
 }
 
-/*
 pdg_test! {
   async_simple,
+  {
+    async fn main() {
+      let a = 1;
+      let b = a;
+      let c = a;
+    }
+  },
+  (a -> b),
+  (a -> c),
+  (b -/> c)
+}
+
+pdg_test! {
+  async_inline,
   {
     async fn foo(x: i32, y: i32) -> i32 {
       x
     }
 
-    async fn bar() {
+    async fn main() {
       let a = 1;
       let b = 2;
       let c = foo(a, b).await;
     }
   },
-  (a -> c)
+  (a -> c),
+  (b -/> c)
 }
-*/

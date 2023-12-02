@@ -4,14 +4,12 @@ use rustc_hir::def_id::DefId;
 use rustc_index::IndexVec;
 use rustc_middle::mir::{
   AggregateKind, BasicBlock, Body, CallReturnPlaces, HasLocalDecls, Local, Location,
-  Operand, Place, Rvalue, Statement, StatementKind, Terminator, TerminatorEdges,
+  Operand, Rvalue, Statement, StatementKind, Terminator, TerminatorEdges,
 };
 use rustc_mir_dataflow::{
   fmt::DebugWithContext, lattice::FlatSet, Analysis, AnalysisDomain, Forward,
   JoinSemiLattice,
 };
-
-use super::graph::LocationOrStart;
 
 pub type Fields<'tcx> = IndexVec<FieldIdx, Operand<'tcx>>;
 
@@ -97,7 +95,7 @@ impl<'tcx> Analysis<'tcx> for ValueAnalysis<'tcx> {
     &mut self,
     state: &mut Self::Domain,
     statement: &Statement<'tcx>,
-    location: Location,
+    _location: Location,
   ) {
     match &statement.kind {
       StatementKind::Assign(box (lhs, rhs)) => {
@@ -125,18 +123,18 @@ impl<'tcx> Analysis<'tcx> for ValueAnalysis<'tcx> {
 
   fn apply_terminator_effect<'mir>(
     &mut self,
-    state: &mut Self::Domain,
+    _state: &mut Self::Domain,
     terminator: &'mir Terminator<'tcx>,
-    location: Location,
+    _location: Location,
   ) -> TerminatorEdges<'mir, 'tcx> {
     terminator.edges()
   }
 
   fn apply_call_return_effect(
     &mut self,
-    state: &mut Self::Domain,
-    block: BasicBlock,
-    return_places: CallReturnPlaces<'_, 'tcx>,
+    _state: &mut Self::Domain,
+    _block: BasicBlock,
+    _return_places: CallReturnPlaces<'_, 'tcx>,
   ) {
   }
 }

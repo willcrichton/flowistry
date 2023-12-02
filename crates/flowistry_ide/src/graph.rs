@@ -1,4 +1,4 @@
-use rustc_utils::mir::borrowck_facts::{self, get_body_with_borrowck_facts};
+use rustc_utils::mir::borrowck_facts;
 use serde::Serialize;
 
 use crate::plugin::FlowistryResult;
@@ -24,9 +24,7 @@ impl rustc_driver::Callbacks for Callbacks {
     queries.global_ctxt().unwrap().enter(|tcx| {
       let (main_def_id, _) = tcx.entry_fn(()).unwrap();
       let main_def_id = main_def_id.expect_local();
-      let body_with_facts = get_body_with_borrowck_facts(tcx, main_def_id);
-      let body_id = tcx.hir().body_owned_by(main_def_id);
-      let graph = flowistry::pdg::compute_pdg(tcx, body_id, body_with_facts);
+      let graph = flowistry::pdg::compute_pdg(tcx, main_def_id);
       graph.generate_graphviz("target/graph.pdf").unwrap();
 
       self.output = Some(Ok(GraphOutput {}))
