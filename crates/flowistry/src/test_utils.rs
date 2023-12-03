@@ -67,18 +67,33 @@ pub fn bless(
       [("`[", char_range.start), ("]`", char_range.end)]
     })
     .collect::<Vec<_>>();
+  dbg!(&delims);
   delims.sort_by_key(|(_, i)| (i.line, i.column));
 
   let mut output = String::new();
   for (line, line_str) in contents.lines().enumerate() {
+    macro_rules! flush {
+      ($column:expr) => {
+        while delims.len() > 0
+          && delims[0].1
+            == (CharPos {
+              line,
+              column: $column,
+            })
+        {
+          let (delim, _) = delims.remove(0);
+          output.push_str(delim);
+        }
+      };
+    }
     for (column, chr) in line_str.chars().enumerate() {
-      while delims.len() > 0 && delims[0].1 == (CharPos { line, column }) {
-        let (delim, _) = delims.remove(0);
-        output.push_str(delim);
-      }
+      flush!(column);
       output.push(chr);
     }
-    output.push('\n');
+    flush!(line_str.chars().count());
+    if line < contents.lines().count() - 1 {
+      output.push('\n');
+    }
   }
 
   fs::write(path.with_extension("txt.expected"), output)?;

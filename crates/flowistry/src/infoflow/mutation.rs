@@ -1,12 +1,13 @@
 //! Identifies the mutated places in a MIR instruction via modular approximation based on types.
 
+use itertools::Itertools;
 use log::debug;
 use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::{AdtKind, TyKind},
 };
 use rustc_target::abi::FieldIdx;
-use rustc_utils::{mir::place::PlaceCollector, AdtDefExt, OperandExt};
+use rustc_utils::{mir::place::PlaceCollector, AdtDefExt, OperandExt, PlaceExt};
 
 use crate::mir::{
   placeinfo::PlaceInfo,
@@ -99,6 +100,10 @@ where
             let ty = rvalue.ty(body.local_decls(), tcx);
             Some((*mutated, ty.tuple_fields().to_vec()))
           }
+          AggregateKind::Closure(_, args) => {
+            let ty = args.as_closure().upvar_tys();
+            Some((*mutated, ty.to_vec()))
+          }
           _ => None,
         };
 
@@ -166,6 +171,21 @@ where
         }
       }
 
+      // The actual value of the referred place doesn't affect the value of the
+      // reference, except for the provenance of reborrows.
+      Rvalue::Ref(_, _, place) => {
+        let inputs = place
+          .refs_in_projection()
+          .map(|(place_ref, _)| Place::from_ref(place_ref, tcx))
+          .collect::<Vec<_>>();
+        (self.f)(location, vec![Mutation {
+          mutated: *mutated,
+          inputs,
+          status: MutationStatus::Definitely,
+        }]);
+        return;
+      }
+
       _ => {}
     }
 
@@ -199,13 +219,17 @@ where
           .map(|(_, place)| place)
           .filter(|place| !async_hack.ignore_place(*place))
           .collect::<Vec<_>>();
-        let arg_inputs = arg_places.clone();
+        let arg_inputs = arg_places
+          .iter()
+          .flat_map(|arg| self.place_info.reachable_values(*arg, Mutability::Not))
+          .copied()
+          .collect_vec();
 
         let ret_is_unit = destination
           .ty(self.place_info.body.local_decls(), tcx)
           .ty
           .is_unit();
-        let inputs = if ret_is_unit {
+        let dest_inputs = if ret_is_unit {
           Vec::new()
         } else {
           arg_inputs.clone()
@@ -213,7 +237,7 @@ where
 
         let mut mutations = vec![Mutation {
           mutated: *destination,
-          inputs,
+          inputs: dest_inputs,
           status: MutationStatus::Definitely,
         }];
 

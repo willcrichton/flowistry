@@ -101,17 +101,27 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     self.place_info.location_domain()
   }
 
+  fn provenance(&self, place: Place<'tcx>) -> SmallVec<[Place<'tcx>; 8]> {
+    place
+      .refs_in_projection()
+      .flat_map(|(place_ref, _)| {
+        self
+          .place_info
+          .aliases(Place::from_ref(place_ref, self.tcx))
+      })
+      .copied()
+      .collect()
+  }
+
   fn influences(&self, place: Place<'tcx>) -> SmallVec<[Place<'tcx>; 8]> {
-    let conflicts = self.place_info.aliases(place).iter();
-    let provenance = place.refs_in_projection().flat_map(|(place_ref, _)| {
-      self
-        .place_info
-        .aliases(Place::from_ref(place_ref, self.tcx))
-        .iter()
-    });
+    let conflicts = self
+      .place_info
+      .aliases(place)
+      .iter()
+      .copied();
     conflicts
-      .chain(provenance)
-      .flat_map(|alias| self.place_info.conflicts(*alias))
+      .chain(self.provenance(place))
+      .flat_map(|alias| self.place_info.conflicts(alias))
       .copied()
       .collect()
   }
@@ -203,8 +213,12 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
         }
       }
 
-      // Add deps of mutated to include provenance of mutated pointers
-      add_deps(state, mt.mutated, deps);
+      // If mutated place is indirect, add deps of provenance
+      for place in self.provenance(mt.mutated) {
+        for conflict in self.place_info.conflicts(place) {
+          deps.union(state.row_set(&self.place_info.normalize(*conflict )));
+        }
+      }
 
       let mutable_aliases = self
         .place_info
