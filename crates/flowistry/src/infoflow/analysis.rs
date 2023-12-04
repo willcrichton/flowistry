@@ -114,11 +114,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
   }
 
   fn influences(&self, place: Place<'tcx>) -> SmallVec<[Place<'tcx>; 8]> {
-    let conflicts = self
-      .place_info
-      .aliases(place)
-      .iter()
-      .copied();
+    let conflicts = self.place_info.aliases(place).iter().copied();
     conflicts
       .chain(self.provenance(place))
       .flat_map(|alias| self.place_info.conflicts(alias))
@@ -216,7 +212,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
       // If mutated place is indirect, add deps of provenance
       for place in self.provenance(mt.mutated) {
         for conflict in self.place_info.conflicts(place) {
-          deps.union(state.row_set(&self.place_info.normalize(*conflict )));
+          deps.union(state.row_set(&self.place_info.normalize(*conflict)));
         }
       }
 

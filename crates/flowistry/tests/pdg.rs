@@ -3,15 +3,15 @@
 extern crate either;
 extern crate rustc_middle;
 
+use std::collections::HashSet;
+
 use either::Either;
 use flowistry::pdg::graph::{DepEdge, DepGraph, DepNode};
 use itertools::Itertools;
-use petgraph::{
-  algo::DfsSpace,
-  graph::DiGraph,
-  visit::{GraphBase, Visitable},
+use rustc_middle::{
+  mir::{Terminator, TerminatorKind},
+  ty::TyCtxt,
 };
-use rustc_middle::{mir::TerminatorKind, ty::TyCtxt};
 use rustc_utils::{mir::borrowck_facts, source_map::find_bodies::find_bodies, PlaceExt};
 
 fn pdg(
@@ -46,64 +46,89 @@ fn viz(g: &DepGraph<'_>) {
 fn connects<'tcx>(
   tcx: TyCtxt<'tcx>,
   g: &DepGraph<'tcx>,
-  space: &mut DfsSpace<
-    <DiGraph<DepNode<'tcx>, DepEdge> as GraphBase>::NodeId,
-    <DiGraph<DepNode<'tcx>, DepEdge> as Visitable>::Map,
-  >,
   src: &str,
   dst: &str,
+  edge: Option<&str>,
 ) -> bool {
-  let mut node_map = g
+  let node_map = g
     .graph
     .node_indices()
-    .filter_map(|node| match &g.graph[node] {
-      DepNode::Place { place, at } => {
-        let body_with_facts =
-          borrowck_facts::get_body_with_borrowck_facts(tcx, at.root().function);
-        Some(vec![(place.to_string(tcx, &body_with_facts.body)?, node)])
-      }
-      DepNode::Op { at } => {
-        let root = at.root();
-        let mut pairs = vec![(
-          tcx.opt_item_name(root.function.to_def_id())?.to_string(),
-          node,
-        )];
-
-        let body_with_facts =
-          borrowck_facts::get_body_with_borrowck_facts(tcx, root.function);
-        let stmt = body_with_facts
-          .body
-          .stmt_at(root.location.expect_location());
-        if let Either::Right(term) = stmt {
-          if let TerminatorKind::Call { func, .. } = &term.kind {
-            if let Some((def_id, _)) = func.const_fn_def() {
-              pairs.push((tcx.item_name(def_id).to_string(), node));
-            }
-          }
-        }
-
-        Some(pairs)
-      }
+    .filter_map(|node| {
+      let DepNode { place, at } = g.graph[node];
+      let body_with_facts =
+        borrowck_facts::get_body_with_borrowck_facts(tcx, at.root().function);
+      Some((place.to_string(tcx, &body_with_facts.body)?, node))
     })
-    .flatten()
-    .into_group_map();
+    .into_grouping_map()
+    .collect::<HashSet<_>>();
 
-  let mut lookup = |mut k: &str| {
+  let lookup_node = |mut k: &str| {
     k = k.trim_matches(|c| c == '(' || c == ')');
-    node_map.remove(k).unwrap_or_else(|| {
-      panic!(
-        "Could not find node `{k}`. Options were: {:?}",
-        node_map.keys().collect::<Vec<_>>()
-      )
-    })
+    node_map
+      .get(k)
+      .unwrap_or_else(|| {
+        panic!(
+          "Could not find node `{k}`. Options were: {:?}",
+          node_map.keys().collect::<Vec<_>>()
+        )
+      })
+      .clone()
   };
-  let srcs = lookup(src);
-  let dsts = lookup(dst);
+  let srcs = lookup_node(src);
+  let dsts = lookup_node(dst);
+
+  let edge_map = g
+    .graph
+    .edge_indices()
+    .filter_map(|edge| {
+      let DepEdge { at, .. } = g.graph[edge];
+      let body_with_facts =
+        borrowck_facts::get_body_with_borrowck_facts(tcx, at.root().function);
+      let Either::Right(Terminator {
+        kind: TerminatorKind::Call { func, .. },
+        ..
+      }) = body_with_facts
+        .body
+        .stmt_at(at.root().location.as_location()?)
+      else {
+        return None;
+      };
+      let (def_id, _) = func.const_fn_def()?;
+      let name = tcx.opt_item_name(def_id)?.to_string();
+      let (src, dst) = g.graph.edge_endpoints(edge).unwrap();
+      Some((name, (src, dst)))
+    })
+    .into_grouping_map()
+    .collect::<HashSet<_>>();
+
+  let edges = edge.map(|edge| {
+    edge_map
+      .get(edge)
+      .unwrap_or_else(|| {
+        panic!(
+          "Could not find edge `{edge}`. Options were: {:?}",
+          edge_map.keys().collect::<Vec<_>>()
+        )
+      })
+      .clone()
+  });
 
   srcs.iter().any(|src| {
-    dsts
-      .iter()
-      .any(|dst| petgraph::algo::has_path_connecting(&g.graph, *src, *dst, Some(space)))
+    dsts.iter().any(|dst| {
+      let paths =
+        petgraph::algo::all_simple_paths::<Vec<_>, _>(&g.graph, *src, *dst, 0, None)
+          .collect::<Vec<_>>();
+      !paths.is_empty()
+        && match edges.as_ref() {
+          Some(edges) => paths.iter().any(|path| {
+            path
+              .iter()
+              .tuple_windows()
+              .any(|(n1, n2)| edges.contains(&(*n1, *n2)))
+          }),
+          None => true,
+        }
+    })
   })
 }
 
@@ -111,13 +136,25 @@ macro_rules! pdg_constraint {
   (($src:tt -> $dst:tt), $($arg:expr),*) => {{
     let src = stringify!($src);
     let dst = stringify!($dst);
-    assert!(connects($($arg),*, src, dst), "{src} -> {dst}")
+    assert!(connects($($arg),*, src, dst, None), "{src} -> {dst}")
   }};
   (($src:tt -/> $dst:tt), $($arg:expr),*) => {{
     let src = stringify!($src);
     let dst = stringify!($dst);
-    assert!(!connects($($arg),*, src, dst), "{src} -/> {dst}")
+    assert!(!connects($($arg),*, src, dst, None), "{src} -/> {dst}")
   }};
+  (($src:tt - $op:tt > $dst:tt), $($arg:expr),*) => {{
+    let src = stringify!($src);
+    let dst = stringify!($dst);
+    let op = stringify!($op);
+    assert!(connects($($arg),*, src, dst, Some(op)), "{src} -{{{op}}}> {dst}")
+  }};
+  (($src:tt - $op:tt /> $dst:tt), $($arg:expr),*) => {{
+    let src = stringify!($src);
+    let dst = stringify!($dst);
+    let op = stringify!($op);
+    assert!(!connects($($arg),*, src, dst, Some(op)), "{src} -{{{op}}}/> {dst}")
+  }}
 }
 
 macro_rules! pdg_test {
@@ -129,16 +166,14 @@ macro_rules! pdg_test {
         if std::env::var("VIZ").is_ok() {
             g.generate_graphviz(format!("../../target/{}.pdf", stringify!($name))).unwrap();
         }
-
-        let mut space = DfsSpace::new(&g.graph);
-        $(pdg_constraint!($cs, tcx, &g, &mut space));*
+        $(pdg_constraint!($cs, tcx, &g));*
       })
     }
   }
 }
 
 pdg_test! {
-  simple,
+  dep_simple,
   {
     fn main() {
       let mut x = 1;
@@ -158,7 +193,7 @@ pdg_test! {
 }
 
 pdg_test! {
-  aliases,
+  dep_alias_simple,
   {
     fn main() {
       let mut x = 1;
@@ -167,13 +202,31 @@ pdg_test! {
       let z = x;
     }
   },
-  (x -> y),
   (x -> z),
   (y -> z)
 }
 
 pdg_test! {
-  fields,
+  dep_alias_dynamic,
+  {
+    fn main() {
+      let mut a = 1;
+      let mut b = 2;
+      let c = 3;
+      let r = if c == 0 {
+        &mut a
+      } else {
+        &mut b
+      };
+      *r += 1;
+      let d = a;
+    }
+  },
+  (c -> d)
+}
+
+pdg_test! {
+  dep_fields,
   {
     fn main() {
       let mut x = (1, 2);
@@ -207,42 +260,44 @@ pdg_test! {
   (x -> y),
   (a -> y),
   (y -> b),
-  (a -> b),
-  (a -> foo),
-  (foo -> b)
+  (a -> b)
 }
 
 pdg_test! {
   inline_refs,
   {
-    fn foo(x: &mut i32) {
-      *x += 1;
+    fn foo(x: &mut i32, y: i32, z: i32) {
+      *x += y;
     }
     fn main() {
       let mut a = 1;
-      foo(&mut a);
-      let b = a;
+      let b = 2;
+      let c = 3;
+      foo(&mut a, b, c);
+      let d = a;
     }
   },
-  (x -> a),
-  (foo -> b)
+  (a -> d),
+  (b -> d),
+  (c -/> d)
 }
 
 pdg_test! {
   inline_fields,
   {
-    fn foo(x: &mut (i32, i32)) {
-      x.0 += 1;
+    fn foo(x: &mut (i32, i32), y: i32) {
+      x.0 += y;
     }
     fn main() {
       let mut a = (0, 1);
-      foo(&mut a);
-      let b = a.0;
-      let c = a.1;
+      let b = 2;
+      foo(&mut a, b);
+      let c = a.0;
+      let d = a.1;
     }
   },
-  (foo -> b),
-  (foo -/> c)
+  (b -> c),
+  (b -/> d)
 }
 
 pdg_test! {
@@ -250,13 +305,15 @@ pdg_test! {
   {
     fn main() {
       let mut v = vec![1, 2, 3];
-      v.push(4);
-      v.len();
+      let x = 4;
+      v.push(x);
+      let y = 0;
+      let n = v.get(y);
     }
   },
-  (push -> v),
-  (len -/> v),
-  (push -> len)
+  (x - push > v),
+  (x - push > n),
+  (y -/> v)
 }
 
 pdg_test! {
@@ -272,9 +329,12 @@ pdg_test! {
       let b = id(y);
     }
   },
+  (x -> a),
   (x -/> b)
 }
 
+// TODO: fix the d -/> f arrow
+// field-sensitivity issue where closure args aren't being splatted
 pdg_test! {
   closure_simple,
   {
@@ -296,6 +356,32 @@ pdg_test! {
 }
 
 pdg_test! {
+  trait_inline,
+  {
+    trait Foo {
+      fn foo(x: i32, y: i32) -> i32;
+    }
+
+    struct Bar;
+    impl Foo for Bar {
+      fn foo(x: i32, y: i32) -> i32 { x }
+    }
+
+    fn call_foo<T: Foo>(a: i32, b: i32) -> i32 {
+      T::foo(a, b)
+    }
+
+    fn main() {
+      let i = 1;
+      let j = 2;
+      let k = call_foo::<Bar>(i, j);
+    }
+  },
+  (i -> k),
+  (j -/> k)
+}
+
+pdg_test! {
   cfa_simple,
   {
     fn call(f: impl Fn() -> i32)  -> i32 { f() }
@@ -308,7 +394,7 @@ pdg_test! {
       });
     }
   },
-  // TOD: (a -/> d),
+  // (a -/> d),
   (b -> d)
 }
 
@@ -326,6 +412,9 @@ pdg_test! {
   (b -/> c)
 }
 
+// TODO: pick back up here.
+// We had just implemented the thing that eliminates ops as nodes.
+// Need to fix the machinery for async, then finally fix the open CFA issue.
 pdg_test! {
   async_inline,
   {

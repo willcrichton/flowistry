@@ -1,6 +1,5 @@
 use std::{fmt, iter, path::Path};
 
-use either::Either;
 use internment::Intern;
 use petgraph::{dot, graph::DiGraph};
 use rustc_hir::def_id::LocalDefId;
@@ -18,10 +17,16 @@ pub enum LocationOrStart {
 }
 
 impl LocationOrStart {
-  pub fn expect_location(self) -> Location {
+  pub fn unwrap_location(self) -> Location {
+    self
+      .as_location()
+      .expect("LocationOrStart was unexpectedly Start")
+  }
+
+  pub fn as_location(self) -> Option<Location> {
     match self {
-      LocationOrStart::Location(location) => location,
-      LocationOrStart::Start => panic!("LocationOrStart was unexpectedly Start"),
+      LocationOrStart::Location(location) => Some(location),
+      LocationOrStart::Start => None,
     }
   }
 }
@@ -100,66 +105,49 @@ impl fmt::Debug for CallString {
   }
 }
 
-/// A node in the PDG.
-///
-/// A node is either data ([`DepNode::Place`]) or an operation ([`DepNode::Op`]).
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
-pub enum DepNode<'tcx> {
-  Place { place: Place<'tcx>, at: CallString },
-  Op { at: CallString },
-}
-
-impl<'tcx> DepNode<'tcx> {
-  pub fn expect_place(self) -> Place<'tcx> {
-    match self {
-      DepNode::Place { place, .. } => place,
-      DepNode::Op { .. } => panic!("Expected a place, got an op"),
-    }
-  }
+pub struct DepNode<'tcx> {
+  pub place: Place<'tcx>,
+  pub at: CallString,
 }
 
 impl fmt::Debug for DepNode<'_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     tls::with_opt(|opt_tcx| match opt_tcx {
-      Some(tcx) => match self {
-        DepNode::Place { place, at } => {
-          let place_str = {
-            let body =
-              borrowck_facts::get_body_with_borrowck_facts(tcx, at.root().function);
-            let tcx = unsafe { std::mem::transmute::<TyCtxt<'_>, TyCtxt<'static>>(tcx) };
-            let place =
-              unsafe { std::mem::transmute::<Place<'_>, Place<'static>>(*place) };
-            let body = unsafe {
-              std::mem::transmute::<&'_ Body<'_>, &'_ Body<'static>>(&body.body)
-            };
-            place
-              .to_string(tcx, body)
-              .unwrap_or_else(|| format!("{place:?}"))
-          };
-          write!(f, "{place_str} @ {at:?}")
-        }
-        DepNode::Op { at } => {
-          let root = at.root();
-          let loc_str = match root.location {
-            LocationOrStart::Start => "start".to_string(),
-            LocationOrStart::Location(loc) => {
-              let body = borrowck_facts::get_body_with_borrowck_facts(tcx, root.function);
-              match body.body.stmt_at(loc) {
-                Either::Left(stmt) => format!("{:?}", stmt),
-                Either::Right(term) => format!("{:?}", term.kind),
-              }
-            }
-          };
-          write!(f, "{loc_str} @ {at:?}")
-        }
-      },
+      Some(tcx) => {
+        let place_str = {
+          let body =
+            borrowck_facts::get_body_with_borrowck_facts(tcx, self.at.root().function);
+          let tcx = unsafe { std::mem::transmute::<TyCtxt<'_>, TyCtxt<'static>>(tcx) };
+          let place =
+            unsafe { std::mem::transmute::<Place<'_>, Place<'static>>(self.place) };
+          let body =
+            unsafe { std::mem::transmute::<&'_ Body<'_>, &'_ Body<'static>>(&body.body) };
+          place
+            .to_string(tcx, body)
+            .unwrap_or_else(|| format!("{place:?}"))
+        };
+        write!(f, "{place_str} @ {:?}", self.at)
+      }
       None => todo!(),
     })
   }
 }
 
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+pub struct DepEdge {
+  pub kind: DepEdgeKind,
+  pub at: CallString,
+}
+
+impl fmt::Debug for DepEdge {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{:?} @ {:?}", self.kind, self.at)
+  }
+}
+
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub enum DepEdge {
+pub enum DepEdgeKind {
   Control,
   Data,
 }
@@ -172,17 +160,12 @@ impl<'tcx> DepGraph<'tcx> {
   pub fn generate_graphviz(&self, path: impl AsRef<Path>) -> anyhow::Result<()> {
     let graph_dot = format!(
       "{:?}",
-      dot::Dot::with_attr_getters(&self.graph, &[], &|_, _| String::new(), &|_,
-                                                                             (
-        _,
-        node,
-      )| {
-        let shape = match node {
-          DepNode::Op { .. } => "rectangle",
-          DepNode::Place { .. } => "ellipse",
-        };
-        format!("shape=\"{shape}\" fontname=\"Courier New\"")
-      })
+      dot::Dot::with_attr_getters(
+        &self.graph,
+        &[],
+        &|_, _| String::new(),
+        &|_, (_, _)| format!("fontname=\"Courier New\"")
+      )
     );
     rustc_utils::mir::body::run_dot(path.as_ref(), graph_dot.into_bytes())
   }
