@@ -6,13 +6,13 @@ extern crate rustc_middle;
 use std::collections::HashSet;
 
 use either::Either;
-use flowistry::pdg::graph::{DepEdge, DepGraph, DepNode};
+use flowistry::pdg::graph::{DepEdge, DepGraph};
 use itertools::Itertools;
 use rustc_middle::{
   mir::{Terminator, TerminatorKind},
   ty::TyCtxt,
 };
-use rustc_utils::{mir::borrowck_facts, source_map::find_bodies::find_bodies, PlaceExt};
+use rustc_utils::{mir::borrowck_facts, source_map::find_bodies::find_bodies};
 
 fn pdg(
   input: impl Into<String>,
@@ -53,11 +53,9 @@ fn connects<'tcx>(
   let node_map = g
     .graph
     .node_indices()
-    .filter_map(|node| {
-      let DepNode { place, at } = g.graph[node];
-      let body_with_facts =
-        borrowck_facts::get_body_with_borrowck_facts(tcx, at.root().function);
-      Some((place.to_string(tcx, &body_with_facts.body)?, node))
+    .filter_map(|node_index| {
+      let node = &g.graph[node_index];
+      Some((node.place_pretty()?, node_index))
     })
     .into_grouping_map()
     .collect::<HashSet<_>>();

@@ -1,40 +1,19 @@
-use log::debug;
-use rustc_hir::{def_id::DefId, Unsafety};
-use rustc_middle::ty::{self, GenericArgsRef, Instance, ParamEnv, TyCtxt};
-use rustc_span::ErrorGuaranteed;
-use rustc_target::spec::abi::Abi;
+use std::{borrow::Cow, collections::hash_map::Entry, hash::Hash};
 
-/// This exists to distinguish different types of functions, which is necessary
-/// because depending on the type of function, the method of requesting its
-/// signature from `TyCtxt` differs.
-///
-/// In addition generators also return true for `TyCtxt::is_closure` but must
-/// request their signature differently. Thus we factor that determination out
-/// into this enum.
-#[derive(Clone, Copy, Eq, PartialEq)]
-enum FunctionKind {
-  Closure,
-  Generator,
-  Plain,
-}
-
-impl FunctionKind {
-  fn for_def_id(tcx: TyCtxt, def_id: DefId) -> Result<Self, ErrorGuaranteed> {
-    if tcx.generator_kind(def_id).is_some() {
-      Ok(Self::Generator)
-    } else if tcx.is_closure(def_id) {
-      Ok(Self::Closure)
-    } else if tcx.def_kind(def_id).is_fn_like() {
-      Ok(Self::Plain)
-    } else {
-      Err(
-        tcx
-          .sess
-          .span_err(tcx.def_span(def_id), "Expected this item to be a function."),
-      )
-    }
-  }
-}
+use either::Either;
+use itertools::Itertools;
+use log::{debug, trace};
+use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hir::def_id::DefId;
+use rustc_middle::{
+  mir::{
+    tcx::PlaceTy, Body, HasLocalDecls, Local, Location, Place, ProjectionElem, Statement,
+    StatementKind, Terminator, TerminatorKind,
+  },
+  ty::{self, EarlyBinder, GenericArgsRef, Instance, ParamEnv, TyCtxt, TyKind},
+};
+use rustc_type_ir::fold::TypeFoldable;
+use rustc_utils::{BodyExt, PlaceExt};
 
 #[derive(Clone, Copy, Eq, PartialEq, Hash, Debug)]
 pub enum FnResolution<'tcx> {
@@ -70,78 +49,6 @@ impl<'tcx> FnResolution<'tcx> {
       FnResolution::Partial(p) => p,
     }
   }
-
-  /// Get the most precise type signature we can for this function, erase any
-  /// regions and discharge binders.
-  ///
-  /// Returns an error if it was impossible to get any signature.
-  ///
-  /// Emits warnings if a precise signature could not be obtained or there
-  /// were type variables not instantiated.
-  pub fn sig(self, tcx: TyCtxt<'tcx>) -> Result<ty::FnSig<'tcx>, ErrorGuaranteed> {
-    let sess = tcx.sess;
-    let def_id = self.def_id();
-    let def_span = tcx.def_span(def_id);
-    let fn_kind = FunctionKind::for_def_id(tcx, def_id)?;
-    let late_bound_sig = match (self, fn_kind) {
-      (FnResolution::Final(sub), FunctionKind::Generator) => {
-        let gen = sub.args.as_generator();
-        ty::Binder::dummy(ty::FnSig {
-          inputs_and_output: tcx.mk_type_list(&[gen.resume_ty(), gen.return_ty()]),
-          c_variadic: false,
-          unsafety: Unsafety::Normal,
-          abi: Abi::Rust,
-        })
-      }
-      (FnResolution::Final(sub), FunctionKind::Closure) => sub.args.as_closure().sig(),
-      (FnResolution::Final(sub), FunctionKind::Plain) => {
-        sub.ty(tcx, ty::ParamEnv::reveal_all()).fn_sig(tcx)
-      }
-      (FnResolution::Partial(_), FunctionKind::Closure) => {
-        if let Some(local) = def_id.as_local() {
-          sess.span_warn(
-            def_span,
-            "Precise variable instantiation for \
-                            closure not known, using user type annotation.",
-          );
-          let sig = tcx.closure_user_provided_sig(local);
-          Ok(sig.value)
-        } else {
-          Err(sess.span_err(
-            def_span,
-            format!("Could not determine type signature for external closure {def_id:?}"),
-          ))
-        }?
-      }
-      (FnResolution::Partial(_), FunctionKind::Generator) => Err(sess.span_err(
-        def_span,
-        format!(
-          "Cannot determine signature of generator {def_id:?} without monomorphization"
-        ),
-      ))?,
-      (FnResolution::Partial(_), FunctionKind::Plain) => {
-        let sig = tcx.fn_sig(def_id);
-        sig.no_bound_vars().unwrap_or_else(|| {
-                        sess.span_warn(def_span, format!("Cannot discharge bound variables for {sig:?}, they will not be considered by the analysis"));
-                        sig.skip_binder()
-                    })
-      }
-    };
-    Ok(
-      tcx
-        .try_normalize_erasing_late_bound_regions(
-          ty::ParamEnv::reveal_all(),
-          late_bound_sig,
-        )
-        .unwrap_or_else(|e| {
-          sess.span_warn(
-            def_span,
-            format!("Could not erase regions in {late_bound_sig:?}: {e:?}"),
-          );
-          late_bound_sig.skip_binder()
-        }),
-    )
-  }
 }
 
 /// Try and normalize the provided generics.
@@ -162,7 +69,7 @@ fn test_generics_normalization<'tcx>(
     .map(|_| ())
 }
 
-pub fn try_monomorphize<'tcx>(
+pub fn try_resolve_function<'tcx>(
   tcx: TyCtxt<'tcx>,
   def_id: DefId,
   param_env: ParamEnv<'tcx>,
@@ -181,4 +88,145 @@ pub fn try_monomorphize<'tcx>(
     Some(inst) => FnResolution::Final(inst),
     None => FnResolution::Partial(def_id),
   }
+}
+
+pub fn try_monomorphize<'a, 'tcx, T>(
+  tcx: TyCtxt<'tcx>,
+  fn_resolution: FnResolution<'tcx>,
+  param_env: ParamEnv<'tcx>,
+  t: &'a T,
+) -> Cow<'a, T>
+where
+  T: TypeFoldable<TyCtxt<'tcx>> + Clone,
+{
+  match fn_resolution {
+    FnResolution::Partial(_) => Cow::Borrowed(t),
+    FnResolution::Final(inst) => {
+      // let (t, _) = tcx.replace_late_bound_regions(Binder::dummy(t.clone()), |r| todo!());
+      // Cow::Owned(EarlyBinder::bind(t).instantiate(tcx, inst.args))
+      Cow::Owned(inst.subst_mir_and_normalize_erasing_regions(
+        tcx,
+        param_env,
+        EarlyBinder::bind(tcx.erase_regions(t.clone())),
+      ))
+    }
+  }
+}
+
+pub fn retype_place<'tcx>(
+  orig: Place<'tcx>,
+  tcx: TyCtxt<'tcx>,
+  body: &Body<'tcx>,
+  def_id: DefId,
+) -> Place<'tcx> {
+  trace!("Retyping {orig:?} in context of {def_id:?}");
+
+  let mut new_projection = Vec::new();
+  let mut ty = PlaceTy::from_ty(body.local_decls()[orig.local].ty);
+  let param_env = tcx.param_env(def_id);
+  for elem in orig.projection.iter() {
+    if matches!(
+      ty.ty.kind(),
+      TyKind::Alias(..) | TyKind::Param(..) | TyKind::Bound(..) | TyKind::Placeholder(..)
+    ) {
+      break;
+    }
+
+    // Don't continue if we reach a private field
+    if let ProjectionElem::Field(field, _) = elem {
+      if let Some(adt_def) = ty.ty.ty_adt_def() {
+        let field = adt_def
+          .all_fields()
+          .nth(field.as_usize())
+          .unwrap_or_else(|| {
+            panic!("ADT for {:?} does not have field {field:?}", ty.ty);
+          });
+        if !field.vis.is_accessible_from(def_id, tcx) {
+          break;
+        }
+      }
+    }
+
+    trace!(
+      "    Projecting {:?}.{new_projection:?} : {:?} with {elem:?}",
+      orig.local,
+      ty.ty,
+    );
+    ty = ty.projection_ty_core(
+      tcx,
+      param_env,
+      &elem,
+      |_, field, _| match ty.ty.kind() {
+        TyKind::Closure(_, args) => {
+          let upvar_tys = args.as_closure().upvar_tys();
+          upvar_tys.iter().nth(field.as_usize()).unwrap()
+        }
+        TyKind::Generator(_, args, _) => {
+          let upvar_tys = args.as_generator().upvar_tys();
+          upvar_tys.iter().nth(field.as_usize()).unwrap()
+        }
+        _ => ty.field_ty(tcx, field),
+      },
+      |_, ty| ty,
+    );
+    let elem = match elem {
+      ProjectionElem::Field(field, _) => ProjectionElem::Field(field, ty.ty),
+      elem => elem,
+    };
+    new_projection.push(elem);
+  }
+
+  let p = Place::make(orig.local, &new_projection, tcx);
+  trace!("    Final translation: {p:?}");
+  p
+}
+
+pub fn hashset_join<T: Hash + Eq + PartialEq + Clone>(
+  hs1: &mut FxHashSet<T>,
+  hs2: &FxHashSet<T>,
+) -> bool {
+  let orig_len = hs1.len();
+  hs1.extend(hs2.iter().cloned());
+  hs1.len() != orig_len
+}
+
+pub fn hashmap_join<K: Hash + Eq + PartialEq + Clone, V: Clone>(
+  hm1: &mut FxHashMap<K, V>,
+  hm2: &FxHashMap<K, V>,
+  join: impl Fn(&mut V, &V) -> bool,
+) -> bool {
+  let mut changed = false;
+  for (k, v) in hm2 {
+    match hm1.entry(k.clone()) {
+      Entry::Vacant(slot) => {
+        slot.insert(v.clone());
+        changed = true;
+      }
+      Entry::Occupied(mut entry) => {
+        changed |= join(entry.get_mut(), v);
+      }
+    }
+  }
+  changed
+}
+
+pub type BodyAssignments = FxHashMap<Local, Vec<Location>>;
+
+pub fn find_body_assignments(body: &Body<'_>) -> BodyAssignments {
+  body
+    .all_locations()
+    .filter_map(|location| match body.stmt_at(location) {
+      Either::Left(Statement {
+        kind: StatementKind::Assign(box (lhs, _)),
+        ..
+      }) => Some((lhs.as_local()?, location)),
+      Either::Right(Terminator {
+        kind: TerminatorKind::Call { destination, .. },
+        ..
+      }) => Some((destination.as_local()?, location)),
+      _ => None,
+    })
+    .into_group_map()
+    .into_iter()
+    .collect()
 }

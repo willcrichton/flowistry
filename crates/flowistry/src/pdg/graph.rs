@@ -7,7 +7,7 @@ use rustc_middle::{
   mir::{Body, Location, Place},
   ty::{tls, TyCtxt},
 };
-use rustc_utils::{mir::borrowck_facts, PlaceExt};
+use rustc_utils::PlaceExt;
 
 /// Extends a MIR body's `Location` with `Start` to represent facts about arguments before the first instruction.
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
@@ -84,6 +84,10 @@ impl CallString {
     self.0[0]
   }
 
+  pub fn caller(self) -> Self {
+    CallString::new(self.iter().skip(1).collect())
+  }
+
   pub fn iter(&self) -> impl Iterator<Item = GlobalLocation> + '_ {
     self.0.iter().copied()
   }
@@ -109,28 +113,37 @@ impl fmt::Debug for CallString {
 pub struct DepNode<'tcx> {
   pub place: Place<'tcx>,
   pub at: CallString,
+  place_pretty: Option<Intern<String>>,
+}
+
+impl<'tcx> DepNode<'tcx> {
+  pub fn new(
+    place: Place<'tcx>,
+    at: CallString,
+    tcx: TyCtxt<'tcx>,
+    body: &Body<'tcx>,
+  ) -> Self {
+    DepNode {
+      place,
+      at,
+      place_pretty: place.to_string(tcx, body).map(Intern::new),
+    }
+  }
+}
+
+impl DepNode<'_> {
+  pub fn place_pretty(&self) -> Option<&str> {
+    self.place_pretty.map(|s| s.as_ref().as_str())
+  }
 }
 
 impl fmt::Debug for DepNode<'_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    tls::with_opt(|opt_tcx| match opt_tcx {
-      Some(tcx) => {
-        let place_str = {
-          let body =
-            borrowck_facts::get_body_with_borrowck_facts(tcx, self.at.root().function);
-          let tcx = unsafe { std::mem::transmute::<TyCtxt<'_>, TyCtxt<'static>>(tcx) };
-          let place =
-            unsafe { std::mem::transmute::<Place<'_>, Place<'static>>(self.place) };
-          let body =
-            unsafe { std::mem::transmute::<&'_ Body<'_>, &'_ Body<'static>>(&body.body) };
-          place
-            .to_string(tcx, body)
-            .unwrap_or_else(|| format!("{place:?}"))
-        };
-        write!(f, "{place_str} @ {:?}", self.at)
-      }
-      None => todo!(),
-    })
+    match self.place_pretty() {
+      // Some(s) => write!(f, "{s}")?,
+      _ => write!(f, "{:?}", self.place)?,
+    };
+    write!(f, " @ {:?}", self.at)
   }
 }
 
@@ -138,6 +151,22 @@ impl fmt::Debug for DepNode<'_> {
 pub struct DepEdge {
   pub kind: DepEdgeKind,
   pub at: CallString,
+}
+
+impl DepEdge {
+  pub fn data(at: CallString) -> Self {
+    DepEdge {
+      kind: DepEdgeKind::Data,
+      at,
+    }
+  }
+
+  pub fn control(at: CallString) -> Self {
+    DepEdge {
+      kind: DepEdgeKind::Control,
+      at,
+    }
+  }
 }
 
 impl fmt::Debug for DepEdge {
@@ -154,6 +183,12 @@ pub enum DepEdgeKind {
 
 pub struct DepGraph<'tcx> {
   pub graph: DiGraph<DepNode<'tcx>, DepEdge>,
+}
+
+impl<'tcx> DepGraph<'tcx> {
+  pub fn new(graph: DiGraph<DepNode<'tcx>, DepEdge>) -> Self {
+    Self { graph }
+  }
 }
 
 impl<'tcx> DepGraph<'tcx> {
