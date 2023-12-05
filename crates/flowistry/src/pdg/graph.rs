@@ -12,7 +12,7 @@ use rustc_middle::{
 use rustc_utils::PlaceExt;
 
 /// Extends a MIR body's `Location` with `Start` to represent facts about arguments before the first instruction.
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum LocationOrStart {
   /// The point *after* a location in a body.
   Location(Location),
@@ -40,10 +40,10 @@ impl LocationOrStart {
   }
 }
 
-impl fmt::Debug for LocationOrStart {
+impl fmt::Display for LocationOrStart {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      LocationOrStart::Location(loc) => loc.fmt(f),
+      LocationOrStart::Location(loc) => write!(f, "{loc:?}"),
       LocationOrStart::Start => write!(f, "start"),
     }
   }
@@ -56,7 +56,7 @@ impl From<Location> for LocationOrStart {
 }
 
 /// A [`LocationOrStart`] within a specific point in a codebase.
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct GlobalLocation {
   /// The function containing the location.
   pub function: LocalDefId,
@@ -65,16 +65,16 @@ pub struct GlobalLocation {
   pub location: LocationOrStart,
 }
 
-impl fmt::Debug for GlobalLocation {
+impl fmt::Display for GlobalLocation {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     tls::with_opt(|opt_tcx| match opt_tcx {
       Some(tcx) => match tcx.opt_item_name(self.function.to_def_id()) {
-        Some(name) => write!(f, "{name}"),
+        Some(name) => name.fmt(f),
         None => write!(f, "<closure>"),
       },
       None => write!(f, "{:?}", self.function),
     })?;
-    write!(f, "::{:?}", self.location)
+    write!(f, "::{}", self.location)
   }
 }
 
@@ -84,7 +84,7 @@ impl fmt::Debug for GlobalLocation {
 /// is a call-site to the one before it.
 ///
 /// This type is copyable due to interning.
-#[derive(PartialEq, Eq, Hash, Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
 pub struct CallString(Intern<Vec<GlobalLocation>>);
 
 impl CallString {
@@ -104,7 +104,7 @@ impl CallString {
   }
 
   /// Returns an iterator over the locations in the call string, starting at the root.
-  pub fn iter(&self) -> impl Iterator<Item = GlobalLocation> + '_ {
+  pub fn iter(&self) -> impl DoubleEndedIterator<Item = GlobalLocation> + '_ {
     self.0.iter().copied()
   }
 
@@ -114,9 +114,9 @@ impl CallString {
   }
 }
 
-impl fmt::Debug for CallString {
+impl fmt::Display for CallString {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    for (i, loc) in self.0.iter().enumerate() {
+    for (i, loc) in self.0.iter().rev().enumerate() {
       if i > 0 {
         write!(f, "←")?;
       }
@@ -130,7 +130,7 @@ impl fmt::Debug for CallString {
 ///
 /// Represents a place at a particular call-string.
 /// The place is in the body of the root of the call-string.
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct DepNode<'tcx> {
   /// A place in memory in a particular body.
   pub place: Place<'tcx>,
@@ -169,13 +169,13 @@ impl DepNode<'_> {
   }
 }
 
-impl fmt::Debug for DepNode<'_> {
+impl fmt::Display for DepNode<'_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self.place_pretty() {
-      // Some(s) => write!(f, "{s}")?,
-      _ => write!(f, "{:?}", self.place)?,
+      Some(s) => s.fmt(f)?,
+      None => write!(f, "{:?}", self.place)?,
     };
-    write!(f, " @ {:?}", self.at)
+    write!(f, " @ {}", self.at)
   }
 }
 
@@ -194,7 +194,7 @@ pub enum DepEdgeKind {
 /// An edge in the program dependence graph.
 ///
 /// Represents an operation that induces a dependency between places.
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct DepEdge {
   /// Either data or control.
   pub kind: DepEdgeKind,
@@ -221,13 +221,14 @@ impl DepEdge {
   }
 }
 
-impl fmt::Debug for DepEdge {
+impl fmt::Display for DepEdge {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{:?} @ {:?}", self.kind, self.at)
+    write!(f, "{:?}\n@ {}", self.kind, self.at)
   }
 }
 
 /// The top-level PDG.
+#[derive(Clone, Debug)]
 pub struct DepGraph<'tcx> {
   /// The petgraph representation of the PDG.
   pub graph: DiGraph<DepNode<'tcx>, DepEdge>,
@@ -244,11 +245,11 @@ impl<'tcx> DepGraph<'tcx> {
   /// Generates a graphviz visualization of the PDG and saves it to `path`.
   pub fn generate_graphviz(&self, path: impl AsRef<Path>) -> anyhow::Result<()> {
     let graph_dot = format!(
-      "{:?}",
+      "{}",
       dot::Dot::with_attr_getters(
         &self.graph,
         &[],
-        &|_, _| String::new(),
+        &|_, _| format!("fontname=\"Courier New\""),
         &|_, (_, _)| format!("fontname=\"Courier New\"")
       )
     );
