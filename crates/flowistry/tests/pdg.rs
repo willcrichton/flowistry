@@ -81,13 +81,13 @@ fn connects<'tcx>(
     .filter_map(|edge| {
       let DepEdge { at, .. } = g.graph[edge];
       let body_with_facts =
-        borrowck_facts::get_body_with_borrowck_facts(tcx, at.root().function);
+        borrowck_facts::get_body_with_borrowck_facts(tcx, at.leaf().function);
       let Either::Right(Terminator {
         kind: TerminatorKind::Call { func, .. },
         ..
       }) = body_with_facts
         .body
-        .stmt_at(at.root().location.as_location()?)
+        .stmt_at(at.leaf().location.as_location()?)
       else {
         return None;
       };

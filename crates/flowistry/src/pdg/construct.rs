@@ -2,6 +2,7 @@ use std::{borrow::Cow, iter};
 
 use df::JoinSemiLattice;
 use either::Either;
+use flowistry_pdg::{CallString, GlobalLocation, LocationOrStart};
 use itertools::Itertools;
 use log::{debug, trace};
 use petgraph::graph::DiGraph;
@@ -26,9 +27,7 @@ use rustc_utils::{
   BodyExt, PlaceExt,
 };
 
-use super::graph::{
-  CallString, DepEdge, DepGraph, DepNode, GlobalLocation, LocationOrStart,
-};
+use super::graph::{DepEdge, DepGraph, DepNode};
 use crate::{
   infoflow::mutation::{ModularMutationVisitor, MutationStatus},
   mir::placeinfo::PlaceInfo,
@@ -53,19 +52,9 @@ impl<'tcx> df::JoinSemiLattice for PartialGraph<'tcx> {
   }
 }
 
-#[derive(Clone)]
 struct CallingContext<'tcx> {
   call_string: CallString,
   param_env: ParamEnv<'tcx>,
-}
-
-impl CallingContext<'_> {
-  pub fn empty() -> Self {
-    CallingContext {
-      call_string: CallString::new(Vec::new()),
-      param_env: ParamEnv::empty(),
-    }
-  }
 }
 
 pub struct GraphConstructor<'a, 'tcx> {
@@ -76,7 +65,7 @@ pub struct GraphConstructor<'a, 'tcx> {
   control_dependencies: ControlDependencies<BasicBlock>,
   start_loc: FxHashSet<LocationOrStart>,
   def_id: LocalDefId,
-  calling_context: CallingContext<'tcx>,
+  calling_context: Option<CallingContext<'tcx>>,
   body_assignments: utils::BodyAssignments,
 }
 
@@ -92,27 +81,23 @@ macro_rules! trylet {
 impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
   /// Creates a [`GraphConstructor`] assuming that `def_id` is the root of the PDG.
   pub fn root(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> Self {
-    Self::new(
-      tcx,
-      FnResolution::Partial(def_id.to_def_id()),
-      CallingContext::empty(),
-    )
+    Self::new(tcx, FnResolution::Partial(def_id.to_def_id()), None)
   }
 
   /// Creates [`GraphConstructor`] for a function resolved as `fn_resolution` in a given `calling_context`.
   fn new(
     tcx: TyCtxt<'tcx>,
     fn_resolution: FnResolution<'tcx>,
-    calling_context: CallingContext<'tcx>,
+    calling_context: Option<CallingContext<'tcx>>,
   ) -> Self {
     let def_id = fn_resolution.def_id().expect_local();
     let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
-    let body = utils::try_monomorphize(
-      tcx,
-      fn_resolution,
-      calling_context.param_env,
-      &body_with_facts.body,
-    );
+    let param_env = match &calling_context {
+      Some(cx) => cx.param_env,
+      None => ParamEnv::reveal_all(),
+    };
+    let body =
+      utils::try_monomorphize(tcx, fn_resolution, param_env, &body_with_facts.body);
     debug!("{}", body.to_string(tcx).unwrap());
 
     let place_info = PlaceInfo::build(tcx, def_id.to_def_id(), body_with_facts);
@@ -147,10 +132,11 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
   /// Creates a [`CallString`] with the current function at the root,
   /// with the rest of the string provided by the [`CallingContext`].
   fn make_call_string(&self, location: impl Into<LocationOrStart>) -> CallString {
-    self
-      .calling_context
-      .call_string
-      .extend(self.make_global_loc(location))
+    let global_loc = self.make_global_loc(location);
+    match &self.calling_context {
+      Some(cx) => cx.call_string.push(global_loc),
+      None => CallString::single(global_loc),
+    }
   }
 
   /// Returns all pairs of `(src, edge)`` such that the given `location` is control-dependent on `edge`
@@ -505,7 +491,8 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       call_string,
       param_env,
     };
-    let child_constructor = GraphConstructor::new(tcx, resolved_fn, calling_context);
+    let child_constructor =
+      GraphConstructor::new(tcx, resolved_fn, Some(calling_context));
     let child_graph = child_constructor.construct_partial();
 
     // A helper to translate an argument (or return) in the child into a place in the parent.
@@ -563,7 +550,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
 
     // Find every reference to a parent-able node in the child's graph.
     let is_arg = |node: &DepNode<'tcx>| {
-      node.at.root().function == child_constructor.def_id
+      node.at.leaf().function == child_constructor.def_id
         && (node.place.local == RETURN_PLACE
           || node.place.is_arg(&child_constructor.body))
     };
@@ -703,7 +690,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
 
   fn construct_partial(&self) -> PartialGraph<'tcx> {
     if self.tcx.asyncness(self.def_id).is_async() {
-      let (generator_def_id, generic_args, _location) = Self::async_generator(&self.body);
+      let (generator_def_id, generic_args, location) = Self::async_generator(&self.body);
       let param_env = self.tcx.param_env(self.def_id);
       let generator_fn = utils::try_resolve_function(
         self.tcx,
@@ -711,8 +698,12 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
         param_env,
         generic_args,
       );
-      let calling_context = CallingContext::empty();
-      return GraphConstructor::new(self.tcx, generator_fn, calling_context)
+      let call_string = self.make_call_string(location);
+      let calling_context = CallingContext {
+        param_env,
+        call_string,
+      };
+      return GraphConstructor::new(self.tcx, generator_fn, Some(calling_context))
         .construct_partial();
     }
 
