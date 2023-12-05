@@ -15,9 +15,8 @@ use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_index::IndexVec;
 use rustc_middle::{
   mir::{
-    visit::Visitor, AggregateKind, BasicBlock, Body, Local, Location, Operand, Place,
-    PlaceElem, Rvalue, Statement, StatementKind, Terminator, TerminatorKind,
-    RETURN_PLACE,
+    visit::Visitor, AggregateKind, BasicBlock, Body, Location, Operand, Place, PlaceElem,
+    Rvalue, Statement, StatementKind, Terminator, TerminatorKind, RETURN_PLACE,
   },
   ty::{GenericArg, GenericArgsRef, List, ParamEnv, TyCtxt, TyKind},
 };
@@ -33,7 +32,7 @@ use super::graph::{
 use crate::{
   infoflow::mutation::{ModularMutationVisitor, MutationStatus},
   mir::placeinfo::PlaceInfo,
-  pdg::utils::{self, try_resolve_function, FnResolution},
+  pdg::utils::{self, FnResolution},
 };
 
 #[derive(PartialEq, Eq, Default, Clone)]
@@ -265,6 +264,9 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       .collect()
   }
 
+  /// Returns all nodes `dst` such that `dst` is an alias of `mutated`.
+  ///
+  /// Also updates the last-mutated location for `dst` to the given `location`.
   fn find_and_update_outputs(
     &self,
     state: &mut PartialGraph<'tcx>,
@@ -303,6 +305,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       .collect()
   }
 
+  /// Update the PDG with arrows from `inputs` to `mutated` at `location`.
   fn apply_mutation(
     &self,
     state: &mut PartialGraph<'tcx>,
@@ -330,6 +333,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     };
     trace!("  Outputs: {outputs:?}");
 
+    // Add data dependencies: data_input -> output
     let data_edge = DepEdge::data(self.make_call_string(location));
     for data_input in data_inputs {
       for output in &outputs {
@@ -338,6 +342,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       }
     }
 
+    // Add control dependencies: ctrl_input -> output
     for (ctrl_input, edge) in &ctrl_inputs {
       for output in &outputs {
         state.edges.insert((*ctrl_input, *output, *edge));
@@ -345,6 +350,8 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     }
   }
 
+  /// Given the arguments to a `Future::poll` call, walk back through the
+  /// body to find the original future being polled, and get the arguments to the future.
   fn find_async_args<'b>(
     &'b self,
     args: &'b [Operand<'tcx>],
@@ -408,11 +415,11 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     Some(args)
   }
 
-  fn resolve_func(
+  /// Resolve a function [`Operand`] to a specific [`DefId`] and generic arguments if possible.
+  fn operand_to_def_id(
     &self,
     func: &Operand<'tcx>,
   ) -> Option<(DefId, &'tcx List<GenericArg<'tcx>>)> {
-    // Figure out which function the `func` is referring to, if possible.
     match func {
       Operand::Constant(func) => match func.literal.ty().kind() {
         TyKind::FnDef(def_id, generic_args) => Some((*def_id, generic_args)),
@@ -429,10 +436,11 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     }
   }
 
-  fn format_def_id(&self, def_id: DefId) -> String {
+  fn fmt_fn(&self, def_id: DefId) -> String {
     self.tcx.def_path_str(def_id)
   }
 
+  /// Attempt to inline a call to a function, returning None if call is not inline-able.
   fn handle_call(
     &self,
     state: &mut PartialGraph<'tcx>,
@@ -446,75 +454,61 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
 
     let tcx = self.tcx;
 
-    // Figure out which function the `func` is referring to, if possible.
-    let (called_def_id, generic_args) = self.resolve_func(func)?;
-    trace!(
-      "Resolved call to function: {}",
-      self.format_def_id(called_def_id)
-    );
+    let (called_def_id, generic_args) = self.operand_to_def_id(func)?;
+    trace!("Resolved call to function: {}", self.fmt_fn(called_def_id));
 
+    // Handle async functions at the time of polling, not when the future is created.
     if tcx.asyncness(called_def_id).is_async() {
       trace!("  Bailing from handle_call because func is async");
       return Some(());
     }
 
+    // Monomorphize the called function with the known generic_args.
     let param_env = tcx.param_env(self.def_id);
     let resolved_fn =
-      try_resolve_function(self.tcx, called_def_id, param_env, generic_args);
+      utils::try_resolve_function(self.tcx, called_def_id, param_env, generic_args);
     let resolved_def_id = resolved_fn.def_id();
     if called_def_id != resolved_def_id {
-      trace!(
-        "  `{}` monomorphized to `{}`",
-        self.format_def_id(called_def_id),
-        self.format_def_id(resolved_def_id)
-      );
+      let (called, resolved) = (self.fmt_fn(called_def_id), self.fmt_fn(resolved_def_id));
+      trace!("  `{called}` monomorphized to `{resolved}`",);
     }
 
-    // let mut value_analysis = self.values.borrow_mut();
-    // value_analysis.seek_before_primary_effect(location);
-    // let values = value_analysis.get();
-
-    // Only consider functions defined in the current crate.
-    // We can't access their bodies otherwise.
-    // LONG-TERM TODO: could load a serialized version of their graphs.
     enum CallKind {
+      /// A standard function call like `f(x)`.
       Direct,
+      /// A call to a function variable, like `fn foo(f: impl Fn()) { f() }`
       Indirect,
+      /// A poll to an async function, like `f.await`.
       AsyncPoll,
     }
-
-    // Note: monomorphization will resolve `poll(future)` directly to `<generator@future>`,
-    // so we look for direct calls to an async generator.
-
+    // Determine the type of call-site.
     let (call_kind, args) = match tcx.def_path_str(called_def_id).as_str() {
       "std::ops::Fn::call" => (CallKind::Indirect, args),
       "std::future::Future::poll" => {
         let args = self.find_async_args(args)?;
         (CallKind::AsyncPoll, args)
       }
-      def_path => match resolved_def_id.as_local() {
-        Some(_local_def_id) => (CallKind::Direct, args),
-        None => {
+      def_path => {
+        if resolved_def_id.is_local() {
+          (CallKind::Direct, args)
+        } else {
           trace!("  Bailing because func is non-local: `{def_path}`");
           return None;
         }
-      },
+      }
     };
-
     trace!("  Handling call!");
 
+    // Recursively generate the PDG for the child function.
     let call_string = self.make_call_string(location);
     let calling_context = CallingContext {
       call_string,
       param_env,
     };
-
-    // Recursively generate the PDG for the child function.
     let child_constructor = GraphConstructor::new(tcx, resolved_fn, calling_context);
     let child_graph = child_constructor.construct_partial();
 
     // A helper to translate an argument (or return) in the child into a place in the parent.
-    // The major complexity is translating *projections* from the child to the parent.
     let parent_body = &self.body;
     let translate_to_parent = |child: Place<'tcx>| -> Option<Place<'tcx>> {
       trace!("  Translating child place: {child:?}");
@@ -522,10 +516,12 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
         (destination, &child.projection[..])
       } else {
         match call_kind {
+          // Map arguments to the argument array
           CallKind::Direct => (
             args[child.local.as_usize() - 1].place()?,
             &child.projection[..],
           ),
+          // Map arguments to projections of the future, the poll's first argument
           CallKind::AsyncPoll => {
             if child.local.as_usize() == 1 {
               let PlaceElem::Field(idx, _) = child.projection[0] else {
@@ -536,6 +532,8 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
               return None;
             }
           }
+          // Map closure captures to the first argument.
+          // Map formal parameters to the second argument.
           CallKind::Indirect => {
             if child.local.as_usize() == 1 {
               (args[0].place()?, &child.projection[..])
@@ -613,7 +611,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
 
     state.edges.extend(child_graph.edges);
 
-    trace!("  Inlined {}", self.format_def_id(resolved_def_id));
+    trace!("  Inlined {}", self.fmt_fn(resolved_def_id));
 
     Some(())
   }
@@ -707,7 +705,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     if self.tcx.asyncness(self.def_id).is_async() {
       let (generator_def_id, generic_args, _location) = Self::async_generator(&self.body);
       let param_env = self.tcx.param_env(self.def_id);
-      let generator_fn = try_resolve_function(
+      let generator_fn = utils::try_resolve_function(
         self.tcx,
         generator_def_id.to_def_id(),
         param_env,
