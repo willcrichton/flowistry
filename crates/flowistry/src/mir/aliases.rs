@@ -56,9 +56,9 @@ type LoanSet<'tcx> = HashSet<(Place<'tcx>, Mutability)>;
 type LoanMap<'tcx> = HashMap<RegionVid, LoanSet<'tcx>>;
 
 /// Data structure for computing and storing aliases.
-pub struct Aliases<'a, 'tcx> {
+pub struct Aliases<'tcx> {
   tcx: TyCtxt<'tcx>,
-  body: &'a Body<'tcx>,
+  body: &'tcx Body<'tcx>,
   pub(super) loans: LoanMap<'tcx>,
 }
 
@@ -67,12 +67,12 @@ rustc_index::newtype_index! {
   struct RegionSccIndex {}
 }
 
-impl<'a, 'tcx> Aliases<'a, 'tcx> {
+impl<'tcx> Aliases<'tcx> {
   /// Runs the alias analysis on a given `body_with_facts`.
   pub fn build(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
-    body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
+    body_with_facts: &'tcx BodyWithBorrowckFacts<'tcx>,
   ) -> Self {
     let loans = Self::compute_loans(tcx, def_id, body_with_facts, |_, _, _| true);
     Aliases {
@@ -88,7 +88,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
   pub fn build_with_fact_selection(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
-    body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
+    body_with_facts: &'tcx BodyWithBorrowckFacts<'tcx>,
     selector: impl Fn(RegionVid, RegionVid, BorrowckLocationIndex) -> bool,
   ) -> Self {
     let loans = Self::compute_loans(tcx, def_id, body_with_facts, selector);
@@ -102,7 +102,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
   fn compute_loans(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
-    body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
+    body_with_facts: &'tcx BodyWithBorrowckFacts<'tcx>,
     constraint_selector: impl Fn(RegionVid, RegionVid, BorrowckLocationIndex) -> bool,
   ) -> LoanMap<'tcx> {
     let start = Instant::now();

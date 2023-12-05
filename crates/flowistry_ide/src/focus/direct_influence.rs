@@ -7,12 +7,12 @@ use rustc_middle::mir::{visit::Visitor, Body, Mutability, Place};
 use rustc_utils::mir::location_or_arg::LocationOrArg;
 
 pub struct DirectInfluence<'a, 'tcx> {
-  place_info: &'a PlaceInfo<'a, 'tcx>,
+  place_info: &'a PlaceInfo<'tcx>,
   influence: RustcIndexMatrix<Place<'tcx>, LocationOrArg>,
 }
 
 impl<'a, 'tcx> DirectInfluence<'a, 'tcx> {
-  pub fn build(body: &Body<'tcx>, place_info: &'a PlaceInfo<'a, 'tcx>) -> Self {
+  pub fn build(body: &Body<'tcx>, place_info: &'a PlaceInfo<'tcx>) -> Self {
     let mut influence = RustcIndexMatrix::new(place_info.location_domain());
 
     ModularMutationVisitor::new(place_info, |location, mutations| {

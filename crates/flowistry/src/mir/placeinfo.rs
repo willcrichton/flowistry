@@ -28,14 +28,14 @@ use super::{aliases::Aliases, utils::PlaceSet};
 use crate::extensions::{is_extension_active, MutabilityMode};
 
 /// Utilities for analyzing places: children, aliases, etc.
-pub struct PlaceInfo<'a, 'tcx> {
+pub struct PlaceInfo<'tcx> {
   pub(crate) tcx: TyCtxt<'tcx>,
-  pub(crate) body: &'a Body<'tcx>,
+  pub(crate) body: &'tcx Body<'tcx>,
   pub(crate) def_id: DefId,
   location_domain: Rc<LocationOrArgDomain>,
 
   // Core computed data structure
-  aliases: Aliases<'a, 'tcx>,
+  aliases: Aliases<'tcx>,
 
   // Caching for derived analysis
   normalized_cache: CopyCache<Place<'tcx>, Place<'tcx>>,
@@ -44,7 +44,7 @@ pub struct PlaceInfo<'a, 'tcx> {
   reachable_cache: Cache<(Place<'tcx>, Mutability), PlaceSet<'tcx>>,
 }
 
-impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
+impl<'tcx> PlaceInfo<'tcx> {
   fn build_location_arg_domain(body: &Body) -> Rc<LocationOrArgDomain> {
     let all_locations = body.all_locations().map(LocationOrArg::Location);
     let all_locals = body.args_iter().map(LocationOrArg::Arg);
@@ -56,7 +56,7 @@ impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
   pub fn build(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
-    body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
+    body_with_facts: &'tcx BodyWithBorrowckFacts<'tcx>,
   ) -> Self {
     block_timer!("aliases");
     let body = &body_with_facts.body;
@@ -162,9 +162,7 @@ impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
 
   /// Returns all [direct](PlaceExt::is_direct) places reachable from arguments
   /// to the current body.
-  pub fn all_args(
-    &'a self,
-  ) -> impl Iterator<Item = (Place<'tcx>, LocationOrArgIndex)> + 'a {
+  pub fn all_args(&self) -> impl Iterator<Item = (Place<'tcx>, LocationOrArgIndex)> + '_ {
     self.body.args_iter().flat_map(|local| {
       let location = local.to_index(&self.location_domain);
       let place = Place::from_local(local, self.tcx);
@@ -193,7 +191,7 @@ impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
 // TODO: this visitor shares some structure with the PlaceCollector in mir utils.
 // Can we consolidate these?
 struct LoanCollector<'a, 'tcx> {
-  aliases: &'a Aliases<'a, 'tcx>,
+  aliases: &'a Aliases<'tcx>,
   unknown_region: Region<'tcx>,
   target_mutability: Mutability,
   stack: Vec<Mutability>,

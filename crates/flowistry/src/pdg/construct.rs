@@ -55,18 +55,19 @@ impl<'tcx> df::JoinSemiLattice for PartialGraph<'tcx> {
 struct CallingContext<'tcx> {
   call_string: CallString,
   param_env: ParamEnv<'tcx>,
+  call_stack: Vec<DefId>,
 }
 
-pub struct GraphConstructor<'a, 'tcx> {
+pub struct GraphConstructor<'tcx> {
   tcx: TyCtxt<'tcx>,
-  body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
+  body_with_facts: &'tcx BodyWithBorrowckFacts<'tcx>,
   body: Cow<'tcx, Body<'tcx>>,
-  place_info: PlaceInfo<'a, 'tcx>,
-  control_dependencies: ControlDependencies<BasicBlock>,
-  start_loc: FxHashSet<LocationOrStart>,
   def_id: LocalDefId,
-  calling_context: Option<CallingContext<'tcx>>,
+  place_info: PlaceInfo<'tcx>,
+  control_dependencies: ControlDependencies<BasicBlock>,
   body_assignments: utils::BodyAssignments,
+  calling_context: Option<CallingContext<'tcx>>,
+  start_loc: FxHashSet<LocationOrStart>,
 }
 
 macro_rules! trylet {
@@ -78,7 +79,7 @@ macro_rules! trylet {
   }
 }
 
-impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
+impl<'tcx> GraphConstructor<'tcx> {
   /// Creates a [`GraphConstructor`] assuming that `def_id` is the root of the PDG.
   pub fn root(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> Self {
     Self::new(tcx, FnResolution::Partial(def_id.to_def_id()), None)
@@ -197,7 +198,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
   /// 2. The most-recently modified location for `src`
   fn find_data_inputs(
     &self,
-    state: &mut PartialGraph<'tcx>,
+    state: &PartialGraph<'tcx>,
     input: Place<'tcx>,
   ) -> Vec<DepNode<'tcx>> {
     // Include all sources of indirection (each reference in the chain) as relevant places.
@@ -338,10 +339,10 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
 
   /// Given the arguments to a `Future::poll` call, walk back through the
   /// body to find the original future being polled, and get the arguments to the future.
-  fn find_async_args<'b>(
-    &'b self,
-    args: &'b [Operand<'tcx>],
-  ) -> Option<&'b [Operand<'tcx>]> {
+  fn find_async_args<'a>(
+    &'a self,
+    args: &'a [Operand<'tcx>],
+  ) -> Option<&'a [Operand<'tcx>]> {
     let get_def_for_op = |op: &Operand<'tcx>| -> Option<Location> {
       trylet!(Some(place) = op.place(), "Arg is not a place");
       trylet!(Some(local) = place.as_local(), "Place is not a local");
@@ -369,7 +370,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
       .aliases(self.tcx.mk_place_deref(new_pin_args[0].place().unwrap()))
       .collect_vec();
     debug_assert!(future_aliases.len() == 1);
-    let future = *future_aliases.iter().next().unwrap();
+    let future = *future_aliases.first().unwrap();
 
     trylet!(
       Either::Left(Statement {
@@ -445,7 +446,7 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
 
     // Handle async functions at the time of polling, not when the future is created.
     if tcx.asyncness(called_def_id).is_async() {
-      trace!("  Bailing from handle_call because func is async");
+      trace!("  Bailing because func is async");
       return Some(());
     }
 
@@ -457,6 +458,14 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
     if called_def_id != resolved_def_id {
       let (called, resolved) = (self.fmt_fn(called_def_id), self.fmt_fn(resolved_def_id));
       trace!("  `{called}` monomorphized to `{resolved}`",);
+    }
+
+    // Don't inline recursive calls.
+    if let Some(cx) = &self.calling_context {
+      if cx.call_stack.contains(&resolved_def_id) {
+        trace!("  Bailing due to recursive call");
+        return None;
+      }
     }
 
     enum CallKind {
@@ -487,9 +496,18 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
 
     // Recursively generate the PDG for the child function.
     let call_string = self.make_call_string(location);
+    let call_stack = match &self.calling_context {
+      Some(cx) => {
+        let mut stack = cx.call_stack.clone();
+        stack.push(resolved_def_id);
+        stack
+      }
+      None => vec![resolved_def_id],
+    };
     let calling_context = CallingContext {
       call_string,
       param_env,
+      call_stack,
     };
     let child_constructor =
       GraphConstructor::new(tcx, resolved_fn, Some(calling_context));
@@ -699,9 +717,14 @@ impl<'a, 'tcx> GraphConstructor<'a, 'tcx> {
         generic_args,
       );
       let call_string = self.make_call_string(location);
+      let call_stack = match &self.calling_context {
+        Some(cx) => cx.call_stack.clone(),
+        None => vec![],
+      };
       let calling_context = CallingContext {
         param_env,
         call_string,
+        call_stack,
       };
       return GraphConstructor::new(self.tcx, generator_fn, Some(calling_context))
         .construct_partial();

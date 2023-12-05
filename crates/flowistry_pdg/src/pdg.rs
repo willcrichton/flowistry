@@ -78,7 +78,10 @@ impl fmt::Display for GlobalLocation {
 /// The first location is the root of the call-graph.
 /// The last location is the currently-called function.
 ///
-/// This type is copyable due to interning.
+/// Invariant: a call string should never be empty, i.e.,
+/// there should always be at least one [`GlobalLocation`] in a call-string.
+///
+/// Note: This type is copyable due to interning.
 #[derive(PartialEq, Eq, Hash, Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct CallString(Intern<Vec<GlobalLocation>>);
 

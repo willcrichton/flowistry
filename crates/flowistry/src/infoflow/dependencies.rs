@@ -35,7 +35,7 @@ struct TargetDeps {
 impl TargetDeps {
   pub fn new<'tcx>(
     targets: &[(Place<'tcx>, LocationOrArg)],
-    results: &FlowResults<'_, 'tcx>,
+    results: &FlowResults<'tcx>,
   ) -> Self {
     let place_info = &results.analysis.place_info;
     let location_domain = results.analysis.location_domain();
@@ -81,7 +81,7 @@ impl TargetDeps {
 
 pub fn deps<'a, 'tcx>(
   state: &'a FlowDomain<'tcx>,
-  place_info: &'a PlaceInfo<'a, 'tcx>,
+  place_info: &'a PlaceInfo<'tcx>,
   place: Place<'tcx>,
 ) -> &'a LocationOrArgSet {
   state.row_set(&place_info.normalize(place))
@@ -97,7 +97,7 @@ pub fn deps<'a, 'tcx>(
 /// For example, if `all_targets = [[x@L1, y@L2], [z@L3]]` then the result would be
 /// `[deps(x@L1) ∪ deps(y@L2), deps(z@L3)]`.
 pub fn compute_dependencies<'tcx>(
-  results: &FlowResults<'_, 'tcx>,
+  results: &FlowResults<'tcx>,
   all_targets: Vec<Vec<(Place<'tcx>, LocationOrArg)>>,
   direction: Direction,
 ) -> Vec<LocationOrArgSet> {
@@ -215,7 +215,7 @@ pub fn compute_dependencies<'tcx>(
 /// Wraps [`compute_dependencies`] by translating each [`Location`] to a corresponding
 /// source [`Span`] for the location.
 pub fn compute_dependency_spans<'tcx>(
-  results: &FlowResults<'_, 'tcx>,
+  results: &FlowResults<'tcx>,
   targets: Vec<Vec<(Place<'tcx>, LocationOrArg)>>,
   direction: Direction,
   spanner: &Spanner,

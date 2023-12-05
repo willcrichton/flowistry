@@ -59,7 +59,7 @@ mod recursive;
 /// [`AnalysisDomain`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.AnalysisDomain.html).
 /// However, for performance purposes, several constructs were reimplemented within Flowistry, such as [`AnalysisResults`](engine::AnalysisResults)
 /// which replaces [`rustc_mir_dataflow::Results`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Results.html).
-pub type FlowResults<'a, 'tcx> = engine::AnalysisResults<'tcx, FlowAnalysis<'a, 'tcx>>;
+pub type FlowResults<'tcx> = engine::AnalysisResults<'tcx, FlowAnalysis<'tcx>>;
 
 thread_local! {
   pub(super) static BODY_STACK: RefCell<Vec<BodyId>> =
@@ -76,11 +76,11 @@ thread_local! {
 /// function.
 ///
 /// See [`FlowResults`] for an explanation of how to use the return value.
-pub fn compute_flow<'a, 'tcx>(
+pub fn compute_flow<'tcx>(
   tcx: TyCtxt<'tcx>,
   body_id: BodyId,
-  body_with_facts: &'a BodyWithBorrowckFacts<'tcx>,
-) -> FlowResults<'a, 'tcx> {
+  body_with_facts: &'tcx BodyWithBorrowckFacts<'tcx>,
+) -> FlowResults<'tcx> {
   BODY_STACK.with(|body_stack| {
     body_stack.borrow_mut().push(body_id);
     debug!(

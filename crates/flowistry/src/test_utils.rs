@@ -30,7 +30,7 @@ use crate::{
 pub fn compile_body_with_range(
   input: impl Into<String>,
   compute_target: impl FnOnce() -> ByteRange + Send,
-  callback: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &BodyWithBorrowckFacts<'tcx>, ByteRange)
+  callback: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &'tcx BodyWithBorrowckFacts<'tcx>, ByteRange)
     + Send,
 ) {
   borrowck_facts::enable_mir_simplification();
@@ -39,7 +39,8 @@ pub fn compile_body_with_range(
 
 pub fn compile_body(
   input: impl Into<String>,
-  callback: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &BodyWithBorrowckFacts<'tcx>) + Send,
+  callback: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &'tcx BodyWithBorrowckFacts<'tcx>)
+    + Send,
 ) {
   borrowck_facts::enable_mir_simplification();
   test_utils::compile_body(input, callback)
@@ -104,7 +105,7 @@ pub fn bless(
 pub fn test_command_output(
   path: &Path,
   expected: Option<&Path>,
-  output_fn: impl for<'a, 'tcx> Fn(infoflow::FlowResults<'a, 'tcx>, Spanner<'tcx>, Span) -> Vec<Span>
+  output_fn: impl for<'a, 'tcx> Fn(infoflow::FlowResults<'tcx>, Spanner<'tcx>, Span) -> Vec<Span>
     + Send
     + Sync,
 ) {

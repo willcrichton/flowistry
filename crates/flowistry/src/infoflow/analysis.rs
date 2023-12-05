@@ -58,7 +58,7 @@ use crate::{
 pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, LocationOrArg>;
 
 /// Data structure that holds context for performing the information flow analysis.
-pub struct FlowAnalysis<'a, 'tcx> {
+pub struct FlowAnalysis<'tcx> {
   /// The type context used for the analysis.
   pub tcx: TyCtxt<'tcx>,
 
@@ -66,22 +66,22 @@ pub struct FlowAnalysis<'a, 'tcx> {
   pub def_id: DefId,
 
   /// The body being analyzed.
-  pub body: &'a Body<'tcx>,
+  pub body: &'tcx Body<'tcx>,
 
   /// The metadata about places used in the analysis.
-  pub place_info: PlaceInfo<'a, 'tcx>,
+  pub place_info: PlaceInfo<'tcx>,
 
   pub(crate) control_dependencies: ControlDependencies<BasicBlock>,
-  pub(crate) recurse_cache: RefCell<HashMap<BodyId, FlowResults<'a, 'tcx>>>,
+  pub(crate) recurse_cache: RefCell<HashMap<BodyId, FlowResults<'tcx>>>,
 }
 
-impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
+impl<'tcx> FlowAnalysis<'tcx> {
   /// Constructs (but does not execute) a new FlowAnalysis.
   pub fn new(
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
-    body: &'a Body<'tcx>,
-    place_info: PlaceInfo<'a, 'tcx>,
+    body: &'tcx Body<'tcx>,
+    place_info: PlaceInfo<'tcx>,
   ) -> Self {
     let recurse_cache = RefCell::new(HashMap::default());
     let control_dependencies = body.control_dependencies();
@@ -241,7 +241,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
   }
 }
 
-impl<'a, 'tcx> AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
+impl<'tcx> AnalysisDomain<'tcx> for FlowAnalysis<'tcx> {
   type Domain = FlowDomain<'tcx>;
   type Direction = Forward;
   const NAME: &'static str = "FlowAnalysis";
@@ -263,7 +263,7 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
   }
 }
 
-impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
+impl<'tcx> Analysis<'tcx> for FlowAnalysis<'tcx> {
   fn apply_statement_effect(
     &mut self,
     state: &mut Self::Domain,

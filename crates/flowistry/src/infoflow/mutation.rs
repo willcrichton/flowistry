@@ -47,7 +47,7 @@ where
   F: FnMut(Location, Vec<Mutation<'tcx>>),
 {
   f: F,
-  place_info: &'a PlaceInfo<'a, 'tcx>,
+  place_info: &'a PlaceInfo<'tcx>,
 }
 
 impl<'a, 'tcx, F> ModularMutationVisitor<'a, 'tcx, F>
@@ -55,7 +55,7 @@ where
   F: FnMut(Location, Vec<Mutation<'tcx>>),
 {
   /// Constructs a new visitor.
-  pub fn new(place_info: &'a PlaceInfo<'a, 'tcx>, f: F) -> Self {
+  pub fn new(place_info: &'a PlaceInfo<'tcx>, f: F) -> Self {
     ModularMutationVisitor { place_info, f }
   }
 }

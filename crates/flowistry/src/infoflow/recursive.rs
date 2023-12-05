@@ -16,7 +16,7 @@ use crate::{
   mir::utils,
 };
 
-impl<'tcx> FlowAnalysis<'_, 'tcx> {
+impl<'tcx> FlowAnalysis<'tcx> {
   pub(crate) fn recurse_into_call(
     &self,
     state: &mut FlowDomain<'tcx>,

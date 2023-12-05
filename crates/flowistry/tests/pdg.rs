@@ -429,3 +429,21 @@ pdg_test! {
   (a -> c),
   (b -/> c)
 }
+
+pdg_test! {
+  recursive,
+  {
+    fn f(x: i32) -> i32 {
+      if x == 0 { 0 }
+      else { g(x) }
+    }
+    fn g(y: i32) -> i32 {
+      f(y - 1)
+    }
+    fn main() {
+      let a = 1;
+      let b = f(a);
+    }
+  },
+  (a -> b)
+}

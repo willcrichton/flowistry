@@ -23,22 +23,22 @@ pub enum FnResolution<'tcx> {
 
 impl<'tcx> PartialOrd for FnResolution<'tcx> {
   fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-    use FnResolution::*;
-    match (self, other) {
-      (Final(_), Partial(_)) => Some(std::cmp::Ordering::Greater),
-      (Partial(_), Final(_)) => Some(std::cmp::Ordering::Less),
-      (Partial(slf), Partial(otr)) => slf.partial_cmp(otr),
-      (Final(slf), Final(otr)) => match slf.def.partial_cmp(&otr.def) {
-        Some(std::cmp::Ordering::Equal) => slf.args.partial_cmp(otr.args),
-        result => result,
-      },
-    }
+    Some(self.cmp(other))
   }
 }
 
 impl<'tcx> Ord for FnResolution<'tcx> {
   fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-    self.partial_cmp(other).unwrap()
+    use FnResolution::*;
+    match (self, other) {
+      (Final(_), Partial(_)) => std::cmp::Ordering::Greater,
+      (Partial(_), Final(_)) => std::cmp::Ordering::Less,
+      (Partial(slf), Partial(otr)) => slf.cmp(otr),
+      (Final(slf), Final(otr)) => match slf.def.cmp(&otr.def) {
+        std::cmp::Ordering::Equal => slf.args.cmp(otr.args),
+        result => result,
+      },
+    }
   }
 }
 
@@ -81,7 +81,7 @@ pub fn try_resolve_function<'tcx>(
       debug!("Normalization failed: {e:?}");
       return None;
     }
-    Some(Instance::resolve(tcx, param_env, def_id, args).unwrap()?)
+    Instance::resolve(tcx, param_env, def_id, args).unwrap()
   };
 
   match make_opt() {
