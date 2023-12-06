@@ -744,7 +744,7 @@ impl<'tcx> GraphConstructor<'tcx> {
       rustc_graph::iterate::reverse_post_order(bb_graph, bb_graph.start_node());
 
     let bot = PartialGraph::default();
-    let mut domains = IndexVec::<BasicBlock, _>::from_elem_n(bot, bb_graph.len());
+    let mut domains = IndexVec::from_elem_n(bot, bb_graph.len());
     for block in blocks {
       for parent in bb_graph.predecessors()[block].iter() {
         let (child, parent) = domains.pick2_mut(block, *parent);
@@ -754,16 +754,21 @@ impl<'tcx> GraphConstructor<'tcx> {
       self.visit_basic_block(block, &mut domains[block]);
     }
 
-    let mut all_returns = self.body.all_returns();
-    let Some(first_return) = all_returns.next() else {
-      todo!("what to do with ! type blocks?")
+    let all_returns = self.body.all_returns().map(|ret| ret.block).collect_vec();
+    let blocks = if !all_returns.is_empty() {
+      all_returns
+    } else {
+      self.body.basic_blocks.indices().collect_vec()
     };
-    for other_return in all_returns {
-      let (first, other) = domains.pick2_mut(first_return.block, other_return.block);
+    let mut blocks = blocks.into_iter();
+
+    let first_block = blocks.next().unwrap();
+    for other_block in blocks {
+      let (first, other) = domains.pick2_mut(first_block, other_block);
       first.join(other);
     }
 
-    domains[first_return.block].clone()
+    domains[first_block].clone()
   }
 
   fn domain_to_petgraph(self, domain: PartialGraph<'tcx>) -> DepGraph<'tcx> {

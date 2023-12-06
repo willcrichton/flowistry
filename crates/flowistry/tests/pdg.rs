@@ -447,3 +447,17 @@ pdg_test! {
   },
   (a -> b)
 }
+
+pdg_test! {
+  never_type,
+  {
+    fn main() -> ! {
+      let mut x = 1;
+      let y = x;
+      loop {
+        x += y;
+      }
+    }
+  },
+  (x -> y)
+}

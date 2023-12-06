@@ -1,4 +1,4 @@
-use rustc_utils::mir::borrowck_facts;
+use rustc_utils::{mir::borrowck_facts, source_map::find_bodies::find_bodies};
 use serde::Serialize;
 
 use crate::plugin::FlowistryResult;
@@ -7,6 +7,7 @@ use crate::plugin::FlowistryResult;
 pub struct GraphOutput {}
 
 struct Callbacks {
+  item_name: String,
   output: Option<FlowistryResult<GraphOutput>>,
 }
 
@@ -22,9 +23,25 @@ impl rustc_driver::Callbacks for Callbacks {
     queries: &'tcx rustc_interface::Queries<'tcx>,
   ) -> rustc_driver::Compilation {
     queries.global_ctxt().unwrap().enter(|tcx| {
-      let (main_def_id, _) = tcx.entry_fn(()).unwrap();
-      let main_def_id = main_def_id.expect_local();
-      let graph = flowistry::pdg::compute_pdg(tcx, main_def_id);
+      let defs = find_bodies(tcx)
+        .into_iter()
+        .filter_map(|(_, body_id)| {
+          let def_id = tcx.hir().body_owner_def_id(body_id);
+          tcx
+            .def_path_str(def_id)
+            .ends_with(&self.item_name)
+            .then_some(def_id)
+        })
+        .collect::<Vec<_>>();
+      if defs.len() == 0 {
+        panic!("Could not find definition for: {}", self.item_name);
+      } else if defs.len() > 1 {
+        panic!("Ambiguous name. Found multiple definitions: {:?}", defs);
+      }
+
+      let def = *defs.first().unwrap();
+      let graph = flowistry::pdg::compute_pdg(tcx, def);
+      println!("PDG generated. Creating graphviz diagram at target/graph.pdf");
       graph.generate_graphviz("target/graph.pdf").unwrap();
 
       self.output = Some(Ok(GraphOutput {}))
@@ -33,8 +50,11 @@ impl rustc_driver::Callbacks for Callbacks {
   }
 }
 
-pub fn graph(args: &[String]) -> FlowistryResult<GraphOutput> {
-  let mut callbacks = Callbacks { output: None };
+pub fn graph(args: &[String], item_name: String) -> FlowistryResult<GraphOutput> {
+  let mut callbacks = Callbacks {
+    item_name,
+    output: None,
+  };
   crate::plugin::run_with_callbacks(args, &mut callbacks)?;
   callbacks.output.unwrap()
 }

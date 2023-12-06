@@ -20,6 +20,7 @@ use rustc_middle::ty::TyCtxt;
 use rustc_plugin::{CrateFilter, RustcPlugin, RustcPluginArgs, Utf8Path};
 use rustc_span::ErrorGuaranteed;
 use rustc_utils::{
+  block_timer,
   mir::borrowck_facts,
   source_map::{
     filename::Filename,
@@ -60,6 +61,7 @@ enum FlowistryCommand {
 
   Graph {
     file: String,
+    item: String,
   },
 
   Decompose {
@@ -195,7 +197,7 @@ impl RustcPlugin for FlowistryPlugin {
         };
         postprocess(run(crate::focus::focus, compute_target, &compiler_args))
       }
-      Graph { .. } => postprocess(crate::graph::graph(&compiler_args)),
+      Graph { item, .. } => postprocess(crate::graph::graph(&compiler_args, item)),
       Decompose {
         file: _file,
         pos: _pos,
@@ -231,8 +233,11 @@ fn postprocess<T: Serialize>(result: FlowistryResult<T>) -> RustcResult<()> {
   };
 
   let mut encoder =
-    flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::best());
-  serde_json::to_writer(&mut encoder, &result).unwrap();
+    flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::fast());
+  {
+    block_timer!("Encoding");
+    serde_json::to_writer(&mut encoder, &result).unwrap();
+  }
   let buffer = encoder.finish().unwrap();
   print!(
     "{}",
