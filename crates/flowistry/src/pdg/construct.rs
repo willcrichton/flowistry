@@ -218,13 +218,22 @@ impl<'tcx> GraphConstructor<'tcx> {
           .last_mutation
           .keys()
           .filter(move |place| {
-            places_conflict(
-              self.tcx,
-              &self.body,
-              **place,
-              alias,
-              PlaceConflictBias::Overlap,
-            )
+            if place.is_indirect() && place.is_arg(&self.body) {
+              // HACK: `places_conflict` seems to consider it a bug is `borrow_place`
+              // includes a dereference, which should only happen if `borrow_place`
+              // is an argument. So we special case that condition and just compare for local equality.
+              //
+              // TODO: this is not field-sensitive!
+              place.local == alias.local
+            } else {
+              places_conflict(
+                self.tcx,
+                &self.body,
+                **place,
+                alias,
+                PlaceConflictBias::Overlap,
+              )
+            }
           })
           .map(|place| (*place, &state.last_mutation[place]));
 
