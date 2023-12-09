@@ -19,6 +19,7 @@ use rustc_utils::PlaceExt;
 pub struct DepNode<'tcx> {
   /// A place in memory in a particular body.
   pub place: Place<'tcx>,
+
   /// The point in the execution of the program.
   pub at: CallString,
 

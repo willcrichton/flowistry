@@ -2,7 +2,7 @@ use std::{borrow::Cow, iter};
 
 use df::JoinSemiLattice;
 use either::Either;
-use flowistry_pdg::{CallString, GlobalLocation, LocationOrStart};
+use flowistry_pdg::{CallString, GlobalLocation, RichLocation};
 use itertools::Itertools;
 use log::{debug, trace};
 use petgraph::graph::DiGraph;
@@ -37,7 +37,7 @@ use crate::{
 #[derive(PartialEq, Eq, Default, Clone)]
 pub struct PartialGraph<'tcx> {
   edges: FxHashSet<(DepNode<'tcx>, DepNode<'tcx>, DepEdge)>,
-  last_mutation: FxHashMap<Place<'tcx>, FxHashSet<LocationOrStart>>,
+  last_mutation: FxHashMap<Place<'tcx>, FxHashSet<RichLocation>>,
 }
 
 impl<'tcx> df::JoinSemiLattice for PartialGraph<'tcx> {
@@ -67,7 +67,7 @@ pub struct GraphConstructor<'tcx> {
   control_dependencies: ControlDependencies<BasicBlock>,
   body_assignments: utils::BodyAssignments,
   calling_context: Option<CallingContext<'tcx>>,
-  start_loc: FxHashSet<LocationOrStart>,
+  start_loc: FxHashSet<RichLocation>,
 }
 
 macro_rules! trylet {
@@ -105,7 +105,7 @@ impl<'tcx> GraphConstructor<'tcx> {
     let control_dependencies = body.control_dependencies();
 
     let mut start_loc = FxHashSet::default();
-    start_loc.insert(LocationOrStart::Start);
+    start_loc.insert(RichLocation::Start);
 
     let body_assignments = utils::find_body_assignments(&body);
 
@@ -123,7 +123,7 @@ impl<'tcx> GraphConstructor<'tcx> {
   }
 
   /// Creates a [`GlobalLocation`] at the current function.
-  fn make_global_loc(&self, location: impl Into<LocationOrStart>) -> GlobalLocation {
+  fn make_global_loc(&self, location: impl Into<RichLocation>) -> GlobalLocation {
     GlobalLocation {
       function: self.def_id,
       location: location.into(),
@@ -132,12 +132,20 @@ impl<'tcx> GraphConstructor<'tcx> {
 
   /// Creates a [`CallString`] with the current function at the root,
   /// with the rest of the string provided by the [`CallingContext`].
-  fn make_call_string(&self, location: impl Into<LocationOrStart>) -> CallString {
+  fn make_call_string(&self, location: impl Into<RichLocation>) -> CallString {
     let global_loc = self.make_global_loc(location);
     match &self.calling_context {
       Some(cx) => cx.call_string.push(global_loc),
       None => CallString::single(global_loc),
     }
+  }
+
+  fn make_dep_node(
+    &self,
+    place: Place<'tcx>,
+    location: impl Into<RichLocation>,
+  ) -> DepNode<'tcx> {
+    DepNode::new(place, self.make_call_string(location), self.tcx, &self.body)
   }
 
   /// Returns all pairs of `(src, edge)`` such that the given `location` is control-dependent on `edge`
@@ -294,7 +302,7 @@ impl<'tcx> GraphConstructor<'tcx> {
         }
 
         // Register that `dst` is mutated at the current location.
-        dst_mutations.insert(LocationOrStart::Location(location));
+        dst_mutations.insert(RichLocation::Location(location));
 
         dst_node
       })
@@ -585,12 +593,14 @@ impl<'tcx> GraphConstructor<'tcx> {
       .edges
       .iter()
       .map(|(src, _, _)| *src)
-      .filter(is_arg);
+      .filter(is_arg)
+      .filter(|node| node.at.leaf().location.is_start());
     let parentable_dsts = child_graph
       .edges
       .iter()
       .map(|(_, dst, _)| *dst)
-      .filter(is_arg);
+      .filter(is_arg)
+      .filter(|node| node.at.leaf().location.is_end());
 
     // For each source node CHILD that is parentable to PLACE,
     // add an edge from PLACE -> CHILD.
@@ -743,8 +753,8 @@ impl<'tcx> GraphConstructor<'tcx> {
     let blocks =
       rustc_graph::iterate::reverse_post_order(bb_graph, bb_graph.start_node());
 
-    let bot = PartialGraph::default();
-    let mut domains = IndexVec::from_elem_n(bot, bb_graph.len());
+    let empty = PartialGraph::default();
+    let mut domains = IndexVec::from_elem_n(empty.clone(), bb_graph.len());
     for block in blocks {
       for parent in bb_graph.predecessors()[block].iter() {
         let (child, parent) = domains.pick2_mut(block, *parent);
@@ -754,21 +764,37 @@ impl<'tcx> GraphConstructor<'tcx> {
       self.visit_basic_block(block, &mut domains[block]);
     }
 
+    let mut final_state = empty;
+
     let all_returns = self.body.all_returns().map(|ret| ret.block).collect_vec();
-    let blocks = if !all_returns.is_empty() {
-      all_returns
+    let has_return = !all_returns.is_empty();
+    let blocks = if has_return {
+      all_returns.clone()
     } else {
       self.body.basic_blocks.indices().collect_vec()
     };
-    let mut blocks = blocks.into_iter();
-
-    let first_block = blocks.next().unwrap();
-    for other_block in blocks {
-      let (first, other) = domains.pick2_mut(first_block, other_block);
-      first.join(other);
+    for block in blocks {
+      final_state.join(&domains[block]);
     }
 
-    domains[first_block].clone()
+    if has_return {
+      for block in all_returns {
+        let return_state = &domains[block];
+        for (place, locations) in &return_state.last_mutation {
+          if place.local == RETURN_PLACE || place.is_arg(&self.body) {
+            for location in locations {
+              let src = self.make_dep_node(*place, *location);
+              let dst = self.make_dep_node(*place, RichLocation::End);
+              let edge =
+                DepEdge::data(self.make_call_string(self.body.terminator_loc(block)));
+              final_state.edges.insert((src, dst, edge));
+            }
+          }
+        }
+      }
+    }
+
+    final_state
   }
 
   fn domain_to_petgraph(self, domain: PartialGraph<'tcx>) -> DepGraph<'tcx> {

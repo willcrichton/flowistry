@@ -9,52 +9,67 @@ use crate::rustc_portable::*;
 #[cfg(feature = "rustc")]
 use crate::rustc_proxies;
 
-/// Extends a MIR body's `Location` with `Start` to represent facts about arguments before the first instruction.
+/// Extends a MIR body's `Location` with `Start` (before the first instruction) and `End` (after all returns).
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum LocationOrStart {
+pub enum RichLocation {
   /// The point *after* a location in a body.
   #[cfg_attr(feature = "rustc", serde(with = "rustc_proxies::Location"))]
   Location(Location),
+
   /// The start of the body.
   ///
-  /// Note that [`Location::START`] is different from [`LocationOrStart::Start`]!
+  /// Note that [`Location::START`] is different from [`RichLocation::Start`]!
   /// The latter is *before* the former in time.
   Start,
+
+  /// The end of the body, after all possible return statements.
+  End,
 }
 
-impl LocationOrStart {
+impl RichLocation {
+  /// Returns true if this is a `Start` location.
+  pub fn is_start(self) -> bool {
+    matches!(self, RichLocation::Start)
+  }
+
+  /// Returns true if this is an `End` location.
+  pub fn is_end(self) -> bool {
+    matches!(self, RichLocation::End)
+  }
+
   /// Returns the [`Location`] in `self`, panicking otherwise.
   pub fn unwrap_location(self) -> Location {
     self
       .as_location()
-      .expect("LocationOrStart was unexpectedly Start")
+      .expect("RichLocation was unexpectedly Start")
   }
 
   /// Returns the [`Location`] in `self`, returning `None` otherwise.
   pub fn as_location(self) -> Option<Location> {
     match self {
-      LocationOrStart::Location(location) => Some(location),
-      LocationOrStart::Start => None,
+      RichLocation::Location(location) => Some(location),
+      RichLocation::Start | RichLocation::End => None,
     }
   }
 }
 
-impl fmt::Display for LocationOrStart {
+impl fmt::Display for RichLocation {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      LocationOrStart::Location(loc) => write!(f, "{loc:?}"),
-      LocationOrStart::Start => write!(f, "start"),
+      RichLocation::Location(loc) => write!(f, "{loc:?}"),
+      RichLocation::Start => write!(f, "start"),
+      RichLocation::End => write!(f, "end"),
     }
   }
 }
 
-impl From<Location> for LocationOrStart {
+impl From<Location> for RichLocation {
   fn from(value: Location) -> Self {
-    LocationOrStart::Location(value)
+    RichLocation::Location(value)
   }
 }
 
-/// A [`LocationOrStart`] within a specific point in a codebase.
+/// A [`RichLocation`] within a specific point in a codebase.
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct GlobalLocation {
   /// The function containing the location.
@@ -62,7 +77,7 @@ pub struct GlobalLocation {
   pub function: LocalDefId,
 
   /// The location of an instruction in the function, or the function's start.
-  pub location: LocationOrStart,
+  pub location: RichLocation,
 }
 
 #[cfg(not(feature = "rustc"))]
