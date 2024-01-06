@@ -459,7 +459,7 @@ mod test {
 
   fn alias_harness(
     input: &str,
-    f: impl for<'tcx> FnOnce(TyCtxt<'tcx>, &Body<'tcx>, Aliases<'_, 'tcx>) + Send,
+    f: impl for<'tcx> FnOnce(TyCtxt<'tcx>, &Body<'tcx>, Aliases<'tcx>) + Send,
   ) {
     test_utils::compile_body(input, |tcx, body_id, body_with_facts| {
       let body = &body_with_facts.body;

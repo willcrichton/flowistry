@@ -38,7 +38,7 @@ mod recursive;
 /// # use rustc_middle::{ty::TyCtxt, mir::{Place, Location, Local}};
 /// # use flowistry::{infoflow::{FlowDomain, FlowResults}};
 /// # use rustc_utils::{mir::location_or_arg::index::LocationOrArgSet, PlaceExt};
-/// fn example<'tcx>(tcx: TyCtxt<'tcx>, results: &FlowResults<'_, 'tcx>) {
+/// fn example<'tcx>(tcx: TyCtxt<'tcx>, results: &FlowResults<'tcx>) {
 ///   let ℓ: Location         = Location::START;
 ///   let Θ: &FlowDomain      = results.state_at(ℓ);
 ///   let p: Place            = Place::make(Local::from_usize(1), &[], tcx);

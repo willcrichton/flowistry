@@ -32,7 +32,7 @@ pub struct DepNode<'tcx> {
 impl<'tcx> DepNode<'tcx> {
   /// Constructs a new [`DepNode`].
   ///
-  /// The [`tcx`] and [`body`] arguments are used to precompute a pretty string
+  /// The `tcx` and `body` arguments are used to precompute a pretty string
   /// representation of the [`DepNode`].
   pub fn new(
     place: Place<'tcx>,

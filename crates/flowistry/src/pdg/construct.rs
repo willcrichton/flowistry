@@ -1,4 +1,4 @@
-use std::{borrow::Cow, iter};
+use std::{borrow::Cow, iter, rc::Rc};
 
 use df::JoinSemiLattice;
 use either::Either;
@@ -34,6 +34,80 @@ use crate::{
   pdg::utils::{self, FnResolution},
 };
 
+type CallFilter<'tcx> = Box<dyn Fn(FnResolution<'tcx>, CallString) -> bool + 'tcx>;
+
+/// Top-level parameters to PDG construction.
+#[derive(Clone)]
+pub struct PdgParams<'tcx> {
+  tcx: TyCtxt<'tcx>,
+  root: FnResolution<'tcx>,
+  call_filter: Option<Rc<CallFilter<'tcx>>>,
+}
+
+impl<'tcx> PdgParams<'tcx> {
+  /// Must provide the [`TyCtxt`] and the [`LocalDefId`] of the function that is the root of the PDG.
+  pub fn new(tcx: TyCtxt<'tcx>, root: LocalDefId) -> Self {
+    PdgParams {
+      tcx,
+      root: FnResolution::Partial(root.to_def_id()),
+      call_filter: None,
+    }
+  }
+
+  /// Provide an optional call filter.
+  ///
+  /// A call filter is a user-provided callback which determines whether the PDG generator will inspect
+  /// a call site. For example, in the code:
+  ///
+  /// ```
+  /// fn incr(x: i32) -> i32 { x + 1 }
+  /// fn main() {
+  ///   let a = 0;
+  ///   let b = incr(a);
+  /// }
+  /// ```
+  ///
+  /// When inspecting the call `incr(a)`, the call filter will be called with `f(incr, [main])`.
+  /// The first argument is the function being called, and the second argument is the call string.
+  ///
+  /// For example, you could apply a hard limit on call string length like this:
+  ///
+  /// ```
+  /// # #![feature(rustc_private)]
+  /// # extern crate rustc_middle;
+  /// # use flowistry::pdg::PdgParams;
+  /// # use rustc_middle::ty::TyCtxt;
+  /// # const THRESHOLD: usize = 5;
+  /// # fn f<'tcx>(tcx: TyCtxt<'tcx>, params: PdgParams<'tcx>) -> PdgParams<'tcx> {
+  /// params.with_call_filter(|_, cs| cs.len() <= THRESHOLD)
+  /// # }
+  /// ```
+  ///
+  /// Or you could prevent inspection of specific functions based on their [`DefId`]:
+  ///
+  /// ```
+  /// # #![feature(rustc_private)]
+  /// # extern crate rustc_middle;
+  /// # use flowistry::pdg::PdgParams;
+  /// # use rustc_middle::ty::TyCtxt;
+  /// # fn f<'tcx>(tcx: TyCtxt<'tcx>, params: PdgParams<'tcx>) -> PdgParams<'tcx> {
+  /// params.with_call_filter(move |f, _| {
+  ///   let name = tcx.opt_item_name(f.def_id());
+  ///   !matches!(name.as_ref().map(|sym| sym.as_str()), Some("no_inline"))
+  /// })
+  /// # }
+  /// ```
+  pub fn with_call_filter(
+    self,
+    f: impl Fn(FnResolution<'tcx>, CallString) -> bool + 'tcx,
+  ) -> Self {
+    PdgParams {
+      call_filter: Some(Rc::new(Box::new(f))),
+      ..self
+    }
+  }
+}
+
 #[derive(PartialEq, Eq, Default, Clone)]
 pub struct PartialGraph<'tcx> {
   edges: FxHashSet<(DepNode<'tcx>, DepNode<'tcx>, DepEdge)>,
@@ -60,6 +134,7 @@ struct CallingContext<'tcx> {
 
 pub struct GraphConstructor<'tcx> {
   tcx: TyCtxt<'tcx>,
+  params: PdgParams<'tcx>,
   body_with_facts: &'tcx BodyWithBorrowckFacts<'tcx>,
   body: Cow<'tcx, Body<'tcx>>,
   def_id: LocalDefId,
@@ -80,25 +155,22 @@ macro_rules! trylet {
 }
 
 impl<'tcx> GraphConstructor<'tcx> {
-  /// Creates a [`GraphConstructor`] assuming that `def_id` is the root of the PDG.
-  pub fn root(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> Self {
-    Self::new(tcx, FnResolution::Partial(def_id.to_def_id()), None)
+  /// Creates a [`GraphConstructor`] at the root of the PDG.
+  pub fn root(params: PdgParams<'tcx>) -> Self {
+    GraphConstructor::new(params, None)
   }
 
   /// Creates [`GraphConstructor`] for a function resolved as `fn_resolution` in a given `calling_context`.
-  fn new(
-    tcx: TyCtxt<'tcx>,
-    fn_resolution: FnResolution<'tcx>,
-    calling_context: Option<CallingContext<'tcx>>,
-  ) -> Self {
-    let def_id = fn_resolution.def_id().expect_local();
+  fn new(params: PdgParams<'tcx>, calling_context: Option<CallingContext<'tcx>>) -> Self {
+    let tcx = params.tcx;
+    let def_id = params.root.def_id().expect_local();
     let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
     let param_env = match &calling_context {
       Some(cx) => cx.param_env,
       None => ParamEnv::reveal_all(),
     };
     let body =
-      utils::try_monomorphize(tcx, fn_resolution, param_env, &body_with_facts.body);
+      utils::try_monomorphize(tcx, params.root, param_env, &body_with_facts.body);
     debug!("{}", body.to_string(tcx).unwrap());
 
     let place_info = PlaceInfo::build(tcx, def_id.to_def_id(), body_with_facts);
@@ -111,6 +183,7 @@ impl<'tcx> GraphConstructor<'tcx> {
 
     GraphConstructor {
       tcx,
+      params,
       body_with_facts,
       body,
       place_info,
@@ -511,8 +584,19 @@ impl<'tcx> GraphConstructor<'tcx> {
     };
     trace!("  Handling call!");
 
-    // Recursively generate the PDG for the child function.
     let call_string = self.make_call_string(location);
+    if let Some(call_filter) = &self.params.call_filter {
+      if !call_filter(resolved_fn, call_string) {
+        trace!("  Bailing because user callback said to bail");
+        return None;
+      }
+    }
+
+    // Recursively generate the PDG for the child function.
+    let params = PdgParams {
+      root: resolved_fn,
+      ..self.params.clone()
+    };
     let call_stack = match &self.calling_context {
       Some(cx) => {
         let mut stack = cx.call_stack.clone();
@@ -526,8 +610,7 @@ impl<'tcx> GraphConstructor<'tcx> {
       param_env,
       call_stack,
     };
-    let child_constructor =
-      GraphConstructor::new(tcx, resolved_fn, Some(calling_context));
+    let child_constructor = GraphConstructor::new(params, Some(calling_context));
     let child_graph = child_constructor.construct_partial();
 
     // A helper to translate an argument (or return) in the child into a place in the parent.
@@ -735,6 +818,10 @@ impl<'tcx> GraphConstructor<'tcx> {
         param_env,
         generic_args,
       );
+      let params = PdgParams {
+        root: generator_fn,
+        ..self.params.clone()
+      };
       let call_string = self.make_call_string(location);
       let call_stack = match &self.calling_context {
         Some(cx) => cx.call_stack.clone(),
@@ -745,8 +832,7 @@ impl<'tcx> GraphConstructor<'tcx> {
         call_string,
         call_stack,
       };
-      return GraphConstructor::new(self.tcx, generator_fn, Some(calling_context))
-        .construct_partial();
+      return GraphConstructor::new(params, Some(calling_context)).construct_partial();
     }
 
     let bb_graph = &self.body.basic_blocks;

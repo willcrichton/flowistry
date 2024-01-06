@@ -37,6 +37,10 @@ impl RichLocation {
     matches!(self, RichLocation::End)
   }
 
+  pub fn is_real(self) -> bool {
+    matches!(self, RichLocation::Location(_))
+  }
+
   /// Returns the [`Location`] in `self`, panicking otherwise.
   pub fn unwrap_location(self) -> Location {
     self
@@ -131,6 +135,31 @@ impl CallString {
     let mut string = self.0.to_vec();
     string.push(loc);
     CallString::new(string)
+  }
+
+  pub fn is_at_root(self) -> bool {
+    self.0.len() == 1
+  }
+
+  pub fn root(self) -> GlobalLocation {
+    *self.0.first().unwrap()
+  }
+
+  pub fn stable_id(self) -> usize {
+    let r: &'static Vec<GlobalLocation> = self.0.as_ref();
+    r as *const Vec<GlobalLocation> as usize
+  }
+
+  pub fn iter_from_root(&self) -> impl DoubleEndedIterator<Item = GlobalLocation> + '_ {
+    self.0.iter().copied()
+  }
+
+  pub fn len(self) -> usize {
+    self.0.len()
+  }
+
+  pub fn is_empty(self) -> bool {
+    self.0.is_empty()
   }
 }
 

@@ -1,3 +1,4 @@
+use flowistry::pdg::PdgParams;
 use rustc_utils::{mir::borrowck_facts, source_map::find_bodies::find_bodies};
 use serde::Serialize;
 
@@ -40,7 +41,8 @@ impl rustc_driver::Callbacks for Callbacks {
       }
 
       let def = *defs.first().unwrap();
-      let graph = flowistry::pdg::compute_pdg(tcx, def);
+      let params = PdgParams::new(tcx, def);
+      let graph = flowistry::pdg::compute_pdg(params);
       println!("PDG generated. Creating graphviz diagram at target/graph.pdf");
       graph.generate_graphviz("target/graph.pdf").unwrap();
 

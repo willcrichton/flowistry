@@ -268,7 +268,7 @@ mod test {
 
   fn placeinfo_harness(
     input: &str,
-    f: impl for<'tcx> FnOnce(TyCtxt<'tcx>, &Body<'tcx>, PlaceInfo<'_, 'tcx>) + Send,
+    f: impl for<'tcx> FnOnce(TyCtxt<'tcx>, &Body<'tcx>, PlaceInfo<'tcx>) + Send,
   ) {
     test_utils::compile_body(input, |tcx, body_id, body_with_facts| {
       let body = &body_with_facts.body;

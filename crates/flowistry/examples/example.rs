@@ -43,7 +43,7 @@ use rustc_utils::{
 fn compute_dependencies<'tcx>(
   tcx: TyCtxt<'tcx>,
   body_id: BodyId,
-  body_with_facts: &BodyWithBorrowckFacts<'tcx>,
+  body_with_facts: &'tcx BodyWithBorrowckFacts<'tcx>,
 ) {
   println!("Body:\n{}", body_with_facts.body.to_string(tcx).unwrap());
 
