@@ -36,12 +36,12 @@ pub struct AnalysisResults<'tcx, A: Analysis<'tcx>> {
   /// The underlying analysis that was used to generate the results.
   pub analysis: A,
   location_domain: Rc<LocationOrArgDomain>,
-  state: IndexVec<LocationOrArgIndex, A::Domain>,
+  state: IndexVec<LocationOrArgIndex, Rc<A::Domain>>,
 }
 
 impl<'tcx, A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
   /// Same as [`rustc_mir_dataflow::Results::visit_reachable_with`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/struct.Results.html#method.visit_reachable_with).
-  pub fn visit_reachable_with<'mir, V>(&self, body: &'mir Body<'tcx>, visitor: &mut V)
+  pub fn visit_reachable_with<'mir, V>(&mut self, body: &'mir Body<'tcx>, visitor: &mut V)
   where
     V: ResultsVisitor<'mir, 'tcx, Self, FlowState = A::Domain>,
   {
@@ -52,23 +52,23 @@ impl<'tcx, A: Analysis<'tcx>> AnalysisResults<'tcx, A> {
           statement_index,
         };
         let loc_index = location.to_index(&self.location_domain);
-        let state = &self.state[loc_index];
+        let state = Rc::clone(&self.state[loc_index]);
 
         if statement_index == 0 {
-          visitor.visit_block_start(self, state, data, block);
+          visitor.visit_block_start(&state);
         }
 
         if statement_index == data.statements.len() {
           visitor.visit_terminator_after_primary_effect(
             self,
-            state,
+            &state,
             data.terminator(),
             location,
           )
         } else {
           visitor.visit_statement_after_primary_effect(
             self,
-            state,
+            &state,
             &data.statements[statement_index],
             location,
           )
@@ -147,6 +147,8 @@ pub fn iterate_to_fixpoint<'tcx, A: Analysis<'tcx>>(
       }
     }
   }
+
+  let state = state.into_iter().map(Rc::new).collect();
 
   AnalysisResults {
     analysis,
