@@ -63,6 +63,7 @@ pub struct Aliases<'a, 'tcx> {
 }
 
 rustc_index::newtype_index! {
+  #[orderable]
   #[debug_format = "rs{}"]
   struct RegionSccIndex {}
 }
@@ -83,7 +84,7 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
   }
 
   /// Alternative constructor if you need to filter out certain borrowck facts.
-  /// 
+  ///
   /// Just use [`Aliases::build`] unless you know what you're doing.
   pub fn build_with_fact_selection(
     tcx: TyCtxt<'tcx>,

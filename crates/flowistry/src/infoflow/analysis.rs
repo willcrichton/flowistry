@@ -8,7 +8,7 @@ use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::TyCtxt,
 };
-use rustc_mir_dataflow::{Analysis, AnalysisDomain, Forward};
+use rustc_mir_dataflow::{Analysis, AnalysisDomain};
 use rustc_utils::{
   mir::{
     control_dependencies::ControlDependencies,
@@ -233,7 +233,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
 
 impl<'a, 'tcx> AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
   type Domain = FlowDomain<'tcx>;
-  type Direction = Forward;
+
   const NAME: &'static str = "FlowAnalysis";
 
   fn bottom_value(&self, _body: &Body<'tcx>) -> Self::Domain {
