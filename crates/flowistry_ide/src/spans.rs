@@ -18,16 +18,16 @@ struct Callbacks {
 }
 
 impl rustc_driver::Callbacks for Callbacks {
-  fn after_parsing<'tcx>(
+  fn after_crate_root_parsing<'tcx>(
     &mut self,
-    compiler: &rustc_interface::interface::Compiler,
+    _compiler: &rustc_interface::interface::Compiler,
     queries: &'tcx rustc_interface::Queries<'tcx>,
   ) -> rustc_driver::Compilation {
     queries.global_ctxt().unwrap().enter(|tcx| {
       let spans = find_bodies(tcx).into_iter().map(|(span, _)| span);
 
       self.output = Some((|| {
-        let source_map = compiler.session().source_map();
+        let source_map = tcx.sess.source_map();
         let source_file = Filename::intern(&self.filename)
           .find_source_file(source_map)
           .map_err(|_| FlowistryError::FileNotFound)?;
@@ -35,7 +35,7 @@ impl rustc_driver::Callbacks for Callbacks {
         let spans = spans
           .into_iter()
           .filter(|span| {
-            source_map.lookup_source_file(span.lo()).name_hash == source_file.name_hash
+            source_map.lookup_source_file(span.lo()).name == source_file.name
           })
           .filter_map(|span| CharRange::from_span(span, source_map).ok())
           .collect::<Vec<_>>();

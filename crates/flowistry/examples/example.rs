@@ -96,7 +96,7 @@ impl rustc_driver::Callbacks for Callbacks {
     config.override_queries = Some(borrowck_facts::override_queries);
   }
 
-  fn after_parsing<'tcx>(
+  fn after_crate_root_parsing<'tcx>(
     &mut self,
     _compiler: &rustc_interface::interface::Compiler,
     queries: &'tcx rustc_interface::Queries<'tcx>,

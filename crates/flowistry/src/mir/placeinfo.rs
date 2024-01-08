@@ -227,7 +227,7 @@ impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for LoanCollector<'_, 'tcx> {
       RegionKind::ReStatic => RegionVid::from_usize(0),
       // TODO: do we need to handle bound regions?
       // e.g. shows up with closures, for<'a> ...
-      RegionKind::ReErased | RegionKind::ReLateBound(_, _) => {
+      RegionKind::ReErased | RegionKind::ReBound(..) => {
         return ControlFlow::Continue(());
       }
       _ => unreachable!("{region:?}"),
