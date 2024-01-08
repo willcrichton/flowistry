@@ -72,13 +72,14 @@ unsafe impl Send for UnsafeBenchGroup {}
 struct Callbacks {
   group: UnsafeBenchGroup,
 }
+
 impl rustc_driver::Callbacks for Callbacks {
   fn config(&mut self, config: &mut rustc_interface::Config) {
     borrowck_facts::enable_mir_simplification();
     config.override_queries = Some(borrowck_facts::override_queries);
   }
 
-  fn after_parsing<'tcx>(
+  fn after_crate_root_parsing<'tcx>(
     &mut self,
     _compiler: &rustc_interface::interface::Compiler,
     queries: &'tcx rustc_interface::Queries<'tcx>,
