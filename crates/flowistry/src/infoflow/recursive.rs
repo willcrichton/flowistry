@@ -43,7 +43,7 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
       }
     };
 
-    let def_id = match func.literal.ty().kind() {
+    let def_id = match func.const_.ty().kind() {
       TyKind::FnDef(def_id, _) => def_id,
       _ => {
         debug!("  Func is not a FnDef");
@@ -80,7 +80,7 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
       }
     };
 
-    let unsafety = tcx.unsafety_check_result(def_id.expect_local());
+    let unsafety = tcx.mir_unsafety_check_result(def_id.expect_local());
     if !unsafety.used_unsafe_blocks.is_empty() {
       debug!("  Func contains unsafe blocks");
       return false;
