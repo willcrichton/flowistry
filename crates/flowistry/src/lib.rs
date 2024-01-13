@@ -53,6 +53,7 @@
 extern crate either;
 extern crate polonius_engine;
 extern crate rustc_abi;
+extern crate rustc_ast;
 extern crate rustc_borrowck;
 extern crate rustc_data_structures;
 extern crate rustc_driver;

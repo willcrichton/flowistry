@@ -7,6 +7,7 @@ use itertools::Itertools;
 use log::{debug, trace};
 use petgraph::graph::DiGraph;
 use rustc_abi::FieldIdx;
+use rustc_ast::Mutability;
 use rustc_borrowck::consumers::{
   places_conflict, BodyWithBorrowckFacts, PlaceConflictBias,
 };
@@ -42,6 +43,7 @@ pub struct PdgParams<'tcx> {
   tcx: TyCtxt<'tcx>,
   root: FnResolution<'tcx>,
   call_filter: Option<Rc<CallFilter<'tcx>>>,
+  false_call_edges: bool,
 }
 
 impl<'tcx> PdgParams<'tcx> {
@@ -51,6 +53,7 @@ impl<'tcx> PdgParams<'tcx> {
       tcx,
       root: FnResolution::Partial(root.to_def_id()),
       call_filter: None,
+      false_call_edges: false,
     }
   }
 
@@ -103,6 +106,16 @@ impl<'tcx> PdgParams<'tcx> {
   ) -> Self {
     PdgParams {
       call_filter: Some(Rc::new(Box::new(f))),
+      ..self
+    }
+  }
+
+  /// Enable PDG generation to insert false edges to mutable references passed to function calls.
+  ///
+  /// This is a special case used by Paralegal.
+  pub fn with_false_call_edges(self) -> Self {
+    PdgParams {
+      false_call_edges: true,
       ..self
     }
   }
@@ -684,6 +697,26 @@ impl<'tcx> GraphConstructor<'tcx> {
       .map(|(_, dst, _)| *dst)
       .filter(is_arg)
       .filter(|node| node.at.leaf().location.is_end());
+
+    if self.params.false_call_edges {
+      for arg in args {
+        if let Some(place) = arg.place() {
+          for mut_ref in self.place_info.reachable_values(place, Mutability::Mut) {
+            if mut_ref.ty(&parent_body.local_decls, tcx).ty.is_ref() {
+              debug!("false mutation");
+              let mutated = tcx.mk_place_deref(*mut_ref);
+              self.apply_mutation(
+                state,
+                location,
+                Either::Left(mutated),
+                Either::Left(vec![mutated]),
+                MutationStatus::Possibly,
+              );
+            }
+          }
+        }
+      }
+    }
 
     // For each source node CHILD that is parentable to PLACE,
     // add an edge from PLACE -> CHILD.

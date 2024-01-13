@@ -504,3 +504,39 @@ fn main() {
     assert!(connects(tcx, &pdg, "z", "w", None));
   })
 }
+
+#[test]
+fn false_call_edges() {
+  let input = r#"
+fn does_not_mutate(x: &mut i32) {}
+
+fn main() {
+  let mut x = 0;
+  does_not_mutate(&mut x);
+  let y = x;
+}  
+"#;
+  let _ = env_logger::try_init();
+  flowistry::test_utils::compile(input, move |tcx| {
+    let def_id = get_main(tcx);
+    let params = PdgParams::new(tcx, def_id);
+
+    let without_edges = flowistry::pdg::compute_pdg(params.clone());
+    assert!(!connects(
+      tcx,
+      &without_edges,
+      "x",
+      "y",
+      Some("does_not_mutate")
+    ));
+
+    let with_edges = flowistry::pdg::compute_pdg(params.with_false_call_edges());
+    assert!(connects(
+      tcx,
+      &with_edges,
+      "x",
+      "y",
+      Some("does_not_mutate")
+    ));
+  })
+}
