@@ -698,26 +698,6 @@ impl<'tcx> GraphConstructor<'tcx> {
       .filter(is_arg)
       .filter(|node| node.at.leaf().location.is_end());
 
-    if self.params.false_call_edges {
-      for arg in args {
-        if let Some(place) = arg.place() {
-          for mut_ref in self.place_info.reachable_values(place, Mutability::Mut) {
-            if mut_ref.ty(&parent_body.local_decls, tcx).ty.is_ref() {
-              debug!("false mutation");
-              let mutated = tcx.mk_place_deref(*mut_ref);
-              self.apply_mutation(
-                state,
-                location,
-                Either::Left(mutated),
-                Either::Left(vec![mutated]),
-                MutationStatus::Possibly,
-              );
-            }
-          }
-        }
-      }
-    }
-
     // For each source node CHILD that is parentable to PLACE,
     // add an edge from PLACE -> CHILD.
     for child_src in parentable_srcs {
@@ -874,6 +854,21 @@ impl<'tcx> GraphConstructor<'tcx> {
 
     let empty = PartialGraph::default();
     let mut domains = IndexVec::from_elem_n(empty.clone(), bb_graph.len());
+
+    if self.params.false_call_edges {
+      let start_domain = &mut domains[0_usize.into()];
+      // TODO, actually this should be the objects behind any mutable pointer in args
+      for arg in self.body.args_iter() {
+        let place = arg.into();
+        let ty = place.ty(&self.body);
+        if !ty.ty.is_mutable_ptr() {
+          continue;
+        }
+        let initial = start_domain.last_mutation.entry(arg.into()).or_default();
+        initial.insert(RichLocation::Start);
+      }
+    }
+
     for block in blocks {
       for parent in bb_graph.predecessors()[block].iter() {
         let (child, parent) = domains.pick2_mut(block, *parent);
