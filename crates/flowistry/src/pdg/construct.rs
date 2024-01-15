@@ -18,7 +18,7 @@ use rustc_index::IndexVec;
 use rustc_middle::{
   mir::{
     visit::Visitor, AggregateKind, BasicBlock, Body, Location, Operand, Place, PlaceElem,
-    Rvalue, Statement, StatementKind, Terminator, TerminatorKind, RETURN_PLACE,
+    Rvalue, Statement, StatementKind, Terminator, TerminatorKind, RETURN_PLACE
   },
   ty::{GenericArg, GenericArgsRef, List, ParamEnv, TyCtxt, TyKind},
 };
@@ -857,15 +857,22 @@ impl<'tcx> GraphConstructor<'tcx> {
 
     if self.params.false_call_edges {
       let start_domain = &mut domains[0_usize.into()];
-      // TODO, actually this should be the objects behind any mutable pointer in args
+      // TODO, actually should traverse all of the types fields
       for arg in self.body.args_iter() {
-        let place = arg.into();
-        let ty = place.ty(&self.body);
-        if !ty.ty.is_mutable_ptr() {
-          continue;
+        let place = Place::from(arg);
+        start_domain.last_mutation
+            .entry(place)
+            .or_default()
+            .insert(RichLocation::Start);
+        for child in self.place_info.children(place).iter().copied().chain(Some(place)) {
+          let ty = child.ty(self.body.as_ref(), self.tcx);
+          if !ty.ty.is_mutable_ptr() {
+            continue;
+          }
+          let target = child.project_deeper(&[PlaceElem::Deref], self.tcx);
+          let initial = start_domain.last_mutation.entry(target).or_default();
+          initial.insert(RichLocation::Start);
         }
-        let initial = start_domain.last_mutation.entry(arg.into()).or_default();
-        initial.insert(RichLocation::Start);
       }
     }
 
