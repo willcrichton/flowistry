@@ -575,6 +575,12 @@ fn main() {
 
     let ref with_edges = flowistry::pdg::compute_pdg(params.with_false_call_edges());
 
+    with_edges.generate_graphviz(
+      "graph.pdf"
+    ).unwrap();
+
+    println!("Running in {}", std::env::current_dir().unwrap().display());
+
     assert!(connects(
       tcx,
       with_edges,

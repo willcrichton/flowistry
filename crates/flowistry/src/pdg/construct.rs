@@ -682,15 +682,23 @@ impl<'tcx> GraphConstructor<'tcx> {
     // Find every reference to a parent-able node in the child's graph.
     let is_arg = |node: &DepNode<'tcx>| {
       node.at.leaf().function == child_constructor.def_id
-        && (node.place.local == RETURN_PLACE
+          && (node.place.local == RETURN_PLACE
           || node.place.is_arg(&child_constructor.body))
     };
-    let parentable_srcs = child_graph
-      .edges
-      .iter()
-      .map(|(src, _, _)| *src)
-      .filter(is_arg)
-      .filter(|node| node.at.leaf().location.is_start());
+    // An attempt at getting immutable arguments to connect
+    let parentable_srcs = if self.params.false_call_edges {
+      Either::Right(child_constructor.body.args_iter()
+          .map(|local| Place::from(local))
+          .flat_map(|place| child_constructor.place_info.children(place).into_iter().chain([place]))
+          .map(|place| DepNode::new(place, child_constructor.make_call_string(RichLocation::Start), self.tcx, child_constructor.body.as_ref())))
+    } else {
+      Either::Left(child_graph
+          .edges
+          .iter()
+          .map(|(src, _, _)| *src)
+          .filter(is_arg)
+          .filter(|node| node.at.leaf().location.is_start()))
+    };
     let parentable_dsts = child_graph
       .edges
       .iter()
