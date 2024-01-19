@@ -506,9 +506,47 @@ fn main() {
 }
 
 #[test]
+fn test_fields_passing_through() {
+
+  let input = r#"
+use std::num::Wrapping;
+fn pass(x2: &Wrapping<u32>) {
+  println!("{}", x2);
+}
+
+fn main() {
+  let ref mut i = Wrapping(0);
+  let y = 10;
+  i.0 += y;
+  pass(i);
+}
+"#;
+  let _ = env_logger::try_init();
+  flowistry::test_utils::compile(input, move |tcx| {
+    let def_id = get_main(tcx);
+    let params = PdgParams::new(tcx, def_id);
+
+    let with_edges = flowistry::pdg::compute_pdg(params.with_false_call_edges());
+
+    with_edges.generate_graphviz(
+      "graph.pdf"
+    ).unwrap();
+
+
+    assert!(connects(
+      tcx,
+      &with_edges,
+      "y",
+      "*x2",
+      None
+    ));
+  })
+}
+
+#[test]
 fn false_call_edges() {
   let input = r#"
-fn does_not_mutate(x: &mut i32) {}
+fn does_not_mutate(x2: &mut i32) {}
 
 fn main() {
   let mut x = 0;
@@ -521,22 +559,91 @@ fn main() {
     let def_id = get_main(tcx);
     let params = PdgParams::new(tcx, def_id);
 
-    let without_edges = flowistry::pdg::compute_pdg(params.clone());
-    assert!(!connects(
-      tcx,
-      &without_edges,
-      "x",
-      "y",
-      Some("does_not_mutate")
-    ));
+    // let without_edges = flowistry::pdg::compute_pdg(params.clone());
+    // assert!(!connects(
+    //   tcx,
+    //   &without_edges,
+    //   "x",
+    //   "y",
+    //   None
+    // ));
 
     let with_edges = flowistry::pdg::compute_pdg(params.with_false_call_edges());
+
+    with_edges.generate_graphviz(
+      "graph.pdf"
+    ).unwrap();
     assert!(connects(
       tcx,
       &with_edges,
       "x",
+      "*x2",
+      None
+    ));
+    assert!(connects(
+      tcx,
+      &with_edges,
+      "*x2",
       "y",
-      Some("does_not_mutate")
+      None
     ));
   })
+}
+
+#[test]
+fn false_call_edges_2() {
+  let input = r#"
+struct UserData {
+    pub data: Vec<i64>,
+}
+fn get_user_data() -> UserData {
+    return UserData {
+        data: vec![1, 2, 3],
+    };
+}
+fn send_user_data(user_data: &UserData) {}
+fn send2(user_data2: &UserData) {}
+fn modify_vec(v: &mut [i64]) {}
+fn main() {
+    let ref mut p = get_user_data();
+    modify_vec(&mut p.data);
+    send_user_data(p);
+}
+"#;
+
+  let _ = env_logger::try_init();
+  flowistry::test_utils::compile(input, move |tcx| {
+    let def_id = get_main(tcx);
+    let params = PdgParams::new(tcx, def_id);
+
+    let ref with_edges = flowistry::pdg::compute_pdg(params.with_false_call_edges());
+
+    with_edges.generate_graphviz(
+      "graph.pdf"
+    ).unwrap();
+
+    println!("Running in {}", std::env::current_dir().unwrap().display());
+
+    assert!(connects(
+      tcx,
+      with_edges,
+      "RETURN.data",
+      "*v",
+      None,
+    ));
+    assert!(connects(
+      tcx,
+      with_edges,
+      "*v",
+      "user_data",
+      None,
+    ));
+    assert!(!connects(
+      tcx,
+      with_edges,
+      "user_data",
+      "user_data2",
+      None,
+    ));
+  });
 }

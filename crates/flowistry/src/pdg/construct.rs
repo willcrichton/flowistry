@@ -18,7 +18,7 @@ use rustc_index::IndexVec;
 use rustc_middle::{
   mir::{
     visit::Visitor, AggregateKind, BasicBlock, Body, Location, Operand, Place, PlaceElem,
-    Rvalue, Statement, StatementKind, Terminator, TerminatorKind, RETURN_PLACE,
+    Rvalue, Statement, StatementKind, Terminator, TerminatorKind, RETURN_PLACE
   },
   ty::{GenericArg, GenericArgsRef, List, ParamEnv, TyCtxt, TyKind},
 };
@@ -682,41 +682,30 @@ impl<'tcx> GraphConstructor<'tcx> {
     // Find every reference to a parent-able node in the child's graph.
     let is_arg = |node: &DepNode<'tcx>| {
       node.at.leaf().function == child_constructor.def_id
-        && (node.place.local == RETURN_PLACE
+          && (node.place.local == RETURN_PLACE
           || node.place.is_arg(&child_constructor.body))
     };
-    let parentable_srcs = child_graph
-      .edges
-      .iter()
-      .map(|(src, _, _)| *src)
-      .filter(is_arg)
-      .filter(|node| node.at.leaf().location.is_start());
+    // An attempt at getting immutable arguments to connect
+    let parentable_srcs = if self.params.false_call_edges {
+      let dummy_state = PartialGraph::default();
+      let constructor_ref = &child_constructor;
+      Either::Right(child_constructor.body.args_iter()
+          .map(|local| Place::from(local))
+          .flat_map(move |place| constructor_ref.find_data_inputs(&dummy_state, place)))
+    } else {
+      Either::Left(child_graph
+          .edges
+          .iter()
+          .map(|(src, _, _)| *src)
+          .filter(is_arg)
+          .filter(|node| node.at.leaf().location.is_start()))
+    };
     let parentable_dsts = child_graph
       .edges
       .iter()
       .map(|(_, dst, _)| *dst)
       .filter(is_arg)
       .filter(|node| node.at.leaf().location.is_end());
-
-    if self.params.false_call_edges {
-      for arg in args {
-        if let Some(place) = arg.place() {
-          for mut_ref in self.place_info.reachable_values(place, Mutability::Mut) {
-            if mut_ref.ty(&parent_body.local_decls, tcx).ty.is_ref() {
-              debug!("false mutation");
-              let mutated = tcx.mk_place_deref(*mut_ref);
-              self.apply_mutation(
-                state,
-                location,
-                Either::Left(mutated),
-                Either::Left(vec![mutated]),
-                MutationStatus::Possibly,
-              );
-            }
-          }
-        }
-      }
-    }
 
     // For each source node CHILD that is parentable to PLACE,
     // add an edge from PLACE -> CHILD.
@@ -874,6 +863,29 @@ impl<'tcx> GraphConstructor<'tcx> {
 
     let empty = PartialGraph::default();
     let mut domains = IndexVec::from_elem_n(empty.clone(), bb_graph.len());
+
+    if self.params.false_call_edges {
+      let start_domain = &mut domains[0_u32.into()];
+      for arg in self.body.args_iter() {
+        let place = Place::from(arg);
+        for mutation in self.find_data_inputs(start_domain, place) {
+          start_domain.last_mutation
+              .entry(mutation.place)
+              .or_default()
+              .insert(RichLocation::Start);
+        }
+        // for child in self.place_info.children(place).iter().copied() {
+        //   let ty = child.ty(self.body.as_ref(), self.tcx);
+        //   if !ty.ty.is_mutable_ptr() {
+        //     continue;
+        //   }
+        //   let target = child.project_deeper(&[PlaceElem::Deref], self.tcx);
+        //   let initial = start_domain.last_mutation.entry(target).or_default();
+        //   initial.insert(RichLocation::Start);
+        // }
+      }
+    }
+
     for block in blocks {
       for parent in bb_graph.predecessors()[block].iter() {
         let (child, parent) = domains.pick2_mut(block, *parent);
@@ -900,7 +912,7 @@ impl<'tcx> GraphConstructor<'tcx> {
       for block in all_returns {
         let return_state = &domains[block];
         for (place, locations) in &return_state.last_mutation {
-          if place.local == RETURN_PLACE || place.is_arg(&self.body) {
+          if place.local == RETURN_PLACE || self.is_ptr_argument_mutation(*place) {
             for location in locations {
               let src = self.make_dep_node(*place, *location);
               let dst = self.make_dep_node(*place, RichLocation::End);
@@ -914,6 +926,13 @@ impl<'tcx> GraphConstructor<'tcx> {
     }
 
     final_state
+  }
+
+  fn is_ptr_argument_mutation(&self, place: Place<'tcx>) -> bool {
+    place.is_arg(&self.body)
+    //     && place.iter_projections().any(|(place_ref, projection)|
+    //       projection == PlaceElem::Deref && place_ref.ty(self.body.as_ref(), self.tcx).ty.is_mutable_ptr()
+    // )
   }
 
   fn domain_to_petgraph(self, domain: PartialGraph<'tcx>) -> DepGraph<'tcx> {
