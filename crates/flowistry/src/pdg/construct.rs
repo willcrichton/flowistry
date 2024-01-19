@@ -687,10 +687,11 @@ impl<'tcx> GraphConstructor<'tcx> {
     };
     // An attempt at getting immutable arguments to connect
     let parentable_srcs = if self.params.false_call_edges {
+      let dummy_state = PartialGraph::default();
+      let constructor_ref = &child_constructor;
       Either::Right(child_constructor.body.args_iter()
           .map(|local| Place::from(local))
-          .flat_map(|place| child_constructor.place_info.children(place).into_iter().chain([place]))
-          .map(|place| DepNode::new(place, child_constructor.make_call_string(RichLocation::Start), self.tcx, child_constructor.body.as_ref())))
+          .flat_map(move |place| constructor_ref.find_data_inputs(&dummy_state, place)))
     } else {
       Either::Left(child_graph
           .edges
@@ -864,23 +865,24 @@ impl<'tcx> GraphConstructor<'tcx> {
     let mut domains = IndexVec::from_elem_n(empty.clone(), bb_graph.len());
 
     if self.params.false_call_edges {
-      let start_domain = &mut domains[0_usize.into()];
-      // TODO, actually should traverse all of the types fields
+      let start_domain = &mut domains[0_u32.into()];
       for arg in self.body.args_iter() {
         let place = Place::from(arg);
-        start_domain.last_mutation
-            .entry(place)
-            .or_default()
-            .insert(RichLocation::Start);
-        for child in self.place_info.children(place).iter().copied().chain(Some(place)) {
-          let ty = child.ty(self.body.as_ref(), self.tcx);
-          if !ty.ty.is_mutable_ptr() {
-            continue;
-          }
-          let target = child.project_deeper(&[PlaceElem::Deref], self.tcx);
-          let initial = start_domain.last_mutation.entry(target).or_default();
-          initial.insert(RichLocation::Start);
+        for mutation in self.find_data_inputs(start_domain, place) {
+          start_domain.last_mutation
+              .entry(mutation.place)
+              .or_default()
+              .insert(RichLocation::Start);
         }
+        // for child in self.place_info.children(place).iter().copied() {
+        //   let ty = child.ty(self.body.as_ref(), self.tcx);
+        //   if !ty.ty.is_mutable_ptr() {
+        //     continue;
+        //   }
+        //   let target = child.project_deeper(&[PlaceElem::Deref], self.tcx);
+        //   let initial = start_domain.last_mutation.entry(target).or_default();
+        //   initial.insert(RichLocation::Start);
+        // }
       }
     }
 
@@ -910,7 +912,7 @@ impl<'tcx> GraphConstructor<'tcx> {
       for block in all_returns {
         let return_state = &domains[block];
         for (place, locations) in &return_state.last_mutation {
-          if place.local == RETURN_PLACE || place.is_arg(&self.body) {
+          if place.local == RETURN_PLACE || self.is_ptr_argument_mutation(*place) {
             for location in locations {
               let src = self.make_dep_node(*place, *location);
               let dst = self.make_dep_node(*place, RichLocation::End);
@@ -924,6 +926,13 @@ impl<'tcx> GraphConstructor<'tcx> {
     }
 
     final_state
+  }
+
+  fn is_ptr_argument_mutation(&self, place: Place<'tcx>) -> bool {
+    place.is_arg(&self.body)
+    //     && place.iter_projections().any(|(place_ref, projection)|
+    //       projection == PlaceElem::Deref && place_ref.ty(self.body.as_ref(), self.tcx).ty.is_mutable_ptr()
+    // )
   }
 
   fn domain_to_petgraph(self, domain: PartialGraph<'tcx>) -> DepGraph<'tcx> {

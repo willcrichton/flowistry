@@ -506,6 +506,44 @@ fn main() {
 }
 
 #[test]
+fn test_fields_passing_through() {
+
+  let input = r#"
+use std::num::Wrapping;
+fn pass(x2: &Wrapping<u32>) {
+  println!("{}", x2);
+}
+
+fn main() {
+  let ref mut i = Wrapping(0);
+  let y = 10;
+  i.0 += y;
+  pass(i);
+}
+"#;
+  let _ = env_logger::try_init();
+  flowistry::test_utils::compile(input, move |tcx| {
+    let def_id = get_main(tcx);
+    let params = PdgParams::new(tcx, def_id);
+
+    let with_edges = flowistry::pdg::compute_pdg(params.with_false_call_edges());
+
+    with_edges.generate_graphviz(
+      "graph.pdf"
+    ).unwrap();
+
+
+    assert!(connects(
+      tcx,
+      &with_edges,
+      "y",
+      "*x2",
+      None
+    ));
+  })
+}
+
+#[test]
 fn false_call_edges() {
   let input = r#"
 fn does_not_mutate(x2: &mut i32) {}
@@ -531,6 +569,10 @@ fn main() {
     // ));
 
     let with_edges = flowistry::pdg::compute_pdg(params.with_false_call_edges());
+
+    with_edges.generate_graphviz(
+      "graph.pdf"
+    ).unwrap();
     assert!(connects(
       tcx,
       &with_edges,
@@ -560,6 +602,7 @@ fn get_user_data() -> UserData {
     };
 }
 fn send_user_data(user_data: &UserData) {}
+fn send2(user_data2: &UserData) {}
 fn modify_vec(v: &mut [i64]) {}
 fn main() {
     let ref mut p = get_user_data();
@@ -593,6 +636,13 @@ fn main() {
       with_edges,
       "*v",
       "user_data",
+      None,
+    ));
+    assert!(!connects(
+      tcx,
+      with_edges,
+      "user_data",
+      "user_data2",
       None,
     ));
   });
