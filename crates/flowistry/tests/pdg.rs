@@ -471,6 +471,24 @@ pdg_test! {
   (x -> y)
 }
 
+pdg_test! {
+  loops,
+  {
+    fn main() {
+      let mut user_data = vec![];
+      while user_data.len() < 10 {
+        let user_data_ref = &mut user_data;
+        user_data_ref.push(0_u32);
+      }
+      let user_data_ref_2 = &mut user_data;
+      user_data_ref_2.remove(4);
+    }
+  },
+  (user_data -> user_data_ref),
+  (user_data_ref -> user_data_ref),
+  (user_data_ref -> user_data_ref_2)
+}
+
 #[test]
 fn call_filter() {
   let input = r#"
