@@ -30,7 +30,7 @@ enum AnalysisType {
 fn analysis<'tcx>(
   tcx: TyCtxt<'tcx>,
   body_id: BodyId,
-  body_with_facts: &BodyWithBorrowckFacts<'tcx>,
+  body_with_facts: &'tcx BodyWithBorrowckFacts<'tcx>,
   ty: AnalysisType,
 ) {
   let results = flowistry::infoflow::compute_flow(tcx, body_id, body_with_facts);

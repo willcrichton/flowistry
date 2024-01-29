@@ -471,6 +471,21 @@ pdg_test! {
   (x -> y)
 }
 
+pdg_test! {
+  loops,
+  {
+    fn main() {
+      let mut x = 0;
+      while x < 10 {
+        let y = 1;
+        x += y;
+      }
+      let z = x;
+    }
+  },
+  (y -> z)
+}
+
 #[test]
 fn call_filter() {
   let input = r#"

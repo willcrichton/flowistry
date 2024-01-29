@@ -1,6 +1,6 @@
 use std::{borrow::Cow, iter, rc::Rc};
 
-use df::JoinSemiLattice;
+use df::{fmt::DebugWithContext, Analysis, JoinSemiLattice};
 use either::Either;
 use flowistry_pdg::{CallString, GlobalLocation, RichLocation};
 use itertools::Itertools;
@@ -11,14 +11,13 @@ use rustc_ast::Mutability;
 use rustc_borrowck::consumers::{
   places_conflict, BodyWithBorrowckFacts, PlaceConflictBias,
 };
-use rustc_data_structures::graph::{self as rustc_graph, WithStartNode};
 use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_index::IndexVec;
 use rustc_middle::{
   mir::{
     visit::Visitor, AggregateKind, BasicBlock, Body, Location, Operand, Place, PlaceElem,
-    Rvalue, Statement, StatementKind, Terminator, TerminatorKind, RETURN_PLACE,
+    Rvalue, Statement, StatementKind, Terminator, TerminatorEdges, TerminatorKind,
+    RETURN_PLACE,
   },
   ty::{GenericArg, GenericArgsRef, List, ParamEnv, TyCtxt, TyKind},
 };
@@ -30,7 +29,7 @@ use rustc_utils::{
 
 use super::graph::{DepEdge, DepGraph, DepNode};
 use crate::{
-  infoflow::mutation::{ModularMutationVisitor, MutationStatus},
+  infoflow::mutation::{ModularMutationVisitor, Mutation, MutationStatus},
   mir::placeinfo::PlaceInfo,
   pdg::utils::{self, FnResolution},
 };
@@ -121,11 +120,13 @@ impl<'tcx> PdgParams<'tcx> {
   }
 }
 
-#[derive(PartialEq, Eq, Default, Clone)]
+#[derive(PartialEq, Eq, Default, Clone, Debug)]
 pub struct PartialGraph<'tcx> {
   edges: FxHashSet<(DepNode<'tcx>, DepNode<'tcx>, DepEdge)>,
   last_mutation: FxHashMap<Place<'tcx>, FxHashSet<RichLocation>>,
 }
+
+impl<C> DebugWithContext<C> for PartialGraph<'_> {}
 
 impl<'tcx> df::JoinSemiLattice for PartialGraph<'tcx> {
   fn join(&mut self, other: &Self) -> bool {
@@ -756,72 +757,6 @@ impl<'tcx> GraphConstructor<'tcx> {
     Some(())
   }
 
-  fn visit_basic_block(&self, block: BasicBlock, state: &mut PartialGraph<'tcx>) {
-    macro_rules! visitor {
-      () => {
-        ModularMutationVisitor::new(&self.place_info, |location, mutations| {
-          for mutation in mutations {
-            self.apply_mutation(
-              state,
-              location,
-              Either::Left(mutation.mutated),
-              Either::Left(mutation.inputs),
-              mutation.status,
-            );
-          }
-        })
-      };
-    }
-
-    // For each statement, register any mutations contained in the statement.
-    let block_data = &&self.body.basic_blocks[block];
-    for (statement_index, statement) in block_data.statements.iter().enumerate() {
-      let location = Location {
-        statement_index,
-        block,
-      };
-
-      visitor!().visit_statement(statement, location);
-    }
-
-    let terminator = self.body.basic_blocks[block].terminator();
-    let terminator_loc = self.body.terminator_loc(block);
-    match &terminator.kind {
-      // Special case: if the current block is a SwitchInt, then other blocks could be control-dependent on it.
-      // We need to create a node for the value of the discriminant at this point, so control-dependent mutations
-      // can use it as a source.
-      TerminatorKind::SwitchInt { discr, .. } => {
-        if let Some(place) = discr.place() {
-          self.apply_mutation(
-            state,
-            terminator_loc,
-            Either::Left(place),
-            Either::Left(vec![place]),
-            MutationStatus::Possibly,
-          );
-        }
-      }
-
-      // Special case: need to deal with context-sensitivity for function calls.
-      TerminatorKind::Call {
-        func,
-        args,
-        destination,
-        ..
-      } => {
-        if self
-          .handle_call(state, terminator_loc, func, args, *destination)
-          .is_none()
-        {
-          visitor!().visit_terminator(terminator, terminator_loc)
-        }
-      }
-
-      // Fallback: call the visitor
-      _ => visitor!().visit_terminator(terminator, terminator_loc),
-    }
-  }
-
   fn async_generator(body: &Body<'tcx>) -> (LocalDefId, GenericArgsRef<'tcx>, Location) {
     let block = BasicBlock::from_usize(0);
     let location = Location {
@@ -839,6 +774,70 @@ impl<'tcx> GraphConstructor<'tcx> {
       panic!("Async fn should assign to a generator")
     };
     (def_id.expect_local(), generic_args, location)
+  }
+
+  fn modular_mutation_visitor<'a>(
+    &'a self,
+    state: &'a mut PartialGraph<'tcx>,
+  ) -> ModularMutationVisitor<'a, 'tcx, impl FnMut(Location, Vec<Mutation<'tcx>>) + 'a>
+  {
+    ModularMutationVisitor::new(&self.place_info, |location, mutations| {
+      for mutation in mutations {
+        self.apply_mutation(
+          state,
+          location,
+          Either::Left(mutation.mutated),
+          Either::Left(mutation.inputs),
+          mutation.status,
+        );
+      }
+    })
+  }
+
+  fn handle_terminator(
+    &self,
+    terminator: &Terminator<'tcx>,
+    state: &mut PartialGraph<'tcx>,
+    location: Location,
+  ) {
+    match &terminator.kind {
+      // Special case: if the current block is a SwitchInt, then other blocks could be control-dependent on it.
+      // We need to create a node for the value of the discriminant at this point, so control-dependent mutations
+      // can use it as a source.
+      TerminatorKind::SwitchInt { discr, .. } => {
+        if let Some(place) = discr.place() {
+          self.apply_mutation(
+            state,
+            location,
+            Either::Left(place),
+            Either::Left(vec![place]),
+            MutationStatus::Possibly,
+          );
+        }
+      }
+
+      // Special case: need to deal with context-sensitivity for function calls.
+      TerminatorKind::Call {
+        func,
+        args,
+        destination,
+        ..
+      } => {
+        if self
+          .handle_call(state, location, func, args, *destination)
+          .is_none()
+        {
+          self
+            .modular_mutation_visitor(state)
+            .visit_terminator(terminator, location)
+        }
+      }
+
+      // Fallback: call the visitor
+      _ => self
+        .modular_mutation_visitor(state)
+        .visit_terminator(terminator, location),
+    }
   }
 
   fn construct_partial(&self) -> PartialGraph<'tcx> {
@@ -868,23 +867,12 @@ impl<'tcx> GraphConstructor<'tcx> {
       return GraphConstructor::new(params, Some(calling_context)).construct_partial();
     }
 
-    let bb_graph = &self.body.basic_blocks;
-    let blocks =
-      rustc_graph::iterate::reverse_post_order(bb_graph, bb_graph.start_node());
+    let mut analysis = DfAnalysis(self)
+      .into_engine(self.tcx, &self.body)
+      .iterate_to_fixpoint()
+      .into_results_cursor(&self.body);
 
-    let empty = PartialGraph::default();
-    let mut domains = IndexVec::from_elem_n(empty.clone(), bb_graph.len());
-    for block in blocks {
-      for parent in bb_graph.predecessors()[block].iter() {
-        let (child, parent) = domains.pick2_mut(block, *parent);
-        child.join(parent);
-      }
-
-      self.visit_basic_block(block, &mut domains[block]);
-    }
-
-    let mut final_state = empty;
-
+    let mut final_state = PartialGraph::default();
     let all_returns = self.body.all_returns().map(|ret| ret.block).collect_vec();
     let has_return = !all_returns.is_empty();
     let blocks = if has_return {
@@ -893,12 +881,14 @@ impl<'tcx> GraphConstructor<'tcx> {
       self.body.basic_blocks.indices().collect_vec()
     };
     for block in blocks {
-      final_state.join(&domains[block]);
+      analysis.seek_to_block_end(block);
+      final_state.join(analysis.get());
     }
 
     if has_return {
       for block in all_returns {
-        let return_state = &domains[block];
+        analysis.seek_to_block_end(block);
+        let return_state = analysis.get();
         for (place, locations) in &return_state.last_mutation {
           if place.local == RETURN_PLACE || place.is_arg(&self.body) {
             for location in locations {
@@ -936,5 +926,51 @@ impl<'tcx> GraphConstructor<'tcx> {
   pub fn construct(self) -> DepGraph<'tcx> {
     let partial = self.construct_partial();
     self.domain_to_petgraph(partial)
+  }
+}
+
+struct DfAnalysis<'a, 'tcx>(&'a GraphConstructor<'tcx>);
+
+impl<'tcx> df::AnalysisDomain<'tcx> for DfAnalysis<'_, 'tcx> {
+  type Domain = PartialGraph<'tcx>;
+
+  const NAME: &'static str = "GraphConstructor";
+
+  fn bottom_value(&self, _body: &Body<'tcx>) -> Self::Domain {
+    PartialGraph::default()
+  }
+
+  fn initialize_start_block(&self, _body: &Body<'tcx>, _state: &mut Self::Domain) {}
+}
+
+impl<'tcx> df::Analysis<'tcx> for DfAnalysis<'_, 'tcx> {
+  fn apply_statement_effect(
+    &mut self,
+    state: &mut Self::Domain,
+    statement: &Statement<'tcx>,
+    location: Location,
+  ) {
+    self
+      .0
+      .modular_mutation_visitor(state)
+      .visit_statement(statement, location)
+  }
+
+  fn apply_terminator_effect<'mir>(
+    &mut self,
+    state: &mut Self::Domain,
+    terminator: &'mir Terminator<'tcx>,
+    location: Location,
+  ) -> TerminatorEdges<'mir, 'tcx> {
+    self.0.handle_terminator(terminator, state, location);
+    terminator.edges()
+  }
+
+  fn apply_call_return_effect(
+    &mut self,
+    _state: &mut Self::Domain,
+    _block: BasicBlock,
+    _return_places: rustc_middle::mir::CallReturnPlaces<'_, 'tcx>,
+  ) {
   }
 }
