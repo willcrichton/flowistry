@@ -2,7 +2,9 @@
 
 use self::graph::DepGraph;
 use crate::pdg::construct::GraphConstructor;
-pub use crate::pdg::construct::PdgParams;
+pub use crate::pdg::construct::{
+  CallChanges, CallInfo, FakeEffect, FakeEffectKind, PdgParams, SkipCall,
+};
 
 mod construct;
 pub mod graph;

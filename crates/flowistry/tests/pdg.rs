@@ -9,15 +9,15 @@ use std::collections::HashSet;
 use either::Either;
 use flowistry::pdg::{
   graph::{DepEdge, DepGraph},
-  PdgParams,
+  CallChanges, FakeEffect, FakeEffectKind, PdgParams, SkipCall,
 };
 use itertools::Itertools;
 use rustc_hir::def_id::LocalDefId;
 use rustc_middle::{
-  mir::{Terminator, TerminatorKind},
+  mir::{Local, Place, ProjectionElem, Terminator, TerminatorKind},
   ty::TyCtxt,
 };
-use rustc_utils::{mir::borrowck_facts, source_map::find_bodies::find_bodies};
+use rustc_utils::{mir::borrowck_facts, source_map::find_bodies::find_bodies, PlaceExt};
 
 fn get_main(tcx: TyCtxt<'_>) -> LocalDefId {
   find_bodies(tcx)
@@ -510,9 +510,16 @@ fn main() {
   let _ = env_logger::try_init();
   flowistry::test_utils::compile(input, move |tcx| {
     let def_id = get_main(tcx);
-    let params = PdgParams::new(tcx, def_id).with_call_filter(move |f, cs| {
-      let name = tcx.opt_item_name(f.def_id());
-      !matches!(name.as_ref().map(|sym| sym.as_str()), Some("no_inline")) && cs.len() < 2
+    let params = PdgParams::new(tcx, def_id).with_call_change_callback(move |info| {
+      let name = tcx.opt_item_name(info.callee.def_id());
+      let skip = if !matches!(name.as_ref().map(|sym| sym.as_str()), Some("no_inline"))
+        && info.call_string.len() < 2
+      {
+        SkipCall::NoSkip
+      } else {
+        SkipCall::Skip
+      };
+      CallChanges::default().with_skip(skip)
     });
     let pdg = flowistry::pdg::compute_pdg(params);
     assert!(connects(tcx, &pdg, "y", "x", None));
@@ -523,13 +530,14 @@ fn main() {
 #[test]
 fn false_call_edges() {
   let input = r#"
-fn does_not_mutate(x: &mut i32) {}
+fn fake(a: &mut i32, b: &i32) {}
 
 fn main() {
   let mut x = 0;
-  does_not_mutate(&mut x);
-  let y = x;
-}  
+  let y = 0;
+  fake(&mut x, &y);
+  let z = x;
+}
 "#;
   let _ = env_logger::try_init();
   flowistry::test_utils::compile(input, move |tcx| {
@@ -537,21 +545,48 @@ fn main() {
     let params = PdgParams::new(tcx, def_id);
 
     let without_edges = flowistry::pdg::compute_pdg(params.clone());
-    assert!(!connects(
-      tcx,
-      &without_edges,
-      "x",
-      "y",
-      Some("does_not_mutate")
-    ));
 
-    let with_edges = flowistry::pdg::compute_pdg(params.with_false_call_edges());
-    assert!(connects(
-      tcx,
-      &with_edges,
-      "x",
-      "y",
-      Some("does_not_mutate")
-    ));
+    // no fake write
+    assert!(!connects(tcx, &without_edges, "x", "z", Some("fake")));
+
+    // no fake read. (catch the panic b/c "*b" doesn't exist in the node map)
+    assert!(
+      std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| connects(
+        tcx,
+        &without_edges,
+        "y",
+        "*b",
+        Some("fake")
+      )))
+      .is_err()
+    );
+
+    let with_edges =
+      flowistry::pdg::compute_pdg(params.with_call_change_callback(move |info| {
+        let name = tcx.opt_item_name(info.callee.def_id());
+        if matches!(name.as_ref().map(|sym| sym.as_str()), Some("fake")) {
+          let fake_write = FakeEffect {
+            place: Place::make(Local::from_usize(1), &[ProjectionElem::Deref], tcx),
+            kind: FakeEffectKind::Write,
+          };
+          let fake_read = FakeEffect {
+            place: Place::make(Local::from_usize(2), &[ProjectionElem::Deref], tcx),
+            kind: FakeEffectKind::Read,
+          };
+          CallChanges::default().with_fake_effects(vec![fake_write, fake_read])
+        } else {
+          CallChanges::default()
+        }
+      }));
+
+    with_edges
+      .generate_graphviz(format!("../../target/{}.pdf", "foobar"))
+      .unwrap();
+
+    // fake write
+    assert!(connects(tcx, &with_edges, "x", "z", Some("fake")));
+
+    // fake read
+    assert!(connects(tcx, &with_edges, "y", "*b", Some("fake")));
   })
 }
