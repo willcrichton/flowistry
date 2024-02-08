@@ -21,7 +21,6 @@ use rustc_middle::{
   ty::{GenericArg, GenericArgsRef, List, ParamEnv, TyCtxt, TyKind},
 };
 use rustc_mir_dataflow::{self as df};
-use rustc_span::sym::poll;
 use rustc_utils::{
   mir::{borrowck_facts, control_dependencies::ControlDependencies},
   BodyExt, PlaceExt,
@@ -270,14 +269,7 @@ impl<'tcx> GraphConstructor<'tcx> {
     };
     let body =
       utils::try_monomorphize(tcx, params.root, param_env, &body_with_facts.body);
-
-    if log::log_enabled!(log::Level::Debug) {
-      use std::io::Write;
-      let path = tcx.def_path_str(def_id) + ".mir";
-      let mut f = std::fs::File::create(path.as_str()).unwrap();
-      write!(f, "{}", body.to_string(tcx).unwrap()).unwrap();
-      debug!("Dumped debug MIR {path}");
-    }
+    debug!("{}", body.to_string(tcx).unwrap());
 
     let place_info = PlaceInfo::build(tcx, def_id.to_def_id(), body_with_facts);
     let control_dependencies = body.control_dependencies();
