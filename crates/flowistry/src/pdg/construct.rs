@@ -14,9 +14,9 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::{
   mir::{
-    visit::Visitor, AggregateKind, BasicBlock, Body, Location, Operand, Place, PlaceElem,
-    Rvalue, Statement, StatementKind, Terminator, TerminatorEdges, TerminatorKind,
-    RETURN_PLACE,
+    visit::Visitor, AggregateKind, BasicBlock, Body, HasLocalDecls, Location, Operand,
+    Place, PlaceElem, Rvalue, Statement, StatementKind, Terminator, TerminatorEdges,
+    TerminatorKind, RETURN_PLACE,
   },
   ty::{GenericArg, GenericArgsRef, List, ParamEnv, TyCtxt, TyKind},
 };
@@ -240,7 +240,14 @@ impl<'tcx> GraphConstructor<'tcx> {
     };
     let body =
       utils::try_monomorphize(tcx, params.root, param_env, &body_with_facts.body);
-    debug!("{}", body.to_string(tcx).unwrap());
+
+    if log::log_enabled!(log::Level::Debug) {
+      use std::io::Write;
+      let path = tcx.def_path_str(def_id) + ".mir";
+      let mut f = std::fs::File::create(path.as_str()).unwrap();
+      write!(f, "{}", body.to_string(tcx).unwrap()).unwrap();
+      debug!("Dumped debug MIR {path}");
+    }
 
     let place_info = PlaceInfo::build(tcx, def_id.to_def_id(), body_with_facts);
     let control_dependencies = body.control_dependencies();
@@ -662,41 +669,54 @@ impl<'tcx> GraphConstructor<'tcx> {
     let parent_body = &self.body;
     let translate_to_parent = |child: Place<'tcx>| -> Option<Place<'tcx>> {
       trace!("  Translating child place: {child:?}");
-      let (parent_place, child_projection) = if child.local == RETURN_PLACE {
-        (destination, &child.projection[..])
-      } else {
-        match call_kind {
-          // Map arguments to the argument array
-          CallKind::Direct => (
-            args[child.local.as_usize() - 1].place()?,
+      let (parent_place, child_projection) = match call_kind {
+        // Async return must be handled special, because it gets wrapped in `Poll::Ready`
+        CallKind::AsyncPoll if child.local == RETURN_PLACE => {
+          let in_poll =
+            destination.project_deeper(&[PlaceElem::Downcast(None, 0_u32.into())], tcx);
+          let field_idx = 0_u32.into();
+          let child_inner_return_type = in_poll
+            .ty(parent_body.local_decls(), tcx)
+            .field_ty(tcx, field_idx);
+          (
+            in_poll.project_deeper(
+              &[PlaceElem::Field(field_idx, child_inner_return_type)],
+              tcx,
+            ),
             &child.projection[..],
-          ),
-          // Map arguments to projections of the future, the poll's first argument
-          CallKind::AsyncPoll => {
-            if child.local.as_usize() == 1 {
-              let PlaceElem::Field(idx, _) = child.projection[0] else {
-                panic!("Unexpected non-projection of async context")
-              };
-              (args[idx.as_usize()].place()?, &child.projection[1 ..])
-            } else {
-              return None;
-            }
+          )
+        }
+        _ if child.local == RETURN_PLACE => (destination, &child.projection[..]),
+        // Map arguments to the argument array
+        CallKind::Direct => (
+          args[child.local.as_usize() - 1].place()?,
+          &child.projection[..],
+        ),
+        // Map arguments to projections of the future, the poll's first argument
+        CallKind::AsyncPoll => {
+          if child.local.as_usize() == 1 {
+            let PlaceElem::Field(idx, _) = child.projection[0] else {
+              panic!("Unexpected non-projection of async context")
+            };
+            (args[idx.as_usize()].place()?, &child.projection[1 ..])
+          } else {
+            return None;
           }
-          // Map closure captures to the first argument.
-          // Map formal parameters to the second argument.
-          CallKind::Indirect => {
-            if child.local.as_usize() == 1 {
-              (args[0].place()?, &child.projection[..])
-            } else {
-              let tuple_arg = args[1].place()?;
-              let _projection = child.projection.to_vec();
-              let field = FieldIdx::from_usize(child.local.as_usize() - 2);
-              let field_ty = tuple_arg.ty(parent_body.as_ref(), tcx).field_ty(tcx, field);
-              (
-                tuple_arg.project_deeper(&[PlaceElem::Field(field, field_ty)], tcx),
-                &child.projection[..],
-              )
-            }
+        }
+        // Map closure captures to the first argument.
+        // Map formal parameters to the second argument.
+        CallKind::Indirect => {
+          if child.local.as_usize() == 1 {
+            (args[0].place()?, &child.projection[..])
+          } else {
+            let tuple_arg = args[1].place()?;
+            let _projection = child.projection.to_vec();
+            let field = FieldIdx::from_usize(child.local.as_usize() - 2);
+            let field_ty = tuple_arg.ty(parent_body.as_ref(), tcx).field_ty(tcx, field);
+            (
+              tuple_arg.project_deeper(&[PlaceElem::Field(field, field_ty)], tcx),
+              &child.projection[..],
+            )
           }
         }
       };
