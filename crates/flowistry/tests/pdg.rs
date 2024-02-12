@@ -251,6 +251,21 @@ pdg_test! {
 }
 
 pdg_test! {
+  strong_update,
+  {
+    fn main() {
+      let x = 1;
+      let y = 2;
+      let mut z = x;
+      z = y;
+      let w = z;
+    }
+  },
+  (y -> w),
+  (x -/> w)
+}
+
+pdg_test! {
   inline_simple,
   {
     fn foo(x: i32) -> i32 {
@@ -419,9 +434,6 @@ pdg_test! {
   (b -/> c)
 }
 
-// TODO: pick back up here.
-// We had just implemented the thing that eliminates ops as nodes.
-// Need to fix the machinery for async, then finally fix the open CFA issue.
 pdg_test! {
   async_inline,
   {

@@ -28,7 +28,7 @@ use rustc_utils::{
 
 use super::graph::{DepEdge, DepGraph, DepNode};
 use crate::{
-  infoflow::mutation::{ModularMutationVisitor, Mutation, MutationStatus},
+  infoflow::mutation::{ModularMutationVisitor, Mutation},
   mir::placeinfo::PlaceInfo,
   pdg::utils::{self, FnResolution},
 };
@@ -417,7 +417,6 @@ impl<'tcx> GraphConstructor<'tcx> {
     &self,
     state: &mut PartialGraph<'tcx>,
     mutated: Place<'tcx>,
-    status: MutationStatus,
     location: Location,
   ) -> Vec<DepNode<'tcx>> {
     // **POINTER-SENSITIVITY:**
@@ -435,13 +434,9 @@ impl<'tcx> GraphConstructor<'tcx> {
         let dst_node =
           DepNode::new(*dst, self.make_call_string(location), self.tcx, &self.body);
 
-        // **STRONG UPDATES:**
-        // If the mutated place has no aliases AND the mutation definitely occurs,
-        // then clear all previous locations of mutation.
+        // Clear all previous mutations.
         let dst_mutations = state.last_mutation.entry(*dst).or_default();
-        if aliases.len() == 1 && matches!(status, MutationStatus::Definitely) {
-          dst_mutations.clear();
-        }
+        dst_mutations.clear();
 
         // Register that `dst` is mutated at the current location.
         dst_mutations.insert(RichLocation::Location(location));
@@ -458,7 +453,6 @@ impl<'tcx> GraphConstructor<'tcx> {
     location: Location,
     mutated: Either<Place<'tcx>, DepNode<'tcx>>,
     inputs: Either<Vec<Place<'tcx>>, DepNode<'tcx>>,
-    status: MutationStatus,
   ) {
     trace!("Applying mutation to {mutated:?} with inputs {inputs:?}");
 
@@ -474,7 +468,7 @@ impl<'tcx> GraphConstructor<'tcx> {
     trace!("  Data inputs: {data_inputs:?}");
 
     let outputs = match mutated {
-      Either::Left(place) => self.find_and_update_outputs(state, place, status, location),
+      Either::Left(place) => self.find_and_update_outputs(state, place, location),
       Either::Right(node) => vec![node],
     };
     trace!("  Outputs: {outputs:?}");
@@ -756,14 +750,12 @@ impl<'tcx> GraphConstructor<'tcx> {
               child_constructor.make_dep_node(callee_place, RichLocation::Start),
             ),
             Either::Left(vec![caller_place]),
-            MutationStatus::Possibly,
           ),
           FakeEffectKind::Write => self.apply_mutation(
             state,
             location,
             Either::Left(caller_place),
             Either::Left(vec![caller_place]),
-            MutationStatus::Possibly,
           ),
         };
       }
@@ -804,7 +796,6 @@ impl<'tcx> GraphConstructor<'tcx> {
           location,
           Either::Right(child_src),
           Either::Left(vec![parent_place]),
-          MutationStatus::Possibly,
         );
       }
     }
@@ -821,7 +812,6 @@ impl<'tcx> GraphConstructor<'tcx> {
           location,
           Either::Left(parent_place),
           Either::Right(child_dst),
-          MutationStatus::Possibly,
         );
       }
     }
@@ -865,7 +855,6 @@ impl<'tcx> GraphConstructor<'tcx> {
           location,
           Either::Left(mutation.mutated),
           Either::Left(mutation.inputs),
-          mutation.status,
         );
       }
     })
@@ -888,7 +877,6 @@ impl<'tcx> GraphConstructor<'tcx> {
             location,
             Either::Left(place),
             Either::Left(vec![place]),
-            MutationStatus::Possibly,
           );
         }
       }
