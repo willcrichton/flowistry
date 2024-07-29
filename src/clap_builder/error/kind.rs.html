@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.7/src/error/kind.rs`."><title>kind.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.11/src/error/kind.rs`."><title>kind.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -369,32 +371,32 @@
 #[non_exhaustive]
 </span><span class="kw">pub enum </span>ErrorKind {
     <span class="doccomment">/// Occurs when an [`Arg`][crate::Arg] has a set of possible values,
-    /// and the user provides a value which isn&#39;t in that set.
+    /// and the user provides a value which isn't in that set.
     ///
     /// # Examples
     ///
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, error::ErrorKind};
-    /// let result = Command::new(&quot;prog&quot;)
-    ///     .arg(Arg::new(&quot;speed&quot;)
-    ///         .value_parser([&quot;fast&quot;, &quot;slow&quot;]))
-    ///     .try_get_matches_from(vec![&quot;prog&quot;, &quot;other&quot;]);
+    /// let result = Command::new("prog")
+    ///     .arg(Arg::new("speed")
+    ///         .value_parser(["fast", "slow"]))
+    ///     .try_get_matches_from(vec!["prog", "other"]);
     /// assert!(result.is_err());
     /// assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     /// ```
     </span>InvalidValue,
 
-    <span class="doccomment">/// Occurs when a user provides a flag, option, argument or subcommand which isn&#39;t defined.
+    <span class="doccomment">/// Occurs when a user provides a flag, option, argument or subcommand which isn't defined.
     ///
     /// # Examples
     ///
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, arg, error::ErrorKind};
-    /// let result = Command::new(&quot;prog&quot;)
-    ///     .arg(arg!(--flag &quot;some flag&quot;))
-    ///     .try_get_matches_from(vec![&quot;prog&quot;, &quot;--other&quot;]);
+    /// let result = Command::new("prog")
+    ///     .arg(arg!(--flag "some flag"))
+    ///     .try_get_matches_from(vec!["prog", "--other"]);
     /// assert!(result.is_err());
     /// assert_eq!(result.unwrap_err().kind(), ErrorKind::UnknownArgument);
     /// ```
@@ -402,21 +404,21 @@
 
     <span class="doccomment">/// Occurs when the user provides an unrecognized [`Subcommand`] which meets the threshold for
     /// being similar enough to an existing subcommand.
-    /// If it doesn&#39;t meet the threshold, or the &#39;suggestions&#39; feature is disabled,
+    /// If it doesn't meet the threshold, or the 'suggestions' feature is disabled,
     /// the more general [`UnknownArgument`] error is returned.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// # #[cfg(feature = &quot;suggestions&quot;)] {
+    /// # #[cfg(feature = "suggestions")] {
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, error::ErrorKind, };
-    /// let result = Command::new(&quot;prog&quot;)
-    ///     .subcommand(Command::new(&quot;config&quot;)
-    ///         .about(&quot;Used for configuration&quot;)
-    ///         .arg(Arg::new(&quot;config_file&quot;)
-    ///             .help(&quot;The configuration file to use&quot;)))
-    ///     .try_get_matches_from(vec![&quot;prog&quot;, &quot;confi&quot;]);
+    /// let result = Command::new("prog")
+    ///     .subcommand(Command::new("config")
+    ///         .about("Used for configuration")
+    ///         .arg(Arg::new("config_file")
+    ///             .help("The configuration file to use")))
+    ///     .try_get_matches_from(vec!["prog", "confi"]);
     /// assert!(result.is_err());
     /// assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidSubcommand);
     /// # }
@@ -426,18 +428,18 @@
     /// [`UnknownArgument`]: ErrorKind::UnknownArgument
     </span>InvalidSubcommand,
 
-    <span class="doccomment">/// Occurs when the user doesn&#39;t use equals for an option that requires equal
+    <span class="doccomment">/// Occurs when the user doesn't use equals for an option that requires equal
     /// sign to provide values.
     ///
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, error::ErrorKind, ArgAction};
-    /// let res = Command::new(&quot;prog&quot;)
-    ///     .arg(Arg::new(&quot;color&quot;)
+    /// let res = Command::new("prog")
+    ///     .arg(Arg::new("color")
     ///          .action(ArgAction::Set)
     ///          .require_equals(true)
-    ///          .long(&quot;color&quot;))
-    ///     .try_get_matches_from(vec![&quot;prog&quot;, &quot;--color&quot;, &quot;red&quot;]);
+    ///          .long("color"))
+    ///     .try_get_matches_from(vec!["prog", "--color", "red"]);
     /// assert!(res.is_err());
     /// assert_eq!(res.unwrap_err().kind(), ErrorKind::NoEquals);
     /// ```
@@ -454,14 +456,14 @@
     /// fn is_numeric(val: &amp;str) -&gt; Result&lt;(), String&gt; {
     ///     match val.parse::&lt;i64&gt;() {
     ///         Ok(..) =&gt; Ok(()),
-    ///         Err(..) =&gt; Err(String::from(&quot;value wasn&#39;t a number!&quot;)),
+    ///         Err(..) =&gt; Err(String::from("value wasn't a number!")),
     ///     }
     /// }
     ///
-    /// let result = Command::new(&quot;prog&quot;)
-    ///     .arg(Arg::new(&quot;num&quot;)
+    /// let result = Command::new("prog")
+    ///     .arg(Arg::new("num")
     ///          .value_parser(value_parser!(u8)))
-    ///     .try_get_matches_from(vec![&quot;prog&quot;, &quot;NotANumber&quot;]);
+    ///     .try_get_matches_from(vec!["prog", "NotANumber"]);
     /// assert!(result.is_err());
     /// assert_eq!(result.unwrap_err().kind(), ErrorKind::ValueValidation);
     /// ```
@@ -475,10 +477,10 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, error::ErrorKind};
-    /// let result = Command::new(&quot;prog&quot;)
-    ///     .arg(Arg::new(&quot;arg&quot;)
+    /// let result = Command::new("prog")
+    ///     .arg(Arg::new("arg")
     ///         .num_args(1..=2))
-    ///     .try_get_matches_from(vec![&quot;prog&quot;, &quot;too&quot;, &quot;many&quot;, &quot;values&quot;]);
+    ///     .try_get_matches_from(vec!["prog", "too", "many", "values"]);
     /// assert!(result.is_err());
     /// assert_eq!(result.unwrap_err().kind(), ErrorKind::TooManyValues);
     /// ```
@@ -493,18 +495,18 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, error::ErrorKind};
-    /// let result = Command::new(&quot;prog&quot;)
-    ///     .arg(Arg::new(&quot;some_opt&quot;)
-    ///         .long(&quot;opt&quot;)
+    /// let result = Command::new("prog")
+    ///     .arg(Arg::new("some_opt")
+    ///         .long("opt")
     ///         .num_args(3..))
-    ///     .try_get_matches_from(vec![&quot;prog&quot;, &quot;--opt&quot;, &quot;too&quot;, &quot;few&quot;]);
+    ///     .try_get_matches_from(vec!["prog", "--opt", "too", "few"]);
     /// assert!(result.is_err());
     /// assert_eq!(result.unwrap_err().kind(), ErrorKind::TooFewValues);
     /// ```
     /// [`Arg::num_args`]: crate::Arg::num_args()
     </span>TooFewValues,
 
-    <span class="doccomment">/// Occurs when the user provides a different number of values for an argument than what&#39;s
+    <span class="doccomment">/// Occurs when the user provides a different number of values for an argument than what's
     /// been defined by setting [`Arg::num_args`] or than was implicitly set by
     /// [`Arg::value_names`].
     ///
@@ -513,12 +515,12 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, error::ErrorKind, ArgAction};
-    /// let result = Command::new(&quot;prog&quot;)
-    ///     .arg(Arg::new(&quot;some_opt&quot;)
-    ///         .long(&quot;opt&quot;)
+    /// let result = Command::new("prog")
+    ///     .arg(Arg::new("some_opt")
+    ///         .long("opt")
     ///         .action(ArgAction::Set)
     ///         .num_args(2))
-    ///     .try_get_matches_from(vec![&quot;prog&quot;, &quot;--opt&quot;, &quot;wrong&quot;]);
+    ///     .try_get_matches_from(vec!["prog", "--opt", "wrong"]);
     /// assert!(result.is_err());
     /// assert_eq!(result.unwrap_err().kind(), ErrorKind::WrongNumberOfValues);
     /// ```
@@ -527,7 +529,7 @@
     /// [`Arg::value_names`]: crate::Arg::value_names()
     </span>WrongNumberOfValues,
 
-    <span class="doccomment">/// Occurs when the user provides two values which conflict with each other and can&#39;t be used
+    <span class="doccomment">/// Occurs when the user provides two values which conflict with each other and can't be used
     /// together.
     ///
     /// # Examples
@@ -535,15 +537,15 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, error::ErrorKind, ArgAction};
-    /// let result = Command::new(&quot;prog&quot;)
-    ///     .arg(Arg::new(&quot;debug&quot;)
-    ///         .long(&quot;debug&quot;)
+    /// let result = Command::new("prog")
+    ///     .arg(Arg::new("debug")
+    ///         .long("debug")
     ///         .action(ArgAction::SetTrue)
-    ///         .conflicts_with(&quot;color&quot;))
-    ///     .arg(Arg::new(&quot;color&quot;)
-    ///         .long(&quot;color&quot;)
+    ///         .conflicts_with("color"))
+    ///     .arg(Arg::new("color")
+    ///         .long("color")
     ///         .action(ArgAction::SetTrue))
-    ///     .try_get_matches_from(vec![&quot;prog&quot;, &quot;--debug&quot;, &quot;--color&quot;]);
+    ///     .try_get_matches_from(vec!["prog", "--debug", "--color"]);
     /// assert!(result.is_err());
     /// assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
     /// ```
@@ -556,10 +558,10 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, error::ErrorKind};
-    /// let result = Command::new(&quot;prog&quot;)
-    ///     .arg(Arg::new(&quot;debug&quot;)
+    /// let result = Command::new("prog")
+    ///     .arg(Arg::new("debug")
     ///         .required(true))
-    ///     .try_get_matches_from(vec![&quot;prog&quot;]);
+    ///     .try_get_matches_from(vec!["prog"]);
     /// assert!(result.is_err());
     /// assert_eq!(result.unwrap_err().kind(), ErrorKind::MissingRequiredArgument);
     /// ```
@@ -573,11 +575,11 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, error::ErrorKind};
-    /// let err = Command::new(&quot;prog&quot;)
+    /// let err = Command::new("prog")
     ///     .subcommand_required(true)
-    ///     .subcommand(Command::new(&quot;test&quot;))
+    ///     .subcommand(Command::new("test"))
     ///     .try_get_matches_from(vec![
-    ///         &quot;myprog&quot;,
+    ///         "myprog",
     ///     ]);
     /// assert!(err.is_err());
     /// assert_eq!(err.unwrap_err().kind(), ErrorKind::MissingSubcommand);
@@ -606,12 +608,12 @@
     /// # use clap::{Command, Arg, error::ErrorKind, ArgAction};
     /// # use std::os::unix::ffi::OsStringExt;
     /// # use std::ffi::OsString;
-    /// let result = Command::new(&quot;prog&quot;)
-    ///     .arg(Arg::new(&quot;utf8&quot;)
-    ///         .short(&#39;u&#39;)
+    /// let result = Command::new("prog")
+    ///     .arg(Arg::new("utf8")
+    ///         .short('u')
     ///         .action(ArgAction::Set))
-    ///     .try_get_matches_from(vec![OsString::from(&quot;myprog&quot;),
-    ///                                 OsString::from(&quot;-u&quot;),
+    ///     .try_get_matches_from(vec![OsString::from("myprog"),
+    ///                                 OsString::from("-u"),
     ///                                 OsString::from_vec(vec![0xE9])]);
     /// assert!(result.is_err());
     /// assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidUtf8);
@@ -622,7 +624,7 @@
     /// [`Command::external_subcommand_value_parser`]: crate::Command::external_subcommand_value_parser
     </span>InvalidUtf8,
 
-    <span class="doccomment">/// Not a true &quot;error&quot; as it means `--help` or similar was used.
+    <span class="doccomment">/// Not a true "error" as it means `--help` or similar was used.
     /// The help message will be sent to `stdout`.
     ///
     /// **Note**: If the help is displayed due to an error (such as missing subcommands) it will
@@ -631,11 +633,11 @@
     /// # Examples
     ///
     /// ```rust
-    /// # #[cfg(feature = &quot;help&quot;)] {
+    /// # #[cfg(feature = "help")] {
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, error::ErrorKind};
-    /// let result = Command::new(&quot;prog&quot;)
-    ///     .try_get_matches_from(vec![&quot;prog&quot;, &quot;--help&quot;]);
+    /// let result = Command::new("prog")
+    ///     .try_get_matches_from(vec!["prog", "--help"]);
     /// assert!(result.is_err());
     /// assert_eq!(result.unwrap_err().kind(), ErrorKind::DisplayHelp);
     /// # }
@@ -651,13 +653,13 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, error::ErrorKind, };
-    /// let result = Command::new(&quot;prog&quot;)
+    /// let result = Command::new("prog")
     ///     .arg_required_else_help(true)
-    ///     .subcommand(Command::new(&quot;config&quot;)
-    ///         .about(&quot;Used for configuration&quot;)
-    ///         .arg(Arg::new(&quot;config_file&quot;)
-    ///             .help(&quot;The configuration file to use&quot;)))
-    ///     .try_get_matches_from(vec![&quot;prog&quot;]);
+    ///     .subcommand(Command::new("config")
+    ///         .about("Used for configuration")
+    ///         .arg(Arg::new("config_file")
+    ///             .help("The configuration file to use")))
+    ///     .try_get_matches_from(vec!["prog"]);
     /// assert!(result.is_err());
     /// assert_eq!(result.unwrap_err().kind(), ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand);
     /// ```
@@ -666,7 +668,7 @@
     /// [`Command::arg_required_else_help`]: crate::Command::arg_required_else_help
     </span>DisplayHelpOnMissingArgumentOrSubcommand,
 
-    <span class="doccomment">/// Not a true &quot;error&quot; as it means `--version` or similar was used.
+    <span class="doccomment">/// Not a true "error" as it means `--version` or similar was used.
     /// The message will be sent to `stdout`.
     ///
     /// # Examples
@@ -674,9 +676,9 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, error::ErrorKind};
-    /// let result = Command::new(&quot;prog&quot;)
-    ///     .version(&quot;3.0&quot;)
-    ///     .try_get_matches_from(vec![&quot;prog&quot;, &quot;--version&quot;]);
+    /// let result = Command::new("prog")
+    ///     .version("3.0")
+    ///     .try_get_matches_from(vec!["prog", "--version"]);
     /// assert!(result.is_err());
     /// assert_eq!(result.unwrap_err().kind(), ErrorKind::DisplayVersion);
     /// ```
@@ -698,24 +700,24 @@
 
 <span class="kw">impl </span>ErrorKind {
     <span class="doccomment">/// End-user description of the error case, where relevant
-    </span><span class="kw">pub fn </span>as_str(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    </span><span class="kw">pub fn </span>as_str(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::InvalidValue =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;one of the values isn&#39;t valid for an argument&quot;</span>),
-            <span class="self">Self</span>::UnknownArgument =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;unexpected argument found&quot;</span>),
-            <span class="self">Self</span>::InvalidSubcommand =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;unrecognized subcommand&quot;</span>),
-            <span class="self">Self</span>::NoEquals =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;equal is needed when assigning values to one of the arguments&quot;</span>),
-            <span class="self">Self</span>::ValueValidation =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;invalid value for one of the arguments&quot;</span>),
-            <span class="self">Self</span>::TooManyValues =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;unexpected value for an argument found&quot;</span>),
-            <span class="self">Self</span>::TooFewValues =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;more values required for an argument&quot;</span>),
-            <span class="self">Self</span>::WrongNumberOfValues =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;too many or too few values for an argument&quot;</span>),
+            <span class="self">Self</span>::InvalidValue =&gt; <span class="prelude-val">Some</span>(<span class="string">"one of the values isn't valid for an argument"</span>),
+            <span class="self">Self</span>::UnknownArgument =&gt; <span class="prelude-val">Some</span>(<span class="string">"unexpected argument found"</span>),
+            <span class="self">Self</span>::InvalidSubcommand =&gt; <span class="prelude-val">Some</span>(<span class="string">"unrecognized subcommand"</span>),
+            <span class="self">Self</span>::NoEquals =&gt; <span class="prelude-val">Some</span>(<span class="string">"equal is needed when assigning values to one of the arguments"</span>),
+            <span class="self">Self</span>::ValueValidation =&gt; <span class="prelude-val">Some</span>(<span class="string">"invalid value for one of the arguments"</span>),
+            <span class="self">Self</span>::TooManyValues =&gt; <span class="prelude-val">Some</span>(<span class="string">"unexpected value for an argument found"</span>),
+            <span class="self">Self</span>::TooFewValues =&gt; <span class="prelude-val">Some</span>(<span class="string">"more values required for an argument"</span>),
+            <span class="self">Self</span>::WrongNumberOfValues =&gt; <span class="prelude-val">Some</span>(<span class="string">"too many or too few values for an argument"</span>),
             <span class="self">Self</span>::ArgumentConflict =&gt; {
-                <span class="prelude-val">Some</span>(<span class="string">&quot;an argument cannot be used with one or more of the other specified arguments&quot;</span>)
+                <span class="prelude-val">Some</span>(<span class="string">"an argument cannot be used with one or more of the other specified arguments"</span>)
             }
             <span class="self">Self</span>::MissingRequiredArgument =&gt; {
-                <span class="prelude-val">Some</span>(<span class="string">&quot;one or more required arguments were not provided&quot;</span>)
+                <span class="prelude-val">Some</span>(<span class="string">"one or more required arguments were not provided"</span>)
             }
-            <span class="self">Self</span>::MissingSubcommand =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;a subcommand is required but one was not provided&quot;</span>),
-            <span class="self">Self</span>::InvalidUtf8 =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;invalid UTF-8 was detected in one or more arguments&quot;</span>),
+            <span class="self">Self</span>::MissingSubcommand =&gt; <span class="prelude-val">Some</span>(<span class="string">"a subcommand is required but one was not provided"</span>),
+            <span class="self">Self</span>::InvalidUtf8 =&gt; <span class="prelude-val">Some</span>(<span class="string">"invalid UTF-8 was detected in one or more arguments"</span>),
             <span class="self">Self</span>::DisplayHelp =&gt; <span class="prelude-val">None</span>,
             <span class="self">Self</span>::DisplayHelpOnMissingArgumentOrSubcommand =&gt; <span class="prelude-val">None</span>,
             <span class="self">Self</span>::DisplayVersion =&gt; <span class="prelude-val">None</span>,
@@ -726,7 +728,7 @@
 }
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>ErrorKind {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="self">self</span>.as_str().unwrap_or_default().fmt(f)
     }
 }

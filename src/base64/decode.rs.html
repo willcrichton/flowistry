@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64-0.21.5/src/decode.rs`."><title>decode.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../base64/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64-0.21.7/src/decode.rs`."><title>decode.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../base64/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -339,10 +341,10 @@
 <a href="#339" id="339">339</a>
 <a href="#340" id="340">340</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::engine::{general_purpose::STANDARD, DecodeEstimate, Engine};
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, test))]
+<span class="attr">#[cfg(any(feature = <span class="string">"alloc"</span>, test))]
 </span><span class="kw">use </span>alloc::vec::Vec;
 <span class="kw">use </span>core::fmt;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, test))]
+<span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, test))]
 </span><span class="kw">use </span>std::error;
 
 <span class="doccomment">/// Errors that can occur while decoding.
@@ -357,9 +359,9 @@
     /// is also an invalid base64 symbol (as would be the case for whitespace, etc), `InvalidByte`
     /// will be emitted instead of `InvalidLength` to make the issue easier to debug.
     </span>InvalidLength,
-    <span class="doccomment">/// The last non-padding input symbol&#39;s encoded 6 bits have nonzero bits that will be discarded.
+    <span class="doccomment">/// The last non-padding input symbol's encoded 6 bits have nonzero bits that will be discarded.
     /// This is indicative of corrupted or truncated Base64.
-    /// Unlike `InvalidByte`, which reports symbols that aren&#39;t in the alphabet, this error is for
+    /// Unlike `InvalidByte`, which reports symbols that aren't in the alphabet, this error is for
     /// symbols that are in the alphabet but represent nonsensical encodings.
     </span>InvalidLastSymbol(usize, u8),
     <span class="doccomment">/// The nature of the padding was not as configured: absent or incorrect when it must be
@@ -370,17 +372,17 @@
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>DecodeError {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            <span class="self">Self</span>::InvalidByte(index, byte) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Invalid byte {}, offset {}.&quot;</span>, byte, index),
-            <span class="self">Self</span>::InvalidLength =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Encoded text cannot have a 6-bit remainder.&quot;</span>),
+            <span class="self">Self</span>::InvalidByte(index, byte) =&gt; <span class="macro">write!</span>(f, <span class="string">"Invalid byte {}, offset {}."</span>, byte, index),
+            <span class="self">Self</span>::InvalidLength =&gt; <span class="macro">write!</span>(f, <span class="string">"Encoded text cannot have a 6-bit remainder."</span>),
             <span class="self">Self</span>::InvalidLastSymbol(index, byte) =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;Invalid last symbol {}, offset {}.&quot;</span>, byte, index)
+                <span class="macro">write!</span>(f, <span class="string">"Invalid last symbol {}, offset {}."</span>, byte, index)
             }
-            <span class="self">Self</span>::InvalidPadding =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Invalid padding&quot;</span>),
+            <span class="self">Self</span>::InvalidPadding =&gt; <span class="macro">write!</span>(f, <span class="string">"Invalid padding"</span>),
         }
     }
 }
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, test))]
+<span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, test))]
 </span><span class="kw">impl </span>error::Error <span class="kw">for </span>DecodeError {}
 
 <span class="doccomment">/// Errors that can occur while decoding into a slice.
@@ -395,17 +397,17 @@
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>DecodeSliceError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::DecodeError(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;DecodeError: {}&quot;</span>, e),
-            <span class="self">Self</span>::OutputSliceTooSmall =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Output slice too small&quot;</span>),
+            <span class="self">Self</span>::DecodeError(e) =&gt; <span class="macro">write!</span>(f, <span class="string">"DecodeError: {}"</span>, e),
+            <span class="self">Self</span>::OutputSliceTooSmall =&gt; <span class="macro">write!</span>(f, <span class="string">"Output slice too small"</span>),
         }
     }
 }
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, test))]
+<span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, test))]
 </span><span class="kw">impl </span>error::Error <span class="kw">for </span>DecodeSliceError {
-    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">&#39;static</span>)&gt; {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">'static</span>)&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             DecodeSliceError::DecodeError(e) =&gt; <span class="prelude-val">Some</span>(e),
             DecodeSliceError::OutputSliceTooSmall =&gt; <span class="prelude-val">None</span>,
@@ -422,8 +424,8 @@
 <span class="doccomment">/// Decode base64 using the [`STANDARD` engine](STANDARD).
 ///
 /// See [Engine::decode].
-</span><span class="attr">#[deprecated(since = <span class="string">&quot;0.21.0&quot;</span>, note = <span class="string">&quot;Use Engine::decode&quot;</span>)]
-#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, test))]
+</span><span class="attr">#[deprecated(since = <span class="string">"0.21.0"</span>, note = <span class="string">"Use Engine::decode"</span>)]
+#[cfg(any(feature = <span class="string">"alloc"</span>, test))]
 </span><span class="kw">pub fn </span>decode&lt;T: AsRef&lt;[u8]&gt;&gt;(input: T) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, DecodeError&gt; {
     STANDARD.decode(input)
 }
@@ -432,8 +434,8 @@
 ///
 /// See [Engine::decode].
 ///Returns a `Result` containing a `Vec&lt;u8&gt;`.
-</span><span class="attr">#[deprecated(since = <span class="string">&quot;0.21.0&quot;</span>, note = <span class="string">&quot;Use Engine::decode&quot;</span>)]
-#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, test))]
+</span><span class="attr">#[deprecated(since = <span class="string">"0.21.0"</span>, note = <span class="string">"Use Engine::decode"</span>)]
+#[cfg(any(feature = <span class="string">"alloc"</span>, test))]
 </span><span class="kw">pub fn </span>decode_engine&lt;E: Engine, T: AsRef&lt;[u8]&gt;&gt;(
     input: T,
     engine: <span class="kw-2">&amp;</span>E,
@@ -444,8 +446,8 @@
 <span class="doccomment">/// Decode from string reference as octets.
 ///
 /// See [Engine::decode_vec].
-</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, test))]
-#[deprecated(since = <span class="string">&quot;0.21.0&quot;</span>, note = <span class="string">&quot;Use Engine::decode_vec&quot;</span>)]
+</span><span class="attr">#[cfg(any(feature = <span class="string">"alloc"</span>, test))]
+#[deprecated(since = <span class="string">"0.21.0"</span>, note = <span class="string">"Use Engine::decode_vec"</span>)]
 </span><span class="kw">pub fn </span>decode_engine_vec&lt;E: Engine, T: AsRef&lt;[u8]&gt;&gt;(
     input: T,
     buffer: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
@@ -457,7 +459,7 @@
 <span class="doccomment">/// Decode the input into the provided output slice.
 ///
 /// See [Engine::decode_slice].
-</span><span class="attr">#[deprecated(since = <span class="string">&quot;0.21.0&quot;</span>, note = <span class="string">&quot;Use Engine::decode_slice&quot;</span>)]
+</span><span class="attr">#[deprecated(since = <span class="string">"0.21.0"</span>, note = <span class="string">"Use Engine::decode_slice"</span>)]
 </span><span class="kw">pub fn </span>decode_engine_slice&lt;E: Engine, T: AsRef&lt;[u8]&gt;&gt;(
     input: T,
     output: <span class="kw-2">&amp;mut </span>[u8],
@@ -470,7 +472,7 @@
 /// to the next group of 3 decoded bytes).
 ///
 /// The resulting length will be a safe choice for the size of a decode buffer, but may have up to
-/// 2 trailing bytes that won&#39;t end up being needed.
+/// 2 trailing bytes that won't end up being needed.
 ///
 /// # Examples
 ///
@@ -583,8 +585,8 @@
     </span><span class="kw">fn </span>decode_engine_estimation_works_for_various_lengths() {
         <span class="kw">let </span>engine = GeneralPurpose::new(<span class="kw-2">&amp;</span>alphabet::STANDARD, general_purpose::NO_PAD);
         <span class="kw">for </span>num_prefix_quads <span class="kw">in </span><span class="number">0</span>..<span class="number">100 </span>{
-            <span class="kw">for </span>suffix <span class="kw">in </span><span class="kw-2">&amp;</span>[<span class="string">&quot;AA&quot;</span>, <span class="string">&quot;AAA&quot;</span>, <span class="string">&quot;AAAA&quot;</span>] {
-                <span class="kw">let </span><span class="kw-2">mut </span>prefix = <span class="string">&quot;AAAA&quot;</span>.repeat(num_prefix_quads);
+            <span class="kw">for </span>suffix <span class="kw">in </span><span class="kw-2">&amp;</span>[<span class="string">"AA"</span>, <span class="string">"AAA"</span>, <span class="string">"AAAA"</span>] {
+                <span class="kw">let </span><span class="kw-2">mut </span>prefix = <span class="string">"AAAA"</span>.repeat(num_prefix_quads);
                 prefix.push_str(suffix);
                 <span class="comment">// make sure no overflow (and thus a panic) occurs
                 </span><span class="kw">let </span>res = engine.decode(prefix);
@@ -596,7 +598,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>decode_slice_output_length_errors() {
         <span class="kw">for </span>num_quads <span class="kw">in </span><span class="number">1</span>..<span class="number">100 </span>{
-            <span class="kw">let </span>input = <span class="string">&quot;AAAA&quot;</span>.repeat(num_quads);
+            <span class="kw">let </span>input = <span class="string">"AAAA"</span>.repeat(num_quads);
             <span class="kw">let </span><span class="kw-2">mut </span>vec = <span class="macro">vec!</span>[<span class="number">0</span>; (num_quads - <span class="number">1</span>) * <span class="number">3</span>];
             <span class="macro">assert_eq!</span>(
                 DecodeSliceError::OutputSliceTooSmall,

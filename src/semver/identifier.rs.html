@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/semver-1.0.20/src/identifier.rs`."><title>identifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="semver" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../semver/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/semver-1.0.23/src/identifier.rs`."><title>identifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="semver" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../semver/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -456,7 +458,7 @@
 // longer than 8 bytes.
 //
 // To differentiate the inline representation from the heap allocated long
-// representation, we&#39;ll allocate heap pointers with 2-byte alignment so that
+// representation, we'll allocate heap pointers with 2-byte alignment so that
 // they are guaranteed to have an unset least significant bit. Then in the repr
 // we store for pointers, we rotate a 1 into the most significant bit of the
 // most significant byte, which is never set for an ASCII byte.
@@ -546,12 +548,12 @@
                 <span class="comment">// On 32-bit and 16-bit architecture, check for size overflowing
                 // isize::MAX. Making an allocation request bigger than this to
                 // the allocator is considered UB. All allocations (including
-                // static ones) are limited to isize::MAX so we&#39;re guaranteed
+                // static ones) are limited to isize::MAX so we're guaranteed
                 // len &lt;= isize::MAX, and we know bytes_for_varint(len) &lt;= 5
                 // because 128**5 &gt; isize::MAX, which means the only problem
                 // that can arise is when isize::MAX - 5 &lt;= len &lt;= isize::MAX.
                 // This is pretty much guaranteed to be malicious input so we
-                // don&#39;t need to care about returning a good error message.
+                // don't need to care about returning a good error message.
                 </span><span class="kw">if </span>mem::size_of::&lt;usize&gt;() &lt; <span class="number">8 </span>{
                     <span class="kw">let </span>max_alloc = usize::MAX / <span class="number">2 </span>- align;
                     <span class="macro">assert!</span>(size &lt;= max_alloc);
@@ -559,7 +561,7 @@
                 <span class="comment">// SAFETY: align is not zero, align is a power of two, and
                 // rounding size up to align does not overflow isize::MAX.
                 </span><span class="kw">let </span>layout = <span class="kw">unsafe </span>{ Layout::from_size_align_unchecked(size, align) };
-                <span class="comment">// SAFETY: layout&#39;s size is nonzero.
+                <span class="comment">// SAFETY: layout's size is nonzero.
                 </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ alloc(layout) };
                 <span class="kw">if </span>ptr.is_null() {
                     handle_alloc_error(layout);
@@ -583,7 +585,7 @@
                 }
             }
             <span class="number">0x100_0000_0000_0000</span>..=<span class="number">0xffff_ffff_ffff_ffff </span>=&gt; {
-                <span class="macro">unreachable!</span>(<span class="string">&quot;please refrain from storing &gt;64 petabytes of text in semver version&quot;</span>);
+                <span class="macro">unreachable!</span>(<span class="string">"please refrain from storing &gt;64 petabytes of text in semver version"</span>);
             }
             <span class="attr">#[cfg(no_exhaustive_int_match)] </span><span class="comment">// rustc &lt;1.33
             </span><span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
@@ -594,7 +596,7 @@
         <span class="comment">// `cmp rdi, -1` -- basically: `repr as i64 == -1`
         </span><span class="kw">let </span>empty = <span class="self">Self</span>::empty();
         <span class="kw">let </span>is_empty = <span class="self">self</span>.head == empty.head &amp;&amp; <span class="self">self</span>.tail == empty.tail;
-        <span class="comment">// The empty representation does nothing on Drop. We can&#39;t let this one
+        <span class="comment">// The empty representation does nothing on Drop. We can't let this one
         // drop normally because `impl Drop for Identifier` calls is_empty; that
         // would be an infinite recursion.
         </span>mem::forget(empty);
@@ -613,7 +615,7 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw">if </span><span class="self">self</span>.is_empty() {
-            <span class="string">&quot;&quot;
+            <span class="string">""
         </span>} <span class="kw">else if </span><span class="self">self</span>.is_inline() {
             <span class="comment">// SAFETY: repr is in the inline representation.
             </span><span class="kw">unsafe </span>{ inline_as_str(<span class="self">self</span>) }
@@ -642,7 +644,7 @@
             // duplicating a previous allocation where all of these guarantees
             // were already made.
             </span><span class="kw">let </span>layout = <span class="kw">unsafe </span>{ Layout::from_size_align_unchecked(size, align) };
-            <span class="comment">// SAFETY: layout&#39;s size is nonzero.
+            <span class="comment">// SAFETY: layout's size is nonzero.
             </span><span class="kw">let </span>clone = <span class="kw">unsafe </span>{ alloc(layout) };
             <span class="kw">if </span>clone.is_null() {
                 handle_alloc_error(layout);
@@ -670,7 +672,7 @@
         <span class="kw">let </span>size = bytes_for_varint(len) + len.get();
         <span class="kw">let </span>align = <span class="number">2</span>;
         <span class="comment">// SAFETY: align is not zero, align is a power of two, and rounding
-        // size up to align does not overflow usize::MAX. These guarantees were
+        // size up to align does not overflow isize::MAX. These guarantees were
         // made when originally allocating this memory.
         </span><span class="kw">let </span>layout = <span class="kw">unsafe </span>{ Layout::from_size_align_unchecked(size, align) };
         <span class="comment">// SAFETY: ptr was previously allocated by the same allocator with the
@@ -737,7 +739,7 @@
 //
 // SAFETY: the identifier must indeed be in the inline representation.
 </span><span class="kw">unsafe fn </span>inline_len(repr: <span class="kw-2">&amp;</span>Identifier) -&gt; NonZeroUsize {
-    <span class="comment">// SAFETY: Identifier&#39;s layout is align(8) and at least size 8. We&#39;re doing
+    <span class="comment">// SAFETY: Identifier's layout is align(8) and at least size 8. We're doing
     // an aligned read of the first 8 bytes from it. The bytes are not all zero
     // because inline strings are at least 1 byte long and cannot contain \0.
     </span><span class="kw">let </span>repr = <span class="kw">unsafe </span>{ ptr::read(repr <span class="kw">as </span><span class="kw-2">*const </span>Identifier <span class="kw">as </span><span class="kw-2">*const </span>NonZeroU64) };
@@ -749,9 +751,9 @@
     </span><span class="attr">#[cfg(no_nonzero_bitscan)]
     </span><span class="kw">let </span>repr = repr.get();
 
-    <span class="attr">#[cfg(target_endian = <span class="string">&quot;little&quot;</span>)]
+    <span class="attr">#[cfg(target_endian = <span class="string">"little"</span>)]
     </span><span class="kw">let </span>zero_bits_on_string_end = repr.leading_zeros();
-    <span class="attr">#[cfg(target_endian = <span class="string">&quot;big&quot;</span>)]
+    <span class="attr">#[cfg(target_endian = <span class="string">"big"</span>)]
     </span><span class="kw">let </span>zero_bits_on_string_end = repr.trailing_zeros();
 
     <span class="kw">let </span>nonzero_bytes = <span class="number">8 </span>- zero_bits_on_string_end <span class="kw">as </span>usize / <span class="number">8</span>;
@@ -766,7 +768,7 @@
 </span><span class="kw">unsafe fn </span>inline_as_str(repr: <span class="kw-2">&amp;</span>Identifier) -&gt; <span class="kw-2">&amp;</span>str {
     <span class="kw">let </span>ptr = repr <span class="kw">as </span><span class="kw-2">*const </span>Identifier <span class="kw">as </span><span class="kw-2">*const </span>u8;
     <span class="kw">let </span>len = <span class="kw">unsafe </span>{ inline_len(repr) }.get();
-    <span class="comment">// SAFETY: we are viewing the nonzero ASCII prefix of the inline repr&#39;s
+    <span class="comment">// SAFETY: we are viewing the nonzero ASCII prefix of the inline repr's
     // contents as a slice of bytes. Input/output lifetimes are correctly
     // associated.
     </span><span class="kw">let </span>slice = <span class="kw">unsafe </span>{ slice::from_raw_parts(ptr, len) };

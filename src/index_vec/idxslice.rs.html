@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/index_vec-0.1.3/src/idxslice.rs`."><title>idxslice.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="index_vec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../index_vec/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/index_vec-0.1.3/src/idxslice.rs`."><title>idxslice.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="index_vec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../index_vec/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -836,13 +838,13 @@
 ///
 /// This is a thin wrapper around a `[T]`, to the point where the backing  is a
 /// public property (called `raw`). This is in part because I know this API is
-/// not a complete mirror of Vec&#39;s (patches welcome). In the worst case, you can
+/// not a complete mirror of Vec's (patches welcome). In the worst case, you can
 /// always do what you need to the slice itself.
 ///
 /// ## Some notes on the APIs
 ///
 /// - Most of the Slice APIs are present.
-///     - Any that aren&#39;t can be trivially accessed on the underlying `raw`
+///     - Any that aren't can be trivially accessed on the underlying `raw`
 ///       field, which is public.
 ///
 /// - Apis that take or return usizes referring to the positions of items were
@@ -877,7 +879,7 @@
 </span><span class="kw">unsafe impl</span>&lt;I: Idx, T&gt; Send <span class="kw">for </span>IndexSlice&lt;I, [T]&gt; <span class="kw">where </span>T: Send {}
 
 <span class="kw">impl</span>&lt;I: Idx, T: fmt::Debug + <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>IndexSlice&lt;I, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         fmt::Debug::fmt(<span class="kw-2">&amp;</span><span class="self">self</span>.raw, fmt)
     }
 }
@@ -924,7 +926,7 @@
     <span class="doccomment">/// Converts `self` into a vector without clones or allocation.
     ///
     /// The resulting vector can be converted back into a box via
-    /// `IndexVec&lt;I, T&gt;`&#39;s `into_boxed_slice` method.
+    /// `IndexVec&lt;I, T&gt;`'s `into_boxed_slice` method.
     </span><span class="attr">#[inline]
     #[allow(clippy::wrong_self_convention)]
     </span><span class="kw">pub fn </span>into_vec(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; IndexVec&lt;I, T&gt; {
@@ -948,13 +950,13 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.raw
     }
 
-    <span class="doccomment">/// Returns an unsafe mutable pointer to the slice&#39;s buffer.
+    <span class="doccomment">/// Returns an unsafe mutable pointer to the slice's buffer.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>as_mut_ptr(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>T {
         <span class="self">self</span>.raw.as_mut_ptr()
     }
 
-    <span class="doccomment">/// Returns an unsafe pointer to the slice&#39;s buffer.
+    <span class="doccomment">/// Returns an unsafe pointer to the slice's buffer.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>T {
         <span class="self">self</span>.raw.as_ptr()
@@ -981,7 +983,7 @@
         I::from_usize(<span class="self">self</span>.raw.len())
     }
 
-    <span class="doccomment">/// Returns true if we&#39;re empty.
+    <span class="doccomment">/// Returns true if we're empty.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.raw.is_empty()
@@ -992,7 +994,7 @@
     /// See also [`IndexSlice::iter_enumerated`], which gives you indices (of the
     /// correct type) as you iterate.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; slice::Iter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; slice::Iter&lt;<span class="lifetime">'_</span>, T&gt; {
         <span class="self">self</span>.raw.iter()
     }
 
@@ -1001,14 +1003,14 @@
     /// See also [`IndexSlice::iter_mut_enumerated`], which gives you indices (of
     /// the correct type) as you iterate.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; slice::IterMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; slice::IterMut&lt;<span class="lifetime">'_</span>, T&gt; {
         <span class="self">self</span>.raw.iter_mut()
     }
 
     <span class="doccomment">/// Similar to `self.iter().enumerate()` but with indices of `I` and not
     /// `usize`.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>iter_enumerated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Enumerated&lt;slice::Iter&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, <span class="kw-2">&amp;</span>T&gt; {
+    </span><span class="kw">pub fn </span>iter_enumerated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Enumerated&lt;slice::Iter&lt;<span class="lifetime">'_</span>, T&gt;, I, <span class="kw-2">&amp;</span>T&gt; {
         <span class="self">self</span>.raw
             .iter()
             .enumerate()
@@ -1024,14 +1026,14 @@
     <span class="doccomment">/// Similar to `self.iter_mut().enumerate()` but with indices of `I` and not
     /// `usize`.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>iter_mut_enumerated(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Enumerated&lt;slice::IterMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, <span class="kw-2">&amp;mut </span>T&gt; {
+    </span><span class="kw">pub fn </span>iter_mut_enumerated(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Enumerated&lt;slice::IterMut&lt;<span class="lifetime">'_</span>, T&gt;, I, <span class="kw-2">&amp;mut </span>T&gt; {
         <span class="self">self</span>.raw
             .iter_mut()
             .enumerate()
             .map(|(i, t)| (I::from_usize(i), t))
     }
 
-    <span class="doccomment">/// Forwards to the slice&#39;s `sort` implementation.
+    <span class="doccomment">/// Forwards to the slice's `sort` implementation.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>sort(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
     <span class="kw">where
@@ -1040,25 +1042,25 @@
         <span class="self">self</span>.raw.sort()
     }
 
-    <span class="doccomment">/// Forwards to the slice&#39;s `sort_by` implementation.
+    <span class="doccomment">/// Forwards to the slice's `sort_by` implementation.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>sort_by&lt;F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; core::cmp::Ordering&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, compare: F) {
         <span class="self">self</span>.raw.sort_by(compare)
     }
 
-    <span class="doccomment">/// Forwards to the slice&#39;s `sort_by_key` implementation.
+    <span class="doccomment">/// Forwards to the slice's `sort_by_key` implementation.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>sort_by_key&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; K, K: Ord&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) {
         <span class="self">self</span>.raw.sort_by_key(f)
     }
 
-    <span class="doccomment">/// Forwards to the slice&#39;s `sort_by_cached_key` implementation.
+    <span class="doccomment">/// Forwards to the slice's `sort_by_cached_key` implementation.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>sort_by_cached_key&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; K, K: Ord&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) {
         <span class="self">self</span>.raw.sort_by_cached_key(f)
     }
 
-    <span class="doccomment">/// Forwards to the slice&#39;s `sort_unstable` implementation.
+    <span class="doccomment">/// Forwards to the slice's `sort_unstable` implementation.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>sort_unstable(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
     <span class="kw">where
@@ -1067,19 +1069,19 @@
         <span class="self">self</span>.raw.sort_unstable()
     }
 
-    <span class="doccomment">/// Forwards to the slice&#39;s `sort_unstable_by` implementation.
+    <span class="doccomment">/// Forwards to the slice's `sort_unstable_by` implementation.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>sort_unstable_by&lt;F: FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; core::cmp::Ordering&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, compare: F) {
         <span class="self">self</span>.raw.sort_unstable_by(compare)
     }
 
-    <span class="doccomment">/// Forwards to the slice&#39;s `sort_unstable_by_key` implementation.
+    <span class="doccomment">/// Forwards to the slice's `sort_unstable_by_key` implementation.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>sort_unstable_by_key&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; K, K: Ord&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) {
         <span class="self">self</span>.raw.sort_unstable_by_key(f)
     }
 
-    <span class="doccomment">/// Forwards to the slice&#39;s `ends_with` implementation.
+    <span class="doccomment">/// Forwards to the slice's `ends_with` implementation.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>ends_with&lt;S: AsRef&lt;[T]&gt; + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: <span class="kw-2">&amp;</span>S) -&gt; bool
     <span class="kw">where
@@ -1088,7 +1090,7 @@
         <span class="self">self</span>.raw.ends_with(needle.as_ref())
     }
 
-    <span class="doccomment">/// Forwards to the slice&#39;s `starts_with` implementation.
+    <span class="doccomment">/// Forwards to the slice's `starts_with` implementation.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>starts_with&lt;S: AsRef&lt;[T]&gt; + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, needle: <span class="kw-2">&amp;</span>S) -&gt; bool
     <span class="kw">where
@@ -1097,7 +1099,7 @@
         <span class="self">self</span>.raw.starts_with(needle.as_ref())
     }
 
-    <span class="doccomment">/// Forwards to the slice&#39;s `contains` implementation.
+    <span class="doccomment">/// Forwards to the slice's `contains` implementation.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, x: <span class="kw-2">&amp;</span>T) -&gt; bool
     <span class="kw">where
@@ -1106,7 +1108,7 @@
         <span class="self">self</span>.raw.contains(x)
     }
 
-    <span class="doccomment">/// Forwards to the slice&#39;s `reverse` implementation.
+    <span class="doccomment">/// Forwards to the slice's `reverse` implementation.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>reverse(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.raw.reverse()
@@ -1128,8 +1130,8 @@
     <span class="doccomment">/// Binary searches this sorted vec with a comparator function, converting
     /// the indices it gives us back to our Idx type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>binary_search_by&lt;<span class="lifetime">&#39;a</span>, F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; core::cmp::Ordering&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+    </span><span class="kw">pub fn </span>binary_search_by&lt;<span class="lifetime">'a</span>, F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T) -&gt; core::cmp::Ordering&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
         f: F,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;I, I&gt; {
         <span class="kw">match </span><span class="self">self</span>.raw.binary_search_by(f) {
@@ -1165,8 +1167,8 @@
     <span class="doccomment">/// Binary searches this sorted vec with a key extraction function, converting
     /// the indices it gives us back to our Idx type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>binary_search_by_key&lt;<span class="lifetime">&#39;a</span>, B: Ord, F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; B&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+    </span><span class="kw">pub fn </span>binary_search_by_key&lt;<span class="lifetime">'a</span>, B: Ord, F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T) -&gt; B&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
         b: <span class="kw-2">&amp;</span>B,
         f: F,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;I, I&gt; {
@@ -1276,156 +1278,156 @@
         index.get_mut(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `windows` iterator with one that yields
+    <span class="doccomment">/// Wraps the underlying slice's `windows` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>windows(<span class="kw-2">&amp;</span><span class="self">self</span>, size: usize) -&gt; SliceMapped&lt;slice::Windows&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+    </span><span class="kw">pub fn </span>windows(<span class="kw-2">&amp;</span><span class="self">self</span>, size: usize) -&gt; SliceMapped&lt;slice::Windows&lt;<span class="lifetime">'_</span>, T&gt;, I, T&gt; {
         <span class="self">self</span>.raw.windows(size).map(IndexSlice::new)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `chunks` iterator with one that yields
+    <span class="doccomment">/// Wraps the underlying slice's `chunks` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>chunks(<span class="kw-2">&amp;</span><span class="self">self</span>, size: usize) -&gt; SliceMapped&lt;slice::Chunks&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+    </span><span class="kw">pub fn </span>chunks(<span class="kw-2">&amp;</span><span class="self">self</span>, size: usize) -&gt; SliceMapped&lt;slice::Chunks&lt;<span class="lifetime">'_</span>, T&gt;, I, T&gt; {
         <span class="self">self</span>.raw.chunks(size).map(IndexSlice::new)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `chunks_mut` iterator with one that yields
+    <span class="doccomment">/// Wraps the underlying slice's `chunks_mut` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>chunks_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: usize) -&gt; SliceMappedMut&lt;slice::ChunksMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+    </span><span class="kw">pub fn </span>chunks_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: usize) -&gt; SliceMappedMut&lt;slice::ChunksMut&lt;<span class="lifetime">'_</span>, T&gt;, I, T&gt; {
         <span class="self">self</span>.raw.chunks_mut(size).map(IndexSlice::new_mut)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `chunks_exact` iterator with one that
+    <span class="doccomment">/// Wraps the underlying slice's `chunks_exact` iterator with one that
     /// yields `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>chunks_exact(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; SliceMapped&lt;slice::ChunksExact&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+    </span><span class="kw">pub fn </span>chunks_exact(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; SliceMapped&lt;slice::ChunksExact&lt;<span class="lifetime">'_</span>, T&gt;, I, T&gt; {
         <span class="self">self</span>.raw.chunks_exact(chunk_size).map(IndexSlice::new)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `chunks_exact_mut` iterator with one that
+    <span class="doccomment">/// Wraps the underlying slice's `chunks_exact_mut` iterator with one that
     /// yields `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>chunks_exact_mut(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         chunk_size: usize,
-    ) -&gt; SliceMappedMut&lt;slice::ChunksExactMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+    ) -&gt; SliceMappedMut&lt;slice::ChunksExactMut&lt;<span class="lifetime">'_</span>, T&gt;, I, T&gt; {
         <span class="self">self</span>.raw
             .chunks_exact_mut(chunk_size)
             .map(IndexSlice::new_mut)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `rchunks` iterator with one that yields
+    <span class="doccomment">/// Wraps the underlying slice's `rchunks` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>rchunks(<span class="kw-2">&amp;</span><span class="self">self</span>, size: usize) -&gt; SliceMapped&lt;slice::RChunks&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+    </span><span class="kw">pub fn </span>rchunks(<span class="kw-2">&amp;</span><span class="self">self</span>, size: usize) -&gt; SliceMapped&lt;slice::RChunks&lt;<span class="lifetime">'_</span>, T&gt;, I, T&gt; {
         <span class="self">self</span>.raw.rchunks(size).map(IndexSlice::new)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `rchunks_mut` iterator with one that yields
+    <span class="doccomment">/// Wraps the underlying slice's `rchunks_mut` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>rchunks_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: usize) -&gt; SliceMappedMut&lt;slice::RChunksMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+    </span><span class="kw">pub fn </span>rchunks_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: usize) -&gt; SliceMappedMut&lt;slice::RChunksMut&lt;<span class="lifetime">'_</span>, T&gt;, I, T&gt; {
         <span class="self">self</span>.raw.rchunks_mut(size).map(IndexSlice::new_mut)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `rchunks_exact` iterator with one that
+    <span class="doccomment">/// Wraps the underlying slice's `rchunks_exact` iterator with one that
     /// yields `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>rchunks_exact(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         chunk_size: usize,
-    ) -&gt; SliceMapped&lt;slice::RChunksExact&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+    ) -&gt; SliceMapped&lt;slice::RChunksExact&lt;<span class="lifetime">'_</span>, T&gt;, I, T&gt; {
         <span class="self">self</span>.raw.rchunks_exact(chunk_size).map(IndexSlice::new)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `rchunks_exact_mut` iterator with one that
+    <span class="doccomment">/// Wraps the underlying slice's `rchunks_exact_mut` iterator with one that
     /// yields `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>rchunks_exact_mut(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         chunk_size: usize,
-    ) -&gt; SliceMappedMut&lt;slice::RChunksExactMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, I, T&gt; {
+    ) -&gt; SliceMappedMut&lt;slice::RChunksExactMut&lt;<span class="lifetime">'_</span>, T&gt;, I, T&gt; {
         <span class="self">self</span>.raw
             .rchunks_exact_mut(chunk_size)
             .map(IndexSlice::new_mut)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `split` iterator with one that yields
+    <span class="doccomment">/// Wraps the underlying slice's `split` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>split&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; SliceMapped&lt;slice::Split&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
+    </span><span class="kw">pub fn </span>split&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; SliceMapped&lt;slice::Split&lt;<span class="lifetime">'_</span>, T, F&gt;, I, T&gt; {
         <span class="self">self</span>.raw.split(f).map(IndexSlice::new)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `split_mut` iterator with one that yields
+    <span class="doccomment">/// Wraps the underlying slice's `split_mut` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>split_mut&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         f: F,
-    ) -&gt; SliceMappedMut&lt;slice::SplitMut&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
+    ) -&gt; SliceMappedMut&lt;slice::SplitMut&lt;<span class="lifetime">'_</span>, T, F&gt;, I, T&gt; {
         <span class="self">self</span>.raw.split_mut(f).map(IndexSlice::new_mut)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `rsplit` iterator with one that yields
+    <span class="doccomment">/// Wraps the underlying slice's `rsplit` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>rsplit&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; SliceMapped&lt;slice::RSplit&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
+    </span><span class="kw">pub fn </span>rsplit&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; SliceMapped&lt;slice::RSplit&lt;<span class="lifetime">'_</span>, T, F&gt;, I, T&gt; {
         <span class="self">self</span>.raw.rsplit(f).map(IndexSlice::new)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `rsplit_mut` iterator with one that yields
+    <span class="doccomment">/// Wraps the underlying slice's `rsplit_mut` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>rsplit_mut&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         f: F,
-    ) -&gt; SliceMappedMut&lt;slice::RSplitMut&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
+    ) -&gt; SliceMappedMut&lt;slice::RSplitMut&lt;<span class="lifetime">'_</span>, T, F&gt;, I, T&gt; {
         <span class="self">self</span>.raw.rsplit_mut(f).map(IndexSlice::new_mut)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `splitn` iterator with one that yields
+    <span class="doccomment">/// Wraps the underlying slice's `splitn` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>splitn&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         n: usize,
         f: F,
-    ) -&gt; SliceMapped&lt;slice::SplitN&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
+    ) -&gt; SliceMapped&lt;slice::SplitN&lt;<span class="lifetime">'_</span>, T, F&gt;, I, T&gt; {
         <span class="self">self</span>.raw.splitn(n, f).map(IndexSlice::new)
     }
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `splitn_mut` iterator with one that yields
+    <span class="doccomment">/// Wraps the underlying slice's `splitn_mut` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>splitn_mut&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         n: usize,
         f: F,
-    ) -&gt; SliceMappedMut&lt;slice::SplitNMut&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
+    ) -&gt; SliceMappedMut&lt;slice::SplitNMut&lt;<span class="lifetime">'_</span>, T, F&gt;, I, T&gt; {
         <span class="self">self</span>.raw.splitn_mut(n, f).map(IndexSlice::new_mut)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `rsplitn` iterator with one that yields
+    <span class="doccomment">/// Wraps the underlying slice's `rsplitn` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>rsplitn&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         n: usize,
         f: F,
-    ) -&gt; SliceMapped&lt;slice::RSplitN&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
+    ) -&gt; SliceMapped&lt;slice::RSplitN&lt;<span class="lifetime">'_</span>, T, F&gt;, I, T&gt; {
         <span class="self">self</span>.raw.rsplitn(n, f).map(IndexSlice::new)
     }
 
-    <span class="doccomment">/// Wraps the underlying slice&#39;s `rsplitn_mut` iterator with one that yields
+    <span class="doccomment">/// Wraps the underlying slice's `rsplitn_mut` iterator with one that yields
     /// `IndexSlice`s with the correct index type.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>rsplitn_mut&lt;F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; bool&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         n: usize,
         f: F,
-    ) -&gt; SliceMappedMut&lt;slice::RSplitNMut&lt;<span class="lifetime">&#39;_</span>, T, F&gt;, I, T&gt; {
+    ) -&gt; SliceMappedMut&lt;slice::RSplitNMut&lt;<span class="lifetime">'_</span>, T, F&gt;, I, T&gt; {
         <span class="self">self</span>.raw.rsplitn_mut(n, f).map(IndexSlice::new_mut)
     }
 
@@ -1436,7 +1438,7 @@
     /// This is equivalent to `core::slice::from_raw_parts` and has the same
     /// safety caveats.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub unsafe fn </span>from_raw_parts&lt;<span class="lifetime">&#39;a</span>&gt;(data: <span class="kw-2">*const </span>T, len: usize) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self </span>{
+    </span><span class="kw">pub unsafe fn </span>from_raw_parts&lt;<span class="lifetime">'a</span>&gt;(data: <span class="kw-2">*const </span>T, len: usize) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">Self </span>{
         <span class="self">Self</span>::new(slice::from_raw_parts(data, len))
     }
 
@@ -1447,7 +1449,7 @@
     /// This is equivalent to `core::slice::from_raw_parts_mut` and has the same
     /// safety caveats.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub unsafe fn </span>from_raw_parts_mut&lt;<span class="lifetime">&#39;a</span>&gt;(data: <span class="kw-2">*mut </span>T, len: usize) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">Self </span>{
+    </span><span class="kw">pub unsafe fn </span>from_raw_parts_mut&lt;<span class="lifetime">'a</span>&gt;(data: <span class="kw-2">*mut </span>T, len: usize) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">Self </span>{
         <span class="self">Self</span>::new_mut(slice::from_raw_parts_mut(data, len))
     }
 
@@ -1558,22 +1560,22 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: Idx, T&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexSlice&lt;I, [T]&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
-    <span class="kw">type </span>IntoIter = slice::Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, I: Idx, T&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>IndexSlice&lt;I, [T]&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T;
+    <span class="kw">type </span>IntoIter = slice::Iter&lt;<span class="lifetime">'a</span>, T&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; slice::Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; slice::Iter&lt;<span class="lifetime">'a</span>, T&gt; {
         <span class="self">self</span>.raw.iter()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: Idx, T&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>IndexSlice&lt;I, [T]&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T;
-    <span class="kw">type </span>IntoIter = slice::IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, I: Idx, T&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>IndexSlice&lt;I, [T]&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T;
+    <span class="kw">type </span>IntoIter = slice::IterMut&lt;<span class="lifetime">'a</span>, T&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; slice::IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; slice::IterMut&lt;<span class="lifetime">'a</span>, T&gt; {
         <span class="self">self</span>.raw.iter_mut()
     }
 }
@@ -1592,16 +1594,16 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: Idx, T&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IndexSlice&lt;I, [T]&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, I: Idx, T&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[T]&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>IndexSlice&lt;I, [T]&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(a: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from(a: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[T]) -&gt; <span class="self">Self </span>{
         IndexSlice::new(a)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: Idx, T&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[T]&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>IndexSlice&lt;I, [T]&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, I: Idx, T&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[T]&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>IndexSlice&lt;I, [T]&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(a: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[T]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from(a: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[T]) -&gt; <span class="self">Self </span>{
         IndexSlice::new_mut(a)
     }
 }

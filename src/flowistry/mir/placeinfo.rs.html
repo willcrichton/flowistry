@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/mir/placeinfo.rs`."><title>placeinfo.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="flowistry" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/mir/placeinfo.rs`."><title>placeinfo.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="flowistry" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -14,7 +14,9 @@
     });
 </script>
 
-</head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+</head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../flowistry/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -389,23 +391,23 @@
 <span class="kw">use </span><span class="kw">crate</span>::extensions::{is_extension_active, MutabilityMode};
 
 <span class="doccomment">/// Utilities for analyzing places: children, aliases, etc.
-</span><span class="kw">pub struct </span>PlaceInfo&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-  <span class="kw">pub</span>(<span class="kw">crate</span>) tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-  <span class="kw">pub</span>(<span class="kw">crate</span>) body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+</span><span class="kw">pub struct </span>PlaceInfo&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt; {
+  <span class="kw">pub</span>(<span class="kw">crate</span>) tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
+  <span class="kw">pub</span>(<span class="kw">crate</span>) body: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Body&lt;<span class="lifetime">'tcx</span>&gt;,
   <span class="kw">pub</span>(<span class="kw">crate</span>) def_id: DefId,
   location_domain: Rc&lt;LocationOrArgDomain&gt;,
 
   <span class="comment">// Core computed data structure
-  </span>aliases: Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
+  </span>aliases: Aliases&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt;,
 
   <span class="comment">// Caching for derived analysis
-  </span>normalized_cache: CopyCache&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-  aliases_cache: Cache&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-  conflicts_cache: Cache&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-  reachable_cache: Cache&lt;(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, Mutability), PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+  </span>normalized_cache: CopyCache&lt;Place&lt;<span class="lifetime">'tcx</span>&gt;, Place&lt;<span class="lifetime">'tcx</span>&gt;&gt;,
+  aliases_cache: Cache&lt;Place&lt;<span class="lifetime">'tcx</span>&gt;, PlaceSet&lt;<span class="lifetime">'tcx</span>&gt;&gt;,
+  conflicts_cache: Cache&lt;Place&lt;<span class="lifetime">'tcx</span>&gt;, PlaceSet&lt;<span class="lifetime">'tcx</span>&gt;&gt;,
+  reachable_cache: Cache&lt;(Place&lt;<span class="lifetime">'tcx</span>&gt;, Mutability), PlaceSet&lt;<span class="lifetime">'tcx</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; PlaceInfo&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt; PlaceInfo&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt; {
   <span class="kw">fn </span>build_location_arg_domain(body: <span class="kw-2">&amp;</span>Body) -&gt; Rc&lt;LocationOrArgDomain&gt; {
     <span class="kw">let </span>all_locations = body.all_locations().map(LocationOrArg::Location);
     <span class="kw">let </span>all_locals = body.args_iter().map(LocationOrArg::Arg);
@@ -415,11 +417,11 @@
 
   <span class="doccomment">/// Computes all the metadata about places used within the infoflow analysis.
   </span><span class="kw">pub fn </span>build(
-    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
     def_id: DefId,
-    body_with_facts: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    body_with_facts: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>BodyWithBorrowckFacts&lt;<span class="lifetime">'tcx</span>&gt;,
   ) -&gt; <span class="self">Self </span>{
-    <span class="macro">block_timer!</span>(<span class="string">&quot;aliases&quot;</span>);
+    <span class="macro">block_timer!</span>(<span class="string">"aliases"</span>);
     <span class="kw">let </span>body = <span class="kw-2">&amp;</span>body_with_facts.body;
     <span class="kw">let </span>location_domain = <span class="self">Self</span>::build_location_arg_domain(body);
     <span class="kw">let </span>aliases = Aliases::build(tcx, def_id, body_with_facts);
@@ -440,7 +442,7 @@
   <span class="doccomment">/// Normalizes a place via [`PlaceExt::normalize`] (cached).
   ///
   /// See the `PlaceExt` documentation for details on how normalization works.
-  </span><span class="kw">pub fn </span>normalize(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; Place&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  </span><span class="kw">pub fn </span>normalize(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; Place&lt;<span class="lifetime">'tcx</span>&gt; {
     <span class="self">self
       </span>.normalized_cache
       .get(place, |place| place.normalize(<span class="self">self</span>.tcx, <span class="self">self</span>.def_id))
@@ -450,7 +452,7 @@
   ///
   /// For example, if `x = &amp;y`, then `*x` aliases `y`.
   /// Note that an alias is NOT guaranteed to be of the same type as `place`!
-  </span><span class="kw">pub fn </span>aliases(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  </span><span class="kw">pub fn </span>aliases(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">'tcx</span>&gt; {
     <span class="comment">// note: important that aliases are computed on the unnormalized place
     // which contains region information
     </span><span class="self">self
@@ -461,7 +463,7 @@
   <span class="doccomment">/// Returns all reachable fields of `place` without going through references.
   ///
   /// For example, if `x = (0, 1)` then `children(x) = {x, x.0, x.1}`.
-  </span><span class="kw">pub fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  </span><span class="kw">pub fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; PlaceSet&lt;<span class="lifetime">'tcx</span>&gt; {
     PlaceSet::from_iter(place.interior_places(<span class="self">self</span>.tcx, <span class="self">self</span>.body, <span class="self">self</span>.def_id))
   }
 
@@ -469,7 +471,7 @@
   /// would also be a mutation to the conflicting place.
   ///
   /// For example, if `x = ((0, 1), 2)` then `conflicts(x.0) = {x, x.0, x.0.0, x.0.1}`, but not `x.1`.
-  </span><span class="kw">pub fn </span>conflicts(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  </span><span class="kw">pub fn </span>conflicts(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">'tcx</span>&gt; {
     <span class="self">self</span>.conflicts_cache.get(place, |place| {
       <span class="kw">let </span>children = <span class="self">self</span>.children(place);
       <span class="kw">let </span>parents = place
@@ -487,9 +489,9 @@
   /// is `{y, x}`. With `Mutability::Mut`, then the output is `{y}` (no `x`).
   </span><span class="kw">pub fn </span>reachable_values(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    place: Place&lt;<span class="lifetime">'tcx</span>&gt;,
     mutability: Mutability,
-  ) -&gt; <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  ) -&gt; <span class="kw-2">&amp;</span>PlaceSet&lt;<span class="lifetime">'tcx</span>&gt; {
     <span class="self">self</span>.reachable_cache.get((place, mutability), |<span class="kw">_</span>| {
       <span class="kw">let </span>ty = place.ty(<span class="self">self</span>.body.local_decls(), <span class="self">self</span>.tcx).ty;
       <span class="kw">let </span>loans = <span class="self">self</span>.collect_loans(ty, mutability);
@@ -509,7 +511,7 @@
     })
   }
 
-  <span class="kw">fn </span>collect_loans(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, mutability: Mutability) -&gt; PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">fn </span>collect_loans(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: Ty&lt;<span class="lifetime">'tcx</span>&gt;, mutability: Mutability) -&gt; PlaceSet&lt;<span class="lifetime">'tcx</span>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>collector = LoanCollector {
       aliases: <span class="kw-2">&amp;</span><span class="self">self</span>.aliases,
       unknown_region: Region::new_var(<span class="self">self</span>.tcx, UNKNOWN_REGION),
@@ -524,8 +526,8 @@
   <span class="doccomment">/// Returns all [direct](PlaceExt::is_direct) places reachable from arguments
   /// to the current body.
   </span><span class="kw">pub fn </span>all_args(
-    <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
-  ) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, LocationOrArgIndex)&gt; + <span class="lifetime">&#39;a </span>{
+    <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
+  ) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (Place&lt;<span class="lifetime">'tcx</span>&gt;, LocationOrArgIndex)&gt; + <span class="lifetime">'a </span>{
     <span class="self">self</span>.body.args_iter().flat_map(|local| {
       <span class="kw">let </span>location = local.to_index(<span class="kw-2">&amp;</span><span class="self">self</span>.location_domain);
       <span class="kw">let </span>place = Place::from_local(local, <span class="self">self</span>.tcx);
@@ -553,18 +555,18 @@
 
 <span class="comment">// TODO: this visitor shares some structure with the PlaceCollector in mir utils.
 // Can we consolidate these?
-</span><span class="kw">struct </span>LoanCollector&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-  aliases: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Aliases&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
-  unknown_region: Region&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+</span><span class="kw">struct </span>LoanCollector&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt; {
+  aliases: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Aliases&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt;,
+  unknown_region: Region&lt;<span class="lifetime">'tcx</span>&gt;,
   target_mutability: Mutability,
   stack: Vec&lt;Mutability&gt;,
-  loans: PlaceSet&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  loans: PlaceSet&lt;<span class="lifetime">'tcx</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; TypeVisitor&lt;TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; <span class="kw">for </span>LoanCollector&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'tcx</span>&gt; TypeVisitor&lt;TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;&gt; <span class="kw">for </span>LoanCollector&lt;<span class="lifetime">'_</span>, <span class="lifetime">'tcx</span>&gt; {
   <span class="kw">type </span>BreakTy = ();
 
-  <span class="kw">fn </span>visit_ty(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+  <span class="kw">fn </span>visit_ty(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: Ty&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
     <span class="kw">match </span>ty.kind() {
       TyKind::Ref(<span class="kw">_</span>, <span class="kw">_</span>, mutability) =&gt; {
         <span class="self">self</span>.stack.push(<span class="kw-2">*</span>mutability);
@@ -582,16 +584,16 @@
     ControlFlow::Continue(())
   }
 
-  <span class="kw">fn </span>visit_region(<span class="kw-2">&amp;mut </span><span class="self">self</span>, region: Region&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+  <span class="kw">fn </span>visit_region(<span class="kw-2">&amp;mut </span><span class="self">self</span>, region: Region&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
     <span class="kw">let </span>region = <span class="kw">match </span>region.kind() {
       RegionKind::ReVar(region) =&gt; region,
       RegionKind::ReStatic =&gt; RegionVid::from_usize(<span class="number">0</span>),
       <span class="comment">// TODO: do we need to handle bound regions?
-      // e.g. shows up with closures, for&lt;&#39;a&gt; ...
-      </span>RegionKind::ReErased | RegionKind::ReLateBound(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+      // e.g. shows up with closures, for&lt;'a&gt; ...
+      </span>RegionKind::ReErased | RegionKind::ReBound(..) =&gt; {
         <span class="kw">return </span>ControlFlow::Continue(());
       }
-      <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;{region:?}&quot;</span>),
+      <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"{region:?}"</span>),
     };
     <span class="kw">if let </span><span class="prelude-val">Some</span>(loans) = <span class="self">self</span>.aliases.loans.get(<span class="kw-2">&amp;</span>region) {
       <span class="kw">let </span>under_immut_ref = <span class="self">self</span>.stack.iter().any(|m| <span class="kw-2">*</span>m == Mutability::Not);
@@ -631,7 +633,7 @@
 
   <span class="kw">fn </span>placeinfo_harness(
     input: <span class="kw-2">&amp;</span>str,
-    f: <span class="kw">impl for</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; FnOnce(TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, PlaceInfo&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt;) + Send,
+    f: <span class="kw">impl for</span>&lt;<span class="lifetime">'tcx</span>&gt; FnOnce(TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;, <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;, PlaceInfo&lt;<span class="lifetime">'_</span>, <span class="lifetime">'tcx</span>&gt;) + Send,
   ) {
     test_utils::compile_body(input, |tcx, body_id, body_with_facts| {
       <span class="kw">let </span>body = <span class="kw-2">&amp;</span>body_with_facts.body;
@@ -644,7 +646,7 @@
 
   <span class="attr">#[test]
   </span><span class="kw">fn </span>test_placeinfo_basic() {
-    <span class="kw">let </span>input = <span class="string">r#&quot;
+    <span class="kw">let </span>input = <span class="string">r#"
 fn main() {
   let a = 0;
   let mut b = 1;
@@ -653,10 +655,10 @@ fn main() {
   let e = &amp;d;
   let f = &amp;e;
 }
-    &quot;#</span>;
+    "#</span>;
     placeinfo_harness(input, |tcx, body, place_info| {
       <span class="kw">let </span>p = Placer::new(tcx, body);
-      <span class="kw">let </span>c = p.local(<span class="string">&quot;c&quot;</span>);
+      <span class="kw">let </span>c = p.local(<span class="string">"c"</span>);
       compare_sets(place_info.children(c.mk()), <span class="macro">hashset! </span>{
         c.mk(),
         c.field(<span class="number">0</span>).mk(),
@@ -678,8 +680,8 @@ fn main() {
         place_info.reachable_values(c.mk(), Mutability::Not),
         <span class="kw-2">&amp;</span><span class="macro">hashset! </span>{
           c.mk(),
-          p.local(<span class="string">&quot;a&quot;</span>).mk(),
-          p.local(<span class="string">&quot;b&quot;</span>).mk()
+          p.local(<span class="string">"a"</span>).mk(),
+          p.local(<span class="string">"b"</span>).mk()
         },
       );
 
@@ -688,17 +690,17 @@ fn main() {
         place_info.reachable_values(c.mk(), Mutability::Mut),
         <span class="kw-2">&amp;</span><span class="macro">hashset! </span>{
           c.mk(),
-          p.local(<span class="string">&quot;b&quot;</span>).mk()
+          p.local(<span class="string">"b"</span>).mk()
         },
       );
 
       <span class="comment">// handles transitive references
       </span>compare_sets(
-        place_info.reachable_values(p.local(<span class="string">&quot;f&quot;</span>).mk(), Mutability::Not),
+        place_info.reachable_values(p.local(<span class="string">"f"</span>).mk(), Mutability::Not),
         <span class="kw-2">&amp;</span><span class="macro">hashset! </span>{
-          p.local(<span class="string">&quot;f&quot;</span>).mk(),
-          p.local(<span class="string">&quot;e&quot;</span>).mk(),
-          p.local(<span class="string">&quot;d&quot;</span>).mk()
+          p.local(<span class="string">"f"</span>).mk(),
+          p.local(<span class="string">"e"</span>).mk(),
+          p.local(<span class="string">"d"</span>).mk()
         },
       )
     });

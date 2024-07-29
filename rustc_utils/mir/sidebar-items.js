@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["adt_def","body","borrowck_facts","control_dependencies","location_or_arg","mutability","operand","place","places_conflict"]};
+window.SIDEBAR_ITEMS = {"mod":["adt_def","body","borrowck_facts","control_dependencies","location_or_arg","mutability","operand","place"]};

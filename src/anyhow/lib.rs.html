@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/anyhow-1.0.75/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anyhow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../anyhow/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/anyhow-1.0.86/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anyhow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../anyhow/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -687,6 +689,47 @@
 <a href="#687" id="687">687</a>
 <a href="#688" id="688">688</a>
 <a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! [![github]](https://github.com/dtolnay/anyhow)&amp;ensp;[![crates-io]](https://crates.io/crates/anyhow)&amp;ensp;[![docs-rs]](https://docs.rs/anyhow)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&amp;labelColor=555555&amp;logo=github
@@ -706,7 +749,7 @@
 //!   the return type of any fallible function.
 //!
 //!   Within the function, use `?` to easily propagate any error that implements
-//!   the `std::error::Error` trait.
+//!   the [`std::error::Error`] trait.
 //!
 //!   ```
 //!   # pub trait Deserialize {}
@@ -727,7 +770,7 @@
 //!   use anyhow::Result;
 //!
 //!   fn get_cluster_info() -&gt; Result&lt;ClusterMap&gt; {
-//!       let config = std::fs::read_to_string(&quot;cluster.json&quot;)?;
+//!       let config = std::fs::read_to_string("cluster.json")?;
 //!       let map: ClusterMap = serde_json::from_str(&amp;config)?;
 //!       Ok(map)
 //!   }
@@ -736,8 +779,8 @@
 //!   ```
 //!
 //! - Attach context to help the person troubleshooting the error understand
-//!   where things went wrong. A low-level error like &quot;No such file or
-//!   directory&quot; can be annoying to debug without more context about what higher
+//!   where things went wrong. A low-level error like "No such file or
+//!   directory" can be annoying to debug without more context about what higher
 //!   level step the application was in the middle of.
 //!
 //!   ```
@@ -759,12 +802,12 @@
 //!       # };
 //!       #
 //!       # let it = It;
-//!       # let path = &quot;./path/to/instrs.json&quot;;
+//!       # let path = "./path/to/instrs.json";
 //!       #
-//!       it.detach().context(&quot;Failed to detach the important thing&quot;)?;
+//!       it.detach().context("Failed to detach the important thing")?;
 //!
 //!       let content = std::fs::read(path)
-//!           .with_context(|| format!(&quot;Failed to read instrs from {}&quot;, path))?;
+//!           .with_context(|| format!("Failed to read instrs from {}", path))?;
 //!       #
 //!       # const _: &amp;str = stringify! {
 //!       ...
@@ -804,7 +847,7 @@
 //!   #
 //!   # const REDACTED_CONTENT: () = ();
 //!   #
-//!   # let error = anyhow!(&quot;...&quot;);
+//!   # let error = anyhow!("...");
 //!   # let root_cause = &amp;error;
 //!   #
 //!   # let ret =
@@ -817,11 +860,10 @@
 //!   # ;
 //!   ```
 //!
-//! - If using the nightly channel, or stable with `features = [&quot;backtrace&quot;]`, a
-//!   backtrace is captured and printed with the error if the underlying error
-//!   type does not already provide its own. In order to see backtraces, they
-//!   must be enabled through the environment variables described in
-//!   [`std::backtrace`]:
+//! - If using Rust &amp;ge; 1.65, a backtrace is captured and printed with the
+//!   error if the underlying error type does not already provide its own. In
+//!   order to see backtraces, they must be enabled through the environment
+//!   variables described in [`std::backtrace`]:
 //!
 //!   - If you want panics and errors to both have backtraces, set
 //!     `RUST_BACKTRACE=1`;
@@ -829,10 +871,7 @@
 //!   - If you want only panics to have backtraces, set `RUST_BACKTRACE=1` and
 //!     `RUST_LIB_BACKTRACE=0`.
 //!
-//!   The tracking issue for this feature is [rust-lang/rust#53487].
-//!
 //!   [`std::backtrace`]: https://doc.rust-lang.org/std/backtrace/index.html#environment-variables
-//!   [rust-lang/rust#53487]: https://github.com/rust-lang/rust/issues/53487
 //!
 //! - Anyhow works with any error type that has an impl of `std::error::Error`,
 //!   including ones defined in your crate. We do not bundle a `derive(Error)`
@@ -846,12 +885,12 @@
 //!
 //!   #[derive(Error, Debug)]
 //!   pub enum FormatError {
-//!       #[error(&quot;Invalid header (expected {expected:?}, got {found:?})&quot;)]
+//!       #[error("Invalid header (expected {expected:?}, got {found:?})")]
 //!       InvalidHeader {
 //!           expected: String,
 //!           found: String,
 //!       },
-//!       #[error(&quot;Missing attribute: {0}&quot;)]
+//!       #[error("Missing attribute: {0}")]
 //!       MissingAttribute(String),
 //!   }
 //!   ```
@@ -863,8 +902,8 @@
 //!   # use anyhow::{anyhow, Result};
 //!   #
 //!   # fn demo() -&gt; Result&lt;()&gt; {
-//!   #     let missing = &quot;...&quot;;
-//!   return Err(anyhow!(&quot;Missing attribute: {}&quot;, missing));
+//!   #     let missing = "...";
+//!   return Err(anyhow!("Missing attribute: {}", missing));
 //!   #     Ok(())
 //!   # }
 //!   ```
@@ -875,8 +914,8 @@
 //!   # use anyhow::{bail, Result};
 //!   #
 //!   # fn demo() -&gt; Result&lt;()&gt; {
-//!   #     let missing = &quot;...&quot;;
-//!   bail!(&quot;Missing attribute: {}&quot;, missing);
+//!   #     let missing = "...";
+//!   bail!("Missing attribute: {}", missing);
 //!   #     Ok(())
 //!   # }
 //!   ```
@@ -885,30 +924,36 @@
 //!
 //! # No-std support
 //!
-//! In no_std mode, the same API is almost all available and works the same way.
-//! To depend on Anyhow in no_std mode, disable our default enabled &quot;std&quot;
+//! In no_std mode, almost all of the same API is available and works the same
+//! way. To depend on Anyhow in no_std mode, disable our default enabled "std"
 //! feature in Cargo.toml. A global allocator is required.
 //!
 //! ```toml
 //! [dependencies]
-//! anyhow = { version = &quot;1.0&quot;, default-features = false }
+//! anyhow = { version = "1.0", default-features = false }
 //! ```
 //!
 //! Since the `?`-based error conversions would normally rely on the
 //! `std::error::Error` trait which is only available through std, no_std mode
 //! will require an explicit `.map_err(Error::msg)` when working with a
-//! non-Anyhow error type inside a function that returns Anyhow&#39;s error type.
+//! non-Anyhow error type inside a function that returns Anyhow's error type.
 
-</span><span class="attr">#![doc(html_root_url = <span class="string">&quot;https://docs.rs/anyhow/1.0.75&quot;</span>)]
-#![cfg_attr(backtrace, feature(error_generic_member_access))]
+</span><span class="attr">#![doc(html_root_url = <span class="string">"https://docs.rs/anyhow/1.0.85"</span>)]
+#![cfg_attr(error_generic_member_access, feature(error_generic_member_access))]
 #![cfg_attr(doc_cfg, feature(doc_cfg))]
-#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+#![no_std]
 #![deny(dead_code, unused_imports, unused_mut)]
+#![cfg_attr(
+    not(anyhow_no_unsafe_op_in_unsafe_fn_lint),
+    deny(unsafe_op_in_unsafe_fn)
+)]
+#![cfg_attr(anyhow_no_unsafe_op_in_unsafe_fn_lint, allow(unused_unsafe))]
 #![allow(
     clippy::doc_markdown,
     clippy::enum_glob_use,
     clippy::explicit_auto_deref,
     clippy::extra_unused_type_parameters,
+    clippy::incompatible_msrv,
     clippy::let_underscore_untyped,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
@@ -918,13 +963,24 @@
     clippy::new_ret_no_self,
     clippy::redundant_else,
     clippy::return_self_not_must_use,
+    clippy::struct_field_names,
     clippy::unused_self,
     clippy::used_underscore_binding,
     clippy::wildcard_imports,
     clippy::wrong_self_convention
 )]
 
-</span><span class="kw">extern crate </span>alloc;
+#[cfg(all(
+    anyhow_nightly_testing,
+    feature = <span class="string">"std"</span>,
+    not(error_generic_member_access)
+))]
+</span><span class="macro">compile_error!</span>(<span class="string">"Build script probe failed to compile."</span>);
+
+<span class="kw">extern crate </span>alloc;
+
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+</span><span class="kw">extern crate </span>std;
 
 <span class="attr">#[macro_use]
 </span><span class="kw">mod </span>backtrace;
@@ -942,15 +998,15 @@
 <span class="kw">use </span><span class="kw">crate</span>::ptr::Own;
 <span class="kw">use </span>core::fmt::Display;
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
 </span><span class="kw">use </span>core::fmt::Debug;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
 </span><span class="kw">trait </span>StdError: Debug + Display {
-    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>StdError + <span class="lifetime">&#39;static</span>)&gt; {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>StdError + <span class="lifetime">'static</span>)&gt; {
         <span class="prelude-val">None
     </span>}
 }
@@ -963,7 +1019,7 @@
 /// `Error` works a lot like `Box&lt;dyn std::error::Error&gt;`, but with these
 /// differences:
 ///
-/// - `Error` requires that the error is `Send`, `Sync`, and `&#39;static`.
+/// - `Error` requires that the error is `Send`, `Sync`, and `'static`.
 /// - `Error` guarantees that a backtrace is available, even if the underlying
 ///   error type does not provide one.
 /// - `Error` is represented as a narrow pointer &amp;mdash; exactly one word in
@@ -973,7 +1029,7 @@
 ///
 /// # Display representations
 ///
-/// When you print an error object using &quot;{}&quot; or to_string(), only the outermost
+/// When you print an error object using "{}" or to_string(), only the outermost
 /// underlying error or context is printed, not any of the lower level causes.
 /// This is exactly as if you had called the Display impl of the error from
 /// which you constructed your anyhow::Error.
@@ -982,14 +1038,14 @@
 /// Failed to read instrs from ./path/to/instrs.json
 /// ```
 ///
-/// To print causes as well using anyhow&#39;s default formatting of causes, use the
-/// alternate selector &quot;{:#}&quot;.
+/// To print causes as well using anyhow's default formatting of causes, use the
+/// alternate selector "{:#}".
 ///
 /// ```console
 /// Failed to read instrs from ./path/to/instrs.json: No such file or directory (os error 2)
 /// ```
 ///
-/// The Debug format &quot;{:?}&quot; includes your backtrace if one was captured. Note
+/// The Debug format "{:?}" includes your backtrace if one was captured. Note
 /// that this is the representation you get by default if you return an error
 /// from `fn main` instead of printing it explicitly yourself.
 ///
@@ -1024,15 +1080,15 @@
 ///    7: _start
 /// ```
 ///
-/// To see a conventional struct-style Debug representation, use &quot;{:#?}&quot;.
+/// To see a conventional struct-style Debug representation, use "{:#?}".
 ///
 /// ```console
 /// Error {
-///     context: &quot;Failed to read instrs from ./path/to/instrs.json&quot;,
+///     context: "Failed to read instrs from ./path/to/instrs.json",
 ///     source: Os {
 ///         code: 2,
 ///         kind: NotFound,
-///         message: &quot;No such file or directory&quot;,
+///         message: "No such file or directory",
 ///     },
 /// }
 /// ```
@@ -1046,8 +1102,8 @@
 ///
 /// fn main() {
 ///     if let Err(err) = try_main() {
-///         eprintln!(&quot;ERROR: {}&quot;, err);
-///         err.chain().skip(1).for_each(|cause| eprintln!(&quot;because: {}&quot;, cause));
+///         eprintln!("ERROR: {}", err);
+///         err.chain().skip(1).for_each(|cause| eprintln!("because: {}", cause));
 ///         std::process::exit(1);
 ///     }
 /// }
@@ -1059,7 +1115,7 @@
 ///     # Ok(())
 /// }
 /// ```
-</span><span class="attr">#[cfg_attr(not(doc), repr(transparent))]
+</span><span class="attr">#[repr(transparent)]
 </span><span class="kw">pub struct </span>Error {
     inner: Own&lt;ErrorImpl&gt;,
 }
@@ -1083,11 +1139,11 @@
 ///     None
 /// }
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
 #[derive(Clone)]
-</span><span class="kw">pub struct </span>Chain&lt;<span class="lifetime">&#39;a</span>&gt; {
-    state: <span class="kw">crate</span>::chain::ChainState&lt;<span class="lifetime">&#39;a</span>&gt;,
+</span><span class="kw">pub struct </span>Chain&lt;<span class="lifetime">'a</span>&gt; {
+    state: <span class="kw">crate</span>::chain::ChainState&lt;<span class="lifetime">'a</span>&gt;,
 }
 
 <span class="doccomment">/// `Result&lt;T, Error&gt;`
@@ -1133,9 +1189,9 @@
 ///
 /// fn main() -&gt; Result&lt;()&gt; {
 ///     # return Ok(());
-///     let config = std::fs::read_to_string(&quot;cluster.json&quot;)?;
+///     let config = std::fs::read_to_string("cluster.json")?;
 ///     let map: ClusterMap = serde_json::from_str(&amp;config)?;
-///     println!(&quot;cluster info: {:#?}&quot;, map);
+///     println!("cluster info: {:#?}", map);
 ///     Ok(())
 /// }
 /// ```
@@ -1160,7 +1216,7 @@
 /// }
 ///
 /// impl ImportantThing {
-///     # const IGNORE: &amp;&#39;static str = stringify! {
+///     # const IGNORE: &amp;'static str = stringify! {
 ///     pub fn detach(&amp;mut self) -&gt; Result&lt;()&gt; {...}
 ///     # };
 ///     # fn detach(&amp;mut self) -&gt; Result&lt;()&gt; {
@@ -1169,11 +1225,11 @@
 /// }
 ///
 /// pub fn do_it(mut it: ImportantThing) -&gt; Result&lt;Vec&lt;u8&gt;&gt; {
-///     it.detach().context(&quot;Failed to detach the important thing&quot;)?;
+///     it.detach().context("Failed to detach the important thing")?;
 ///
 ///     let path = &amp;it.path;
 ///     let content = fs::read(path)
-///         .with_context(|| format!(&quot;Failed to read instrs from {}&quot;, path.display()))?;
+///         .with_context(|| format!("Failed to read instrs from {}", path.display()))?;
 ///
 ///     Ok(content)
 /// }
@@ -1201,7 +1257,7 @@
 /// After attaching context of type `C` onto an error of type `E`, the resulting
 /// `anyhow::Error` may be downcast to `C` **or** to `E`.
 ///
-/// That is, in codebases that rely on downcasting, Anyhow&#39;s context supports
+/// That is, in codebases that rely on downcasting, Anyhow's context supports
 /// both of the following use cases:
 ///
 ///   - **Attaching context whose type is insignificant onto errors whose type
@@ -1219,7 +1275,7 @@
 ///     # use thiserror::Error;
 ///     #
 ///     # #[derive(Error, Debug)]
-///     # #[error(&quot;???&quot;)]
+///     # #[error("???")]
 ///     # struct SuspiciousError;
 ///     #
 ///     # fn helper() -&gt; Result&lt;()&gt; {
@@ -1229,7 +1285,7 @@
 ///     use anyhow::{Context, Result};
 ///
 ///     fn do_it() -&gt; Result&lt;()&gt; {
-///         helper().context(&quot;Failed to complete the work&quot;)?;
+///         helper().context("Failed to complete the work")?;
 ///         # const IGNORE: &amp;str = stringify! {
 ///         ...
 ///         # };
@@ -1243,7 +1299,7 @@
 ///             // correctly succeed even with the context in between.
 ///             # return;
 ///         }
-///         # panic!(&quot;expected downcast to succeed&quot;);
+///         # panic!("expected downcast to succeed");
 ///     }
 ///     ```
 ///
@@ -1259,11 +1315,11 @@
 ///     # use thiserror::Error;
 ///     #
 ///     # #[derive(Error, Debug)]
-///     # #[error(&quot;???&quot;)]
+///     # #[error("???")]
 ///     # struct HelperFailed;
 ///     #
 ///     # fn helper() -&gt; Result&lt;()&gt; {
-///     #     bail!(&quot;no such file or directory&quot;);
+///     #     bail!("no such file or directory");
 ///     # }
 ///     #
 ///     use anyhow::{Context, Result};
@@ -1284,20 +1340,20 @@
 ///             // that error.
 ///             # return;
 ///         }
-///         # panic!(&quot;expected downcast to succeed&quot;);
+///         # panic!("expected downcast to succeed");
 ///     }
 ///     ```
 </span><span class="kw">pub trait </span>Context&lt;T, E&gt;: context::private::Sealed {
     <span class="doccomment">/// Wrap the error value with additional context.
     </span><span class="kw">fn </span>context&lt;C&gt;(<span class="self">self</span>, context: C) -&gt; <span class="prelude-ty">Result</span>&lt;T, Error&gt;
     <span class="kw">where
-        </span>C: Display + Send + Sync + <span class="lifetime">&#39;static</span>;
+        </span>C: Display + Send + Sync + <span class="lifetime">'static</span>;
 
     <span class="doccomment">/// Wrap the error value with additional context that is evaluated lazily
     /// only once an error does occur.
     </span><span class="kw">fn </span>with_context&lt;C, F&gt;(<span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;T, Error&gt;
     <span class="kw">where
-        </span>C: Display + Send + Sync + <span class="lifetime">&#39;static</span>,
+        </span>C: Display + Send + Sync + <span class="lifetime">'static</span>,
         F: FnOnce() -&gt; C;
 }
 
@@ -1327,6 +1383,7 @@
 <span class="comment">// Not public API. Referenced by macro-generated code.
 </span><span class="attr">#[doc(hidden)]
 </span><span class="kw">pub mod </span>__private {
+    <span class="kw">use </span><span class="self">self</span>::not::Bool;
     <span class="kw">use </span><span class="kw">crate</span>::Error;
     <span class="kw">use </span>alloc::fmt;
     <span class="kw">use </span>core::fmt::Arguments;
@@ -1345,7 +1402,7 @@
         <span class="attr">#[doc(hidden)]
         </span><span class="kw">pub use </span><span class="kw">crate</span>::kind::{AdhocKind, TraitKind};
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
         #[doc(hidden)]
         </span><span class="kw">pub use </span><span class="kw">crate</span>::kind::BoxedKind;
     }
@@ -1360,10 +1417,10 @@
         </span><span class="kw">let </span>fmt_arguments_as_str = args.as_str();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = fmt_arguments_as_str {
-            <span class="comment">// anyhow!(&quot;literal&quot;), can downcast to &amp;&#39;static str
+            <span class="comment">// anyhow!("literal"), can downcast to &amp;'static str
             </span>Error::msg(message)
         } <span class="kw">else </span>{
-            <span class="comment">// anyhow!(&quot;interpolate {var}&quot;), can downcast to String
+            <span class="comment">// anyhow!("interpolate {var}"), can downcast to String
             </span>Error::msg(fmt::format(args))
         }
     }
@@ -1374,6 +1431,33 @@
     #[must_use]
     </span><span class="kw">pub fn </span>must_use(error: Error) -&gt; Error {
         error
+    }
+
+    <span class="attr">#[doc(hidden)]
+    #[inline]
+    </span><span class="kw">pub fn </span>not(cond: <span class="kw">impl </span>Bool) -&gt; bool {
+        cond.not()
+    }
+
+    <span class="kw">mod </span>not {
+        <span class="attr">#[doc(hidden)]
+        </span><span class="kw">pub trait </span>Bool {
+            <span class="kw">fn </span>not(<span class="self">self</span>) -&gt; bool;
+        }
+
+        <span class="kw">impl </span>Bool <span class="kw">for </span>bool {
+            <span class="attr">#[inline]
+            </span><span class="kw">fn </span>not(<span class="self">self</span>) -&gt; bool {
+                !<span class="self">self
+            </span>}
+        }
+
+        <span class="kw">impl </span>Bool <span class="kw">for </span><span class="kw-2">&amp;</span>bool {
+            <span class="attr">#[inline]
+            </span><span class="kw">fn </span>not(<span class="self">self</span>) -&gt; bool {
+                !<span class="kw-2">*</span><span class="self">self
+            </span>}
+        }
     }
 }
 </code></pre></div></section></main></body></html>

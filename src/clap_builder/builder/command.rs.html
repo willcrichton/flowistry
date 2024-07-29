@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.7/src/builder/command.rs`."><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.11/src/builder/command.rs`."><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -4834,7 +4836,109 @@
 <a href="#4834" id="4834">4834</a>
 <a href="#4835" id="4835">4835</a>
 <a href="#4836" id="4836">4836</a>
-</pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;usage&quot;</span>), allow(unused_mut))]
+<a href="#4837" id="4837">4837</a>
+<a href="#4838" id="4838">4838</a>
+<a href="#4839" id="4839">4839</a>
+<a href="#4840" id="4840">4840</a>
+<a href="#4841" id="4841">4841</a>
+<a href="#4842" id="4842">4842</a>
+<a href="#4843" id="4843">4843</a>
+<a href="#4844" id="4844">4844</a>
+<a href="#4845" id="4845">4845</a>
+<a href="#4846" id="4846">4846</a>
+<a href="#4847" id="4847">4847</a>
+<a href="#4848" id="4848">4848</a>
+<a href="#4849" id="4849">4849</a>
+<a href="#4850" id="4850">4850</a>
+<a href="#4851" id="4851">4851</a>
+<a href="#4852" id="4852">4852</a>
+<a href="#4853" id="4853">4853</a>
+<a href="#4854" id="4854">4854</a>
+<a href="#4855" id="4855">4855</a>
+<a href="#4856" id="4856">4856</a>
+<a href="#4857" id="4857">4857</a>
+<a href="#4858" id="4858">4858</a>
+<a href="#4859" id="4859">4859</a>
+<a href="#4860" id="4860">4860</a>
+<a href="#4861" id="4861">4861</a>
+<a href="#4862" id="4862">4862</a>
+<a href="#4863" id="4863">4863</a>
+<a href="#4864" id="4864">4864</a>
+<a href="#4865" id="4865">4865</a>
+<a href="#4866" id="4866">4866</a>
+<a href="#4867" id="4867">4867</a>
+<a href="#4868" id="4868">4868</a>
+<a href="#4869" id="4869">4869</a>
+<a href="#4870" id="4870">4870</a>
+<a href="#4871" id="4871">4871</a>
+<a href="#4872" id="4872">4872</a>
+<a href="#4873" id="4873">4873</a>
+<a href="#4874" id="4874">4874</a>
+<a href="#4875" id="4875">4875</a>
+<a href="#4876" id="4876">4876</a>
+<a href="#4877" id="4877">4877</a>
+<a href="#4878" id="4878">4878</a>
+<a href="#4879" id="4879">4879</a>
+<a href="#4880" id="4880">4880</a>
+<a href="#4881" id="4881">4881</a>
+<a href="#4882" id="4882">4882</a>
+<a href="#4883" id="4883">4883</a>
+<a href="#4884" id="4884">4884</a>
+<a href="#4885" id="4885">4885</a>
+<a href="#4886" id="4886">4886</a>
+<a href="#4887" id="4887">4887</a>
+<a href="#4888" id="4888">4888</a>
+<a href="#4889" id="4889">4889</a>
+<a href="#4890" id="4890">4890</a>
+<a href="#4891" id="4891">4891</a>
+<a href="#4892" id="4892">4892</a>
+<a href="#4893" id="4893">4893</a>
+<a href="#4894" id="4894">4894</a>
+<a href="#4895" id="4895">4895</a>
+<a href="#4896" id="4896">4896</a>
+<a href="#4897" id="4897">4897</a>
+<a href="#4898" id="4898">4898</a>
+<a href="#4899" id="4899">4899</a>
+<a href="#4900" id="4900">4900</a>
+<a href="#4901" id="4901">4901</a>
+<a href="#4902" id="4902">4902</a>
+<a href="#4903" id="4903">4903</a>
+<a href="#4904" id="4904">4904</a>
+<a href="#4905" id="4905">4905</a>
+<a href="#4906" id="4906">4906</a>
+<a href="#4907" id="4907">4907</a>
+<a href="#4908" id="4908">4908</a>
+<a href="#4909" id="4909">4909</a>
+<a href="#4910" id="4910">4910</a>
+<a href="#4911" id="4911">4911</a>
+<a href="#4912" id="4912">4912</a>
+<a href="#4913" id="4913">4913</a>
+<a href="#4914" id="4914">4914</a>
+<a href="#4915" id="4915">4915</a>
+<a href="#4916" id="4916">4916</a>
+<a href="#4917" id="4917">4917</a>
+<a href="#4918" id="4918">4918</a>
+<a href="#4919" id="4919">4919</a>
+<a href="#4920" id="4920">4920</a>
+<a href="#4921" id="4921">4921</a>
+<a href="#4922" id="4922">4922</a>
+<a href="#4923" id="4923">4923</a>
+<a href="#4924" id="4924">4924</a>
+<a href="#4925" id="4925">4925</a>
+<a href="#4926" id="4926">4926</a>
+<a href="#4927" id="4927">4927</a>
+<a href="#4928" id="4928">4928</a>
+<a href="#4929" id="4929">4929</a>
+<a href="#4930" id="4930">4930</a>
+<a href="#4931" id="4931">4931</a>
+<a href="#4932" id="4932">4932</a>
+<a href="#4933" id="4933">4933</a>
+<a href="#4934" id="4934">4934</a>
+<a href="#4935" id="4935">4935</a>
+<a href="#4936" id="4936">4936</a>
+<a href="#4937" id="4937">4937</a>
+<a href="#4938" id="4938">4938</a>
+</pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(not(feature = <span class="string">"usage"</span>), allow(unused_mut))]
 
 </span><span class="comment">// Std
 </span><span class="kw">use </span>std::env;
@@ -4891,15 +4995,15 @@
 /// ```no_run
 /// # use clap_builder as clap;
 /// # use clap::{Command, Arg};
-/// let m = Command::new(&quot;My Program&quot;)
-///     .author(&quot;Me, me@mail.com&quot;)
-///     .version(&quot;1.0.2&quot;)
-///     .about(&quot;Explains in brief what the program does&quot;)
+/// let m = Command::new("My Program")
+///     .author("Me, me@mail.com")
+///     .version("1.0.2")
+///     .about("Explains in brief what the program does")
 ///     .arg(
-///         Arg::new(&quot;in_file&quot;)
+///         Arg::new("in_file")
 ///     )
-///     .after_help(&quot;Longer explanation to appear after the options when \
-///                  displaying the help information from --help or -h&quot;)
+///     .after_help("Longer explanation to appear after the options when \
+///                  displaying the help information from --help or -h")
 ///     .get_matches();
 ///
 /// // Your program logic starts here...
@@ -4928,7 +5032,7 @@
     usage_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
     help_str: <span class="prelude-ty">Option</span>&lt;StyledStr&gt;,
     disp_ord: <span class="prelude-ty">Option</span>&lt;usize&gt;,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;help&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"help"</span>)]
     </span>template: <span class="prelude-ty">Option</span>&lt;StyledStr&gt;,
     settings: AppFlags,
     g_settings: AppFlags,
@@ -4960,13 +5064,13 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;My Program&quot;)
+    /// Command::new("My Program")
     /// # ;
     /// ```
     </span><span class="kw">pub fn </span>new(name: <span class="kw">impl </span>Into&lt;Str&gt;) -&gt; <span class="self">Self </span>{
         <span class="doccomment">/// The actual implementation of `new`, non-generic to save code size.
         ///
-        /// If we don&#39;t do this rustc will unnecessarily generate multiple versions
+        /// If we don't do this rustc will unnecessarily generate multiple versions
         /// of this code.
         </span><span class="kw">fn </span>new_inner(name: Str) -&gt; Command {
             Command {
@@ -4985,17 +5089,17 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, arg, Arg};
-    /// Command::new(&quot;myprog&quot;)
-    ///     // Adding a single &quot;flag&quot; argument with a short and help text, using Arg::new()
+    /// Command::new("myprog")
+    ///     // Adding a single "flag" argument with a short and help text, using Arg::new()
     ///     .arg(
-    ///         Arg::new(&quot;debug&quot;)
-    ///            .short(&#39;d&#39;)
-    ///            .help(&quot;turns on debugging mode&quot;)
+    ///         Arg::new("debug")
+    ///            .short('d')
+    ///            .help("turns on debugging mode")
     ///     )
-    ///     // Adding a single &quot;option&quot; argument with a short, a long, and help text using the less
+    ///     // Adding a single "option" argument with a short, a long, and help text using the less
     ///     // verbose Arg::from()
     ///     .arg(
-    ///         arg!(-c --config &lt;CONFIG&gt; &quot;Optionally sets a config file to use&quot;)
+    ///         arg!(-c --config &lt;CONFIG&gt; "Optionally sets a config file to use")
     ///     )
     /// # ;
     /// ```
@@ -5028,10 +5132,10 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, arg, Arg};
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .args([
-    ///         arg!(-d --debug &quot;turns on debugging info&quot;),
-    ///         Arg::new(&quot;input&quot;).help(&quot;the input file to use&quot;)
+    ///         arg!(-d --debug "turns on debugging info"),
+    ///         Arg::new("input").help("the input file to use")
     ///     ])
     /// # ;
     /// ```
@@ -5044,7 +5148,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Allows one to mutate an [`Arg`] after it&#39;s been added to a [`Command`].
+    <span class="doccomment">/// Allows one to mutate an [`Arg`] after it's been added to a [`Command`].
     ///
     /// # Panics
     ///
@@ -5056,20 +5160,20 @@
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
     ///
-    /// let mut cmd = Command::new(&quot;foo&quot;)
-    ///     .arg(Arg::new(&quot;bar&quot;)
-    ///         .short(&#39;b&#39;)
+    /// let mut cmd = Command::new("foo")
+    ///     .arg(Arg::new("bar")
+    ///         .short('b')
     ///         .action(ArgAction::SetTrue))
-    ///     .mut_arg(&quot;bar&quot;, |a| a.short(&#39;B&#39;));
+    ///     .mut_arg("bar", |a| a.short('B'));
     ///
-    /// let res = cmd.try_get_matches_from_mut(vec![&quot;foo&quot;, &quot;-b&quot;]);
+    /// let res = cmd.try_get_matches_from_mut(vec!["foo", "-b"]);
     ///
-    /// // Since we changed `bar`&#39;s short to &quot;B&quot; this should err as there
+    /// // Since we changed `bar`'s short to "B" this should err as there
     /// // is no `-b` anymore, only `-B`
     ///
     /// assert!(res.is_err());
     ///
-    /// let res = cmd.try_get_matches_from_mut(vec![&quot;foo&quot;, &quot;-B&quot;]);
+    /// let res = cmd.try_get_matches_from_mut(vec!["foo", "-B"]);
     /// assert!(res.is_ok());
     /// ```
     </span><span class="attr">#[must_use]
@@ -5082,46 +5186,46 @@
         <span class="kw">let </span>a = <span class="self">self
             </span>.args
             .remove_by_name(id)
-            .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">&quot;Argument `{id}` is undefined&quot;</span>));
+            .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">"Argument `{id}` is undefined"</span>));
 
         <span class="self">self</span>.args.push(f(a));
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Allows one to mutate all [`Arg`]s after they&#39;ve been added to a [`Command`].
+    <span class="doccomment">/// Allows one to mutate all [`Arg`]s after they've been added to a [`Command`].
     ///
     /// This does not affect the built-in `--help` or `--version` arguments.
     ///
     /// # Examples
     ///
-    </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;string&quot;</span>, doc = <span class="string">&quot;```&quot;</span>)]
-    #[cfg_attr(not(feature = <span class="string">&quot;string&quot;</span>), doc = <span class="string">&quot;```ignore&quot;</span>)]
+    </span><span class="attr">#[cfg_attr(feature = <span class="string">"string"</span>, doc = <span class="string">"```"</span>)]
+    #[cfg_attr(not(feature = <span class="string">"string"</span>), doc = <span class="string">"```ignore"</span>)]
     </span><span class="doccomment">/// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
     ///
-    /// let mut cmd = Command::new(&quot;foo&quot;)
-    ///     .arg(Arg::new(&quot;bar&quot;)
-    ///         .long(&quot;bar&quot;)
+    /// let mut cmd = Command::new("foo")
+    ///     .arg(Arg::new("bar")
+    ///         .long("bar")
     ///         .action(ArgAction::SetTrue))
-    ///     .arg(Arg::new(&quot;baz&quot;)
-    ///         .long(&quot;baz&quot;)
+    ///     .arg(Arg::new("baz")
+    ///         .long("baz")
     ///         .action(ArgAction::SetTrue))
     ///     .mut_args(|a| {
-    ///         if let Some(l) = a.get_long().map(|l| format!(&quot;prefix-{l}&quot;)) {
+    ///         if let Some(l) = a.get_long().map(|l| format!("prefix-{l}")) {
     ///             a.long(l)
     ///         } else {
     ///             a
     ///         }
     ///     });
     ///
-    /// let res = cmd.try_get_matches_from_mut(vec![&quot;foo&quot;, &quot;--bar&quot;]);
+    /// let res = cmd.try_get_matches_from_mut(vec!["foo", "--bar"]);
     ///
-    /// // Since we changed `bar`&#39;s long to &quot;prefix-bar&quot; this should err as there
+    /// // Since we changed `bar`'s long to "prefix-bar" this should err as there
     /// // is no `--bar` anymore, only `--prefix-bar`.
     ///
     /// assert!(res.is_err());
     ///
-    /// let res = cmd.try_get_matches_from_mut(vec![&quot;foo&quot;, &quot;--prefix-bar&quot;]);
+    /// let res = cmd.try_get_matches_from_mut(vec!["foo", "--prefix-bar"]);
     /// assert!(res.is_ok());
     /// ```
     </span><span class="attr">#[must_use]
@@ -5134,7 +5238,46 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Allows one to mutate a [`Command`] after it&#39;s been added as a subcommand.
+    <span class="doccomment">/// Allows one to mutate an [`ArgGroup`] after it's been added to a [`Command`].
+    ///
+    /// # Panics
+    ///
+    /// If the argument is undefined
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use clap_builder as clap;
+    /// # use clap::{Command, arg, ArgGroup};
+    ///
+    /// Command::new("foo")
+    ///     .arg(arg!(--"set-ver" &lt;ver&gt; "set the version manually").required(false))
+    ///     .arg(arg!(--major "auto increase major"))
+    ///     .arg(arg!(--minor "auto increase minor"))
+    ///     .arg(arg!(--patch "auto increase patch"))
+    ///     .group(ArgGroup::new("vers")
+    ///          .args(["set-ver", "major", "minor","patch"])
+    ///          .required(true))
+    ///     .mut_group("vers", |a| a.required(false));
+    /// ```
+    </span><span class="attr">#[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    </span><span class="kw">pub fn </span>mut_group&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, arg_id: <span class="kw">impl </span>AsRef&lt;str&gt;, f: F) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: FnOnce(ArgGroup) -&gt; ArgGroup,
+    {
+        <span class="kw">let </span>id = arg_id.as_ref();
+        <span class="kw">let </span>index = <span class="self">self
+            </span>.groups
+            .iter()
+            .position(|g| g.get_id() == id)
+            .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">"Group `{id}` is undefined"</span>));
+        <span class="kw">let </span>a = <span class="self">self</span>.groups.remove(index);
+
+        <span class="self">self</span>.groups.push(f(a));
+        <span class="self">self
+    </span>}
+    <span class="doccomment">/// Allows one to mutate a [`Command`] after it's been added as a subcommand.
     ///
     /// This can be useful for modifying auto-generated arguments of nested subcommands with
     /// [`Command::mut_arg`].
@@ -5149,17 +5292,17 @@
     /// # use clap_builder as clap;
     /// # use clap::Command;
     ///
-    /// let mut cmd = Command::new(&quot;foo&quot;)
-    ///         .subcommand(Command::new(&quot;bar&quot;))
-    ///         .mut_subcommand(&quot;bar&quot;, |subcmd| subcmd.disable_help_flag(true));
+    /// let mut cmd = Command::new("foo")
+    ///         .subcommand(Command::new("bar"))
+    ///         .mut_subcommand("bar", |subcmd| subcmd.disable_help_flag(true));
     ///
-    /// let res = cmd.try_get_matches_from_mut(vec![&quot;foo&quot;, &quot;bar&quot;, &quot;--help&quot;]);
+    /// let res = cmd.try_get_matches_from_mut(vec!["foo", "bar", "--help"]);
     ///
-    /// // Since we disabled the help flag on the &quot;bar&quot; subcommand, this should err.
+    /// // Since we disabled the help flag on the "bar" subcommand, this should err.
     ///
     /// assert!(res.is_err());
     ///
-    /// let res = cmd.try_get_matches_from_mut(vec![&quot;foo&quot;, &quot;bar&quot;]);
+    /// let res = cmd.try_get_matches_from_mut(vec!["foo", "bar"]);
     /// assert!(res.is_ok());
     /// ```
     </span><span class="attr">#[must_use]
@@ -5173,7 +5316,7 @@
         <span class="kw">let </span>subcmd = <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = pos {
             <span class="self">self</span>.subcommands.remove(idx)
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Command `{name}` is undefined&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">"Command `{name}` is undefined"</span>)
         };
 
         <span class="self">self</span>.subcommands.push(f(subcmd));
@@ -5202,13 +5345,13 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, arg, ArgGroup};
-    /// Command::new(&quot;cmd&quot;)
-    ///     .arg(arg!(--&quot;set-ver&quot; &lt;ver&gt; &quot;set the version manually&quot;).required(false))
-    ///     .arg(arg!(--major &quot;auto increase major&quot;))
-    ///     .arg(arg!(--minor &quot;auto increase minor&quot;))
-    ///     .arg(arg!(--patch &quot;auto increase patch&quot;))
-    ///     .group(ArgGroup::new(&quot;vers&quot;)
-    ///          .args([&quot;set-ver&quot;, &quot;major&quot;, &quot;minor&quot;,&quot;patch&quot;])
+    /// Command::new("cmd")
+    ///     .arg(arg!(--"set-ver" &lt;ver&gt; "set the version manually").required(false))
+    ///     .arg(arg!(--major "auto increase major"))
+    ///     .arg(arg!(--minor "auto increase minor"))
+    ///     .arg(arg!(--patch "auto increase patch"))
+    ///     .group(ArgGroup::new("vers")
+    ///          .args(["set-ver", "major", "minor","patch"])
     ///          .required(true))
     /// # ;
     /// ```
@@ -5226,25 +5369,25 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, arg, ArgGroup};
-    /// Command::new(&quot;cmd&quot;)
-    ///     .arg(arg!(--&quot;set-ver&quot; &lt;ver&gt; &quot;set the version manually&quot;).required(false))
-    ///     .arg(arg!(--major         &quot;auto increase major&quot;))
-    ///     .arg(arg!(--minor         &quot;auto increase minor&quot;))
-    ///     .arg(arg!(--patch         &quot;auto increase patch&quot;))
-    ///     .arg(arg!(-c &lt;FILE&gt;       &quot;a config file&quot;).required(false))
-    ///     .arg(arg!(-i &lt;IFACE&gt;      &quot;an interface&quot;).required(false))
+    /// Command::new("cmd")
+    ///     .arg(arg!(--"set-ver" &lt;ver&gt; "set the version manually").required(false))
+    ///     .arg(arg!(--major         "auto increase major"))
+    ///     .arg(arg!(--minor         "auto increase minor"))
+    ///     .arg(arg!(--patch         "auto increase patch"))
+    ///     .arg(arg!(-c &lt;FILE&gt;       "a config file").required(false))
+    ///     .arg(arg!(-i &lt;IFACE&gt;      "an interface").required(false))
     ///     .groups([
-    ///         ArgGroup::new(&quot;vers&quot;)
-    ///             .args([&quot;set-ver&quot;, &quot;major&quot;, &quot;minor&quot;,&quot;patch&quot;])
+    ///         ArgGroup::new("vers")
+    ///             .args(["set-ver", "major", "minor","patch"])
     ///             .required(true),
-    ///         ArgGroup::new(&quot;input&quot;)
-    ///             .args([&quot;c&quot;, &quot;i&quot;])
+    ///         ArgGroup::new("input")
+    ///             .args(["c", "i"])
     ///     ])
     /// # ;
     /// ```
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>groups(<span class="kw-2">mut </span><span class="self">self</span>, groups: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;ArgGroup&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">for </span>g <span class="kw">in </span>groups.into_iter() {
+        <span class="kw">for </span>g <span class="kw">in </span>groups {
             <span class="self">self </span>= <span class="self">self</span>.group(g.into());
         }
         <span class="self">self
@@ -5256,7 +5399,7 @@
     /// subcommands, version, usage, etc. They also function just like [`Command`]s, in that they get
     /// their own auto generated help, version, and usage.
     ///
-    /// A subcommand&#39;s [`Command::name`] will be used for:
+    /// A subcommand's [`Command::name`] will be used for:
     /// - The argument the user passes in
     /// - Programmatically looking up the subcommand
     ///
@@ -5265,10 +5408,10 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, arg};
-    /// Command::new(&quot;myprog&quot;)
-    ///     .subcommand(Command::new(&quot;config&quot;)
-    ///         .about(&quot;Controls configuration features&quot;)
-    ///         .arg(arg!(&lt;config&gt; &quot;Required configuration file to use&quot;)))
+    /// Command::new("myprog")
+    ///     .subcommand(Command::new("config")
+    ///         .about("Controls configuration features")
+    ///         .arg(arg!(&lt;config&gt; "Required configuration file to use")))
     /// # ;
     /// ```
     </span><span class="attr">#[inline]
@@ -5295,11 +5438,11 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, };
-    /// # Command::new(&quot;myprog&quot;)
+    /// # Command::new("myprog")
     /// .subcommands( [
-    ///        Command::new(&quot;config&quot;).about(&quot;Controls configuration functionality&quot;)
-    ///                                 .arg(Arg::new(&quot;config_file&quot;)),
-    ///        Command::new(&quot;debug&quot;).about(&quot;Controls debug functionality&quot;)])
+    ///        Command::new("config").about("Controls configuration functionality")
+    ///                                 .arg(Arg::new("config_file")),
+    ///        Command::new("debug").about("Controls debug functionality")])
     /// # ;
     /// ```
     /// [`IntoIterator`]: std::iter::IntoIterator
@@ -5321,11 +5464,11 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, arg};
-    /// Command::new(&quot;myprog&quot;)
-    ///     .subcommand(Command::new(&quot;config&quot;)
-    ///         .about(&quot;Controls configuration features&quot;)
+    /// Command::new("myprog")
+    ///     .subcommand(Command::new("config")
+    ///         .about("Controls configuration features")
     ///         .defer(|cmd| {
-    ///             cmd.arg(arg!(&lt;config&gt; &quot;Required configuration file to use&quot;))
+    ///             cmd.arg(arg!(&lt;config&gt; "Required configuration file to use"))
     ///         })
     ///     )
     /// # ;
@@ -5342,7 +5485,7 @@
     /// that exhaustively test your CLI to ensure the asserts are evaluated, this will run those
     /// asserts in a way convenient for running as a test.
     ///
-    /// **Note::** This will not help with asserts in [`ArgMatches`], those will need exhaustive
+    /// **Note:** This will not help with asserts in [`ArgMatches`], those will need exhaustive
     /// testing of your CLI.
     ///
     /// # Examples
@@ -5351,9 +5494,9 @@
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
     /// fn cmd() -&gt; Command {
-    ///     Command::new(&quot;foo&quot;)
+    ///     Command::new("foo")
     ///         .arg(
-    ///             Arg::new(&quot;bar&quot;).short(&#39;b&#39;).action(ArgAction::SetTrue)
+    ///             Arg::new("bar").short('b').action(ArgAction::SetTrue)
     ///         )
     /// }
     ///
@@ -5363,8 +5506,8 @@
     /// }
     ///
     /// fn main() {
-    ///     let m = cmd().get_matches_from(vec![&quot;foo&quot;, &quot;-b&quot;]);
-    ///     println!(&quot;{}&quot;, m.get_flag(&quot;bar&quot;));
+    ///     let m = cmd().get_matches_from(vec!["foo", "-b"]);
+    ///     println!("{}", m.get_flag("bar"));
     /// }
     /// ```
     </span><span class="kw">pub fn </span>debug_assert(<span class="kw-2">mut </span><span class="self">self</span>) {
@@ -5378,14 +5521,14 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, error::ErrorKind};
-    /// let mut cmd = Command::new(&quot;myprog&quot;);
-    /// let err = cmd.error(ErrorKind::InvalidValue, &quot;Some failure case&quot;);
+    /// let mut cmd = Command::new("myprog");
+    /// let err = cmd.error(ErrorKind::InvalidValue, "Some failure case");
     /// ```
-    </span><span class="kw">pub fn </span>error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: ErrorKind, message: <span class="kw">impl </span>std::fmt::Display) -&gt; Error {
+    </span><span class="kw">pub fn </span>error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: ErrorKind, message: <span class="kw">impl </span>fmt::Display) -&gt; Error {
         Error::raw(kind, message).format(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Parse [`env::args_os`], exiting on failure.
+    <span class="doccomment">/// Parse [`env::args_os`], [exiting][Error::exit] on failure.
     ///
     /// # Panics
     ///
@@ -5396,7 +5539,7 @@
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// let matches = Command::new(&quot;myprog&quot;)
+    /// let matches = Command::new("myprog")
     ///     // Args and options go here...
     ///     .get_matches();
     /// ```
@@ -5407,9 +5550,9 @@
         <span class="self">self</span>.get_matches_from(env::args_os())
     }
 
-    <span class="doccomment">/// Parse [`env::args_os`], exiting on failure.
+    <span class="doccomment">/// Parse [`env::args_os`], [exiting][Error::exit] on failure.
     ///
-    /// Like [`Command::get_matches`] but doesn&#39;t consume the `Command`.
+    /// Like [`Command::get_matches`] but doesn't consume the `Command`.
     ///
     /// # Panics
     ///
@@ -5420,7 +5563,7 @@
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// let mut cmd = Command::new(&quot;myprog&quot;)
+    /// let mut cmd = Command::new("myprog")
     ///     // Args and options go here...
     ///     ;
     /// let matches = cmd.get_matches_mut();
@@ -5448,7 +5591,7 @@
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// let matches = Command::new(&quot;myprog&quot;)
+    /// let matches = Command::new("myprog")
     ///     // Args and options go here...
     ///     .try_get_matches()
     ///     .unwrap_or_else(|e| e.exit());
@@ -5467,7 +5610,7 @@
         </span><span class="self">self</span>.try_get_matches_from(env::args_os())
     }
 
-    <span class="doccomment">/// Parse the specified arguments, exiting on failure.
+    <span class="doccomment">/// Parse the specified arguments, [exiting][Error::exit] on failure.
     ///
     /// **NOTE:** The first argument will be parsed as the binary name unless
     /// [`Command::no_binary_name`] is used.
@@ -5481,9 +5624,9 @@
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// let arg_vec = vec![&quot;my_prog&quot;, &quot;some&quot;, &quot;args&quot;, &quot;to&quot;, &quot;parse&quot;];
+    /// let arg_vec = vec!["my_prog", "some", "args", "to", "parse"];
     ///
-    /// let matches = Command::new(&quot;myprog&quot;)
+    /// let matches = Command::new("myprog")
     ///     // Args and options go here...
     ///     .get_matches_from(arg_vec);
     /// ```
@@ -5520,9 +5663,9 @@
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// let arg_vec = vec![&quot;my_prog&quot;, &quot;some&quot;, &quot;args&quot;, &quot;to&quot;, &quot;parse&quot;];
+    /// let arg_vec = vec!["my_prog", "some", "args", "to", "parse"];
     ///
-    /// let matches = Command::new(&quot;myprog&quot;)
+    /// let matches = Command::new("myprog")
     ///     // Args and options go here...
     ///     .try_get_matches_from(arg_vec)
     ///     .unwrap_or_else(|e| e.exit());
@@ -5547,7 +5690,7 @@
 
     <span class="doccomment">/// Parse the specified arguments, returning a [`clap::Result`] on failure.
     ///
-    /// Like [`Command::try_get_matches_from`] but doesn&#39;t consume the `Command`.
+    /// Like [`Command::try_get_matches_from`] but doesn't consume the `Command`.
     ///
     /// **NOTE:** This method WILL NOT exit when `--help` or `--version` (or short versions) are
     /// used. It will return a [`clap::Error`], where the [`kind`] is a [`ErrorKind::DisplayHelp`]
@@ -5566,9 +5709,9 @@
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// let arg_vec = vec![&quot;my_prog&quot;, &quot;some&quot;, &quot;args&quot;, &quot;to&quot;, &quot;parse&quot;];
+    /// let arg_vec = vec!["my_prog", "some", "args", "to", "parse"];
     ///
-    /// let mut cmd = Command::new(&quot;myprog&quot;);
+    /// let mut cmd = Command::new("myprog");
     ///     // Args and options go here...
     /// let matches = cmd.try_get_matches_from_mut(arg_vec)
     ///     .unwrap_or_else(|e| e.exit());
@@ -5591,12 +5734,12 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(command) = argv0.file_stem().and_then(|f| f.to_str()) {
                     <span class="comment">// Stop borrowing command so we can get another mut ref to it.
                     </span><span class="kw">let </span>command = command.to_owned();
-                    <span class="macro">debug!</span>(<span class="string">&quot;Command::try_get_matches_from_mut: Parsed command {command} from argv&quot;</span>);
+                    <span class="macro">debug!</span>(<span class="string">"Command::try_get_matches_from_mut: Parsed command {command} from argv"</span>);
 
-                    <span class="macro">debug!</span>(<span class="string">&quot;Command::try_get_matches_from_mut: Reinserting command into arguments so subcommand parser matches it&quot;</span>);
+                    <span class="macro">debug!</span>(<span class="string">"Command::try_get_matches_from_mut: Reinserting command into arguments so subcommand parser matches it"</span>);
                     raw_args.insert(<span class="kw-2">&amp;</span>cursor, [<span class="kw-2">&amp;</span>command]);
-                    <span class="macro">debug!</span>(<span class="string">&quot;Command::try_get_matches_from_mut: Clearing name and bin_name so that displayed command name starts with applet name&quot;</span>);
-                    <span class="self">self</span>.name = <span class="string">&quot;&quot;</span>.into();
+                    <span class="macro">debug!</span>(<span class="string">"Command::try_get_matches_from_mut: Clearing name and bin_name so that displayed command name starts with applet name"</span>);
+                    <span class="self">self</span>.name = <span class="string">""</span>.into();
                     <span class="self">self</span>.bin_name = <span class="prelude-val">None</span>;
                     <span class="kw">return </span><span class="self">self</span>._do_parse(<span class="kw-2">&amp;mut </span>raw_args, cursor);
                 }
@@ -5607,7 +5750,7 @@
         // actual file
         // that was used to execute the program. This is because a program called
         // ./target/release/my_prog -a
-        // will have two arguments, &#39;./target/release/my_prog&#39;, &#39;-a&#39; but we don&#39;t want
+        // will have two arguments, './target/release/my_prog', '-a' but we don't want
         // to display
         // the full path when displaying help messages and such
         </span><span class="kw">if </span>!<span class="self">self</span>.settings.is_set(AppSettings::NoBinaryName) {
@@ -5636,7 +5779,7 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// let mut cmd = Command::new(&quot;myprog&quot;);
+    /// let mut cmd = Command::new("myprog");
     /// cmd.print_help();
     /// ```
     /// [`io::stdout()`]: std::io::stdout()
@@ -5661,7 +5804,7 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// let mut cmd = Command::new(&quot;myprog&quot;);
+    /// let mut cmd = Command::new("myprog");
     /// cmd.print_long_help();
     /// ```
     /// [`io::stdout()`]: std::io::stdout()
@@ -5690,10 +5833,10 @@
     /// # use clap_builder as clap;
     /// # use clap::Command;
     /// use std::io;
-    /// let mut cmd = Command::new(&quot;myprog&quot;);
+    /// let mut cmd = Command::new("myprog");
     /// let mut out = io::stdout();
     /// let help = cmd.render_help();
-    /// println!(&quot;{help}&quot;);
+    /// println!("{help}");
     /// ```
     /// [`io::Write`]: std::io::Write
     /// [`-h` (short)]: Arg::help()
@@ -5717,10 +5860,10 @@
     /// # use clap_builder as clap;
     /// # use clap::Command;
     /// use std::io;
-    /// let mut cmd = Command::new(&quot;myprog&quot;);
+    /// let mut cmd = Command::new("myprog");
     /// let mut out = io::stdout();
     /// let help = cmd.render_long_help();
-    /// println!(&quot;{help}&quot;);
+    /// println!("{help}");
     /// ```
     /// [`io::Write`]: std::io::Write
     /// [`-h` (short)]: Arg::help()
@@ -5736,8 +5879,8 @@
 
     <span class="attr">#[doc(hidden)]
     #[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(since = <span class="string">&quot;4.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `Command::render_help`&quot;</span>)
+        feature = <span class="string">"deprecated"</span>,
+        deprecated(since = <span class="string">"4.0.0"</span>, note = <span class="string">"Replaced with `Command::render_help`"</span>)
     )]
     </span><span class="kw">pub fn </span>write_help&lt;W: io::Write&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, w: <span class="kw-2">&amp;mut </span>W) -&gt; io::Result&lt;()&gt; {
         <span class="self">self</span>._build_self(<span class="bool-val">false</span>);
@@ -5745,14 +5888,14 @@
         <span class="kw">let </span><span class="kw-2">mut </span>styled = StyledStr::new();
         <span class="kw">let </span>usage = Usage::new(<span class="self">self</span>);
         write_help(<span class="kw-2">&amp;mut </span>styled, <span class="self">self</span>, <span class="kw-2">&amp;</span>usage, <span class="bool-val">false</span>);
-        <span class="macro">ok!</span>(<span class="macro">write!</span>(w, <span class="string">&quot;{styled}&quot;</span>));
+        <span class="macro">ok!</span>(<span class="macro">write!</span>(w, <span class="string">"{styled}"</span>));
         w.flush()
     }
 
     <span class="attr">#[doc(hidden)]
     #[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(since = <span class="string">&quot;4.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `Command::render_long_help`&quot;</span>)
+        feature = <span class="string">"deprecated"</span>,
+        deprecated(since = <span class="string">"4.0.0"</span>, note = <span class="string">"Replaced with `Command::render_long_help`"</span>)
     )]
     </span><span class="kw">pub fn </span>write_long_help&lt;W: io::Write&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, w: <span class="kw-2">&amp;mut </span>W) -&gt; io::Result&lt;()&gt; {
         <span class="self">self</span>._build_self(<span class="bool-val">false</span>);
@@ -5760,7 +5903,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>styled = StyledStr::new();
         <span class="kw">let </span>usage = Usage::new(<span class="self">self</span>);
         write_help(<span class="kw-2">&amp;mut </span>styled, <span class="self">self</span>, <span class="kw-2">&amp;</span>usage, <span class="bool-val">true</span>);
-        <span class="macro">ok!</span>(<span class="macro">write!</span>(w, <span class="string">&quot;{styled}&quot;</span>));
+        <span class="macro">ok!</span>(<span class="macro">write!</span>(w, <span class="string">"{styled}"</span>));
         w.flush()
     }
 
@@ -5778,8 +5921,8 @@
     /// # use clap_builder as clap;
     /// # use clap::Command;
     /// use std::io;
-    /// let cmd = Command::new(&quot;myprog&quot;);
-    /// println!(&quot;{}&quot;, cmd.render_version());
+    /// let cmd = Command::new("myprog");
+    /// println!("{}", cmd.render_version());
     /// ```
     /// [`io::Write`]: std::io::Write
     /// [`-V` (short)]: Command::version()
@@ -5803,8 +5946,8 @@
     /// # use clap_builder as clap;
     /// # use clap::Command;
     /// use std::io;
-    /// let cmd = Command::new(&quot;myprog&quot;);
-    /// println!(&quot;{}&quot;, cmd.render_long_version());
+    /// let cmd = Command::new("myprog");
+    /// println!("{}", cmd.render_long_version());
     /// ```
     /// [`io::Write`]: std::io::Write
     /// [`-V` (short)]: Command::version()
@@ -5822,8 +5965,8 @@
     /// # use clap_builder as clap;
     /// # use clap::Command;
     /// use std::io;
-    /// let mut cmd = Command::new(&quot;myprog&quot;);
-    /// println!(&quot;{}&quot;, cmd.render_usage());
+    /// let mut cmd = Command::new("myprog");
+    /// println!("{}", cmd.render_usage());
     /// ```
     </span><span class="kw">pub fn </span>render_usage(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; StyledStr {
         <span class="self">self</span>.render_usage_().unwrap_or_default()
@@ -5845,7 +5988,7 @@
 </span><span class="kw">impl </span>Command {
     <span class="doccomment">/// Specifies that the parser should not assume the first argument passed is the binary name.
     ///
-    /// This is normally the case when using a &quot;daemon&quot; style mode.  For shells / REPLs, see
+    /// This is normally the case when using a "daemon" style mode.  For shells / REPLs, see
     /// [`Command::multicall`][Command::multicall].
     ///
     /// # Examples
@@ -5853,13 +5996,13 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, arg};
-    /// let m = Command::new(&quot;myprog&quot;)
+    /// let m = Command::new("myprog")
     ///     .no_binary_name(true)
-    ///     .arg(arg!(&lt;cmd&gt; ... &quot;commands to run&quot;))
-    ///     .get_matches_from(vec![&quot;command&quot;, &quot;set&quot;]);
+    ///     .arg(arg!(&lt;cmd&gt; ... "commands to run"))
+    ///     .get_matches_from(vec!["command", "set"]);
     ///
-    /// let cmds: Vec&lt;_&gt; = m.get_many::&lt;String&gt;(&quot;cmd&quot;).unwrap().collect();
-    /// assert_eq!(cmds, [&quot;command&quot;, &quot;set&quot;]);
+    /// let cmds: Vec&lt;_&gt; = m.get_many::&lt;String&gt;("cmd").unwrap().collect();
+    /// assert_eq!(cmds, ["command", "set"]);
     /// ```
     /// [`try_get_matches_from_mut`]: crate::Command::try_get_matches_from_mut()
     </span><span class="attr">#[inline]
@@ -5880,19 +6023,19 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, arg};
-    /// let cmd = Command::new(&quot;cmd&quot;)
+    /// let cmd = Command::new("cmd")
     ///   .ignore_errors(true)
-    ///   .arg(arg!(-c --config &lt;FILE&gt; &quot;Sets a custom config file&quot;))
-    ///   .arg(arg!(-x --stuff &lt;FILE&gt; &quot;Sets a custom stuff file&quot;))
-    ///   .arg(arg!(f: -f &quot;Flag&quot;));
+    ///   .arg(arg!(-c --config &lt;FILE&gt; "Sets a custom config file"))
+    ///   .arg(arg!(-x --stuff &lt;FILE&gt; "Sets a custom stuff file"))
+    ///   .arg(arg!(f: -f "Flag"));
     ///
-    /// let r = cmd.try_get_matches_from(vec![&quot;cmd&quot;, &quot;-c&quot;, &quot;file&quot;, &quot;-f&quot;, &quot;-x&quot;]);
+    /// let r = cmd.try_get_matches_from(vec!["cmd", "-c", "file", "-f", "-x"]);
     ///
-    /// assert!(r.is_ok(), &quot;unexpected error: {r:?}&quot;);
+    /// assert!(r.is_ok(), "unexpected error: {r:?}");
     /// let m = r.unwrap();
-    /// assert_eq!(m.get_one::&lt;String&gt;(&quot;config&quot;).unwrap(), &quot;file&quot;);
-    /// assert!(m.get_flag(&quot;f&quot;));
-    /// assert_eq!(m.get_one::&lt;String&gt;(&quot;stuff&quot;), None);
+    /// assert_eq!(m.get_one::&lt;String&gt;("config").unwrap(), "file");
+    /// assert!(m.get_flag("f"));
+    /// assert_eq!(m.get_one::&lt;String&gt;("stuff"), None);
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>ignore_errors(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
@@ -5906,14 +6049,14 @@
     <span class="doccomment">/// Replace prior occurrences of arguments rather than error
     ///
     /// For any argument that would conflict with itself by default (e.g.
-    /// [`ArgAction::Set`][ArgAction::Set], it will now override itself.
+    /// [`ArgAction::Set`], it will now override itself.
     ///
-    /// This is the equivalent to saying the `foo` arg using [`Arg::overrides_with(&quot;foo&quot;)`] for all
+    /// This is the equivalent to saying the `foo` arg using [`Arg::overrides_with("foo")`] for all
     /// defined arguments.
     ///
     /// **NOTE:** This choice is propagated to all child subcommands.
     ///
-    /// [`Arg::overrides_with(&quot;foo&quot;)`]: crate::Arg::overrides_with()
+    /// [`Arg::overrides_with("foo")`]: crate::Arg::overrides_with()
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>args_override_self(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
@@ -5923,11 +6066,11 @@
         }
     }
 
-    <span class="doccomment">/// Disables the automatic delimiting of values after `--` or when [`Command::trailing_var_arg`]
+    <span class="doccomment">/// Disables the automatic delimiting of values after `--` or when [`Arg::trailing_var_arg`]
     /// was used.
     ///
     /// **NOTE:** The same thing can be done manually by setting the final positional argument to
-    /// [`Arg::value_delimiter(None)`]. Using this setting is safer, because it&#39;s easier to locate
+    /// [`Arg::value_delimiter(None)`]. Using this setting is safer, because it's easier to locate
     /// when making changes.
     ///
     /// **NOTE:** This choice is propagated to all child subcommands.
@@ -5937,7 +6080,7 @@
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .dont_delimit_trailing_values(true)
     ///     .get_matches();
     /// ```
@@ -5963,12 +6106,12 @@
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, ColorChoice};
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .color(ColorChoice::Never)
     ///     .get_matches();
     /// ```
     /// [`ColorChoice::Auto`]: crate::ColorChoice::Auto
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"color"</span>)]
     #[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>color(<span class="self">self</span>, color: ColorChoice) -&gt; <span class="self">Self </span>{
@@ -5999,11 +6142,11 @@
     ///     .usage(styling::AnsiColor::Green.on_default() | styling::Effects::BOLD)
     ///     .literal(styling::AnsiColor::Blue.on_default() | styling::Effects::BOLD)
     ///     .placeholder(styling::AnsiColor::Cyan.on_default());
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .styles(styles)
     ///     .get_matches();
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"color"</span>)]
     #[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>styles(<span class="kw-2">mut </span><span class="self">self</span>, styles: Styles) -&gt; <span class="self">Self </span>{
@@ -6030,22 +6173,22 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .term_width(80)
     /// # ;
     /// ```
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(any(not(feature = <span class="string">&quot;unstable-v5&quot;</span>), feature = <span class="string">&quot;wrap_help&quot;</span>))]
+    #[cfg(any(not(feature = <span class="string">"unstable-v5"</span>), feature = <span class="string">"wrap_help"</span>))]
     </span><span class="kw">pub fn </span>term_width(<span class="kw-2">mut </span><span class="self">self</span>, width: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.app_ext.set(TermWidth(width));
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Limit the line length for wrapping help when using the current terminal&#39;s width.
+    <span class="doccomment">/// Limit the line length for wrapping help when using the current terminal's width.
     ///
     /// This only applies when [`term_width`][Command::term_width] is unset so that the current
-    /// terminal&#39;s width will be used.  See [`Command::term_width`] for more details.
+    /// terminal's width will be used.  See [`Command::term_width`] for more details.
     ///
     /// Using `0` will ignore this, always respecting [`Command::term_width`] (default).
     ///
@@ -6060,13 +6203,13 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .max_term_width(100)
     /// # ;
     /// ```
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(any(not(feature = <span class="string">&quot;unstable-v5&quot;</span>), feature = <span class="string">&quot;wrap_help&quot;</span>))]
+    #[cfg(any(not(feature = <span class="string">"unstable-v5"</span>), feature = <span class="string">"wrap_help"</span>))]
     </span><span class="kw">pub fn </span>max_term_width(<span class="kw-2">mut </span><span class="self">self</span>, width: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.app_ext.set(MaxTermWidth(width));
         <span class="self">self
@@ -6079,11 +6222,11 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, error::ErrorKind};
-    /// let res = Command::new(&quot;myprog&quot;)
-    ///     .version(&quot;1.0.0&quot;)
+    /// let res = Command::new("myprog")
+    ///     .version("1.0.0")
     ///     .disable_version_flag(true)
     ///     .try_get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;--version&quot;
+    ///         "myprog", "--version"
     ///     ]);
     /// assert!(res.is_err());
     /// assert_eq!(res.unwrap_err().kind(), ErrorKind::UnknownArgument);
@@ -6093,25 +6236,25 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction, error::ErrorKind};
-    /// let mut cmd = Command::new(&quot;myprog&quot;)
-    ///     .version(&quot;1.0.0&quot;)
+    /// let mut cmd = Command::new("myprog")
+    ///     .version("1.0.0")
     ///     // Remove the `-V` short flag
     ///     .disable_version_flag(true)
     ///     .arg(
-    ///         Arg::new(&quot;version&quot;)
-    ///             .long(&quot;version&quot;)
+    ///         Arg::new("version")
+    ///             .long("version")
     ///             .action(ArgAction::Version)
-    ///             .help(&quot;Print version&quot;)
+    ///             .help("Print version")
     ///     );
     ///
     /// let res = cmd.try_get_matches_from_mut(vec![
-    ///         &quot;myprog&quot;, &quot;-V&quot;
+    ///         "myprog", "-V"
     ///     ]);
     /// assert!(res.is_err());
     /// assert_eq!(res.unwrap_err().kind(), ErrorKind::UnknownArgument);
     ///
     /// let res = cmd.try_get_matches_from_mut(vec![
-    ///         &quot;myprog&quot;, &quot;--version&quot;
+    ///         "myprog", "--version"
     ///     ]);
     /// assert!(res.is_err());
     /// assert_eq!(res.unwrap_err().kind(), ErrorKind::DisplayVersion);
@@ -6136,13 +6279,13 @@
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// Command::new(&quot;myprog&quot;)
-    ///     .version(&quot;v1.1&quot;)
+    /// Command::new("myprog")
+    ///     .version("v1.1")
     ///     .propagate_version(true)
-    ///     .subcommand(Command::new(&quot;test&quot;))
+    ///     .subcommand(Command::new("test"))
     ///     .get_matches();
     /// // running `$ myprog test --version` will display
-    /// // &quot;myprog-test v1.1&quot;
+    /// // "myprog-test v1.1"
     /// ```
     ///
     /// [`subcommands`]: crate::Command::subcommand()
@@ -6164,7 +6307,7 @@
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .next_line_help(true)
     ///     .get_matches();
     /// ```
@@ -6186,39 +6329,39 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, error::ErrorKind};
-    /// let res = Command::new(&quot;myprog&quot;)
+    /// let res = Command::new("myprog")
     ///     .disable_help_flag(true)
     ///     .try_get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;-h&quot;
+    ///         "myprog", "-h"
     ///     ]);
     /// assert!(res.is_err());
     /// assert_eq!(res.unwrap_err().kind(), ErrorKind::UnknownArgument);
     /// ```
     ///
-    /// You can create a custom version flag with [`ArgAction::Help`], [`ArgAction::HelpShort`], or
+    /// You can create a custom help flag with [`ArgAction::Help`], [`ArgAction::HelpShort`], or
     /// [`ArgAction::HelpLong`]
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction, error::ErrorKind};
-    /// let mut cmd = Command::new(&quot;myprog&quot;)
+    /// let mut cmd = Command::new("myprog")
     ///     // Change help short flag to `?`
     ///     .disable_help_flag(true)
     ///     .arg(
-    ///         Arg::new(&quot;help&quot;)
-    ///             .short(&#39;?&#39;)
-    ///             .long(&quot;help&quot;)
+    ///         Arg::new("help")
+    ///             .short('?')
+    ///             .long("help")
     ///             .action(ArgAction::Help)
-    ///             .help(&quot;Print help&quot;)
+    ///             .help("Print help")
     ///     );
     ///
     /// let res = cmd.try_get_matches_from_mut(vec![
-    ///         &quot;myprog&quot;, &quot;-h&quot;
+    ///         "myprog", "-h"
     ///     ]);
     /// assert!(res.is_err());
     /// assert_eq!(res.unwrap_err().kind(), ErrorKind::UnknownArgument);
     ///
     /// let res = cmd.try_get_matches_from_mut(vec![
-    ///         &quot;myprog&quot;, &quot;-?&quot;
+    ///         "myprog", "-?"
     ///     ]);
     /// assert!(res.is_err());
     /// assert_eq!(res.unwrap_err().kind(), ErrorKind::DisplayHelp);
@@ -6241,13 +6384,13 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, error::ErrorKind};
-    /// let res = Command::new(&quot;myprog&quot;)
+    /// let res = Command::new("myprog")
     ///     .disable_help_subcommand(true)
     ///     // Normally, creating a subcommand causes a `help` subcommand to automatically
     ///     // be generated as well
-    ///     .subcommand(Command::new(&quot;test&quot;))
+    ///     .subcommand(Command::new("test"))
     ///     .try_get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;help&quot;
+    ///         "myprog", "help"
     ///     ]);
     /// assert!(res.is_err());
     /// assert_eq!(res.unwrap_err().kind(), ErrorKind::InvalidSubcommand);
@@ -6272,7 +6415,7 @@
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .disable_colored_help(true)
     ///     .get_matches();
     /// ```
@@ -6297,10 +6440,10 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .help_expected(true)
     ///     .arg(
-    ///         Arg::new(&quot;foo&quot;).help(&quot;It does foo stuff&quot;)
+    ///         Arg::new("foo").help("It does foo stuff")
     ///         // As required via `help_expected`, a help message was supplied
     ///      )
     /// #    .get_matches();
@@ -6312,11 +6455,11 @@
     /// ```rust,no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// Command::new(&quot;myapp&quot;)
+    /// Command::new("myapp")
     ///     .help_expected(true)
     ///     .arg(
-    ///         Arg::new(&quot;foo&quot;)
-    ///         // Someone forgot to put .about(&quot;...&quot;) here
+    ///         Arg::new("foo")
+    ///         // Someone forgot to put .about("...") here
     ///         // Since the setting `help_expected` is activated, this will lead to
     ///         // a panic (if you are in debug mode)
     ///     )
@@ -6333,8 +6476,8 @@
 
     <span class="attr">#[doc(hidden)]
     #[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(since = <span class="string">&quot;4.0.0&quot;</span>, note = <span class="string">&quot;This is now the default&quot;</span>)
+        feature = <span class="string">"deprecated"</span>,
+        deprecated(since = <span class="string">"4.0.0"</span>, note = <span class="string">"This is now the default"</span>)
     )]
     </span><span class="kw">pub fn </span>dont_collapse_args_in_usage(<span class="self">self</span>, _yes: bool) -&gt; <span class="self">Self </span>{
         <span class="self">self
@@ -6389,7 +6532,7 @@
     /// **CAUTION:** This setting can interfere with [positional/free arguments], take care when
     /// designing CLIs which allow inferred subcommands and have potential positional/free
     /// arguments whose values could start with the same characters as subcommands. If this is the
-    /// case, it&#39;s recommended to use settings such as [`Command::args_conflicts_with_subcommands`] in
+    /// case, it's recommended to use settings such as [`Command::args_conflicts_with_subcommands`] in
     /// conjunction with this setting.
     ///
     /// **NOTE:** This choice is propagated to all child subcommands.
@@ -6399,13 +6542,13 @@
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// let m = Command::new(&quot;prog&quot;)
+    /// let m = Command::new("prog")
     ///     .infer_subcommands(true)
-    ///     .subcommand(Command::new(&quot;test&quot;))
+    ///     .subcommand(Command::new("test"))
     ///     .get_matches_from(vec![
-    ///         &quot;prog&quot;, &quot;te&quot;
+    ///         "prog", "te"
     ///     ]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
+    /// assert_eq!(m.subcommand_name(), Some("test"));
     /// ```
     ///
     /// [subcommand]: crate::Command::subcommand()
@@ -6425,7 +6568,7 @@
 ///
 /// These apply only to the current command and are not inherited by subcommands.
 </span><span class="kw">impl </span>Command {
-    <span class="doccomment">/// (Re)Sets the program&#39;s name.
+    <span class="doccomment">/// (Re)Sets the program's name.
     ///
     /// See [`Command::new`] for more details.
     ///
@@ -6433,7 +6576,7 @@
     ///
     /// ```ignore
     /// let cmd = clap::command!()
-    ///     .name(&quot;foo&quot;);
+    ///     .name("foo");
     ///
     /// // continued logic goes here, such as `cmd.get_matches()` etc.
     /// ```
@@ -6460,8 +6603,8 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;My Program&quot;)
-    ///      .bin_name(&quot;my_binary&quot;)
+    /// Command::new("My Program")
+    ///      .bin_name("my_binary")
     /// # ;
     /// ```
     </span><span class="attr">#[must_use]
@@ -6477,8 +6620,8 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;My Program&quot;)
-    ///      .display_name(&quot;my_program&quot;)
+    /// Command::new("My Program")
+    ///      .display_name("my_program")
     /// # ;
     /// ```
     </span><span class="attr">#[must_use]
@@ -6490,7 +6633,7 @@
     <span class="doccomment">/// Sets the author(s) for the help message.
     ///
     /// **Pro-tip:** Use `clap`s convenience macro [`crate_authors!`] to
-    /// automatically set your application&#39;s author(s) to the same thing as your
+    /// automatically set your application's author(s) to the same thing as your
     /// crate at compile time.
     ///
     /// **NOTE:** A custom [`help_template`][Command::help_template] is needed for author to show
@@ -6501,8 +6644,8 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
-    ///      .author(&quot;Me, me@mymain.com&quot;)
+    /// Command::new("myprog")
+    ///      .author("Me, me@mymain.com")
     /// # ;
     /// ```
     </span><span class="attr">#[must_use]
@@ -6511,7 +6654,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets the program&#39;s description for the short help (`-h`).
+    <span class="doccomment">/// Sets the program's description for the short help (`-h`).
     ///
     /// If [`Command::long_about`] is not specified, this message will be displayed for `--help`.
     ///
@@ -6525,8 +6668,8 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
-    ///     .about(&quot;Does really amazing things for great people&quot;)
+    /// Command::new("myprog")
+    ///     .about("Does really amazing things for great people")
     /// # ;
     /// ```
     </span><span class="attr">#[must_use]
@@ -6535,9 +6678,10 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets the program&#39;s description for the long help (`--help`).
+    <span class="doccomment">/// Sets the program's description for the long help (`--help`).
     ///
-    /// If [`Command::about`] is not specified, this message will be displayed for `-h`.
+    /// If not set, [`Command::about`] will be used for long help in addition to short help
+    /// (`-h`).
     ///
     /// **NOTE:** Only [`Command::about`] (short format) is used in completion
     /// script generation in order to be concise.
@@ -6547,11 +6691,11 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .long_about(
-    /// &quot;Does really amazing things to great people. Now let&#39;s talk a little
+    /// "Does really amazing things to great people. Now let's talk a little
     ///  more in depth about how this subcommand really works. It may take about
-    ///  a few lines of text, but that&#39;s ok!&quot;)
+    ///  a few lines of text, but that's ok!")
     /// # ;
     /// ```
     /// [`Command::about`]: Command::about()
@@ -6573,8 +6717,8 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
-    ///     .after_help(&quot;Does really amazing things for great people... but be careful with -R!&quot;)
+    /// Command::new("myprog")
+    ///     .after_help("Does really amazing things for great people... but be careful with -R!")
     /// # ;
     /// ```
     ///
@@ -6589,16 +6733,17 @@
     /// This is often used to describe how to use the arguments, caveats to be noted, or license
     /// and contact information.
     ///
-    /// If [`Command::after_help`] is not specified, this message will be displayed for `-h`.
+    /// If not set, [`Command::after_help`] will be used for long help in addition to short help
+    /// (`-h`).
     ///
     /// # Examples
     ///
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
-    ///     .after_long_help(&quot;Does really amazing things to great people... but be careful with -R, \
-    ///                      like, for real, be careful with this!&quot;)
+    /// Command::new("myprog")
+    ///     .after_long_help("Does really amazing things to great people... but be careful with -R, \
+    ///                      like, for real, be careful with this!")
     /// # ;
     /// ```
     </span><span class="attr">#[must_use]
@@ -6618,8 +6763,8 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
-    ///     .before_help(&quot;Some info I&#39;d like to appear before the help info&quot;)
+    /// Command::new("myprog")
+    ///     .before_help("Some info I'd like to appear before the help info")
     /// # ;
     /// ```
     </span><span class="attr">#[must_use]
@@ -6632,15 +6777,16 @@
     ///
     /// This is often used for header, copyright, or license information.
     ///
-    /// If [`Command::before_help`] is not specified, this message will be displayed for `-h`.
+    /// If not set, [`Command::before_help`] will be used for long help in addition to short help
+    /// (`-h`).
     ///
     /// # Examples
     ///
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
-    ///     .before_long_help(&quot;Some verbose and long info I&#39;d like to appear before the help info&quot;)
+    /// Command::new("myprog")
+    ///     .before_long_help("Some verbose and long info I'd like to appear before the help info")
     /// # ;
     /// ```
     </span><span class="attr">#[must_use]
@@ -6654,7 +6800,7 @@
     /// If [`Command::long_version`] is not specified, this message will be displayed for `--version`.
     ///
     /// **Pro-tip:** Use `clap`s convenience macro [`crate_version!`] to
-    /// automatically set your application&#39;s version to the same thing as your
+    /// automatically set your application's version to the same thing as your
     /// crate at compile time.
     ///
     /// # Examples
@@ -6662,8 +6808,8 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
-    ///     .version(&quot;v0.1.24&quot;)
+    /// Command::new("myprog")
+    ///     .version("v0.1.24")
     /// # ;
     /// ```
     </span><span class="attr">#[must_use]
@@ -6677,7 +6823,7 @@
     /// If [`Command::version`] is not specified, this message will be displayed for `-V`.
     ///
     /// **Pro-tip:** Use `clap`s convenience macro [`crate_version!`] to
-    /// automatically set your application&#39;s version to the same thing as your
+    /// automatically set your application's version to the same thing as your
     /// crate at compile time.
     ///
     /// # Examples
@@ -6685,13 +6831,13 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .long_version(
-    /// &quot;v0.1.24
+    /// "v0.1.24
     ///  commit: abcdef89726d
     ///  revision: 123
     ///  release: 2
-    ///  binary: myprog&quot;)
+    ///  binary: myprog")
     /// # ;
     /// ```
     </span><span class="attr">#[must_use]
@@ -6702,7 +6848,7 @@
 
     <span class="doccomment">/// Overrides the `clap` generated usage string for help and error messages.
     ///
-    /// **NOTE:** Using this setting disables `clap`s &quot;context-aware&quot; usage
+    /// **NOTE:** Using this setting disables `clap`s "context-aware" usage
     /// strings. After this setting is set, this will be *the only* usage string
     /// displayed to the user!
     ///
@@ -6719,8 +6865,8 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// Command::new(&quot;myprog&quot;)
-    ///     .override_usage(&quot;myapp [-clDas] &lt;some_file&gt;&quot;)
+    /// Command::new("myprog")
+    ///     .override_usage("myapp [-clDas] &lt;some_file&gt;")
     /// # ;
     /// ```
     ///
@@ -6729,11 +6875,11 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .override_usage(
-    ///         &quot;myapp -X [-a] [-b] &lt;file&gt;\n       \
+    ///         "myapp -X [-a] [-b] &lt;file&gt;\n       \
     ///          myapp -Y [-c] &lt;file1&gt; &lt;file2&gt;\n       \
-    ///          myapp -Z [-d|-e]&quot;
+    ///          myapp -Z [-d|-e]"
     ///     )
     /// # ;
     /// ```
@@ -6759,8 +6905,8 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// Command::new(&quot;myapp&quot;)
-    ///     .override_help(&quot;myapp v1.0\n\
+    /// Command::new("myapp")
+    ///     .override_help("myapp v1.0\n\
     ///            Does awesome things\n\
     ///            (C) me@mail.com\n\n\
     ///
@@ -6774,7 +6920,7 @@
     ///
     ///            Commands:\n\
     ///            help             Print this message\n\
-    ///            work             Do some work&quot;)
+    ///            work             Do some work")
     /// # ;
     /// ```
     </span><span class="attr">#[must_use]
@@ -6801,7 +6947,7 @@
     ///   * `{about}`               - General description (from [`Command::about`] or
     ///                               [`Command::long_about`]).
     ///   * `{about-with-newline}`  - About followed by `\n`.
-    ///   * `{about-section}`       - About preceded and followed by &#39;\n&#39;.
+    ///   * `{about-section}`       - About preceded and followed by '\n'.
     ///   * `{usage-heading}`       - Automatically generated usage heading.
     ///   * `{usage}`               - Automatically generated or given usage string.
     ///   * `{all-args}`            - Help for all arguments (options, flags, positional
@@ -6820,9 +6966,9 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
-    ///     .version(&quot;1.0&quot;)
-    ///     .help_template(&quot;{name} ({version}) - {usage}&quot;)
+    /// Command::new("myprog")
+    ///     .version("1.0")
+    ///     .help_template("{name} ({version}) - {usage}")
     /// # ;
     /// ```
     ///
@@ -6831,15 +6977,15 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
-    ///     .version(&quot;1.0&quot;)
-    ///     .help_template(&quot;\
+    /// Command::new("myprog")
+    ///     .version("1.0")
+    ///     .help_template("\
     /// {before-help}{name} {version}
     /// {author-with-newline}{about-with-newline}
     /// {usage-heading} {usage}
     ///
     /// {all-args}{after-help}
-    /// &quot;)
+    /// ")
     /// # ;
     /// ```
     /// [`Command::about`]: Command::about()
@@ -6849,7 +6995,7 @@
     /// [`Command::before_help`]: Command::before_help()
     /// [`Command::before_long_help`]: Command::before_long_help()
     </span><span class="attr">#[must_use]
-    #[cfg(feature = <span class="string">&quot;help&quot;</span>)]
+    #[cfg(feature = <span class="string">"help"</span>)]
     </span><span class="kw">pub fn </span>help_template(<span class="kw-2">mut </span><span class="self">self</span>, s: <span class="kw">impl </span>IntoResettable&lt;StyledStr&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.template = s.into_resettable().into_option();
         <span class="self">self
@@ -6885,12 +7031,27 @@
         <span class="self">self
     </span>}
 
+    <span class="doccomment">/// Flatten subcommand help into the current command's help
+    ///
+    /// This shows a summary of subcommands within the usage and help for the current command, similar to
+    /// `git stash --help` showing information on `push`, `pop`, etc.
+    /// To see more information, a user can still pass `--help` to the individual subcommands.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>flatten_help(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span>yes {
+            <span class="self">self</span>.setting(AppSettings::FlattenHelp)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.unset_setting(AppSettings::FlattenHelp)
+        }
+    }
+
     <span class="doccomment">/// Set the default section heading for future args.
     ///
-    /// This will be used for any arg that hasn&#39;t had [`Arg::help_heading`] called.
+    /// This will be used for any arg that hasn't had [`Arg::help_heading`] called.
     ///
     /// This is useful if the default `Options` or `Arguments` headings are
-    /// not specific enough for one&#39;s use case.
+    /// not specific enough for one's use case.
     ///
     /// For subcommands, see [`Command::subcommand_help_heading`]
     ///
@@ -6905,7 +7066,7 @@
 
     <span class="doccomment">/// Change the starting value for assigning future display orders for args.
     ///
-    /// This will be used for any arg that hasn&#39;t had [`Arg::display_order`] called.
+    /// This will be used for any arg that hasn't had [`Arg::display_order`] called.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>next_display_order(<span class="kw-2">mut </span><span class="self">self</span>, disp_ord: <span class="kw">impl </span>IntoResettable&lt;usize&gt;) -&gt; <span class="self">Self </span>{
@@ -6922,7 +7083,7 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command};
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .arg_required_else_help(true);
     /// ```
     ///
@@ -6939,8 +7100,8 @@
 
     <span class="attr">#[doc(hidden)]
     #[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(since = <span class="string">&quot;4.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `Arg::allow_hyphen_values`&quot;</span>)
+        feature = <span class="string">"deprecated"</span>,
+        deprecated(since = <span class="string">"4.0.0"</span>, note = <span class="string">"Replaced with `Arg::allow_hyphen_values`"</span>)
     )]
     </span><span class="kw">pub fn </span>allow_hyphen_values(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
@@ -6952,8 +7113,8 @@
 
     <span class="attr">#[doc(hidden)]
     #[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(since = <span class="string">&quot;4.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `Arg::allow_negative_numbers`&quot;</span>)
+        feature = <span class="string">"deprecated"</span>,
+        deprecated(since = <span class="string">"4.0.0"</span>, note = <span class="string">"Replaced with `Arg::allow_negative_numbers`"</span>)
     )]
     </span><span class="kw">pub fn </span>allow_negative_numbers(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
@@ -6965,8 +7126,8 @@
 
     <span class="attr">#[doc(hidden)]
     #[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(since = <span class="string">&quot;4.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `Arg::trailing_var_arg`&quot;</span>)
+        feature = <span class="string">"deprecated"</span>,
+        deprecated(since = <span class="string">"4.0.0"</span>, note = <span class="string">"Replaced with `Arg::trailing_var_arg`"</span>)
     )]
     </span><span class="kw">pub fn </span>trailing_var_arg(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
@@ -6987,10 +7148,10 @@
     ///
     /// This would otherwise not be allowed. This is useful when `[optional]` has a default value.
     ///
-    /// **Note:** when using this style of &quot;missing positionals&quot; the final positional *must* be
+    /// **Note:** when using this style of "missing positionals" the final positional *must* be
     /// [required] if `--` will not be used to skip to the final positional argument.
     ///
-    /// **Note:** This style also only allows a single positional argument to be &quot;skipped&quot; without
+    /// **Note:** This style also only allows a single positional argument to be "skipped" without
     /// the use of `--`. To skip more than one, see the second example.
     ///
     /// The second example is when one wants to skip multiple optional positional arguments, and use
@@ -6999,7 +7160,7 @@
     /// For example, imagine a CLI which has three positional arguments `[foo] [bar] [baz]...` where
     /// `baz` accepts multiple values (similar to man `ARGS...` style training arguments).
     ///
-    /// With this setting the following invocations are posisble:
+    /// With this setting the following invocations are possible:
     ///
     /// * `$ prog foo bar baz1 baz2 baz3`
     /// * `$ prog foo -- baz1 baz2 baz3`
@@ -7012,18 +7173,18 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// // Assume there is an external subcommand named &quot;subcmd&quot;
-    /// let m = Command::new(&quot;myprog&quot;)
+    /// // Assume there is an external subcommand named "subcmd"
+    /// let m = Command::new("myprog")
     ///     .allow_missing_positional(true)
-    ///     .arg(Arg::new(&quot;arg1&quot;))
-    ///     .arg(Arg::new(&quot;arg2&quot;)
+    ///     .arg(Arg::new("arg1"))
+    ///     .arg(Arg::new("arg2")
     ///         .required(true))
     ///     .get_matches_from(vec![
-    ///         &quot;prog&quot;, &quot;other&quot;
+    ///         "prog", "other"
     ///     ]);
     ///
-    /// assert_eq!(m.get_one::&lt;String&gt;(&quot;arg1&quot;), None);
-    /// assert_eq!(m.get_one::&lt;String&gt;(&quot;arg2&quot;).unwrap(), &quot;other&quot;);
+    /// assert_eq!(m.get_one::&lt;String&gt;("arg1"), None);
+    /// assert_eq!(m.get_one::&lt;String&gt;("arg2").unwrap(), "other");
     /// ```
     ///
     /// Now the same example, but using a default value for the first optional positional argument
@@ -7031,19 +7192,19 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// // Assume there is an external subcommand named &quot;subcmd&quot;
-    /// let m = Command::new(&quot;myprog&quot;)
+    /// // Assume there is an external subcommand named "subcmd"
+    /// let m = Command::new("myprog")
     ///     .allow_missing_positional(true)
-    ///     .arg(Arg::new(&quot;arg1&quot;)
-    ///         .default_value(&quot;something&quot;))
-    ///     .arg(Arg::new(&quot;arg2&quot;)
+    ///     .arg(Arg::new("arg1")
+    ///         .default_value("something"))
+    ///     .arg(Arg::new("arg2")
     ///         .required(true))
     ///     .get_matches_from(vec![
-    ///         &quot;prog&quot;, &quot;other&quot;
+    ///         "prog", "other"
     ///     ]);
     ///
-    /// assert_eq!(m.get_one::&lt;String&gt;(&quot;arg1&quot;).unwrap(), &quot;something&quot;);
-    /// assert_eq!(m.get_one::&lt;String&gt;(&quot;arg2&quot;).unwrap(), &quot;other&quot;);
+    /// assert_eq!(m.get_one::&lt;String&gt;("arg1").unwrap(), "something");
+    /// assert_eq!(m.get_one::&lt;String&gt;("arg2").unwrap(), "other");
     /// ```
     ///
     /// Style number two from above:
@@ -7051,39 +7212,39 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
-    /// // Assume there is an external subcommand named &quot;subcmd&quot;
-    /// let m = Command::new(&quot;myprog&quot;)
+    /// // Assume there is an external subcommand named "subcmd"
+    /// let m = Command::new("myprog")
     ///     .allow_missing_positional(true)
-    ///     .arg(Arg::new(&quot;foo&quot;))
-    ///     .arg(Arg::new(&quot;bar&quot;))
-    ///     .arg(Arg::new(&quot;baz&quot;).action(ArgAction::Set).num_args(1..))
+    ///     .arg(Arg::new("foo"))
+    ///     .arg(Arg::new("bar"))
+    ///     .arg(Arg::new("baz").action(ArgAction::Set).num_args(1..))
     ///     .get_matches_from(vec![
-    ///         &quot;prog&quot;, &quot;foo&quot;, &quot;bar&quot;, &quot;baz1&quot;, &quot;baz2&quot;, &quot;baz3&quot;
+    ///         "prog", "foo", "bar", "baz1", "baz2", "baz3"
     ///     ]);
     ///
-    /// assert_eq!(m.get_one::&lt;String&gt;(&quot;foo&quot;).unwrap(), &quot;foo&quot;);
-    /// assert_eq!(m.get_one::&lt;String&gt;(&quot;bar&quot;).unwrap(), &quot;bar&quot;);
-    /// assert_eq!(m.get_many::&lt;String&gt;(&quot;baz&quot;).unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;[&quot;baz1&quot;, &quot;baz2&quot;, &quot;baz3&quot;]);
+    /// assert_eq!(m.get_one::&lt;String&gt;("foo").unwrap(), "foo");
+    /// assert_eq!(m.get_one::&lt;String&gt;("bar").unwrap(), "bar");
+    /// assert_eq!(m.get_many::&lt;String&gt;("baz").unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;["baz1", "baz2", "baz3"]);
     /// ```
     ///
-    /// Now nofice if we don&#39;t specify `foo` or `baz` but use the `--` operator.
+    /// Now nofice if we don't specify `foo` or `baz` but use the `--` operator.
     ///
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
-    /// // Assume there is an external subcommand named &quot;subcmd&quot;
-    /// let m = Command::new(&quot;myprog&quot;)
+    /// // Assume there is an external subcommand named "subcmd"
+    /// let m = Command::new("myprog")
     ///     .allow_missing_positional(true)
-    ///     .arg(Arg::new(&quot;foo&quot;))
-    ///     .arg(Arg::new(&quot;bar&quot;))
-    ///     .arg(Arg::new(&quot;baz&quot;).action(ArgAction::Set).num_args(1..))
+    ///     .arg(Arg::new("foo"))
+    ///     .arg(Arg::new("bar"))
+    ///     .arg(Arg::new("baz").action(ArgAction::Set).num_args(1..))
     ///     .get_matches_from(vec![
-    ///         &quot;prog&quot;, &quot;--&quot;, &quot;baz1&quot;, &quot;baz2&quot;, &quot;baz3&quot;
+    ///         "prog", "--", "baz1", "baz2", "baz3"
     ///     ]);
     ///
-    /// assert_eq!(m.get_one::&lt;String&gt;(&quot;foo&quot;), None);
-    /// assert_eq!(m.get_one::&lt;String&gt;(&quot;bar&quot;), None);
-    /// assert_eq!(m.get_many::&lt;String&gt;(&quot;baz&quot;).unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;[&quot;baz1&quot;, &quot;baz2&quot;, &quot;baz3&quot;]);
+    /// assert_eq!(m.get_one::&lt;String&gt;("foo"), None);
+    /// assert_eq!(m.get_one::&lt;String&gt;("bar"), None);
+    /// assert_eq!(m.get_many::&lt;String&gt;("baz").unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;["baz1", "baz2", "baz3"]);
     /// ```
     ///
     /// [required]: crate::Arg::required()
@@ -7108,21 +7269,21 @@
     /// ```
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
-    /// let matches = Command::new(&quot;pacman&quot;)
+    /// let matches = Command::new("pacman")
     ///     .subcommand(
-    ///         Command::new(&quot;sync&quot;).short_flag(&#39;S&#39;).arg(
-    ///             Arg::new(&quot;search&quot;)
-    ///                 .short(&#39;s&#39;)
-    ///                 .long(&quot;search&quot;)
+    ///         Command::new("sync").short_flag('S').arg(
+    ///             Arg::new("search")
+    ///                 .short('s')
+    ///                 .long("search")
     ///                 .action(ArgAction::SetTrue)
-    ///                 .help(&quot;search remote repositories for matching strings&quot;),
+    ///                 .help("search remote repositories for matching strings"),
     ///         ),
     ///     )
-    ///     .get_matches_from(vec![&quot;pacman&quot;, &quot;-Ss&quot;]);
+    ///     .get_matches_from(vec!["pacman", "-Ss"]);
     ///
-    /// assert_eq!(matches.subcommand_name().unwrap(), &quot;sync&quot;);
-    /// let sync_matches = matches.subcommand_matches(&quot;sync&quot;).unwrap();
-    /// assert!(sync_matches.get_flag(&quot;search&quot;));
+    /// assert_eq!(matches.subcommand_name().unwrap(), "sync");
+    /// let sync_matches = matches.subcommand_matches("sync").unwrap();
+    /// assert!(sync_matches.get_flag("search"));
     /// ```
     /// [`Arg::short`]: Arg::short()
     </span><span class="attr">#[must_use]
@@ -7146,21 +7307,21 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
-    /// let matches = Command::new(&quot;pacman&quot;)
+    /// let matches = Command::new("pacman")
     ///     .subcommand(
-    ///         Command::new(&quot;sync&quot;).long_flag(&quot;sync&quot;).arg(
-    ///             Arg::new(&quot;search&quot;)
-    ///                 .short(&#39;s&#39;)
-    ///                 .long(&quot;search&quot;)
+    ///         Command::new("sync").long_flag("sync").arg(
+    ///             Arg::new("search")
+    ///                 .short('s')
+    ///                 .long("search")
     ///                 .action(ArgAction::SetTrue)
-    ///                 .help(&quot;search remote repositories for matching strings&quot;),
+    ///                 .help("search remote repositories for matching strings"),
     ///         ),
     ///     )
-    ///     .get_matches_from(vec![&quot;pacman&quot;, &quot;--sync&quot;, &quot;--search&quot;]);
+    ///     .get_matches_from(vec!["pacman", "--sync", "--search"]);
     ///
-    /// assert_eq!(matches.subcommand_name().unwrap(), &quot;sync&quot;);
-    /// let sync_matches = matches.subcommand_matches(&quot;sync&quot;).unwrap();
-    /// assert!(sync_matches.get_flag(&quot;search&quot;));
+    /// assert_eq!(matches.subcommand_name().unwrap(), "sync");
+    /// let sync_matches = matches.subcommand_matches("sync").unwrap();
+    /// assert!(sync_matches.get_flag("search"));
     /// ```
     ///
     /// [`Arg::long`]: Arg::long()
@@ -7177,7 +7338,7 @@
     /// only needs to check for the existence of this command, and not all aliased variants.
     ///
     /// **NOTE:** Aliases defined with this method are *hidden* from the help
-    /// message. If you&#39;re looking for aliases that will be displayed in the help
+    /// message. If you're looking for aliases that will be displayed in the help
     /// message, see [`Command::visible_alias`].
     ///
     /// **NOTE:** When using aliases and checking for the existence of a
@@ -7189,11 +7350,11 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, };
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///     .subcommand(Command::new(&quot;test&quot;)
-    ///         .alias(&quot;do-stuff&quot;))
-    ///     .get_matches_from(vec![&quot;myprog&quot;, &quot;do-stuff&quot;]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
+    /// let m = Command::new("myprog")
+    ///     .subcommand(Command::new("test")
+    ///         .alias("do-stuff"))
+    ///     .get_matches_from(vec!["myprog", "do-stuff"]);
+    /// assert_eq!(m.subcommand_name(), Some("test"));
     /// ```
     /// [`Command::visible_alias`]: Command::visible_alias()
     </span><span class="attr">#[must_use]
@@ -7206,7 +7367,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Add an alias, which functions as  &quot;hidden&quot; short flag subcommand
+    <span class="doccomment">/// Add an alias, which functions as  "hidden" short flag subcommand
     ///
     /// This will automatically dispatch as if this subcommand was used. This is more efficient,
     /// and easier than creating multiple hidden subcommands as one only needs to check for the
@@ -7217,16 +7378,16 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, };
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///             .subcommand(Command::new(&quot;test&quot;).short_flag(&#39;t&#39;)
-    ///                 .short_flag_alias(&#39;d&#39;))
-    ///             .get_matches_from(vec![&quot;myprog&quot;, &quot;-d&quot;]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
+    /// let m = Command::new("myprog")
+    ///             .subcommand(Command::new("test").short_flag('t')
+    ///                 .short_flag_alias('d'))
+    ///             .get_matches_from(vec!["myprog", "-d"]);
+    /// assert_eq!(m.subcommand_name(), Some("test"));
     /// ```
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>short_flag_alias(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw">impl </span>IntoResettable&lt;char&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name.into_resettable().into_option() {
-            <span class="macro">debug_assert!</span>(name != <span class="string">&#39;-&#39;</span>, <span class="string">&quot;short alias name cannot be `-`&quot;</span>);
+            <span class="macro">debug_assert!</span>(name != <span class="string">'-'</span>, <span class="string">"short alias name cannot be `-`"</span>);
             <span class="self">self</span>.short_flag_aliases.push((name, <span class="bool-val">false</span>));
         } <span class="kw">else </span>{
             <span class="self">self</span>.short_flag_aliases.clear();
@@ -7234,7 +7395,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Add an alias, which functions as a &quot;hidden&quot; long flag subcommand.
+    <span class="doccomment">/// Add an alias, which functions as a "hidden" long flag subcommand.
     ///
     /// This will automatically dispatch as if this subcommand was used. This is more efficient,
     /// and easier than creating multiple hidden subcommands as one only needs to check for the
@@ -7245,11 +7406,11 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, };
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///             .subcommand(Command::new(&quot;test&quot;).long_flag(&quot;test&quot;)
-    ///                 .long_flag_alias(&quot;testing&quot;))
-    ///             .get_matches_from(vec![&quot;myprog&quot;, &quot;--testing&quot;]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
+    /// let m = Command::new("myprog")
+    ///             .subcommand(Command::new("test").long_flag("test")
+    ///                 .long_flag_alias("testing"))
+    ///             .get_matches_from(vec!["myprog", "--testing"]);
+    /// assert_eq!(m.subcommand_name(), Some("test"));
     /// ```
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>long_flag_alias(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw">impl </span>IntoResettable&lt;Str&gt;) -&gt; <span class="self">Self </span>{
@@ -7280,14 +7441,14 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///     .subcommand(Command::new(&quot;test&quot;)
-    ///         .aliases([&quot;do-stuff&quot;, &quot;do-tests&quot;, &quot;tests&quot;]))
-    ///         .arg(Arg::new(&quot;input&quot;)
-    ///             .help(&quot;the file to add&quot;)
+    /// let m = Command::new("myprog")
+    ///     .subcommand(Command::new("test")
+    ///         .aliases(["do-stuff", "do-tests", "tests"]))
+    ///         .arg(Arg::new("input")
+    ///             .help("the file to add")
     ///             .required(false))
-    ///     .get_matches_from(vec![&quot;myprog&quot;, &quot;do-tests&quot;]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
+    ///     .get_matches_from(vec!["myprog", "do-tests"]);
+    /// assert_eq!(m.subcommand_name(), Some("test"));
     /// ```
     /// [`Command::visible_aliases`]: Command::visible_aliases()
     </span><span class="attr">#[must_use]
@@ -7297,7 +7458,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Add aliases, which function as &quot;hidden&quot; short flag subcommands.
+    <span class="doccomment">/// Add aliases, which function as "hidden" short flag subcommands.
     ///
     /// These will automatically dispatch as if this subcommand was used. This is more efficient,
     /// and easier than creating multiple hidden subcommands as one only needs to check for the
@@ -7308,25 +7469,25 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, };
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///     .subcommand(Command::new(&quot;test&quot;).short_flag(&#39;t&#39;)
-    ///         .short_flag_aliases([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]))
-    ///         .arg(Arg::new(&quot;input&quot;)
-    ///             .help(&quot;the file to add&quot;)
+    /// let m = Command::new("myprog")
+    ///     .subcommand(Command::new("test").short_flag('t')
+    ///         .short_flag_aliases(['a', 'b', 'c']))
+    ///         .arg(Arg::new("input")
+    ///             .help("the file to add")
     ///             .required(false))
-    ///     .get_matches_from(vec![&quot;myprog&quot;, &quot;-a&quot;]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
+    ///     .get_matches_from(vec!["myprog", "-a"]);
+    /// assert_eq!(m.subcommand_name(), Some("test"));
     /// ```
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>short_flag_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = char&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">for </span>s <span class="kw">in </span>names {
-            <span class="macro">debug_assert!</span>(s != <span class="string">&#39;-&#39;</span>, <span class="string">&quot;short alias name cannot be `-`&quot;</span>);
+            <span class="macro">debug_assert!</span>(s != <span class="string">'-'</span>, <span class="string">"short alias name cannot be `-`"</span>);
             <span class="self">self</span>.short_flag_aliases.push((s, <span class="bool-val">false</span>));
         }
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Add aliases, which function as &quot;hidden&quot; long flag subcommands.
+    <span class="doccomment">/// Add aliases, which function as "hidden" long flag subcommands.
     ///
     /// These will automatically dispatch as if this subcommand was used. This is more efficient,
     /// and easier than creating multiple hidden subcommands as one only needs to check for the
@@ -7337,19 +7498,19 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, };
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///             .subcommand(Command::new(&quot;test&quot;).long_flag(&quot;test&quot;)
-    ///                 .long_flag_aliases([&quot;testing&quot;, &quot;testall&quot;, &quot;test_all&quot;]))
-    ///                 .arg(Arg::new(&quot;input&quot;)
-    ///                             .help(&quot;the file to add&quot;)
+    /// let m = Command::new("myprog")
+    ///             .subcommand(Command::new("test").long_flag("test")
+    ///                 .long_flag_aliases(["testing", "testall", "test_all"]))
+    ///                 .arg(Arg::new("input")
+    ///                             .help("the file to add")
     ///                             .required(false))
-    ///             .get_matches_from(vec![&quot;myprog&quot;, &quot;--testing&quot;]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
+    ///             .get_matches_from(vec!["myprog", "--testing"]);
+    /// assert_eq!(m.subcommand_name(), Some("test"));
     /// ```
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>long_flag_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;Str&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">for </span>s <span class="kw">in </span>names {
-            <span class="self">self </span>= <span class="self">self</span>.long_flag_alias(s)
+            <span class="self">self </span>= <span class="self">self</span>.long_flag_alias(s);
         }
         <span class="self">self
     </span>}
@@ -7375,11 +7536,11 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///     .subcommand(Command::new(&quot;test&quot;)
-    ///         .visible_alias(&quot;do-stuff&quot;))
-    ///     .get_matches_from(vec![&quot;myprog&quot;, &quot;do-stuff&quot;]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
+    /// let m = Command::new("myprog")
+    ///     .subcommand(Command::new("test")
+    ///         .visible_alias("do-stuff"))
+    ///     .get_matches_from(vec!["myprog", "do-stuff"]);
+    /// assert_eq!(m.subcommand_name(), Some("test"));
     /// ```
     /// [`Command::alias`]: Command::alias()
     </span><span class="attr">#[must_use]
@@ -7392,7 +7553,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Add an alias, which functions as  &quot;visible&quot; short flag subcommand
+    <span class="doccomment">/// Add an alias, which functions as  "visible" short flag subcommand
     ///
     /// This will automatically dispatch as if this subcommand was used. This is more efficient,
     /// and easier than creating multiple hidden subcommands as one only needs to check for the
@@ -7405,17 +7566,17 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, };
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///             .subcommand(Command::new(&quot;test&quot;).short_flag(&#39;t&#39;)
-    ///                 .visible_short_flag_alias(&#39;d&#39;))
-    ///             .get_matches_from(vec![&quot;myprog&quot;, &quot;-d&quot;]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
+    /// let m = Command::new("myprog")
+    ///             .subcommand(Command::new("test").short_flag('t')
+    ///                 .visible_short_flag_alias('d'))
+    ///             .get_matches_from(vec!["myprog", "-d"]);
+    /// assert_eq!(m.subcommand_name(), Some("test"));
     /// ```
     /// [`Command::short_flag_alias`]: Command::short_flag_alias()
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>visible_short_flag_alias(<span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw">impl </span>IntoResettable&lt;char&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name.into_resettable().into_option() {
-            <span class="macro">debug_assert!</span>(name != <span class="string">&#39;-&#39;</span>, <span class="string">&quot;short alias name cannot be `-`&quot;</span>);
+            <span class="macro">debug_assert!</span>(name != <span class="string">'-'</span>, <span class="string">"short alias name cannot be `-`"</span>);
             <span class="self">self</span>.short_flag_aliases.push((name, <span class="bool-val">true</span>));
         } <span class="kw">else </span>{
             <span class="self">self</span>.short_flag_aliases.clear();
@@ -7423,7 +7584,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Add an alias, which functions as a &quot;visible&quot; long flag subcommand.
+    <span class="doccomment">/// Add an alias, which functions as a "visible" long flag subcommand.
     ///
     /// This will automatically dispatch as if this subcommand was used. This is more efficient,
     /// and easier than creating multiple hidden subcommands as one only needs to check for the
@@ -7436,11 +7597,11 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, };
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///             .subcommand(Command::new(&quot;test&quot;).long_flag(&quot;test&quot;)
-    ///                 .visible_long_flag_alias(&quot;testing&quot;))
-    ///             .get_matches_from(vec![&quot;myprog&quot;, &quot;--testing&quot;]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
+    /// let m = Command::new("myprog")
+    ///             .subcommand(Command::new("test").long_flag("test")
+    ///                 .visible_long_flag_alias("testing"))
+    ///             .get_matches_from(vec!["myprog", "--testing"]);
+    /// assert_eq!(m.subcommand_name(), Some("test"));
     /// ```
     /// [`Command::long_flag_alias`]: Command::long_flag_alias()
     </span><span class="attr">#[must_use]
@@ -7474,11 +7635,11 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, };
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///     .subcommand(Command::new(&quot;test&quot;)
-    ///         .visible_aliases([&quot;do-stuff&quot;, &quot;tests&quot;]))
-    ///     .get_matches_from(vec![&quot;myprog&quot;, &quot;do-stuff&quot;]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
+    /// let m = Command::new("myprog")
+    ///     .subcommand(Command::new("test")
+    ///         .visible_aliases(["do-stuff", "tests"]))
+    ///     .get_matches_from(vec!["myprog", "do-stuff"]);
+    /// assert_eq!(m.subcommand_name(), Some("test"));
     /// ```
     /// [`Command::alias`]: Command::alias()
     </span><span class="attr">#[must_use]
@@ -7497,17 +7658,17 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, };
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///             .subcommand(Command::new(&quot;test&quot;).short_flag(&#39;b&#39;)
-    ///                 .visible_short_flag_aliases([&#39;t&#39;]))
-    ///             .get_matches_from(vec![&quot;myprog&quot;, &quot;-t&quot;]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
+    /// let m = Command::new("myprog")
+    ///             .subcommand(Command::new("test").short_flag('b')
+    ///                 .visible_short_flag_aliases(['t']))
+    ///             .get_matches_from(vec!["myprog", "-t"]);
+    /// assert_eq!(m.subcommand_name(), Some("test"));
     /// ```
     /// [`Command::short_flag_aliases`]: Command::short_flag_aliases()
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>visible_short_flag_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = char&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">for </span>s <span class="kw">in </span>names {
-            <span class="macro">debug_assert!</span>(s != <span class="string">&#39;-&#39;</span>, <span class="string">&quot;short alias name cannot be `-`&quot;</span>);
+            <span class="macro">debug_assert!</span>(s != <span class="string">'-'</span>, <span class="string">"short alias name cannot be `-`"</span>);
             <span class="self">self</span>.short_flag_aliases.push((s, <span class="bool-val">true</span>));
         }
         <span class="self">self
@@ -7522,11 +7683,11 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, };
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///             .subcommand(Command::new(&quot;test&quot;).long_flag(&quot;test&quot;)
-    ///                 .visible_long_flag_aliases([&quot;testing&quot;, &quot;testall&quot;, &quot;test_all&quot;]))
-    ///             .get_matches_from(vec![&quot;myprog&quot;, &quot;--testing&quot;]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;test&quot;));
+    /// let m = Command::new("myprog")
+    ///             .subcommand(Command::new("test").long_flag("test")
+    ///                 .visible_long_flag_aliases(["testing", "testall", "test_all"]))
+    ///             .get_matches_from(vec!["myprog", "--testing"]);
+    /// assert_eq!(m.subcommand_name(), Some("test"));
     /// ```
     /// [`Command::long_flag_aliases`]: Command::long_flag_aliases()
     </span><span class="attr">#[must_use]
@@ -7547,24 +7708,24 @@
     ///
     /// `Command`s are automatically assigned a display order based on the order they are added to
     /// their parent [`Command`].
-    /// Overriding this is helpful when the order commands are added in isn&#39;t the same as the
+    /// Overriding this is helpful when the order commands are added in isn't the same as the
     /// display order, whether in one-off cases or to automatically sort commands.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// # #[cfg(feature = &quot;help&quot;)] {
+    /// # #[cfg(feature = "help")] {
     /// # use clap_builder as clap;
     /// # use clap::{Command, };
-    /// let m = Command::new(&quot;cust-ord&quot;)
-    ///     .subcommand(Command::new(&quot;beta&quot;)
+    /// let m = Command::new("cust-ord")
+    ///     .subcommand(Command::new("beta")
     ///         .display_order(0)  // Sort
-    ///         .about(&quot;Some help and text&quot;))
-    ///     .subcommand(Command::new(&quot;alpha&quot;)
+    ///         .about("Some help and text"))
+    ///     .subcommand(Command::new("alpha")
     ///         .display_order(0)  // Sort
-    ///         .about(&quot;I should be first!&quot;))
+    ///         .about("I should be first!"))
     ///     .get_matches_from(vec![
-    ///         &quot;cust-ord&quot;, &quot;--help&quot;
+    ///         "cust-ord", "--help"
     ///     ]);
     /// # }
     /// ```
@@ -7599,9 +7760,9 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .subcommand(
-    ///         Command::new(&quot;test&quot;).hide(true)
+    ///         Command::new("test").hide(true)
     ///     )
     /// # ;
     /// ```
@@ -7623,11 +7784,11 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, error::ErrorKind};
-    /// let err = Command::new(&quot;myprog&quot;)
+    /// let err = Command::new("myprog")
     ///     .subcommand_required(true)
-    ///     .subcommand(Command::new(&quot;test&quot;))
+    ///     .subcommand(Command::new("test"))
     ///     .try_get_matches_from(vec![
-    ///         &quot;myprog&quot;,
+    ///         "myprog",
     ///     ]);
     /// assert!(err.is_err());
     /// assert_eq!(err.unwrap_err().kind(), ErrorKind::MissingSubcommand);
@@ -7645,7 +7806,7 @@
 
     <span class="doccomment">/// Assume unexpected positional arguments are a [`subcommand`].
     ///
-    /// Arguments will be stored in the `&quot;&quot;` argument in the [`ArgMatches`]
+    /// Arguments will be stored in the `""` argument in the [`ArgMatches`]
     ///
     /// **NOTE:** Use this setting with caution,
     /// as a truly unexpected argument (i.e. one that is *NOT* an external subcommand)
@@ -7661,20 +7822,20 @@
     /// # use clap_builder as clap;
     /// # use std::ffi::OsString;
     /// # use clap::Command;
-    /// // Assume there is an external subcommand named &quot;subcmd&quot;
-    /// let m = Command::new(&quot;myprog&quot;)
+    /// // Assume there is an external subcommand named "subcmd"
+    /// let m = Command::new("myprog")
     ///     .allow_external_subcommands(true)
     ///     .get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;subcmd&quot;, &quot;--option&quot;, &quot;value&quot;, &quot;-fff&quot;, &quot;--flag&quot;
+    ///         "myprog", "subcmd", "--option", "value", "-fff", "--flag"
     ///     ]);
     ///
-    /// // All trailing arguments will be stored under the subcommand&#39;s sub-matches using an empty
+    /// // All trailing arguments will be stored under the subcommand's sub-matches using an empty
     /// // string argument name
     /// match m.subcommand() {
     ///     Some((external, ext_m)) =&gt; {
-    ///          let ext_args: Vec&lt;_&gt; = ext_m.get_many::&lt;OsString&gt;(&quot;&quot;).unwrap().collect();
-    ///          assert_eq!(external, &quot;subcmd&quot;);
-    ///          assert_eq!(ext_args, [&quot;--option&quot;, &quot;value&quot;, &quot;-fff&quot;, &quot;--flag&quot;]);
+    ///          let ext_args: Vec&lt;_&gt; = ext_m.get_many::&lt;OsString&gt;("").unwrap().collect();
+    ///          assert_eq!(external, "subcmd");
+    ///          assert_eq!(ext_args, ["--option", "value", "-fff", "--flag"]);
     ///     },
     ///     _ =&gt; {},
     /// }
@@ -7706,20 +7867,20 @@
     /// # use std::ffi::OsString;
     /// # use clap::Command;
     /// # use clap::value_parser;
-    /// // Assume there is an external subcommand named &quot;subcmd&quot;
-    /// let m = Command::new(&quot;myprog&quot;)
+    /// // Assume there is an external subcommand named "subcmd"
+    /// let m = Command::new("myprog")
     ///     .allow_external_subcommands(true)
     ///     .get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;subcmd&quot;, &quot;--option&quot;, &quot;value&quot;, &quot;-fff&quot;, &quot;--flag&quot;
+    ///         "myprog", "subcmd", "--option", "value", "-fff", "--flag"
     ///     ]);
     ///
-    /// // All trailing arguments will be stored under the subcommand&#39;s sub-matches using an empty
+    /// // All trailing arguments will be stored under the subcommand's sub-matches using an empty
     /// // string argument name
     /// match m.subcommand() {
     ///     Some((external, ext_m)) =&gt; {
-    ///          let ext_args: Vec&lt;_&gt; = ext_m.get_many::&lt;OsString&gt;(&quot;&quot;).unwrap().collect();
-    ///          assert_eq!(external, &quot;subcmd&quot;);
-    ///          assert_eq!(ext_args, [&quot;--option&quot;, &quot;value&quot;, &quot;-fff&quot;, &quot;--flag&quot;]);
+    ///          let ext_args: Vec&lt;_&gt; = ext_m.get_many::&lt;OsString&gt;("").unwrap().collect();
+    ///          assert_eq!(external, "subcmd");
+    ///          assert_eq!(ext_args, ["--option", "value", "-fff", "--flag"]);
     ///     },
     ///     _ =&gt; {},
     /// }
@@ -7730,20 +7891,20 @@
     /// # use clap_builder as clap;
     /// # use clap::Command;
     /// # use clap::value_parser;
-    /// // Assume there is an external subcommand named &quot;subcmd&quot;
-    /// let m = Command::new(&quot;myprog&quot;)
+    /// // Assume there is an external subcommand named "subcmd"
+    /// let m = Command::new("myprog")
     ///     .external_subcommand_value_parser(value_parser!(String))
     ///     .get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;subcmd&quot;, &quot;--option&quot;, &quot;value&quot;, &quot;-fff&quot;, &quot;--flag&quot;
+    ///         "myprog", "subcmd", "--option", "value", "-fff", "--flag"
     ///     ]);
     ///
-    /// // All trailing arguments will be stored under the subcommand&#39;s sub-matches using an empty
+    /// // All trailing arguments will be stored under the subcommand's sub-matches using an empty
     /// // string argument name
     /// match m.subcommand() {
     ///     Some((external, ext_m)) =&gt; {
-    ///          let ext_args: Vec&lt;_&gt; = ext_m.get_many::&lt;String&gt;(&quot;&quot;).unwrap().collect();
-    ///          assert_eq!(external, &quot;subcmd&quot;);
-    ///          assert_eq!(ext_args, [&quot;--option&quot;, &quot;value&quot;, &quot;-fff&quot;, &quot;--flag&quot;]);
+    ///          let ext_args: Vec&lt;_&gt; = ext_m.get_many::&lt;String&gt;("").unwrap().collect();
+    ///          assert_eq!(external, "subcmd");
+    ///          assert_eq!(ext_args, ["--option", "value", "-fff", "--flag"]);
     ///     },
     ///     _ =&gt; {},
     /// }
@@ -7776,7 +7937,7 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
-    /// Command::new(&quot;myprog&quot;)
+    /// Command::new("myprog")
     ///     .args_conflicts_with_subcommands(true);
     /// ```
     ///
@@ -7814,32 +7975,32 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
-    /// let cmd = Command::new(&quot;cmd&quot;).subcommand(Command::new(&quot;sub&quot;)).arg(
-    ///     Arg::new(&quot;arg&quot;)
-    ///         .long(&quot;arg&quot;)
+    /// let cmd = Command::new("cmd").subcommand(Command::new("sub")).arg(
+    ///     Arg::new("arg")
+    ///         .long("arg")
     ///         .num_args(1..)
     ///         .action(ArgAction::Set),
     /// );
     ///
     /// let matches = cmd
     ///     .clone()
-    ///     .try_get_matches_from(&amp;[&quot;cmd&quot;, &quot;--arg&quot;, &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;sub&quot;])
+    ///     .try_get_matches_from(&amp;["cmd", "--arg", "1", "2", "3", "sub"])
     ///     .unwrap();
     /// assert_eq!(
-    ///     matches.get_many::&lt;String&gt;(&quot;arg&quot;).unwrap().collect::&lt;Vec&lt;_&gt;&gt;(),
-    ///     &amp;[&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;sub&quot;]
+    ///     matches.get_many::&lt;String&gt;("arg").unwrap().collect::&lt;Vec&lt;_&gt;&gt;(),
+    ///     &amp;["1", "2", "3", "sub"]
     /// );
-    /// assert!(matches.subcommand_matches(&quot;sub&quot;).is_none());
+    /// assert!(matches.subcommand_matches("sub").is_none());
     ///
     /// let matches = cmd
     ///     .subcommand_precedence_over_arg(true)
-    ///     .try_get_matches_from(&amp;[&quot;cmd&quot;, &quot;--arg&quot;, &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;sub&quot;])
+    ///     .try_get_matches_from(&amp;["cmd", "--arg", "1", "2", "3", "sub"])
     ///     .unwrap();
     /// assert_eq!(
-    ///     matches.get_many::&lt;String&gt;(&quot;arg&quot;).unwrap().collect::&lt;Vec&lt;_&gt;&gt;(),
-    ///     &amp;[&quot;1&quot;, &quot;2&quot;, &quot;3&quot;]
+    ///     matches.get_many::&lt;String&gt;("arg").unwrap().collect::&lt;Vec&lt;_&gt;&gt;(),
+    ///     &amp;["1", "2", "3"]
     /// );
-    /// assert!(matches.subcommand_matches(&quot;sub&quot;).is_some());
+    /// assert!(matches.subcommand_matches("sub").is_some());
     /// ```
     </span><span class="kw">pub fn </span>subcommand_precedence_over_arg(<span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>yes {
@@ -7865,12 +8026,12 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, error::ErrorKind};
-    /// let err = Command::new(&quot;myprog&quot;)
+    /// let err = Command::new("myprog")
     ///     .subcommand_negates_reqs(true)
-    ///     .arg(Arg::new(&quot;opt&quot;).required(true))
-    ///     .subcommand(Command::new(&quot;test&quot;))
+    ///     .arg(Arg::new("opt").required(true))
+    ///     .subcommand(Command::new("test"))
     ///     .try_get_matches_from(vec![
-    ///         &quot;myprog&quot;
+    ///         "myprog"
     ///     ]);
     /// assert!(err.is_err());
     /// assert_eq!(err.unwrap_err().kind(), ErrorKind::MissingRequiredArgument);
@@ -7883,12 +8044,12 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, error::ErrorKind};
-    /// let noerr = Command::new(&quot;myprog&quot;)
+    /// let noerr = Command::new("myprog")
     ///     .subcommand_negates_reqs(true)
-    ///     .arg(Arg::new(&quot;opt&quot;).required(true))
-    ///     .subcommand(Command::new(&quot;test&quot;))
+    ///     .arg(Arg::new("opt").required(true))
+    ///     .subcommand(Command::new("test"))
     ///     .try_get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;test&quot;
+    ///         "myprog", "test"
     ///     ]);
     /// assert!(noerr.is_ok());
     /// # ;
@@ -7906,7 +8067,7 @@
 
     <span class="doccomment">/// Multiple-personality program dispatched on the binary name (`argv[0]`)
     ///
-    /// A &quot;multicall&quot; executable is a single executable
+    /// A "multicall" executable is a single executable
     /// that contains a variety of applets,
     /// and decides which applet to run based on the name of the file.
     /// The executable can be called from different names by creating hard links
@@ -7916,7 +8077,7 @@
     /// - Easy distribution, a single binary that can install hardlinks to access the different
     ///   personalities.
     /// - Minimal binary size by sharing common code (e.g. standard library, clap)
-    /// - Custom shells or REPLs where there isn&#39;t a single top-level command
+    /// - Custom shells or REPLs where there isn't a single top-level command
     ///
     /// Setting `multicall` will cause
     /// - `argv[0]` to be stripped to the base name and parsed as the first argument, as if
@@ -7932,18 +8093,18 @@
     /// - Disable `multicall` and re-parse it
     /// - Disable `multicall` and re-parse it with a specific subcommand
     ///
-    /// When detecting the error condition, the [`ErrorKind`] isn&#39;t sufficient as a sub-subcommand
+    /// When detecting the error condition, the [`ErrorKind`] isn't sufficient as a sub-subcommand
     /// might report the same error.  Enable
     /// [`allow_external_subcommands`][Command::allow_external_subcommands] if you want to specifically
     /// get the unrecognized binary name.
     ///
-    /// **NOTE:** Multicall can&#39;t be used with [`no_binary_name`] since they interpret
+    /// **NOTE:** Multicall can't be used with [`no_binary_name`] since they interpret
     /// the command name in incompatible ways.
     ///
     /// **NOTE:** The multicall command cannot have arguments.
     ///
     /// **NOTE:** Applets are slightly semantically different from subcommands,
-    /// so it&#39;s recommended to use [`Command::subcommand_help_heading`] and
+    /// so it's recommended to use [`Command::subcommand_help_heading`] and
     /// [`Command::subcommand_value_name`] to change the descriptive text as above.
     ///
     /// # Examples
@@ -7968,15 +8129,15 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, error::ErrorKind};
-    /// let mut cmd = Command::new(&quot;hostname&quot;)
+    /// let mut cmd = Command::new("hostname")
     ///     .multicall(true)
-    ///     .subcommand(Command::new(&quot;hostname&quot;))
-    ///     .subcommand(Command::new(&quot;dnsdomainname&quot;));
-    /// let m = cmd.try_get_matches_from_mut(&amp;[&quot;/usr/bin/hostname&quot;, &quot;dnsdomainname&quot;]);
+    ///     .subcommand(Command::new("hostname"))
+    ///     .subcommand(Command::new("dnsdomainname"));
+    /// let m = cmd.try_get_matches_from_mut(&amp;["/usr/bin/hostname", "dnsdomainname"]);
     /// assert!(m.is_err());
     /// assert_eq!(m.unwrap_err().kind(), ErrorKind::UnknownArgument);
-    /// let m = cmd.get_matches_from(&amp;[&quot;/usr/bin/dnsdomainname&quot;]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;dnsdomainname&quot;));
+    /// let m = cmd.get_matches_from(&amp;["/usr/bin/dnsdomainname"]);
+    /// assert_eq!(m.subcommand_name(), Some("dnsdomainname"));
     /// ```
     ///
     /// Busybox is another common example of a multicall executable
@@ -7991,31 +8152,31 @@
     ///
     /// To make an applet usable as both a multicall link and a subcommand
     /// the subcommands must be defined both in the top-level Command
-    /// and as subcommands of the &quot;main&quot; applet.
+    /// and as subcommands of the "main" applet.
     ///
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::Command;
     /// fn applet_commands() -&gt; [Command; 2] {
-    ///     [Command::new(&quot;true&quot;), Command::new(&quot;false&quot;)]
+    ///     [Command::new("true"), Command::new("false")]
     /// }
-    /// let mut cmd = Command::new(&quot;busybox&quot;)
+    /// let mut cmd = Command::new("busybox")
     ///     .multicall(true)
     ///     .subcommand(
-    ///         Command::new(&quot;busybox&quot;)
-    ///             .subcommand_value_name(&quot;APPLET&quot;)
-    ///             .subcommand_help_heading(&quot;APPLETS&quot;)
+    ///         Command::new("busybox")
+    ///             .subcommand_value_name("APPLET")
+    ///             .subcommand_help_heading("APPLETS")
     ///             .subcommands(applet_commands()),
     ///     )
     ///     .subcommands(applet_commands());
-    /// // When called from the executable&#39;s canonical name
+    /// // When called from the executable's canonical name
     /// // its applets can be matched as subcommands.
-    /// let m = cmd.try_get_matches_from_mut(&amp;[&quot;/usr/bin/busybox&quot;, &quot;true&quot;]).unwrap();
-    /// assert_eq!(m.subcommand_name(), Some(&quot;busybox&quot;));
-    /// assert_eq!(m.subcommand().unwrap().1.subcommand_name(), Some(&quot;true&quot;));
+    /// let m = cmd.try_get_matches_from_mut(&amp;["/usr/bin/busybox", "true"]).unwrap();
+    /// assert_eq!(m.subcommand_name(), Some("busybox"));
+    /// assert_eq!(m.subcommand().unwrap().1.subcommand_name(), Some("true"));
     /// // When called from a link named after an applet that applet is matched.
-    /// let m = cmd.get_matches_from(&amp;[&quot;/usr/bin/true&quot;]);
-    /// assert_eq!(m.subcommand_name(), Some(&quot;true&quot;));
+    /// let m = cmd.get_matches_from(&amp;["/usr/bin/true"]);
+    /// assert_eq!(m.subcommand_name(), Some("true"));
     /// ```
     ///
     /// [`no_binary_name`]: crate::Command::no_binary_name
@@ -8032,7 +8193,7 @@
 
     <span class="doccomment">/// Sets the value name used for subcommands when printing usage and help.
     ///
-    /// By default, this is &quot;COMMAND&quot;.
+    /// By default, this is "COMMAND".
     ///
     /// See also [`Command::subcommand_help_heading`]
     ///
@@ -8041,8 +8202,8 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// Command::new(&quot;myprog&quot;)
-    ///     .subcommand(Command::new(&quot;sub1&quot;))
+    /// Command::new("myprog")
+    ///     .subcommand(Command::new("sub1"))
     ///     .print_help()
     /// # ;
     /// ```
@@ -8068,9 +8229,9 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// Command::new(&quot;myprog&quot;)
-    ///     .subcommand(Command::new(&quot;sub1&quot;))
-    ///     .subcommand_value_name(&quot;THING&quot;)
+    /// Command::new("myprog")
+    ///     .subcommand(Command::new("sub1"))
+    ///     .subcommand_value_name("THING")
     ///     .print_help()
     /// # ;
     /// ```
@@ -8098,7 +8259,7 @@
 
     <span class="doccomment">/// Sets the help heading used for subcommands when printing usage and help.
     ///
-    /// By default, this is &quot;Commands&quot;.
+    /// By default, this is "Commands".
     ///
     /// See also [`Command::subcommand_value_name`]
     ///
@@ -8107,8 +8268,8 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// Command::new(&quot;myprog&quot;)
-    ///     .subcommand(Command::new(&quot;sub1&quot;))
+    /// Command::new("myprog")
+    ///     .subcommand(Command::new("sub1"))
     ///     .print_help()
     /// # ;
     /// ```
@@ -8134,9 +8295,9 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// Command::new(&quot;myprog&quot;)
-    ///     .subcommand(Command::new(&quot;sub1&quot;))
-    ///     .subcommand_help_heading(&quot;Things&quot;)
+    /// Command::new("myprog")
+    ///     .subcommand(Command::new("sub1"))
+    ///     .subcommand_help_heading("Things")
     ///     .print_help()
     /// # ;
     /// ```
@@ -8166,9 +8327,23 @@
 <span class="doccomment">/// # Reflection
 </span><span class="kw">impl </span>Command {
     <span class="attr">#[inline]
-    #[cfg(feature = <span class="string">&quot;usage&quot;</span>)]
+    #[cfg(feature = <span class="string">"usage"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_usage_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.usage_name.as_deref()
+    }
+
+    <span class="attr">#[inline]
+    #[cfg(feature = <span class="string">"usage"</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_usage_name_fallback(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.get_usage_name()
+            .unwrap_or_else(|| <span class="self">self</span>.get_bin_name_fallback())
+    }
+
+    <span class="attr">#[inline]
+    #[cfg(not(feature = <span class="string">"usage"</span>))]
+    #[allow(dead_code)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_usage_name_fallback(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.get_bin_name_fallback()
     }
 
     <span class="doccomment">/// Get the name of the binary.
@@ -8181,6 +8356,12 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_bin_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.bin_name.as_deref()
+    }
+
+    <span class="doccomment">/// Get the name of the binary.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_bin_name_fallback(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.bin_name.as_deref().unwrap_or_else(|| <span class="self">self</span>.get_name())
     }
 
     <span class="doccomment">/// Set binary name. Uses `&amp;mut self` instead of `self`.
@@ -8198,6 +8379,13 @@
     #[cfg(debug_assertions)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_name_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Str {
         <span class="kw-2">&amp;</span><span class="self">self</span>.name
+    }
+
+    <span class="doccomment">/// Get all known names of the cmd (i.e. primary name and visible aliases).
+    </span><span class="kw">pub fn </span>get_name_and_visible_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>names = <span class="macro">vec!</span>[<span class="self">self</span>.name.as_str()];
+        names.extend(<span class="self">self</span>.get_visible_aliases());
+        names
     }
 
     <span class="doccomment">/// Get the version of the cmd.
@@ -8246,6 +8434,12 @@
         <span class="self">self</span>.long_about.as_ref()
     }
 
+    <span class="doccomment">/// Get the custom section heading specified via [`Command::flatten_help`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>is_flatten_help_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_set(AppSettings::FlattenHelp)
+    }
+
     <span class="doccomment">/// Get the custom section heading specified via [`Command::next_help_heading`].
     ///
     /// [`Command::help_heading`]: Command::help_heading()
@@ -8256,7 +8450,7 @@
 
     <span class="doccomment">/// Iterate through the *visible* aliases for this subcommand.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_visible_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>get_visible_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + <span class="lifetime">'_ </span>{
         <span class="self">self</span>.aliases
             .iter()
             .filter(|(<span class="kw">_</span>, vis)| <span class="kw-2">*</span>vis)
@@ -8265,7 +8459,7 @@
 
     <span class="doccomment">/// Iterate through the *visible* short aliases for this subcommand.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_visible_short_flag_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = char&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>get_visible_short_flag_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = char&gt; + <span class="lifetime">'_ </span>{
         <span class="self">self</span>.short_flag_aliases
             .iter()
             .filter(|(<span class="kw">_</span>, vis)| <span class="kw-2">*</span>vis)
@@ -8274,7 +8468,7 @@
 
     <span class="doccomment">/// Iterate through the *visible* long aliases for this subcommand.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_visible_long_flag_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>get_visible_long_flag_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + <span class="lifetime">'_ </span>{
         <span class="self">self</span>.long_flag_aliases
             .iter()
             .filter(|(<span class="kw">_</span>, vis)| <span class="kw-2">*</span>vis)
@@ -8283,20 +8477,29 @@
 
     <span class="doccomment">/// Iterate through the set of *all* the aliases for this subcommand, both visible and hidden.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_all_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>get_all_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + <span class="lifetime">'_ </span>{
         <span class="self">self</span>.aliases.iter().map(|a| a.<span class="number">0</span>.as_str())
     }
 
     <span class="doccomment">/// Iterate through the set of *all* the short aliases for this subcommand, both visible and hidden.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_all_short_flag_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = char&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>get_all_short_flag_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = char&gt; + <span class="lifetime">'_ </span>{
         <span class="self">self</span>.short_flag_aliases.iter().map(|a| a.<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Iterate through the set of *all* the long aliases for this subcommand, both visible and hidden.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_all_long_flag_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>get_all_long_flag_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + <span class="lifetime">'_ </span>{
         <span class="self">self</span>.long_flag_aliases.iter().map(|a| a.<span class="number">0</span>.as_str())
+    }
+
+    <span class="doccomment">/// Iterate through the *hidden* aliases for this subcommand.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>get_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + <span class="lifetime">'_ </span>{
+        <span class="self">self</span>.aliases
+            .iter()
+            .filter(|(<span class="kw">_</span>, vis)| !<span class="kw-2">*</span>vis)
+            .map(|a| a.<span class="number">0</span>.as_str())
     }
 
     <span class="attr">#[inline]
@@ -8306,17 +8509,17 @@
 
     <span class="doccomment">/// Should we color the output?
     </span><span class="kw">pub fn </span>get_color(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ColorChoice {
-        <span class="macro">debug!</span>(<span class="string">&quot;Command::color: Color setting...&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Command::color: Color setting..."</span>);
 
-        <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;color&quot;</span>) {
+        <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">"color"</span>) {
             <span class="kw">if </span><span class="self">self</span>.is_set(AppSettings::ColorNever) {
-                <span class="macro">debug!</span>(<span class="string">&quot;Never&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"Never"</span>);
                 ColorChoice::Never
             } <span class="kw">else if </span><span class="self">self</span>.is_set(AppSettings::ColorAlways) {
-                <span class="macro">debug!</span>(<span class="string">&quot;Always&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"Always"</span>);
                 ColorChoice::Always
             } <span class="kw">else </span>{
-                <span class="macro">debug!</span>(<span class="string">&quot;Auto&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"Auto"</span>);
                 ColorChoice::Auto
             }
         } <span class="kw">else </span>{
@@ -8455,7 +8658,7 @@
                             .map(|id| <span class="self">self</span>.find(id).expect(INTERNAL_ERROR_MSG)),
                     );
                 } <span class="kw">else </span>{
-                    <span class="macro">panic!</span>(<span class="string">&quot;Command::get_arg_conflicts_with: The passed arg conflicts with an arg unknown to the cmd&quot;</span>);
+                    <span class="macro">panic!</span>(<span class="string">"Command::get_arg_conflicts_with: The passed arg conflicts with an arg unknown to the cmd"</span>);
                 }
             }
             result
@@ -8485,8 +8688,8 @@
                     )
                     .find(|arg| arg.get_id() == id)
                     .expect(
-                        <span class="string">&quot;Command::get_arg_conflicts_with: \
-                    The passed arg conflicts with an arg unknown to the cmd&quot;</span>,
+                        <span class="string">"Command::get_arg_conflicts_with: \
+                    The passed arg conflicts with an arg unknown to the cmd"</span>,
                     )
             })
             .collect()
@@ -8502,11 +8705,11 @@
     //
     // **NOTE:** In this case only Sucommand_1 will be included
     //   Subcommand_1 (contains Arg)
-    //     Subcommand_1.1 (doesn&#39;t contain Arg)
+    //     Subcommand_1.1 (doesn't contain Arg)
     //       Subcommand_1.1.1 (contains Arg)
     //
     </span><span class="kw">fn </span>get_subcommands_containing(<span class="kw-2">&amp;</span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span>Arg) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>vec = std::vec::Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>vec = Vec::new();
         <span class="kw">for </span>idx <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.subcommands.len() {
             <span class="kw">if </span><span class="self">self</span>.subcommands[idx]
                 .args
@@ -8574,8 +8777,8 @@
 
     <span class="attr">#[doc(hidden)]
     #[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(since = <span class="string">&quot;4.0.0&quot;</span>, note = <span class="string">&quot;This is now the default&quot;</span>)
+        feature = <span class="string">"deprecated"</span>,
+        deprecated(since = <span class="string">"4.0.0"</span>, note = <span class="string">"This is now the default"</span>)
     )]
     </span><span class="kw">pub fn </span>is_dont_collapse_args_in_usage_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="bool-val">true
@@ -8598,10 +8801,10 @@
 
     <span class="attr">#[doc(hidden)]
     #[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
+        feature = <span class="string">"deprecated"</span>,
         deprecated(
-            since = <span class="string">&quot;4.0.0&quot;</span>,
-            note = <span class="string">&quot;Replaced with `Arg::is_allow_hyphen_values_set`&quot;
+            since = <span class="string">"4.0.0"</span>,
+            note = <span class="string">"Replaced with `Arg::is_allow_hyphen_values_set`"
         </span>)
     )]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_allow_hyphen_values_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -8610,10 +8813,10 @@
 
     <span class="attr">#[doc(hidden)]
     #[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
+        feature = <span class="string">"deprecated"</span>,
         deprecated(
-            since = <span class="string">&quot;4.0.0&quot;</span>,
-            note = <span class="string">&quot;Replaced with `Arg::is_allow_negative_numbers_set`&quot;
+            since = <span class="string">"4.0.0"</span>,
+            note = <span class="string">"Replaced with `Arg::is_allow_negative_numbers_set`"
         </span>)
     )]
     </span><span class="kw">pub fn </span>is_allow_negative_numbers_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -8622,8 +8825,8 @@
 
     <span class="attr">#[doc(hidden)]
     #[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(since = <span class="string">&quot;4.0.0&quot;</span>, note = <span class="string">&quot;Replaced with `Arg::is_trailing_var_arg_set`&quot;</span>)
+        feature = <span class="string">"deprecated"</span>,
+        deprecated(since = <span class="string">"4.0.0"</span>, note = <span class="string">"Replaced with `Arg::is_trailing_var_arg_set`"</span>)
     )]
     </span><span class="kw">pub fn </span>is_trailing_var_arg_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.is_set(AppSettings::TrailingVarArg)
@@ -8655,10 +8858,10 @@
     ///
     /// ```rust
     /// # use clap_builder as clap;
-    /// let cmd = clap::Command::new(&quot;raw&quot;)
+    /// let cmd = clap::Command::new("raw")
     ///     .external_subcommand_value_parser(clap::value_parser!(String));
     /// let value_parser = cmd.get_external_subcommand_value_parser();
-    /// println!(&quot;{value_parser:?}&quot;);
+    /// println!("{value_parser:?}");
     /// ```
     </span><span class="kw">pub fn </span>get_external_subcommand_value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">super</span>::ValueParser&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_allow_external_subcommands_set() {
@@ -8705,17 +8908,17 @@
         <span class="self">self</span>.help_str.as_ref()
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;help&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"help"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_help_template(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StyledStr&gt; {
         <span class="self">self</span>.template.as_ref()
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;help&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"help"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_term_width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="self">self</span>.app_ext.get::&lt;TermWidth&gt;().map(|e| e.<span class="number">0</span>)
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;help&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"help"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_max_term_width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="self">self</span>.app_ext.get::&lt;MaxTermWidth&gt;().map(|e| e.<span class="number">0</span>)
     }
@@ -8743,7 +8946,7 @@
         raw_args: <span class="kw-2">&amp;mut </span>clap_lex::RawArgs,
         args_cursor: clap_lex::ArgCursor,
     ) -&gt; ClapResult&lt;ArgMatches&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Command::_do_parse&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Command::_do_parse"</span>);
 
         <span class="comment">// If there are global arguments, or settings we need to propagate them down to subcommands
         // before parsing in case we run into a subcommand
@@ -8755,7 +8958,7 @@
         </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(<span class="self">self</span>);
         <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = parser.get_matches_with(<span class="kw-2">&amp;mut </span>matcher, raw_args, args_cursor) {
             <span class="kw">if </span><span class="self">self</span>.is_set(AppSettings::IgnoreErrors) &amp;&amp; error.use_stderr() {
-                <span class="macro">debug!</span>(<span class="string">&quot;Command::_do_parse: ignoring error: {error}&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"Command::_do_parse: ignoring error: {error}"</span>);
             } <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(error);
             }
@@ -8786,7 +8989,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_build_self(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expand_help_tree: bool) {
-        <span class="macro">debug!</span>(<span class="string">&quot;Command::_build: name={:?}&quot;</span>, <span class="self">self</span>.get_name());
+        <span class="macro">debug!</span>(<span class="string">"Command::_build: name={:?}"</span>, <span class="self">self</span>.get_name());
         <span class="kw">if </span>!<span class="self">self</span>.settings.is_set(AppSettings::Built) {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(deferred) = <span class="self">self</span>.deferred.take() {
                 <span class="kw-2">*</span><span class="self">self </span>= (deferred)(std::mem::take(<span class="self">self</span>));
@@ -8800,7 +9003,7 @@
                 <span class="self">self</span>.settings.set(AppSettings::DisableHelpFlag);
                 <span class="self">self</span>.settings.set(AppSettings::DisableVersionFlag);
             }
-            <span class="kw">if </span>!<span class="macro">cfg!</span>(feature = <span class="string">&quot;help&quot;</span>) &amp;&amp; <span class="self">self</span>.get_override_help().is_none() {
+            <span class="kw">if </span>!<span class="macro">cfg!</span>(feature = <span class="string">"help"</span>) &amp;&amp; <span class="self">self</span>.get_override_help().is_none() {
                 <span class="self">self</span>.settings.set(AppSettings::DisableHelpFlag);
                 <span class="self">self</span>.settings.set(AppSettings::DisableHelpSubcommand);
             }
@@ -8879,22 +9082,22 @@
             </span>assert_app(<span class="self">self</span>);
             <span class="self">self</span>.settings.set(AppSettings::Built);
         } <span class="kw">else </span>{
-            <span class="macro">debug!</span>(<span class="string">&quot;Command::_build: already built&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">"Command::_build: already built"</span>);
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_build_subcommand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt; {
         <span class="kw">use </span>std::fmt::Write;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>mid_string = String::from(<span class="string">&quot; &quot;</span>);
-        <span class="attr">#[cfg(feature = <span class="string">&quot;usage&quot;</span>)]
+        <span class="kw">let </span><span class="kw-2">mut </span>mid_string = String::from(<span class="string">" "</span>);
+        <span class="attr">#[cfg(feature = <span class="string">"usage"</span>)]
         </span><span class="kw">if </span>!<span class="self">self</span>.is_subcommand_negates_reqs_set() &amp;&amp; !<span class="self">self</span>.is_args_conflicts_with_subcommands_set()
         {
             <span class="kw">let </span>reqs = Usage::new(<span class="self">self</span>).get_required_usage_from(<span class="kw-2">&amp;</span>[], <span class="prelude-val">None</span>, <span class="bool-val">true</span>); <span class="comment">// maybe Some(m)
 
             </span><span class="kw">for </span>s <span class="kw">in </span><span class="kw-2">&amp;</span>reqs {
                 mid_string.push_str(<span class="kw-2">&amp;</span>s.to_string());
-                mid_string.push(<span class="string">&#39; &#39;</span>);
+                mid_string.push(<span class="string">' '</span>);
             }
         }
         <span class="kw">let </span>is_multicall_set = <span class="self">self</span>.is_multicall_set();
@@ -8906,57 +9109,57 @@
         sc_names.push_str(sc.name.as_str());
         <span class="kw">let </span><span class="kw-2">mut </span>flag_subcmd = <span class="bool-val">false</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(l) = sc.get_long_flag() {
-            <span class="macro">write!</span>(sc_names, <span class="string">&quot;|--{l}&quot;</span>).unwrap();
+            <span class="macro">write!</span>(sc_names, <span class="string">"|--{l}"</span>).unwrap();
             flag_subcmd = <span class="bool-val">true</span>;
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = sc.get_short_flag() {
-            <span class="macro">write!</span>(sc_names, <span class="string">&quot;|-{s}&quot;</span>).unwrap();
+            <span class="macro">write!</span>(sc_names, <span class="string">"|-{s}"</span>).unwrap();
             flag_subcmd = <span class="bool-val">true</span>;
         }
 
         <span class="kw">if </span>flag_subcmd {
-            sc_names = <span class="macro">format!</span>(<span class="string">&quot;{{{sc_names}}}&quot;</span>);
+            sc_names = <span class="macro">format!</span>(<span class="string">"{{{sc_names}}}"</span>);
         }
 
         <span class="kw">let </span>usage_name = <span class="self">self
             </span>.bin_name
             .as_ref()
-            .map(|bin_name| <span class="macro">format!</span>(<span class="string">&quot;{bin_name}{mid_string}{sc_names}&quot;</span>))
+            .map(|bin_name| <span class="macro">format!</span>(<span class="string">"{bin_name}{mid_string}{sc_names}"</span>))
             .unwrap_or(sc_names);
         sc.usage_name = <span class="prelude-val">Some</span>(usage_name);
 
-        <span class="comment">// bin_name should be parent&#39;s bin_name + [&lt;reqs&gt;] + the sc&#39;s name separated by
+        <span class="comment">// bin_name should be parent's bin_name + [&lt;reqs&gt;] + the sc's name separated by
         // a space
         </span><span class="kw">let </span>bin_name = <span class="macro">format!</span>(
-            <span class="string">&quot;{}{}{}&quot;</span>,
+            <span class="string">"{}{}{}"</span>,
             <span class="self">self</span>.bin_name.as_deref().unwrap_or_default(),
-            <span class="kw">if </span><span class="self">self</span>.bin_name.is_some() { <span class="string">&quot; &quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
+            <span class="kw">if </span><span class="self">self</span>.bin_name.is_some() { <span class="string">" " </span>} <span class="kw">else </span>{ <span class="string">"" </span>},
             <span class="kw-2">&amp;*</span>sc.name
         );
         <span class="macro">debug!</span>(
-            <span class="string">&quot;Command::_build_subcommand Setting bin_name of {} to {:?}&quot;</span>,
+            <span class="string">"Command::_build_subcommand Setting bin_name of {} to {:?}"</span>,
             sc.name, bin_name
         );
         sc.bin_name = <span class="prelude-val">Some</span>(bin_name);
 
         <span class="kw">if </span>sc.display_name.is_none() {
             <span class="kw">let </span>self_display_name = <span class="kw">if </span>is_multicall_set {
-                <span class="self">self</span>.display_name.as_deref().unwrap_or(<span class="string">&quot;&quot;</span>)
+                <span class="self">self</span>.display_name.as_deref().unwrap_or(<span class="string">""</span>)
             } <span class="kw">else </span>{
                 <span class="self">self</span>.display_name.as_deref().unwrap_or(<span class="kw-2">&amp;</span><span class="self">self</span>.name)
             };
             <span class="kw">let </span>display_name = <span class="macro">format!</span>(
-                <span class="string">&quot;{}{}{}&quot;</span>,
+                <span class="string">"{}{}{}"</span>,
                 self_display_name,
                 <span class="kw">if </span>!self_display_name.is_empty() {
-                    <span class="string">&quot;-&quot;
+                    <span class="string">"-"
                 </span>} <span class="kw">else </span>{
-                    <span class="string">&quot;&quot;
+                    <span class="string">""
                 </span>},
                 <span class="kw-2">&amp;*</span>sc.name
             );
             <span class="macro">debug!</span>(
-                <span class="string">&quot;Command::_build_subcommand Setting display_name of {} to {:?}&quot;</span>,
+                <span class="string">"Command::_build_subcommand Setting display_name of {} to {:?}"</span>,
                 sc.name, display_name
             );
             sc.display_name = <span class="prelude-val">Some</span>(display_name);
@@ -8969,11 +9172,11 @@
     }
 
     <span class="kw">fn </span>_build_bin_names_internal(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">debug!</span>(<span class="string">&quot;Command::_build_bin_names&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Command::_build_bin_names"</span>);
 
         <span class="kw">if </span>!<span class="self">self</span>.is_set(AppSettings::BinNameBuilt) {
-            <span class="kw">let </span><span class="kw-2">mut </span>mid_string = String::from(<span class="string">&quot; &quot;</span>);
-            <span class="attr">#[cfg(feature = <span class="string">&quot;usage&quot;</span>)]
+            <span class="kw">let </span><span class="kw-2">mut </span>mid_string = String::from(<span class="string">" "</span>);
+            <span class="attr">#[cfg(feature = <span class="string">"usage"</span>)]
             </span><span class="kw">if </span>!<span class="self">self</span>.is_subcommand_negates_reqs_set()
                 &amp;&amp; !<span class="self">self</span>.is_args_conflicts_with_subcommands_set()
             {
@@ -8981,20 +9184,20 @@
 
                 </span><span class="kw">for </span>s <span class="kw">in </span><span class="kw-2">&amp;</span>reqs {
                     mid_string.push_str(<span class="kw-2">&amp;</span>s.to_string());
-                    mid_string.push(<span class="string">&#39; &#39;</span>);
+                    mid_string.push(<span class="string">' '</span>);
                 }
             }
             <span class="kw">let </span>is_multicall_set = <span class="self">self</span>.is_multicall_set();
 
             <span class="kw">let </span>self_bin_name = <span class="kw">if </span>is_multicall_set {
-                <span class="self">self</span>.bin_name.as_deref().unwrap_or(<span class="string">&quot;&quot;</span>)
+                <span class="self">self</span>.bin_name.as_deref().unwrap_or(<span class="string">""</span>)
             } <span class="kw">else </span>{
                 <span class="self">self</span>.bin_name.as_deref().unwrap_or(<span class="kw-2">&amp;</span><span class="self">self</span>.name)
             }
             .to_owned();
 
             <span class="kw">for </span>sc <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.subcommands {
-                <span class="macro">debug!</span>(<span class="string">&quot;Command::_build_bin_names:iter: bin_name set...&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"Command::_build_bin_names:iter: bin_name set..."</span>);
 
                 <span class="kw">if </span>sc.usage_name.is_none() {
                     <span class="kw">use </span>std::fmt::Write;
@@ -9003,74 +9206,74 @@
                     sc_names.push_str(sc.name.as_str());
                     <span class="kw">let </span><span class="kw-2">mut </span>flag_subcmd = <span class="bool-val">false</span>;
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(l) = sc.get_long_flag() {
-                        <span class="macro">write!</span>(sc_names, <span class="string">&quot;|--{l}&quot;</span>).unwrap();
+                        <span class="macro">write!</span>(sc_names, <span class="string">"|--{l}"</span>).unwrap();
                         flag_subcmd = <span class="bool-val">true</span>;
                     }
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = sc.get_short_flag() {
-                        <span class="macro">write!</span>(sc_names, <span class="string">&quot;|-{s}&quot;</span>).unwrap();
+                        <span class="macro">write!</span>(sc_names, <span class="string">"|-{s}"</span>).unwrap();
                         flag_subcmd = <span class="bool-val">true</span>;
                     }
 
                     <span class="kw">if </span>flag_subcmd {
-                        sc_names = <span class="macro">format!</span>(<span class="string">&quot;{{{sc_names}}}&quot;</span>);
+                        sc_names = <span class="macro">format!</span>(<span class="string">"{{{sc_names}}}"</span>);
                     }
 
-                    <span class="kw">let </span>usage_name = <span class="macro">format!</span>(<span class="string">&quot;{self_bin_name}{mid_string}{sc_names}&quot;</span>);
+                    <span class="kw">let </span>usage_name = <span class="macro">format!</span>(<span class="string">"{self_bin_name}{mid_string}{sc_names}"</span>);
                     <span class="macro">debug!</span>(
-                        <span class="string">&quot;Command::_build_bin_names:iter: Setting usage_name of {} to {:?}&quot;</span>,
+                        <span class="string">"Command::_build_bin_names:iter: Setting usage_name of {} to {:?}"</span>,
                         sc.name, usage_name
                     );
                     sc.usage_name = <span class="prelude-val">Some</span>(usage_name);
                 } <span class="kw">else </span>{
                     <span class="macro">debug!</span>(
-                        <span class="string">&quot;Command::_build_bin_names::iter: Using existing usage_name of {} ({:?})&quot;</span>,
+                        <span class="string">"Command::_build_bin_names::iter: Using existing usage_name of {} ({:?})"</span>,
                         sc.name, sc.usage_name
                     );
                 }
 
                 <span class="kw">if </span>sc.bin_name.is_none() {
                     <span class="kw">let </span>bin_name = <span class="macro">format!</span>(
-                        <span class="string">&quot;{}{}{}&quot;</span>,
+                        <span class="string">"{}{}{}"</span>,
                         self_bin_name,
-                        <span class="kw">if </span>!self_bin_name.is_empty() { <span class="string">&quot; &quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
+                        <span class="kw">if </span>!self_bin_name.is_empty() { <span class="string">" " </span>} <span class="kw">else </span>{ <span class="string">"" </span>},
                         <span class="kw-2">&amp;*</span>sc.name
                     );
                     <span class="macro">debug!</span>(
-                        <span class="string">&quot;Command::_build_bin_names:iter: Setting bin_name of {} to {:?}&quot;</span>,
+                        <span class="string">"Command::_build_bin_names:iter: Setting bin_name of {} to {:?}"</span>,
                         sc.name, bin_name
                     );
                     sc.bin_name = <span class="prelude-val">Some</span>(bin_name);
                 } <span class="kw">else </span>{
                     <span class="macro">debug!</span>(
-                        <span class="string">&quot;Command::_build_bin_names::iter: Using existing bin_name of {} ({:?})&quot;</span>,
+                        <span class="string">"Command::_build_bin_names::iter: Using existing bin_name of {} ({:?})"</span>,
                         sc.name, sc.bin_name
                     );
                 }
 
                 <span class="kw">if </span>sc.display_name.is_none() {
                     <span class="kw">let </span>self_display_name = <span class="kw">if </span>is_multicall_set {
-                        <span class="self">self</span>.display_name.as_deref().unwrap_or(<span class="string">&quot;&quot;</span>)
+                        <span class="self">self</span>.display_name.as_deref().unwrap_or(<span class="string">""</span>)
                     } <span class="kw">else </span>{
                         <span class="self">self</span>.display_name.as_deref().unwrap_or(<span class="kw-2">&amp;</span><span class="self">self</span>.name)
                     };
                     <span class="kw">let </span>display_name = <span class="macro">format!</span>(
-                        <span class="string">&quot;{}{}{}&quot;</span>,
+                        <span class="string">"{}{}{}"</span>,
                         self_display_name,
                         <span class="kw">if </span>!self_display_name.is_empty() {
-                            <span class="string">&quot;-&quot;
+                            <span class="string">"-"
                         </span>} <span class="kw">else </span>{
-                            <span class="string">&quot;&quot;
+                            <span class="string">""
                         </span>},
                         <span class="kw-2">&amp;*</span>sc.name
                     );
                     <span class="macro">debug!</span>(
-                        <span class="string">&quot;Command::_build_bin_names:iter: Setting display_name of {} to {:?}&quot;</span>,
+                        <span class="string">"Command::_build_bin_names:iter: Setting display_name of {} to {:?}"</span>,
                         sc.name, display_name
                     );
                     sc.display_name = <span class="prelude-val">Some</span>(display_name);
                 } <span class="kw">else </span>{
                     <span class="macro">debug!</span>(
-                        <span class="string">&quot;Command::_build_bin_names::iter: Using existing display_name of {} ({:?})&quot;</span>,
+                        <span class="string">"Command::_build_bin_names::iter: Using existing display_name of {} ({:?})"</span>,
                         sc.name, sc.display_name
                     );
                 }
@@ -9079,7 +9282,7 @@
             }
             <span class="self">self</span>.set(AppSettings::BinNameBuilt);
         } <span class="kw">else </span>{
-            <span class="macro">debug!</span>(<span class="string">&quot;Command::_build_bin_names: already built&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">"Command::_build_bin_names: already built"</span>);
         }
     }
 
@@ -9093,9 +9296,9 @@
                 .collect();
 
             <span class="macro">debug_assert!</span>(args_missing_help.is_empty(),
-                    <span class="string">&quot;Command::help_expected is enabled for the Command {}, but at least one of its arguments does not have either `help` or `long_help` set. List of such arguments: {}&quot;</span>,
+                    <span class="string">"Command::help_expected is enabled for the Command {}, but at least one of its arguments does not have either `help` or `long_help` set. List of such arguments: {}"</span>,
                     <span class="self">self</span>.name,
-                    args_missing_help.join(<span class="string">&quot;, &quot;</span>)
+                    args_missing_help.join(<span class="string">", "</span>)
                 );
         }
 
@@ -9123,12 +9326,12 @@
 
     <span class="doccomment">/// Propagate global args
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_propagate_global_args(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">debug!</span>(<span class="string">&quot;Command::_propagate_global_args:{}&quot;</span>, <span class="self">self</span>.name);
+        <span class="macro">debug!</span>(<span class="string">"Command::_propagate_global_args:{}"</span>, <span class="self">self</span>.name);
 
         <span class="kw">let </span>autogenerated_help_subcommand = !<span class="self">self</span>.is_disable_help_subcommand_set();
 
         <span class="kw">for </span>sc <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.subcommands {
-            <span class="kw">if </span>sc.get_name() == <span class="string">&quot;help&quot; </span>&amp;&amp; autogenerated_help_subcommand {
+            <span class="kw">if </span>sc.get_name() == <span class="string">"help" </span>&amp;&amp; autogenerated_help_subcommand {
                 <span class="comment">// Avoid propagating args to the autogenerated help subtrees used in completion.
                 // This prevents args from showing up during help completions like
                 // `myapp help subcmd &lt;TAB&gt;`, which should only suggest subcommands and not args,
@@ -9139,7 +9342,7 @@
             <span class="kw">for </span>a <span class="kw">in </span><span class="self">self</span>.args.args().filter(|a| a.is_global_set()) {
                 <span class="kw">if </span>sc.find(<span class="kw-2">&amp;</span>a.id).is_some() {
                     <span class="macro">debug!</span>(
-                        <span class="string">&quot;Command::_propagate skipping {:?} to {}, already exists&quot;</span>,
+                        <span class="string">"Command::_propagate skipping {:?} to {}, already exists"</span>,
                         a.id,
                         sc.get_name(),
                     );
@@ -9147,7 +9350,7 @@
                 }
 
                 <span class="macro">debug!</span>(
-                    <span class="string">&quot;Command::_propagate pushing {:?} to {}&quot;</span>,
+                    <span class="string">"Command::_propagate pushing {:?} to {}"</span>,
                     a.id,
                     sc.get_name(),
                 );
@@ -9158,7 +9361,7 @@
 
     <span class="doccomment">/// Propagate settings
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_propagate(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">debug!</span>(<span class="string">&quot;Command::_propagate:{}&quot;</span>, <span class="self">self</span>.name);
+        <span class="macro">debug!</span>(<span class="string">"Command::_propagate:{}"</span>, <span class="self">self</span>.name);
         <span class="kw">let </span><span class="kw-2">mut </span>subcommands = std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.subcommands);
         <span class="kw">for </span>sc <span class="kw">in </span><span class="kw-2">&amp;mut </span>subcommands {
             <span class="self">self</span>._propagate_subcommand(sc);
@@ -9187,53 +9390,53 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_check_help_and_version(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expand_help_tree: bool) {
         <span class="macro">debug!</span>(
-            <span class="string">&quot;Command::_check_help_and_version:{} expand_help_tree={}&quot;</span>,
+            <span class="string">"Command::_check_help_and_version:{} expand_help_tree={}"</span>,
             <span class="self">self</span>.name, expand_help_tree
         );
 
         <span class="self">self</span>.long_help_exists = <span class="self">self</span>.long_help_exists_();
 
         <span class="kw">if </span>!<span class="self">self</span>.is_disable_help_flag_set() {
-            <span class="macro">debug!</span>(<span class="string">&quot;Command::_check_help_and_version: Building default --help&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">"Command::_check_help_and_version: Building default --help"</span>);
             <span class="kw">let </span><span class="kw-2">mut </span>arg = Arg::new(Id::HELP)
-                .short(<span class="string">&#39;h&#39;</span>)
-                .long(<span class="string">&quot;help&quot;</span>)
+                .short(<span class="string">'h'</span>)
+                .long(<span class="string">"help"</span>)
                 .action(ArgAction::Help);
             <span class="kw">if </span><span class="self">self</span>.long_help_exists {
                 arg = arg
-                    .help(<span class="string">&quot;Print help (see more with &#39;--help&#39;)&quot;</span>)
-                    .long_help(<span class="string">&quot;Print help (see a summary with &#39;-h&#39;)&quot;</span>);
+                    .help(<span class="string">"Print help (see more with '--help')"</span>)
+                    .long_help(<span class="string">"Print help (see a summary with '-h')"</span>);
             } <span class="kw">else </span>{
-                arg = arg.help(<span class="string">&quot;Print help&quot;</span>);
+                arg = arg.help(<span class="string">"Print help"</span>);
             }
             <span class="comment">// Avoiding `arg_internal` to not be sensitive to `next_help_heading` /
             // `next_display_order`
             </span><span class="self">self</span>.args.push(arg);
         }
         <span class="kw">if </span>!<span class="self">self</span>.is_disable_version_flag_set() {
-            <span class="macro">debug!</span>(<span class="string">&quot;Command::_check_help_and_version: Building default --version&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">"Command::_check_help_and_version: Building default --version"</span>);
             <span class="kw">let </span>arg = Arg::new(Id::VERSION)
-                .short(<span class="string">&#39;V&#39;</span>)
-                .long(<span class="string">&quot;version&quot;</span>)
+                .short(<span class="string">'V'</span>)
+                .long(<span class="string">"version"</span>)
                 .action(ArgAction::Version)
-                .help(<span class="string">&quot;Print version&quot;</span>);
+                .help(<span class="string">"Print version"</span>);
             <span class="comment">// Avoiding `arg_internal` to not be sensitive to `next_help_heading` /
             // `next_display_order`
             </span><span class="self">self</span>.args.push(arg);
         }
 
         <span class="kw">if </span>!<span class="self">self</span>.is_set(AppSettings::DisableHelpSubcommand) {
-            <span class="macro">debug!</span>(<span class="string">&quot;Command::_check_help_and_version: Building help subcommand&quot;</span>);
-            <span class="kw">let </span>help_about = <span class="string">&quot;Print this message or the help of the given subcommand(s)&quot;</span>;
+            <span class="macro">debug!</span>(<span class="string">"Command::_check_help_and_version: Building help subcommand"</span>);
+            <span class="kw">let </span>help_about = <span class="string">"Print this message or the help of the given subcommand(s)"</span>;
 
             <span class="kw">let </span><span class="kw-2">mut </span>help_subcmd = <span class="kw">if </span>expand_help_tree {
                 <span class="comment">// Slow code path to recursively clone all other subcommand subtrees under help
-                </span><span class="kw">let </span>help_subcmd = Command::new(<span class="string">&quot;help&quot;</span>)
+                </span><span class="kw">let </span>help_subcmd = Command::new(<span class="string">"help"</span>)
                     .about(help_about)
                     .global_setting(AppSettings::DisableHelpSubcommand)
                     .subcommands(<span class="self">self</span>.get_subcommands().map(Command::_copy_subtree_for_help));
 
-                <span class="kw">let </span><span class="kw-2">mut </span>help_help_subcmd = Command::new(<span class="string">&quot;help&quot;</span>).about(help_about);
+                <span class="kw">let </span><span class="kw-2">mut </span>help_help_subcmd = Command::new(<span class="string">"help"</span>).about(help_about);
                 help_help_subcmd.version = <span class="prelude-val">None</span>;
                 help_help_subcmd.long_version = <span class="prelude-val">None</span>;
                 help_help_subcmd = help_help_subcmd
@@ -9242,17 +9445,17 @@
 
                 help_subcmd.subcommand(help_help_subcmd)
             } <span class="kw">else </span>{
-                Command::new(<span class="string">&quot;help&quot;</span>).about(help_about).arg(
-                    Arg::new(<span class="string">&quot;subcommand&quot;</span>)
+                Command::new(<span class="string">"help"</span>).about(help_about).arg(
+                    Arg::new(<span class="string">"subcommand"</span>)
                         .action(ArgAction::Append)
                         .num_args(..)
-                        .value_name(<span class="string">&quot;COMMAND&quot;</span>)
-                        .help(<span class="string">&quot;Print help for the subcommand(s)&quot;</span>),
+                        .value_name(<span class="string">"COMMAND"</span>)
+                        .help(<span class="string">"Print help for the subcommand(s)"</span>),
                 )
             };
             <span class="self">self</span>._propagate_subcommand(<span class="kw-2">&amp;mut </span>help_subcmd);
 
-            <span class="comment">// The parser acts like this is set, so let&#39;s set it so we don&#39;t falsely
+            <span class="comment">// The parser acts like this is set, so let's set it so we don't falsely
             // advertise it to the user
             </span>help_subcmd.version = <span class="prelude-val">None</span>;
             help_subcmd.long_version = <span class="prelude-val">None</span>;
@@ -9278,7 +9481,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_render_version(<span class="kw-2">&amp;</span><span class="self">self</span>, use_long: bool) -&gt; String {
-        <span class="macro">debug!</span>(<span class="string">&quot;Command::_render_version&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Command::_render_version"</span>);
 
         <span class="kw">let </span>ver = <span class="kw">if </span>use_long {
             <span class="self">self</span>.long_version
@@ -9292,7 +9495,7 @@
                 .unwrap_or_default()
         };
         <span class="kw">let </span>display_name = <span class="self">self</span>.get_display_name().unwrap_or_else(|| <span class="self">self</span>.get_name());
-        <span class="macro">format!</span>(<span class="string">&quot;{display_name} {ver}\n&quot;</span>)
+        <span class="macro">format!</span>(<span class="string">"{display_name} {ver}\n"</span>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>format_group(<span class="kw-2">&amp;</span><span class="self">self</span>, g: <span class="kw-2">&amp;</span>Id) -&gt; StyledStr {
@@ -9310,24 +9513,24 @@
                 }
             })
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
-            .join(<span class="string">&quot;|&quot;</span>);
+            .join(<span class="string">"|"</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>styled = StyledStr::new();
-        styled.push_str(<span class="string">&quot;&lt;&quot;</span>);
+        styled.push_str(<span class="string">"&lt;"</span>);
         styled.push_string(g_string);
-        styled.push_str(<span class="string">&quot;&gt;&quot;</span>);
+        styled.push_str(<span class="string">"&gt;"</span>);
         styled
     }
 }
 
 <span class="doccomment">/// A workaround:
 /// &lt;https://github.com/rust-lang/rust/issues/34511#issuecomment-373423999&gt;
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Captures&lt;<span class="lifetime">&#39;a</span>&gt; {}
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Captures&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span>T {}
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Captures&lt;<span class="lifetime">'a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Captures&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span>T {}
 
 <span class="comment">// Internal Query Methods
 </span><span class="kw">impl </span>Command {
     <span class="doccomment">/// Iterate through the *flags* &amp; *options* arguments.
-    </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;usage&quot;</span>, feature = <span class="string">&quot;help&quot;</span>))]
+    </span><span class="attr">#[cfg(any(feature = <span class="string">"usage"</span>, feature = <span class="string">"help"</span>))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_non_positionals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>Arg&gt; {
         <span class="self">self</span>.get_arguments().filter(|a| !a.is_positional())
     }
@@ -9340,7 +9543,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>contains_short(<span class="kw-2">&amp;</span><span class="self">self</span>, s: char) -&gt; bool {
         <span class="macro">debug_assert!</span>(
             <span class="self">self</span>.is_set(AppSettings::Built),
-            <span class="string">&quot;If Command::_build hasn&#39;t been called, manually search through Arg shorts&quot;
+            <span class="string">"If Command::_build hasn't been called, manually search through Arg shorts"
         </span>);
 
         <span class="self">self</span>.args.contains(s)
@@ -9348,7 +9551,7 @@
 
     <span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: AppSettings) {
-        <span class="self">self</span>.settings.set(s)
+        <span class="self">self</span>.settings.set(s);
     }
 
     <span class="attr">#[inline]
@@ -9356,11 +9559,11 @@
         <span class="self">self</span>.get_positionals().next().is_some()
     }
 
-    <span class="attr">#[cfg(any(feature = <span class="string">&quot;usage&quot;</span>, feature = <span class="string">&quot;help&quot;</span>))]
+    <span class="attr">#[cfg(any(feature = <span class="string">"usage"</span>, feature = <span class="string">"help"</span>))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_visible_subcommands(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.subcommands
             .iter()
-            .any(|sc| sc.name != <span class="string">&quot;help&quot; </span>&amp;&amp; !sc.is_set(AppSettings::Hidden))
+            .any(|sc| sc.name != <span class="string">"help" </span>&amp;&amp; !sc.is_set(AppSettings::Hidden))
     }
 
     <span class="doccomment">/// Check if this subcommand can be referred to as `name`. In other words,
@@ -9397,8 +9600,8 @@
     }
 
     <span class="doccomment">/// Iterate through the groups this arg is member of.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>groups_for_arg&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span>Id) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Id&gt; + <span class="lifetime">&#39;a </span>{
-        <span class="macro">debug!</span>(<span class="string">&quot;Command::groups_for_arg: id={arg:?}&quot;</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>groups_for_arg&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span>Id) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Id&gt; + <span class="lifetime">'a </span>{
+        <span class="macro">debug!</span>(<span class="string">"Command::groups_for_arg: id={arg:?}"</span>);
         <span class="kw">let </span>arg = arg.clone();
         <span class="self">self</span>.groups
             .iter()
@@ -9412,7 +9615,7 @@
 
     <span class="doccomment">/// Iterate through all the names of all subcommands (not recursively), including aliases.
     /// Used for suggestions.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>all_subcommand_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + Captures {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>all_subcommand_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + Captures&lt;<span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>.get_subcommands().flat_map(|sc| {
             <span class="kw">let </span>name = sc.get_name();
             <span class="kw">let </span>aliases = sc.get_all_aliases();
@@ -9438,7 +9641,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unroll_args_in_group(<span class="kw-2">&amp;</span><span class="self">self</span>, group: <span class="kw-2">&amp;</span>Id) -&gt; Vec&lt;Id&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Command::unroll_args_in_group: group={group:?}&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Command::unroll_args_in_group: group={group:?}"</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>g_vec = <span class="macro">vec!</span>[group];
         <span class="kw">let </span><span class="kw-2">mut </span>args = <span class="macro">vec!</span>[];
 
@@ -9451,13 +9654,13 @@
                 .args
                 .iter()
             {
-                <span class="macro">debug!</span>(<span class="string">&quot;Command::unroll_args_in_group:iter: entity={n:?}&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"Command::unroll_args_in_group:iter: entity={n:?}"</span>);
                 <span class="kw">if </span>!args.contains(n) {
                     <span class="kw">if </span><span class="self">self</span>.find(n).is_some() {
-                        <span class="macro">debug!</span>(<span class="string">&quot;Command::unroll_args_in_group:iter: this is an arg&quot;</span>);
-                        args.push(n.clone())
+                        <span class="macro">debug!</span>(<span class="string">"Command::unroll_args_in_group:iter: this is an arg"</span>);
+                        args.push(n.clone());
                     } <span class="kw">else </span>{
-                        <span class="macro">debug!</span>(<span class="string">&quot;Command::unroll_args_in_group:iter: this is a group&quot;</span>);
+                        <span class="macro">debug!</span>(<span class="string">"Command::unroll_args_in_group:iter: this is a group"</span>);
                         g_vec.push(n);
                     }
                 }
@@ -9486,7 +9689,7 @@
                 <span class="kw">for </span>r <span class="kw">in </span>arg.requires.iter().filter_map(<span class="kw-2">&amp;</span>func) {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(req) = <span class="self">self</span>.find(<span class="kw-2">&amp;</span>r) {
                         <span class="kw">if </span>!req.requires.is_empty() {
-                            r_vec.push(req.get_id())
+                            r_vec.push(req.get_id());
                         }
                     }
                     args.push(r);
@@ -9511,14 +9714,14 @@
             .map(|sc| sc.get_name())
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;help&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"help"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_display_order(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.disp_ord.unwrap_or(<span class="number">999</span>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write_help_err(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>use_long: bool) -&gt; StyledStr {
         <span class="macro">debug!</span>(
-            <span class="string">&quot;Command::write_help_err: {}, use_long={:?}&quot;</span>,
+            <span class="string">"Command::write_help_err: {}, use_long={:?}"</span>,
             <span class="self">self</span>.get_display_name().unwrap_or_else(|| <span class="self">self</span>.get_name()),
             use_long &amp;&amp; <span class="self">self</span>.long_help_exists(),
         );
@@ -9538,12 +9741,12 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>long_help_exists(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">debug!</span>(<span class="string">&quot;Command::long_help_exists: {}&quot;</span>, <span class="self">self</span>.long_help_exists);
+        <span class="macro">debug!</span>(<span class="string">"Command::long_help_exists: {}"</span>, <span class="self">self</span>.long_help_exists);
         <span class="self">self</span>.long_help_exists
     }
 
     <span class="kw">fn </span>long_help_exists_(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">debug!</span>(<span class="string">&quot;Command::long_help_exists&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Command::long_help_exists"</span>);
         <span class="comment">// In this case, both must be checked. This allows the retention of
         // original formatting, but also ensures that the actual -h or --help
         // specified by the user is sent through. If hide_short_help is not included,
@@ -9559,7 +9762,7 @@
                             .any(PossibleValue::should_show_help)))
         };
 
-        <span class="comment">// Subcommands aren&#39;t checked because we prefer short help for them, deferring to
+        <span class="comment">// Subcommands aren't checked because we prefer short help for them, deferring to
         // `cmd subcmd --help` for more.
         </span><span class="self">self</span>.get_long_about().is_some()
             || <span class="self">self</span>.get_before_long_help().is_some()
@@ -9569,7 +9772,7 @@
 
     <span class="comment">// Should we color the help?
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>color_help(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ColorChoice {
-        <span class="attr">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"color"</span>)]
         </span><span class="kw">if </span><span class="self">self</span>.is_disable_colored_help_set() {
             <span class="kw">return </span>ColorChoice::Never;
         }
@@ -9602,7 +9805,7 @@
             usage_name: Default::default(),
             help_str: Default::default(),
             disp_ord: Default::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;help&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"help"</span>)]
             </span>template: Default::default(),
             settings: Default::default(),
             g_settings: Default::default(),
@@ -9621,7 +9824,7 @@
     }
 }
 
-<span class="kw">impl </span>Index&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Id&gt; <span class="kw">for </span>Command {
+<span class="kw">impl </span>Index&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span>Id&gt; <span class="kw">for </span>Command {
     <span class="kw">type </span>Output = Arg;
 
     <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Id) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
@@ -9629,26 +9832,29 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Command&gt; <span class="kw">for </span>Command {
-    <span class="kw">fn </span>from(cmd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Command) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span>Command&gt; <span class="kw">for </span>Command {
+    <span class="kw">fn </span>from(cmd: <span class="kw-2">&amp;</span><span class="lifetime">'_ </span>Command) -&gt; <span class="self">Self </span>{
         cmd.clone()
     }
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>Command {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.name)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.name)
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>AppTag: <span class="kw">crate</span>::builder::ext::Extension {}
+<span class="attr">#[allow(dead_code)] </span><span class="comment">// atm dependent on features enabled
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>AppTag: <span class="kw">crate</span>::builder::ext::Extension {}
 
-<span class="attr">#[derive(Default, Copy, Clone, Debug)]
+<span class="attr">#[allow(dead_code)] </span><span class="comment">// atm dependent on features enabled
+</span><span class="attr">#[derive(Default, Copy, Clone, Debug)]
 </span><span class="kw">struct </span>TermWidth(usize);
 
 <span class="kw">impl </span>AppTag <span class="kw">for </span>TermWidth {}
 
-<span class="attr">#[derive(Default, Copy, Clone, Debug)]
+<span class="attr">#[allow(dead_code)] </span><span class="comment">// atm dependent on features enabled
+</span><span class="attr">#[derive(Default, Copy, Clone, Debug)]
 </span><span class="kw">struct </span>MaxTermWidth(usize);
 
 <span class="kw">impl </span>AppTag <span class="kw">for </span>MaxTermWidth {}

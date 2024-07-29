@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc_plugin-0.7.3-nightly-2023-08-25/src/cli.rs`."><title>cli.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustc_plugin" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rustc_plugin/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc_plugin-0.8.0-nightly-2024-01-06/src/cli.rs`."><title>cli.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustc_plugin" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rustc_plugin/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -230,48 +232,48 @@
 <span class="kw">use </span><span class="kw">super</span>::plugin::{RustcPlugin, PLUGIN_ARGS};
 <span class="kw">use </span><span class="kw">crate</span>::CrateFilter;
 
-<span class="kw">pub const </span>RUN_ON_ALL_CRATES: <span class="kw-2">&amp;</span>str = <span class="string">&quot;RUSTC_PLUGIN_ALL_TARGETS&quot;</span>;
-<span class="kw">pub const </span>SPECIFIC_CRATE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;SPECIFIC_CRATE&quot;</span>;
-<span class="kw">pub const </span>SPECIFIC_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;SPECIFIC_TARGET&quot;</span>;
-<span class="kw">pub const </span>CARGO_VERBOSE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;CARGO_VERBOSE&quot;</span>;
+<span class="kw">pub const </span>RUN_ON_ALL_CRATES: <span class="kw-2">&amp;</span>str = <span class="string">"RUSTC_PLUGIN_ALL_TARGETS"</span>;
+<span class="kw">pub const </span>SPECIFIC_CRATE: <span class="kw-2">&amp;</span>str = <span class="string">"SPECIFIC_CRATE"</span>;
+<span class="kw">pub const </span>SPECIFIC_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">"SPECIFIC_TARGET"</span>;
+<span class="kw">pub const </span>CARGO_VERBOSE: <span class="kw-2">&amp;</span>str = <span class="string">"CARGO_VERBOSE"</span>;
 
 <span class="doccomment">/// The top-level function that should be called in your user-facing binary.
 </span><span class="kw">pub fn </span>cli_main&lt;T: RustcPlugin&gt;(plugin: T) {
-  <span class="kw">if </span>env::args().any(|arg| arg == <span class="string">&quot;-V&quot;</span>) {
-    <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, plugin.version());
+  <span class="kw">if </span>env::args().any(|arg| arg == <span class="string">"-V"</span>) {
+    <span class="macro">println!</span>(<span class="string">"{}"</span>, plugin.version());
     <span class="kw">return</span>;
   }
 
   <span class="kw">let </span>metadata = cargo_metadata::MetadataCommand::new()
     .no_deps()
-    .other_options([<span class="string">&quot;--all-features&quot;</span>.to_string(), <span class="string">&quot;--offline&quot;</span>.to_string()])
+    .other_options([<span class="string">"--all-features"</span>.to_string(), <span class="string">"--offline"</span>.to_string()])
     .exec()
     .unwrap();
-  <span class="kw">let </span>plugin_subdir = <span class="macro">format!</span>(<span class="string">&quot;plugin-{}&quot;</span>, <span class="macro">env!</span>(<span class="string">&quot;RUSTC_CHANNEL&quot;</span>));
+  <span class="kw">let </span>plugin_subdir = <span class="macro">format!</span>(<span class="string">"plugin-{}"</span>, <span class="macro">env!</span>(<span class="string">"RUSTC_CHANNEL"</span>));
   <span class="kw">let </span>target_dir = metadata.target_directory.join(plugin_subdir);
 
   <span class="kw">let </span>args = plugin.args(<span class="kw-2">&amp;</span>target_dir);
 
-  <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="string">&quot;cargo&quot;</span>);
+  <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="string">"cargo"</span>);
   cmd.stdout(Stdio::inherit()).stderr(Stdio::inherit());
 
   <span class="kw">let </span><span class="kw-2">mut </span>path = env::current_exe()
-    .expect(<span class="string">&quot;current executable path invalid&quot;</span>)
+    .expect(<span class="string">"current executable path invalid"</span>)
     .with_file_name(plugin.driver_name().as_ref());
 
   <span class="kw">if </span><span class="macro">cfg!</span>(windows) {
-    path.set_extension(<span class="string">&quot;exe&quot;</span>);
+    path.set_extension(<span class="string">"exe"</span>);
   }
 
   cmd
-    .env(<span class="string">&quot;RUSTC_WORKSPACE_WRAPPER&quot;</span>, path)
-    .args([<span class="string">&quot;check&quot;</span>, <span class="string">&quot;--target-dir&quot;</span>])
+    .env(<span class="string">"RUSTC_WORKSPACE_WRAPPER"</span>, path)
+    .args([<span class="string">"check"</span>, <span class="string">"--target-dir"</span>])
     .arg(<span class="kw-2">&amp;</span>target_dir);
 
   <span class="kw">if </span>env::var(CARGO_VERBOSE).is_ok() {
-    cmd.arg(<span class="string">&quot;-vv&quot;</span>);
+    cmd.arg(<span class="string">"-vv"</span>);
   } <span class="kw">else </span>{
-    cmd.arg(<span class="string">&quot;-q&quot;</span>);
+    cmd.arg(<span class="string">"-q"</span>);
   }
 
   <span class="kw">let </span>workspace_members = metadata
@@ -291,10 +293,10 @@
       only_run_on_file(<span class="kw-2">&amp;mut </span>cmd, file_path, <span class="kw-2">&amp;</span>workspace_members, <span class="kw-2">&amp;</span>target_dir);
     }
     CrateFilter::AllCrates | CrateFilter::OnlyWorkspace =&gt; {
-      cmd.arg(<span class="string">&quot;--all&quot;</span>);
+      cmd.arg(<span class="string">"--all"</span>);
       <span class="kw">match </span>args.filter {
         CrateFilter::AllCrates =&gt; {
-          cmd.env(RUN_ON_ALL_CRATES, <span class="string">&quot;&quot;</span>);
+          cmd.env(RUN_ON_ALL_CRATES, <span class="string">""</span>);
         }
         CrateFilter::OnlyWorkspace =&gt; {}
         CrateFilter::CrateContainingFile(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
@@ -303,18 +305,18 @@
   }
 
   <span class="kw">let </span>args_str = serde_json::to_string(<span class="kw-2">&amp;</span>args.args).unwrap();
-  <span class="macro">log::debug!</span>(<span class="string">&quot;{PLUGIN_ARGS}={args_str}&quot;</span>);
+  <span class="macro">log::debug!</span>(<span class="string">"{PLUGIN_ARGS}={args_str}"</span>);
   cmd.env(PLUGIN_ARGS, args_str);
 
   <span class="comment">// HACK: if running on the rustc codebase, this env var needs to exist
   // for the code to compile
-  </span><span class="kw">if </span>workspace_members.iter().any(|pkg| pkg.name == <span class="string">&quot;rustc-main&quot;</span>) {
-    cmd.env(<span class="string">&quot;CFG_RELEASE&quot;</span>, <span class="string">&quot;&quot;</span>);
+  </span><span class="kw">if </span>workspace_members.iter().any(|pkg| pkg.name == <span class="string">"rustc-main"</span>) {
+    cmd.env(<span class="string">"CFG_RELEASE"</span>, <span class="string">""</span>);
   }
 
   plugin.modify_cargo(<span class="kw-2">&amp;mut </span>cmd, <span class="kw-2">&amp;</span>args.args);
 
-  <span class="kw">let </span>exit_status = cmd.status().expect(<span class="string">&quot;failed to wait for cargo?&quot;</span>);
+  <span class="kw">let </span>exit_status = cmd.status().expect(<span class="string">"failed to wait for cargo?"</span>);
 
   exit(exit_status.code().unwrap_or(-<span class="number">1</span>));
 }
@@ -337,7 +339,7 @@
         .iter()
         .filter(|target| {
           <span class="kw">let </span>src_path = target.src_path.canonicalize().unwrap();
-          <span class="macro">log::trace!</span>(<span class="string">&quot;Package {} has src path {}&quot;</span>, pkg.name, src_path.display());
+          <span class="macro">log::trace!</span>(<span class="string">"Package {} has src path {}"</span>, pkg.name, src_path.display());
           file_path.starts_with(src_path.parent().unwrap())
         })
         .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
@@ -354,11 +356,11 @@
             .into_iter()
             .find(|target| target.name == stem);
 
-          <span class="comment">// Otherwise we&#39;re in a special case, e.g. &quot;main.rs&quot; corresponds to the bin target.
+          <span class="comment">// Otherwise we're in a special case, e.g. "main.rs" corresponds to the bin target.
           </span>name_matches_stem.or_else(|| {
             <span class="kw">let </span>only_bin = targets
               .iter()
-              .all(|target| !target.kind.contains(<span class="kw-2">&amp;</span><span class="string">&quot;lib&quot;</span>.into()));
+              .all(|target| !target.kind.contains(<span class="kw-2">&amp;</span><span class="string">"lib"</span>.into()));
             <span class="comment">// TODO: this is a pile of hacks, and it seems like there is no reliable way to say
             // which target a file will correspond to given only its filename. For example,
             // if you have src/foo.rs it could either be imported by src/main.rs, or src/lib.rs, or
@@ -366,9 +368,9 @@
             </span><span class="kw">if </span>only_bin {
               targets
                 .into_iter()
-                .find(|target| target.kind.contains(<span class="kw-2">&amp;</span><span class="string">&quot;bin&quot;</span>.into()))
+                .find(|target| target.kind.contains(<span class="kw-2">&amp;</span><span class="string">"bin"</span>.into()))
             } <span class="kw">else </span>{
-              <span class="kw">let </span>kind = (<span class="kw">if </span>stem == <span class="string">&quot;main&quot; </span>{ <span class="string">&quot;bin&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;lib&quot; </span>}).to_string();
+              <span class="kw">let </span>kind = (<span class="kw">if </span>stem == <span class="string">"main" </span>{ <span class="string">"bin" </span>} <span class="kw">else </span>{ <span class="string">"lib" </span>}).to_string();
               targets
                 .into_iter()
                 .find(|target| target.kind.contains(<span class="kw-2">&amp;</span>kind))
@@ -381,13 +383,13 @@
     })
     .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
   <span class="kw">let </span>(pkg, target) = <span class="kw">match </span>matching.len() {
-    <span class="number">0 </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Could not find target for path: {}&quot;</span>, file_path.display()),
+    <span class="number">0 </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Could not find target for path: {}"</span>, file_path.display()),
     <span class="number">1 </span>=&gt; matching.remove(<span class="number">0</span>),
-    <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Too many matching targets: {matching:?}&quot;</span>),
+    <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Too many matching targets: {matching:?}"</span>),
   };
 
   <span class="comment">// Add compile filter to specify the target corresponding to the given file
-  </span>cmd.arg(<span class="string">&quot;-p&quot;</span>).arg(<span class="macro">format!</span>(<span class="string">&quot;{}:{}&quot;</span>, pkg.name, pkg.version));
+  </span>cmd.arg(<span class="string">"-p"</span>).arg(<span class="macro">format!</span>(<span class="string">"{}:{}"</span>, pkg.name, pkg.version));
 
   <span class="kw">enum </span>CompileKind {
     Lib,
@@ -399,19 +401,19 @@
   // https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-crate-type-field
   </span><span class="kw">let </span>kind_str = <span class="kw-2">&amp;</span>target.kind[<span class="number">0</span>];
   <span class="kw">let </span>kind = <span class="kw">match </span>kind_str.as_str() {
-    <span class="string">&quot;lib&quot; </span>| <span class="string">&quot;rlib&quot; </span>| <span class="string">&quot;dylib&quot; </span>| <span class="string">&quot;staticlib&quot; </span>| <span class="string">&quot;cdylib&quot; </span>=&gt; CompileKind::Lib,
-    <span class="string">&quot;bin&quot; </span>=&gt; CompileKind::Bin,
-    <span class="string">&quot;proc-macro&quot; </span>=&gt; CompileKind::ProcMacro,
-    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;unexpected cargo crate type: {kind_str}&quot;</span>),
+    <span class="string">"lib" </span>| <span class="string">"rlib" </span>| <span class="string">"dylib" </span>| <span class="string">"staticlib" </span>| <span class="string">"cdylib" </span>=&gt; CompileKind::Lib,
+    <span class="string">"bin" </span>=&gt; CompileKind::Bin,
+    <span class="string">"proc-macro" </span>=&gt; CompileKind::ProcMacro,
+    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"unexpected cargo crate type: {kind_str}"</span>),
   };
 
   <span class="kw">match </span>kind {
     CompileKind::Lib =&gt; {
       <span class="comment">// If the rmeta files were previously generated for the lib (e.g. by running the plugin
       // on a reverse-dep), then we have to remove them or else Cargo will memoize the plugin.
-      </span><span class="kw">let </span>deps_dir = target_dir.join(<span class="string">&quot;debug&quot;</span>).join(<span class="string">&quot;deps&quot;</span>);
+      </span><span class="kw">let </span>deps_dir = target_dir.join(<span class="string">"debug"</span>).join(<span class="string">"deps"</span>);
       <span class="kw">if let </span><span class="prelude-val">Ok</span>(entries) = fs::read_dir(deps_dir) {
-        <span class="kw">let </span>prefix = <span class="macro">format!</span>(<span class="string">&quot;lib{}&quot;</span>, pkg.name.replace(<span class="string">&#39;-&#39;</span>, <span class="string">&quot;_&quot;</span>));
+        <span class="kw">let </span>prefix = <span class="macro">format!</span>(<span class="string">"lib{}"</span>, pkg.name.replace(<span class="string">'-'</span>, <span class="string">"_"</span>));
         <span class="kw">for </span>entry <span class="kw">in </span>entries {
           <span class="kw">let </span>path = entry.unwrap().path();
           <span class="kw">if let </span><span class="prelude-val">Some</span>(file_name) = path.file_name() {
@@ -422,19 +424,19 @@
         }
       }
 
-      cmd.arg(<span class="string">&quot;--lib&quot;</span>);
+      cmd.arg(<span class="string">"--lib"</span>);
     }
     CompileKind::Bin =&gt; {
-      cmd.args([<span class="string">&quot;--bin&quot;</span>, <span class="kw-2">&amp;</span>target.name]);
+      cmd.args([<span class="string">"--bin"</span>, <span class="kw-2">&amp;</span>target.name]);
     }
     CompileKind::ProcMacro =&gt; {}
   }
 
-  cmd.env(SPECIFIC_CRATE, <span class="kw-2">&amp;</span>pkg.name.replace(<span class="string">&#39;-&#39;</span>, <span class="string">&quot;_&quot;</span>));
+  cmd.env(SPECIFIC_CRATE, <span class="kw-2">&amp;</span>pkg.name.replace(<span class="string">'-'</span>, <span class="string">"_"</span>));
   cmd.env(SPECIFIC_TARGET, kind_str);
 
   <span class="macro">log::debug!</span>(
-    <span class="string">&quot;Package: {}, target kind {}, target name {}&quot;</span>,
+    <span class="string">"Package: {}, target kind {}, target name {}"</span>,
     pkg.name,
     kind_str,
     target.name

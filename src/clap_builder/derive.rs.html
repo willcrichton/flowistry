@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.7/src/derive.rs`."><title>derive.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.11/src/derive.rs`."><title>derive.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -383,7 +385,7 @@
 ///
 /// **NOTE:** Deriving requires the `derive` feature flag
 </span><span class="kw">pub trait </span>Parser: FromArgMatches + CommandFactory + Sized {
-    <span class="doccomment">/// Parse from `std::env::args_os()`, exit on error
+    <span class="doccomment">/// Parse from `std::env::args_os()`, [exit][Error::exit] on error.
     </span><span class="kw">fn </span>parse() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>matches = &lt;<span class="self">Self </span><span class="kw">as </span>CommandFactory&gt;::command().get_matches();
         <span class="kw">let </span>res = &lt;<span class="self">Self </span><span class="kw">as </span>FromArgMatches&gt;::from_arg_matches_mut(<span class="kw-2">&amp;mut </span>matches)
@@ -391,7 +393,7 @@
         <span class="kw">match </span>res {
             <span class="prelude-val">Ok</span>(s) =&gt; s,
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <span class="comment">// Since this is more of a development-time error, we aren&#39;t doing as fancy of a quit
+                <span class="comment">// Since this is more of a development-time error, we aren't doing as fancy of a quit
                 // as `get_matches`
                 </span>e.exit()
             }
@@ -404,7 +406,7 @@
         &lt;<span class="self">Self </span><span class="kw">as </span>FromArgMatches&gt;::from_arg_matches_mut(<span class="kw-2">&amp;mut </span>matches).map_err(format_error::&lt;<span class="self">Self</span>&gt;)
     }
 
-    <span class="doccomment">/// Parse from iterator, exit on error
+    <span class="doccomment">/// Parse from iterator, [exit][Error::exit] on error.
     </span><span class="kw">fn </span>parse_from&lt;I, T&gt;(itr: I) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>I: IntoIterator&lt;Item = T&gt;,
@@ -416,7 +418,7 @@
         <span class="kw">match </span>res {
             <span class="prelude-val">Ok</span>(s) =&gt; s,
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <span class="comment">// Since this is more of a development-time error, we aren&#39;t doing as fancy of a quit
+                <span class="comment">// Since this is more of a development-time error, we aren't doing as fancy of a quit
                 // as `get_matches_from`
                 </span>e.exit()
             }
@@ -433,7 +435,7 @@
         &lt;<span class="self">Self </span><span class="kw">as </span>FromArgMatches&gt;::from_arg_matches_mut(<span class="kw-2">&amp;mut </span>matches).map_err(format_error::&lt;<span class="self">Self</span>&gt;)
     }
 
-    <span class="doccomment">/// Update from iterator, exit on error
+    <span class="doccomment">/// Update from iterator, [exit][Error::exit] on error.
     </span><span class="kw">fn </span>update_from&lt;I, T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, itr: I)
     <span class="kw">where
         </span>I: IntoIterator&lt;Item = T&gt;,
@@ -443,7 +445,7 @@
         <span class="kw">let </span>res = &lt;<span class="self">Self </span><span class="kw">as </span>FromArgMatches&gt;::update_from_arg_matches_mut(<span class="self">self</span>, <span class="kw-2">&amp;mut </span>matches)
             .map_err(format_error::&lt;<span class="self">Self</span>&gt;);
         <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = res {
-            <span class="comment">// Since this is more of a development-time error, we aren&#39;t doing as fancy of a quit
+            <span class="comment">// Since this is more of a development-time error, we aren't doing as fancy of a quit
             // as `get_matches_from`
             </span>e.exit()
         }
@@ -486,7 +488,7 @@
     /// &lt;STRING&gt;` and the flag `--debug`, we may create a struct as follows:
     ///
     /// ```rust
-    /// # #[cfg(feature = &quot;derive&quot;)] {
+    /// # #[cfg(feature = "derive")] {
     /// struct Context {
     ///     name: String,
     ///     debug: bool
@@ -498,7 +500,7 @@
     /// `from_arg_matches` serves as the equivalent of:
     ///
     /// ```rust
-    /// # #[cfg(feature = &quot;derive&quot;)] {
+    /// # #[cfg(feature = "derive")] {
     /// # use clap::ArgMatches;
     /// # struct Context {
     /// #   name: String,
@@ -507,8 +509,8 @@
     /// impl From&lt;ArgMatches&gt; for Context {
     ///    fn from(m: ArgMatches) -&gt; Self {
     ///        Context {
-    ///            name: m.get_one::&lt;String&gt;(&quot;name&quot;).unwrap().clone(),
-    ///            debug: m.get_flag(&quot;debug&quot;),
+    ///            name: m.get_one::&lt;String&gt;("name").unwrap().clone(),
+    ///            debug: m.get_flag("debug"),
     ///        }
     ///    }
     /// }
@@ -522,7 +524,7 @@
     /// &lt;STRING&gt;` and the flag `--debug`, we may create a struct as follows:
     ///
     /// ```rust
-    /// # #[cfg(feature = &quot;derive&quot;)] {
+    /// # #[cfg(feature = "derive")] {
     /// struct Context {
     ///     name: String,
     ///     debug: bool
@@ -534,7 +536,7 @@
     /// `from_arg_matches_mut` serves as the equivalent of:
     ///
     /// ```rust
-    /// # #[cfg(feature = &quot;derive&quot;)] {
+    /// # #[cfg(feature = "derive")] {
     /// # use clap::ArgMatches;
     /// # struct Context {
     /// #   name: String,
@@ -543,8 +545,8 @@
     /// impl From&lt;ArgMatches&gt; for Context {
     ///    fn from(m: ArgMatches) -&gt; Self {
     ///        Context {
-    ///            name: m.get_one::&lt;String&gt;(&quot;name&quot;).unwrap().to_string(),
-    ///            debug: m.get_flag(&quot;debug&quot;),
+    ///            name: m.get_one::&lt;String&gt;("name").unwrap().to_string(),
+    ///            debug: m.get_flag("debug"),
     ///        }
     ///    }
     /// }
@@ -624,7 +626,7 @@
 /// **NOTE:** Deriving requires the `derive` feature flag
 </span><span class="kw">pub trait </span>ValueEnum: Sized + Clone {
     <span class="doccomment">/// All possible argument values, in display order.
-    </span><span class="kw">fn </span>value_variants&lt;<span class="lifetime">&#39;a</span>&gt;() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<span class="self">Self</span>];
+    </span><span class="kw">fn </span>value_variants&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[<span class="self">Self</span>];
 
     <span class="doccomment">/// Parse an argument into `Self`.
     </span><span class="kw">fn </span>from_str(input: <span class="kw-2">&amp;</span>str, ignore_case: bool) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, String&gt; {
@@ -632,11 +634,11 @@
             .iter()
             .find(|v| {
                 v.to_possible_value()
-                    .expect(<span class="string">&quot;ValueEnum::value_variants contains only values with a corresponding ValueEnum::to_possible_value&quot;</span>)
+                    .expect(<span class="string">"ValueEnum::value_variants contains only values with a corresponding ValueEnum::to_possible_value"</span>)
                     .matches(input, ignore_case)
             })
             .cloned()
-            .ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;invalid variant: {input}&quot;</span>))
+            .ok_or_else(|| <span class="macro">format!</span>(<span class="string">"invalid variant: {input}"</span>))
     }
 
     <span class="doccomment">/// The canonical argument value.
@@ -672,10 +674,10 @@
 }
 
 <span class="kw">impl</span>&lt;T: CommandFactory&gt; CommandFactory <span class="kw">for </span>Box&lt;T&gt; {
-    <span class="kw">fn </span>command&lt;<span class="lifetime">&#39;help</span>&gt;() -&gt; Command {
+    <span class="kw">fn </span>command() -&gt; Command {
         &lt;T <span class="kw">as </span>CommandFactory&gt;::command()
     }
-    <span class="kw">fn </span>command_for_update&lt;<span class="lifetime">&#39;help</span>&gt;() -&gt; Command {
+    <span class="kw">fn </span>command_for_update() -&gt; Command {
         &lt;T <span class="kw">as </span>CommandFactory&gt;::command_for_update()
     }
 }
@@ -716,7 +718,7 @@
     }
 }
 
-<span class="kw">fn </span>format_error&lt;I: CommandFactory&gt;(err: <span class="kw">crate</span>::Error) -&gt; <span class="kw">crate</span>::Error {
+<span class="kw">fn </span>format_error&lt;I: CommandFactory&gt;(err: Error) -&gt; Error {
     <span class="kw">let </span><span class="kw-2">mut </span>cmd = I::command();
     err.format(<span class="kw-2">&amp;mut </span>cmd)
 }

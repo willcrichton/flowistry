@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64-0.21.5/src/alphabet.rs`."><title>alphabet.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../base64/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64-0.21.7/src/alphabet.rs`."><title>alphabet.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../base64/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -270,11 +272,24 @@
 <a href="#270" id="270">270</a>
 <a href="#271" id="271">271</a>
 <a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Provides [Alphabet] and constants for alphabets commonly used in the wild.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::PAD_BYTE;
 <span class="kw">use </span>core::{convert, fmt};
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, test))]
+<span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, test))]
 </span><span class="kw">use </span>std::error;
 
 <span class="kw">const </span>ALPHABET_SIZE: usize = <span class="number">64</span>;
@@ -289,7 +304,7 @@
 /// Building and using a custom Alphabet:
 ///
 /// ```
-/// let custom = base64::alphabet::Alphabet::new(&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/&quot;).unwrap();
+/// let custom = base64::alphabet::Alphabet::new("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/").unwrap();
 ///
 /// let engine = base64::engine::GeneralPurpose::new(
 ///     &amp;custom,
@@ -302,25 +317,26 @@
 /// use base64::alphabet::Alphabet;
 ///
 /// static CUSTOM: Alphabet = {
-///     // Result::unwrap() isn&#39;t const yet, but panic!() is OK
-///     match Alphabet::new(&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/&quot;) {
+///     // Result::unwrap() isn't const yet, but panic!() is OK
+///     match Alphabet::new("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/") {
 ///         Ok(x) =&gt; x,
-///         Err(_) =&gt; panic!(&quot;creation of alphabet failed&quot;),
+///         Err(_) =&gt; panic!("creation of alphabet failed"),
 ///     }
 /// };
 /// ```
 ///
-/// Building a lazy_static:
+/// Building lazily:
 ///
 /// ```
 /// use base64::{
 ///     alphabet::Alphabet,
 ///     engine::{general_purpose::GeneralPurpose, GeneralPurposeConfig},
 /// };
+/// use once_cell::sync::Lazy;
 ///
-/// lazy_static::lazy_static! {
-///     static ref CUSTOM: Alphabet = Alphabet::new(&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/&quot;).unwrap();
-/// }
+/// static CUSTOM: Lazy&lt;Alphabet&gt; = Lazy::new(||
+///     Alphabet::new("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/").unwrap()
+/// );
 /// ```
 </span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Alphabet {
@@ -334,7 +350,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>symbols = [<span class="number">0_u8</span>; ALPHABET_SIZE];
         <span class="kw">let </span>source_bytes = alphabet.as_bytes();
 
-        <span class="comment">// a way to copy that&#39;s allowed in const fn
+        <span class="comment">// a way to copy that's allowed in const fn
         </span><span class="kw">let </span><span class="kw-2">mut </span>index = <span class="number">0</span>;
         <span class="kw">while </span>index &lt; ALPHABET_SIZE {
             symbols[index] = source_bytes[index];
@@ -369,7 +385,7 @@
                 }
 
                 <span class="comment">// Check for duplicates while staying within what const allows.
-                // It&#39;s n^2, but only over 64 hot bytes, and only once, so it&#39;s likely in the single digit
+                // It's n^2, but only over 64 hot bytes, and only once, so it's likely in the single digit
                 // microsecond range.
 
                 </span><span class="kw">let </span><span class="kw-2">mut </span>probe_index = <span class="number">0</span>;
@@ -393,6 +409,11 @@
         }
 
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::from_str_unchecked(alphabet))
+    }
+
+    <span class="doccomment">/// Create a `&amp;str` from the symbols in the `Alphabet`
+    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        core::str::from_utf8(<span class="kw-2">&amp;</span><span class="self">self</span>.symbols).unwrap()
     }
 }
 
@@ -418,57 +439,57 @@
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>ParseAlphabetError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::InvalidLength =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Invalid length - must be 64 bytes&quot;</span>),
-            <span class="self">Self</span>::DuplicatedByte(b) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Duplicated byte: {:#04x}&quot;</span>, b),
-            <span class="self">Self</span>::UnprintableByte(b) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Unprintable byte: {:#04x}&quot;</span>, b),
-            <span class="self">Self</span>::ReservedByte(b) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Reserved byte: {:#04x}&quot;</span>, b),
+            <span class="self">Self</span>::InvalidLength =&gt; <span class="macro">write!</span>(f, <span class="string">"Invalid length - must be 64 bytes"</span>),
+            <span class="self">Self</span>::DuplicatedByte(b) =&gt; <span class="macro">write!</span>(f, <span class="string">"Duplicated byte: {:#04x}"</span>, b),
+            <span class="self">Self</span>::UnprintableByte(b) =&gt; <span class="macro">write!</span>(f, <span class="string">"Unprintable byte: {:#04x}"</span>, b),
+            <span class="self">Self</span>::ReservedByte(b) =&gt; <span class="macro">write!</span>(f, <span class="string">"Reserved byte: {:#04x}"</span>, b),
         }
     }
 }
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, test))]
+<span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, test))]
 </span><span class="kw">impl </span>error::Error <span class="kw">for </span>ParseAlphabetError {}
 
-<span class="doccomment">/// The standard alphabet (uses `+` and `/`).
+<span class="doccomment">/// The standard alphabet (with `+` and `/`) specified in [RFC 4648][].
 ///
-/// See [RFC 3548](https://tools.ietf.org/html/rfc3548#section-3).
+/// [RFC 4648]: https://datatracker.ietf.org/doc/html/rfc4648#section-4
 </span><span class="kw">pub const </span>STANDARD: Alphabet = Alphabet::from_str_unchecked(
-    <span class="string">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/&quot;</span>,
+    <span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"</span>,
 );
 
-<span class="doccomment">/// The URL safe alphabet (uses `-` and `_`).
+<span class="doccomment">/// The URL-safe alphabet (with `-` and `_`) specified in [RFC 4648][].
 ///
-/// See [RFC 3548](https://tools.ietf.org/html/rfc3548#section-4).
+/// [RFC 4648]: https://datatracker.ietf.org/doc/html/rfc4648#section-5
 </span><span class="kw">pub const </span>URL_SAFE: Alphabet = Alphabet::from_str_unchecked(
-    <span class="string">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_&quot;</span>,
+    <span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"</span>,
 );
 
-<span class="doccomment">/// The `crypt(3)` alphabet (uses `.` and `/` as the first two values).
+<span class="doccomment">/// The `crypt(3)` alphabet (with `.` and `/` as the _first_ two characters).
 ///
 /// Not standardized, but folk wisdom on the net asserts that this alphabet is what crypt uses.
 </span><span class="kw">pub const </span>CRYPT: Alphabet = Alphabet::from_str_unchecked(
-    <span class="string">&quot;./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz&quot;</span>,
+    <span class="string">"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"</span>,
 );
 
 <span class="doccomment">/// The bcrypt alphabet.
 </span><span class="kw">pub const </span>BCRYPT: Alphabet = Alphabet::from_str_unchecked(
-    <span class="string">&quot;./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&quot;</span>,
+    <span class="string">"./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"</span>,
 );
 
-<span class="doccomment">/// The alphabet used in IMAP-modified UTF-7 (uses `+` and `,`).
+<span class="doccomment">/// The alphabet used in IMAP-modified UTF-7 (with `+` and `,`).
 ///
 /// See [RFC 3501](https://tools.ietf.org/html/rfc3501#section-5.1.3)
 </span><span class="kw">pub const </span>IMAP_MUTF7: Alphabet = Alphabet::from_str_unchecked(
-    <span class="string">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,&quot;</span>,
+    <span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,"</span>,
 );
 
 <span class="doccomment">/// The alphabet used in BinHex 4.0 files.
 ///
 /// See [BinHex 4.0 Definition](http://files.stairways.com/other/binhex-40-specs-info.txt)
 </span><span class="kw">pub const </span>BIN_HEX: Alphabet = Alphabet::from_str_unchecked(
-    <span class="string">&quot;!\&quot;#$%&amp;&#39;()*+,-0123456789@ABCDEFGHIJKLMNPQRSTUVXYZ[`abcdehijklmpqr&quot;</span>,
+    <span class="string">"!\"#$%&amp;'()*+,-0123456789@ABCDEFGHIJKLMNPQRSTUVXYZ[`abcdehijklmpqr"</span>,
 );
 
 <span class="attr">#[cfg(test)]
@@ -479,8 +500,8 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>detects_duplicate_start() {
         <span class="macro">assert_eq!</span>(
-            ParseAlphabetError::DuplicatedByte(<span class="string">b&#39;A&#39;</span>),
-            Alphabet::new(<span class="string">&quot;AACDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/&quot;</span>)
+            ParseAlphabetError::DuplicatedByte(<span class="string">b'A'</span>),
+            Alphabet::new(<span class="string">"AACDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"</span>)
                 .unwrap_err()
         );
     }
@@ -488,8 +509,8 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>detects_duplicate_end() {
         <span class="macro">assert_eq!</span>(
-            ParseAlphabetError::DuplicatedByte(<span class="string">b&#39;/&#39;</span>),
-            Alphabet::new(<span class="string">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789//&quot;</span>)
+            ParseAlphabetError::DuplicatedByte(<span class="string">b'/'</span>),
+            Alphabet::new(<span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789//"</span>)
                 .unwrap_err()
         );
     }
@@ -497,8 +518,8 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>detects_duplicate_middle() {
         <span class="macro">assert_eq!</span>(
-            ParseAlphabetError::DuplicatedByte(<span class="string">b&#39;Z&#39;</span>),
-            Alphabet::new(<span class="string">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZZbcdefghijklmnopqrstuvwxyz0123456789+/&quot;</span>)
+            ParseAlphabetError::DuplicatedByte(<span class="string">b'Z'</span>),
+            Alphabet::new(<span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZZbcdefghijklmnopqrstuvwxyz0123456789+/"</span>)
                 .unwrap_err()
         );
     }
@@ -508,7 +529,7 @@
         <span class="macro">assert_eq!</span>(
             ParseAlphabetError::InvalidLength,
             Alphabet::new(
-                <span class="string">&quot;xxxxxxxxxABCDEFGHIJKLMNOPQRSTUVWXYZZbcdefghijklmnopqrstuvwxyz0123456789+/&quot;</span>,
+                <span class="string">"xxxxxxxxxABCDEFGHIJKLMNOPQRSTUVWXYZZbcdefghijklmnopqrstuvwxyz0123456789+/"</span>,
             )
             .unwrap_err()
         );
@@ -517,8 +538,8 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>detects_padding() {
         <span class="macro">assert_eq!</span>(
-            ParseAlphabetError::ReservedByte(<span class="string">b&#39;=&#39;</span>),
-            Alphabet::new(<span class="string">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+=&quot;</span>)
+            ParseAlphabetError::ReservedByte(<span class="string">b'='</span>),
+            Alphabet::new(<span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+="</span>)
                 .unwrap_err()
         );
     }
@@ -528,7 +549,7 @@
         <span class="comment">// form feed
         </span><span class="macro">assert_eq!</span>(
             ParseAlphabetError::UnprintableByte(<span class="number">0xc</span>),
-            Alphabet::new(<span class="string">&quot;\x0cBCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/&quot;</span>)
+            Alphabet::new(<span class="string">"\x0cBCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"</span>)
                 .unwrap_err()
         );
     }
@@ -537,9 +558,16 @@
     </span><span class="kw">fn </span>same_as_unchecked() {
         <span class="macro">assert_eq!</span>(
             STANDARD,
-            Alphabet::try_from(<span class="string">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/&quot;</span>)
+            Alphabet::try_from(<span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"</span>)
                 .unwrap()
         );
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>str_same_as_input() {
+        <span class="kw">let </span>alphabet = <span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"</span>;
+        <span class="kw">let </span>a = Alphabet::try_from(alphabet).unwrap();
+        <span class="macro">assert_eq!</span>(alphabet, a.as_str())
     }
 }
 </code></pre></div></section></main></body></html>

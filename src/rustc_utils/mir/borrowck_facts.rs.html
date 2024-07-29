@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc_utils-0.7.3-nightly-2023-08-25/src/mir/borrowck_facts.rs`."><title>borrowck_facts.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustc_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../rustc_utils/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc_utils-0.8.0-nightly-2024-01-06/src/mir/borrowck_facts.rs`."><title>borrowck_facts.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustc_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rustc_utils/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -129,10 +131,6 @@
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Polonius integration to extract borrowck facts from rustc.
 
 </span><span class="kw">use </span>std::sync::atomic::{AtomicBool, Ordering};
@@ -142,8 +140,8 @@
 <span class="kw">use </span>rustc_hir::def_id::LocalDefId;
 <span class="kw">use </span>rustc_middle::{
   mir::{Body, BorrowCheckResult, MirPass, StatementKind, TerminatorKind},
-  query::{ExternProviders, Providers},
   ty::TyCtxt,
+  util::Providers,
 };
 
 <span class="kw">use crate</span>::{block_timer, cache::Cache, BodyExt};
@@ -153,8 +151,8 @@
 /// This pass helps reduce the number of intermediates during dataflow analysis, which
 /// reduces memory usage.
 </span><span class="kw">pub struct </span>SimplifyMir;
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; MirPass&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>SimplifyMir {
-  <span class="kw">fn </span>run_pass(<span class="kw-2">&amp;</span><span class="self">self</span>, _tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body: <span class="kw-2">&amp;mut </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
+<span class="kw">impl</span>&lt;<span class="lifetime">'tcx</span>&gt; MirPass&lt;<span class="lifetime">'tcx</span>&gt; <span class="kw">for </span>SimplifyMir {
+  <span class="kw">fn </span>run_pass(<span class="kw-2">&amp;</span><span class="self">self</span>, _tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;, body: <span class="kw-2">&amp;mut </span>Body&lt;<span class="lifetime">'tcx</span>&gt;) {
     <span class="kw">let </span>return_blocks = body
       .all_returns()
       .filter_map(|loc| {
@@ -200,21 +198,17 @@
 ///
 /// For why we need to do override mir_borrowck, see:
 /// &lt;https://github.com/rust-lang/rust/blob/485ced56b8753ec86936903f2a8c95e9be8996a1/src/test/run-make-fulldeps/obtain-borrowck/driver.rs&gt;
-</span><span class="kw">pub fn </span>override_queries(
-  _session: <span class="kw-2">&amp;</span>rustc_session::Session,
-  local: <span class="kw-2">&amp;mut </span>Providers,
-  _external: <span class="kw-2">&amp;mut </span>ExternProviders,
-) {
+</span><span class="kw">pub fn </span>override_queries(_session: <span class="kw-2">&amp;</span>rustc_session::Session, local: <span class="kw-2">&amp;mut </span>Providers) {
   local.mir_borrowck = mir_borrowck;
 }
 
 <span class="macro">thread_local! </span>{
-  <span class="kw">static </span>MIR_BODIES: Cache&lt;LocalDefId, BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;static</span>&gt;&gt; = Cache::default();
+  <span class="kw">static </span>MIR_BODIES: Cache&lt;LocalDefId, BodyWithBorrowckFacts&lt;<span class="lifetime">'static</span>&gt;&gt; = Cache::default();
 }
 
-<span class="kw">fn </span>mir_borrowck(tcx: TyCtxt&lt;<span class="lifetime">&#39;_</span>&gt;, def_id: LocalDefId) -&gt; <span class="kw-2">&amp;</span>BorrowCheckResult&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">fn </span>mir_borrowck(tcx: TyCtxt&lt;<span class="lifetime">'_</span>&gt;, def_id: LocalDefId) -&gt; <span class="kw-2">&amp;</span>BorrowCheckResult&lt;<span class="lifetime">'_</span>&gt; {
   <span class="macro">block_timer!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-    <span class="string">&quot;get_body_with_borrowck_facts for {}&quot;</span>,
+    <span class="string">"get_body_with_borrowck_facts for {}"</span>,
     tcx.def_path_debug_str(def_id.to_def_id())
   ));
 
@@ -228,8 +222,8 @@
     SimplifyMir.run_pass(tcx, <span class="kw-2">&amp;mut </span>body_with_facts.body);
   }
 
-  <span class="comment">// SAFETY: The reader casts the &#39;static lifetime to &#39;tcx before using it.
-  </span><span class="kw">let </span>body_with_facts: BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;static</span>&gt; =
+  <span class="comment">// SAFETY: The reader casts the 'static lifetime to 'tcx before using it.
+  </span><span class="kw">let </span>body_with_facts: BodyWithBorrowckFacts&lt;<span class="lifetime">'static</span>&gt; =
     <span class="kw">unsafe </span>{ std::mem::transmute(body_with_facts) };
   MIR_BODIES.with(|cache| {
     cache.get(def_id, |<span class="kw">_</span>| body_with_facts);
@@ -253,17 +247,17 @@
 /// Note that as of May 2022, Polonius can be *very* slow for large functions.
 /// It may take up to 30 seconds to analyze a single body with a large CFG.
 </span><span class="attr">#[allow(clippy::needless_lifetimes)]
-</span><span class="kw">pub fn </span>get_body_with_borrowck_facts&lt;<span class="lifetime">&#39;tcx</span>&gt;(
-  tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+</span><span class="kw">pub fn </span>get_body_with_borrowck_facts&lt;<span class="lifetime">'tcx</span>&gt;(
+  tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
   def_id: LocalDefId,
-) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'tcx </span>BodyWithBorrowckFacts&lt;<span class="lifetime">'tcx</span>&gt; {
   <span class="kw">let _ </span>= tcx.mir_borrowck(def_id);
   MIR_BODIES.with(|cache| {
-    <span class="kw">let </span>body = cache.get(def_id, |<span class="kw">_</span>| <span class="macro">panic!</span>(<span class="string">&quot;mir_borrowck override should have stored body for item: {def_id:?}. Are you sure you registered borrowck_facts::override_queries?&quot;</span>));
+    <span class="kw">let </span>body = cache.get(def_id, |<span class="kw">_</span>| <span class="macro">panic!</span>(<span class="string">"mir_borrowck override should have stored body for item: {def_id:?}. Are you sure you registered borrowck_facts::override_queries?"</span>));
     <span class="kw">unsafe </span>{
       std::mem::transmute::&lt;
-        <span class="kw-2">&amp;</span>BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;static</span>&gt;,
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        <span class="kw-2">&amp;</span>BodyWithBorrowckFacts&lt;<span class="lifetime">'static</span>&gt;,
+        <span class="kw-2">&amp;</span><span class="lifetime">'tcx </span>BodyWithBorrowckFacts&lt;<span class="lifetime">'tcx</span>&gt;,
       &gt;(body)
     }
   })

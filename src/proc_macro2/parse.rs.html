@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/proc-macro2-1.0.69/src/parse.rs`."><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="proc_macro2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../proc_macro2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/proc-macro2-1.0.86/src/parse.rs`."><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="proc_macro2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../proc_macro2/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -987,8 +989,15 @@
 <a href="#987" id="987">987</a>
 <a href="#988" id="988">988</a>
 <a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::fallback::{
-    is_ident_continue, is_ident_start, Group, LexError, Literal, Span, TokenStream,
+    <span class="self">self</span>, is_ident_continue, is_ident_start, Group, LexError, Literal, Span, TokenStream,
     TokenStreamBuilder,
 };
 <span class="kw">use crate</span>::{Delimiter, Punct, Spacing, TokenTree};
@@ -996,14 +1005,14 @@
 <span class="kw">use </span>core::str::{Bytes, CharIndices, Chars};
 
 <span class="attr">#[derive(Copy, Clone, Eq, PartialEq)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Cursor&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub </span>rest: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Cursor&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">pub </span>rest: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
     <span class="attr">#[cfg(span_locations)]
     </span><span class="kw">pub </span>off: u32,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Cursor&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>advance(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: usize) -&gt; Cursor&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Cursor&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">pub fn </span>advance(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: usize) -&gt; Cursor&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">let </span>(_front, rest) = <span class="self">self</span>.rest.split_at(bytes);
         Cursor {
             rest,
@@ -1035,23 +1044,23 @@
         <span class="self">self</span>.rest.len()
     }
 
-    <span class="kw">fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
+    <span class="kw">fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8] {
         <span class="self">self</span>.rest.as_bytes()
     }
 
-    <span class="kw">fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Bytes&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.rest.bytes()
     }
 
-    <span class="kw">fn </span>chars(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Chars&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>chars(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Chars&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.rest.chars()
     }
 
-    <span class="kw">fn </span>char_indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CharIndices&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>char_indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CharIndices&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.rest.char_indices()
     }
 
-    <span class="kw">fn </span>parse(<span class="kw-2">&amp;</span><span class="self">self</span>, tag: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Cursor&lt;<span class="lifetime">&#39;a</span>&gt;, Reject&gt; {
+    <span class="kw">fn </span>parse(<span class="kw-2">&amp;</span><span class="self">self</span>, tag: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Cursor&lt;<span class="lifetime">'a</span>&gt;, Reject&gt; {
         <span class="kw">if </span><span class="self">self</span>.starts_with(tag) {
             <span class="prelude-val">Ok</span>(<span class="self">self</span>.advance(tag.len()))
         } <span class="kw">else </span>{
@@ -1061,27 +1070,27 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Reject;
-<span class="kw">type </span>PResult&lt;<span class="lifetime">&#39;a</span>, O&gt; = <span class="prelude-ty">Result</span>&lt;(Cursor&lt;<span class="lifetime">&#39;a</span>&gt;, O), Reject&gt;;
+<span class="kw">type </span>PResult&lt;<span class="lifetime">'a</span>, O&gt; = <span class="prelude-ty">Result</span>&lt;(Cursor&lt;<span class="lifetime">'a</span>&gt;, O), Reject&gt;;
 
 <span class="kw">fn </span>skip_whitespace(input: Cursor) -&gt; Cursor {
     <span class="kw">let </span><span class="kw-2">mut </span>s = input;
 
     <span class="kw">while </span>!s.is_empty() {
         <span class="kw">let </span>byte = s.as_bytes()[<span class="number">0</span>];
-        <span class="kw">if </span>byte == <span class="string">b&#39;/&#39; </span>{
-            <span class="kw">if </span>s.starts_with(<span class="string">&quot;//&quot;</span>)
-                &amp;&amp; (!s.starts_with(<span class="string">&quot;///&quot;</span>) || s.starts_with(<span class="string">&quot;////&quot;</span>))
-                &amp;&amp; !s.starts_with(<span class="string">&quot;//!&quot;</span>)
+        <span class="kw">if </span>byte == <span class="string">b'/' </span>{
+            <span class="kw">if </span>s.starts_with(<span class="string">"//"</span>)
+                &amp;&amp; (!s.starts_with(<span class="string">"///"</span>) || s.starts_with(<span class="string">"////"</span>))
+                &amp;&amp; !s.starts_with(<span class="string">"//!"</span>)
             {
                 <span class="kw">let </span>(cursor, <span class="kw">_</span>) = take_until_newline_or_eof(s);
                 s = cursor;
                 <span class="kw">continue</span>;
-            } <span class="kw">else if </span>s.starts_with(<span class="string">&quot;/**/&quot;</span>) {
+            } <span class="kw">else if </span>s.starts_with(<span class="string">"/**/"</span>) {
                 s = s.advance(<span class="number">4</span>);
                 <span class="kw">continue</span>;
-            } <span class="kw">else if </span>s.starts_with(<span class="string">&quot;/*&quot;</span>)
-                &amp;&amp; (!s.starts_with(<span class="string">&quot;/**&quot;</span>) || s.starts_with(<span class="string">&quot;/***&quot;</span>))
-                &amp;&amp; !s.starts_with(<span class="string">&quot;/*!&quot;</span>)
+            } <span class="kw">else if </span>s.starts_with(<span class="string">"/*"</span>)
+                &amp;&amp; (!s.starts_with(<span class="string">"/**"</span>) || s.starts_with(<span class="string">"/***"</span>))
+                &amp;&amp; !s.starts_with(<span class="string">"/*!"</span>)
             {
                 <span class="kw">match </span>block_comment(s) {
                     <span class="prelude-val">Ok</span>((rest, <span class="kw">_</span>)) =&gt; {
@@ -1093,7 +1102,7 @@
             }
         }
         <span class="kw">match </span>byte {
-            <span class="string">b&#39; &#39; </span>| <span class="number">0x09</span>..=<span class="number">0x0d </span>=&gt; {
+            <span class="string">b' ' </span>| <span class="number">0x09</span>..=<span class="number">0x0d </span>=&gt; {
                 s = s.advance(<span class="number">1</span>);
                 <span class="kw">continue</span>;
             }
@@ -1112,7 +1121,7 @@
 }
 
 <span class="kw">fn </span>block_comment(input: Cursor) -&gt; PResult&lt;<span class="kw-2">&amp;</span>str&gt; {
-    <span class="kw">if </span>!input.starts_with(<span class="string">&quot;/*&quot;</span>) {
+    <span class="kw">if </span>!input.starts_with(<span class="string">"/*"</span>) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(Reject);
     }
 
@@ -1122,15 +1131,15 @@
     <span class="kw">let </span>upper = bytes.len() - <span class="number">1</span>;
 
     <span class="kw">while </span>i &lt; upper {
-        <span class="kw">if </span>bytes[i] == <span class="string">b&#39;/&#39; </span>&amp;&amp; bytes[i + <span class="number">1</span>] == <span class="string">b&#39;*&#39; </span>{
+        <span class="kw">if </span>bytes[i] == <span class="string">b'/' </span>&amp;&amp; bytes[i + <span class="number">1</span>] == <span class="string">b'*' </span>{
             depth += <span class="number">1</span>;
-            i += <span class="number">1</span>; <span class="comment">// eat &#39;*&#39;
-        </span>} <span class="kw">else if </span>bytes[i] == <span class="string">b&#39;*&#39; </span>&amp;&amp; bytes[i + <span class="number">1</span>] == <span class="string">b&#39;/&#39; </span>{
+            i += <span class="number">1</span>; <span class="comment">// eat '*'
+        </span>} <span class="kw">else if </span>bytes[i] == <span class="string">b'*' </span>&amp;&amp; bytes[i + <span class="number">1</span>] == <span class="string">b'/' </span>{
             depth -= <span class="number">1</span>;
             <span class="kw">if </span>depth == <span class="number">0 </span>{
                 <span class="kw">return </span><span class="prelude-val">Ok</span>((input.advance(i + <span class="number">2</span>), <span class="kw-2">&amp;</span>input.rest[..i + <span class="number">2</span>]));
             }
-            i += <span class="number">1</span>; <span class="comment">// eat &#39;/&#39;
+            i += <span class="number">1</span>; <span class="comment">// eat '/'
         </span>}
         i += <span class="number">1</span>;
     }
@@ -1140,7 +1149,7 @@
 
 <span class="kw">fn </span>is_whitespace(ch: char) -&gt; bool {
     <span class="comment">// Rust treats left-to-right mark and right-to-left mark as whitespace
-    </span>ch.is_whitespace() || ch == <span class="string">&#39;\u{200e}&#39; </span>|| ch == <span class="string">&#39;\u{200f}&#39;
+    </span>ch.is_whitespace() || ch == <span class="string">'\u{200e}' </span>|| ch == <span class="string">'\u{200f}'
 </span>}
 
 <span class="kw">fn </span>word_break(input: Cursor) -&gt; <span class="prelude-ty">Result</span>&lt;Cursor, Reject&gt; {
@@ -1150,9 +1159,9 @@
     }
 }
 
-<span class="comment">// Rustc&#39;s representation of a macro expansion error in expression position or
+<span class="comment">// Rustc's representation of a macro expansion error in expression position or
 // type position.
-</span><span class="kw">const </span>ERROR: <span class="kw-2">&amp;</span>str = <span class="string">&quot;(/*ERROR*/)&quot;</span>;
+</span><span class="kw">const </span>ERROR: <span class="kw-2">&amp;</span>str = <span class="string">"(/*ERROR*/)"</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>token_stream(<span class="kw-2">mut </span>input: Cursor) -&gt; <span class="prelude-ty">Result</span>&lt;TokenStream, LexError&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>trees = TokenStreamBuilder::new();
@@ -1185,9 +1194,9 @@
         };
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(open_delimiter) = <span class="kw">match </span>first {
-            <span class="string">b&#39;(&#39; </span><span class="kw">if </span>!input.starts_with(ERROR) =&gt; <span class="prelude-val">Some</span>(Delimiter::Parenthesis),
-            <span class="string">b&#39;[&#39; </span>=&gt; <span class="prelude-val">Some</span>(Delimiter::Bracket),
-            <span class="string">b&#39;{&#39; </span>=&gt; <span class="prelude-val">Some</span>(Delimiter::Brace),
+            <span class="string">b'(' </span><span class="kw">if </span>!input.starts_with(ERROR) =&gt; <span class="prelude-val">Some</span>(Delimiter::Parenthesis),
+            <span class="string">b'[' </span>=&gt; <span class="prelude-val">Some</span>(Delimiter::Bracket),
+            <span class="string">b'{' </span>=&gt; <span class="prelude-val">Some</span>(Delimiter::Brace),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         } {
             input = input.advance(<span class="number">1</span>);
@@ -1197,9 +1206,9 @@
             stack.push(frame);
             trees = TokenStreamBuilder::new();
         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(close_delimiter) = <span class="kw">match </span>first {
-            <span class="string">b&#39;)&#39; </span>=&gt; <span class="prelude-val">Some</span>(Delimiter::Parenthesis),
-            <span class="string">b&#39;]&#39; </span>=&gt; <span class="prelude-val">Some</span>(Delimiter::Bracket),
-            <span class="string">b&#39;}&#39; </span>=&gt; <span class="prelude-val">Some</span>(Delimiter::Brace),
+            <span class="string">b')' </span>=&gt; <span class="prelude-val">Some</span>(Delimiter::Parenthesis),
+            <span class="string">b']' </span>=&gt; <span class="prelude-val">Some</span>(Delimiter::Bracket),
+            <span class="string">b'}' </span>=&gt; <span class="prelude-val">Some</span>(Delimiter::Brace),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         } {
             <span class="kw">let </span>frame = <span class="kw">match </span>stack.pop() {
@@ -1271,7 +1280,7 @@
 
 <span class="kw">fn </span>ident(input: Cursor) -&gt; PResult&lt;<span class="kw">crate</span>::Ident&gt; {
     <span class="kw">if </span>[
-        <span class="string">&quot;r\&quot;&quot;</span>, <span class="string">&quot;r#\&quot;&quot;</span>, <span class="string">&quot;r##&quot;</span>, <span class="string">&quot;b\&quot;&quot;</span>, <span class="string">&quot;b\&#39;&quot;</span>, <span class="string">&quot;br\&quot;&quot;</span>, <span class="string">&quot;br#&quot;</span>, <span class="string">&quot;c\&quot;&quot;</span>, <span class="string">&quot;cr\&quot;&quot;</span>, <span class="string">&quot;cr#&quot;</span>,
+        <span class="string">"r\""</span>, <span class="string">"r#\""</span>, <span class="string">"r##"</span>, <span class="string">"b\""</span>, <span class="string">"b\'"</span>, <span class="string">"br\""</span>, <span class="string">"br#"</span>, <span class="string">"c\""</span>, <span class="string">"cr\""</span>, <span class="string">"cr#"</span>,
     ]
     .iter()
     .any(|prefix| input.starts_with(prefix))
@@ -1283,22 +1292,28 @@
 }
 
 <span class="kw">fn </span>ident_any(input: Cursor) -&gt; PResult&lt;<span class="kw">crate</span>::Ident&gt; {
-    <span class="kw">let </span>raw = input.starts_with(<span class="string">&quot;r#&quot;</span>);
+    <span class="kw">let </span>raw = input.starts_with(<span class="string">"r#"</span>);
     <span class="kw">let </span>rest = input.advance((raw <span class="kw">as </span>usize) &lt;&lt; <span class="number">1</span>);
 
     <span class="kw">let </span>(rest, sym) = ident_not_raw(rest)<span class="question-mark">?</span>;
 
     <span class="kw">if </span>!raw {
-        <span class="kw">let </span>ident = <span class="kw">crate</span>::Ident::new(sym, <span class="kw">crate</span>::Span::call_site());
+        <span class="kw">let </span>ident = <span class="kw">crate</span>::Ident::_new(<span class="kw">crate</span>::imp::Ident::new_unchecked(
+            sym,
+            fallback::Span::call_site(),
+        ));
         <span class="kw">return </span><span class="prelude-val">Ok</span>((rest, ident));
     }
 
     <span class="kw">match </span>sym {
-        <span class="string">&quot;_&quot; </span>| <span class="string">&quot;super&quot; </span>| <span class="string">&quot;self&quot; </span>| <span class="string">&quot;Self&quot; </span>| <span class="string">&quot;crate&quot; </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Reject),
+        <span class="string">"_" </span>| <span class="string">"super" </span>| <span class="string">"self" </span>| <span class="string">"Self" </span>| <span class="string">"crate" </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Reject),
         <span class="kw">_ </span>=&gt; {}
     }
 
-    <span class="kw">let </span>ident = <span class="kw">crate</span>::Ident::_new_raw(sym, <span class="kw">crate</span>::Span::call_site());
+    <span class="kw">let </span>ident = <span class="kw">crate</span>::Ident::_new(<span class="kw">crate</span>::imp::Ident::new_raw_unchecked(
+        sym,
+        fallback::Span::call_site(),
+    ));
     <span class="prelude-val">Ok</span>((rest, ident))
 }
 
@@ -1355,9 +1370,9 @@
 }
 
 <span class="kw">fn </span>string(input: Cursor) -&gt; <span class="prelude-ty">Result</span>&lt;Cursor, Reject&gt; {
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(input) = input.parse(<span class="string">&quot;\&quot;&quot;</span>) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(input) = input.parse(<span class="string">"\""</span>) {
         cooked_string(input)
-    } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(input) = input.parse(<span class="string">&quot;r&quot;</span>) {
+    } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(input) = input.parse(<span class="string">"r"</span>) {
         raw_string(input)
     } <span class="kw">else </span>{
         <span class="prelude-val">Err</span>(Reject)
@@ -1369,23 +1384,23 @@
 
     <span class="kw">while let </span><span class="prelude-val">Some</span>((i, ch)) = chars.next() {
         <span class="kw">match </span>ch {
-            <span class="string">&#39;&quot;&#39; </span>=&gt; {
+            <span class="string">'"' </span>=&gt; {
                 <span class="kw">let </span>input = input.advance(i + <span class="number">1</span>);
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(literal_suffix(input));
             }
-            <span class="string">&#39;\r&#39; </span>=&gt; <span class="kw">match </span>chars.next() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\n&#39;</span>)) =&gt; {}
+            <span class="string">'\r' </span>=&gt; <span class="kw">match </span>chars.next() {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'\n'</span>)) =&gt; {}
                 <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
             },
-            <span class="string">&#39;\\&#39; </span>=&gt; <span class="kw">match </span>chars.next() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;x&#39;</span>)) =&gt; {
+            <span class="string">'\\' </span>=&gt; <span class="kw">match </span>chars.next() {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'x'</span>)) =&gt; {
                     backslash_x_char(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
                 }
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;n&#39; </span>| <span class="string">&#39;r&#39; </span>| <span class="string">&#39;t&#39; </span>| <span class="string">&#39;\\&#39; </span>| <span class="string">&#39;\&#39;&#39; </span>| <span class="string">&#39;&quot;&#39; </span>| <span class="string">&#39;0&#39;</span>)) =&gt; {}
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;u&#39;</span>)) =&gt; {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'n' </span>| <span class="string">'r' </span>| <span class="string">'t' </span>| <span class="string">'\\' </span>| <span class="string">'\'' </span>| <span class="string">'"' </span>| <span class="string">'0'</span>)) =&gt; {}
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'u'</span>)) =&gt; {
                     backslash_u(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
                 }
-                <span class="prelude-val">Some</span>((newline, ch @ (<span class="string">&#39;\n&#39; </span>| <span class="string">&#39;\r&#39;</span>))) =&gt; {
+                <span class="prelude-val">Some</span>((newline, ch @ (<span class="string">'\n' </span>| <span class="string">'\r'</span>))) =&gt; {
                     input = input.advance(newline + <span class="number">1</span>);
                     trailing_backslash(<span class="kw-2">&amp;mut </span>input, ch <span class="kw">as </span>u8)<span class="question-mark">?</span>;
                     chars = input.char_indices();
@@ -1403,12 +1418,12 @@
     <span class="kw">let </span><span class="kw-2">mut </span>bytes = input.bytes().enumerate();
     <span class="kw">while let </span><span class="prelude-val">Some</span>((i, byte)) = bytes.next() {
         <span class="kw">match </span>byte {
-            <span class="string">b&#39;&quot;&#39; </span><span class="kw">if </span>input.rest[i + <span class="number">1</span>..].starts_with(delimiter) =&gt; {
+            <span class="string">b'"' </span><span class="kw">if </span>input.rest[i + <span class="number">1</span>..].starts_with(delimiter) =&gt; {
                 <span class="kw">let </span>rest = input.advance(i + <span class="number">1 </span>+ delimiter.len());
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(literal_suffix(rest));
             }
-            <span class="string">b&#39;\r&#39; </span>=&gt; <span class="kw">match </span>bytes.next() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;\n&#39;</span>)) =&gt; {}
+            <span class="string">b'\r' </span>=&gt; <span class="kw">match </span>bytes.next() {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b'\n'</span>)) =&gt; {}
                 <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
             },
             <span class="kw">_ </span>=&gt; {}
@@ -1418,9 +1433,9 @@
 }
 
 <span class="kw">fn </span>byte_string(input: Cursor) -&gt; <span class="prelude-ty">Result</span>&lt;Cursor, Reject&gt; {
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(input) = input.parse(<span class="string">&quot;b\&quot;&quot;</span>) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(input) = input.parse(<span class="string">"b\""</span>) {
         cooked_byte_string(input)
-    } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(input) = input.parse(<span class="string">&quot;br&quot;</span>) {
+    } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(input) = input.parse(<span class="string">"br"</span>) {
         raw_byte_string(input)
     } <span class="kw">else </span>{
         <span class="prelude-val">Err</span>(Reject)
@@ -1431,20 +1446,20 @@
     <span class="kw">let </span><span class="kw-2">mut </span>bytes = input.bytes().enumerate();
     <span class="kw">while let </span><span class="prelude-val">Some</span>((offset, b)) = bytes.next() {
         <span class="kw">match </span>b {
-            <span class="string">b&#39;&quot;&#39; </span>=&gt; {
+            <span class="string">b'"' </span>=&gt; {
                 <span class="kw">let </span>input = input.advance(offset + <span class="number">1</span>);
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(literal_suffix(input));
             }
-            <span class="string">b&#39;\r&#39; </span>=&gt; <span class="kw">match </span>bytes.next() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;\n&#39;</span>)) =&gt; {}
+            <span class="string">b'\r' </span>=&gt; <span class="kw">match </span>bytes.next() {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b'\n'</span>)) =&gt; {}
                 <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
             },
-            <span class="string">b&#39;\\&#39; </span>=&gt; <span class="kw">match </span>bytes.next() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;x&#39;</span>)) =&gt; {
+            <span class="string">b'\\' </span>=&gt; <span class="kw">match </span>bytes.next() {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b'x'</span>)) =&gt; {
                     backslash_x_byte(<span class="kw-2">&amp;mut </span>bytes)<span class="question-mark">?</span>;
                 }
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;n&#39; </span>| <span class="string">b&#39;r&#39; </span>| <span class="string">b&#39;t&#39; </span>| <span class="string">b&#39;\\&#39; </span>| <span class="string">b&#39;0&#39; </span>| <span class="string">b&#39;\&#39;&#39; </span>| <span class="string">b&#39;&quot;&#39;</span>)) =&gt; {}
-                <span class="prelude-val">Some</span>((newline, b @ (<span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\r&#39;</span>))) =&gt; {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b'n' </span>| <span class="string">b'r' </span>| <span class="string">b't' </span>| <span class="string">b'\\' </span>| <span class="string">b'0' </span>| <span class="string">b'\'' </span>| <span class="string">b'"'</span>)) =&gt; {}
+                <span class="prelude-val">Some</span>((newline, b @ (<span class="string">b'\n' </span>| <span class="string">b'\r'</span>))) =&gt; {
                     input = input.advance(newline + <span class="number">1</span>);
                     trailing_backslash(<span class="kw-2">&amp;mut </span>input, b)<span class="question-mark">?</span>;
                     bytes = input.bytes().enumerate();
@@ -1461,14 +1476,14 @@
 <span class="kw">fn </span>delimiter_of_raw_string(input: Cursor) -&gt; PResult&lt;<span class="kw-2">&amp;</span>str&gt; {
     <span class="kw">for </span>(i, byte) <span class="kw">in </span>input.bytes().enumerate() {
         <span class="kw">match </span>byte {
-            <span class="string">b&#39;&quot;&#39; </span>=&gt; {
+            <span class="string">b'"' </span>=&gt; {
                 <span class="kw">if </span>i &gt; <span class="number">255 </span>{
                     <span class="comment">// https://github.com/rust-lang/rust/pull/95251
                     </span><span class="kw">return </span><span class="prelude-val">Err</span>(Reject);
                 }
                 <span class="kw">return </span><span class="prelude-val">Ok</span>((input.advance(i + <span class="number">1</span>), <span class="kw-2">&amp;</span>input.rest[..i]));
             }
-            <span class="string">b&#39;#&#39; </span>=&gt; {}
+            <span class="string">b'#' </span>=&gt; {}
             <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
         }
     }
@@ -1480,12 +1495,12 @@
     <span class="kw">let </span><span class="kw-2">mut </span>bytes = input.bytes().enumerate();
     <span class="kw">while let </span><span class="prelude-val">Some</span>((i, byte)) = bytes.next() {
         <span class="kw">match </span>byte {
-            <span class="string">b&#39;&quot;&#39; </span><span class="kw">if </span>input.rest[i + <span class="number">1</span>..].starts_with(delimiter) =&gt; {
+            <span class="string">b'"' </span><span class="kw">if </span>input.rest[i + <span class="number">1</span>..].starts_with(delimiter) =&gt; {
                 <span class="kw">let </span>rest = input.advance(i + <span class="number">1 </span>+ delimiter.len());
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(literal_suffix(rest));
             }
-            <span class="string">b&#39;\r&#39; </span>=&gt; <span class="kw">match </span>bytes.next() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;\n&#39;</span>)) =&gt; {}
+            <span class="string">b'\r' </span>=&gt; <span class="kw">match </span>bytes.next() {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b'\n'</span>)) =&gt; {}
                 <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
             },
             other =&gt; {
@@ -1499,9 +1514,9 @@
 }
 
 <span class="kw">fn </span>c_string(input: Cursor) -&gt; <span class="prelude-ty">Result</span>&lt;Cursor, Reject&gt; {
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(input) = input.parse(<span class="string">&quot;c\&quot;&quot;</span>) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(input) = input.parse(<span class="string">"c\""</span>) {
         cooked_c_string(input)
-    } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(input) = input.parse(<span class="string">&quot;cr&quot;</span>) {
+    } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(input) = input.parse(<span class="string">"cr"</span>) {
         raw_c_string(input)
     } <span class="kw">else </span>{
         <span class="prelude-val">Err</span>(Reject)
@@ -1513,15 +1528,15 @@
     <span class="kw">let </span><span class="kw-2">mut </span>bytes = input.bytes().enumerate();
     <span class="kw">while let </span><span class="prelude-val">Some</span>((i, byte)) = bytes.next() {
         <span class="kw">match </span>byte {
-            <span class="string">b&#39;&quot;&#39; </span><span class="kw">if </span>input.rest[i + <span class="number">1</span>..].starts_with(delimiter) =&gt; {
+            <span class="string">b'"' </span><span class="kw">if </span>input.rest[i + <span class="number">1</span>..].starts_with(delimiter) =&gt; {
                 <span class="kw">let </span>rest = input.advance(i + <span class="number">1 </span>+ delimiter.len());
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(literal_suffix(rest));
             }
-            <span class="string">b&#39;\r&#39; </span>=&gt; <span class="kw">match </span>bytes.next() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;\n&#39;</span>)) =&gt; {}
+            <span class="string">b'\r' </span>=&gt; <span class="kw">match </span>bytes.next() {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b'\n'</span>)) =&gt; {}
                 <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
             },
-            <span class="string">b&#39;\0&#39; </span>=&gt; <span class="kw">break</span>,
+            <span class="string">b'\0' </span>=&gt; <span class="kw">break</span>,
             <span class="kw">_ </span>=&gt; {}
         }
     }
@@ -1533,32 +1548,32 @@
 
     <span class="kw">while let </span><span class="prelude-val">Some</span>((i, ch)) = chars.next() {
         <span class="kw">match </span>ch {
-            <span class="string">&#39;&quot;&#39; </span>=&gt; {
+            <span class="string">'"' </span>=&gt; {
                 <span class="kw">let </span>input = input.advance(i + <span class="number">1</span>);
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(literal_suffix(input));
             }
-            <span class="string">&#39;\r&#39; </span>=&gt; <span class="kw">match </span>chars.next() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\n&#39;</span>)) =&gt; {}
+            <span class="string">'\r' </span>=&gt; <span class="kw">match </span>chars.next() {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'\n'</span>)) =&gt; {}
                 <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
             },
-            <span class="string">&#39;\\&#39; </span>=&gt; <span class="kw">match </span>chars.next() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;x&#39;</span>)) =&gt; {
+            <span class="string">'\\' </span>=&gt; <span class="kw">match </span>chars.next() {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'x'</span>)) =&gt; {
                     backslash_x_nonzero(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">?</span>;
                 }
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;n&#39; </span>| <span class="string">&#39;r&#39; </span>| <span class="string">&#39;t&#39; </span>| <span class="string">&#39;\\&#39; </span>| <span class="string">&#39;\&#39;&#39; </span>| <span class="string">&#39;&quot;&#39;</span>)) =&gt; {}
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;u&#39;</span>)) =&gt; {
-                    <span class="kw">if </span>backslash_u(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">? </span>== <span class="string">&#39;\0&#39; </span>{
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'n' </span>| <span class="string">'r' </span>| <span class="string">'t' </span>| <span class="string">'\\' </span>| <span class="string">'\'' </span>| <span class="string">'"'</span>)) =&gt; {}
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'u'</span>)) =&gt; {
+                    <span class="kw">if </span>backslash_u(<span class="kw-2">&amp;mut </span>chars)<span class="question-mark">? </span>== <span class="string">'\0' </span>{
                         <span class="kw">break</span>;
                     }
                 }
-                <span class="prelude-val">Some</span>((newline, ch @ (<span class="string">&#39;\n&#39; </span>| <span class="string">&#39;\r&#39;</span>))) =&gt; {
+                <span class="prelude-val">Some</span>((newline, ch @ (<span class="string">'\n' </span>| <span class="string">'\r'</span>))) =&gt; {
                     input = input.advance(newline + <span class="number">1</span>);
                     trailing_backslash(<span class="kw-2">&amp;mut </span>input, ch <span class="kw">as </span>u8)<span class="question-mark">?</span>;
                     chars = input.char_indices();
                 }
                 <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
             },
-            <span class="string">&#39;\0&#39; </span>=&gt; <span class="kw">break</span>,
+            <span class="string">'\0' </span>=&gt; <span class="kw">break</span>,
             _ch =&gt; {}
         }
     }
@@ -1566,12 +1581,12 @@
 }
 
 <span class="kw">fn </span>byte(input: Cursor) -&gt; <span class="prelude-ty">Result</span>&lt;Cursor, Reject&gt; {
-    <span class="kw">let </span>input = input.parse(<span class="string">&quot;b&#39;&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>input = input.parse(<span class="string">"b'"</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>bytes = input.bytes().enumerate();
     <span class="kw">let </span>ok = <span class="kw">match </span>bytes.next().map(|(<span class="kw">_</span>, b)| b) {
-        <span class="prelude-val">Some</span>(<span class="string">b&#39;\\&#39;</span>) =&gt; <span class="kw">match </span>bytes.next().map(|(<span class="kw">_</span>, b)| b) {
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;x&#39;</span>) =&gt; backslash_x_byte(<span class="kw-2">&amp;mut </span>bytes).is_ok(),
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;n&#39; </span>| <span class="string">b&#39;r&#39; </span>| <span class="string">b&#39;t&#39; </span>| <span class="string">b&#39;\\&#39; </span>| <span class="string">b&#39;0&#39; </span>| <span class="string">b&#39;\&#39;&#39; </span>| <span class="string">b&#39;&quot;&#39;</span>) =&gt; <span class="bool-val">true</span>,
+        <span class="prelude-val">Some</span>(<span class="string">b'\\'</span>) =&gt; <span class="kw">match </span>bytes.next().map(|(<span class="kw">_</span>, b)| b) {
+            <span class="prelude-val">Some</span>(<span class="string">b'x'</span>) =&gt; backslash_x_byte(<span class="kw-2">&amp;mut </span>bytes).is_ok(),
+            <span class="prelude-val">Some</span>(<span class="string">b'n' </span>| <span class="string">b'r' </span>| <span class="string">b't' </span>| <span class="string">b'\\' </span>| <span class="string">b'0' </span>| <span class="string">b'\'' </span>| <span class="string">b'"'</span>) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         },
         b =&gt; b.is_some(),
@@ -1583,18 +1598,18 @@
     <span class="kw">if </span>!input.chars().as_str().is_char_boundary(offset) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(Reject);
     }
-    <span class="kw">let </span>input = input.advance(offset).parse(<span class="string">&quot;&#39;&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>input = input.advance(offset).parse(<span class="string">"'"</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(literal_suffix(input))
 }
 
 <span class="kw">fn </span>character(input: Cursor) -&gt; <span class="prelude-ty">Result</span>&lt;Cursor, Reject&gt; {
-    <span class="kw">let </span>input = input.parse(<span class="string">&quot;&#39;&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>input = input.parse(<span class="string">"'"</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>chars = input.char_indices();
     <span class="kw">let </span>ok = <span class="kw">match </span>chars.next().map(|(<span class="kw">_</span>, ch)| ch) {
-        <span class="prelude-val">Some</span>(<span class="string">&#39;\\&#39;</span>) =&gt; <span class="kw">match </span>chars.next().map(|(<span class="kw">_</span>, ch)| ch) {
-            <span class="prelude-val">Some</span>(<span class="string">&#39;x&#39;</span>) =&gt; backslash_x_char(<span class="kw-2">&amp;mut </span>chars).is_ok(),
-            <span class="prelude-val">Some</span>(<span class="string">&#39;u&#39;</span>) =&gt; backslash_u(<span class="kw-2">&amp;mut </span>chars).is_ok(),
-            <span class="prelude-val">Some</span>(<span class="string">&#39;n&#39; </span>| <span class="string">&#39;r&#39; </span>| <span class="string">&#39;t&#39; </span>| <span class="string">&#39;\\&#39; </span>| <span class="string">&#39;0&#39; </span>| <span class="string">&#39;\&#39;&#39; </span>| <span class="string">&#39;&quot;&#39;</span>) =&gt; <span class="bool-val">true</span>,
+        <span class="prelude-val">Some</span>(<span class="string">'\\'</span>) =&gt; <span class="kw">match </span>chars.next().map(|(<span class="kw">_</span>, ch)| ch) {
+            <span class="prelude-val">Some</span>(<span class="string">'x'</span>) =&gt; backslash_x_char(<span class="kw-2">&amp;mut </span>chars).is_ok(),
+            <span class="prelude-val">Some</span>(<span class="string">'u'</span>) =&gt; backslash_u(<span class="kw-2">&amp;mut </span>chars).is_ok(),
+            <span class="prelude-val">Some</span>(<span class="string">'n' </span>| <span class="string">'r' </span>| <span class="string">'t' </span>| <span class="string">'\\' </span>| <span class="string">'0' </span>| <span class="string">'\'' </span>| <span class="string">'"'</span>) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         },
         ch =&gt; ch.is_some(),
@@ -1603,7 +1618,7 @@
         <span class="kw">return </span><span class="prelude-val">Err</span>(Reject);
     }
     <span class="kw">let </span>(idx, <span class="kw">_</span>) = chars.next().ok_or(Reject)<span class="question-mark">?</span>;
-    <span class="kw">let </span>input = input.advance(idx).parse(<span class="string">&quot;&#39;&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>input = input.advance(idx).parse(<span class="string">"'"</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(literal_suffix(input))
 }
 
@@ -1623,8 +1638,8 @@
 <span class="kw">where
     </span>I: Iterator&lt;Item = (usize, char)&gt;,
 {
-    <span class="macro">next_ch!</span>(chars @ <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;7&#39;</span>);
-    <span class="macro">next_ch!</span>(chars @ <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>| <span class="string">&#39;a&#39;</span>..=<span class="string">&#39;f&#39; </span>| <span class="string">&#39;A&#39;</span>..=<span class="string">&#39;F&#39;</span>);
+    <span class="macro">next_ch!</span>(chars @ <span class="string">'0'</span>..=<span class="string">'7'</span>);
+    <span class="macro">next_ch!</span>(chars @ <span class="string">'0'</span>..=<span class="string">'9' </span>| <span class="string">'a'</span>..=<span class="string">'f' </span>| <span class="string">'A'</span>..=<span class="string">'F'</span>);
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -1632,8 +1647,8 @@
 <span class="kw">where
     </span>I: Iterator&lt;Item = (usize, u8)&gt;,
 {
-    <span class="macro">next_ch!</span>(chars @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>| <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;f&#39; </span>| <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;F&#39;</span>);
-    <span class="macro">next_ch!</span>(chars @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>| <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;f&#39; </span>| <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;F&#39;</span>);
+    <span class="macro">next_ch!</span>(chars @ <span class="string">b'0'</span>..=<span class="string">b'9' </span>| <span class="string">b'a'</span>..=<span class="string">b'f' </span>| <span class="string">b'A'</span>..=<span class="string">b'F'</span>);
+    <span class="macro">next_ch!</span>(chars @ <span class="string">b'0'</span>..=<span class="string">b'9' </span>| <span class="string">b'a'</span>..=<span class="string">b'f' </span>| <span class="string">b'A'</span>..=<span class="string">b'F'</span>);
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -1641,9 +1656,9 @@
 <span class="kw">where
     </span>I: Iterator&lt;Item = (usize, char)&gt;,
 {
-    <span class="kw">let </span>first = <span class="macro">next_ch!</span>(chars @ <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>| <span class="string">&#39;a&#39;</span>..=<span class="string">&#39;f&#39; </span>| <span class="string">&#39;A&#39;</span>..=<span class="string">&#39;F&#39;</span>);
-    <span class="kw">let </span>second = <span class="macro">next_ch!</span>(chars @ <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>| <span class="string">&#39;a&#39;</span>..=<span class="string">&#39;f&#39; </span>| <span class="string">&#39;A&#39;</span>..=<span class="string">&#39;F&#39;</span>);
-    <span class="kw">if </span>first == <span class="string">&#39;0&#39; </span>&amp;&amp; second == <span class="string">&#39;0&#39; </span>{
+    <span class="kw">let </span>first = <span class="macro">next_ch!</span>(chars @ <span class="string">'0'</span>..=<span class="string">'9' </span>| <span class="string">'a'</span>..=<span class="string">'f' </span>| <span class="string">'A'</span>..=<span class="string">'F'</span>);
+    <span class="kw">let </span>second = <span class="macro">next_ch!</span>(chars @ <span class="string">'0'</span>..=<span class="string">'9' </span>| <span class="string">'a'</span>..=<span class="string">'f' </span>| <span class="string">'A'</span>..=<span class="string">'F'</span>);
+    <span class="kw">if </span>first == <span class="string">'0' </span>&amp;&amp; second == <span class="string">'0' </span>{
         <span class="prelude-val">Err</span>(Reject)
     } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(())
@@ -1654,16 +1669,16 @@
 <span class="kw">where
     </span>I: Iterator&lt;Item = (usize, char)&gt;,
 {
-    <span class="macro">next_ch!</span>(chars @ <span class="string">&#39;{&#39;</span>);
+    <span class="macro">next_ch!</span>(chars @ <span class="string">'{'</span>);
     <span class="kw">let </span><span class="kw-2">mut </span>value = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>len = <span class="number">0</span>;
     <span class="kw">for </span>(<span class="kw">_</span>, ch) <span class="kw">in </span>chars {
         <span class="kw">let </span>digit = <span class="kw">match </span>ch {
-            <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>=&gt; ch <span class="kw">as </span>u8 - <span class="string">b&#39;0&#39;</span>,
-            <span class="string">&#39;a&#39;</span>..=<span class="string">&#39;f&#39; </span>=&gt; <span class="number">10 </span>+ ch <span class="kw">as </span>u8 - <span class="string">b&#39;a&#39;</span>,
-            <span class="string">&#39;A&#39;</span>..=<span class="string">&#39;F&#39; </span>=&gt; <span class="number">10 </span>+ ch <span class="kw">as </span>u8 - <span class="string">b&#39;A&#39;</span>,
-            <span class="string">&#39;_&#39; </span><span class="kw">if </span>len &gt; <span class="number">0 </span>=&gt; <span class="kw">continue</span>,
-            <span class="string">&#39;}&#39; </span><span class="kw">if </span>len &gt; <span class="number">0 </span>=&gt; <span class="kw">return </span>char::from_u32(value).ok_or(Reject),
+            <span class="string">'0'</span>..=<span class="string">'9' </span>=&gt; ch <span class="kw">as </span>u8 - <span class="string">b'0'</span>,
+            <span class="string">'a'</span>..=<span class="string">'f' </span>=&gt; <span class="number">10 </span>+ ch <span class="kw">as </span>u8 - <span class="string">b'a'</span>,
+            <span class="string">'A'</span>..=<span class="string">'F' </span>=&gt; <span class="number">10 </span>+ ch <span class="kw">as </span>u8 - <span class="string">b'A'</span>,
+            <span class="string">'_' </span><span class="kw">if </span>len &gt; <span class="number">0 </span>=&gt; <span class="kw">continue</span>,
+            <span class="string">'}' </span><span class="kw">if </span>len &gt; <span class="number">0 </span>=&gt; <span class="kw">return </span>char::from_u32(value).ok_or(Reject),
             <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
         };
         <span class="kw">if </span>len == <span class="number">6 </span>{
@@ -1679,11 +1694,11 @@
 <span class="kw">fn </span>trailing_backslash(input: <span class="kw-2">&amp;mut </span>Cursor, <span class="kw-2">mut </span>last: u8) -&gt; <span class="prelude-ty">Result</span>&lt;(), Reject&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>whitespace = input.bytes().enumerate();
     <span class="kw">loop </span>{
-        <span class="kw">if </span>last == <span class="string">b&#39;\r&#39; </span>&amp;&amp; whitespace.next().map_or(<span class="bool-val">true</span>, |(<span class="kw">_</span>, b)| b != <span class="string">b&#39;\n&#39;</span>) {
+        <span class="kw">if </span>last == <span class="string">b'\r' </span>&amp;&amp; whitespace.next().map_or(<span class="bool-val">true</span>, |(<span class="kw">_</span>, b)| b != <span class="string">b'\n'</span>) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Reject);
         }
         <span class="kw">match </span>whitespace.next() {
-            <span class="prelude-val">Some</span>((<span class="kw">_</span>, b @ (<span class="string">b&#39; &#39; </span>| <span class="string">b&#39;\t&#39; </span>| <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\r&#39;</span>))) =&gt; {
+            <span class="prelude-val">Some</span>((<span class="kw">_</span>, b @ (<span class="string">b' ' </span>| <span class="string">b'\t' </span>| <span class="string">b'\n' </span>| <span class="string">b'\r'</span>))) =&gt; {
                 last = b;
             }
             <span class="prelude-val">Some</span>((offset, <span class="kw">_</span>)) =&gt; {
@@ -1708,7 +1723,7 @@
 <span class="kw">fn </span>float_digits(input: Cursor) -&gt; <span class="prelude-ty">Result</span>&lt;Cursor, Reject&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>chars = input.chars().peekable();
     <span class="kw">match </span>chars.next() {
-        <span class="prelude-val">Some</span>(ch) <span class="kw">if </span><span class="string">&#39;0&#39; </span>&lt;= ch &amp;&amp; ch &lt;= <span class="string">&#39;9&#39; </span>=&gt; {}
+        <span class="prelude-val">Some</span>(ch) <span class="kw">if </span><span class="string">'0' </span>&lt;= ch &amp;&amp; ch &lt;= <span class="string">'9' </span>=&gt; {}
         <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Reject),
     }
 
@@ -1717,25 +1732,25 @@
     <span class="kw">let </span><span class="kw-2">mut </span>has_exp = <span class="bool-val">false</span>;
     <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>ch) = chars.peek() {
         <span class="kw">match </span>ch {
-            <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>| <span class="string">&#39;_&#39; </span>=&gt; {
+            <span class="string">'0'</span>..=<span class="string">'9' </span>| <span class="string">'_' </span>=&gt; {
                 chars.next();
                 len += <span class="number">1</span>;
             }
-            <span class="string">&#39;.&#39; </span>=&gt; {
+            <span class="string">'.' </span>=&gt; {
                 <span class="kw">if </span>has_dot {
                     <span class="kw">break</span>;
                 }
                 chars.next();
                 <span class="kw">if </span>chars
                     .peek()
-                    .map_or(<span class="bool-val">false</span>, |<span class="kw-2">&amp;</span>ch| ch == <span class="string">&#39;.&#39; </span>|| is_ident_start(ch))
+                    .map_or(<span class="bool-val">false</span>, |<span class="kw-2">&amp;</span>ch| ch == <span class="string">'.' </span>|| is_ident_start(ch))
                 {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Reject);
                 }
                 len += <span class="number">1</span>;
                 has_dot = <span class="bool-val">true</span>;
             }
-            <span class="string">&#39;e&#39; </span>| <span class="string">&#39;E&#39; </span>=&gt; {
+            <span class="string">'e' </span>| <span class="string">'E' </span>=&gt; {
                 chars.next();
                 len += <span class="number">1</span>;
                 has_exp = <span class="bool-val">true</span>;
@@ -1759,7 +1774,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>has_exp_value = <span class="bool-val">false</span>;
         <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>ch) = chars.peek() {
             <span class="kw">match </span>ch {
-                <span class="string">&#39;+&#39; </span>| <span class="string">&#39;-&#39; </span>=&gt; {
+                <span class="string">'+' </span>| <span class="string">'-' </span>=&gt; {
                     <span class="kw">if </span>has_exp_value {
                         <span class="kw">break</span>;
                     }
@@ -1770,12 +1785,12 @@
                     len += <span class="number">1</span>;
                     has_sign = <span class="bool-val">true</span>;
                 }
-                <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>=&gt; {
+                <span class="string">'0'</span>..=<span class="string">'9' </span>=&gt; {
                     chars.next();
                     len += <span class="number">1</span>;
                     has_exp_value = <span class="bool-val">true</span>;
                 }
-                <span class="string">&#39;_&#39; </span>=&gt; {
+                <span class="string">'_' </span>=&gt; {
                     chars.next();
                     len += <span class="number">1</span>;
                 }
@@ -1801,13 +1816,13 @@
 }
 
 <span class="kw">fn </span>digits(<span class="kw-2">mut </span>input: Cursor) -&gt; <span class="prelude-ty">Result</span>&lt;Cursor, Reject&gt; {
-    <span class="kw">let </span>base = <span class="kw">if </span>input.starts_with(<span class="string">&quot;0x&quot;</span>) {
+    <span class="kw">let </span>base = <span class="kw">if </span>input.starts_with(<span class="string">"0x"</span>) {
         input = input.advance(<span class="number">2</span>);
         <span class="number">16
-    </span>} <span class="kw">else if </span>input.starts_with(<span class="string">&quot;0o&quot;</span>) {
+    </span>} <span class="kw">else if </span>input.starts_with(<span class="string">"0o"</span>) {
         input = input.advance(<span class="number">2</span>);
         <span class="number">8
-    </span>} <span class="kw">else if </span>input.starts_with(<span class="string">&quot;0b&quot;</span>) {
+    </span>} <span class="kw">else if </span>input.starts_with(<span class="string">"0b"</span>) {
         input = input.advance(<span class="number">2</span>);
         <span class="number">2
     </span>} <span class="kw">else </span>{
@@ -1818,25 +1833,25 @@
     <span class="kw">let </span><span class="kw-2">mut </span>empty = <span class="bool-val">true</span>;
     <span class="kw">for </span>b <span class="kw">in </span>input.bytes() {
         <span class="kw">match </span>b {
-            <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {
-                <span class="kw">let </span>digit = (b - <span class="string">b&#39;0&#39;</span>) <span class="kw">as </span>u64;
+            <span class="string">b'0'</span>..=<span class="string">b'9' </span>=&gt; {
+                <span class="kw">let </span>digit = (b - <span class="string">b'0'</span>) <span class="kw">as </span>u64;
                 <span class="kw">if </span>digit &gt;= base {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Reject);
                 }
             }
-            <span class="string">b&#39;a&#39;</span>..=<span class="string">b&#39;f&#39; </span>=&gt; {
-                <span class="kw">let </span>digit = <span class="number">10 </span>+ (b - <span class="string">b&#39;a&#39;</span>) <span class="kw">as </span>u64;
+            <span class="string">b'a'</span>..=<span class="string">b'f' </span>=&gt; {
+                <span class="kw">let </span>digit = <span class="number">10 </span>+ (b - <span class="string">b'a'</span>) <span class="kw">as </span>u64;
                 <span class="kw">if </span>digit &gt;= base {
                     <span class="kw">break</span>;
                 }
             }
-            <span class="string">b&#39;A&#39;</span>..=<span class="string">b&#39;F&#39; </span>=&gt; {
-                <span class="kw">let </span>digit = <span class="number">10 </span>+ (b - <span class="string">b&#39;A&#39;</span>) <span class="kw">as </span>u64;
+            <span class="string">b'A'</span>..=<span class="string">b'F' </span>=&gt; {
+                <span class="kw">let </span>digit = <span class="number">10 </span>+ (b - <span class="string">b'A'</span>) <span class="kw">as </span>u64;
                 <span class="kw">if </span>digit &gt;= base {
                     <span class="kw">break</span>;
                 }
             }
-            <span class="string">b&#39;_&#39; </span>=&gt; {
+            <span class="string">b'_' </span>=&gt; {
                 <span class="kw">if </span>empty &amp;&amp; base == <span class="number">10 </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Reject);
                 }
@@ -1857,11 +1872,11 @@
 
 <span class="kw">fn </span>punct(input: Cursor) -&gt; PResult&lt;Punct&gt; {
     <span class="kw">let </span>(rest, ch) = punct_char(input)<span class="question-mark">?</span>;
-    <span class="kw">if </span>ch == <span class="string">&#39;\&#39;&#39; </span>{
-        <span class="kw">if </span>ident_any(rest)<span class="question-mark">?</span>.<span class="number">0</span>.starts_with_char(<span class="string">&#39;\&#39;&#39;</span>) {
+    <span class="kw">if </span>ch == <span class="string">'\'' </span>{
+        <span class="kw">if </span>ident_any(rest)<span class="question-mark">?</span>.<span class="number">0</span>.starts_with_char(<span class="string">'\''</span>) {
             <span class="prelude-val">Err</span>(Reject)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>((rest, Punct::new(<span class="string">&#39;\&#39;&#39;</span>, Spacing::Joint)))
+            <span class="prelude-val">Ok</span>((rest, Punct::new(<span class="string">'\''</span>, Spacing::Joint)))
         }
     } <span class="kw">else </span>{
         <span class="kw">let </span>kind = <span class="kw">match </span>punct_char(rest) {
@@ -1873,7 +1888,7 @@
 }
 
 <span class="kw">fn </span>punct_char(input: Cursor) -&gt; PResult&lt;char&gt; {
-    <span class="kw">if </span>input.starts_with(<span class="string">&quot;//&quot;</span>) || input.starts_with(<span class="string">&quot;/*&quot;</span>) {
+    <span class="kw">if </span>input.starts_with(<span class="string">"//"</span>) || input.starts_with(<span class="string">"/*"</span>) {
         <span class="comment">// Do not accept `/` of a comment as a punct.
         </span><span class="kw">return </span><span class="prelude-val">Err</span>(Reject);
     }
@@ -1885,7 +1900,7 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(Reject);
         }
     };
-    <span class="kw">let </span>recognized = <span class="string">&quot;~!@#$%^&amp;*-=+|;:,&lt;.&gt;/?&#39;&quot;</span>;
+    <span class="kw">let </span>recognized = <span class="string">"~!@#$%^&amp;*-=+|;:,&lt;.&gt;/?'"</span>;
     <span class="kw">if </span>recognized.contains(first) {
         <span class="prelude-val">Ok</span>((input.advance(first.len_utf8()), first))
     } <span class="kw">else </span>{
@@ -1893,38 +1908,39 @@
     }
 }
 
-<span class="kw">fn </span>doc_comment&lt;<span class="lifetime">&#39;a</span>&gt;(input: Cursor&lt;<span class="lifetime">&#39;a</span>&gt;, trees: <span class="kw-2">&amp;mut </span>TokenStreamBuilder) -&gt; PResult&lt;<span class="lifetime">&#39;a</span>, ()&gt; {
+<span class="kw">fn </span>doc_comment&lt;<span class="lifetime">'a</span>&gt;(input: Cursor&lt;<span class="lifetime">'a</span>&gt;, trees: <span class="kw-2">&amp;mut </span>TokenStreamBuilder) -&gt; PResult&lt;<span class="lifetime">'a</span>, ()&gt; {
     <span class="attr">#[cfg(span_locations)]
     </span><span class="kw">let </span>lo = input.off;
     <span class="kw">let </span>(rest, (comment, inner)) = doc_comment_contents(input)<span class="question-mark">?</span>;
-    <span class="kw">let </span>span = <span class="kw">crate</span>::Span::_new_fallback(Span {
+    <span class="kw">let </span>fallback_span = Span {
         <span class="attr">#[cfg(span_locations)]
         </span>lo,
         <span class="attr">#[cfg(span_locations)]
         </span>hi: rest.off,
-    });
+    };
+    <span class="kw">let </span>span = <span class="kw">crate</span>::Span::_new_fallback(fallback_span);
 
     <span class="kw">let </span><span class="kw-2">mut </span>scan_for_bare_cr = comment;
-    <span class="kw">while let </span><span class="prelude-val">Some</span>(cr) = scan_for_bare_cr.find(<span class="string">&#39;\r&#39;</span>) {
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(cr) = scan_for_bare_cr.find(<span class="string">'\r'</span>) {
         <span class="kw">let </span>rest = <span class="kw-2">&amp;</span>scan_for_bare_cr[cr + <span class="number">1</span>..];
-        <span class="kw">if </span>!rest.starts_with(<span class="string">&#39;\n&#39;</span>) {
+        <span class="kw">if </span>!rest.starts_with(<span class="string">'\n'</span>) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Reject);
         }
         scan_for_bare_cr = rest;
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>pound = Punct::new(<span class="string">&#39;#&#39;</span>, Spacing::Alone);
+    <span class="kw">let </span><span class="kw-2">mut </span>pound = Punct::new(<span class="string">'#'</span>, Spacing::Alone);
     pound.set_span(span);
     trees.push_token_from_parser(TokenTree::Punct(pound));
 
     <span class="kw">if </span>inner {
-        <span class="kw">let </span><span class="kw-2">mut </span>bang = Punct::new(<span class="string">&#39;!&#39;</span>, Spacing::Alone);
+        <span class="kw">let </span><span class="kw-2">mut </span>bang = Punct::new(<span class="string">'!'</span>, Spacing::Alone);
         bang.set_span(span);
         trees.push_token_from_parser(TokenTree::Punct(bang));
     }
 
-    <span class="kw">let </span>doc_ident = <span class="kw">crate</span>::Ident::new(<span class="string">&quot;doc&quot;</span>, span);
-    <span class="kw">let </span><span class="kw-2">mut </span>equal = Punct::new(<span class="string">&#39;=&#39;</span>, Spacing::Alone);
+    <span class="kw">let </span>doc_ident = <span class="kw">crate</span>::Ident::_new(<span class="kw">crate</span>::imp::Ident::new_unchecked(<span class="string">"doc"</span>, fallback_span));
+    <span class="kw">let </span><span class="kw-2">mut </span>equal = Punct::new(<span class="string">'='</span>, Spacing::Alone);
     equal.set_span(span);
     <span class="kw">let </span><span class="kw-2">mut </span>literal = <span class="kw">crate</span>::Literal::string(comment);
     literal.set_span(span);
@@ -1941,21 +1957,21 @@
 }
 
 <span class="kw">fn </span>doc_comment_contents(input: Cursor) -&gt; PResult&lt;(<span class="kw-2">&amp;</span>str, bool)&gt; {
-    <span class="kw">if </span>input.starts_with(<span class="string">&quot;//!&quot;</span>) {
+    <span class="kw">if </span>input.starts_with(<span class="string">"//!"</span>) {
         <span class="kw">let </span>input = input.advance(<span class="number">3</span>);
         <span class="kw">let </span>(input, s) = take_until_newline_or_eof(input);
         <span class="prelude-val">Ok</span>((input, (s, <span class="bool-val">true</span>)))
-    } <span class="kw">else if </span>input.starts_with(<span class="string">&quot;/*!&quot;</span>) {
+    } <span class="kw">else if </span>input.starts_with(<span class="string">"/*!"</span>) {
         <span class="kw">let </span>(input, s) = block_comment(input)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>((input, (<span class="kw-2">&amp;</span>s[<span class="number">3</span>..s.len() - <span class="number">2</span>], <span class="bool-val">true</span>)))
-    } <span class="kw">else if </span>input.starts_with(<span class="string">&quot;///&quot;</span>) {
+    } <span class="kw">else if </span>input.starts_with(<span class="string">"///"</span>) {
         <span class="kw">let </span>input = input.advance(<span class="number">3</span>);
-        <span class="kw">if </span>input.starts_with_char(<span class="string">&#39;/&#39;</span>) {
+        <span class="kw">if </span>input.starts_with_char(<span class="string">'/'</span>) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Reject);
         }
         <span class="kw">let </span>(input, s) = take_until_newline_or_eof(input);
         <span class="prelude-val">Ok</span>((input, (s, <span class="bool-val">false</span>)))
-    } <span class="kw">else if </span>input.starts_with(<span class="string">&quot;/**&quot;</span>) &amp;&amp; !input.rest[<span class="number">3</span>..].starts_with(<span class="string">&#39;*&#39;</span>) {
+    } <span class="kw">else if </span>input.starts_with(<span class="string">"/**"</span>) &amp;&amp; !input.rest[<span class="number">3</span>..].starts_with(<span class="string">'*'</span>) {
         <span class="kw">let </span>(input, s) = block_comment(input)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>((input, (<span class="kw-2">&amp;</span>s[<span class="number">3</span>..s.len() - <span class="number">2</span>], <span class="bool-val">false</span>)))
     } <span class="kw">else </span>{
@@ -1967,9 +1983,9 @@
     <span class="kw">let </span>chars = input.char_indices();
 
     <span class="kw">for </span>(i, ch) <span class="kw">in </span>chars {
-        <span class="kw">if </span>ch == <span class="string">&#39;\n&#39; </span>{
+        <span class="kw">if </span>ch == <span class="string">'\n' </span>{
             <span class="kw">return </span>(input.advance(i), <span class="kw-2">&amp;</span>input.rest[..i]);
-        } <span class="kw">else if </span>ch == <span class="string">&#39;\r&#39; </span>&amp;&amp; input.rest[i + <span class="number">1</span>..].starts_with(<span class="string">&#39;\n&#39;</span>) {
+        } <span class="kw">else if </span>ch == <span class="string">'\r' </span>&amp;&amp; input.rest[i + <span class="number">1</span>..].starts_with(<span class="string">'\n'</span>) {
             <span class="kw">return </span>(input.advance(i + <span class="number">1</span>), <span class="kw-2">&amp;</span>input.rest[..i]);
         }
     }

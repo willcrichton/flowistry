@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["AccessDepth","ArtificialField","Overlap","PlaceConflictBias"],"fn":["borrow_conflicts_with_place","places_conflict"]};

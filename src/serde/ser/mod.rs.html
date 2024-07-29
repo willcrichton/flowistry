@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.192/src/ser/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../serde/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.204/src/ser/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../serde/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1950,6 +1952,8 @@
 <a href="#1950" id="1950">1950</a>
 <a href="#1951" id="1951">1951</a>
 <a href="#1952" id="1952">1952</a>
+<a href="#1953" id="1953">1953</a>
+<a href="#1954" id="1954">1954</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Generic data structure serialization framework.
 //!
 //! The two most important traits in this module are [`Serialize`] and
@@ -2008,13 +2012,13 @@
 //!    - PhantomData\&lt;T\&gt;
 //!  - **Wrapper types**:
 //!    - Box\&lt;T\&gt;
-//!    - Cow\&lt;&#39;a, T\&gt;
+//!    - Cow\&lt;'a, T\&gt;
 //!    - Cell\&lt;T\&gt;
 //!    - RefCell\&lt;T\&gt;
 //!    - Mutex\&lt;T\&gt;
 //!    - RwLock\&lt;T\&gt;
-//!    - Rc\&lt;T\&gt;&amp;emsp;*(if* features = [&quot;rc&quot;] *is enabled)*
-//!    - Arc\&lt;T\&gt;&amp;emsp;*(if* features = [&quot;rc&quot;] *is enabled)*
+//!    - Rc\&lt;T\&gt;&amp;emsp;*(if* features = \["rc"\] *is enabled)*
+//!    - Arc\&lt;T\&gt;&amp;emsp;*(if* features = \["rc"\] *is enabled)*
 //!  - **Collection types**:
 //!    - BTreeMap\&lt;K, V\&gt;
 //!    - BTreeSet\&lt;T\&gt;
@@ -2067,13 +2071,13 @@
 
 <span class="kw">pub use </span><span class="self">self</span>::impossible::Impossible;
 
-<span class="attr">#[cfg(not(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;unstable&quot;</span>)))]
+<span class="attr">#[cfg(not(any(feature = <span class="string">"std"</span>, feature = <span class="string">"unstable"</span>)))]
 #[doc(no_inline)]
 </span><span class="kw">pub use </span><span class="kw">crate</span>::std_error::Error <span class="kw">as </span>StdError;
-<span class="attr">#[cfg(all(feature = <span class="string">&quot;unstable&quot;</span>, not(feature = <span class="string">&quot;std&quot;</span>)))]
+<span class="attr">#[cfg(all(feature = <span class="string">"unstable"</span>, not(feature = <span class="string">"std"</span>)))]
 #[doc(no_inline)]
 </span><span class="kw">pub use </span>core::error::Error <span class="kw">as </span>StdError;
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 #[doc(no_inline)]
 </span><span class="kw">pub use </span>std::error::Error <span class="kw">as </span>StdError;
 
@@ -2119,7 +2123,7 @@
             ///     {
             ///         match self.to_str() {
             ///             Some(s) =&gt; serializer.serialize_str(s),
-            ///             None =&gt; Err(ser::Error::custom(&quot;path contains invalid UTF-8 characters&quot;)),
+            ///             None =&gt; Err(ser::Error::custom("path contains invalid UTF-8 characters")),
             ///         }
             ///     }
             /// }
@@ -2134,10 +2138,10 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="macro">declare_error_trait!</span>(Error: Sized + StdError);
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
 </span><span class="macro">declare_error_trait!</span>(Error: Sized + Debug + Display);
 
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
@@ -2167,6 +2171,13 @@
 /// [`linked-hash-map`]: https://crates.io/crates/linked-hash-map
 /// [`serde_derive`]: https://crates.io/crates/serde_derive
 /// [derive section of the manual]: https://serde.rs/derive.html
+</span><span class="attr">#[cfg_attr(
+    not(no_diagnostic_namespace),
+    diagnostic::on_unimplemented(
+        note = <span class="string">"for local types consider adding `#[derive(serde::Serialize)]` to your `{Self}` type"</span>,
+        note = <span class="string">"for types from other crates check whether the crate offers a `serde` feature flag"</span>,
+    )
+)]
 </span><span class="kw">pub trait </span>Serialize {
     <span class="doccomment">/// Serialize this value into the given Serde serializer.
     ///
@@ -2188,10 +2199,10 @@
     ///     where
     ///         S: Serializer,
     ///     {
-    ///         let mut s = serializer.serialize_struct(&quot;Person&quot;, 3)?;
-    ///         s.serialize_field(&quot;name&quot;, &amp;self.name)?;
-    ///         s.serialize_field(&quot;age&quot;, &amp;self.age)?;
-    ///         s.serialize_field(&quot;phones&quot;, &amp;self.phones)?;
+    ///         let mut s = serializer.serialize_struct("Person", 3)?;
+    ///         s.serialize_field("name", &amp;self.name)?;
+    ///         s.serialize_field("age", &amp;self.age)?;
+    ///         s.serialize_field("phones", &amp;self.phones)?;
     ///         s.end()
     ///     }
     /// }
@@ -2460,7 +2471,7 @@
     /// The default behavior unconditionally returns an error.
     </span><span class="kw">fn </span>serialize_i128(<span class="self">self</span>, v: i128) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         <span class="kw">let _ </span>= v;
-        <span class="prelude-val">Err</span>(Error::custom(<span class="string">&quot;i128 is not supported&quot;</span>))
+        <span class="prelude-val">Err</span>(Error::custom(<span class="string">"i128 is not supported"</span>))
     }
 
     <span class="doccomment">/// Serialize a `u8` value.
@@ -2567,7 +2578,7 @@
     /// The default behavior unconditionally returns an error.
     </span><span class="kw">fn </span>serialize_u128(<span class="self">self</span>, v: u128) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         <span class="kw">let _ </span>= v;
-        <span class="prelude-val">Err</span>(Error::custom(<span class="string">&quot;u128 is not supported&quot;</span>))
+        <span class="prelude-val">Err</span>(Error::custom(<span class="string">"u128 is not supported"</span>))
     }
 
     <span class="doccomment">/// Serialize an `f32` value.
@@ -2748,9 +2759,9 @@
     /// ```
     ///
     /// [`Some(T)`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.Some
-    </span><span class="kw">fn </span>serialize_some&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_some&lt;T&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: Serialize;
+        </span>T: <span class="question-mark">?</span>Sized + Serialize;
 
     <span class="doccomment">/// Serialize a `()` value.
     ///
@@ -2784,11 +2795,11 @@
     ///     where
     ///         S: Serializer,
     ///     {
-    ///         serializer.serialize_unit_struct(&quot;Nothing&quot;)
+    ///         serializer.serialize_unit_struct("Nothing")
     ///     }
     /// }
     /// ```
-    </span><span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
+    </span><span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
 
     <span class="doccomment">/// Serialize a unit variant like `E::A` in `enum E { A, B }`.
     ///
@@ -2810,17 +2821,17 @@
     ///         S: Serializer,
     ///     {
     ///         match *self {
-    ///             E::A =&gt; serializer.serialize_unit_variant(&quot;E&quot;, 0, &quot;A&quot;),
-    ///             E::B =&gt; serializer.serialize_unit_variant(&quot;E&quot;, 1, &quot;B&quot;),
+    ///             E::A =&gt; serializer.serialize_unit_variant("E", 0, "A"),
+    ///             E::B =&gt; serializer.serialize_unit_variant("E", 1, "B"),
     ///         }
     ///     }
     /// }
     /// ```
     </span><span class="kw">fn </span>serialize_unit_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
 
     <span class="doccomment">/// Serialize a newtype struct like `struct Millimeters(u8)`.
@@ -2839,17 +2850,17 @@
     ///     where
     ///         S: Serializer,
     ///     {
-    ///         serializer.serialize_newtype_struct(&quot;Millimeters&quot;, &amp;self.0)
+    ///         serializer.serialize_newtype_struct("Millimeters", &amp;self.0)
     ///     }
     /// }
     /// ```
-    </span><span class="kw">fn </span>serialize_newtype_struct&lt;T: <span class="question-mark">?</span>Sized&gt;(
+    </span><span class="kw">fn </span>serialize_newtype_struct&lt;T&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: Serialize;
+        </span>T: <span class="question-mark">?</span>Sized + Serialize;
 
     <span class="doccomment">/// Serialize a newtype variant like `E::N` in `enum E { N(u8) }`.
     ///
@@ -2871,21 +2882,21 @@
     ///         S: Serializer,
     ///     {
     ///         match *self {
-    ///             E::M(ref s) =&gt; serializer.serialize_newtype_variant(&quot;E&quot;, 0, &quot;M&quot;, s),
-    ///             E::N(n) =&gt; serializer.serialize_newtype_variant(&quot;E&quot;, 1, &quot;N&quot;, &amp;n),
+    ///             E::M(ref s) =&gt; serializer.serialize_newtype_variant("E", 0, "M", s),
+    ///             E::N(n) =&gt; serializer.serialize_newtype_variant("E", 1, "N", &amp;n),
     ///         }
     ///     }
     /// }
     /// ```
-    </span><span class="kw">fn </span>serialize_newtype_variant&lt;T: <span class="question-mark">?</span>Sized&gt;(
+    </span><span class="kw">fn </span>serialize_newtype_variant&lt;T&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: Serialize;
+        </span>T: <span class="question-mark">?</span>Sized + Serialize;
 
     <span class="doccomment">/// Begin to serialize a variably sized sequence. This call must be
     /// followed by zero or more calls to `serialize_element`, then a call to
@@ -2906,9 +2917,9 @@
     /// #     }
     /// # }
     /// #
-    /// # impl&lt;&#39;a, T&gt; IntoIterator for &amp;&#39;a Vec&lt;T&gt; {
-    /// #     type Item = &amp;&#39;a T;
-    /// #     type IntoIter = Box&lt;dyn Iterator&lt;Item = &amp;&#39;a T&gt;&gt;;
+    /// # impl&lt;'a, T&gt; IntoIterator for &amp;'a Vec&lt;T&gt; {
+    /// #     type Item = &amp;'a T;
+    /// #     type IntoIter = Box&lt;dyn Iterator&lt;Item = &amp;'a T&gt;&gt;;
     /// #
     /// #     fn into_iter(self) -&gt; Self::IntoIter {
     /// #         unimplemented!()
@@ -3008,7 +3019,7 @@
     ///     where
     ///         S: Serializer,
     ///     {
-    ///         let mut ts = serializer.serialize_tuple_struct(&quot;Rgb&quot;, 3)?;
+    ///         let mut ts = serializer.serialize_tuple_struct("Rgb", 3)?;
     ///         ts.serialize_field(&amp;self.0)?;
     ///         ts.serialize_field(&amp;self.1)?;
     ///         ts.serialize_field(&amp;self.2)?;
@@ -3018,7 +3029,7 @@
     /// ```
     </span><span class="kw">fn </span>serialize_tuple_struct(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleStruct, <span class="self">Self</span>::Error&gt;;
 
@@ -3045,13 +3056,13 @@
     ///     {
     ///         match *self {
     ///             E::T(ref a, ref b) =&gt; {
-    ///                 let mut tv = serializer.serialize_tuple_variant(&quot;E&quot;, 0, &quot;T&quot;, 2)?;
+    ///                 let mut tv = serializer.serialize_tuple_variant("E", 0, "T", 2)?;
     ///                 tv.serialize_field(a)?;
     ///                 tv.serialize_field(b)?;
     ///                 tv.end()
     ///             }
     ///             E::U(ref a, ref b, ref c) =&gt; {
-    ///                 let mut tv = serializer.serialize_tuple_variant(&quot;E&quot;, 1, &quot;U&quot;, 3)?;
+    ///                 let mut tv = serializer.serialize_tuple_variant("E", 1, "U", 3)?;
     ///                 tv.serialize_field(a)?;
     ///                 tv.serialize_field(b)?;
     ///                 tv.serialize_field(c)?;
@@ -3063,9 +3074,9 @@
     /// ```
     </span><span class="kw">fn </span>serialize_tuple_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleVariant, <span class="self">Self</span>::Error&gt;;
 
@@ -3087,9 +3098,9 @@
     /// #     }
     /// # }
     /// #
-    /// # impl&lt;&#39;a, K, V&gt; IntoIterator for &amp;&#39;a HashMap&lt;K, V&gt; {
-    /// #     type Item = (&amp;&#39;a K, &amp;&#39;a V);
-    /// #     type IntoIter = Box&lt;dyn Iterator&lt;Item = (&amp;&#39;a K, &amp;&#39;a V)&gt;&gt;;
+    /// # impl&lt;'a, K, V&gt; IntoIterator for &amp;'a HashMap&lt;K, V&gt; {
+    /// #     type Item = (&amp;'a K, &amp;'a V);
+    /// #     type IntoIter = Box&lt;dyn Iterator&lt;Item = (&amp;'a K, &amp;'a V)&gt;&gt;;
     /// #
     /// #     fn into_iter(self) -&gt; Self::IntoIter {
     /// #         unimplemented!()
@@ -3122,7 +3133,8 @@
     /// then a call to `end`.
     ///
     /// The `name` is the name of the struct and the `len` is the number of
-    /// data fields that will be serialized.
+    /// data fields that will be serialized. `len` does not include fields
+    /// which are skipped with [`SerializeStruct::skip_field`].
     ///
     /// ```edition2021
     /// use serde::ser::{Serialize, SerializeStruct, Serializer};
@@ -3138,17 +3150,17 @@
     ///     where
     ///         S: Serializer,
     ///     {
-    ///         let mut rgb = serializer.serialize_struct(&quot;Rgb&quot;, 3)?;
-    ///         rgb.serialize_field(&quot;r&quot;, &amp;self.r)?;
-    ///         rgb.serialize_field(&quot;g&quot;, &amp;self.g)?;
-    ///         rgb.serialize_field(&quot;b&quot;, &amp;self.b)?;
+    ///         let mut rgb = serializer.serialize_struct("Rgb", 3)?;
+    ///         rgb.serialize_field("r", &amp;self.r)?;
+    ///         rgb.serialize_field("g", &amp;self.g)?;
+    ///         rgb.serialize_field("b", &amp;self.b)?;
     ///         rgb.end()
     ///     }
     /// }
     /// ```
     </span><span class="kw">fn </span>serialize_struct(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStruct, <span class="self">Self</span>::Error&gt;;
 
@@ -3159,6 +3171,8 @@
     /// The `name` is the name of the enum, the `variant_index` is the index of
     /// this variant within the enum, the `variant` is the name of the variant,
     /// and the `len` is the number of data fields that will be serialized.
+    /// `len` does not include fields which are skipped with
+    /// [`SerializeStructVariant::skip_field`].
     ///
     /// ```edition2021
     /// use serde::ser::{Serialize, SerializeStructVariant, Serializer};
@@ -3178,10 +3192,10 @@
     ///                 ref g,
     ///                 ref b,
     ///             } =&gt; {
-    ///                 let mut sv = serializer.serialize_struct_variant(&quot;E&quot;, 0, &quot;S&quot;, 3)?;
-    ///                 sv.serialize_field(&quot;r&quot;, r)?;
-    ///                 sv.serialize_field(&quot;g&quot;, g)?;
-    ///                 sv.serialize_field(&quot;b&quot;, b)?;
+    ///                 let mut sv = serializer.serialize_struct_variant("E", 0, "S", 3)?;
+    ///                 sv.serialize_field("r", r)?;
+    ///                 sv.serialize_field("g", g)?;
+    ///                 sv.serialize_field("b", b)?;
     ///                 sv.end()
     ///             }
     ///         }
@@ -3190,9 +3204,9 @@
     /// ```
     </span><span class="kw">fn </span>serialize_struct_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStructVariant, <span class="self">Self</span>::Error&gt;;
 
@@ -3290,17 +3304,17 @@
     ///     where
     ///         S: Serializer,
     ///     {
-    ///         serializer.collect_str(&amp;format_args!(&quot;{:?}{:?}&quot;, self.naive_local(), self.offset()))
+    ///         serializer.collect_str(&amp;format_args!("{:?}{:?}", self.naive_local(), self.offset()))
     ///     }
     /// }
     /// ```
     ///
     /// [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
     /// [`serialize_str`]: #tymethod.serialize_str
-    </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
-    </span><span class="kw">fn </span>collect_str&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
+    </span><span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))]
+    </span><span class="kw">fn </span>collect_str&lt;T&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: Display,
+        </span>T: <span class="question-mark">?</span>Sized + Display,
     {
         <span class="self">self</span>.serialize_str(<span class="kw-2">&amp;</span>value.to_string())
     }
@@ -3326,14 +3340,14 @@
     ///     where
     ///         S: Serializer,
     ///     {
-    ///         serializer.collect_str(&amp;format_args!(&quot;{:?}{:?}&quot;, self.naive_local(), self.offset()))
+    ///         serializer.collect_str(&amp;format_args!("{:?}{:?}", self.naive_local(), self.offset()))
     ///     }
     /// }
     /// ```
-    </span><span class="attr">#[cfg(not(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>)))]
-    </span><span class="kw">fn </span>collect_str&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
+    </span><span class="attr">#[cfg(not(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>)))]
+    </span><span class="kw">fn </span>collect_str&lt;T&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: Display;
+        </span>T: <span class="question-mark">?</span>Sized + Display;
 
     <span class="doccomment">/// Determine whether `Serialize` implementations should serialize in
     /// human-readable form.
@@ -3367,7 +3381,7 @@
     ///         S: Serializer,
     ///     {
     ///         if serializer.is_human_readable() {
-    ///             // Serialize to a human-readable string &quot;2015-05-15T17:01:00Z&quot;.
+    ///             // Serialize to a human-readable string "2015-05-15T17:01:00Z".
     ///             self.to_string().serialize(serializer)
     ///         } else {
     ///             // Serialize to a compact binary representation.
@@ -3404,9 +3418,9 @@
 /// #     }
 /// # }
 /// #
-/// # impl&lt;&#39;a, T&gt; IntoIterator for &amp;&#39;a Vec&lt;T&gt; {
-/// #     type Item = &amp;&#39;a T;
-/// #     type IntoIter = Box&lt;dyn Iterator&lt;Item = &amp;&#39;a T&gt;&gt;;
+/// # impl&lt;'a, T&gt; IntoIterator for &amp;'a Vec&lt;T&gt; {
+/// #     type Item = &amp;'a T;
+/// #     type IntoIter = Box&lt;dyn Iterator&lt;Item = &amp;'a T&gt;&gt;;
 /// #     fn into_iter(self) -&gt; Self::IntoIter {
 /// #         unimplemented!()
 /// #     }
@@ -3445,9 +3459,9 @@
     </span><span class="kw">type </span>Error: Error;
 
     <span class="doccomment">/// Serialize a sequence element.
-    </span><span class="kw">fn </span>serialize_element&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_element&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: Serialize;
+        </span>T: <span class="question-mark">?</span>Sized + Serialize;
 
     <span class="doccomment">/// Finish serializing a sequence.
     </span><span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
@@ -3498,9 +3512,9 @@
 /// #     }
 /// # }
 /// #
-/// # impl&lt;&#39;a, T&gt; IntoIterator for &amp;&#39;a Array&lt;T&gt; {
-/// #     type Item = &amp;&#39;a T;
-/// #     type IntoIter = Box&lt;dyn Iterator&lt;Item = &amp;&#39;a T&gt;&gt;;
+/// # impl&lt;'a, T&gt; IntoIterator for &amp;'a Array&lt;T&gt; {
+/// #     type Item = &amp;'a T;
+/// #     type IntoIter = Box&lt;dyn Iterator&lt;Item = &amp;'a T&gt;&gt;;
 /// #     fn into_iter(self) -&gt; Self::IntoIter {
 /// #         unimplemented!()
 /// #     }
@@ -3545,9 +3559,9 @@
     </span><span class="kw">type </span>Error: Error;
 
     <span class="doccomment">/// Serialize a tuple element.
-    </span><span class="kw">fn </span>serialize_element&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_element&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: Serialize;
+        </span>T: <span class="question-mark">?</span>Sized + Serialize;
 
     <span class="doccomment">/// Finish serializing a tuple.
     </span><span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
@@ -3567,7 +3581,7 @@
 ///     where
 ///         S: Serializer,
 ///     {
-///         let mut ts = serializer.serialize_tuple_struct(&quot;Rgb&quot;, 3)?;
+///         let mut ts = serializer.serialize_tuple_struct("Rgb", 3)?;
 ///         ts.serialize_field(&amp;self.0)?;
 ///         ts.serialize_field(&amp;self.1)?;
 ///         ts.serialize_field(&amp;self.2)?;
@@ -3590,9 +3604,9 @@
     </span><span class="kw">type </span>Error: Error;
 
     <span class="doccomment">/// Serialize a tuple struct field.
-    </span><span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_field&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: Serialize;
+        </span>T: <span class="question-mark">?</span>Sized + Serialize;
 
     <span class="doccomment">/// Finish serializing a tuple struct.
     </span><span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
@@ -3617,13 +3631,13 @@
 ///     {
 ///         match *self {
 ///             E::T(ref a, ref b) =&gt; {
-///                 let mut tv = serializer.serialize_tuple_variant(&quot;E&quot;, 0, &quot;T&quot;, 2)?;
+///                 let mut tv = serializer.serialize_tuple_variant("E", 0, "T", 2)?;
 ///                 tv.serialize_field(a)?;
 ///                 tv.serialize_field(b)?;
 ///                 tv.end()
 ///             }
 ///             E::U(ref a, ref b, ref c) =&gt; {
-///                 let mut tv = serializer.serialize_tuple_variant(&quot;E&quot;, 1, &quot;U&quot;, 3)?;
+///                 let mut tv = serializer.serialize_tuple_variant("E", 1, "U", 3)?;
 ///                 tv.serialize_field(a)?;
 ///                 tv.serialize_field(b)?;
 ///                 tv.serialize_field(c)?;
@@ -3648,9 +3662,9 @@
     </span><span class="kw">type </span>Error: Error;
 
     <span class="doccomment">/// Serialize a tuple variant field.
-    </span><span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_field&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: Serialize;
+        </span>T: <span class="question-mark">?</span>Sized + Serialize;
 
     <span class="doccomment">/// Finish serializing a tuple variant.
     </span><span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
@@ -3671,9 +3685,9 @@
 /// #     }
 /// # }
 /// #
-/// # impl&lt;&#39;a, K, V&gt; IntoIterator for &amp;&#39;a HashMap&lt;K, V&gt; {
-/// #     type Item = (&amp;&#39;a K, &amp;&#39;a V);
-/// #     type IntoIter = Box&lt;dyn Iterator&lt;Item = (&amp;&#39;a K, &amp;&#39;a V)&gt;&gt;;
+/// # impl&lt;'a, K, V&gt; IntoIterator for &amp;'a HashMap&lt;K, V&gt; {
+/// #     type Item = (&amp;'a K, &amp;'a V);
+/// #     type IntoIter = Box&lt;dyn Iterator&lt;Item = (&amp;'a K, &amp;'a V)&gt;&gt;;
 /// #
 /// #     fn into_iter(self) -&gt; Self::IntoIter {
 /// #         unimplemented!()
@@ -3719,9 +3733,9 @@
     /// `serialize_entry` instead as it may be implemented more efficiently in
     /// some formats compared to a pair of calls to `serialize_key` and
     /// `serialize_value`.
-    </span><span class="kw">fn </span>serialize_key&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_key&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: Serialize;
+        </span>T: <span class="question-mark">?</span>Sized + Serialize;
 
     <span class="doccomment">/// Serialize a map value.
     ///
@@ -3729,9 +3743,9 @@
     ///
     /// Calling `serialize_value` before `serialize_key` is incorrect and is
     /// allowed to panic or produce bogus results.
-    </span><span class="kw">fn </span>serialize_value&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_value&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: Serialize;
+        </span>T: <span class="question-mark">?</span>Sized + Serialize;
 
     <span class="doccomment">/// Serialize a map entry consisting of a key and a value.
     ///
@@ -3750,14 +3764,10 @@
     /// [`Serialize`]: ../trait.Serialize.html
     /// [`serialize_key`]: #tymethod.serialize_key
     /// [`serialize_value`]: #tymethod.serialize_value
-    </span><span class="kw">fn </span>serialize_entry&lt;K: <span class="question-mark">?</span>Sized, V: <span class="question-mark">?</span>Sized&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        key: <span class="kw-2">&amp;</span>K,
-        value: <span class="kw-2">&amp;</span>V,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_entry&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>K, value: <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>K: Serialize,
-        V: Serialize,
+        </span>K: <span class="question-mark">?</span>Sized + Serialize,
+        V: <span class="question-mark">?</span>Sized + Serialize,
     {
         <span class="macro">tri!</span>(<span class="self">self</span>.serialize_key(key));
         <span class="self">self</span>.serialize_value(value)
@@ -3785,10 +3795,10 @@
 ///     where
 ///         S: Serializer,
 ///     {
-///         let mut rgb = serializer.serialize_struct(&quot;Rgb&quot;, 3)?;
-///         rgb.serialize_field(&quot;r&quot;, &amp;self.r)?;
-///         rgb.serialize_field(&quot;g&quot;, &amp;self.g)?;
-///         rgb.serialize_field(&quot;b&quot;, &amp;self.b)?;
+///         let mut rgb = serializer.serialize_struct("Rgb", 3)?;
+///         rgb.serialize_field("r", &amp;self.r)?;
+///         rgb.serialize_field("g", &amp;self.g)?;
+///         rgb.serialize_field("b", &amp;self.b)?;
 ///         rgb.end()
 ///     }
 /// }
@@ -3808,17 +3818,15 @@
     </span><span class="kw">type </span>Error: Error;
 
     <span class="doccomment">/// Serialize a struct field.
-    </span><span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        value: <span class="kw-2">&amp;</span>T,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_field&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: Serialize;
+        </span>T: <span class="question-mark">?</span>Sized + Serialize;
 
     <span class="doccomment">/// Indicate that a struct field has been skipped.
+    ///
+    /// The default implementation does nothing.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>skip_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+    </span><span class="kw">fn </span>skip_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="kw">let _ </span>= key;
         <span class="prelude-val">Ok</span>(())
     }
@@ -3849,10 +3857,10 @@
 ///                 ref g,
 ///                 ref b,
 ///             } =&gt; {
-///                 let mut sv = serializer.serialize_struct_variant(&quot;E&quot;, 0, &quot;S&quot;, 3)?;
-///                 sv.serialize_field(&quot;r&quot;, r)?;
-///                 sv.serialize_field(&quot;g&quot;, g)?;
-///                 sv.serialize_field(&quot;b&quot;, b)?;
+///                 let mut sv = serializer.serialize_struct_variant("E", 0, "S", 3)?;
+///                 sv.serialize_field("r", r)?;
+///                 sv.serialize_field("g", g)?;
+///                 sv.serialize_field("b", b)?;
 ///                 sv.end()
 ///             }
 ///         }
@@ -3874,17 +3882,15 @@
     </span><span class="kw">type </span>Error: Error;
 
     <span class="doccomment">/// Serialize a struct variant field.
-    </span><span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        value: <span class="kw-2">&amp;</span>T,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_field&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: Serialize;
+        </span>T: <span class="question-mark">?</span>Sized + Serialize;
 
     <span class="doccomment">/// Indicate that a struct variant field has been skipped.
+    ///
+    /// The default implementation does nothing.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>skip_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+    </span><span class="kw">fn </span>skip_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="kw">let _ </span>= key;
         <span class="prelude-val">Ok</span>(())
     }

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_json-1.0.108/src/read.rs`."><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_json" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../serde_json/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_json-1.0.121/src/read.rs`."><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_json" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../serde_json/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -999,9 +1001,6 @@
 <a href="#999" id="999">999</a>
 <a href="#1000" id="1000">1000</a>
 <a href="#1001" id="1001">1001</a>
-<a href="#1002" id="1002">1002</a>
-<a href="#1003" id="1003">1003</a>
-<a href="#1004" id="1004">1004</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::error::{Error, ErrorCode, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>alloc::vec::Vec;
 <span class="kw">use </span>core::char;
@@ -1009,25 +1008,27 @@
 <span class="kw">use </span>core::ops::Deref;
 <span class="kw">use </span>core::str;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::io;
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::iter::LineColIterator;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::raw::BorrowedRawDeserializer;
-<span class="attr">#[cfg(all(feature = <span class="string">&quot;raw_value&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(all(feature = <span class="string">"raw_value"</span>, feature = <span class="string">"std"</span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::raw::OwnedRawDeserializer;
-<span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+<span class="attr">#[cfg(all(feature = <span class="string">"raw_value"</span>, feature = <span class="string">"std"</span>))]
+</span><span class="kw">use </span>alloc::string::String;
+<span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
 </span><span class="kw">use </span>serde::de::Visitor;
 
 <span class="doccomment">/// Trait used by the deserializer for iterating over input. This is manually
-/// &quot;specialized&quot; for iterating over &amp;[u8]. Once feature(specialization) is
+/// "specialized" for iterating over `&amp;[u8]`. Once feature(specialization) is
 /// stable we can use actual specialization.
 ///
 /// This trait is sealed and cannot be implemented for types outside of
 /// `serde_json`.
-</span><span class="kw">pub trait </span>Read&lt;<span class="lifetime">&#39;de</span>&gt;: private::Sealed {
+</span><span class="kw">pub trait </span>Read&lt;<span class="lifetime">'de</span>&gt;: private::Sealed {
     <span class="attr">#[doc(hidden)]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u8&gt;&gt;;
     <span class="attr">#[doc(hidden)]
@@ -1041,7 +1042,7 @@
     ///
     /// The most recent call was probably next() and not peek(), but this method
     /// should try to return a sensible result if the most recent call was
-    /// actually peek() because we don&#39;t always know.
+    /// actually peek() because we don't always know.
     ///
     /// Only called in case of an error, so performance is not important.
     </span><span class="attr">#[doc(hidden)]
@@ -1051,7 +1052,7 @@
     ///
     /// The most recent call was probably peek() and not next(), but this method
     /// should try to return a sensible result if the most recent call was
-    /// actually next() because we don&#39;t always know.
+    /// actually next() because we don't always know.
     ///
     /// Only called in case of an error, so performance is not important.
     </span><span class="attr">#[doc(hidden)]
@@ -1066,7 +1067,7 @@
     /// string until the next quotation mark using the given scratch space if
     /// necessary. The scratch space is initially empty.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">fn </span>parse_str&lt;<span class="lifetime">&#39;s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>, scratch: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;s</span>, str&gt;&gt;;
+    </span><span class="kw">fn </span>parse_str&lt;<span class="lifetime">'s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>, scratch: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">'de</span>, <span class="lifetime">'s</span>, str&gt;&gt;;
 
     <span class="doccomment">/// Assumes the previous byte was a quotation mark. Parses a JSON-escaped
     /// string until the next quotation mark using the given scratch space if
@@ -1075,17 +1076,17 @@
     /// This function returns the raw bytes in the string with escape sequences
     /// expanded but without performing unicode validation.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">fn </span>parse_str_raw&lt;<span class="lifetime">&#39;s</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>,
-        scratch: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;s</span>, [u8]&gt;&gt;;
+    </span><span class="kw">fn </span>parse_str_raw&lt;<span class="lifetime">'s</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>,
+        scratch: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">'de</span>, <span class="lifetime">'s</span>, [u8]&gt;&gt;;
 
     <span class="doccomment">/// Assumes the previous byte was a quotation mark. Parses a JSON-escaped
     /// string until the next quotation mark but discards the data.
     </span><span class="attr">#[doc(hidden)]
     </span><span class="kw">fn </span>ignore_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 
-    <span class="doccomment">/// Assumes the previous byte was a hex escape sequence (&#39;\u&#39;) in a string.
+    <span class="doccomment">/// Assumes the previous byte was a hex escape sequence ('\u') in a string.
     /// Parses next hexadecimal sequence.
     </span><span class="attr">#[doc(hidden)]
     </span><span class="kw">fn </span>decode_hex_escape(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u16&gt;;
@@ -1093,17 +1094,17 @@
     <span class="doccomment">/// Switch raw buffering mode on.
     ///
     /// This is used when deserializing `RawValue`.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
     #[doc(hidden)]
     </span><span class="kw">fn </span>begin_raw_buffering(<span class="kw-2">&amp;mut </span><span class="self">self</span>);
 
     <span class="doccomment">/// Switch raw buffering mode off and provides the raw buffered data to the
     /// given visitor.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
     #[doc(hidden)]
     </span><span class="kw">fn </span>end_raw_buffering&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;;
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;;
 
     <span class="doccomment">/// Whether StreamDeserializer::next needs to check the failed flag. True
     /// for IoRead, false for StrRead and SliceRead which can track failure by
@@ -1123,17 +1124,17 @@
     <span class="kw">pub </span>column: usize,
 }
 
-<span class="kw">pub enum </span>Reference&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span>, T&gt;
+<span class="kw">pub enum </span>Reference&lt;<span class="lifetime">'b</span>, <span class="lifetime">'c</span>, T&gt;
 <span class="kw">where
-    </span>T: <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
+    </span>T: <span class="question-mark">?</span>Sized + <span class="lifetime">'static</span>,
 {
-    Borrowed(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>T),
-    Copied(<span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>T),
+    Borrowed(<span class="kw-2">&amp;</span><span class="lifetime">'b </span>T),
+    Copied(<span class="kw-2">&amp;</span><span class="lifetime">'c </span>T),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span>, T&gt; Deref <span class="kw">for </span>Reference&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'b</span>, <span class="lifetime">'c</span>, T&gt; Deref <span class="kw">for </span>Reference&lt;<span class="lifetime">'b</span>, <span class="lifetime">'c</span>, T&gt;
 <span class="kw">where
-    </span>T: <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
+    </span>T: <span class="question-mark">?</span>Sized + <span class="lifetime">'static</span>,
 {
     <span class="kw">type </span>Target = T;
 
@@ -1146,8 +1147,8 @@
 }
 
 <span class="doccomment">/// JSON input source that reads from a std::io input stream.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;std&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
 </span><span class="kw">pub struct </span>IoRead&lt;R&gt;
 <span class="kw">where
     </span>R: io::Read,
@@ -1155,7 +1156,7 @@
     iter: LineColIterator&lt;io::Bytes&lt;R&gt;&gt;,
     <span class="doccomment">/// Temporary storage of peeked byte.
     </span>ch: <span class="prelude-ty">Option</span>&lt;u8&gt;,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
     </span>raw_buffer: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
 }
 
@@ -1163,21 +1164,21 @@
 </span><span class="comment">//
 // This is more efficient than other iterators because peek() can be read-only
 // and we can compute line/col position only if an error happens.
-</span><span class="kw">pub struct </span>SliceRead&lt;<span class="lifetime">&#39;a</span>&gt; {
-    slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+</span><span class="kw">pub struct </span>SliceRead&lt;<span class="lifetime">'a</span>&gt; {
+    slice: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8],
     <span class="doccomment">/// Index of the *next* byte that will be returned by next() or peek().
     </span>index: usize,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
     </span>raw_buffering_start_index: usize,
 }
 
 <span class="doccomment">/// JSON input source that reads from a UTF-8 string.
 </span><span class="comment">//
 // Able to elide UTF-8 checks by assuming that the input is valid UTF-8.
-</span><span class="kw">pub struct </span>StrRead&lt;<span class="lifetime">&#39;a</span>&gt; {
-    delegate: SliceRead&lt;<span class="lifetime">&#39;a</span>&gt;,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
-    </span>data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+</span><span class="kw">pub struct </span>StrRead&lt;<span class="lifetime">'a</span>&gt; {
+    delegate: SliceRead&lt;<span class="lifetime">'a</span>&gt;,
+    <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
+    </span>data: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
 }
 
 <span class="comment">// Prevent users from implementing the Read trait.
@@ -1187,7 +1188,7 @@
 
 <span class="comment">//////////////////////////////////////////////////////////////////////////////
 
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;R&gt; IoRead&lt;R&gt;
 <span class="kw">where
     </span>R: io::Read,
@@ -1197,29 +1198,29 @@
         IoRead {
             iter: LineColIterator::new(reader.bytes()),
             ch: <span class="prelude-val">None</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
             </span>raw_buffer: <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;R&gt; private::Sealed <span class="kw">for </span>IoRead&lt;R&gt; <span class="kw">where </span>R: io::Read {}
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;R&gt; IoRead&lt;R&gt;
 <span class="kw">where
     </span>R: io::Read,
 {
-    <span class="kw">fn </span>parse_str_bytes&lt;<span class="lifetime">&#39;s</span>, T, F&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>,
-        scratch: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
+    <span class="kw">fn </span>parse_str_bytes&lt;<span class="lifetime">'s</span>, T, F&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>,
+        scratch: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
         validate: bool,
         result: F,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
     <span class="kw">where
-        </span>T: <span class="lifetime">&#39;s</span>,
-        F: FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;,
+        </span>T: <span class="lifetime">'s</span>,
+        F: FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;,
     {
         <span class="kw">loop </span>{
             <span class="kw">let </span>ch = <span class="macro">tri!</span>(next_or_eof(<span class="self">self</span>));
@@ -1228,10 +1229,10 @@
                 <span class="kw">continue</span>;
             }
             <span class="kw">match </span>ch {
-                <span class="string">b&#39;&quot;&#39; </span>=&gt; {
+                <span class="string">b'"' </span>=&gt; {
                     <span class="kw">return </span>result(<span class="self">self</span>, scratch);
                 }
-                <span class="string">b&#39;\\&#39; </span>=&gt; {
+                <span class="string">b'\\' </span>=&gt; {
                     <span class="macro">tri!</span>(parse_escape(<span class="self">self</span>, validate, scratch));
                 }
                 <span class="kw">_ </span>=&gt; {
@@ -1245,8 +1246,8 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, R&gt; Read&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>IoRead&lt;R&gt;
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, R&gt; Read&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>IoRead&lt;R&gt;
 <span class="kw">where
     </span>R: io::Read,
 {
@@ -1254,7 +1255,7 @@
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u8&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.ch.take() {
             <span class="prelude-val">Some</span>(ch) =&gt; {
-                <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
                 </span>{
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(buf) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.raw_buffer {
                         buf.push(ch);
@@ -1265,7 +1266,7 @@
             <span class="prelude-val">None </span>=&gt; <span class="kw">match </span><span class="self">self</span>.iter.next() {
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(Error::io(err)),
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(ch)) =&gt; {
-                    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+                    <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
                     </span>{
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(buf) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.raw_buffer {
                             buf.push(ch);
@@ -1293,13 +1294,13 @@
         }
     }
 
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;raw_value&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"raw_value"</span>))]
     #[inline]
     </span><span class="kw">fn </span>discard(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.ch = <span class="prelude-val">None</span>;
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
     </span><span class="kw">fn </span>discard(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ch) = <span class="self">self</span>.ch.take() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(buf) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.raw_buffer {
@@ -1328,15 +1329,15 @@
         }
     }
 
-    <span class="kw">fn </span>parse_str&lt;<span class="lifetime">&#39;s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>, scratch: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;s</span>, str&gt;&gt; {
+    <span class="kw">fn </span>parse_str&lt;<span class="lifetime">'s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>, scratch: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">'de</span>, <span class="lifetime">'s</span>, str&gt;&gt; {
         <span class="self">self</span>.parse_str_bytes(scratch, <span class="bool-val">true</span>, as_str)
             .map(Reference::Copied)
     }
 
-    <span class="kw">fn </span>parse_str_raw&lt;<span class="lifetime">&#39;s</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>,
-        scratch: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;s</span>, [u8]&gt;&gt; {
+    <span class="kw">fn </span>parse_str_raw&lt;<span class="lifetime">'s</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>,
+        scratch: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">'de</span>, <span class="lifetime">'s</span>, [u8]&gt;&gt; {
         <span class="self">self</span>.parse_str_bytes(scratch, <span class="bool-val">false</span>, |<span class="kw">_</span>, bytes| <span class="prelude-val">Ok</span>(bytes))
             .map(Reference::Copied)
     }
@@ -1348,10 +1349,10 @@
                 <span class="kw">continue</span>;
             }
             <span class="kw">match </span>ch {
-                <span class="string">b&#39;&quot;&#39; </span>=&gt; {
+                <span class="string">b'"' </span>=&gt; {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
-                <span class="string">b&#39;\\&#39; </span>=&gt; {
+                <span class="string">b'\\' </span>=&gt; {
                     <span class="macro">tri!</span>(ignore_escape(<span class="self">self</span>));
                 }
                 <span class="kw">_ </span>=&gt; {
@@ -1374,15 +1375,15 @@
         <span class="prelude-val">Ok</span>(n)
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
     </span><span class="kw">fn </span>begin_raw_buffering(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.raw_buffer = <span class="prelude-val">Some</span>(Vec::new());
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
     </span><span class="kw">fn </span>end_raw_buffering&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>raw = <span class="self">self</span>.raw_buffer.take().unwrap();
         <span class="kw">let </span>raw = <span class="kw">match </span>String::from_utf8(raw) {
@@ -1405,45 +1406,40 @@
 
 <span class="comment">//////////////////////////////////////////////////////////////////////////////
 
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; SliceRead&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; SliceRead&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Create a JSON input source to read from a slice of bytes.
-    </span><span class="kw">pub fn </span>new(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(slice: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]) -&gt; <span class="self">Self </span>{
         SliceRead {
             slice,
             index: <span class="number">0</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
             </span>raw_buffering_start_index: <span class="number">0</span>,
         }
     }
 
     <span class="kw">fn </span>position_of_index(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; Position {
-        <span class="kw">let </span><span class="kw-2">mut </span>position = Position { line: <span class="number">1</span>, column: <span class="number">0 </span>};
-        <span class="kw">for </span>ch <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.slice[..i] {
-            <span class="kw">match </span><span class="kw-2">*</span>ch {
-                <span class="string">b&#39;\n&#39; </span>=&gt; {
-                    position.line += <span class="number">1</span>;
-                    position.column = <span class="number">0</span>;
-                }
-                <span class="kw">_ </span>=&gt; {
-                    position.column += <span class="number">1</span>;
-                }
-            }
+        <span class="kw">let </span>start_of_line = <span class="kw">match </span>memchr::memrchr(<span class="string">b'\n'</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.slice[..i]) {
+            <span class="prelude-val">Some</span>(position) =&gt; position + <span class="number">1</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="number">0</span>,
+        };
+        Position {
+            line: <span class="number">1 </span>+ memchr::memchr_iter(<span class="string">b'\n'</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.slice[..start_of_line]).count(),
+            column: i - start_of_line,
         }
-        position
     }
 
     <span class="doccomment">/// The big optimization here over IoRead is that if the string contains no
     /// backslash escape sequences, the returned &amp;str is a slice of the raw JSON
     /// data so we avoid copying into the scratch space.
-    </span><span class="kw">fn </span>parse_str_bytes&lt;<span class="lifetime">&#39;s</span>, T, F&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>,
-        scratch: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
+    </span><span class="kw">fn </span>parse_str_bytes&lt;<span class="lifetime">'s</span>, T, F&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>,
+        scratch: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
         validate: bool,
         result: F,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;s</span>, T&gt;&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">'a</span>, <span class="lifetime">'s</span>, T&gt;&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;s</span>,
-        F: <span class="kw">for</span>&lt;<span class="lifetime">&#39;f</span>&gt; FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;f </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;f </span>T&gt;,
+        </span>T: <span class="question-mark">?</span>Sized + <span class="lifetime">'s</span>,
+        F: <span class="kw">for</span>&lt;<span class="lifetime">'f</span>&gt; FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="lifetime">'f </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'f </span>T&gt;,
     {
         <span class="comment">// Index of the first byte not yet copied into the scratch space.
         </span><span class="kw">let </span><span class="kw-2">mut </span>start = <span class="self">self</span>.index;
@@ -1456,7 +1452,7 @@
                 <span class="kw">return </span>error(<span class="self">self</span>, ErrorCode::EofWhileParsingString);
             }
             <span class="kw">match </span><span class="self">self</span>.slice[<span class="self">self</span>.index] {
-                <span class="string">b&#39;&quot;&#39; </span>=&gt; {
+                <span class="string">b'"' </span>=&gt; {
                     <span class="kw">if </span>scratch.is_empty() {
                         <span class="comment">// Fast path: return a slice of the raw JSON without any
                         // copying.
@@ -1469,7 +1465,7 @@
                         <span class="kw">return </span>result(<span class="self">self</span>, scratch).map(Reference::Copied);
                     }
                 }
-                <span class="string">b&#39;\\&#39; </span>=&gt; {
+                <span class="string">b'\\' </span>=&gt; {
                     scratch.extend_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.slice[start..<span class="self">self</span>.index]);
                     <span class="self">self</span>.index += <span class="number">1</span>;
                     <span class="macro">tri!</span>(parse_escape(<span class="self">self</span>, validate, scratch));
@@ -1486,9 +1482,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; private::Sealed <span class="kw">for </span>SliceRead&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; private::Sealed <span class="kw">for </span>SliceRead&lt;<span class="lifetime">'a</span>&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Read&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span>SliceRead&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Read&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span>SliceRead&lt;<span class="lifetime">'a</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u8&gt;&gt; {
         <span class="comment">// `Ok(self.slice.get(self.index).map(|ch| { self.index += 1; *ch }))`
@@ -1532,14 +1528,14 @@
         <span class="self">self</span>.index
     }
 
-    <span class="kw">fn </span>parse_str&lt;<span class="lifetime">&#39;s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>, scratch: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;s</span>, str&gt;&gt; {
+    <span class="kw">fn </span>parse_str&lt;<span class="lifetime">'s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>, scratch: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">'a</span>, <span class="lifetime">'s</span>, str&gt;&gt; {
         <span class="self">self</span>.parse_str_bytes(scratch, <span class="bool-val">true</span>, as_str)
     }
 
-    <span class="kw">fn </span>parse_str_raw&lt;<span class="lifetime">&#39;s</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>,
-        scratch: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;s</span>, [u8]&gt;&gt; {
+    <span class="kw">fn </span>parse_str_raw&lt;<span class="lifetime">'s</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>,
+        scratch: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">'a</span>, <span class="lifetime">'s</span>, [u8]&gt;&gt; {
         <span class="self">self</span>.parse_str_bytes(scratch, <span class="bool-val">false</span>, |<span class="kw">_</span>, bytes| <span class="prelude-val">Ok</span>(bytes))
     }
 
@@ -1552,11 +1548,11 @@
                 <span class="kw">return </span>error(<span class="self">self</span>, ErrorCode::EofWhileParsingString);
             }
             <span class="kw">match </span><span class="self">self</span>.slice[<span class="self">self</span>.index] {
-                <span class="string">b&#39;&quot;&#39; </span>=&gt; {
+                <span class="string">b'"' </span>=&gt; {
                     <span class="self">self</span>.index += <span class="number">1</span>;
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
-                <span class="string">b&#39;\\&#39; </span>=&gt; {
+                <span class="string">b'\\' </span>=&gt; {
                     <span class="self">self</span>.index += <span class="number">1</span>;
                     <span class="macro">tri!</span>(ignore_escape(<span class="self">self</span>));
                 }
@@ -1587,15 +1583,15 @@
         <span class="prelude-val">Ok</span>(n)
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
     </span><span class="kw">fn </span>begin_raw_buffering(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.raw_buffering_start_index = <span class="self">self</span>.index;
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
     </span><span class="kw">fn </span>end_raw_buffering&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'a</span>&gt;,
     {
         <span class="kw">let </span>raw = <span class="kw-2">&amp;</span><span class="self">self</span>.slice[<span class="self">self</span>.raw_buffering_start_index..<span class="self">self</span>.index];
         <span class="kw">let </span>raw = <span class="kw">match </span>str::from_utf8(raw) {
@@ -1618,20 +1614,20 @@
 
 <span class="comment">//////////////////////////////////////////////////////////////////////////////
 
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; StrRead&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; StrRead&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Create a JSON input source to read from a UTF-8 string.
-    </span><span class="kw">pub fn </span>new(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; <span class="self">Self </span>{
         StrRead {
             delegate: SliceRead::new(s.as_bytes()),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
             </span>data: s,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; private::Sealed <span class="kw">for </span>StrRead&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; private::Sealed <span class="kw">for </span>StrRead&lt;<span class="lifetime">'a</span>&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Read&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span>StrRead&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Read&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span>StrRead&lt;<span class="lifetime">'a</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u8&gt;&gt; {
         <span class="self">self</span>.delegate.next()
@@ -1659,19 +1655,19 @@
         <span class="self">self</span>.delegate.byte_offset()
     }
 
-    <span class="kw">fn </span>parse_str&lt;<span class="lifetime">&#39;s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>, scratch: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;s</span>, str&gt;&gt; {
+    <span class="kw">fn </span>parse_str&lt;<span class="lifetime">'s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>, scratch: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">'a</span>, <span class="lifetime">'s</span>, str&gt;&gt; {
         <span class="self">self</span>.delegate.parse_str_bytes(scratch, <span class="bool-val">true</span>, |<span class="kw">_</span>, bytes| {
             <span class="comment">// The deserialization input came in as &amp;str with a UTF-8 guarantee,
-            // and the \u-escapes are checked along the way, so don&#39;t need to
+            // and the \u-escapes are checked along the way, so don't need to
             // check here.
             </span><span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ str::from_utf8_unchecked(bytes) })
         })
     }
 
-    <span class="kw">fn </span>parse_str_raw&lt;<span class="lifetime">&#39;s</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>,
-        scratch: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;s</span>, [u8]&gt;&gt; {
+    <span class="kw">fn </span>parse_str_raw&lt;<span class="lifetime">'s</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>,
+        scratch: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">'a</span>, <span class="lifetime">'s</span>, [u8]&gt;&gt; {
         <span class="self">self</span>.delegate.parse_str_raw(scratch)
     }
 
@@ -1683,15 +1679,15 @@
         <span class="self">self</span>.delegate.decode_hex_escape()
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
     </span><span class="kw">fn </span>begin_raw_buffering(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.delegate.begin_raw_buffering();
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
     </span><span class="kw">fn </span>end_raw_buffering&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'a</span>&gt;,
     {
         <span class="kw">let </span>raw = <span class="kw-2">&amp;</span><span class="self">self</span>.data[<span class="self">self</span>.delegate.raw_buffering_start_index..<span class="self">self</span>.delegate.index];
         visitor.visit_map(BorrowedRawDeserializer {
@@ -1710,11 +1706,11 @@
 
 <span class="comment">//////////////////////////////////////////////////////////////////////////////
 
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;de</span>, R&gt; private::Sealed <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R <span class="kw">where </span>R: Read&lt;<span class="lifetime">&#39;de</span>&gt; {}
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'de</span>, R&gt; private::Sealed <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R <span class="kw">where </span>R: Read&lt;<span class="lifetime">'de</span>&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;de</span>, R&gt; Read&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'de</span>, R&gt; Read&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R
 <span class="kw">where
-    </span>R: Read&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: Read&lt;<span class="lifetime">'de</span>&gt;,
 {
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u8&gt;&gt; {
         R::next(<span class="self">self</span>)
@@ -1740,14 +1736,14 @@
         R::byte_offset(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>parse_str&lt;<span class="lifetime">&#39;s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>, scratch: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;s</span>, str&gt;&gt; {
+    <span class="kw">fn </span>parse_str&lt;<span class="lifetime">'s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>, scratch: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">'de</span>, <span class="lifetime">'s</span>, str&gt;&gt; {
         R::parse_str(<span class="self">self</span>, scratch)
     }
 
-    <span class="kw">fn </span>parse_str_raw&lt;<span class="lifetime">&#39;s</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>,
-        scratch: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;s</span>, [u8]&gt;&gt; {
+    <span class="kw">fn </span>parse_str_raw&lt;<span class="lifetime">'s</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>,
+        scratch: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Reference&lt;<span class="lifetime">'de</span>, <span class="lifetime">'s</span>, [u8]&gt;&gt; {
         R::parse_str_raw(<span class="self">self</span>, scratch)
     }
 
@@ -1759,15 +1755,15 @@
         R::decode_hex_escape(<span class="self">self</span>)
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
     </span><span class="kw">fn </span>begin_raw_buffering(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         R::begin_raw_buffering(<span class="self">self</span>);
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"raw_value"</span>)]
     </span><span class="kw">fn </span>end_raw_buffering&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         R::end_raw_buffering(<span class="self">self</span>, visitor)
     }
@@ -1783,8 +1779,8 @@
 
 </span><span class="doccomment">/// Marker for whether StreamDeserializer can implement FusedIterator.
 </span><span class="kw">pub trait </span>Fused: private::Sealed {}
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Fused <span class="kw">for </span>SliceRead&lt;<span class="lifetime">&#39;a</span>&gt; {}
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Fused <span class="kw">for </span>StrRead&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Fused <span class="kw">for </span>SliceRead&lt;<span class="lifetime">'a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Fused <span class="kw">for </span>StrRead&lt;<span class="lifetime">'a</span>&gt; {}
 
 <span class="comment">// Lookup table of bytes that must be escaped. A value of true at index i means
 // that byte i requires an escape sequence in the input.
@@ -1814,9 +1810,9 @@
     </span>]
 };
 
-<span class="kw">fn </span>next_or_eof&lt;<span class="lifetime">&#39;de</span>, R&gt;(read: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;u8&gt;
+<span class="kw">fn </span>next_or_eof&lt;<span class="lifetime">'de</span>, R&gt;(read: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;u8&gt;
 <span class="kw">where
-    </span>R: <span class="question-mark">?</span>Sized + Read&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: <span class="question-mark">?</span>Sized + Read&lt;<span class="lifetime">'de</span>&gt;,
 {
     <span class="kw">match </span><span class="macro">tri!</span>(read.next()) {
         <span class="prelude-val">Some</span>(b) =&gt; <span class="prelude-val">Ok</span>(b),
@@ -1824,9 +1820,9 @@
     }
 }
 
-<span class="kw">fn </span>peek_or_eof&lt;<span class="lifetime">&#39;de</span>, R&gt;(read: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;u8&gt;
+<span class="kw">fn </span>peek_or_eof&lt;<span class="lifetime">'de</span>, R&gt;(read: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;u8&gt;
 <span class="kw">where
-    </span>R: <span class="question-mark">?</span>Sized + Read&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: <span class="question-mark">?</span>Sized + Read&lt;<span class="lifetime">'de</span>&gt;,
 {
     <span class="kw">match </span><span class="macro">tri!</span>(read.peek()) {
         <span class="prelude-val">Some</span>(b) =&gt; <span class="prelude-val">Ok</span>(b),
@@ -1834,21 +1830,21 @@
     }
 }
 
-<span class="kw">fn </span>error&lt;<span class="lifetime">&#39;de</span>, R, T&gt;(read: <span class="kw-2">&amp;</span>R, reason: ErrorCode) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
+<span class="kw">fn </span>error&lt;<span class="lifetime">'de</span>, R, T&gt;(read: <span class="kw-2">&amp;</span>R, reason: ErrorCode) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
 <span class="kw">where
-    </span>R: <span class="question-mark">?</span>Sized + Read&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: <span class="question-mark">?</span>Sized + Read&lt;<span class="lifetime">'de</span>&gt;,
 {
     <span class="kw">let </span>position = read.position();
     <span class="prelude-val">Err</span>(Error::syntax(reason, position.line, position.column))
 }
 
-<span class="kw">fn </span>as_str&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;s</span>, R: Read&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(read: <span class="kw-2">&amp;</span>R, slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str&gt; {
+<span class="kw">fn </span>as_str&lt;<span class="lifetime">'de</span>, <span class="lifetime">'s</span>, R: Read&lt;<span class="lifetime">'de</span>&gt;&gt;(read: <span class="kw-2">&amp;</span>R, slice: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt; {
     str::from_utf8(slice).or_else(|<span class="kw">_</span>| error(read, ErrorCode::InvalidUnicodeCodePoint))
 }
 
 <span class="doccomment">/// Parses a JSON escape sequence and appends it into the scratch space. Assumes
 /// the previous byte read was a backslash.
-</span><span class="kw">fn </span>parse_escape&lt;<span class="lifetime">&#39;de</span>, R: Read&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
+</span><span class="kw">fn </span>parse_escape&lt;<span class="lifetime">'de</span>, R: Read&lt;<span class="lifetime">'de</span>&gt;&gt;(
     read: <span class="kw-2">&amp;mut </span>R,
     validate: bool,
     scratch: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
@@ -1856,15 +1852,15 @@
     <span class="kw">let </span>ch = <span class="macro">tri!</span>(next_or_eof(read));
 
     <span class="kw">match </span>ch {
-        <span class="string">b&#39;&quot;&#39; </span>=&gt; scratch.push(<span class="string">b&#39;&quot;&#39;</span>),
-        <span class="string">b&#39;\\&#39; </span>=&gt; scratch.push(<span class="string">b&#39;\\&#39;</span>),
-        <span class="string">b&#39;/&#39; </span>=&gt; scratch.push(<span class="string">b&#39;/&#39;</span>),
-        <span class="string">b&#39;b&#39; </span>=&gt; scratch.push(<span class="string">b&#39;\x08&#39;</span>),
-        <span class="string">b&#39;f&#39; </span>=&gt; scratch.push(<span class="string">b&#39;\x0c&#39;</span>),
-        <span class="string">b&#39;n&#39; </span>=&gt; scratch.push(<span class="string">b&#39;\n&#39;</span>),
-        <span class="string">b&#39;r&#39; </span>=&gt; scratch.push(<span class="string">b&#39;\r&#39;</span>),
-        <span class="string">b&#39;t&#39; </span>=&gt; scratch.push(<span class="string">b&#39;\t&#39;</span>),
-        <span class="string">b&#39;u&#39; </span>=&gt; {
+        <span class="string">b'"' </span>=&gt; scratch.push(<span class="string">b'"'</span>),
+        <span class="string">b'\\' </span>=&gt; scratch.push(<span class="string">b'\\'</span>),
+        <span class="string">b'/' </span>=&gt; scratch.push(<span class="string">b'/'</span>),
+        <span class="string">b'b' </span>=&gt; scratch.push(<span class="string">b'\x08'</span>),
+        <span class="string">b'f' </span>=&gt; scratch.push(<span class="string">b'\x0c'</span>),
+        <span class="string">b'n' </span>=&gt; scratch.push(<span class="string">b'\n'</span>),
+        <span class="string">b'r' </span>=&gt; scratch.push(<span class="string">b'\r'</span>),
+        <span class="string">b't' </span>=&gt; scratch.push(<span class="string">b'\t'</span>),
+        <span class="string">b'u' </span>=&gt; {
             <span class="kw">fn </span>encode_surrogate(scratch: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;, n: u16) {
                 scratch.extend_from_slice(<span class="kw-2">&amp;</span>[
                     (n &gt;&gt; <span class="number">12 </span>&amp; <span class="number">0b0000_1111</span>) <span class="kw">as </span>u8 | <span class="number">0b1110_0000</span>,
@@ -1888,7 +1884,7 @@
                 // utf-8 string the surrogates are required to be paired,
                 // whereas deserializing a byte string accepts lone surrogates.
                 </span>n1 @ <span class="number">0xD800</span>..=<span class="number">0xDBFF </span>=&gt; {
-                    <span class="kw">if </span><span class="macro">tri!</span>(peek_or_eof(read)) == <span class="string">b&#39;\\&#39; </span>{
+                    <span class="kw">if </span><span class="macro">tri!</span>(peek_or_eof(read)) == <span class="string">b'\\' </span>{
                         read.discard();
                     } <span class="kw">else </span>{
                         <span class="kw">return if </span>validate {
@@ -1900,7 +1896,7 @@
                         };
                     }
 
-                    <span class="kw">if </span><span class="macro">tri!</span>(peek_or_eof(read)) == <span class="string">b&#39;u&#39; </span>{
+                    <span class="kw">if </span><span class="macro">tri!</span>(peek_or_eof(read)) == <span class="string">b'u' </span>{
                         read.discard();
                     } <span class="kw">else </span>{
                         <span class="kw">return if </span>validate {
@@ -1950,19 +1946,19 @@
 
 <span class="doccomment">/// Parses a JSON escape sequence and discards the value. Assumes the previous
 /// byte read was a backslash.
-</span><span class="kw">fn </span>ignore_escape&lt;<span class="lifetime">&#39;de</span>, R&gt;(read: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+</span><span class="kw">fn </span>ignore_escape&lt;<span class="lifetime">'de</span>, R&gt;(read: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
 <span class="kw">where
-    </span>R: <span class="question-mark">?</span>Sized + Read&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: <span class="question-mark">?</span>Sized + Read&lt;<span class="lifetime">'de</span>&gt;,
 {
     <span class="kw">let </span>ch = <span class="macro">tri!</span>(next_or_eof(read));
 
     <span class="kw">match </span>ch {
-        <span class="string">b&#39;&quot;&#39; </span>| <span class="string">b&#39;\\&#39; </span>| <span class="string">b&#39;/&#39; </span>| <span class="string">b&#39;b&#39; </span>| <span class="string">b&#39;f&#39; </span>| <span class="string">b&#39;n&#39; </span>| <span class="string">b&#39;r&#39; </span>| <span class="string">b&#39;t&#39; </span>=&gt; {}
-        <span class="string">b&#39;u&#39; </span>=&gt; {
-            <span class="comment">// At this point we don&#39;t care if the codepoint is valid. We just
-            // want to consume it. We don&#39;t actually know what is valid or not
+        <span class="string">b'"' </span>| <span class="string">b'\\' </span>| <span class="string">b'/' </span>| <span class="string">b'b' </span>| <span class="string">b'f' </span>| <span class="string">b'n' </span>| <span class="string">b'r' </span>| <span class="string">b't' </span>=&gt; {}
+        <span class="string">b'u' </span>=&gt; {
+            <span class="comment">// At this point we don't care if the codepoint is valid. We just
+            // want to consume it. We don't actually know what is valid or not
             // at this point, because that depends on if this string will
-            // ultimately be parsed into a string or a byte buffer in the &quot;real&quot;
+            // ultimately be parsed into a string or a byte buffer in the "real"
             // parse.
 
             </span><span class="macro">tri!</span>(read.decode_hex_escape());

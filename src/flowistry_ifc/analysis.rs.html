@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry_ifc/src/analysis.rs`."><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="flowistry_ifc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry_ifc/src/analysis.rs`."><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="flowistry_ifc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -14,7 +14,9 @@
     });
 </script>
 
-</head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../flowistry_ifc/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+</head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../flowistry_ifc/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -232,10 +234,10 @@
 <span class="kw">use </span>rustc_utils::{BodyExt, PlaceExt, SpanExt};
 <span class="kw">use </span>termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
-<span class="kw">fn </span>implements_trait&lt;<span class="lifetime">&#39;tcx</span>&gt;(
-  tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-  param_env: ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-  ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+<span class="kw">fn </span>implements_trait&lt;<span class="lifetime">'tcx</span>&gt;(
+  tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
+  param_env: ParamEnv&lt;<span class="lifetime">'tcx</span>&gt;,
+  ty: Ty&lt;<span class="lifetime">'tcx</span>&gt;,
   trait_def_id: DefId,
 ) -&gt; bool {
   <span class="kw">let </span>infcx = tcx.infer_ctxt().build();
@@ -258,7 +260,7 @@
   <span class="kw">let </span>def_id = tcx.hir().body_owner_def_id(<span class="kw-2">*</span>body_id).to_def_id();
 
   <span class="macro">log::debug!</span>(
-    <span class="string">&quot;Crates: {:?}&quot;</span>,
+    <span class="string">"Crates: {:?}"</span>,
     tcx
       .crates(())
       .iter()
@@ -268,7 +270,7 @@
   <span class="kw">let </span>ifc_crate = <span class="kw">match </span>tcx
     .crates(())
     .iter()
-    .find(|krate| tcx.crate_name(<span class="kw-2">**</span>krate).as_str() == <span class="string">&quot;flowistry_ifc_traits&quot;</span>)
+    .find(|krate| tcx.crate_name(<span class="kw-2">**</span>krate).as_str() == <span class="string">"flowistry_ifc_traits"</span>)
   {
     <span class="prelude-val">Some</span>(c) =&gt; <span class="kw-2">*</span>c,
     <span class="prelude-val">None </span>=&gt; {
@@ -308,8 +310,8 @@
       })
       .collect()
   };
-  <span class="kw">let </span>secure_places = find_implements(ifc_items[<span class="string">&quot;Secure&quot;</span>]);
-  <span class="kw">let </span>insecure_places = find_implements(ifc_items[<span class="string">&quot;Insecure&quot;</span>]);
+  <span class="kw">let </span>secure_places = find_implements(ifc_items[<span class="string">"Secure"</span>]);
+  <span class="kw">let </span>insecure_places = find_implements(ifc_items[<span class="string">"Insecure"</span>]);
 
   <span class="kw">let </span>final_state = body
     .all_returns()
@@ -355,25 +357,25 @@
         <span class="kw">let </span>first = lines.lines.first().unwrap();
         <span class="kw">let </span>last = lines.lines.last().unwrap();
         <span class="macro">format!</span>(
-          <span class="string">&quot;{}:{}-{}:{}&quot;</span>,
+          <span class="string">"{}:{}-{}:{}"</span>,
           first.line_index + <span class="number">1</span>,
           first.start_col.<span class="number">0</span>,
           last.line_index + <span class="number">1</span>,
           last.end_col.<span class="number">0
         </span>)
       }
-      <span class="prelude-val">None </span>=&gt; <span class="string">&quot;&lt;in macro expansion&gt;&quot;</span>.to_owned(),
+      <span class="prelude-val">None </span>=&gt; <span class="string">"&lt;in macro expansion&gt;"</span>.to_owned(),
     };
 
     <span class="kw">let </span>span_contents = |span| <span class="kw">match </span>span {
       <span class="prelude-val">Some</span>(span) =&gt; source_map.span_to_snippet(span).unwrap(),
-      <span class="prelude-val">None </span>=&gt; <span class="string">&quot;&lt;in macro expansion&gt;&quot;</span>.to_owned(),
+      <span class="prelude-val">None </span>=&gt; <span class="string">"&lt;in macro expansion&gt;"</span>.to_owned(),
     };
 
     stdout.set_color(<span class="kw-2">&amp;</span>red_spec)<span class="question-mark">?</span>;
     <span class="macro">writeln!</span>(
       stdout,
-      <span class="string">&quot;ERROR: insecure flow in {filename} from data at {src_span}:&quot;</span>,
+      <span class="string">"ERROR: insecure flow in {filename} from data at {src_span}:"</span>,
       filename = filename
         .local_path_if_available()
         .file_name()
@@ -385,21 +387,21 @@
     stdout.set_color(<span class="kw-2">&amp;</span>black_spec)<span class="question-mark">?</span>;
     <span class="macro">writeln!</span>(
       stdout,
-      <span class="string">&quot;  {src_snippet}&quot;</span>,
+      <span class="string">"  {src_snippet}"</span>,
       src_snippet = span_contents(src_span)
     )<span class="question-mark">?</span>;
 
     stdout.set_color(<span class="kw-2">&amp;</span>red_spec)<span class="question-mark">?</span>;
     <span class="macro">writeln!</span>(
       stdout,
-      <span class="string">&quot;to data at {dst_span}:&quot;</span>,
+      <span class="string">"to data at {dst_span}:"</span>,
       dst_span = span_range(dst_span)
     )<span class="question-mark">?</span>;
 
     stdout.set_color(<span class="kw-2">&amp;</span>black_spec)<span class="question-mark">?</span>;
     <span class="macro">writeln!</span>(
       stdout,
-      <span class="string">&quot;  {dst_snippet}\n&quot;</span>,
+      <span class="string">"  {dst_snippet}\n"</span>,
       dst_snippet = span_contents(dst_span)
     )<span class="question-mark">?</span>;
   }

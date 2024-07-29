@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/flate2-1.0.28/src/gz/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="flate2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../flate2/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/flate2-1.0.30/src/gz/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="flate2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../flate2/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -677,22 +679,22 @@
 }
 
 <span class="kw">impl </span>GzHeader {
-    <span class="doccomment">/// Returns the `filename` field of this gzip stream&#39;s header, if present.
+    <span class="doccomment">/// Returns the `filename` field of this gzip stream's header, if present.
     </span><span class="kw">pub fn </span>filename(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
         <span class="self">self</span>.filename.as_ref().map(|s| <span class="kw-2">&amp;</span>s[..])
     }
 
-    <span class="doccomment">/// Returns the `extra` field of this gzip stream&#39;s header, if present.
+    <span class="doccomment">/// Returns the `extra` field of this gzip stream's header, if present.
     </span><span class="kw">pub fn </span>extra(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
         <span class="self">self</span>.extra.as_ref().map(|s| <span class="kw-2">&amp;</span>s[..])
     }
 
-    <span class="doccomment">/// Returns the `comment` field of this gzip stream&#39;s header, if present.
+    <span class="doccomment">/// Returns the `comment` field of this gzip stream's header, if present.
     </span><span class="kw">pub fn </span>comment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
         <span class="self">self</span>.comment.as_ref().map(|s| <span class="kw-2">&amp;</span>s[..])
     }
 
-    <span class="doccomment">/// Returns the `operating_system` field of this gzip stream&#39;s header.
+    <span class="doccomment">/// Returns the `operating_system` field of this gzip stream's header.
     ///
     /// There are predefined values for various operating systems.
     /// 255 means that the value is unknown.
@@ -764,7 +766,7 @@
         }
     }
 
-    <span class="kw">fn </span>parse&lt;<span class="lifetime">&#39;a</span>, R: Read&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, r: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">fn </span>parse&lt;<span class="lifetime">'a</span>, R: Read&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, r: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.state {
                 GzHeaderState::Start(count, buffer) =&gt; {
@@ -780,7 +782,7 @@
                         <span class="kw">return </span><span class="prelude-val">Err</span>(bad_header());
                     }
                     <span class="self">self</span>.flags = buffer[<span class="number">3</span>];
-                    <span class="comment">// RFC1952: &quot;must give an error indication if any reserved bit is non-zero&quot;
+                    <span class="comment">// RFC1952: "must give an error indication if any reserved bit is non-zero"
                     </span><span class="kw">if </span><span class="self">self</span>.flags &amp; FRESERVED != <span class="number">0 </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(bad_header());
                     }
@@ -831,7 +833,7 @@
                         read_to_nul(r, filename)<span class="question-mark">?</span>;
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(crc) = crc {
                             crc.update(filename);
-                            crc.update(<span class="string">b&quot;\0&quot;</span>);
+                            crc.update(<span class="string">b"\0"</span>);
                         }
                     }
                     <span class="self">self</span>.state = GzHeaderState::Comment(crc.take());
@@ -842,7 +844,7 @@
                         read_to_nul(r, comment)<span class="question-mark">?</span>;
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(crc) = crc {
                             crc.update(comment);
-                            crc.update(<span class="string">b&quot;\0&quot;</span>);
+                            crc.update(<span class="string">b"\0"</span>);
                         }
                     }
                     <span class="self">self</span>.state = GzHeaderState::Crc(crc.take(), <span class="number">0</span>, [<span class="number">0</span>; <span class="number">2</span>]);
@@ -907,7 +909,7 @@
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="kw">if </span>buffer.len() == MAX_HEADER_BUF =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(
                     ErrorKind::InvalidInput,
-                    <span class="string">&quot;gzip header field too long&quot;</span>,
+                    <span class="string">"gzip header field too long"</span>,
                 ));
             }
             <span class="prelude-val">Some</span>(byte) =&gt; {
@@ -925,13 +927,13 @@
 }
 
 <span class="kw">fn </span>bad_header() -&gt; Error {
-    Error::new(ErrorKind::InvalidInput, <span class="string">&quot;invalid gzip header&quot;</span>)
+    Error::new(ErrorKind::InvalidInput, <span class="string">"invalid gzip header"</span>)
 }
 
 <span class="kw">fn </span>corrupt() -&gt; Error {
     Error::new(
         ErrorKind::InvalidInput,
-        <span class="string">&quot;corrupt gzip stream does not have a matching checksum&quot;</span>,
+        <span class="string">"corrupt gzip stream does not have a matching checksum"</span>,
     )
 }
 
@@ -951,12 +953,12 @@
 /// // GzBuilder opens a file and writes a sample string using GzBuilder pattern
 ///
 /// # fn sample_builder() -&gt; Result&lt;(), io::Error&gt; {
-/// let f = File::create(&quot;examples/hello_world.gz&quot;)?;
+/// let f = File::create("examples/hello_world.gz")?;
 /// let mut gz = GzBuilder::new()
-///                 .filename(&quot;hello_world.txt&quot;)
-///                 .comment(&quot;test file, please delete&quot;)
+///                 .filename("hello_world.txt")
+///                 .comment("test file, please delete")
 ///                 .write(f, Compression::default());
-/// gz.write_all(b&quot;hello world&quot;)?;
+/// gz.write_all(b"hello world")?;
 /// gz.finish()?;
 /// # Ok(())
 /// # }
@@ -1095,8 +1097,8 @@
 
         <span class="comment">// Typically this byte indicates what OS the gz stream was created on,
         // but in an effort to have cross-platform reproducible streams just
-        // default this value to 255. I&#39;m not sure that if we &quot;correctly&quot; set
-        // this it&#39;d do anything anyway...
+        // default this value to 255. I'm not sure that if we "correctly" set
+        // this it'd do anything anyway...
         </span>header[<span class="number">9</span>] = operating_system.unwrap_or(<span class="number">255</span>);
         header
     }
@@ -1113,12 +1115,12 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>roundtrip() {
         <span class="kw">let </span><span class="kw-2">mut </span>e = write::GzEncoder::new(Vec::new(), Compression::default());
-        e.write_all(<span class="string">b&quot;foo bar baz&quot;</span>).unwrap();
+        e.write_all(<span class="string">b"foo bar baz"</span>).unwrap();
         <span class="kw">let </span>inner = e.finish().unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>d = read::GzDecoder::new(<span class="kw-2">&amp;</span>inner[..]);
         <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
         d.read_to_string(<span class="kw-2">&amp;mut </span>s).unwrap();
-        <span class="macro">assert_eq!</span>(s, <span class="string">&quot;foo bar baz&quot;</span>);
+        <span class="macro">assert_eq!</span>(s, <span class="string">"foo bar baz"</span>);
     }
 
     <span class="attr">#[test]
@@ -1128,7 +1130,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>d = read::GzDecoder::new(<span class="kw-2">&amp;</span>inner[..]);
         <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
         d.read_to_string(<span class="kw-2">&amp;mut </span>s).unwrap();
-        <span class="macro">assert_eq!</span>(s, <span class="string">&quot;&quot;</span>);
+        <span class="macro">assert_eq!</span>(s, <span class="string">""</span>);
     }
 
     <span class="attr">#[test]
@@ -1187,8 +1189,8 @@
         <span class="comment">/*
          Update a running crc with the bytes buf and return
          the updated crc. The crc should be initialized to zero. Pre- and
-         post-conditioning (one&#39;s complement) is performed within this
-         function so it shouldn&#39;t be done by the caller.
+         post-conditioning (one's complement) is performed within this
+         function so it shouldn't be done by the caller.
         */
         </span><span class="kw">fn </span>update_crc(<span class="kw-2">&amp;</span><span class="self">self</span>, crc: u32, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; u32 {
             <span class="kw">let </span><span class="kw-2">mut </span>c = crc ^ <span class="number">0xffffffff</span>;
@@ -1210,8 +1212,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>header = GzBuilder::new()
             .mtime(<span class="number">1234</span>)
             .operating_system(<span class="number">57</span>)
-            .filename(<span class="string">&quot;filename&quot;</span>)
-            .comment(<span class="string">&quot;comment&quot;</span>)
+            .filename(<span class="string">"filename"</span>)
+            .comment(<span class="string">"comment"</span>)
             .into_header(Compression::fast());
 
         <span class="comment">// Add a CRC to the header
@@ -1228,8 +1230,8 @@
             actual,
             <span class="kw-2">&amp;</span>GzHeader {
                 extra: <span class="prelude-val">None</span>,
-                filename: <span class="prelude-val">Some</span>(<span class="string">&quot;filename&quot;</span>.as_bytes().to_vec()),
-                comment: <span class="prelude-val">Some</span>(<span class="string">&quot;comment&quot;</span>.as_bytes().to_vec()),
+                filename: <span class="prelude-val">Some</span>(<span class="string">"filename"</span>.as_bytes().to_vec()),
+                comment: <span class="prelude-val">Some</span>(<span class="string">"comment"</span>.as_bytes().to_vec()),
                 operating_system: <span class="number">57</span>,
                 mtime: <span class="number">1234
             </span>}
@@ -1240,14 +1242,14 @@
     </span><span class="kw">fn </span>fields() {
         <span class="kw">let </span>r = <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>];
         <span class="kw">let </span>e = GzBuilder::new()
-            .filename(<span class="string">&quot;foo.rs&quot;</span>)
-            .comment(<span class="string">&quot;bar&quot;</span>)
+            .filename(<span class="string">"foo.rs"</span>)
+            .comment(<span class="string">"bar"</span>)
             .extra(<span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])
             .read(<span class="kw-2">&amp;</span>r[..], Compression::default());
         <span class="kw">let </span><span class="kw-2">mut </span>d = read::GzDecoder::new(e);
-        <span class="macro">assert_eq!</span>(d.header().unwrap().filename(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;foo.rs&quot;</span>[..]));
-        <span class="macro">assert_eq!</span>(d.header().unwrap().comment(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;bar&quot;</span>[..]));
-        <span class="macro">assert_eq!</span>(d.header().unwrap().extra(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b&quot;\x00\x01\x02\x03&quot;</span>[..]));
+        <span class="macro">assert_eq!</span>(d.header().unwrap().filename(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b"foo.rs"</span>[..]));
+        <span class="macro">assert_eq!</span>(d.header().unwrap().comment(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b"bar"</span>[..]));
+        <span class="macro">assert_eq!</span>(d.header().unwrap().extra(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b"\x00\x01\x02\x03"</span>[..]));
         <span class="kw">let </span><span class="kw-2">mut </span>res = Vec::new();
         d.read_to_end(<span class="kw-2">&amp;mut </span>res).unwrap();
         <span class="macro">assert_eq!</span>(res, <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>]);
@@ -1256,14 +1258,14 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>keep_reading_after_end() {
         <span class="kw">let </span><span class="kw-2">mut </span>e = write::GzEncoder::new(Vec::new(), Compression::default());
-        e.write_all(<span class="string">b&quot;foo bar baz&quot;</span>).unwrap();
+        e.write_all(<span class="string">b"foo bar baz"</span>).unwrap();
         <span class="kw">let </span>inner = e.finish().unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>d = read::GzDecoder::new(<span class="kw-2">&amp;</span>inner[..]);
         <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
         d.read_to_string(<span class="kw-2">&amp;mut </span>s).unwrap();
-        <span class="macro">assert_eq!</span>(s, <span class="string">&quot;foo bar baz&quot;</span>);
+        <span class="macro">assert_eq!</span>(s, <span class="string">"foo bar baz"</span>);
         d.read_to_string(<span class="kw-2">&amp;mut </span>s).unwrap();
-        <span class="macro">assert_eq!</span>(s, <span class="string">&quot;foo bar baz&quot;</span>);
+        <span class="macro">assert_eq!</span>(s, <span class="string">"foo bar baz"</span>);
     }
 
     <span class="attr">#[test]
@@ -1282,7 +1284,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>flush_after_write() {
         <span class="kw">let </span><span class="kw-2">mut </span>f = write::GzEncoder::new(Vec::new(), Compression::default());
-        <span class="macro">write!</span>(f, <span class="string">&quot;Hello world&quot;</span>).unwrap();
+        <span class="macro">write!</span>(f, <span class="string">"Hello world"</span>).unwrap();
         f.flush().unwrap();
     }
 }

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/splitmut-0.2.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="splitmut" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../splitmut/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/splitmut-0.2.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="splitmut" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../splitmut/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -372,24 +374,24 @@
 //!
 //! // Create a hashmap
 //! let mut h = HashMap::new();
-//! h.insert(1, &quot;Hello&quot;);
-//! h.insert(2, &quot;world&quot;);
+//! h.insert(1, "Hello");
+//! h.insert(2, "world");
 //!
 //! // Swap two values easily
 //! {
 //!     let (m1, m2) = h.get2_mut(&amp;1, &amp;2);
 //!     std::mem::swap(m1.unwrap(), m2.unwrap());
 //! }
-//! assert_eq!(h.get(&amp;1), Some(&amp;&quot;world&quot;));
-//! assert_eq!(h.get(&amp;2), Some(&amp;&quot;Hello&quot;));
+//! assert_eq!(h.get(&amp;1), Some(&amp;"world"));
+//! assert_eq!(h.get(&amp;2), Some(&amp;"Hello"));
 //!
 //! // Show error handling
 //! let (m0, m1a, m1b) = h.get3_mut(&amp;0, &amp;1, &amp;1);
-//! // No value for the key &quot;0&quot;
+//! // No value for the key "0"
 //! assert_eq!(m0, Err(SplitMutError::NoValue));
-//! // First value for the key &quot;1&quot; is returned successfully
-//! assert_eq!(m1a, Ok(&amp;mut &quot;world&quot;));
-//! // Second value for the key &quot;1&quot; returns an error
+//! // First value for the key "1" is returned successfully
+//! assert_eq!(m1a, Ok(&amp;mut "world"));
+//! // Second value for the key "1" returns an error
 //! assert_eq!(m1b, Err(SplitMutError::SameValue));
 //! ```
 //!
@@ -410,10 +412,10 @@
 }
 
 <span class="kw">impl </span>std::error::Error <span class="kw">for </span>SplitMutError {
-    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
          <span class="kw">match </span><span class="self">self </span>{
-              <span class="kw-2">&amp;</span>SplitMutError::NoValue =&gt; <span class="string">&quot;No value&quot;</span>,
-              <span class="kw-2">&amp;</span>SplitMutError::SameValue =&gt; <span class="string">&quot;Duplicate values&quot;</span>,
+              <span class="kw-2">&amp;</span>SplitMutError::NoValue =&gt; <span class="string">"No value"</span>,
+              <span class="kw-2">&amp;</span>SplitMutError::SameValue =&gt; <span class="string">"Duplicate values"</span>,
          }
     }
 }
@@ -443,7 +445,7 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">unsafe fn </span>from_r&lt;<span class="lifetime">&#39;a</span>, V&gt;(a: R&lt;V&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V, SplitMutError&gt; { a.map(|aa| <span class="kw-2">&amp;mut *</span>aa) } 
+</span><span class="kw">unsafe fn </span>from_r&lt;<span class="lifetime">'a</span>, V&gt;(a: R&lt;V&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V, SplitMutError&gt; { a.map(|aa| <span class="kw-2">&amp;mut *</span>aa) } 
 
 
 <span class="doccomment">/// Just add `use splitmut::SplitMut;` to have these methods working on
@@ -512,12 +514,12 @@
     /// ```
     /// use splitmut::SplitMut;
     ///
-    /// let mut h = vec![&quot;Hello&quot;, &quot;world&quot;, &quot;!&quot;];
+    /// let mut h = vec!["Hello", "world", "!"];
     /// let mut z = h.get_muts();
     /// let a = z.at(0);
     /// let b = z.at(1);
-    /// assert_eq!(a, Ok(&amp;mut &quot;Hello&quot;));
-    /// assert_eq!(b, Ok(&amp;mut &quot;world&quot;));
+    /// assert_eq!(a, Ok(&amp;mut "Hello"));
+    /// assert_eq!(b, Ok(&amp;mut "world"));
     /// ```
     </span><span class="kw">fn </span>get_muts(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; GetMuts&lt;K, V, <span class="self">Self</span>&gt; { GetMuts(<span class="self">self</span>, HashSet::new(), PhantomData) }
 
@@ -530,9 +532,9 @@
     /// use splitmut::{SplitMut, SplitMutError};
     ///
     /// let mut h = BTreeMap::new();
-    /// h.insert(String::from(&quot;borrow&quot;), 1);   
-    /// h.insert(String::from(&quot;me&quot;), 2);
-    /// let slice = [&quot;me&quot;, &quot;borrow&quot;, &quot;me&quot;];
+    /// h.insert(String::from("borrow"), 1);   
+    /// h.insert(String::from("me"), 2);
+    /// let slice = ["me", "borrow", "me"];
     /// let z: Vec&lt;_&gt; = h.get_mut_iter(slice.into_iter().map(|&amp;k| k)).collect();
     /// assert_eq!(&amp;*z, [Ok(&amp;mut 2), Ok(&amp;mut 1), Err(SplitMutError::SameValue)]);
     /// ```
@@ -579,15 +581,15 @@
 }
 
 <span class="doccomment">/// Wrapper struct for the get_muts function. 
-</span><span class="kw">pub struct </span>GetMuts&lt;<span class="lifetime">&#39;a</span>, K, V, A: <span class="lifetime">&#39;a </span>+ SplitMut&lt;K, V&gt; + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>A, HashSet&lt;<span class="kw-2">*mut </span>V&gt;, PhantomData&lt;<span class="kw-2">*const </span>K&gt;);
+</span><span class="kw">pub struct </span>GetMuts&lt;<span class="lifetime">'a</span>, K, V, A: <span class="lifetime">'a </span>+ SplitMut&lt;K, V&gt; + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>A, HashSet&lt;<span class="kw-2">*mut </span>V&gt;, PhantomData&lt;<span class="kw-2">*const </span>K&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V, A: <span class="lifetime">&#39;a </span>+ SplitMut&lt;K, V&gt; + <span class="question-mark">?</span>Sized&gt; GetMuts&lt;<span class="lifetime">&#39;a</span>, K, V, A&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, K, V, A: <span class="lifetime">'a </span>+ SplitMut&lt;K, V&gt; + <span class="question-mark">?</span>Sized&gt; GetMuts&lt;<span class="lifetime">'a</span>, K, V, A&gt; {
     <span class="doccomment">/// Returns a mutable reference with the same lifetime as the
     /// original collection, i e, it allows several distinct mutable references to
     /// be alive simultaneously.
     ///
     /// It returnes an error if the value does not exist or has already been returned.
-    </span><span class="kw">pub fn </span>at(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: K) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V, SplitMutError&gt; {
+    </span><span class="kw">pub fn </span>at(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: K) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V, SplitMutError&gt; {
         <span class="kw">let </span>p = <span class="macro">try!</span>(to_r(<span class="self">self</span>.<span class="number">0</span>.get1_mut(k)));
         <span class="kw">if </span>!<span class="self">self</span>.<span class="number">1</span>.insert(p) { <span class="kw">return </span><span class="prelude-val">Err</span>(SplitMutError::SameValue) };
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>p })
@@ -596,49 +598,49 @@
 
 
 <span class="doccomment">/// Wrapper struct for the get_mut_iter function. 
-</span><span class="kw">pub struct </span>GetMutIter&lt;<span class="lifetime">&#39;a</span>, K, V, A: <span class="lifetime">&#39;a </span>+ SplitMut&lt;K, V&gt; + <span class="question-mark">?</span>Sized, I&gt;(GetMuts&lt;<span class="lifetime">&#39;a</span>, K, V, A&gt;, I);
+</span><span class="kw">pub struct </span>GetMutIter&lt;<span class="lifetime">'a</span>, K, V, A: <span class="lifetime">'a </span>+ SplitMut&lt;K, V&gt; + <span class="question-mark">?</span>Sized, I&gt;(GetMuts&lt;<span class="lifetime">'a</span>, K, V, A&gt;, I);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V: <span class="lifetime">&#39;a</span>, A: <span class="lifetime">&#39;a </span>+ SplitMut&lt;K, V&gt; + <span class="question-mark">?</span>Sized, I: Iterator&lt;Item=K&gt;&gt; Iterator <span class="kw">for </span>GetMutIter&lt;<span class="lifetime">&#39;a</span>, K, V, A, I&gt; {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V, SplitMutError&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, K, V: <span class="lifetime">'a</span>, A: <span class="lifetime">'a </span>+ SplitMut&lt;K, V&gt; + <span class="question-mark">?</span>Sized, I: Iterator&lt;Item=K&gt;&gt; Iterator <span class="kw">for </span>GetMutIter&lt;<span class="lifetime">'a</span>, K, V, A, I&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V, SplitMutError&gt;;
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="self">self</span>.<span class="number">1</span>.next().map(|k| <span class="self">self</span>.<span class="number">0</span>.at(k))
     }
 }
 
 
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>, V&gt; SplitMut&lt;usize, V&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[V] {
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">'a</span>, V&gt; SplitMut&lt;usize, V&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[V] {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>get1_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>V&gt; { <span class="self">self</span>.get_mut(k) }
     <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>get1_unchecked_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: usize) -&gt; <span class="kw-2">&amp;mut </span>V { <span class="self">self</span>.get_unchecked_mut(k) }
 }
 
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>, V&gt; SplitMut&lt;usize, V&gt; <span class="kw">for </span>Vec&lt;V&gt; {
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">'a</span>, V&gt; SplitMut&lt;usize, V&gt; <span class="kw">for </span>Vec&lt;V&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>get1_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>V&gt; { <span class="self">self</span>.get_mut(k) }
     <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>get1_unchecked_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: usize) -&gt; <span class="kw-2">&amp;mut </span>V { <span class="self">self</span>.get_unchecked_mut(k) }
 }
 
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>, V&gt; SplitMut&lt;usize, V&gt; <span class="kw">for </span>VecDeque&lt;V&gt; {
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">'a</span>, V&gt; SplitMut&lt;usize, V&gt; <span class="kw">for </span>VecDeque&lt;V&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>get1_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>V&gt; { <span class="self">self</span>.get_mut(k) }
     <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>get1_unchecked_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: usize) -&gt; <span class="kw-2">&amp;mut </span>V { std::mem::transmute(<span class="self">self</span>.get_mut(k)) }
 }
 
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>, K: hash::Hash + Eq + borrow::Borrow&lt;Q&gt;, Q: hash::Hash + Eq + <span class="question-mark">?</span>Sized, V, S: hash::BuildHasher&gt; SplitMut&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Q, V&gt; <span class="kw">for </span>HashMap&lt;K, V, S&gt; {
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">'a</span>, K: hash::Hash + Eq + borrow::Borrow&lt;Q&gt;, Q: hash::Hash + Eq + <span class="question-mark">?</span>Sized, V, S: hash::BuildHasher&gt; SplitMut&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Q, V&gt; <span class="kw">for </span>HashMap&lt;K, V, S&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>get1_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>V&gt; { <span class="self">self</span>.get_mut(k) }
+    </span><span class="kw">fn </span>get1_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>V&gt; { <span class="self">self</span>.get_mut(k) }
     <span class="attr">#[inline]
-    </span><span class="kw">unsafe fn </span>get1_unchecked_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Q) -&gt; <span class="kw-2">&amp;mut </span>V { std::mem::transmute(<span class="self">self</span>.get_mut(k)) }
+    </span><span class="kw">unsafe fn </span>get1_unchecked_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Q) -&gt; <span class="kw-2">&amp;mut </span>V { std::mem::transmute(<span class="self">self</span>.get_mut(k)) }
 }
 
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>, K: Ord + borrow::Borrow&lt;Q&gt;, Q: Ord + <span class="question-mark">?</span>Sized, V&gt; SplitMut&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Q, V&gt; <span class="kw">for </span>BTreeMap&lt;K, V&gt; {
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">'a</span>, K: Ord + borrow::Borrow&lt;Q&gt;, Q: Ord + <span class="question-mark">?</span>Sized, V&gt; SplitMut&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Q, V&gt; <span class="kw">for </span>BTreeMap&lt;K, V&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>get1_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>V&gt; { <span class="self">self</span>.get_mut(k) }
+    </span><span class="kw">fn </span>get1_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>V&gt; { <span class="self">self</span>.get_mut(k) }
     <span class="attr">#[inline]
-    </span><span class="kw">unsafe fn </span>get1_unchecked_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Q) -&gt; <span class="kw-2">&amp;mut </span>V { std::mem::transmute(<span class="self">self</span>.get_mut(k)) }
+    </span><span class="kw">unsafe fn </span>get1_unchecked_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, k: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Q) -&gt; <span class="kw-2">&amp;mut </span>V { std::mem::transmute(<span class="self">self</span>.get_mut(k)) }
 }
 
 <span class="attr">#[test]
@@ -664,9 +666,9 @@
 <span class="attr">#[test]
 </span><span class="kw">fn </span>tree_borrow() {
     <span class="kw">let </span><span class="kw-2">mut </span>h = BTreeMap::new();
-    h.insert(String::from(<span class="string">&quot;borrow&quot;</span>), <span class="number">1</span>);   
-    h.insert(String::from(<span class="string">&quot;me&quot;</span>), <span class="number">2</span>);
-    <span class="kw">let </span>slice = [<span class="string">&quot;me&quot;</span>, <span class="string">&quot;borrow&quot;</span>, <span class="string">&quot;me&quot;</span>];
+    h.insert(String::from(<span class="string">"borrow"</span>), <span class="number">1</span>);   
+    h.insert(String::from(<span class="string">"me"</span>), <span class="number">2</span>);
+    <span class="kw">let </span>slice = [<span class="string">"me"</span>, <span class="string">"borrow"</span>, <span class="string">"me"</span>];
     <span class="kw">let </span>z: Vec&lt;<span class="kw">_</span>&gt; = h.get_mut_iter(slice.into_iter().map(|<span class="kw-2">&amp;</span>k| k)).collect();
     <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>z, [<span class="prelude-val">Ok</span>(<span class="kw-2">&amp;mut </span><span class="number">2</span>), <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;mut </span><span class="number">1</span>), <span class="prelude-val">Err</span>(SplitMutError::SameValue)]);
 }
@@ -693,23 +695,23 @@
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>vec() {
-    <span class="kw">let </span><span class="kw-2">mut </span>h = <span class="macro">vec!</span>[<span class="string">&quot;Hello&quot;</span>, <span class="string">&quot;world&quot;</span>, <span class="string">&quot;!&quot;</span>];
+    <span class="kw">let </span><span class="kw-2">mut </span>h = <span class="macro">vec!</span>[<span class="string">"Hello"</span>, <span class="string">"world"</span>, <span class="string">"!"</span>];
     { <span class="kw">let </span>(a, b, c) = h.get3_mut(<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>);
-      <span class="kw-2">*</span>c.unwrap() = <span class="string">&quot;universe&quot;</span>;
+      <span class="kw-2">*</span>c.unwrap() = <span class="string">"universe"</span>;
       std::mem::swap(a.unwrap(), b.unwrap());
     }
-    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>h, <span class="kw-2">&amp;</span>[<span class="string">&quot;world&quot;</span>, <span class="string">&quot;Hello&quot;</span>, <span class="string">&quot;universe&quot;</span>]);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>h, <span class="kw-2">&amp;</span>[<span class="string">"world"</span>, <span class="string">"Hello"</span>, <span class="string">"universe"</span>]);
 
     {
         <span class="kw">let </span><span class="kw-2">mut </span>z = h.get_muts();
         <span class="kw">let </span>a = z.at(<span class="number">0</span>);
         <span class="kw">let </span>b = z.at(<span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(a, <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;mut </span><span class="string">&quot;world&quot;</span>));
-        <span class="macro">assert_eq!</span>(b, <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;mut </span><span class="string">&quot;Hello&quot;</span>));
+        <span class="macro">assert_eq!</span>(a, <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;mut </span><span class="string">"world"</span>));
+        <span class="macro">assert_eq!</span>(b, <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;mut </span><span class="string">"Hello"</span>));
         std::mem::swap(a.unwrap(), b.unwrap());
         <span class="macro">assert_eq!</span>(z.at(<span class="number">0</span>), <span class="prelude-val">Err</span>(SplitMutError::SameValue));
         <span class="macro">assert_eq!</span>(z.at(<span class="number">3</span>), <span class="prelude-val">Err</span>(SplitMutError::NoValue));
     }
-    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>h, <span class="kw-2">&amp;</span>[<span class="string">&quot;Hello&quot;</span>, <span class="string">&quot;world&quot;</span>, <span class="string">&quot;universe&quot;</span>]);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>h, <span class="kw-2">&amp;</span>[<span class="string">"Hello"</span>, <span class="string">"world"</span>, <span class="string">"universe"</span>]);
 }
 </code></pre></div></section></main></body></html>

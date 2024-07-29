@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/infoflow/analysis.rs`."><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="flowistry" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/flowistry/src/infoflow/analysis.rs`."><title>analysis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="flowistry" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
 <script>
@@ -14,7 +14,9 @@
     });
 </script>
 
-</head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../flowistry/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+</head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../flowistry/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -321,7 +323,7 @@
   mir::{visit::Visitor, <span class="kw-2">*</span>},
   ty::TyCtxt,
 };
-<span class="kw">use </span>rustc_mir_dataflow::{Analysis, AnalysisDomain, Forward};
+<span class="kw">use </span>rustc_mir_dataflow::{Analysis, AnalysisDomain};
 <span class="kw">use </span>rustc_utils::{
   mir::{
     control_dependencies::ControlDependencies,
@@ -358,47 +360,47 @@
 /// # **Note:** reading dependencies from `FlowDomain`
 /// In general, you should *not* use [`FlowDomain::row_set`] directly. This is because the `FlowDomain` does not have exactly the same structure as
 /// the $\Theta$ described in the paper. Based on performance profiling, we have determined that the size of the `FlowDomain` is the primary factor that
-/// increases Flowistry&#39;s memory usage and runtime. So we generally trade-off making `FlowDomain` smaller in exchange for making dependency lookups more
+/// increases Flowistry's memory usage and runtime. So we generally trade-off making `FlowDomain` smaller in exchange for making dependency lookups more
 /// computationally expensive.
 ///
-/// Instead, you should use [`FlowAnalysis::deps_for`](crate::infoflow::FlowAnalysis::deps_for) to read a place&#39;s dependencies out of a given `FlowDomain`.
+/// Instead, you should use [`FlowAnalysis::deps_for`](crate::infoflow::FlowAnalysis::deps_for) to read a place's dependencies out of a given `FlowDomain`.
 ///
 /// # **Note:** arguments as dependencies
-/// Because function arguments are never initialized, there is no &quot;root&quot; location for argument places. This fact poses a problem for
+/// Because function arguments are never initialized, there is no "root" location for argument places. This fact poses a problem for
 /// information flow analysis: an instruction `bb[0]: _2 = _1` (where `_1` is an argument) would set $\Theta(\verb|_2|) = \Theta(\verb|_1|) \cup \\{\verb|bb0\[0\]|\\}\$.
 /// However, $\Theta(\verb|_1|)$ would be empty, so it would be imposible to determine that `_2` depends on `_1`. To solve this issue, we
 /// enrich the domain of locations with arguments, using the [`LocationOrArg`] type. Any dependency can be on *either* a location or an argument.
-</span><span class="kw">pub type </span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt; = IndexMatrix&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, LocationOrArg&gt;;
+</span><span class="kw">pub type </span>FlowDomain&lt;<span class="lifetime">'tcx</span>&gt; = IndexMatrix&lt;Place&lt;<span class="lifetime">'tcx</span>&gt;, LocationOrArg&gt;;
 
 <span class="doccomment">/// Data structure that holds context for performing the information flow analysis.
-</span><span class="kw">pub struct </span>FlowAnalysis&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+</span><span class="kw">pub struct </span>FlowAnalysis&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt; {
   <span class="doccomment">/// The type context used for the analysis.
-  </span><span class="kw">pub </span>tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  </span><span class="kw">pub </span>tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
 
   <span class="doccomment">/// The ID of the body being analyzed.
   </span><span class="kw">pub </span>def_id: DefId,
 
   <span class="doccomment">/// The body being analyzed.
-  </span><span class="kw">pub </span>body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+  </span><span class="kw">pub </span>body: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Body&lt;<span class="lifetime">'tcx</span>&gt;,
 
   <span class="doccomment">/// The metadata about places used in the analysis.
-  </span><span class="kw">pub </span>place_info: PlaceInfo&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
+  </span><span class="kw">pub </span>place_info: PlaceInfo&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt;,
 
   <span class="kw">pub</span>(<span class="kw">crate</span>) control_dependencies: ControlDependencies&lt;BasicBlock&gt;,
-  <span class="kw">pub</span>(<span class="kw">crate</span>) recurse_cache: RefCell&lt;HashMap&lt;BodyId, FlowResults&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt;&gt;,
+  <span class="kw">pub</span>(<span class="kw">crate</span>) recurse_cache: RefCell&lt;HashMap&lt;BodyId, FlowResults&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; FlowAnalysis&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt; FlowAnalysis&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt; {
   <span class="doccomment">/// Constructs (but does not execute) a new FlowAnalysis.
   </span><span class="kw">pub fn </span>new(
-    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
     def_id: DefId,
-    body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    place_info: PlaceInfo&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;,
+    body: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Body&lt;<span class="lifetime">'tcx</span>&gt;,
+    place_info: PlaceInfo&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt;,
   ) -&gt; <span class="self">Self </span>{
     <span class="kw">let </span>recurse_cache = RefCell::new(HashMap::default());
     <span class="kw">let </span>control_dependencies = body.control_dependencies();
-    <span class="macro">debug!</span>(<span class="string">&quot;Control dependencies: {control_dependencies:?}&quot;</span>);
+    <span class="macro">debug!</span>(<span class="string">"Control dependencies: {control_dependencies:?}"</span>);
     FlowAnalysis {
       tcx,
       def_id,
@@ -414,7 +416,7 @@
     <span class="self">self</span>.place_info.location_domain()
   }
 
-  <span class="kw">fn </span>influences(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; SmallVec&lt;[Place&lt;<span class="lifetime">&#39;tcx</span>&gt;; <span class="number">8</span>]&gt; {
+  <span class="kw">fn </span>influences(<span class="kw-2">&amp;</span><span class="self">self</span>, place: Place&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; SmallVec&lt;[Place&lt;<span class="lifetime">'tcx</span>&gt;; <span class="number">8</span>]&gt; {
     <span class="kw">let </span>conflicts = <span class="self">self
       </span>.place_info
       .aliases(place)
@@ -432,11 +434,11 @@
   <span class="doccomment">/// Returns all the dependencies of `place` within `state`.
   ///
   /// Prefer using this method instead of accessing `FlowDomain` directly,
-  /// unless you *really* know what you&#39;re doing.
+  /// unless you *really* know what you're doing.
   </span><span class="kw">pub fn </span>deps_for(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    state: <span class="kw-2">&amp;</span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    place: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    state: <span class="kw-2">&amp;</span>FlowDomain&lt;<span class="lifetime">'tcx</span>&gt;,
+    place: Place&lt;<span class="lifetime">'tcx</span>&gt;,
   ) -&gt; LocationOrArgSet {
     <span class="kw">let </span><span class="kw-2">mut </span>deps = LocationOrArgSet::new(<span class="self">self</span>.location_domain());
     <span class="kw">for </span>subplace <span class="kw">in </span><span class="self">self
@@ -453,11 +455,11 @@
   <span class="comment">// This function expects *ALL* the mutations that occur within a given [`Location`] at once.
   </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_function(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    state: <span class="kw-2">&amp;mut </span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    mutations: Vec&lt;Mutation&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+    state: <span class="kw-2">&amp;mut </span>FlowDomain&lt;<span class="lifetime">'tcx</span>&gt;,
+    mutations: Vec&lt;Mutation&lt;<span class="lifetime">'tcx</span>&gt;&gt;,
     location: Location,
   ) {
-    <span class="macro">debug!</span>(<span class="string">&quot;  Applying mutations {mutations:?}&quot;</span>);
+    <span class="macro">debug!</span>(<span class="string">"  Applying mutations {mutations:?}"</span>);
     <span class="kw">let </span>location_domain = <span class="self">self</span>.location_domain();
 
     <span class="comment">// Initialize dependencies to include current location of mutation.
@@ -468,12 +470,12 @@
     };
 
     <span class="comment">// Add every influence on `input` to `deps`.
-    </span><span class="kw">let </span>add_deps = |state: <span class="kw-2">&amp;</span>FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    </span><span class="kw">let </span>add_deps = |state: <span class="kw-2">&amp;</span>FlowDomain&lt;<span class="lifetime">'tcx</span>&gt;,
                     input,
                     target_deps: <span class="kw-2">&amp;mut </span>LocationOrArgSet| {
       <span class="kw">for </span>relevant <span class="kw">in </span><span class="self">self</span>.influences(input) {
         <span class="kw">let </span>relevant_deps = state.row_set(<span class="kw-2">&amp;</span><span class="self">self</span>.place_info.normalize(relevant));
-        <span class="macro">trace!</span>(<span class="string">&quot;    For relevant {relevant:?} for input {input:?} adding deps {relevant_deps:?}&quot;</span>);
+        <span class="macro">trace!</span>(<span class="string">"    For relevant {relevant:?} for input {input:?} adding deps {relevant_deps:?}"</span>);
         target_deps.union(relevant_deps);
       }
     };
@@ -493,7 +495,7 @@
         deps.insert(body.terminator_loc(block));
       }
 
-      <span class="comment">// Include dependencies of the switch&#39;s operand.
+      <span class="comment">// Include dependencies of the switch's operand.
       </span><span class="kw">let </span>terminator = body.basic_blocks[block].terminator();
       <span class="kw">if let </span>TerminatorKind::SwitchInt { discr, .. } = <span class="kw-2">&amp;</span>terminator.kind {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(discr_place) = discr.as_place() {
@@ -524,7 +526,7 @@
         .aliases(mt.mutated)
         .iter()
         .filter(|alias| {
-          <span class="comment">// Remove any conflicts that aren&#39;t actually mutable, e.g. if x : &amp;T ends up
+          <span class="comment">// Remove any conflicts that aren't actually mutable, e.g. if x : &amp;T ends up
           // as an alias of y: &amp;mut T. See test function_lifetime_alias_mut for an example.
           </span><span class="kw">let </span>has_immut = alias.iter_projections().any(|(sub_place, <span class="kw">_</span>)| {
             <span class="kw">let </span>ty = sub_place.ty(body.local_decls(), <span class="self">self</span>.tcx).ty;
@@ -534,8 +536,8 @@
         })
         .collect::&lt;SmallVec&lt;[<span class="kw">_</span>; <span class="number">8</span>]&gt;&gt;();
 
-      <span class="macro">debug!</span>(<span class="string">&quot;  Mutated places: {mutable_aliases:?}&quot;</span>);
-      <span class="macro">debug!</span>(<span class="string">&quot;    with deps {deps:?}&quot;</span>);
+      <span class="macro">debug!</span>(<span class="string">"  Mutated places: {mutable_aliases:?}"</span>);
+      <span class="macro">debug!</span>(<span class="string">"    with deps {deps:?}"</span>);
 
       <span class="kw">for </span>alias <span class="kw">in </span>mutable_aliases {
         state.union_into_row(<span class="self">self</span>.place_info.normalize(<span class="kw-2">*</span>alias), deps);
@@ -544,20 +546,20 @@
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; AnalysisDomain&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>FlowAnalysis&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-  <span class="kw">type </span>Domain = FlowDomain&lt;<span class="lifetime">&#39;tcx</span>&gt;;
-  <span class="kw">type </span>Direction = Forward;
-  <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;FlowAnalysis&quot;</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt; AnalysisDomain&lt;<span class="lifetime">'tcx</span>&gt; <span class="kw">for </span>FlowAnalysis&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt; {
+  <span class="kw">type </span>Domain = FlowDomain&lt;<span class="lifetime">'tcx</span>&gt;;
 
-  <span class="kw">fn </span>bottom_value(<span class="kw-2">&amp;</span><span class="self">self</span>, _body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self</span>::Domain {
+  <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"FlowAnalysis"</span>;
+
+  <span class="kw">fn </span>bottom_value(<span class="kw-2">&amp;</span><span class="self">self</span>, _body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; <span class="self">Self</span>::Domain {
     FlowDomain::new(<span class="self">self</span>.location_domain())
   }
 
-  <span class="kw">fn </span>initialize_start_block(<span class="kw-2">&amp;</span><span class="self">self</span>, _body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;, state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Domain) {
+  <span class="kw">fn </span>initialize_start_block(<span class="kw-2">&amp;</span><span class="self">self</span>, _body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;, state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Domain) {
     <span class="kw">for </span>(arg, loc) <span class="kw">in </span><span class="self">self</span>.place_info.all_args() {
       <span class="kw">for </span>place <span class="kw">in </span><span class="self">self</span>.place_info.conflicts(arg) {
         <span class="macro">debug!</span>(
-          <span class="string">&quot;arg={arg:?} / place={place:?} / loc={:?}&quot;</span>,
+          <span class="string">"arg={arg:?} / place={place:?} / loc={:?}"</span>,
           <span class="self">self</span>.location_domain().value(loc)
         );
         state.insert(<span class="self">self</span>.place_info.normalize(<span class="kw-2">*</span>place), loc);
@@ -566,11 +568,11 @@
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; Analysis&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>FlowAnalysis&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt; Analysis&lt;<span class="lifetime">'tcx</span>&gt; <span class="kw">for </span>FlowAnalysis&lt;<span class="lifetime">'a</span>, <span class="lifetime">'tcx</span>&gt; {
   <span class="kw">fn </span>apply_statement_effect(
     <span class="kw-2">&amp;mut </span><span class="self">self</span>,
     state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Domain,
-    statement: <span class="kw-2">&amp;</span>Statement&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    statement: <span class="kw-2">&amp;</span>Statement&lt;<span class="lifetime">'tcx</span>&gt;,
     location: Location,
   ) {
     ModularMutationVisitor::new(<span class="kw-2">&amp;</span><span class="self">self</span>.place_info, |<span class="kw">_</span>, mutations| {
@@ -579,12 +581,12 @@
     .visit_statement(statement, location);
   }
 
-  <span class="kw">fn </span>apply_terminator_effect&lt;<span class="lifetime">&#39;mir</span>&gt;(
+  <span class="kw">fn </span>apply_terminator_effect&lt;<span class="lifetime">'mir</span>&gt;(
     <span class="kw-2">&amp;mut </span><span class="self">self</span>,
     state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Domain,
-    terminator: <span class="kw-2">&amp;</span><span class="lifetime">&#39;mir </span>Terminator&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    terminator: <span class="kw-2">&amp;</span><span class="lifetime">'mir </span>Terminator&lt;<span class="lifetime">'tcx</span>&gt;,
     location: Location,
-  ) -&gt; TerminatorEdges&lt;<span class="lifetime">&#39;mir</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+  ) -&gt; TerminatorEdges&lt;<span class="lifetime">'mir</span>, <span class="lifetime">'tcx</span>&gt; {
     <span class="kw">if </span><span class="macro">matches!</span>(terminator.kind, TerminatorKind::Call { .. })
       &amp;&amp; is_extension_active(|mode| mode.context_mode == ContextMode::Recurse)
       &amp;&amp; <span class="self">self</span>.recurse_into_call(state, <span class="kw-2">&amp;</span>terminator.kind, location)
@@ -604,7 +606,7 @@
     <span class="kw-2">&amp;mut </span><span class="self">self</span>,
     _state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Domain,
     _block: BasicBlock,
-    _return_places: CallReturnPlaces&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span>&gt;,
+    _return_places: CallReturnPlaces&lt;<span class="lifetime">'_</span>, <span class="lifetime">'tcx</span>&gt;,
   ) {
   }
 }

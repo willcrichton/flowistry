@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"rustc_utils":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/nightly-rustc/rustc_errors/emitter/trait.Emitter.html\" title=\"trait rustc_errors::emitter::Emitter\">Emitter</a> for <a class=\"struct\" href=\"rustc_utils/errors/silent_emitter/struct.SilentEmitter.html\" title=\"struct rustc_utils::errors::silent_emitter::SilentEmitter\">SilentEmitter</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

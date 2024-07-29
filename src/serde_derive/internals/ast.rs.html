@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_derive-1.0.192/src/internals/ast.rs`."><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../serde_derive/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_derive-1.0.204/src/internals/ast.rs`."><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../serde_derive/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -222,42 +224,42 @@
 
 <span class="doccomment">/// A source data structure annotated with `#[derive(Serialize)]` and/or `#[derive(Deserialize)]`,
 /// parsed into an internal representation.
-</span><span class="kw">pub struct </span>Container&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>Container&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// The struct or enum name (without generics).
     </span><span class="kw">pub </span>ident: syn::Ident,
     <span class="doccomment">/// Attributes on the structure, parsed for Serde.
     </span><span class="kw">pub </span>attrs: attr::Container,
     <span class="doccomment">/// The contents of the struct or enum.
-    </span><span class="kw">pub </span>data: Data&lt;<span class="lifetime">&#39;a</span>&gt;,
+    </span><span class="kw">pub </span>data: Data&lt;<span class="lifetime">'a</span>&gt;,
     <span class="doccomment">/// Any generics on the struct or enum.
-    </span><span class="kw">pub </span>generics: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Generics,
+    </span><span class="kw">pub </span>generics: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>syn::Generics,
     <span class="doccomment">/// Original input.
-    </span><span class="kw">pub </span>original: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::DeriveInput,
+    </span><span class="kw">pub </span>original: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>syn::DeriveInput,
 }
 
 <span class="doccomment">/// The fields of a struct or enum.
 ///
 /// Analogous to `syn::Data`.
-</span><span class="kw">pub enum </span>Data&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Enum(Vec&lt;Variant&lt;<span class="lifetime">&#39;a</span>&gt;&gt;),
-    Struct(Style, Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt;),
+</span><span class="kw">pub enum </span>Data&lt;<span class="lifetime">'a</span>&gt; {
+    Enum(Vec&lt;Variant&lt;<span class="lifetime">'a</span>&gt;&gt;),
+    Struct(Style, Vec&lt;Field&lt;<span class="lifetime">'a</span>&gt;&gt;),
 }
 
 <span class="doccomment">/// A variant of an enum.
-</span><span class="kw">pub struct </span>Variant&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>Variant&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub </span>ident: syn::Ident,
     <span class="kw">pub </span>attrs: attr::Variant,
     <span class="kw">pub </span>style: Style,
-    <span class="kw">pub </span>fields: Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
-    <span class="kw">pub </span>original: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Variant,
+    <span class="kw">pub </span>fields: Vec&lt;Field&lt;<span class="lifetime">'a</span>&gt;&gt;,
+    <span class="kw">pub </span>original: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>syn::Variant,
 }
 
 <span class="doccomment">/// A field of a struct.
-</span><span class="kw">pub struct </span>Field&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>Field&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub </span>member: syn::Member,
     <span class="kw">pub </span>attrs: attr::Field,
-    <span class="kw">pub </span>ty: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Type,
-    <span class="kw">pub </span>original: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Field,
+    <span class="kw">pub </span>ty: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>syn::Type,
+    <span class="kw">pub </span>original: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>syn::Field,
 }
 
 <span class="attr">#[derive(Copy, Clone)]
@@ -272,13 +274,13 @@
     </span>Unit,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Container&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Container&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Convert the raw Syn ast into a parsed container object, collecting errors in `cx`.
     </span><span class="kw">pub fn </span>from_ast(
         cx: <span class="kw-2">&amp;</span>Ctxt,
-        item: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::DeriveInput,
+        item: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>syn::DeriveInput,
         derive: Derive,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Container&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Container&lt;<span class="lifetime">'a</span>&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>attrs = attr::Container::from_ast(cx, item);
 
         <span class="kw">let </span><span class="kw-2">mut </span>data = <span class="kw">match </span><span class="kw-2">&amp;</span>item.data {
@@ -288,7 +290,7 @@
                 Data::Struct(style, fields)
             }
             syn::Data::Union(<span class="kw">_</span>) =&gt; {
-                cx.error_spanned_by(item, <span class="string">&quot;Serde does not support derive for unions&quot;</span>);
+                cx.error_spanned_by(item, <span class="string">"Serde does not support derive for unions"</span>);
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
         };
@@ -337,8 +339,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Data&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>all_fields(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt; + <span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Data&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">pub fn </span>all_fields(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Field&lt;<span class="lifetime">'a</span>&gt;&gt; + <span class="lifetime">'a</span>&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Data::Enum(variants) =&gt; {
                 Box::new(variants.iter().flat_map(|variant| variant.fields.iter()))
@@ -352,11 +354,11 @@
     }
 }
 
-<span class="kw">fn </span>enum_from_ast&lt;<span class="lifetime">&#39;a</span>&gt;(
+<span class="kw">fn </span>enum_from_ast&lt;<span class="lifetime">'a</span>&gt;(
     cx: <span class="kw-2">&amp;</span>Ctxt,
-    variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Punctuated&lt;syn::Variant, <span class="macro">Token!</span>[,]&gt;,
+    variants: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Punctuated&lt;syn::Variant, <span class="macro">Token!</span>[,]&gt;,
     container_default: <span class="kw-2">&amp;</span>attr::Default,
-) -&gt; Vec&lt;Variant&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+) -&gt; Vec&lt;Variant&lt;<span class="lifetime">'a</span>&gt;&gt; {
     <span class="kw">let </span>variants: Vec&lt;Variant&gt; = variants
         .iter()
         .map(|variant| {
@@ -379,7 +381,7 @@
     <span class="kw">if let </span><span class="prelude-val">Some</span>(index_of_last_tagged_variant) = index_of_last_tagged_variant {
         <span class="kw">for </span>variant <span class="kw">in </span><span class="kw-2">&amp;</span>variants[..index_of_last_tagged_variant] {
             <span class="kw">if </span>variant.attrs.untagged() {
-                cx.error_spanned_by(<span class="kw-2">&amp;</span>variant.ident, <span class="string">&quot;all variants with the #[serde(untagged)] attribute must be placed at the end of the enum&quot;</span>);
+                cx.error_spanned_by(<span class="kw-2">&amp;</span>variant.ident, <span class="string">"all variants with the #[serde(untagged)] attribute must be placed at the end of the enum"</span>);
             }
         }
     }
@@ -387,12 +389,12 @@
     variants
 }
 
-<span class="kw">fn </span>struct_from_ast&lt;<span class="lifetime">&#39;a</span>&gt;(
+<span class="kw">fn </span>struct_from_ast&lt;<span class="lifetime">'a</span>&gt;(
     cx: <span class="kw-2">&amp;</span>Ctxt,
-    fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::Fields,
+    fields: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>syn::Fields,
     attrs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>attr::Variant&gt;,
     container_default: <span class="kw-2">&amp;</span>attr::Default,
-) -&gt; (Style, Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt;) {
+) -&gt; (Style, Vec&lt;Field&lt;<span class="lifetime">'a</span>&gt;&gt;) {
     <span class="kw">match </span>fields {
         syn::Fields::Named(fields) =&gt; (
             Style::Struct,
@@ -410,12 +412,12 @@
     }
 }
 
-<span class="kw">fn </span>fields_from_ast&lt;<span class="lifetime">&#39;a</span>&gt;(
+<span class="kw">fn </span>fields_from_ast&lt;<span class="lifetime">'a</span>&gt;(
     cx: <span class="kw-2">&amp;</span>Ctxt,
-    fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Punctuated&lt;syn::Field, <span class="macro">Token!</span>[,]&gt;,
+    fields: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Punctuated&lt;syn::Field, <span class="macro">Token!</span>[,]&gt;,
     attrs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>attr::Variant&gt;,
     container_default: <span class="kw-2">&amp;</span>attr::Default,
-) -&gt; Vec&lt;Field&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+) -&gt; Vec&lt;Field&lt;<span class="lifetime">'a</span>&gt;&gt; {
     fields
         .iter()
         .enumerate()

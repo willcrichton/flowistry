@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/miniz_oxide-0.7.1/src/deflate/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="miniz_oxide" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../miniz_oxide/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/miniz_oxide-0.7.4/src/deflate/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="miniz_oxide" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../miniz_oxide/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -224,7 +226,6 @@
 <a href="#224" id="224">224</a>
 <a href="#225" id="225">225</a>
 <a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains functionality for compression.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::alloc::vec;
@@ -241,7 +242,7 @@
 </span><span class="attr">#[repr(i32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 </span><span class="kw">pub enum </span>CompressionLevel {
-    <span class="doccomment">/// Don&#39;t do any compression, only output uncompressed blocks.
+    <span class="doccomment">/// Don't do any compression, only output uncompressed blocks.
     </span>NoCompression = <span class="number">0</span>,
     <span class="doccomment">/// Fast compression. Uses a special compression routine that is optimized for speed.
     </span>BestSpeed = <span class="number">1</span>,
@@ -345,38 +346,37 @@ fn tdefl_compress_mem_to_mem(
 }
 
 <span class="doccomment">/// Simple function to compress data to a vec.
-</span><span class="kw">fn </span>compress_to_vec_inner(input: <span class="kw-2">&amp;</span>[u8], level: u8, window_bits: i32, strategy: i32) -&gt; Vec&lt;u8&gt; {
+</span><span class="kw">fn </span>compress_to_vec_inner(<span class="kw-2">mut </span>input: <span class="kw-2">&amp;</span>[u8], level: u8, window_bits: i32, strategy: i32) -&gt; Vec&lt;u8&gt; {
     <span class="comment">// The comp flags function sets the zlib flag if the window_bits parameter is &gt; 0.
     </span><span class="kw">let </span>flags = create_comp_flags_from_zip_params(level.into(), window_bits, strategy);
     <span class="kw">let </span><span class="kw-2">mut </span>compressor = CompressorOxide::new(flags);
     <span class="kw">let </span><span class="kw-2">mut </span>output = <span class="macro">vec!</span>[<span class="number">0</span>; ::core::cmp::max(input.len() / <span class="number">2</span>, <span class="number">2</span>)];
 
-    <span class="kw">let </span><span class="kw-2">mut </span>in_pos = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>out_pos = <span class="number">0</span>;
     <span class="kw">loop </span>{
         <span class="kw">let </span>(status, bytes_in, bytes_out) = compress(
             <span class="kw-2">&amp;mut </span>compressor,
-            <span class="kw-2">&amp;</span>input[in_pos..],
+            input,
             <span class="kw-2">&amp;mut </span>output[out_pos..],
             TDEFLFlush::Finish,
         );
-
         out_pos += bytes_out;
-        in_pos += bytes_in;
 
         <span class="kw">match </span>status {
             TDEFLStatus::Done =&gt; {
                 output.truncate(out_pos);
                 <span class="kw">break</span>;
             }
-            TDEFLStatus::Okay =&gt; {
+            TDEFLStatus::Okay <span class="kw">if </span>bytes_in &lt;= input.len() =&gt; {
+                input = <span class="kw-2">&amp;</span>input[bytes_in..];
+
                 <span class="comment">// We need more space, so resize the vector.
                 </span><span class="kw">if </span>output.len().saturating_sub(out_pos) &lt; <span class="number">30 </span>{
                     output.resize(output.len() * <span class="number">2</span>, <span class="number">0</span>)
                 }
             }
             <span class="comment">// Not supposed to happen unless there is a bug.
-            </span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Bug! Unexpectedly failed to compress!&quot;</span>),
+            </span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Bug! Unexpectedly failed to compress!"</span>),
         }
     }
 
@@ -395,7 +395,7 @@ fn tdefl_compress_mem_to_mem(
     /// https://stackoverflow.com/questions/17398931/deflate-encoding-with-static-huffman-codes/17415203
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>compress_small() {
-        <span class="kw">let </span>test_data = <span class="string">b&quot;Deflate late&quot;</span>;
+        <span class="kw">let </span>test_data = <span class="string">b"Deflate late"</span>;
         <span class="kw">let </span>check = [
             <span class="number">0x73</span>, <span class="number">0x49</span>, <span class="number">0x4d</span>, <span class="number">0xcb</span>, <span class="number">0x49</span>, <span class="number">0x2c</span>, <span class="number">0x49</span>, <span class="number">0x55</span>, <span class="number">0x00</span>, <span class="number">0x11</span>, <span class="number">0x00</span>,
         ];
@@ -409,17 +409,17 @@ fn tdefl_compress_mem_to_mem(
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>compress_huff_only() {
-        <span class="kw">let </span>test_data = <span class="string">b&quot;Deflate late&quot;</span>;
+        <span class="kw">let </span>test_data = <span class="string">b"Deflate late"</span>;
 
         <span class="kw">let </span>res = compress_to_vec_inner(test_data, <span class="number">1</span>, <span class="number">0</span>, CompressionStrategy::HuffmanOnly <span class="kw">as </span>i32);
-        <span class="kw">let </span>d = decompress_to_vec(res.as_slice()).expect(<span class="string">&quot;Failed to decompress!&quot;</span>);
+        <span class="kw">let </span>d = decompress_to_vec(res.as_slice()).expect(<span class="string">"Failed to decompress!"</span>);
         <span class="macro">assert_eq!</span>(test_data, d.as_slice());
     }
 
     <span class="doccomment">/// Test that a raw block compresses fine.
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>compress_raw() {
-        <span class="kw">let </span>text = <span class="string">b&quot;Hello, zlib!&quot;</span>;
+        <span class="kw">let </span>text = <span class="string">b"Hello, zlib!"</span>;
         <span class="kw">let </span>encoded = {
             <span class="kw">let </span>len = text.len();
             <span class="kw">let </span>notlen = !len;
@@ -443,7 +443,7 @@ fn tdefl_compress_mem_to_mem(
         <span class="kw">let </span>test_data = [<span class="number">10</span>, <span class="number">10</span>, <span class="number">10</span>, <span class="number">10</span>, <span class="number">10</span>, <span class="number">55</span>];
         <span class="kw">let </span>c = compress_to_vec(<span class="kw-2">&amp;</span>test_data, <span class="number">9</span>);
 
-        <span class="kw">let </span>d = decompress_to_vec(c.as_slice()).expect(<span class="string">&quot;Failed to decompress!&quot;</span>);
+        <span class="kw">let </span>d = decompress_to_vec(c.as_slice()).expect(<span class="string">"Failed to decompress!"</span>);
         <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>test_data, d.as_slice());
         <span class="comment">// Check that a static block is used here, rather than a raw block
         // , so the data is actually compressed.

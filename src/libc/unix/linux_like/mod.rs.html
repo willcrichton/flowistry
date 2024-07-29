@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libc-0.2.150/src/unix/linux_like/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="libc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../libc/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libc-0.2.155/src/unix/linux_like/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="libc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../libc/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1901,6 +1903,17 @@
 <a href="#1901" id="1901">1901</a>
 <a href="#1902" id="1902">1902</a>
 <a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
 </pre></div><pre class="rust"><code><span class="kw">pub type </span>sa_family_t = u16;
 <span class="kw">pub type </span>speed_t = ::c_uint;
 <span class="kw">pub type </span>tcflag_t = ::c_uint;
@@ -1909,13 +1922,9 @@
 <span class="kw">pub type </span>key_t = ::c_int;
 <span class="kw">pub type </span>id_t = ::c_uint;
 
-<span class="attr">#[cfg_attr(feature = <span class="string">&quot;extra_traits&quot;</span>, derive(Debug))]
-</span><span class="kw">pub enum </span>timezone {}
-<span class="kw">impl </span>::Copy <span class="kw">for </span>timezone {}
-<span class="kw">impl </span>::Clone <span class="kw">for </span>timezone {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; timezone {
-        <span class="kw-2">*</span><span class="self">self
-    </span>}
+<span class="macro">missing! </span>{
+    <span class="attr">#[cfg_attr(feature = <span class="string">"extra_traits"</span>, derive(Debug))]
+    </span><span class="kw">pub enum </span>timezone {}
 }
 
 <span class="macro">s! </span>{
@@ -1969,13 +1978,13 @@
         <span class="kw">pub </span>ai_protocol: ::c_int,
         <span class="kw">pub </span>ai_addrlen: socklen_t,
 
-        <span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>,
-                  target_os = <span class="string">&quot;emscripten&quot;</span>))]
+        <span class="attr">#[cfg(any(target_os = <span class="string">"linux"</span>,
+                  target_os = <span class="string">"emscripten"</span>))]
         </span><span class="kw">pub </span>ai_addr: <span class="kw-2">*mut </span>::sockaddr,
 
         <span class="kw">pub </span>ai_canonname: <span class="kw-2">*mut </span>c_char,
 
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;android&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"android"</span>)]
         </span><span class="kw">pub </span>ai_addr: <span class="kw-2">*mut </span>::sockaddr,
 
         <span class="kw">pub </span>ai_next: <span class="kw-2">*mut </span>addrinfo,
@@ -2011,13 +2020,13 @@
 
     <span class="kw">pub struct </span>sched_param {
         <span class="kw">pub </span>sched_priority: ::c_int,
-        <span class="attr">#[cfg(any(target_env = <span class="string">&quot;musl&quot;</span>, target_os = <span class="string">&quot;emscripten&quot;</span>, target_env = <span class="string">&quot;ohos&quot;</span>))]
+        <span class="attr">#[cfg(any(target_env = <span class="string">"musl"</span>, target_os = <span class="string">"emscripten"</span>, target_env = <span class="string">"ohos"</span>))]
         </span><span class="kw">pub </span>sched_ss_low_priority: ::c_int,
-        <span class="attr">#[cfg(any(target_env = <span class="string">&quot;musl&quot;</span>, target_os = <span class="string">&quot;emscripten&quot;</span>, target_env = <span class="string">&quot;ohos&quot;</span>))]
+        <span class="attr">#[cfg(any(target_env = <span class="string">"musl"</span>, target_os = <span class="string">"emscripten"</span>, target_env = <span class="string">"ohos"</span>))]
         </span><span class="kw">pub </span>sched_ss_repl_period: ::timespec,
-        <span class="attr">#[cfg(any(target_env = <span class="string">&quot;musl&quot;</span>, target_os = <span class="string">&quot;emscripten&quot;</span>, target_env = <span class="string">&quot;ohos&quot;</span>))]
+        <span class="attr">#[cfg(any(target_env = <span class="string">"musl"</span>, target_os = <span class="string">"emscripten"</span>, target_env = <span class="string">"ohos"</span>))]
         </span><span class="kw">pub </span>sched_ss_init_budget: ::timespec,
-        <span class="attr">#[cfg(any(target_env = <span class="string">&quot;musl&quot;</span>, target_os = <span class="string">&quot;emscripten&quot;</span>, target_env = <span class="string">&quot;ohos&quot;</span>))]
+        <span class="attr">#[cfg(any(target_env = <span class="string">"musl"</span>, target_os = <span class="string">"emscripten"</span>, target_env = <span class="string">"ohos"</span>))]
         </span><span class="kw">pub </span>sched_ss_max_repl: ::c_int,
     }
 
@@ -2117,10 +2126,10 @@
     <span class="attr">#[cfg_attr(
         any(
             all(
-                target_arch = <span class="string">&quot;x86&quot;</span>,
-                not(target_env = <span class="string">&quot;musl&quot;</span>),
-                not(target_os = <span class="string">&quot;android&quot;</span>)),
-            target_arch = <span class="string">&quot;x86_64&quot;</span>),
+                target_arch = <span class="string">"x86"</span>,
+                not(target_env = <span class="string">"musl"</span>),
+                not(target_os = <span class="string">"android"</span>)),
+            target_arch = <span class="string">"x86_64"</span>),
         repr(packed))]
     </span><span class="kw">pub struct </span>epoll_event {
         <span class="kw">pub </span>events: u32,
@@ -2134,9 +2143,9 @@
 
     <span class="kw">pub struct </span>sockaddr_storage {
         <span class="kw">pub </span>ss_family: sa_family_t,
-        <span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+        <span class="attr">#[cfg(target_pointer_width = <span class="string">"32"</span>)]
         </span>__ss_pad2: [u8; <span class="number">128 </span>- <span class="number">2 </span>- <span class="number">4</span>],
-        <span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+        <span class="attr">#[cfg(target_pointer_width = <span class="string">"64"</span>)]
         </span>__ss_pad2: [u8; <span class="number">128 </span>- <span class="number">2 </span>- <span class="number">8</span>],
         __ss_align: ::size_t,
     }
@@ -2154,18 +2163,18 @@
         <span class="kw">pub </span>sigev_value: ::sigval,
         <span class="kw">pub </span>sigev_signo: ::c_int,
         <span class="kw">pub </span>sigev_notify: ::c_int,
-        <span class="comment">// Actually a union.  We only expose sigev_notify_thread_id because it&#39;s
+        <span class="comment">// Actually a union.  We only expose sigev_notify_thread_id because it's
         // the most useful member
         </span><span class="kw">pub </span>sigev_notify_thread_id: ::c_int,
-        <span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+        <span class="attr">#[cfg(target_pointer_width = <span class="string">"64"</span>)]
         </span>__unused1: [::c_int; <span class="number">11</span>],
-        <span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+        <span class="attr">#[cfg(target_pointer_width = <span class="string">"32"</span>)]
         </span>__unused1: [::c_int; <span class="number">12</span>]
     }
 }
 
 <span class="macro">cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(feature = <span class="string">&quot;extra_traits&quot;</span>)] </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(feature = <span class="string">"extra_traits"</span>)] </span>{
         <span class="kw">impl </span>PartialEq <span class="kw">for </span>epoll_event {
             <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>epoll_event) -&gt; bool {
                 <span class="self">self</span>.events == other.events
@@ -2177,9 +2186,9 @@
             <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>::fmt::Formatter) -&gt; ::fmt::Result {
                 <span class="kw">let </span>events = <span class="self">self</span>.events;
                 <span class="kw">let </span>u64 = <span class="self">self</span>.u64;
-                f.debug_struct(<span class="string">&quot;epoll_event&quot;</span>)
-                    .field(<span class="string">&quot;events&quot;</span>, <span class="kw-2">&amp;</span>events)
-                    .field(<span class="string">&quot;u64&quot;</span>, <span class="kw-2">&amp;</span>u64)
+                f.debug_struct(<span class="string">"epoll_event"</span>)
+                    .field(<span class="string">"events"</span>, <span class="kw-2">&amp;</span>events)
+                    .field(<span class="string">"u64"</span>, <span class="kw-2">&amp;</span>u64)
                     .finish()
             }
         }
@@ -2205,9 +2214,9 @@
         <span class="kw">impl </span>Eq <span class="kw">for </span>sockaddr_un {}
         <span class="kw">impl </span>::fmt::Debug <span class="kw">for </span>sockaddr_un {
             <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>::fmt::Formatter) -&gt; ::fmt::Result {
-                f.debug_struct(<span class="string">&quot;sockaddr_un&quot;</span>)
-                    .field(<span class="string">&quot;sun_family&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sun_family)
-                <span class="comment">// FIXME: .field(&quot;sun_path&quot;, &amp;self.sun_path)
+                f.debug_struct(<span class="string">"sockaddr_un"</span>)
+                    .field(<span class="string">"sun_family"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sun_family)
+                <span class="comment">// FIXME: .field("sun_path", &amp;self.sun_path)
                     </span>.finish()
             }
         }
@@ -2233,10 +2242,10 @@
 
         <span class="kw">impl </span>::fmt::Debug <span class="kw">for </span>sockaddr_storage {
             <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>::fmt::Formatter) -&gt; ::fmt::Result {
-                f.debug_struct(<span class="string">&quot;sockaddr_storage&quot;</span>)
-                    .field(<span class="string">&quot;ss_family&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.ss_family)
-                    .field(<span class="string">&quot;__ss_align&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.__ss_align)
-                <span class="comment">// FIXME: .field(&quot;__ss_pad2&quot;, &amp;self.__ss_pad2)
+                f.debug_struct(<span class="string">"sockaddr_storage"</span>)
+                    .field(<span class="string">"ss_family"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.ss_family)
+                    .field(<span class="string">"__ss_align"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.__ss_align)
+                <span class="comment">// FIXME: .field("__ss_pad2", &amp;self.__ss_pad2)
                     </span>.finish()
             }
         }
@@ -2286,13 +2295,13 @@
 
         <span class="kw">impl </span>::fmt::Debug <span class="kw">for </span>utsname {
             <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>::fmt::Formatter) -&gt; ::fmt::Result {
-                f.debug_struct(<span class="string">&quot;utsname&quot;</span>)
-                <span class="comment">// FIXME: .field(&quot;sysname&quot;, &amp;self.sysname)
-                // FIXME: .field(&quot;nodename&quot;, &amp;self.nodename)
-                // FIXME: .field(&quot;release&quot;, &amp;self.release)
-                // FIXME: .field(&quot;version&quot;, &amp;self.version)
-                // FIXME: .field(&quot;machine&quot;, &amp;self.machine)
-                // FIXME: .field(&quot;domainname&quot;, &amp;self.domainname)
+                f.debug_struct(<span class="string">"utsname"</span>)
+                <span class="comment">// FIXME: .field("sysname", &amp;self.sysname)
+                // FIXME: .field("nodename", &amp;self.nodename)
+                // FIXME: .field("release", &amp;self.release)
+                // FIXME: .field("version", &amp;self.version)
+                // FIXME: .field("machine", &amp;self.machine)
+                // FIXME: .field("domainname", &amp;self.domainname)
                     </span>.finish()
             }
         }
@@ -2320,11 +2329,11 @@
         <span class="kw">impl </span>Eq <span class="kw">for </span>sigevent {}
         <span class="kw">impl </span>::fmt::Debug <span class="kw">for </span>sigevent {
             <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>::fmt::Formatter) -&gt; ::fmt::Result {
-                f.debug_struct(<span class="string">&quot;sigevent&quot;</span>)
-                    .field(<span class="string">&quot;sigev_value&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sigev_value)
-                    .field(<span class="string">&quot;sigev_signo&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sigev_signo)
-                    .field(<span class="string">&quot;sigev_notify&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sigev_notify)
-                    .field(<span class="string">&quot;sigev_notify_thread_id&quot;</span>,
+                f.debug_struct(<span class="string">"sigevent"</span>)
+                    .field(<span class="string">"sigev_value"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sigev_value)
+                    .field(<span class="string">"sigev_signo"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sigev_signo)
+                    .field(<span class="string">"sigev_notify"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sigev_notify)
+                    .field(<span class="string">"sigev_notify_thread_id"</span>,
                            <span class="kw-2">&amp;</span><span class="self">self</span>.sigev_notify_thread_id)
                     .finish()
             }
@@ -2342,9 +2351,9 @@
 
 <span class="comment">// intentionally not public, only used for fd_set
 </span><span class="macro">cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)] </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(target_pointer_width = <span class="string">"32"</span>)] </span>{
         <span class="kw">const </span>ULONG_SIZE: usize = <span class="number">32</span>;
-    } <span class="kw">else if </span><span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)] </span>{
+    } <span class="kw">else if </span><span class="attr">#[cfg(target_pointer_width = <span class="string">"64"</span>)] </span>{
         <span class="kw">const </span>ULONG_SIZE: usize = <span class="number">64</span>;
     } <span class="kw">else </span>{
         <span class="comment">// Unknown target_pointer_width
@@ -2460,7 +2469,7 @@
 <span class="kw">pub const </span>XATTR_REPLACE: ::c_int = <span class="number">0x2</span>;
 
 <span class="macro">cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(target_os = <span class="string">&quot;android&quot;</span>)] </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(target_os = <span class="string">"android"</span>)] </span>{
         <span class="kw">pub const </span>RLIM64_INFINITY: ::c_ulonglong = !<span class="number">0</span>;
     } <span class="kw">else </span>{
         <span class="kw">pub const </span>RLIM64_INFINITY: ::rlim64_t = !<span class="number">0</span>;
@@ -2468,7 +2477,7 @@
 }
 
 <span class="macro">cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(target_env = <span class="string">&quot;ohos&quot;</span>)] </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(target_env = <span class="string">"ohos"</span>)] </span>{
         <span class="kw">pub const </span>LC_CTYPE: ::c_int = <span class="number">0</span>;
         <span class="kw">pub const </span>LC_NUMERIC: ::c_int = <span class="number">1</span>;
         <span class="kw">pub const </span>LC_TIME: ::c_int = <span class="number">2</span>;
@@ -2482,7 +2491,7 @@
         <span class="kw">pub const </span>LC_MEASUREMENT: ::c_int = <span class="number">10</span>;
         <span class="kw">pub const </span>LC_IDENTIFICATION: ::c_int = <span class="number">11</span>;
         <span class="kw">pub const </span>LC_ALL: ::c_int = <span class="number">12</span>;
-    } <span class="kw">else if </span><span class="attr">#[cfg(not(target_env = <span class="string">&quot;uclibc&quot;</span>))] </span>{
+    } <span class="kw">else if </span><span class="attr">#[cfg(not(target_env = <span class="string">"uclibc"</span>))] </span>{
         <span class="kw">pub const </span>LC_CTYPE: ::c_int = <span class="number">0</span>;
         <span class="kw">pub const </span>LC_NUMERIC: ::c_int = <span class="number">1</span>;
         <span class="kw">pub const </span>LC_TIME: ::c_int = <span class="number">2</span>;
@@ -2571,7 +2580,7 @@
 <span class="kw">pub const </span>MADV_PAGEOUT: ::c_int = <span class="number">21</span>;
 <span class="kw">pub const </span>MADV_HWPOISON: ::c_int = <span class="number">100</span>;
 <span class="macro">cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;emscripten&quot;</span>))] </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(not(target_os = <span class="string">"emscripten"</span>))] </span>{
         <span class="kw">pub const </span>MADV_POPULATE_READ: ::c_int = <span class="number">22</span>;
         <span class="kw">pub const </span>MADV_POPULATE_WRITE: ::c_int = <span class="number">23</span>;
         <span class="kw">pub const </span>MADV_DONTNEED_LOCKED: ::c_int = <span class="number">24</span>;
@@ -2913,10 +2922,10 @@
 <span class="kw">pub const </span>TCP_CONGESTION: ::c_int = <span class="number">13</span>;
 <span class="kw">pub const </span>TCP_MD5SIG: ::c_int = <span class="number">14</span>;
 <span class="macro">cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(all(target_os = <span class="string">&quot;linux&quot;</span>, any(
-            target_env = <span class="string">&quot;gnu&quot;</span>,
-            target_env = <span class="string">&quot;musl&quot;</span>,
-            target_env = <span class="string">&quot;ohos&quot;
+    <span class="kw">if </span><span class="attr">#[cfg(all(target_os = <span class="string">"linux"</span>, any(
+            target_env = <span class="string">"gnu"</span>,
+            target_env = <span class="string">"musl"</span>,
+            target_env = <span class="string">"ohos"
         </span>)))] </span>{
         <span class="comment">// WARN: deprecated
         </span><span class="kw">pub const </span>TCP_COOKIE_TRANSACTIONS: ::c_int = <span class="number">15</span>;
@@ -2936,8 +2945,8 @@
 <span class="kw">pub const </span>TCP_SAVE_SYN: ::c_int = <span class="number">27</span>;
 <span class="kw">pub const </span>TCP_SAVED_SYN: ::c_int = <span class="number">28</span>;
 <span class="macro">cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;emscripten&quot;</span>))] </span>{
-        <span class="comment">// NOTE: emscripten doesn&#39;t support these options yet.
+    <span class="kw">if </span><span class="attr">#[cfg(not(target_os = <span class="string">"emscripten"</span>))] </span>{
+        <span class="comment">// NOTE: emscripten doesn't support these options yet.
 
         </span><span class="kw">pub const </span>TCP_REPAIR_WINDOW: ::c_int = <span class="number">29</span>;
         <span class="kw">pub const </span>TCP_FASTOPEN_CONNECT: ::c_int = <span class="number">30</span>;
@@ -2948,7 +2957,7 @@
         <span class="kw">pub const </span>TCP_ZEROCOPY_RECEIVE: ::c_int = <span class="number">35</span>;
         <span class="kw">pub const </span>TCP_INQ: ::c_int = <span class="number">36</span>;
         <span class="kw">pub const </span>TCP_CM_INQ: ::c_int = TCP_INQ;
-        <span class="comment">// NOTE: Some CI images doesn&#39;t have this option yet.
+        <span class="comment">// NOTE: Some CI images doesn't have this option yet.
         // pub const TCP_TX_DELAY: ::c_int = 37;
         </span><span class="kw">pub const </span>TCP_MD5SIG_MAXKEYLEN: usize = <span class="number">80</span>;
     }
@@ -3181,7 +3190,7 @@
 <span class="kw">pub const </span>P_PID: idtype_t = <span class="number">1</span>;
 <span class="kw">pub const </span>P_PGID: idtype_t = <span class="number">2</span>;
 <span class="macro">cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;emscripten&quot;</span>))] </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(not(target_os = <span class="string">"emscripten"</span>))] </span>{
         <span class="kw">pub const </span>P_PIDFD: idtype_t = <span class="number">3</span>;
     }
 }
@@ -3197,9 +3206,9 @@
 <span class="kw">pub const </span>POLLNVAL: ::c_short = <span class="number">0x20</span>;
 <span class="kw">pub const </span>POLLRDNORM: ::c_short = <span class="number">0x040</span>;
 <span class="kw">pub const </span>POLLRDBAND: ::c_short = <span class="number">0x080</span>;
-<span class="attr">#[cfg(not(any(target_arch = <span class="string">&quot;sparc&quot;</span>, target_arch = <span class="string">&quot;sparc64&quot;</span>)))]
+<span class="attr">#[cfg(not(any(target_arch = <span class="string">"sparc"</span>, target_arch = <span class="string">"sparc64"</span>)))]
 </span><span class="kw">pub const </span>POLLRDHUP: ::c_short = <span class="number">0x2000</span>;
-<span class="attr">#[cfg(any(target_arch = <span class="string">&quot;sparc&quot;</span>, target_arch = <span class="string">&quot;sparc64&quot;</span>))]
+<span class="attr">#[cfg(any(target_arch = <span class="string">"sparc"</span>, target_arch = <span class="string">"sparc64"</span>))]
 </span><span class="kw">pub const </span>POLLRDHUP: ::c_short = <span class="number">0x800</span>;
 
 <span class="kw">pub const </span>IPTOS_LOWDELAY: u8 = <span class="number">0x10</span>;
@@ -3325,9 +3334,9 @@
 <span class="kw">pub const </span>ARPHRD_NONE: u16 = <span class="number">0xFFFE</span>;
 
 <span class="macro">cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(target_os = <span class="string">&quot;emscripten&quot;</span>)] </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(target_os = <span class="string">"emscripten"</span>)] </span>{
         <span class="comment">// Emscripten does not define any `*_SUPER_MAGIC` constants.
-    </span>} <span class="kw">else if </span><span class="attr">#[cfg(not(target_arch = <span class="string">&quot;s390x&quot;</span>))] </span>{
+    </span>} <span class="kw">else if </span><span class="attr">#[cfg(not(target_arch = <span class="string">"s390x"</span>))] </span>{
         <span class="kw">pub const </span>ADFS_SUPER_MAGIC: ::c_long = <span class="number">0x0000adf5</span>;
         <span class="kw">pub const </span>AFFS_SUPER_MAGIC: ::c_long = <span class="number">0x0000adff</span>;
         <span class="kw">pub const </span>AFS_SUPER_MAGIC: ::c_long = <span class="number">0x5346414f</span>;
@@ -3381,7 +3390,7 @@
         <span class="kw">pub const </span>USBDEVICE_SUPER_MAGIC: ::c_long = <span class="number">0x00009fa2</span>;
         <span class="kw">pub const </span>XENFS_SUPER_MAGIC: ::c_long = <span class="number">0xabba1974</span>;
         <span class="kw">pub const </span>NSFS_MAGIC: ::c_long = <span class="number">0x6e736673</span>;
-    } <span class="kw">else if </span><span class="attr">#[cfg(target_arch = <span class="string">&quot;s390x&quot;</span>)] </span>{
+    } <span class="kw">else if </span><span class="attr">#[cfg(target_arch = <span class="string">"s390x"</span>)] </span>{
         <span class="kw">pub const </span>ADFS_SUPER_MAGIC: ::c_uint = <span class="number">0x0000adf5</span>;
         <span class="kw">pub const </span>AFFS_SUPER_MAGIC: ::c_uint = <span class="number">0x0000adff</span>;
         <span class="kw">pub const </span>AFS_SUPER_MAGIC: ::c_uint = <span class="number">0x5346414f</span>;
@@ -3571,7 +3580,7 @@
     }
 }
 
-<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+<span class="kw">extern </span><span class="string">"C" </span>{
     <span class="attr">#[doc(hidden)]
     </span><span class="kw">pub fn </span>__libc_current_sigrtmax() -&gt; ::c_int;
     <span class="attr">#[doc(hidden)]
@@ -3647,8 +3656,8 @@
     <span class="kw">pub fn </span>brk(addr: <span class="kw-2">*mut </span>::c_void) -&gt; ::c_int;
     <span class="kw">pub fn </span>sbrk(increment: ::intptr_t) -&gt; <span class="kw-2">*mut </span>::c_void;
     <span class="attr">#[deprecated(
-        since = <span class="string">&quot;0.2.66&quot;</span>,
-        note = <span class="string">&quot;causes memory corruption, see rust-lang/libc#1596&quot;
+        since = <span class="string">"0.2.66"</span>,
+        note = <span class="string">"causes memory corruption, see rust-lang/libc#1596"
     </span>)]
     </span><span class="kw">pub fn </span>vfork() -&gt; ::pid_t;
     <span class="kw">pub fn </span>setresgid(rgid: ::gid_t, egid: ::gid_t, sgid: ::gid_t) -&gt; ::c_int;
@@ -3682,15 +3691,30 @@
     <span class="kw">pub fn </span>uname(buf: <span class="kw-2">*mut </span>::utsname) -&gt; ::c_int;
 
     <span class="kw">pub fn </span>strchrnul(s: <span class="kw-2">*const </span>::c_char, c: ::c_int) -&gt; <span class="kw-2">*mut </span>::c_char;
+
+    <span class="kw">pub fn </span>strftime(
+        s: <span class="kw-2">*mut </span>::c_char,
+        max: ::size_t,
+        format: <span class="kw-2">*const </span>::c_char,
+        tm: <span class="kw-2">*const </span>::tm,
+    ) -&gt; ::size_t;
+    <span class="kw">pub fn </span>strftime_l(
+        s: <span class="kw-2">*mut </span>::c_char,
+        max: ::size_t,
+        format: <span class="kw-2">*const </span>::c_char,
+        tm: <span class="kw-2">*const </span>::tm,
+        locale: ::locale_t,
+    ) -&gt; ::size_t;
+    <span class="kw">pub fn </span>strptime(s: <span class="kw-2">*const </span>::c_char, format: <span class="kw-2">*const </span>::c_char, tm: <span class="kw-2">*mut </span>::tm) -&gt; <span class="kw-2">*mut </span>::c_char;
 }
 
 <span class="comment">// LFS64 extensions
 //
 // * musl and Emscripten has 64-bit versions only so aliases the LFS64 symbols to the standard ones
-// * ulibc doesn&#39;t have preadv64/pwritev64
+// * ulibc doesn't have preadv64/pwritev64
 </span><span class="macro">cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(not(any(target_env = <span class="string">&quot;musl&quot;</span>, target_os = <span class="string">&quot;emscripten&quot;</span>)))] </span>{
-        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(not(any(target_env = <span class="string">"musl"</span>, target_os = <span class="string">"emscripten"</span>)))] </span>{
+        <span class="kw">extern </span><span class="string">"C" </span>{
             <span class="kw">pub fn </span>fstatfs64(fd: ::c_int, buf: <span class="kw-2">*mut </span>statfs64) -&gt; ::c_int;
             <span class="kw">pub fn </span>statvfs64(path: <span class="kw-2">*const </span>::c_char, buf: <span class="kw-2">*mut </span>statvfs64) -&gt; ::c_int;
             <span class="kw">pub fn </span>fstatvfs64(fd: ::c_int, buf: <span class="kw-2">*mut </span>statvfs64) -&gt; ::c_int;
@@ -3747,8 +3771,8 @@
 }
 
 <span class="macro">cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(not(any(target_env = <span class="string">&quot;uclibc&quot;</span>, target_env = <span class="string">&quot;musl&quot;</span>, target_os = <span class="string">&quot;emscripten&quot;</span>)))] </span>{
-        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(not(any(target_env = <span class="string">"uclibc"</span>, target_env = <span class="string">"musl"</span>, target_os = <span class="string">"emscripten"</span>)))] </span>{
+        <span class="kw">extern </span><span class="string">"C" </span>{
             <span class="kw">pub fn </span>preadv64(
                 fd: ::c_int,
                 iov: <span class="kw-2">*const </span>::iovec,
@@ -3766,8 +3790,8 @@
 }
 
 <span class="macro">cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(not(target_env = <span class="string">&quot;uclibc&quot;</span>))] </span>{
-        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(not(target_env = <span class="string">"uclibc"</span>))] </span>{
+        <span class="kw">extern </span><span class="string">"C" </span>{
             <span class="comment">// uclibc has separate non-const version of this function
             </span><span class="kw">pub fn </span>forkpty(
                 amaster: <span class="kw-2">*mut </span>::c_int,
@@ -3788,16 +3812,16 @@
 }
 
 <span class="macro">cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(target_os = <span class="string">&quot;emscripten&quot;</span>)] </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(target_os = <span class="string">"emscripten"</span>)] </span>{
         <span class="kw">mod </span>emscripten;
         <span class="kw">pub use </span><span class="self">self</span>::emscripten::<span class="kw-2">*</span>;
-    } <span class="kw">else if </span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)] </span>{
+    } <span class="kw">else if </span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)] </span>{
         <span class="kw">mod </span>linux;
         <span class="kw">pub use </span><span class="self">self</span>::linux::<span class="kw-2">*</span>;
-    } <span class="kw">else if </span><span class="attr">#[cfg(target_os = <span class="string">&quot;l4re&quot;</span>)] </span>{
+    } <span class="kw">else if </span><span class="attr">#[cfg(target_os = <span class="string">"l4re"</span>)] </span>{
         <span class="kw">mod </span>linux;
         <span class="kw">pub use </span><span class="self">self</span>::linux::<span class="kw-2">*</span>;
-    } <span class="kw">else if </span><span class="attr">#[cfg(target_os = <span class="string">&quot;android&quot;</span>)] </span>{
+    } <span class="kw">else if </span><span class="attr">#[cfg(target_os = <span class="string">"android"</span>)] </span>{
         <span class="kw">mod </span>android;
         <span class="kw">pub use </span><span class="self">self</span>::android::<span class="kw-2">*</span>;
     } <span class="kw">else </span>{

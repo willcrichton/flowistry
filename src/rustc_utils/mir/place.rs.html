@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc_utils-0.7.3-nightly-2023-08-25/src/mir/place.rs`."><title>place.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustc_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../rustc_utils/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc_utils-0.8.0-nightly-2024-01-06/src/mir/place.rs`."><title>place.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustc_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rustc_utils/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -778,12 +780,12 @@
 
 <span class="doccomment">/// A MIR [`Visitor`] which collects all [`Place`]s that appear in the visited object.
 </span><span class="attr">#[derive(Default)]
-</span><span class="kw">pub struct </span>PlaceCollector&lt;<span class="lifetime">&#39;tcx</span>&gt;(<span class="kw">pub </span>Vec&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;);
+</span><span class="kw">pub struct </span>PlaceCollector&lt;<span class="lifetime">'tcx</span>&gt;(<span class="kw">pub </span>Vec&lt;Place&lt;<span class="lifetime">'tcx</span>&gt;&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; Visitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>PlaceCollector&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'tcx</span>&gt; Visitor&lt;<span class="lifetime">'tcx</span>&gt; <span class="kw">for </span>PlaceCollector&lt;<span class="lifetime">'tcx</span>&gt; {
   <span class="kw">fn </span>visit_place(
     <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-    place: <span class="kw-2">&amp;</span>Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    place: <span class="kw-2">&amp;</span>Place&lt;<span class="lifetime">'tcx</span>&gt;,
     _context: PlaceContext,
     _location: Location,
   ) {
@@ -796,8 +798,8 @@
 /// This pass helps reduce the number of intermediates during dataflow analysis, which
 /// reduces memory usage.
 </span><span class="kw">pub struct </span>SimplifyMir;
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; MirPass&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>SimplifyMir {
-  <span class="kw">fn </span>run_pass(<span class="kw-2">&amp;</span><span class="self">self</span>, _tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body: <span class="kw-2">&amp;mut </span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
+<span class="kw">impl</span>&lt;<span class="lifetime">'tcx</span>&gt; MirPass&lt;<span class="lifetime">'tcx</span>&gt; <span class="kw">for </span>SimplifyMir {
+  <span class="kw">fn </span>run_pass(<span class="kw-2">&amp;</span><span class="self">self</span>, _tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;, body: <span class="kw-2">&amp;mut </span>Body&lt;<span class="lifetime">'tcx</span>&gt;) {
     <span class="kw">let </span>return_blocks = body
       .all_returns()
       .filter_map(|loc| {
@@ -834,105 +836,105 @@
 }
 
 <span class="doccomment">/// Extension trait for [`Place`].
-</span><span class="kw">pub trait </span>PlaceExt&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+</span><span class="kw">pub trait </span>PlaceExt&lt;<span class="lifetime">'tcx</span>&gt; {
   <span class="doccomment">/// Creates a new [`Place`].
-  </span><span class="kw">fn </span>make(local: Local, projection: <span class="kw-2">&amp;</span>[PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;], tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self</span>;
+  </span><span class="kw">fn </span>make(local: Local, projection: <span class="kw-2">&amp;</span>[PlaceElem&lt;<span class="lifetime">'tcx</span>&gt;], tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; <span class="self">Self</span>;
 
   <span class="doccomment">/// Converts a [`PlaceRef`] into an owned [`Place`].
-  </span><span class="kw">fn </span>from_ref(place: PlaceRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self</span>;
+  </span><span class="kw">fn </span>from_ref(place: PlaceRef&lt;<span class="lifetime">'tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; <span class="self">Self</span>;
 
   <span class="doccomment">/// Creates a new [`Place`] with an empty projection.
-  </span><span class="kw">fn </span>from_local(local: Local, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self</span>;
+  </span><span class="kw">fn </span>from_local(local: Local, tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; <span class="self">Self</span>;
 
   <span class="doccomment">/// Returns true if `self` is a projection of an argument local.
-  </span><span class="kw">fn </span>is_arg(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool;
+  </span><span class="kw">fn </span>is_arg(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; bool;
 
   <span class="doccomment">/// Returns true if `self` could not be resolved further to another place.
   ///
   /// This is true of places with no dereferences in the projection, or of dereferences
   /// of arguments.
-  </span><span class="kw">fn </span>is_direct(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool;
+  </span><span class="kw">fn </span>is_direct(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; bool;
 
-  <span class="kw">type </span>RefsInProjectionIter&lt;<span class="lifetime">&#39;a</span>&gt;: Iterator&lt;
-    Item = (PlaceRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>[PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;]),
+  <span class="kw">type </span>RefsInProjectionIter&lt;<span class="lifetime">'a</span>&gt;: Iterator&lt;
+    Item = (PlaceRef&lt;<span class="lifetime">'tcx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'tcx </span>[PlaceElem&lt;<span class="lifetime">'tcx</span>&gt;]),
   &gt;
   <span class="kw">where
-    </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
+    </span><span class="self">Self</span>: <span class="lifetime">'a</span>;
 
-  <span class="doccomment">/// Returns an iterator over all prefixes of `self`&#39;s projection that are references,
+  <span class="doccomment">/// Returns an iterator over all prefixes of `self`'s projection that are references,
   ///  along with the suffix of the remaining projection.
-  </span><span class="kw">fn </span>refs_in_projection(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::RefsInProjectionIter&lt;<span class="lifetime">&#39;_</span>&gt;;
+  </span><span class="kw">fn </span>refs_in_projection(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::RefsInProjectionIter&lt;<span class="lifetime">'_</span>&gt;;
 
   <span class="doccomment">/// Returns all possible projections of `self` that are references.
   ///
   /// The output data structure groups the resultant places based on the region of the references.
   </span><span class="kw">fn </span>interior_pointers(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
+    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;,
     def_id: DefId,
-  ) -&gt; HashMap&lt;RegionVid, Vec&lt;(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, Mutability)&gt;&gt;;
+  ) -&gt; HashMap&lt;RegionVid, Vec&lt;(Place&lt;<span class="lifetime">'tcx</span>&gt;, Mutability)&gt;&gt;;
 
   <span class="doccomment">/// Returns all possible projections of `self` that do not go through a reference,
   /// i.e. the set of fields directly in the structure referred by `self`.
   </span><span class="kw">fn </span>interior_places(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
+    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;,
     def_id: DefId,
-  ) -&gt; Vec&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;;
+  ) -&gt; Vec&lt;Place&lt;<span class="lifetime">'tcx</span>&gt;&gt;;
 
   <span class="doccomment">/// Returns all possible projections of `self`.
   </span><span class="kw">fn </span>interior_paths(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
+    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;,
     def_id: DefId,
-  ) -&gt; Vec&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;;
+  ) -&gt; Vec&lt;Place&lt;<span class="lifetime">'tcx</span>&gt;&gt;;
 
   <span class="doccomment">/// Returns a pretty representation of a place that uses debug info when available.
-  </span><span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt;;
+  </span><span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt;;
 
   <span class="doccomment">/// Erases/normalizes information in a place to ensure stable comparisons between places.
   ///
-  /// Consider a place `_1: &amp;&#39;1 &lt;T as SomeTrait&gt;::Foo[2]`.
-  ///   We might encounter this type with a different region, e.g. `&amp;&#39;2`.
-  ///   We might encounter this type with a more specific type for the associated type, e.g. `&amp;&#39;1 [i32][0]`.
+  /// Consider a place `_1: &amp;'1 &lt;T as SomeTrait&gt;::Foo[2]`.
+  ///   We might encounter this type with a different region, e.g. `&amp;'2`.
+  ///   We might encounter this type with a more specific type for the associated type, e.g. `&amp;'1 [i32][0]`.
   /// To account for this variation, we normalize associated types,
   ///   erase regions, and normalize projections.
-  </span><span class="kw">fn </span>normalize(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, def_id: DefId) -&gt; Place&lt;<span class="lifetime">&#39;tcx</span>&gt;;
+  </span><span class="kw">fn </span>normalize(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;, def_id: DefId) -&gt; Place&lt;<span class="lifetime">'tcx</span>&gt;;
 
-  <span class="doccomment">/// Returns true if this place&#39;s base [`Local`] corresponds to code that is visible in the source.
+  <span class="doccomment">/// Returns true if this place's base [`Local`] corresponds to code that is visible in the source.
   </span><span class="kw">fn </span>is_source_visible(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt, body: <span class="kw-2">&amp;</span>Body) -&gt; bool;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; PlaceExt&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>Place&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-  <span class="kw">fn </span>make(local: Local, projection: <span class="kw-2">&amp;</span>[PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;], tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'tcx</span>&gt; PlaceExt&lt;<span class="lifetime">'tcx</span>&gt; <span class="kw">for </span>Place&lt;<span class="lifetime">'tcx</span>&gt; {
+  <span class="kw">fn </span>make(local: Local, projection: <span class="kw-2">&amp;</span>[PlaceElem&lt;<span class="lifetime">'tcx</span>&gt;], tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; <span class="self">Self </span>{
     Place {
       local,
       projection: tcx.mk_place_elems(projection),
     }
   }
 
-  <span class="kw">fn </span>from_ref(place: PlaceRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
+  <span class="kw">fn </span>from_ref(place: PlaceRef&lt;<span class="lifetime">'tcx</span>&gt;, tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; <span class="self">Self </span>{
     <span class="self">Self</span>::make(place.local, place.projection, tcx)
   }
 
-  <span class="kw">fn </span>from_local(local: Local, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
+  <span class="kw">fn </span>from_local(local: Local, tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; <span class="self">Self </span>{
     Place::make(local, <span class="kw-2">&amp;</span>[], tcx)
   }
 
-  <span class="kw">fn </span>is_arg(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool {
+  <span class="kw">fn </span>is_arg(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; bool {
     <span class="kw">let </span>i = <span class="self">self</span>.local.as_usize();
     i &gt; <span class="number">0 </span>&amp;&amp; i - <span class="number">1 </span>&lt; body.arg_count
   }
 
-  <span class="kw">fn </span>is_direct(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; bool {
+  <span class="kw">fn </span>is_direct(<span class="kw-2">&amp;</span><span class="self">self</span>, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; bool {
     !<span class="self">self</span>.is_indirect() || <span class="self">self</span>.is_arg(body)
   }
 
-  <span class="kw">type </span>RefsInProjectionIter&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">impl </span>Iterator&lt;Item = (PlaceRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>[PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;])&gt; + <span class="lifetime">&#39;a </span><span class="kw">where </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
-  <span class="kw">fn </span>refs_in_projection(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::RefsInProjectionIter&lt;<span class="lifetime">&#39;_</span>&gt; {
+  <span class="kw">type </span>RefsInProjectionIter&lt;<span class="lifetime">'a</span>&gt; = <span class="kw">impl </span>Iterator&lt;Item = (PlaceRef&lt;<span class="lifetime">'tcx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'tcx </span>[PlaceElem&lt;<span class="lifetime">'tcx</span>&gt;])&gt; + <span class="lifetime">'a </span><span class="kw">where </span><span class="self">Self</span>: <span class="lifetime">'a</span>;
+  <span class="kw">fn </span>refs_in_projection(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::RefsInProjectionIter&lt;<span class="lifetime">'_</span>&gt; {
     <span class="self">self
       </span>.projection
       .iter()
@@ -952,10 +954,10 @@
 
   <span class="kw">fn </span>interior_pointers(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
+    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;,
     def_id: DefId,
-  ) -&gt; HashMap&lt;RegionVid, Vec&lt;(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, Mutability)&gt;&gt; {
+  ) -&gt; HashMap&lt;RegionVid, Vec&lt;(Place&lt;<span class="lifetime">'tcx</span>&gt;, Mutability)&gt;&gt; {
     <span class="kw">let </span>ty = <span class="self">self</span>.ty(body.local_decls(), tcx).ty;
     <span class="kw">let </span><span class="kw-2">mut </span>region_collector = CollectRegions {
       tcx,
@@ -980,10 +982,10 @@
 
   <span class="kw">fn </span>interior_places(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
+    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;,
     def_id: DefId,
-  ) -&gt; Vec&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
+  ) -&gt; Vec&lt;Place&lt;<span class="lifetime">'tcx</span>&gt;&gt; {
     <span class="kw">let </span>ty = <span class="self">self</span>.ty(body.local_decls(), tcx).ty;
     <span class="kw">let </span><span class="kw-2">mut </span>region_collector = CollectRegions {
       tcx,
@@ -1002,10 +1004,10 @@
 
   <span class="kw">fn </span>interior_paths(
     <span class="kw-2">&amp;</span><span class="self">self</span>,
-    tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
+    body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;,
     def_id: DefId,
-  ) -&gt; Vec&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
+  ) -&gt; Vec&lt;Place&lt;<span class="lifetime">'tcx</span>&gt;&gt; {
     <span class="kw">let </span>ty = <span class="self">self</span>.ty(body.local_decls(), tcx).ty;
     <span class="kw">let </span><span class="kw-2">mut </span>region_collector = CollectRegions {
       tcx,
@@ -1022,12 +1024,12 @@
     region_collector.places.unwrap().into_iter().collect()
   }
 
-  <span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
-    <span class="comment">// Get the local&#39;s debug name from the Body&#39;s VarDebugInfo
+  <span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;, body: <span class="kw-2">&amp;</span>Body&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+    <span class="comment">// Get the local's debug name from the Body's VarDebugInfo
     </span><span class="kw">let </span>local_name = <span class="kw">if </span><span class="self">self</span>.local == RETURN_PLACE {
-      Cow::Borrowed(<span class="string">&quot;RETURN&quot;</span>)
+      Cow::Borrowed(<span class="string">"RETURN"</span>)
     } <span class="kw">else </span>{
-      <span class="kw">let </span>get_local_name = |info: <span class="kw-2">&amp;</span>VarDebugInfo&lt;<span class="lifetime">&#39;tcx</span>&gt;| <span class="kw">match </span>info.value {
+      <span class="kw">let </span>get_local_name = |info: <span class="kw-2">&amp;</span>VarDebugInfo&lt;<span class="lifetime">'tcx</span>&gt;| <span class="kw">match </span>info.value {
         VarDebugInfoContents::Place(place) <span class="kw">if </span>place.local == <span class="self">self</span>.local =&gt; info
           .source_info
           .span
@@ -1049,11 +1051,11 @@
     // (e.g. .field for projection).
     </span><span class="kw">let </span>elem_to_string = |(index, (place, elem)): (
       usize,
-      (PlaceRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;),
+      (PlaceRef&lt;<span class="lifetime">'tcx</span>&gt;, PlaceElem&lt;<span class="lifetime">'tcx</span>&gt;),
     )|
-     -&gt; (ElemPosition, Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;) {
+     -&gt; (ElemPosition, Cow&lt;<span class="lifetime">'static</span>, str&gt;) {
       <span class="kw">match </span>elem {
-        ProjectionElem::Deref =&gt; (ElemPosition::Prefix, <span class="string">&quot;*&quot;</span>.into()),
+        ProjectionElem::Deref =&gt; (ElemPosition::Prefix, <span class="string">"*"</span>.into()),
 
         ProjectionElem::Field(field, <span class="kw">_</span>) =&gt; {
           <span class="kw">let </span>ty = place.ty(<span class="kw-2">&amp;</span>body.local_decls, tcx).ty;
@@ -1070,7 +1072,7 @@
                   };
                   <span class="kw-2">&amp;</span>def.variant(<span class="kw-2">*</span>variant_idx).fields
                 }
-                kind =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;{kind:?}&quot;</span>),
+                kind =&gt; <span class="macro">unimplemented!</span>(<span class="string">"{kind:?}"</span>),
               };
 
               fields[field].ident(tcx).to_string()
@@ -1086,18 +1088,18 @@
               <span class="prelude-val">None </span>=&gt; field.as_usize().to_string(),
             },
 
-            kind =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;{kind:?}&quot;</span>),
+            kind =&gt; <span class="macro">unimplemented!</span>(<span class="string">"{kind:?}"</span>),
           };
 
-          (ElemPosition::Suffix, <span class="macro">format!</span>(<span class="string">&quot;.{field_name}&quot;</span>).into())
+          (ElemPosition::Suffix, <span class="macro">format!</span>(<span class="string">".{field_name}"</span>).into())
         }
         ProjectionElem::Downcast(sym, <span class="kw">_</span>) =&gt; {
-          <span class="kw">let </span>variant = sym.map(|s| s.to_string()).unwrap_or_else(|| <span class="string">&quot;??&quot;</span>.into());
-          (ElemPosition::Suffix, <span class="macro">format!</span>(<span class="string">&quot;@{variant}&quot;</span>,).into())
+          <span class="kw">let </span>variant = sym.map(|s| s.to_string()).unwrap_or_else(|| <span class="string">"??"</span>.into());
+          (ElemPosition::Suffix, <span class="macro">format!</span>(<span class="string">"@{variant}"</span>,).into())
         }
 
-        ProjectionElem::Index(<span class="kw">_</span>) =&gt; (ElemPosition::Suffix, <span class="string">&quot;[_]&quot;</span>.into()),
-        kind =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;{kind:?}&quot;</span>),
+        ProjectionElem::Index(<span class="kw">_</span>) =&gt; (ElemPosition::Suffix, <span class="string">"[_]"</span>.into()),
+        kind =&gt; <span class="macro">unimplemented!</span>(<span class="string">"{kind:?}"</span>),
       }
     };
 
@@ -1114,19 +1116,19 @@
         ElemPosition::Prefix =&gt; {
           parts.push_front(string);
           <span class="kw">if </span><span class="macro">matches!</span>(positions.get(i + <span class="number">1</span>), <span class="prelude-val">Some</span>(ElemPosition::Suffix)) {
-            parts.push_front(Cow::Borrowed(<span class="string">&quot;(&quot;</span>));
-            parts.push_back(Cow::Borrowed(<span class="string">&quot;)&quot;</span>));
+            parts.push_front(Cow::Borrowed(<span class="string">"("</span>));
+            parts.push_back(Cow::Borrowed(<span class="string">")"</span>));
           }
         }
         ElemPosition::Suffix =&gt; parts.push_back(string),
       }
     }
 
-    <span class="kw">let </span>full = parts.make_contiguous().join(<span class="string">&quot;&quot;</span>);
+    <span class="kw">let </span>full = parts.make_contiguous().join(<span class="string">""</span>);
     <span class="prelude-val">Some</span>(full)
   }
 
-  <span class="kw">fn </span>normalize(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;, def_id: DefId) -&gt; Place&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+  <span class="kw">fn </span>normalize(<span class="kw-2">&amp;</span><span class="self">self</span>, tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;, def_id: DefId) -&gt; Place&lt;<span class="lifetime">'tcx</span>&gt; {
     <span class="kw">let </span>param_env = tcx.param_env(def_id);
     <span class="kw">let </span>place = tcx.erase_regions(<span class="kw-2">*</span><span class="self">self</span>);
     <span class="kw">let </span>infcx = tcx.infer_ctxt().build();
@@ -1176,30 +1178,30 @@
   AfterRefs,
 }
 
-<span class="kw">struct </span>CollectRegions&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-  tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+<span class="kw">struct </span>CollectRegions&lt;<span class="lifetime">'tcx</span>&gt; {
+  tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
   def_id: DefId,
   local: Local,
-  place_stack: Vec&lt;PlaceElem&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-  ty_stack: Vec&lt;Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
-  places: <span class="prelude-ty">Option</span>&lt;HashSet&lt;Place&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;&gt;,
-  types: <span class="prelude-ty">Option</span>&lt;HashSet&lt;Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;&gt;,
-  regions: HashMap&lt;RegionVid, Vec&lt;(Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, Mutability)&gt;&gt;,
+  place_stack: Vec&lt;PlaceElem&lt;<span class="lifetime">'tcx</span>&gt;&gt;,
+  ty_stack: Vec&lt;Ty&lt;<span class="lifetime">'tcx</span>&gt;&gt;,
+  places: <span class="prelude-ty">Option</span>&lt;HashSet&lt;Place&lt;<span class="lifetime">'tcx</span>&gt;&gt;&gt;,
+  types: <span class="prelude-ty">Option</span>&lt;HashSet&lt;Ty&lt;<span class="lifetime">'tcx</span>&gt;&gt;&gt;,
+  regions: HashMap&lt;RegionVid, Vec&lt;(Place&lt;<span class="lifetime">'tcx</span>&gt;, Mutability)&gt;&gt;,
   stop_at: StoppingCondition,
 }
 
 <span class="doccomment">/// Used to describe aliases of owned and raw pointers.
 </span><span class="kw">pub const </span>UNKNOWN_REGION: RegionVid = RegionVid::MAX;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; TypeVisitor&lt;TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; <span class="kw">for </span>CollectRegions&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-  <span class="kw">fn </span>visit_ty(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'tcx</span>&gt; TypeVisitor&lt;TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;&gt; <span class="kw">for </span>CollectRegions&lt;<span class="lifetime">'tcx</span>&gt; {
+  <span class="kw">fn </span>visit_ty(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: Ty&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
     <span class="kw">let </span>tcx = <span class="self">self</span>.tcx;
     <span class="kw">if </span><span class="self">self</span>.ty_stack.iter().any(|visited_ty| ty == <span class="kw-2">*</span>visited_ty) {
       <span class="kw">return </span>ControlFlow::Continue(());
     }
 
     <span class="macro">trace!</span>(
-      <span class="string">&quot;exploring {:?} with {ty:?}&quot;</span>,
+      <span class="string">"exploring {:?} with {ty:?}"</span>,
       Place::make(<span class="self">self</span>.local, <span class="kw-2">&amp;</span><span class="self">self</span>.place_stack, tcx)
     );
 
@@ -1278,7 +1280,7 @@
         StoppingCondition::BeforeRefs =&gt; {}
       },
 
-      TyKind::Closure(<span class="kw">_</span>, substs) | TyKind::Generator(<span class="kw">_</span>, substs, <span class="kw">_</span>) =&gt; {
+      TyKind::Closure(<span class="kw">_</span>, substs) | TyKind::Coroutine(<span class="kw">_</span>, substs) =&gt; {
         <span class="self">self</span>.visit_ty(substs.as_closure().tupled_upvars_ty());
       }
 
@@ -1298,7 +1300,7 @@
 
       <span class="kw">_ if </span>ty.is_primitive_ty() =&gt; {}
 
-      <span class="kw">_ </span>=&gt; <span class="macro">warn!</span>(<span class="string">&quot;unimplemented {ty:?} ({:?})&quot;</span>, ty.kind()),
+      <span class="kw">_ </span>=&gt; <span class="macro">warn!</span>(<span class="string">"unimplemented {ty:?} ({:?})"</span>, ty.kind()),
     };
 
     <span class="comment">// let inherent_impls = tcx.inherent_impls(self.def_id);
@@ -1342,15 +1344,15 @@
     ControlFlow::Continue(())
   }
 
-  <span class="kw">fn </span>visit_region(<span class="kw-2">&amp;mut </span><span class="self">self</span>, region: ty::Region&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
-    <span class="macro">trace!</span>(<span class="string">&quot;visiting region {region:?}&quot;</span>);
+  <span class="kw">fn </span>visit_region(<span class="kw-2">&amp;mut </span><span class="self">self</span>, region: ty::Region&lt;<span class="lifetime">'tcx</span>&gt;) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="macro">trace!</span>(<span class="string">"visiting region {region:?}"</span>);
     <span class="kw">let </span>region = <span class="kw">match </span>region.kind() {
       RegionKind::ReVar(region) =&gt; region,
       RegionKind::ReStatic =&gt; RegionVid::from_usize(<span class="number">0</span>),
-      RegionKind::ReErased | RegionKind::ReLateBound(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+      RegionKind::ReErased | RegionKind::ReLateParam(<span class="kw">_</span>) =&gt; {
         <span class="kw">return </span>ControlFlow::Continue(());
       }
-      <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;{:?}: {:?}&quot;</span>, <span class="self">self</span>.ty_stack.first().unwrap(), region),
+      <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"{:?}: {:?}"</span>, <span class="self">self</span>.ty_stack.first().unwrap(), region),
     };
 
     <span class="kw">let </span>mutability = <span class="kw">if </span><span class="self">self
@@ -1394,25 +1396,25 @@
 
   <span class="attr">#[test]
   </span><span class="kw">fn </span>test_place_arg_direct() {
-    <span class="kw">let </span>input = <span class="string">r#&quot;
+    <span class="kw">let </span>input = <span class="string">r#"
 fn foobar(x: &amp;i32) {
   let y = 1;
   let z = &amp;y;
 }
-&quot;#</span>;
+"#</span>;
     test_utils::compile_body(input, |tcx, <span class="kw">_</span>, body_with_facts| {
       <span class="kw">let </span>body = <span class="kw-2">&amp;</span>body_with_facts.body;
       <span class="kw">let </span>name_map = body.debug_info_name_map();
-      <span class="kw">let </span>x = Place::from_local(name_map[<span class="string">&quot;x&quot;</span>], tcx);
+      <span class="kw">let </span>x = Place::from_local(name_map[<span class="string">"x"</span>], tcx);
       <span class="macro">assert!</span>(x.is_arg(body));
       <span class="macro">assert!</span>(x.is_direct(body));
       <span class="macro">assert!</span>(Place::make(x.local, <span class="kw-2">&amp;</span>[PlaceElem::Deref], tcx).is_direct(body));
 
-      <span class="kw">let </span>y = Place::from_local(name_map[<span class="string">&quot;y&quot;</span>], tcx);
+      <span class="kw">let </span>y = Place::from_local(name_map[<span class="string">"y"</span>], tcx);
       <span class="macro">assert!</span>(!y.is_arg(body));
       <span class="macro">assert!</span>(y.is_direct(body));
 
-      <span class="kw">let </span>z = Place::from_local(name_map[<span class="string">&quot;z&quot;</span>], tcx);
+      <span class="kw">let </span>z = Place::from_local(name_map[<span class="string">"z"</span>], tcx);
       <span class="macro">assert!</span>(!z.is_arg(body));
       <span class="macro">assert!</span>(z.is_direct(body));
       <span class="macro">assert!</span>(!Place::make(z.local, <span class="kw-2">&amp;</span>[PlaceElem::Deref], tcx).is_direct(body));
@@ -1421,7 +1423,7 @@ fn foobar(x: &amp;i32) {
 
   <span class="attr">#[test]
   </span><span class="kw">fn </span>test_place_to_string() {
-    <span class="kw">let </span>input = <span class="string">r#&quot;
+    <span class="kw">let </span>input = <span class="string">r#"
 struct Point { x: usize, y: usize }
 fn main() {
   let x = (0, 0);
@@ -1430,34 +1432,34 @@ fn main() {
   let w = (&amp;y,);
   let p = &amp;Point { x: 0, y: 0 };
 }
-    &quot;#</span>;
+    "#</span>;
     test_utils::compile_body(input, |tcx, <span class="kw">_</span>, body_with_facts| {
       <span class="kw">let </span>body = <span class="kw-2">&amp;</span>body_with_facts.body;
       <span class="kw">let </span>p = Placer::new(tcx, body);
 
-      <span class="kw">let </span>x = p.local(<span class="string">&quot;x&quot;</span>).mk();
-      <span class="kw">let </span>x_1 = p.local(<span class="string">&quot;x&quot;</span>).field(<span class="number">1</span>).mk();
-      <span class="kw">let </span>y_some_0 = p.local(<span class="string">&quot;y&quot;</span>).downcast(<span class="number">1</span>).field(<span class="number">0</span>).mk();
+      <span class="kw">let </span>x = p.local(<span class="string">"x"</span>).mk();
+      <span class="kw">let </span>x_1 = p.local(<span class="string">"x"</span>).field(<span class="number">1</span>).mk();
+      <span class="kw">let </span>y_some_0 = p.local(<span class="string">"y"</span>).downcast(<span class="number">1</span>).field(<span class="number">0</span>).mk();
       <span class="kw">let </span>z_deref_some_0_1 = p
-        .local(<span class="string">&quot;z&quot;</span>)
+        .local(<span class="string">"z"</span>)
         .deref()
         .index(<span class="number">0</span>)
         .downcast(<span class="number">1</span>)
         .field(<span class="number">0</span>)
         .field(<span class="number">1</span>)
         .mk();
-      <span class="kw">let </span>w_0_deref = p.local(<span class="string">&quot;w&quot;</span>).field(<span class="number">0</span>).deref().mk();
-      <span class="kw">let </span>w_0_deref_some = p.local(<span class="string">&quot;w&quot;</span>).field(<span class="number">0</span>).deref().downcast(<span class="number">1</span>).mk();
-      <span class="kw">let </span>p_deref_x = p.local(<span class="string">&quot;p&quot;</span>).deref().field(<span class="number">0</span>).mk();
+      <span class="kw">let </span>w_0_deref = p.local(<span class="string">"w"</span>).field(<span class="number">0</span>).deref().mk();
+      <span class="kw">let </span>w_0_deref_some = p.local(<span class="string">"w"</span>).field(<span class="number">0</span>).deref().downcast(<span class="number">1</span>).mk();
+      <span class="kw">let </span>p_deref_x = p.local(<span class="string">"p"</span>).deref().field(<span class="number">0</span>).mk();
 
       <span class="kw">let </span>tests = [
-        (x, <span class="string">&quot;x&quot;</span>),
-        (x_1, <span class="string">&quot;x.1&quot;</span>),
-        (y_some_0, <span class="string">&quot;y@Some.0&quot;</span>),
-        (z_deref_some_0_1, <span class="string">&quot;(*z)[_]@Some.0.1&quot;</span>),
-        (w_0_deref, <span class="string">&quot;*w.0&quot;</span>),
-        (w_0_deref_some, <span class="string">&quot;(*w.0)@Some&quot;</span>),
-        (p_deref_x, <span class="string">&quot;(*p).x&quot;</span>),
+        (x, <span class="string">"x"</span>),
+        (x_1, <span class="string">"x.1"</span>),
+        (y_some_0, <span class="string">"y@Some.0"</span>),
+        (z_deref_some_0_1, <span class="string">"(*z)[_]@Some.0.1"</span>),
+        (w_0_deref, <span class="string">"*w.0"</span>),
+        (w_0_deref_some, <span class="string">"(*w.0)@Some"</span>),
+        (p_deref_x, <span class="string">"(*p).x"</span>),
       ];
 
       <span class="kw">for </span>(place, expected) <span class="kw">in </span>tests {
@@ -1468,25 +1470,25 @@ fn main() {
 
   <span class="attr">#[test]
   </span><span class="kw">fn </span>test_place_visitors() {
-    <span class="kw">let </span>input = <span class="string">r#&quot;
+    <span class="kw">let </span>input = <span class="string">r#"
 fn main() {
   let x = 0;
   let y = (0, &amp;x);
 }
-    &quot;#</span>;
-    <span class="kw">fn </span>callback&lt;<span class="lifetime">&#39;tcx</span>&gt;(
-      tcx: TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    "#</span>;
+    <span class="kw">fn </span>callback&lt;<span class="lifetime">'tcx</span>&gt;(
+      tcx: TyCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
       body_id: BodyId,
-      body_with_facts: <span class="kw-2">&amp;</span>BodyWithBorrowckFacts&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+      body_with_facts: <span class="kw-2">&amp;</span>BodyWithBorrowckFacts&lt;<span class="lifetime">'tcx</span>&gt;,
     ) {
       <span class="kw">let </span>body = <span class="kw-2">&amp;</span>body_with_facts.body;
       <span class="kw">let </span>def_id = tcx.hir().body_owner_def_id(body_id).to_def_id();
       <span class="kw">let </span>p = Placer::new(tcx, body);
 
-      <span class="kw">let </span>y = p.local(<span class="string">&quot;y&quot;</span>).mk();
-      <span class="kw">let </span>y0 = p.local(<span class="string">&quot;y&quot;</span>).field(<span class="number">0</span>).mk();
-      <span class="kw">let </span>y1 = p.local(<span class="string">&quot;y&quot;</span>).field(<span class="number">1</span>).mk();
-      <span class="kw">let </span>y1_deref = p.local(<span class="string">&quot;y&quot;</span>).field(<span class="number">1</span>).deref().mk();
+      <span class="kw">let </span>y = p.local(<span class="string">"y"</span>).mk();
+      <span class="kw">let </span>y0 = p.local(<span class="string">"y"</span>).field(<span class="number">0</span>).mk();
+      <span class="kw">let </span>y1 = p.local(<span class="string">"y"</span>).field(<span class="number">1</span>).mk();
+      <span class="kw">let </span>y1_deref = p.local(<span class="string">"y"</span>).field(<span class="number">1</span>).deref().mk();
 
       compare_sets(y.interior_paths(tcx, body, def_id), [y, y0, y1, y1_deref]);
 

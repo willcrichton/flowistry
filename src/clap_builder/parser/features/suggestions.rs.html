@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.7/src/parser/features/suggestions.rs`."><title>suggestions.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.11/src/parser/features/suggestions.rs`."><title>suggestions.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -165,7 +167,7 @@
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
-</pre></div><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;suggestions&quot;</span>)]
+</pre></div><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">"suggestions"</span>)]
 </span><span class="kw">use </span>std::cmp::Ordering;
 
 <span class="comment">// Internal
@@ -174,7 +176,7 @@
 <span class="doccomment">/// Find strings from an iterable of `possible_values` similar to a given value `v`
 /// Returns a Vec of all possible values that exceed a similarity threshold
 /// sorted by ascending similarity, most similar comes last
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;suggestions&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"suggestions"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>did_you_mean&lt;T, I&gt;(v: <span class="kw-2">&amp;</span>str, possible_values: I) -&gt; Vec&lt;String&gt;
 <span class="kw">where
     </span>T: AsRef&lt;str&gt;,
@@ -192,7 +194,7 @@
     candidates.into_iter().map(|(<span class="kw">_</span>, pv)| pv).collect()
 }
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;suggestions&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"suggestions"</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>did_you_mean&lt;T, I&gt;(<span class="kw">_</span>: <span class="kw-2">&amp;</span>str, <span class="kw">_</span>: I) -&gt; Vec&lt;String&gt;
 <span class="kw">where
     </span>T: AsRef&lt;str&gt;,
@@ -201,15 +203,15 @@
     Vec::new()
 }
 
-<span class="doccomment">/// Returns a suffix that can be empty, or is the standard &#39;did you mean&#39; phrase
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>did_you_mean_flag&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;help</span>, I, T&gt;(
+<span class="doccomment">/// Returns a suffix that can be empty, or is the standard 'did you mean' phrase
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>did_you_mean_flag&lt;<span class="lifetime">'a</span>, <span class="lifetime">'help</span>, I, T&gt;(
     arg: <span class="kw-2">&amp;</span>str,
     remaining_args: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>std::ffi::OsStr],
     longs: I,
-    subcommands: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Command&gt;,
+    subcommands: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Command&gt;,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;(String, <span class="prelude-ty">Option</span>&lt;String&gt;)&gt;
 <span class="kw">where
-    </span><span class="lifetime">&#39;help</span>: <span class="lifetime">&#39;a</span>,
+    </span><span class="lifetime">'help</span>: <span class="lifetime">'a</span>,
     T: AsRef&lt;str&gt;,
     I: IntoIterator&lt;Item = T&gt;,
 {
@@ -241,27 +243,27 @@
     }
 }
 
-<span class="attr">#[cfg(all(test, feature = <span class="string">&quot;suggestions&quot;</span>))]
+<span class="attr">#[cfg(all(test, feature = <span class="string">"suggestions"</span>))]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>missing_letter() {
-        <span class="kw">let </span>p_vals = [<span class="string">&quot;test&quot;</span>, <span class="string">&quot;possible&quot;</span>, <span class="string">&quot;values&quot;</span>];
-        <span class="macro">assert_eq!</span>(did_you_mean(<span class="string">&quot;tst&quot;</span>, p_vals.iter()), <span class="macro">vec!</span>[<span class="string">&quot;test&quot;</span>]);
+        <span class="kw">let </span>p_vals = [<span class="string">"test"</span>, <span class="string">"possible"</span>, <span class="string">"values"</span>];
+        <span class="macro">assert_eq!</span>(did_you_mean(<span class="string">"tst"</span>, p_vals.iter()), <span class="macro">vec!</span>[<span class="string">"test"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>ambiguous() {
-        <span class="kw">let </span>p_vals = [<span class="string">&quot;test&quot;</span>, <span class="string">&quot;temp&quot;</span>, <span class="string">&quot;possible&quot;</span>, <span class="string">&quot;values&quot;</span>];
-        <span class="macro">assert_eq!</span>(did_you_mean(<span class="string">&quot;te&quot;</span>, p_vals.iter()), <span class="macro">vec!</span>[<span class="string">&quot;test&quot;</span>, <span class="string">&quot;temp&quot;</span>]);
+        <span class="kw">let </span>p_vals = [<span class="string">"test"</span>, <span class="string">"temp"</span>, <span class="string">"possible"</span>, <span class="string">"values"</span>];
+        <span class="macro">assert_eq!</span>(did_you_mean(<span class="string">"te"</span>, p_vals.iter()), <span class="macro">vec!</span>[<span class="string">"test"</span>, <span class="string">"temp"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>unrelated() {
-        <span class="kw">let </span>p_vals = [<span class="string">&quot;test&quot;</span>, <span class="string">&quot;possible&quot;</span>, <span class="string">&quot;values&quot;</span>];
+        <span class="kw">let </span>p_vals = [<span class="string">"test"</span>, <span class="string">"possible"</span>, <span class="string">"values"</span>];
         <span class="macro">assert_eq!</span>(
-            did_you_mean(<span class="string">&quot;hahaahahah&quot;</span>, p_vals.iter()),
+            did_you_mean(<span class="string">"hahaahahah"</span>, p_vals.iter()),
             Vec::&lt;String&gt;::new()
         );
     }
@@ -269,50 +271,50 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>best_fit() {
         <span class="kw">let </span>p_vals = [
-            <span class="string">&quot;test&quot;</span>,
-            <span class="string">&quot;possible&quot;</span>,
-            <span class="string">&quot;values&quot;</span>,
-            <span class="string">&quot;alignmentStart&quot;</span>,
-            <span class="string">&quot;alignmentScore&quot;</span>,
+            <span class="string">"test"</span>,
+            <span class="string">"possible"</span>,
+            <span class="string">"values"</span>,
+            <span class="string">"alignmentStart"</span>,
+            <span class="string">"alignmentScore"</span>,
         ];
         <span class="macro">assert_eq!</span>(
-            did_you_mean(<span class="string">&quot;alignmentScorr&quot;</span>, p_vals.iter()),
-            <span class="macro">vec!</span>[<span class="string">&quot;alignmentStart&quot;</span>, <span class="string">&quot;alignmentScore&quot;</span>]
+            did_you_mean(<span class="string">"alignmentScorr"</span>, p_vals.iter()),
+            <span class="macro">vec!</span>[<span class="string">"alignmentStart"</span>, <span class="string">"alignmentScore"</span>]
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>best_fit_long_common_prefix_issue_4660() {
-        <span class="kw">let </span>p_vals = [<span class="string">&quot;alignmentScore&quot;</span>, <span class="string">&quot;alignmentStart&quot;</span>];
+        <span class="kw">let </span>p_vals = [<span class="string">"alignmentScore"</span>, <span class="string">"alignmentStart"</span>];
         <span class="macro">assert_eq!</span>(
-            did_you_mean(<span class="string">&quot;alignmentScorr&quot;</span>, p_vals.iter()),
-            <span class="macro">vec!</span>[<span class="string">&quot;alignmentStart&quot;</span>, <span class="string">&quot;alignmentScore&quot;</span>]
+            did_you_mean(<span class="string">"alignmentScorr"</span>, p_vals.iter()),
+            <span class="macro">vec!</span>[<span class="string">"alignmentStart"</span>, <span class="string">"alignmentScore"</span>]
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>flag_missing_letter() {
-        <span class="kw">let </span>p_vals = [<span class="string">&quot;test&quot;</span>, <span class="string">&quot;possible&quot;</span>, <span class="string">&quot;values&quot;</span>];
+        <span class="kw">let </span>p_vals = [<span class="string">"test"</span>, <span class="string">"possible"</span>, <span class="string">"values"</span>];
         <span class="macro">assert_eq!</span>(
-            did_you_mean_flag(<span class="string">&quot;tst&quot;</span>, <span class="kw-2">&amp;</span>[], p_vals.iter(), []),
-            <span class="prelude-val">Some</span>((<span class="string">&quot;test&quot;</span>.to_owned(), <span class="prelude-val">None</span>))
+            did_you_mean_flag(<span class="string">"tst"</span>, <span class="kw-2">&amp;</span>[], p_vals.iter(), []),
+            <span class="prelude-val">Some</span>((<span class="string">"test"</span>.to_owned(), <span class="prelude-val">None</span>))
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>flag_ambiguous() {
-        <span class="kw">let </span>p_vals = [<span class="string">&quot;test&quot;</span>, <span class="string">&quot;temp&quot;</span>, <span class="string">&quot;possible&quot;</span>, <span class="string">&quot;values&quot;</span>];
+        <span class="kw">let </span>p_vals = [<span class="string">"test"</span>, <span class="string">"temp"</span>, <span class="string">"possible"</span>, <span class="string">"values"</span>];
         <span class="macro">assert_eq!</span>(
-            did_you_mean_flag(<span class="string">&quot;te&quot;</span>, <span class="kw-2">&amp;</span>[], p_vals.iter(), []),
-            <span class="prelude-val">Some</span>((<span class="string">&quot;temp&quot;</span>.to_owned(), <span class="prelude-val">None</span>))
+            did_you_mean_flag(<span class="string">"te"</span>, <span class="kw-2">&amp;</span>[], p_vals.iter(), []),
+            <span class="prelude-val">Some</span>((<span class="string">"temp"</span>.to_owned(), <span class="prelude-val">None</span>))
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>flag_unrelated() {
-        <span class="kw">let </span>p_vals = [<span class="string">&quot;test&quot;</span>, <span class="string">&quot;possible&quot;</span>, <span class="string">&quot;values&quot;</span>];
+        <span class="kw">let </span>p_vals = [<span class="string">"test"</span>, <span class="string">"possible"</span>, <span class="string">"values"</span>];
         <span class="macro">assert_eq!</span>(
-            did_you_mean_flag(<span class="string">&quot;hahaahahah&quot;</span>, <span class="kw-2">&amp;</span>[], p_vals.iter(), []),
+            did_you_mean_flag(<span class="string">"hahaahahah"</span>, <span class="kw-2">&amp;</span>[], p_vals.iter(), []),
             <span class="prelude-val">None
         </span>);
     }
@@ -320,15 +322,15 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>flag_best_fit() {
         <span class="kw">let </span>p_vals = [
-            <span class="string">&quot;test&quot;</span>,
-            <span class="string">&quot;possible&quot;</span>,
-            <span class="string">&quot;values&quot;</span>,
-            <span class="string">&quot;alignmentStart&quot;</span>,
-            <span class="string">&quot;alignmentScore&quot;</span>,
+            <span class="string">"test"</span>,
+            <span class="string">"possible"</span>,
+            <span class="string">"values"</span>,
+            <span class="string">"alignmentStart"</span>,
+            <span class="string">"alignmentScore"</span>,
         ];
         <span class="macro">assert_eq!</span>(
-            did_you_mean_flag(<span class="string">&quot;alignmentScorr&quot;</span>, <span class="kw-2">&amp;</span>[], p_vals.iter(), []),
-            <span class="prelude-val">Some</span>((<span class="string">&quot;alignmentScore&quot;</span>.to_owned(), <span class="prelude-val">None</span>))
+            did_you_mean_flag(<span class="string">"alignmentScorr"</span>, <span class="kw-2">&amp;</span>[], p_vals.iter(), []),
+            <span class="prelude-val">Some</span>((<span class="string">"alignmentScore"</span>.to_owned(), <span class="prelude-val">None</span>))
         );
     }
 }

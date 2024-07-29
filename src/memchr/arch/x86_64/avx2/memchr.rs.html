@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memchr-2.6.4/src/arch/x86_64/avx2/memchr.rs`."><title>memchr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="memchr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../memchr/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memchr-2.7.4/src/arch/x86_64/avx2/memchr.rs`."><title>memchr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="memchr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../../memchr/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1366,7 +1368,7 @@ count, then using [`One::find`] repeatedly. ([`OneIter`] specializes its
 `Iterator::count` implementation to use this routine.)
 
 Only one, two and three bytes are supported because three bytes is about
-the point where one sees diminishing returns. Beyond this point and it&#39;s
+the point where one sees diminishing returns. Beyond this point and it's
 probably (but not necessarily) better to just use a simple `[bool; 256]` array
 or similar. However, it depends mightily on the specific work-load and the
 expected match frequency.
@@ -1414,9 +1416,9 @@ expected match frequency.
     ///
     /// Note that it is a common misconception that if one compiles for an
     /// `x86_64` target, then they therefore automatically have access to SSE2
-    /// instructions. While this is almost always the case, it isn&#39;t true in
+    /// instructions. While this is almost always the case, it isn't true in
     /// 100% of cases.
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;sse2&quot;</span>, enable = <span class="string">&quot;avx2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"sse2"</span>, enable = <span class="string">"avx2"</span>)]
     #[inline]
     </span><span class="kw">pub unsafe fn </span>new_unchecked(needle: u8) -&gt; One {
         One {
@@ -1436,23 +1438,23 @@ expected match frequency.
     /// true then it will always return true.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>is_available() -&gt; bool {
-        <span class="attr">#[cfg(not(target_feature = <span class="string">&quot;sse2&quot;</span>))]
+        <span class="attr">#[cfg(not(target_feature = <span class="string">"sse2"</span>))]
         </span>{
             <span class="bool-val">false
         </span>}
-        <span class="attr">#[cfg(target_feature = <span class="string">&quot;sse2&quot;</span>)]
+        <span class="attr">#[cfg(target_feature = <span class="string">"sse2"</span>)]
         </span>{
-            <span class="attr">#[cfg(target_feature = <span class="string">&quot;avx2&quot;</span>)]
+            <span class="attr">#[cfg(target_feature = <span class="string">"avx2"</span>)]
             </span>{
                 <span class="bool-val">true
             </span>}
-            <span class="attr">#[cfg(not(target_feature = <span class="string">&quot;avx2&quot;</span>))]
+            <span class="attr">#[cfg(not(target_feature = <span class="string">"avx2"</span>))]
             </span>{
-                <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
                 </span>{
-                    <span class="macro">std::is_x86_feature_detected!</span>(<span class="string">&quot;avx2&quot;</span>)
+                    <span class="macro">std::is_x86_feature_detected!</span>(<span class="string">"avx2"</span>)
                 }
-                <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+                <span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
                 </span>{
                     <span class="bool-val">false
                 </span>}
@@ -1509,7 +1511,7 @@ expected match frequency.
     /// When a match is found, the pointer returned is guaranteed to be
     /// `&gt;= start` and `&lt; end`.
     ///
-    /// This routine is useful if you&#39;re already using raw pointers and would
+    /// This routine is useful if you're already using raw pointers and would
     /// like to avoid converting back to a slice before executing a search.
     ///
     /// # Safety
@@ -1522,7 +1524,7 @@ expected match frequency.
     /// * Both `start` and `end` must be _derived from_ a pointer to the same
     /// object.
     /// * The distance between `start` and `end` must not overflow `isize`.
-    /// * The distance being in bounds must not rely on &quot;wrapping around&quot; the
+    /// * The distance being in bounds must not rely on "wrapping around" the
     /// address space.
     ///
     /// Note that callers may pass a pair of pointers such that `start &gt;= end`.
@@ -1550,17 +1552,17 @@ expected match frequency.
                 </span><span class="self">self</span>.find_raw_sse2(start, end)
             };
         }
-        <span class="comment">// SAFETY: Building a `One` means it&#39;s safe to call both &#39;sse2&#39; and
-        // &#39;avx2&#39; routines. Also, we&#39;ve checked that our haystack is big
-        // enough to run on the vector routine. Pointer validity is caller&#39;s
+        <span class="comment">// SAFETY: Building a `One` means it's safe to call both 'sse2' and
+        // 'avx2' routines. Also, we've checked that our haystack is big
+        // enough to run on the vector routine. Pointer validity is caller's
         // responsibility.
         //
         // Note that we could call `self.avx2.find_raw` directly here. But that
-        // means we&#39;d have to annotate this routine with `target_feature`.
+        // means we'd have to annotate this routine with `target_feature`.
         // Which is fine, because this routine is `unsafe` anyway and the
         // `target_feature` obligation is met by virtue of building a `One`.
         // The real problem is that a routine with a `target_feature`
-        // annotation generally can&#39;t be inlined into caller code unless
+        // annotation generally can't be inlined into caller code unless
         // the caller code has the same target feature annotations. Namely,
         // the common case (at time of writing) is for calling code to not
         // have the `avx2` target feature enabled *at compile time*. Without
@@ -1575,7 +1577,7 @@ expected match frequency.
     /// When a match is found, the pointer returned is guaranteed to be
     /// `&gt;= start` and `&lt; end`.
     ///
-    /// This routine is useful if you&#39;re already using raw pointers and would
+    /// This routine is useful if you're already using raw pointers and would
     /// like to avoid converting back to a slice before executing a search.
     ///
     /// # Safety
@@ -1588,7 +1590,7 @@ expected match frequency.
     /// * Both `start` and `end` must be _derived from_ a pointer to the same
     /// object.
     /// * The distance between `start` and `end` must not overflow `isize`.
-    /// * The distance being in bounds must not rely on &quot;wrapping around&quot; the
+    /// * The distance being in bounds must not rely on "wrapping around" the
     /// address space.
     ///
     /// Note that callers may pass a pair of pointers such that `start &gt;= end`.
@@ -1616,12 +1618,12 @@ expected match frequency.
                 </span><span class="self">self</span>.rfind_raw_sse2(start, end)
             };
         }
-        <span class="comment">// SAFETY: Building a `One` means it&#39;s safe to call both &#39;sse2&#39; and
-        // &#39;avx2&#39; routines. Also, we&#39;ve checked that our haystack is big
-        // enough to run on the vector routine. Pointer validity is caller&#39;s
+        <span class="comment">// SAFETY: Building a `One` means it's safe to call both 'sse2' and
+        // 'avx2' routines. Also, we've checked that our haystack is big
+        // enough to run on the vector routine. Pointer validity is caller's
         // responsibility.
         //
-        // See note in forward routine above for why we don&#39;t just call
+        // See note in forward routine above for why we don't just call
         // `self.avx2.rfind_raw` directly here.
         </span><span class="self">self</span>.rfind_raw_avx2(start, end)
     }
@@ -1629,7 +1631,7 @@ expected match frequency.
     <span class="doccomment">/// Counts all occurrences of this byte in the given haystack represented
     /// by raw pointers.
     ///
-    /// This routine is useful if you&#39;re already using raw pointers and would
+    /// This routine is useful if you're already using raw pointers and would
     /// like to avoid converting back to a slice before executing a search.
     ///
     /// # Safety
@@ -1642,7 +1644,7 @@ expected match frequency.
     /// * Both `start` and `end` must be _derived from_ a pointer to the same
     /// object.
     /// * The distance between `start` and `end` must not overflow `isize`.
-    /// * The distance being in bounds must not rely on &quot;wrapping around&quot; the
+    /// * The distance being in bounds must not rely on "wrapping around" the
     /// address space.
     ///
     /// Note that callers may pass a pair of pointers such that `start &gt;= end`.
@@ -1666,9 +1668,9 @@ expected match frequency.
                 </span><span class="self">self</span>.count_raw_sse2(start, end)
             };
         }
-        <span class="comment">// SAFETY: Building a `One` means it&#39;s safe to call both &#39;sse2&#39; and
-        // &#39;avx2&#39; routines. Also, we&#39;ve checked that our haystack is big
-        // enough to run on the vector routine. Pointer validity is caller&#39;s
+        <span class="comment">// SAFETY: Building a `One` means it's safe to call both 'sse2' and
+        // 'avx2' routines. Also, we've checked that our haystack is big
+        // enough to run on the vector routine. Pointer validity is caller's
         // responsibility.
         </span><span class="self">self</span>.count_raw_avx2(start, end)
     }
@@ -1683,7 +1685,7 @@ expected match frequency.
     /// (The target feature safety obligation is automatically fulfilled by
     /// virtue of being a method on `One`, which can only be constructed
     /// when it is safe to call `sse2`/`avx2` routines.)
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;sse2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"sse2"</span>)]
     #[inline]
     </span><span class="kw">unsafe fn </span>find_raw_sse2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1703,7 +1705,7 @@ expected match frequency.
     /// (The target feature safety obligation is automatically fulfilled by
     /// virtue of being a method on `One`, which can only be constructed
     /// when it is safe to call `sse2`/`avx2` routines.)
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;sse2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"sse2"</span>)]
     #[inline]
     </span><span class="kw">unsafe fn </span>rfind_raw_sse2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1723,7 +1725,7 @@ expected match frequency.
     /// (The target feature safety obligation is automatically fulfilled by
     /// virtue of being a method on `One`, which can only be constructed
     /// when it is safe to call `sse2`/`avx2` routines.)
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;sse2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"sse2"</span>)]
     #[inline]
     </span><span class="kw">unsafe fn </span>count_raw_sse2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1743,7 +1745,7 @@ expected match frequency.
     /// (The target feature safety obligation is automatically fulfilled by
     /// virtue of being a method on `One`, which can only be constructed
     /// when it is safe to call `sse2`/`avx2` routines.)
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"avx2"</span>)]
     #[inline]
     </span><span class="kw">unsafe fn </span>find_raw_avx2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1763,7 +1765,7 @@ expected match frequency.
     /// (The target feature safety obligation is automatically fulfilled by
     /// virtue of being a method on `One`, which can only be constructed
     /// when it is safe to call `sse2`/`avx2` routines.)
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"avx2"</span>)]
     #[inline]
     </span><span class="kw">unsafe fn </span>rfind_raw_avx2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1783,7 +1785,7 @@ expected match frequency.
     /// (The target feature safety obligation is automatically fulfilled by
     /// virtue of being a method on `One`, which can only be constructed
     /// when it is safe to call `sse2`/`avx2` routines.)
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"avx2"</span>)]
     #[inline]
     </span><span class="kw">unsafe fn </span>count_raw_avx2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1799,7 +1801,7 @@ expected match frequency.
     /// The iterator returned implements `DoubleEndedIterator`. This means it
     /// can also be used to find occurrences in reverse order.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[u8]) -&gt; OneIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {
+    </span><span class="kw">pub fn </span>iter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span><span class="lifetime">'h </span>[u8]) -&gt; OneIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {
         OneIter { searcher: <span class="self">self</span>, it: generic::Iter::new(haystack) }
     }
 }
@@ -1813,22 +1815,22 @@ expected match frequency.
 ///
 /// The lifetime parameters are as follows:
 ///
-/// * `&#39;a` refers to the lifetime of the underlying [`One`] searcher.
-/// * `&#39;h` refers to the lifetime of the haystack being searched.
+/// * `'a` refers to the lifetime of the underlying [`One`] searcher.
+/// * `'h` refers to the lifetime of the haystack being searched.
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>OneIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {
-    searcher: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>One,
-    it: generic::Iter&lt;<span class="lifetime">&#39;h</span>&gt;,
+</span><span class="kw">pub struct </span>OneIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {
+    searcher: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>One,
+    it: generic::Iter&lt;<span class="lifetime">'h</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; Iterator <span class="kw">for </span>OneIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; Iterator <span class="kw">for </span>OneIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {
     <span class="kw">type </span>Item = usize;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="comment">// SAFETY: We rely on the generic iterator to provide valid start
         // and end pointers, but we guarantee that any pointer returned by
-        // &#39;find_raw&#39; falls within the bounds of the start and end pointer.
+        // 'find_raw' falls within the bounds of the start and end pointer.
         </span><span class="kw">unsafe </span>{ <span class="self">self</span>.it.next(|s, e| <span class="self">self</span>.searcher.find_raw(s, e)) }
     }
 
@@ -1847,17 +1849,17 @@ expected match frequency.
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; DoubleEndedIterator <span class="kw">for </span>OneIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; DoubleEndedIterator <span class="kw">for </span>OneIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="comment">// SAFETY: We rely on the generic iterator to provide valid start
         // and end pointers, but we guarantee that any pointer returned by
-        // &#39;rfind_raw&#39; falls within the bounds of the start and end pointer.
+        // 'rfind_raw' falls within the bounds of the start and end pointer.
         </span><span class="kw">unsafe </span>{ <span class="self">self</span>.it.next_back(|s, e| <span class="self">self</span>.searcher.rfind_raw(s, e)) }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; core::iter::FusedIterator <span class="kw">for </span>OneIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; core::iter::FusedIterator <span class="kw">for </span>OneIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {}
 
 <span class="doccomment">/// Finds all occurrences of two bytes in a haystack.
 ///
@@ -1901,9 +1903,9 @@ expected match frequency.
     ///
     /// Note that it is a common misconception that if one compiles for an
     /// `x86_64` target, then they therefore automatically have access to SSE2
-    /// instructions. While this is almost always the case, it isn&#39;t true in
+    /// instructions. While this is almost always the case, it isn't true in
     /// 100% of cases.
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;sse2&quot;</span>, enable = <span class="string">&quot;avx2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"sse2"</span>, enable = <span class="string">"avx2"</span>)]
     #[inline]
     </span><span class="kw">pub unsafe fn </span>new_unchecked(needle1: u8, needle2: u8) -&gt; Two {
         Two {
@@ -1923,23 +1925,23 @@ expected match frequency.
     /// true then it will always return true.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>is_available() -&gt; bool {
-        <span class="attr">#[cfg(not(target_feature = <span class="string">&quot;sse2&quot;</span>))]
+        <span class="attr">#[cfg(not(target_feature = <span class="string">"sse2"</span>))]
         </span>{
             <span class="bool-val">false
         </span>}
-        <span class="attr">#[cfg(target_feature = <span class="string">&quot;sse2&quot;</span>)]
+        <span class="attr">#[cfg(target_feature = <span class="string">"sse2"</span>)]
         </span>{
-            <span class="attr">#[cfg(target_feature = <span class="string">&quot;avx2&quot;</span>)]
+            <span class="attr">#[cfg(target_feature = <span class="string">"avx2"</span>)]
             </span>{
                 <span class="bool-val">true
             </span>}
-            <span class="attr">#[cfg(not(target_feature = <span class="string">&quot;avx2&quot;</span>))]
+            <span class="attr">#[cfg(not(target_feature = <span class="string">"avx2"</span>))]
             </span>{
-                <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
                 </span>{
-                    <span class="macro">std::is_x86_feature_detected!</span>(<span class="string">&quot;avx2&quot;</span>)
+                    <span class="macro">std::is_x86_feature_detected!</span>(<span class="string">"avx2"</span>)
                 }
-                <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+                <span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
                 </span>{
                     <span class="bool-val">false
                 </span>}
@@ -1984,7 +1986,7 @@ expected match frequency.
     /// When a match is found, the pointer returned is guaranteed to be
     /// `&gt;= start` and `&lt; end`.
     ///
-    /// This routine is useful if you&#39;re already using raw pointers and would
+    /// This routine is useful if you're already using raw pointers and would
     /// like to avoid converting back to a slice before executing a search.
     ///
     /// # Safety
@@ -1997,7 +1999,7 @@ expected match frequency.
     /// * Both `start` and `end` must be _derived from_ a pointer to the same
     /// object.
     /// * The distance between `start` and `end` must not overflow `isize`.
-    /// * The distance being in bounds must not rely on &quot;wrapping around&quot; the
+    /// * The distance being in bounds must not rely on "wrapping around" the
     /// address space.
     ///
     /// Note that callers may pass a pair of pointers such that `start &gt;= end`.
@@ -2025,17 +2027,17 @@ expected match frequency.
                 </span><span class="self">self</span>.find_raw_sse2(start, end)
             };
         }
-        <span class="comment">// SAFETY: Building a `Two` means it&#39;s safe to call both &#39;sse2&#39; and
-        // &#39;avx2&#39; routines. Also, we&#39;ve checked that our haystack is big
-        // enough to run on the vector routine. Pointer validity is caller&#39;s
+        <span class="comment">// SAFETY: Building a `Two` means it's safe to call both 'sse2' and
+        // 'avx2' routines. Also, we've checked that our haystack is big
+        // enough to run on the vector routine. Pointer validity is caller's
         // responsibility.
         //
         // Note that we could call `self.avx2.find_raw` directly here. But that
-        // means we&#39;d have to annotate this routine with `target_feature`.
+        // means we'd have to annotate this routine with `target_feature`.
         // Which is fine, because this routine is `unsafe` anyway and the
         // `target_feature` obligation is met by virtue of building a `Two`.
         // The real problem is that a routine with a `target_feature`
-        // annotation generally can&#39;t be inlined into caller code unless
+        // annotation generally can't be inlined into caller code unless
         // the caller code has the same target feature annotations. Namely,
         // the common case (at time of writing) is for calling code to not
         // have the `avx2` target feature enabled *at compile time*. Without
@@ -2050,7 +2052,7 @@ expected match frequency.
     /// When a match is found, the pointer returned is guaranteed to be
     /// `&gt;= start` and `&lt; end`.
     ///
-    /// This routine is useful if you&#39;re already using raw pointers and would
+    /// This routine is useful if you're already using raw pointers and would
     /// like to avoid converting back to a slice before executing a search.
     ///
     /// # Safety
@@ -2063,7 +2065,7 @@ expected match frequency.
     /// * Both `start` and `end` must be _derived from_ a pointer to the same
     /// object.
     /// * The distance between `start` and `end` must not overflow `isize`.
-    /// * The distance being in bounds must not rely on &quot;wrapping around&quot; the
+    /// * The distance being in bounds must not rely on "wrapping around" the
     /// address space.
     ///
     /// Note that callers may pass a pair of pointers such that `start &gt;= end`.
@@ -2091,12 +2093,12 @@ expected match frequency.
                 </span><span class="self">self</span>.rfind_raw_sse2(start, end)
             };
         }
-        <span class="comment">// SAFETY: Building a `Two` means it&#39;s safe to call both &#39;sse2&#39; and
-        // &#39;avx2&#39; routines. Also, we&#39;ve checked that our haystack is big
-        // enough to run on the vector routine. Pointer validity is caller&#39;s
+        <span class="comment">// SAFETY: Building a `Two` means it's safe to call both 'sse2' and
+        // 'avx2' routines. Also, we've checked that our haystack is big
+        // enough to run on the vector routine. Pointer validity is caller's
         // responsibility.
         //
-        // See note in forward routine above for why we don&#39;t just call
+        // See note in forward routine above for why we don't just call
         // `self.avx2.rfind_raw` directly here.
         </span><span class="self">self</span>.rfind_raw_avx2(start, end)
     }
@@ -2111,7 +2113,7 @@ expected match frequency.
     /// (The target feature safety obligation is automatically fulfilled by
     /// virtue of being a method on `Two`, which can only be constructed
     /// when it is safe to call `sse2`/`avx2` routines.)
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;sse2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"sse2"</span>)]
     #[inline]
     </span><span class="kw">unsafe fn </span>find_raw_sse2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -2131,7 +2133,7 @@ expected match frequency.
     /// (The target feature safety obligation is automatically fulfilled by
     /// virtue of being a method on `Two`, which can only be constructed
     /// when it is safe to call `sse2`/`avx2` routines.)
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;sse2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"sse2"</span>)]
     #[inline]
     </span><span class="kw">unsafe fn </span>rfind_raw_sse2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -2151,7 +2153,7 @@ expected match frequency.
     /// (The target feature safety obligation is automatically fulfilled by
     /// virtue of being a method on `Two`, which can only be constructed
     /// when it is safe to call `sse2`/`avx2` routines.)
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"avx2"</span>)]
     #[inline]
     </span><span class="kw">unsafe fn </span>find_raw_avx2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -2171,7 +2173,7 @@ expected match frequency.
     /// (The target feature safety obligation is automatically fulfilled by
     /// virtue of being a method on `Two`, which can only be constructed
     /// when it is safe to call `sse2`/`avx2` routines.)
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"avx2"</span>)]
     #[inline]
     </span><span class="kw">unsafe fn </span>rfind_raw_avx2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -2187,7 +2189,7 @@ expected match frequency.
     /// The iterator returned implements `DoubleEndedIterator`. This means it
     /// can also be used to find occurrences in reverse order.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[u8]) -&gt; TwoIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {
+    </span><span class="kw">pub fn </span>iter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span><span class="lifetime">'h </span>[u8]) -&gt; TwoIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {
         TwoIter { searcher: <span class="self">self</span>, it: generic::Iter::new(haystack) }
     }
 }
@@ -2201,22 +2203,22 @@ expected match frequency.
 ///
 /// The lifetime parameters are as follows:
 ///
-/// * `&#39;a` refers to the lifetime of the underlying [`Two`] searcher.
-/// * `&#39;h` refers to the lifetime of the haystack being searched.
+/// * `'a` refers to the lifetime of the underlying [`Two`] searcher.
+/// * `'h` refers to the lifetime of the haystack being searched.
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>TwoIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {
-    searcher: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Two,
-    it: generic::Iter&lt;<span class="lifetime">&#39;h</span>&gt;,
+</span><span class="kw">pub struct </span>TwoIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {
+    searcher: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Two,
+    it: generic::Iter&lt;<span class="lifetime">'h</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; Iterator <span class="kw">for </span>TwoIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; Iterator <span class="kw">for </span>TwoIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {
     <span class="kw">type </span>Item = usize;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="comment">// SAFETY: We rely on the generic iterator to provide valid start
         // and end pointers, but we guarantee that any pointer returned by
-        // &#39;find_raw&#39; falls within the bounds of the start and end pointer.
+        // 'find_raw' falls within the bounds of the start and end pointer.
         </span><span class="kw">unsafe </span>{ <span class="self">self</span>.it.next(|s, e| <span class="self">self</span>.searcher.find_raw(s, e)) }
     }
 
@@ -2226,17 +2228,17 @@ expected match frequency.
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; DoubleEndedIterator <span class="kw">for </span>TwoIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; DoubleEndedIterator <span class="kw">for </span>TwoIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="comment">// SAFETY: We rely on the generic iterator to provide valid start
         // and end pointers, but we guarantee that any pointer returned by
-        // &#39;rfind_raw&#39; falls within the bounds of the start and end pointer.
+        // 'rfind_raw' falls within the bounds of the start and end pointer.
         </span><span class="kw">unsafe </span>{ <span class="self">self</span>.it.next_back(|s, e| <span class="self">self</span>.searcher.rfind_raw(s, e)) }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; core::iter::FusedIterator <span class="kw">for </span>TwoIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; core::iter::FusedIterator <span class="kw">for </span>TwoIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {}
 
 <span class="doccomment">/// Finds all occurrences of three bytes in a haystack.
 ///
@@ -2280,9 +2282,9 @@ expected match frequency.
     ///
     /// Note that it is a common misconception that if one compiles for an
     /// `x86_64` target, then they therefore automatically have access to SSE2
-    /// instructions. While this is almost always the case, it isn&#39;t true in
+    /// instructions. While this is almost always the case, it isn't true in
     /// 100% of cases.
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;sse2&quot;</span>, enable = <span class="string">&quot;avx2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"sse2"</span>, enable = <span class="string">"avx2"</span>)]
     #[inline]
     </span><span class="kw">pub unsafe fn </span>new_unchecked(
         needle1: u8,
@@ -2306,23 +2308,23 @@ expected match frequency.
     /// true then it will always return true.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>is_available() -&gt; bool {
-        <span class="attr">#[cfg(not(target_feature = <span class="string">&quot;sse2&quot;</span>))]
+        <span class="attr">#[cfg(not(target_feature = <span class="string">"sse2"</span>))]
         </span>{
             <span class="bool-val">false
         </span>}
-        <span class="attr">#[cfg(target_feature = <span class="string">&quot;sse2&quot;</span>)]
+        <span class="attr">#[cfg(target_feature = <span class="string">"sse2"</span>)]
         </span>{
-            <span class="attr">#[cfg(target_feature = <span class="string">&quot;avx2&quot;</span>)]
+            <span class="attr">#[cfg(target_feature = <span class="string">"avx2"</span>)]
             </span>{
                 <span class="bool-val">true
             </span>}
-            <span class="attr">#[cfg(not(target_feature = <span class="string">&quot;avx2&quot;</span>))]
+            <span class="attr">#[cfg(not(target_feature = <span class="string">"avx2"</span>))]
             </span>{
-                <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
                 </span>{
-                    <span class="macro">std::is_x86_feature_detected!</span>(<span class="string">&quot;avx2&quot;</span>)
+                    <span class="macro">std::is_x86_feature_detected!</span>(<span class="string">"avx2"</span>)
                 }
-                <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+                <span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
                 </span>{
                     <span class="bool-val">false
                 </span>}
@@ -2367,7 +2369,7 @@ expected match frequency.
     /// When a match is found, the pointer returned is guaranteed to be
     /// `&gt;= start` and `&lt; end`.
     ///
-    /// This routine is useful if you&#39;re already using raw pointers and would
+    /// This routine is useful if you're already using raw pointers and would
     /// like to avoid converting back to a slice before executing a search.
     ///
     /// # Safety
@@ -2380,7 +2382,7 @@ expected match frequency.
     /// * Both `start` and `end` must be _derived from_ a pointer to the same
     /// object.
     /// * The distance between `start` and `end` must not overflow `isize`.
-    /// * The distance being in bounds must not rely on &quot;wrapping around&quot; the
+    /// * The distance being in bounds must not rely on "wrapping around" the
     /// address space.
     ///
     /// Note that callers may pass a pair of pointers such that `start &gt;= end`.
@@ -2410,17 +2412,17 @@ expected match frequency.
                 </span><span class="self">self</span>.find_raw_sse2(start, end)
             };
         }
-        <span class="comment">// SAFETY: Building a `Three` means it&#39;s safe to call both &#39;sse2&#39; and
-        // &#39;avx2&#39; routines. Also, we&#39;ve checked that our haystack is big
-        // enough to run on the vector routine. Pointer validity is caller&#39;s
+        <span class="comment">// SAFETY: Building a `Three` means it's safe to call both 'sse2' and
+        // 'avx2' routines. Also, we've checked that our haystack is big
+        // enough to run on the vector routine. Pointer validity is caller's
         // responsibility.
         //
         // Note that we could call `self.avx2.find_raw` directly here. But that
-        // means we&#39;d have to annotate this routine with `target_feature`.
+        // means we'd have to annotate this routine with `target_feature`.
         // Which is fine, because this routine is `unsafe` anyway and the
         // `target_feature` obligation is met by virtue of building a `Three`.
         // The real problem is that a routine with a `target_feature`
-        // annotation generally can&#39;t be inlined into caller code unless
+        // annotation generally can't be inlined into caller code unless
         // the caller code has the same target feature annotations. Namely,
         // the common case (at time of writing) is for calling code to not
         // have the `avx2` target feature enabled *at compile time*. Without
@@ -2435,7 +2437,7 @@ expected match frequency.
     /// When a match is found, the pointer returned is guaranteed to be
     /// `&gt;= start` and `&lt; end`.
     ///
-    /// This routine is useful if you&#39;re already using raw pointers and would
+    /// This routine is useful if you're already using raw pointers and would
     /// like to avoid converting back to a slice before executing a search.
     ///
     /// # Safety
@@ -2448,7 +2450,7 @@ expected match frequency.
     /// * Both `start` and `end` must be _derived from_ a pointer to the same
     /// object.
     /// * The distance between `start` and `end` must not overflow `isize`.
-    /// * The distance being in bounds must not rely on &quot;wrapping around&quot; the
+    /// * The distance being in bounds must not rely on "wrapping around" the
     /// address space.
     ///
     /// Note that callers may pass a pair of pointers such that `start &gt;= end`.
@@ -2478,12 +2480,12 @@ expected match frequency.
                 </span><span class="self">self</span>.rfind_raw_sse2(start, end)
             };
         }
-        <span class="comment">// SAFETY: Building a `Three` means it&#39;s safe to call both &#39;sse2&#39; and
-        // &#39;avx2&#39; routines. Also, we&#39;ve checked that our haystack is big
-        // enough to run on the vector routine. Pointer validity is caller&#39;s
+        <span class="comment">// SAFETY: Building a `Three` means it's safe to call both 'sse2' and
+        // 'avx2' routines. Also, we've checked that our haystack is big
+        // enough to run on the vector routine. Pointer validity is caller's
         // responsibility.
         //
-        // See note in forward routine above for why we don&#39;t just call
+        // See note in forward routine above for why we don't just call
         // `self.avx2.rfind_raw` directly here.
         </span><span class="self">self</span>.rfind_raw_avx2(start, end)
     }
@@ -2498,7 +2500,7 @@ expected match frequency.
     /// (The target feature safety obligation is automatically fulfilled by
     /// virtue of being a method on `Three`, which can only be constructed
     /// when it is safe to call `sse2`/`avx2` routines.)
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;sse2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"sse2"</span>)]
     #[inline]
     </span><span class="kw">unsafe fn </span>find_raw_sse2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -2518,7 +2520,7 @@ expected match frequency.
     /// (The target feature safety obligation is automatically fulfilled by
     /// virtue of being a method on `Three`, which can only be constructed
     /// when it is safe to call `sse2`/`avx2` routines.)
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;sse2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"sse2"</span>)]
     #[inline]
     </span><span class="kw">unsafe fn </span>rfind_raw_sse2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -2538,7 +2540,7 @@ expected match frequency.
     /// (The target feature safety obligation is automatically fulfilled by
     /// virtue of being a method on `Three`, which can only be constructed
     /// when it is safe to call `sse2`/`avx2` routines.)
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"avx2"</span>)]
     #[inline]
     </span><span class="kw">unsafe fn </span>find_raw_avx2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -2558,7 +2560,7 @@ expected match frequency.
     /// (The target feature safety obligation is automatically fulfilled by
     /// virtue of being a method on `Three`, which can only be constructed
     /// when it is safe to call `sse2`/`avx2` routines.)
-    </span><span class="attr">#[target_feature(enable = <span class="string">&quot;avx2&quot;</span>)]
+    </span><span class="attr">#[target_feature(enable = <span class="string">"avx2"</span>)]
     #[inline]
     </span><span class="kw">unsafe fn </span>rfind_raw_avx2(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -2574,7 +2576,7 @@ expected match frequency.
     /// The iterator returned implements `DoubleEndedIterator`. This means it
     /// can also be used to find occurrences in reverse order.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h </span>[u8]) -&gt; ThreeIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {
+    </span><span class="kw">pub fn </span>iter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span><span class="lifetime">'h </span>[u8]) -&gt; ThreeIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {
         ThreeIter { searcher: <span class="self">self</span>, it: generic::Iter::new(haystack) }
     }
 }
@@ -2588,22 +2590,22 @@ expected match frequency.
 ///
 /// The lifetime parameters are as follows:
 ///
-/// * `&#39;a` refers to the lifetime of the underlying [`Three`] searcher.
-/// * `&#39;h` refers to the lifetime of the haystack being searched.
+/// * `'a` refers to the lifetime of the underlying [`Three`] searcher.
+/// * `'h` refers to the lifetime of the haystack being searched.
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>ThreeIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {
-    searcher: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Three,
-    it: generic::Iter&lt;<span class="lifetime">&#39;h</span>&gt;,
+</span><span class="kw">pub struct </span>ThreeIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {
+    searcher: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Three,
+    it: generic::Iter&lt;<span class="lifetime">'h</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; Iterator <span class="kw">for </span>ThreeIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; Iterator <span class="kw">for </span>ThreeIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {
     <span class="kw">type </span>Item = usize;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="comment">// SAFETY: We rely on the generic iterator to provide valid start
         // and end pointers, but we guarantee that any pointer returned by
-        // &#39;find_raw&#39; falls within the bounds of the start and end pointer.
+        // 'find_raw' falls within the bounds of the start and end pointer.
         </span><span class="kw">unsafe </span>{ <span class="self">self</span>.it.next(|s, e| <span class="self">self</span>.searcher.find_raw(s, e)) }
     }
 
@@ -2613,17 +2615,17 @@ expected match frequency.
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; DoubleEndedIterator <span class="kw">for </span>ThreeIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; DoubleEndedIterator <span class="kw">for </span>ThreeIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="comment">// SAFETY: We rely on the generic iterator to provide valid start
         // and end pointers, but we guarantee that any pointer returned by
-        // &#39;rfind_raw&#39; falls within the bounds of the start and end pointer.
+        // 'rfind_raw' falls within the bounds of the start and end pointer.
         </span><span class="kw">unsafe </span>{ <span class="self">self</span>.it.next_back(|s, e| <span class="self">self</span>.searcher.rfind_raw(s, e)) }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; core::iter::FusedIterator <span class="kw">for </span>ThreeIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; core::iter::FusedIterator <span class="kw">for </span>ThreeIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'h</span>&gt; {}
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {

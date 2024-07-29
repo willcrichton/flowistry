@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.7/src/builder/value_parser.rs`."><title>value_parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.11/src/builder/value_parser.rs`."><title>value_parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2666,50 +2668,6 @@
 <a href="#2666" id="2666">2666</a>
 <a href="#2667" id="2667">2667</a>
 <a href="#2668" id="2668">2668</a>
-<a href="#2669" id="2669">2669</a>
-<a href="#2670" id="2670">2670</a>
-<a href="#2671" id="2671">2671</a>
-<a href="#2672" id="2672">2672</a>
-<a href="#2673" id="2673">2673</a>
-<a href="#2674" id="2674">2674</a>
-<a href="#2675" id="2675">2675</a>
-<a href="#2676" id="2676">2676</a>
-<a href="#2677" id="2677">2677</a>
-<a href="#2678" id="2678">2678</a>
-<a href="#2679" id="2679">2679</a>
-<a href="#2680" id="2680">2680</a>
-<a href="#2681" id="2681">2681</a>
-<a href="#2682" id="2682">2682</a>
-<a href="#2683" id="2683">2683</a>
-<a href="#2684" id="2684">2684</a>
-<a href="#2685" id="2685">2685</a>
-<a href="#2686" id="2686">2686</a>
-<a href="#2687" id="2687">2687</a>
-<a href="#2688" id="2688">2688</a>
-<a href="#2689" id="2689">2689</a>
-<a href="#2690" id="2690">2690</a>
-<a href="#2691" id="2691">2691</a>
-<a href="#2692" id="2692">2692</a>
-<a href="#2693" id="2693">2693</a>
-<a href="#2694" id="2694">2694</a>
-<a href="#2695" id="2695">2695</a>
-<a href="#2696" id="2696">2696</a>
-<a href="#2697" id="2697">2697</a>
-<a href="#2698" id="2698">2698</a>
-<a href="#2699" id="2699">2699</a>
-<a href="#2700" id="2700">2700</a>
-<a href="#2701" id="2701">2701</a>
-<a href="#2702" id="2702">2702</a>
-<a href="#2703" id="2703">2703</a>
-<a href="#2704" id="2704">2704</a>
-<a href="#2705" id="2705">2705</a>
-<a href="#2706" id="2706">2706</a>
-<a href="#2707" id="2707">2707</a>
-<a href="#2708" id="2708">2708</a>
-<a href="#2709" id="2709">2709</a>
-<a href="#2710" id="2710">2710</a>
-<a href="#2711" id="2711">2711</a>
-<a href="#2712" id="2712">2712</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::convert::TryInto;
 <span class="kw">use </span>std::ops::RangeBounds;
 
@@ -2734,42 +2692,42 @@
 ///
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;color&quot;)
-///             .long(&quot;color&quot;)
-///             .value_parser([&quot;always&quot;, &quot;auto&quot;, &quot;never&quot;])
-///             .default_value(&quot;auto&quot;)
+///         clap::Arg::new("color")
+///             .long("color")
+///             .value_parser(["always", "auto", "never"])
+///             .default_value("auto")
 ///     )
 ///     .arg(
-///         clap::Arg::new(&quot;hostname&quot;)
-///             .long(&quot;hostname&quot;)
+///         clap::Arg::new("hostname")
+///             .long("hostname")
 ///             .value_parser(clap::builder::NonEmptyStringValueParser::new())
 ///             .action(clap::ArgAction::Set)
 ///             .required(true)
 ///     )
 ///     .arg(
-///         clap::Arg::new(&quot;port&quot;)
-///             .long(&quot;port&quot;)
+///         clap::Arg::new("port")
+///             .long("port")
 ///             .value_parser(clap::value_parser!(u16).range(3000..))
 ///             .action(clap::ArgAction::Set)
 ///             .required(true)
 ///     );
 ///
 /// let m = cmd.try_get_matches_from_mut(
-///     [&quot;cmd&quot;, &quot;--hostname&quot;, &quot;rust-lang.org&quot;, &quot;--port&quot;, &quot;3001&quot;]
+///     ["cmd", "--hostname", "rust-lang.org", "--port", "3001"]
 /// ).unwrap();
 ///
-/// let color: &amp;String = m.get_one(&quot;color&quot;)
-///     .expect(&quot;default&quot;);
-/// assert_eq!(color, &quot;auto&quot;);
+/// let color: &amp;String = m.get_one("color")
+///     .expect("default");
+/// assert_eq!(color, "auto");
 ///
-/// let hostname: &amp;String = m.get_one(&quot;hostname&quot;)
-///     .expect(&quot;required&quot;);
-/// assert_eq!(hostname, &quot;rust-lang.org&quot;);
+/// let hostname: &amp;String = m.get_one("hostname")
+///     .expect("required");
+/// assert_eq!(hostname, "rust-lang.org");
 ///
-/// let port: u16 = *m.get_one(&quot;port&quot;)
-///     .expect(&quot;required&quot;);
+/// let port: u16 = *m.get_one("port")
+///     .expect("required");
 /// assert_eq!(port, 3001);
 /// ```
 </span><span class="kw">pub struct </span>ValueParser(ValueParserInner);
@@ -2802,24 +2760,24 @@
     /// # use clap_builder as clap;
     /// type EnvVar = (String, Option&lt;String&gt;);
     /// fn parse_env_var(env: &amp;str) -&gt; Result&lt;EnvVar, std::io::Error&gt; {
-    ///     if let Some((var, value)) = env.split_once(&#39;=&#39;) {
+    ///     if let Some((var, value)) = env.split_once('=') {
     ///         Ok((var.to_owned(), Some(value.to_owned())))
     ///     } else {
     ///         Ok((env.to_owned(), None))
     ///     }
     /// }
     ///
-    /// let mut cmd = clap::Command::new(&quot;raw&quot;)
+    /// let mut cmd = clap::Command::new("raw")
     ///     .arg(
-    ///         clap::Arg::new(&quot;env&quot;)
+    ///         clap::Arg::new("env")
     ///             .value_parser(clap::builder::ValueParser::new(parse_env_var))
     ///             .required(true)
     ///     );
     ///
-    /// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;key=value&quot;]).unwrap();
-    /// let port: &amp;EnvVar = m.get_one(&quot;env&quot;)
-    ///     .expect(&quot;required&quot;);
-    /// assert_eq!(*port, (&quot;key&quot;.into(), Some(&quot;value&quot;.into())));
+    /// let m = cmd.try_get_matches_from_mut(["cmd", "key=value"]).unwrap();
+    /// let port: &amp;EnvVar = m.get_one("env")
+    ///     .expect("required");
+    /// assert_eq!(*port, ("key".into(), Some("value".into())));
     /// ```
     </span><span class="kw">pub fn </span>new&lt;P&gt;(other: P) -&gt; <span class="self">Self
     </span><span class="kw">where
@@ -2838,19 +2796,19 @@
     ///
     /// ```rust
     /// # use clap_builder as clap;
-    /// let mut cmd = clap::Command::new(&quot;raw&quot;)
+    /// let mut cmd = clap::Command::new("raw")
     ///     .arg(
-    ///         clap::Arg::new(&quot;download&quot;)
+    ///         clap::Arg::new("download")
     ///             .value_parser(clap::value_parser!(bool))
     ///             .required(true)
     ///     );
     ///
-    /// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;true&quot;]).unwrap();
-    /// let port: bool = *m.get_one(&quot;download&quot;)
-    ///     .expect(&quot;required&quot;);
+    /// let m = cmd.try_get_matches_from_mut(["cmd", "true"]).unwrap();
+    /// let port: bool = *m.get_one("download")
+    ///     .expect("required");
     /// assert_eq!(port, true);
     ///
-    /// assert!(cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;forever&quot;]).is_err());
+    /// assert!(cmd.try_get_matches_from_mut(["cmd", "forever"]).is_err());
     /// ```
     </span><span class="kw">pub const fn </span>bool() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(ValueParserInner::Bool)
@@ -2865,17 +2823,17 @@
     ///
     /// ```rust
     /// # use clap_builder as clap;
-    /// let mut cmd = clap::Command::new(&quot;raw&quot;)
+    /// let mut cmd = clap::Command::new("raw")
     ///     .arg(
-    ///         clap::Arg::new(&quot;port&quot;)
+    ///         clap::Arg::new("port")
     ///             .value_parser(clap::value_parser!(String))
     ///             .required(true)
     ///     );
     ///
-    /// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;80&quot;]).unwrap();
-    /// let port: &amp;String = m.get_one(&quot;port&quot;)
-    ///     .expect(&quot;required&quot;);
-    /// assert_eq!(port, &quot;80&quot;);
+    /// let m = cmd.try_get_matches_from_mut(["cmd", "80"]).unwrap();
+    /// let port: &amp;String = m.get_one("port")
+    ///     .expect("required");
+    /// assert_eq!(port, "80");
     /// ```
     </span><span class="kw">pub const fn </span>string() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(ValueParserInner::String)
@@ -2891,21 +2849,21 @@
     /// # use clap::{Command, Arg, builder::ValueParser};
     /// use std::ffi::OsString;
     /// use std::os::unix::ffi::{OsStrExt,OsStringExt};
-    /// let r = Command::new(&quot;myprog&quot;)
+    /// let r = Command::new("myprog")
     ///     .arg(
-    ///         Arg::new(&quot;arg&quot;)
+    ///         Arg::new("arg")
     ///         .required(true)
     ///         .value_parser(ValueParser::os_string())
     ///     )
     ///     .try_get_matches_from(vec![
-    ///         OsString::from(&quot;myprog&quot;),
+    ///         OsString::from("myprog"),
     ///         OsString::from_vec(vec![0xe9])
     ///     ]);
     ///
     /// assert!(r.is_ok());
     /// let m = r.unwrap();
-    /// let arg: &amp;OsString = m.get_one(&quot;arg&quot;)
-    ///     .expect(&quot;required&quot;);
+    /// let arg: &amp;OsString = m.get_one("arg")
+    ///     .expect("required");
     /// assert_eq!(arg.as_bytes(), &amp;[0xe9]);
     /// # }
     /// ```
@@ -2921,19 +2879,19 @@
     /// # use clap_builder as clap;
     /// # use std::path::PathBuf;
     /// # use std::path::Path;
-    /// let mut cmd = clap::Command::new(&quot;raw&quot;)
+    /// let mut cmd = clap::Command::new("raw")
     ///     .arg(
-    ///         clap::Arg::new(&quot;output&quot;)
+    ///         clap::Arg::new("output")
     ///             .value_parser(clap::value_parser!(PathBuf))
     ///             .required(true)
     ///     );
     ///
-    /// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;hello.txt&quot;]).unwrap();
-    /// let port: &amp;PathBuf = m.get_one(&quot;output&quot;)
-    ///     .expect(&quot;required&quot;);
-    /// assert_eq!(port, Path::new(&quot;hello.txt&quot;));
+    /// let m = cmd.try_get_matches_from_mut(["cmd", "hello.txt"]).unwrap();
+    /// let port: &amp;PathBuf = m.get_one("output")
+    ///     .expect("required");
+    /// assert_eq!(port, Path::new("hello.txt"));
     ///
-    /// assert!(cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;&quot;]).is_err());
+    /// assert!(cmd.try_get_matches_from_mut(["cmd", ""]).is_err());
     /// ```
     </span><span class="kw">pub const fn </span>path_buf() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(ValueParserInner::PathBuf)
@@ -2965,7 +2923,7 @@
     /// applications like errors and completion.
     </span><span class="kw">pub fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">'_</span>&gt;&gt; {
         <span class="self">self</span>.any_value_parser().possible_values()
     }
 
@@ -2986,26 +2944,26 @@
 ///
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;hostname&quot;)
-///             .long(&quot;hostname&quot;)
+///         clap::Arg::new("hostname")
+///             .long("hostname")
 ///             .value_parser(clap::builder::NonEmptyStringValueParser::new())
 ///             .action(clap::ArgAction::Set)
 ///             .required(true)
 ///     );
 ///
 /// let m = cmd.try_get_matches_from_mut(
-///     [&quot;cmd&quot;, &quot;--hostname&quot;, &quot;rust-lang.org&quot;]
+///     ["cmd", "--hostname", "rust-lang.org"]
 /// ).unwrap();
 ///
-/// let hostname: &amp;String = m.get_one(&quot;hostname&quot;)
-///     .expect(&quot;required&quot;);
-/// assert_eq!(hostname, &quot;rust-lang.org&quot;);
+/// let hostname: &amp;String = m.get_one("hostname")
+///     .expect("required");
+/// assert_eq!(hostname, "rust-lang.org");
 /// ```
 </span><span class="kw">impl</span>&lt;P&gt; From&lt;P&gt; <span class="kw">for </span>ValueParser
 <span class="kw">where
-    </span>P: TypedValueParser + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>P: TypedValueParser + Send + Sync + <span class="lifetime">'static</span>,
 {
     <span class="kw">fn </span>from(p: P) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(p)
@@ -3028,18 +2986,18 @@
 ///
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;port&quot;)
-///             .long(&quot;port&quot;)
+///         clap::Arg::new("port")
+///             .long("port")
 ///             .value_parser(3000..4000)
 ///             .action(clap::ArgAction::Set)
 ///             .required(true)
 ///     );
 ///
-/// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;--port&quot;, &quot;3001&quot;]).unwrap();
-/// let port: i64 = *m.get_one(&quot;port&quot;)
-///     .expect(&quot;required&quot;);
+/// let m = cmd.try_get_matches_from_mut(["cmd", "--port", "3001"]).unwrap();
+/// let port: i64 = *m.get_one("port")
+///     .expect("required");
 /// assert_eq!(port, 3001);
 /// ```
 </span><span class="kw">impl </span>From&lt;std::ops::Range&lt;i64&gt;&gt; <span class="kw">for </span>ValueParser {
@@ -3059,18 +3017,18 @@
 ///
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;port&quot;)
-///             .long(&quot;port&quot;)
+///         clap::Arg::new("port")
+///             .long("port")
 ///             .value_parser(3000..=4000)
 ///             .action(clap::ArgAction::Set)
 ///             .required(true)
 ///     );
 ///
-/// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;--port&quot;, &quot;3001&quot;]).unwrap();
-/// let port: i64 = *m.get_one(&quot;port&quot;)
-///     .expect(&quot;required&quot;);
+/// let m = cmd.try_get_matches_from_mut(["cmd", "--port", "3001"]).unwrap();
+/// let port: i64 = *m.get_one("port")
+///     .expect("required");
 /// assert_eq!(port, 3001);
 /// ```
 </span><span class="kw">impl </span>From&lt;std::ops::RangeInclusive&lt;i64&gt;&gt; <span class="kw">for </span>ValueParser {
@@ -3090,18 +3048,18 @@
 ///
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;port&quot;)
-///             .long(&quot;port&quot;)
+///         clap::Arg::new("port")
+///             .long("port")
 ///             .value_parser(3000..)
 ///             .action(clap::ArgAction::Set)
 ///             .required(true)
 ///     );
 ///
-/// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;--port&quot;, &quot;3001&quot;]).unwrap();
-/// let port: i64 = *m.get_one(&quot;port&quot;)
-///     .expect(&quot;required&quot;);
+/// let m = cmd.try_get_matches_from_mut(["cmd", "--port", "3001"]).unwrap();
+/// let port: i64 = *m.get_one("port")
+///     .expect("required");
 /// assert_eq!(port, 3001);
 /// ```
 </span><span class="kw">impl </span>From&lt;std::ops::RangeFrom&lt;i64&gt;&gt; <span class="kw">for </span>ValueParser {
@@ -3121,18 +3079,18 @@
 ///
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;port&quot;)
-///             .long(&quot;port&quot;)
+///         clap::Arg::new("port")
+///             .long("port")
 ///             .value_parser(..3000)
 ///             .action(clap::ArgAction::Set)
 ///             .required(true)
 ///     );
 ///
-/// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;--port&quot;, &quot;80&quot;]).unwrap();
-/// let port: i64 = *m.get_one(&quot;port&quot;)
-///     .expect(&quot;required&quot;);
+/// let m = cmd.try_get_matches_from_mut(["cmd", "--port", "80"]).unwrap();
+/// let port: i64 = *m.get_one("port")
+///     .expect("required");
 /// assert_eq!(port, 80);
 /// ```
 </span><span class="kw">impl </span>From&lt;std::ops::RangeTo&lt;i64&gt;&gt; <span class="kw">for </span>ValueParser {
@@ -3152,18 +3110,18 @@
 ///
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;port&quot;)
-///             .long(&quot;port&quot;)
+///         clap::Arg::new("port")
+///             .long("port")
 ///             .value_parser(..=3000)
 ///             .action(clap::ArgAction::Set)
 ///             .required(true)
 ///     );
 ///
-/// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;--port&quot;, &quot;80&quot;]).unwrap();
-/// let port: i64 = *m.get_one(&quot;port&quot;)
-///     .expect(&quot;required&quot;);
+/// let m = cmd.try_get_matches_from_mut(["cmd", "--port", "80"]).unwrap();
+/// let port: i64 = *m.get_one("port")
+///     .expect("required");
 /// assert_eq!(port, 80);
 /// ```
 </span><span class="kw">impl </span>From&lt;std::ops::RangeToInclusive&lt;i64&gt;&gt; <span class="kw">for </span>ValueParser {
@@ -3183,18 +3141,18 @@
 ///
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;port&quot;)
-///             .long(&quot;port&quot;)
+///         clap::Arg::new("port")
+///             .long("port")
 ///             .value_parser(..)
 ///             .action(clap::ArgAction::Set)
 ///             .required(true)
 ///     );
 ///
-/// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;--port&quot;, &quot;3001&quot;]).unwrap();
-/// let port: i64 = *m.get_one(&quot;port&quot;)
-///     .expect(&quot;required&quot;);
+/// let m = cmd.try_get_matches_from_mut(["cmd", "--port", "3001"]).unwrap();
+/// let port: i64 = *m.get_one("port")
+///     .expect("required");
 /// assert_eq!(port, 3001);
 /// ```
 </span><span class="kw">impl </span>From&lt;std::ops::RangeFull&gt; <span class="kw">for </span>ValueParser {
@@ -3213,21 +3171,21 @@
 ///
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;color&quot;)
-///             .long(&quot;color&quot;)
-///             .value_parser([&quot;always&quot;, &quot;auto&quot;, &quot;never&quot;])
-///             .default_value(&quot;auto&quot;)
+///         clap::Arg::new("color")
+///             .long("color")
+///             .value_parser(["always", "auto", "never"])
+///             .default_value("auto")
 ///     );
 ///
 /// let m = cmd.try_get_matches_from_mut(
-///     [&quot;cmd&quot;, &quot;--color&quot;, &quot;never&quot;]
+///     ["cmd", "--color", "never"]
 /// ).unwrap();
 ///
-/// let color: &amp;String = m.get_one(&quot;color&quot;)
-///     .expect(&quot;default&quot;);
-/// assert_eq!(color, &quot;never&quot;);
+/// let color: &amp;String = m.get_one("color")
+///     .expect("default");
+/// assert_eq!(color, "never");
 /// ```
 </span><span class="kw">impl</span>&lt;P, <span class="kw">const </span>C: usize&gt; From&lt;[P; C]&gt; <span class="kw">for </span>ValueParser
 <span class="kw">where
@@ -3248,22 +3206,22 @@
 ///
 /// ```rust
 /// # use clap_builder as clap;
-/// let possible = vec![&quot;always&quot;, &quot;auto&quot;, &quot;never&quot;];
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let possible = vec!["always", "auto", "never"];
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;color&quot;)
-///             .long(&quot;color&quot;)
+///         clap::Arg::new("color")
+///             .long("color")
 ///             .value_parser(possible)
-///             .default_value(&quot;auto&quot;)
+///             .default_value("auto")
 ///     );
 ///
 /// let m = cmd.try_get_matches_from_mut(
-///     [&quot;cmd&quot;, &quot;--color&quot;, &quot;never&quot;]
+///     ["cmd", "--color", "never"]
 /// ).unwrap();
 ///
-/// let color: &amp;String = m.get_one(&quot;color&quot;)
-///     .expect(&quot;default&quot;);
-/// assert_eq!(color, &quot;never&quot;);
+/// let color: &amp;String = m.get_one("color")
+///     .expect("default");
+/// assert_eq!(color, "never");
 /// ```
 </span><span class="kw">impl</span>&lt;P&gt; From&lt;Vec&lt;P&gt;&gt; <span class="kw">for </span>ValueParser
 <span class="kw">where
@@ -3276,13 +3234,13 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>ValueParser {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; <span class="prelude-ty">Result</span>&lt;(), std::fmt::Error&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), std::fmt::Error&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
-            ValueParserInner::Bool =&gt; f.debug_struct(<span class="string">&quot;ValueParser::bool&quot;</span>).finish(),
-            ValueParserInner::String =&gt; f.debug_struct(<span class="string">&quot;ValueParser::string&quot;</span>).finish(),
-            ValueParserInner::OsString =&gt; f.debug_struct(<span class="string">&quot;ValueParser::os_string&quot;</span>).finish(),
-            ValueParserInner::PathBuf =&gt; f.debug_struct(<span class="string">&quot;ValueParser::path_buf&quot;</span>).finish(),
-            ValueParserInner::Other(o) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;ValueParser::other({:?})&quot;</span>, o.type_id()),
+            ValueParserInner::Bool =&gt; f.debug_struct(<span class="string">"ValueParser::bool"</span>).finish(),
+            ValueParserInner::String =&gt; f.debug_struct(<span class="string">"ValueParser::string"</span>).finish(),
+            ValueParserInner::OsString =&gt; f.debug_struct(<span class="string">"ValueParser::os_string"</span>).finish(),
+            ValueParserInner::PathBuf =&gt; f.debug_struct(<span class="string">"ValueParser::path_buf"</span>).finish(),
+            ValueParserInner::Other(o) =&gt; <span class="macro">write!</span>(f, <span class="string">"ValueParser::other({:?})"</span>, o.type_id()),
         }
     }
 }
@@ -3300,7 +3258,7 @@
 }
 
 <span class="doccomment">/// A type-erased wrapper for [`TypedValueParser`].
-</span><span class="kw">trait </span>AnyValueParser: Send + Sync + <span class="lifetime">&#39;static </span>{
+</span><span class="kw">trait </span>AnyValueParser: Send + Sync + <span class="lifetime">'static </span>{
     <span class="kw">fn </span>parse_ref(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
@@ -3318,36 +3276,19 @@
         <span class="self">self</span>.parse_ref(cmd, arg, value)
     }
 
-    <span class="kw">fn </span>parse(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
-        value: std::ffi::OsString,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;AnyValue, <span class="kw">crate</span>::Error&gt;;
-
-    <span class="kw">fn </span>parse_(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
-        value: std::ffi::OsString,
-        _source: ValueSource,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;AnyValue, <span class="kw">crate</span>::Error&gt; {
-        <span class="self">self</span>.parse(cmd, arg, value)
-    }
-
     <span class="doccomment">/// Describes the content of `AnyValue`
     </span><span class="kw">fn </span>type_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AnyValueId;
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt;;
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">'_</span>&gt;&gt;;
 
     <span class="kw">fn </span>clone_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>AnyValueParser&gt;;
 }
 
 <span class="kw">impl</span>&lt;T, P&gt; AnyValueParser <span class="kw">for </span>P
 <span class="kw">where
-    </span>T: std::any::Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>T: std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
     P: TypedValueParser&lt;Value = T&gt;,
 {
     <span class="kw">fn </span>parse_ref(
@@ -3371,34 +3312,13 @@
         <span class="prelude-val">Ok</span>(AnyValue::new(value))
     }
 
-    <span class="kw">fn </span>parse(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
-        value: std::ffi::OsString,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;AnyValue, <span class="kw">crate</span>::Error&gt; {
-        <span class="kw">let </span>value = <span class="macro">ok!</span>(TypedValueParser::parse(<span class="self">self</span>, cmd, arg, value));
-        <span class="prelude-val">Ok</span>(AnyValue::new(value))
-    }
-
-    <span class="kw">fn </span>parse_(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
-        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
-        value: std::ffi::OsString,
-        source: ValueSource,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;AnyValue, <span class="kw">crate</span>::Error&gt; {
-        <span class="kw">let </span>value = <span class="macro">ok!</span>(TypedValueParser::parse_(<span class="self">self</span>, cmd, arg, value, source));
-        <span class="prelude-val">Ok</span>(AnyValue::new(value))
-    }
-
     <span class="kw">fn </span>type_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AnyValueId {
         AnyValueId::of::&lt;T&gt;()
     }
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">'_</span>&gt;&gt; {
         P::possible_values(<span class="self">self</span>)
     }
 
@@ -3419,7 +3339,7 @@
 /// # Example
 ///
 /// ```rust
-/// # #[cfg(feature = &quot;error-context&quot;)] {
+/// # #[cfg(feature = "error-context")] {
 /// # use clap_builder as clap;
 /// # use clap::error::ErrorKind;
 /// # use clap::error::ContextKind;
@@ -3458,8 +3378,8 @@
 /// }
 /// # }
 /// ```
-</span><span class="kw">pub trait </span>TypedValueParser: Clone + Send + Sync + <span class="lifetime">&#39;static </span>{
-    <span class="doccomment">/// Argument&#39;s value type
+</span><span class="kw">pub trait </span>TypedValueParser: Clone + Send + Sync + <span class="lifetime">'static </span>{
+    <span class="doccomment">/// Argument's value type
     </span><span class="kw">type </span>Value: Send + Sync + Clone;
 
     <span class="doccomment">/// Parse the argument value
@@ -3516,7 +3436,7 @@
     /// applications like errors and completion.
     </span><span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">'_</span>&gt;&gt; {
         <span class="prelude-val">None
     </span>}
 
@@ -3530,10 +3450,10 @@
     /// # use clap::Arg;
     /// # use clap::builder::TypedValueParser as _;
     /// # use clap::builder::BoolishValueParser;
-    /// let cmd = Command::new(&quot;mycmd&quot;)
+    /// let cmd = Command::new("mycmd")
     ///     .arg(
-    ///         Arg::new(&quot;flag&quot;)
-    ///             .long(&quot;flag&quot;)
+    ///         Arg::new("flag")
+    ///             .long("flag")
     ///             .action(clap::ArgAction::SetTrue)
     ///             .value_parser(
     ///                 BoolishValueParser::new()
@@ -3543,17 +3463,17 @@
     ///             )
     ///     );
     ///
-    /// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;]).unwrap();
-    /// assert!(matches.contains_id(&quot;flag&quot;));
+    /// let matches = cmd.clone().try_get_matches_from(["mycmd", "--flag"]).unwrap();
+    /// assert!(matches.contains_id("flag"));
     /// assert_eq!(
-    ///     matches.get_one::&lt;usize&gt;(&quot;flag&quot;).copied(),
+    ///     matches.get_one::&lt;usize&gt;("flag").copied(),
     ///     Some(10)
     /// );
     ///
-    /// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;]).unwrap();
-    /// assert!(matches.contains_id(&quot;flag&quot;));
+    /// let matches = cmd.try_get_matches_from(["mycmd"]).unwrap();
+    /// assert!(matches.contains_id("flag"));
     /// assert_eq!(
-    ///     matches.get_one::&lt;usize&gt;(&quot;flag&quot;).copied(),
+    ///     matches.get_one::&lt;usize&gt;("flag").copied(),
     ///     Some(5)
     /// );
     /// ```
@@ -3579,39 +3499,39 @@
     /// # use clap::Arg;
     /// # use clap::builder::TypedValueParser as _;
     /// # use clap::builder::OsStringValueParser;
-    /// let cmd = Command::new(&quot;mycmd&quot;)
+    /// let cmd = Command::new("mycmd")
     ///     .arg(
-    ///         Arg::new(&quot;flag&quot;)
-    ///             .long(&quot;flag&quot;)
+    ///         Arg::new("flag")
+    ///             .long("flag")
     ///             .value_parser(
     ///                 OsStringValueParser::new()
     ///                 .try_map(verify_ext)
     ///             )
     ///     );
     ///
-    /// fn verify_ext(os: OsString) -&gt; Result&lt;PathBuf, &amp;&#39;static str&gt; {
+    /// fn verify_ext(os: OsString) -&gt; Result&lt;PathBuf, &amp;'static str&gt; {
     ///     let path = PathBuf::from(os);
-    ///     if path.extension() != Some(OsStr::new(&quot;rs&quot;)) {
-    ///         return Err(&quot;only Rust files are supported&quot;);
+    ///     if path.extension() != Some(OsStr::new("rs")) {
+    ///         return Err("only Rust files are supported");
     ///     }
     ///     Ok(path)
     /// }
     ///
-    /// let error = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;foo.txt&quot;]).unwrap_err();
+    /// let error = cmd.clone().try_get_matches_from(["mycmd", "--flag", "foo.txt"]).unwrap_err();
     /// error.print();
     ///
-    /// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;foo.rs&quot;]).unwrap();
-    /// assert!(matches.contains_id(&quot;flag&quot;));
+    /// let matches = cmd.try_get_matches_from(["mycmd", "--flag", "foo.rs"]).unwrap();
+    /// assert!(matches.contains_id("flag"));
     /// assert_eq!(
-    ///     matches.get_one::&lt;PathBuf&gt;(&quot;flag&quot;).map(|s| s.as_path()),
-    ///     Some(Path::new(&quot;foo.rs&quot;))
+    ///     matches.get_one::&lt;PathBuf&gt;("flag").map(|s| s.as_path()),
+    ///     Some(Path::new("foo.rs"))
     /// );
     /// ```
     </span><span class="kw">fn </span>try_map&lt;T, E, F&gt;(<span class="self">self</span>, func: F) -&gt; TryMapValueParser&lt;<span class="self">Self</span>, F&gt;
     <span class="kw">where
-        </span>F: Fn(<span class="self">Self</span>::Value) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="self">Self</span>::Value) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + Clone + Send + Sync + <span class="lifetime">'static</span>,
         T: Send + Sync + Clone,
-        E: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
+        E: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
     {
         TryMapValueParser::new(<span class="self">self</span>, func)
     }
@@ -3619,8 +3539,8 @@
 
 <span class="kw">impl</span>&lt;F, T, E&gt; TypedValueParser <span class="kw">for </span>F
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    E: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
+    </span>F: Fn(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + Clone + Send + Sync + <span class="lifetime">'static</span>,
+    E: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
     T: Send + Sync + Clone,
 {
     <span class="kw">type </span>Value = T;
@@ -3640,7 +3560,7 @@
         <span class="kw">let </span>value = <span class="macro">ok!</span>((<span class="self">self</span>)(value).map_err(|e| {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
-                .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
+                .unwrap_or_else(|| <span class="string">"..."</span>.to_owned());
             <span class="kw">crate</span>::Error::value_validation(arg, value.to_owned(), e.into()).with_cmd(cmd)
         }));
         <span class="prelude-val">Ok</span>(value)
@@ -3774,7 +3694,7 @@
                 cmd,
                 <span class="kw-2">&amp;</span>[],
                 arg.map(ToString::to_string)
-                    .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned()),
+                    .unwrap_or_else(|| <span class="string">"..."</span>.to_owned()),
             ));
         }
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Value::from(value))
@@ -3799,38 +3719,38 @@
 /// # use std::ffi::OsStr;
 /// # use clap::ColorChoice;
 /// # use clap::builder::TypedValueParser;
-/// # let cmd = clap::Command::new(&quot;test&quot;);
+/// # let cmd = clap::Command::new("test");
 /// # let arg = None;
 ///
 /// // Usage
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;color&quot;)
+///         clap::Arg::new("color")
 ///             .value_parser(clap::builder::EnumValueParser::&lt;ColorChoice&gt;::new())
 ///             .required(true)
 ///     );
 ///
-/// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;always&quot;]).unwrap();
-/// let port: ColorChoice = *m.get_one(&quot;color&quot;)
-///     .expect(&quot;required&quot;);
+/// let m = cmd.try_get_matches_from_mut(["cmd", "always"]).unwrap();
+/// let port: ColorChoice = *m.get_one("color")
+///     .expect("required");
 /// assert_eq!(port, ColorChoice::Always);
 ///
 /// // Semantics
 /// let value_parser = clap::builder::EnumValueParser::&lt;ColorChoice&gt;::new();
 /// // or
 /// let value_parser = clap::value_parser!(ColorChoice);
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;random&quot;)).is_err());
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;&quot;)).is_err());
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;always&quot;)).unwrap(), ColorChoice::Always);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;auto&quot;)).unwrap(), ColorChoice::Auto);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;never&quot;)).unwrap(), ColorChoice::Never);
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("random")).is_err());
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("")).is_err());
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("always")).unwrap(), ColorChoice::Always);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("auto")).unwrap(), ColorChoice::Auto);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("never")).unwrap(), ColorChoice::Never);
 /// ```
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>EnumValueParser&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+</span><span class="kw">pub struct </span>EnumValueParser&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
     std::marker::PhantomData&lt;E&gt;,
 );
 
-<span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt; EnumValueParser&lt;E&gt; {
+<span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">'static</span>&gt; EnumValueParser&lt;E&gt; {
     <span class="doccomment">/// Parse an [`ValueEnum`][crate::ValueEnum]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>phantom: std::marker::PhantomData&lt;E&gt; = Default::default();
@@ -3838,7 +3758,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt; TypedValueParser <span class="kw">for </span>EnumValueParser&lt;E&gt; {
+<span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">'static</span>&gt; TypedValueParser <span class="kw">for </span>EnumValueParser&lt;E&gt; {
     <span class="kw">type </span>Value = E;
 
     <span class="kw">fn </span>parse_ref(
@@ -3863,14 +3783,14 @@
                 value.to_string_lossy().into_owned(),
                 <span class="kw-2">&amp;</span>possible_vals(),
                 arg.map(ToString::to_string)
-                    .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned()),
+                    .unwrap_or_else(|| <span class="string">"..."</span>.to_owned()),
             )
         }));
         <span class="kw">let </span>value = <span class="macro">ok!</span>(E::value_variants()
             .iter()
             .find(|v| {
                 v.to_possible_value()
-                    .expect(<span class="string">&quot;ValueEnum::value_variants contains only values with a corresponding ValueEnum::to_possible_value&quot;</span>)
+                    .expect(<span class="string">"ValueEnum::value_variants contains only values with a corresponding ValueEnum::to_possible_value"</span>)
                     .matches(value, ignore_case)
             })
             .ok_or_else(|| {
@@ -3879,7 +3799,7 @@
                 value.to_owned(),
                 <span class="kw-2">&amp;</span>possible_vals(),
                 arg.map(ToString::to_string)
-                    .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned()),
+                    .unwrap_or_else(|| <span class="string">"..."</span>.to_owned()),
             )
             }))
             .clone();
@@ -3888,7 +3808,7 @@
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">'_</span>&gt;&gt; {
         <span class="prelude-val">Some</span>(Box::new(
             E::value_variants()
                 .iter()
@@ -3897,7 +3817,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt; Default <span class="kw">for </span>EnumValueParser&lt;E&gt; {
+<span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">'static</span>&gt; Default <span class="kw">for </span>EnumValueParser&lt;E&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -3908,24 +3828,24 @@
 /// See also:
 /// - [`EnumValueParser`] for directly supporting [`ValueEnum`][crate::ValueEnum] types
 /// - [`TypedValueParser::map`] for adapting values to a more specialized type, like an external
-///   enums that can&#39;t implement [`ValueEnum`][crate::ValueEnum]
+///   enums that can't implement [`ValueEnum`][crate::ValueEnum]
 ///
 /// # Example
 ///
 /// Usage:
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;color&quot;)
-///             .value_parser(clap::builder::PossibleValuesParser::new([&quot;always&quot;, &quot;auto&quot;, &quot;never&quot;]))
+///         clap::Arg::new("color")
+///             .value_parser(clap::builder::PossibleValuesParser::new(["always", "auto", "never"]))
 ///             .required(true)
 ///     );
 ///
-/// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;always&quot;]).unwrap();
-/// let port: &amp;String = m.get_one(&quot;color&quot;)
-///     .expect(&quot;required&quot;);
-/// assert_eq!(port, &quot;always&quot;);
+/// let m = cmd.try_get_matches_from_mut(["cmd", "always"]).unwrap();
+/// let port: &amp;String = m.get_one("color")
+///     .expect("required");
+/// assert_eq!(port, "always");
 /// ```
 ///
 /// Semantics:
@@ -3933,14 +3853,14 @@
 /// # use clap_builder as clap;
 /// # use std::ffi::OsStr;
 /// # use clap::builder::TypedValueParser;
-/// # let cmd = clap::Command::new(&quot;test&quot;);
+/// # let cmd = clap::Command::new("test");
 /// # let arg = None;
-/// let value_parser = clap::builder::PossibleValuesParser::new([&quot;always&quot;, &quot;auto&quot;, &quot;never&quot;]);
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;random&quot;)).is_err());
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;&quot;)).is_err());
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;always&quot;)).unwrap(), &quot;always&quot;);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;auto&quot;)).unwrap(), &quot;auto&quot;);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;never&quot;)).unwrap(), &quot;never&quot;);
+/// let value_parser = clap::builder::PossibleValuesParser::new(["always", "auto", "never"]);
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("random")).is_err());
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("")).is_err());
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("always")).unwrap(), "always");
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("auto")).unwrap(), "auto");
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("never")).unwrap(), "never");
 /// ```
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>PossibleValuesParser(Vec&lt;<span class="kw">super</span>::PossibleValue&gt;);
@@ -3993,14 +3913,14 @@
                 value,
                 <span class="kw-2">&amp;</span>possible_vals,
                 arg.map(ToString::to_string)
-                    .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned()),
+                    .unwrap_or_else(|| <span class="string">"..."</span>.to_owned()),
             ))
         }
     }
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">'_</span>&gt;&gt; {
         <span class="prelude-val">Some</span>(Box::new(<span class="self">self</span>.<span class="number">0</span>.iter().cloned()))
     }
 }
@@ -4026,18 +3946,18 @@
 /// Usage:
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;port&quot;)
-///             .long(&quot;port&quot;)
+///         clap::Arg::new("port")
+///             .long("port")
 ///             .value_parser(clap::value_parser!(u16).range(3000..))
 ///             .action(clap::ArgAction::Set)
 ///             .required(true)
 ///     );
 ///
-/// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;--port&quot;, &quot;3001&quot;]).unwrap();
-/// let port: u16 = *m.get_one(&quot;port&quot;)
-///     .expect(&quot;required&quot;);
+/// let m = cmd.try_get_matches_from_mut(["cmd", "--port", "3001"]).unwrap();
+/// let port: u16 = *m.get_one("port")
+///     .expect("required");
 /// assert_eq!(port, 3001);
 /// ```
 ///
@@ -4046,24 +3966,24 @@
 /// # use clap_builder as clap;
 /// # use std::ffi::OsStr;
 /// # use clap::builder::TypedValueParser;
-/// # let cmd = clap::Command::new(&quot;test&quot;);
+/// # let cmd = clap::Command::new("test");
 /// # let arg = None;
 /// let value_parser = clap::builder::RangedI64ValueParser::&lt;i32&gt;::new().range(-1..200);
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;random&quot;)).is_err());
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;&quot;)).is_err());
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;-200&quot;)).is_err());
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;300&quot;)).is_err());
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;-1&quot;)).unwrap(), -1);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;0&quot;)).unwrap(), 0);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;50&quot;)).unwrap(), 50);
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("random")).is_err());
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("")).is_err());
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("-200")).is_err());
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("300")).is_err());
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("-1")).unwrap(), -1);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("0")).unwrap(), 0);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("50")).unwrap(), 50);
 /// ```
 </span><span class="attr">#[derive(Copy, Clone, Debug)]
-</span><span class="kw">pub struct </span>RangedI64ValueParser&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync = i64&gt; {
+</span><span class="kw">pub struct </span>RangedI64ValueParser&lt;T: TryFrom&lt;i64&gt; + Clone + Send + Sync = i64&gt; {
     bounds: (std::ops::Bound&lt;i64&gt;, std::ops::Bound&lt;i64&gt;),
     target: std::marker::PhantomData&lt;T&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync&gt; RangedI64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: TryFrom&lt;i64&gt; + Clone + Send + Sync&gt; RangedI64ValueParser&lt;T&gt; {
     <span class="doccomment">/// Select full range of `i64`
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from(..)
@@ -4078,7 +3998,7 @@
             l @ std::ops::Bound::Included(i) =&gt; {
                 <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(i),
-                    <span class="string">&quot;{} must be in {:?}&quot;</span>,
+                    <span class="string">"{} must be in {:?}"</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
@@ -4087,7 +4007,7 @@
             l @ std::ops::Bound::Excluded(i) =&gt; {
                 <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(<span class="kw-2">&amp;</span>i.saturating_add(<span class="number">1</span>)),
-                    <span class="string">&quot;{} must be in {:?}&quot;</span>,
+                    <span class="string">"{} must be in {:?}"</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
@@ -4099,7 +4019,7 @@
             l @ std::ops::Bound::Included(i) =&gt; {
                 <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(i),
-                    <span class="string">&quot;{} must be in {:?}&quot;</span>,
+                    <span class="string">"{} must be in {:?}"</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
@@ -4108,7 +4028,7 @@
             l @ std::ops::Bound::Excluded(i) =&gt; {
                 <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(<span class="kw-2">&amp;</span>i.saturating_sub(<span class="number">1</span>)),
-                    <span class="string">&quot;{} must be in {:?}&quot;</span>,
+                    <span class="string">"{} must be in {:?}"</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
@@ -4126,10 +4046,10 @@
             std::ops::Bound::Excluded(i) =&gt; i.saturating_add(<span class="number">1</span>).to_string(),
             std::ops::Bound::Unbounded =&gt; i64::MIN.to_string(),
         };
-        result.push_str(<span class="string">&quot;..&quot;</span>);
+        result.push_str(<span class="string">".."</span>);
         <span class="kw">match </span><span class="self">self</span>.bounds.<span class="number">1 </span>{
             std::ops::Bound::Included(i) =&gt; {
-                result.push(<span class="string">&#39;=&#39;</span>);
+                result.push(<span class="string">'='</span>);
                 result.push_str(<span class="kw-2">&amp;</span>i.to_string());
             }
             std::ops::Bound::Excluded(i) =&gt; {
@@ -4143,10 +4063,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt; TypedValueParser
-    <span class="kw">for </span>RangedI64ValueParser&lt;T&gt;
+<span class="kw">impl</span>&lt;T: TryFrom&lt;i64&gt; + Clone + Send + Sync + <span class="lifetime">'static</span>&gt; TypedValueParser <span class="kw">for </span>RangedI64ValueParser&lt;T&gt;
 <span class="kw">where
-    </span>&lt;T <span class="kw">as </span>std::convert::TryFrom&lt;i64&gt;&gt;::Error: Send + Sync + <span class="lifetime">&#39;static </span>+ std::error::Error + ToString,
+    </span>&lt;T <span class="kw">as </span>TryFrom&lt;i64&gt;&gt;::Error: Send + Sync + <span class="lifetime">'static </span>+ std::error::Error + ToString,
 {
     <span class="kw">type </span>Value = T;
 
@@ -4165,7 +4084,7 @@
         <span class="kw">let </span>value = <span class="macro">ok!</span>(value.parse::&lt;i64&gt;().map_err(|err| {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
-                .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
+                .unwrap_or_else(|| <span class="string">"..."</span>.to_owned());
             <span class="kw">crate</span>::Error::value_validation(
                 arg,
                 raw_value.to_string_lossy().into_owned(),
@@ -4176,11 +4095,11 @@
         <span class="kw">if </span>!<span class="self">self</span>.bounds.contains(<span class="kw-2">&amp;</span>value) {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
-                .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
+                .unwrap_or_else(|| <span class="string">"..."</span>.to_owned());
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::value_validation(
                 arg,
                 raw_value.to_string_lossy().into_owned(),
-                <span class="macro">format!</span>(<span class="string">&quot;{} is not in {}&quot;</span>, value, <span class="self">self</span>.format_bounds()).into(),
+                <span class="macro">format!</span>(<span class="string">"{} is not in {}"</span>, value, <span class="self">self</span>.format_bounds()).into(),
             )
             .with_cmd(cmd));
         }
@@ -4189,7 +4108,7 @@
         <span class="kw">let </span>value = <span class="macro">ok!</span>(value.map_err(|err| {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
-                .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
+                .unwrap_or_else(|| <span class="string">"..."</span>.to_owned());
             <span class="kw">crate</span>::Error::value_validation(
                 arg,
                 raw_value.to_string_lossy().into_owned(),
@@ -4202,7 +4121,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync, B: RangeBounds&lt;i64&gt;&gt; From&lt;B&gt;
+<span class="kw">impl</span>&lt;T: TryFrom&lt;i64&gt; + Clone + Send + Sync, B: RangeBounds&lt;i64&gt;&gt; From&lt;B&gt;
     <span class="kw">for </span>RangedI64ValueParser&lt;T&gt;
 {
     <span class="kw">fn </span>from(range: B) -&gt; <span class="self">Self </span>{
@@ -4213,7 +4132,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync&gt; Default <span class="kw">for </span>RangedI64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: TryFrom&lt;i64&gt; + Clone + Send + Sync&gt; Default <span class="kw">for </span>RangedI64ValueParser&lt;T&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -4226,18 +4145,18 @@
 /// Usage:
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;port&quot;)
-///             .long(&quot;port&quot;)
+///         clap::Arg::new("port")
+///             .long("port")
 ///             .value_parser(clap::value_parser!(u64).range(3000..))
 ///             .action(clap::ArgAction::Set)
 ///             .required(true)
 ///     );
 ///
-/// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;--port&quot;, &quot;3001&quot;]).unwrap();
-/// let port: u64 = *m.get_one(&quot;port&quot;)
-///     .expect(&quot;required&quot;);
+/// let m = cmd.try_get_matches_from_mut(["cmd", "--port", "3001"]).unwrap();
+/// let port: u64 = *m.get_one("port")
+///     .expect("required");
 /// assert_eq!(port, 3001);
 /// ```
 ///
@@ -4246,24 +4165,24 @@
 /// # use clap_builder as clap;
 /// # use std::ffi::OsStr;
 /// # use clap::builder::TypedValueParser;
-/// # let cmd = clap::Command::new(&quot;test&quot;);
+/// # let cmd = clap::Command::new("test");
 /// # let arg = None;
 /// let value_parser = clap::builder::RangedU64ValueParser::&lt;u32&gt;::new().range(0..200);
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;random&quot;)).is_err());
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;&quot;)).is_err());
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;-200&quot;)).is_err());
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;300&quot;)).is_err());
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;-1&quot;)).is_err());
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;0&quot;)).unwrap(), 0);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;50&quot;)).unwrap(), 50);
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("random")).is_err());
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("")).is_err());
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("-200")).is_err());
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("300")).is_err());
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("-1")).is_err());
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("0")).unwrap(), 0);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("50")).unwrap(), 50);
 /// ```
 </span><span class="attr">#[derive(Copy, Clone, Debug)]
-</span><span class="kw">pub struct </span>RangedU64ValueParser&lt;T: std::convert::TryFrom&lt;u64&gt; = u64&gt; {
+</span><span class="kw">pub struct </span>RangedU64ValueParser&lt;T: TryFrom&lt;u64&gt; = u64&gt; {
     bounds: (std::ops::Bound&lt;u64&gt;, std::ops::Bound&lt;u64&gt;),
     target: std::marker::PhantomData&lt;T&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;u64&gt;&gt; RangedU64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: TryFrom&lt;u64&gt;&gt; RangedU64ValueParser&lt;T&gt; {
     <span class="doccomment">/// Select full range of `u64`
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from(..)
@@ -4278,7 +4197,7 @@
             l @ std::ops::Bound::Included(i) =&gt; {
                 <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(i),
-                    <span class="string">&quot;{} must be in {:?}&quot;</span>,
+                    <span class="string">"{} must be in {:?}"</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
@@ -4287,7 +4206,7 @@
             l @ std::ops::Bound::Excluded(i) =&gt; {
                 <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(<span class="kw-2">&amp;</span>i.saturating_add(<span class="number">1</span>)),
-                    <span class="string">&quot;{} must be in {:?}&quot;</span>,
+                    <span class="string">"{} must be in {:?}"</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
@@ -4299,7 +4218,7 @@
             l @ std::ops::Bound::Included(i) =&gt; {
                 <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(i),
-                    <span class="string">&quot;{} must be in {:?}&quot;</span>,
+                    <span class="string">"{} must be in {:?}"</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
@@ -4308,7 +4227,7 @@
             l @ std::ops::Bound::Excluded(i) =&gt; {
                 <span class="macro">debug_assert!</span>(
                     <span class="self">self</span>.bounds.contains(<span class="kw-2">&amp;</span>i.saturating_sub(<span class="number">1</span>)),
-                    <span class="string">&quot;{} must be in {:?}&quot;</span>,
+                    <span class="string">"{} must be in {:?}"</span>,
                     i,
                     <span class="self">self</span>.bounds
                 );
@@ -4326,10 +4245,10 @@
             std::ops::Bound::Excluded(i) =&gt; i.saturating_add(<span class="number">1</span>).to_string(),
             std::ops::Bound::Unbounded =&gt; u64::MIN.to_string(),
         };
-        result.push_str(<span class="string">&quot;..&quot;</span>);
+        result.push_str(<span class="string">".."</span>);
         <span class="kw">match </span><span class="self">self</span>.bounds.<span class="number">1 </span>{
             std::ops::Bound::Included(i) =&gt; {
-                result.push(<span class="string">&#39;=&#39;</span>);
+                result.push(<span class="string">'='</span>);
                 result.push_str(<span class="kw-2">&amp;</span>i.to_string());
             }
             std::ops::Bound::Excluded(i) =&gt; {
@@ -4343,10 +4262,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;u64&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt; TypedValueParser
-    <span class="kw">for </span>RangedU64ValueParser&lt;T&gt;
+<span class="kw">impl</span>&lt;T: TryFrom&lt;u64&gt; + Clone + Send + Sync + <span class="lifetime">'static</span>&gt; TypedValueParser <span class="kw">for </span>RangedU64ValueParser&lt;T&gt;
 <span class="kw">where
-    </span>&lt;T <span class="kw">as </span>std::convert::TryFrom&lt;u64&gt;&gt;::Error: Send + Sync + <span class="lifetime">&#39;static </span>+ std::error::Error + ToString,
+    </span>&lt;T <span class="kw">as </span>TryFrom&lt;u64&gt;&gt;::Error: Send + Sync + <span class="lifetime">'static </span>+ std::error::Error + ToString,
 {
     <span class="kw">type </span>Value = T;
 
@@ -4365,7 +4283,7 @@
         <span class="kw">let </span>value = <span class="macro">ok!</span>(value.parse::&lt;u64&gt;().map_err(|err| {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
-                .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
+                .unwrap_or_else(|| <span class="string">"..."</span>.to_owned());
             <span class="kw">crate</span>::Error::value_validation(
                 arg,
                 raw_value.to_string_lossy().into_owned(),
@@ -4376,11 +4294,11 @@
         <span class="kw">if </span>!<span class="self">self</span>.bounds.contains(<span class="kw-2">&amp;</span>value) {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
-                .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
+                .unwrap_or_else(|| <span class="string">"..."</span>.to_owned());
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::Error::value_validation(
                 arg,
                 raw_value.to_string_lossy().into_owned(),
-                <span class="macro">format!</span>(<span class="string">&quot;{} is not in {}&quot;</span>, value, <span class="self">self</span>.format_bounds()).into(),
+                <span class="macro">format!</span>(<span class="string">"{} is not in {}"</span>, value, <span class="self">self</span>.format_bounds()).into(),
             )
             .with_cmd(cmd));
         }
@@ -4389,7 +4307,7 @@
         <span class="kw">let </span>value = <span class="macro">ok!</span>(value.map_err(|err| {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
-                .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
+                .unwrap_or_else(|| <span class="string">"..."</span>.to_owned());
             <span class="kw">crate</span>::Error::value_validation(
                 arg,
                 raw_value.to_string_lossy().into_owned(),
@@ -4402,7 +4320,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;u64&gt;, B: RangeBounds&lt;u64&gt;&gt; From&lt;B&gt; <span class="kw">for </span>RangedU64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: TryFrom&lt;u64&gt;, B: RangeBounds&lt;u64&gt;&gt; From&lt;B&gt; <span class="kw">for </span>RangedU64ValueParser&lt;T&gt; {
     <span class="kw">fn </span>from(range: B) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             bounds: (range.start_bound().cloned(), range.end_bound().cloned()),
@@ -4411,7 +4329,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;u64&gt;&gt; Default <span class="kw">for </span>RangedU64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: TryFrom&lt;u64&gt;&gt; Default <span class="kw">for </span>RangedU64ValueParser&lt;T&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -4431,7 +4349,7 @@
     }
 
     <span class="kw">fn </span>possible_values() -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; {
-        [<span class="string">&quot;true&quot;</span>, <span class="string">&quot;false&quot;</span>]
+        [<span class="string">"true"</span>, <span class="string">"false"</span>]
             .iter()
             .copied()
             .map(<span class="kw">crate</span>::builder::PossibleValue::new)
@@ -4447,9 +4365,9 @@
         arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
         value: <span class="kw-2">&amp;</span>std::ffi::OsStr,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, <span class="kw">crate</span>::Error&gt; {
-        <span class="kw">let </span>value = <span class="kw">if </span>value == std::ffi::OsStr::new(<span class="string">&quot;true&quot;</span>) {
+        <span class="kw">let </span>value = <span class="kw">if </span>value == std::ffi::OsStr::new(<span class="string">"true"</span>) {
             <span class="bool-val">true
-        </span>} <span class="kw">else if </span>value == std::ffi::OsStr::new(<span class="string">&quot;false&quot;</span>) {
+        </span>} <span class="kw">else if </span>value == std::ffi::OsStr::new(<span class="string">"false"</span>) {
             <span class="bool-val">false
         </span>} <span class="kw">else </span>{
             <span class="comment">// Intentionally showing hidden as we hide all of them
@@ -4462,7 +4380,7 @@
                 value.to_string_lossy().into_owned(),
                 <span class="kw-2">&amp;</span>possible_vals,
                 arg.map(ToString::to_string)
-                    .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned()),
+                    .unwrap_or_else(|| <span class="string">"..."</span>.to_owned()),
             ));
         };
         <span class="prelude-val">Ok</span>(value)
@@ -4470,7 +4388,7 @@
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">'_</span>&gt;&gt; {
         <span class="prelude-val">Some</span>(Box::new(<span class="self">Self</span>::possible_values()))
     }
 }
@@ -4492,16 +4410,16 @@
 /// Usage:
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;append&quot;)
+///         clap::Arg::new("append")
 ///             .value_parser(clap::builder::FalseyValueParser::new())
 ///             .required(true)
 ///     );
 ///
-/// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;true&quot;]).unwrap();
-/// let port: bool = *m.get_one(&quot;append&quot;)
-///     .expect(&quot;required&quot;);
+/// let m = cmd.try_get_matches_from_mut(["cmd", "true"]).unwrap();
+/// let port: bool = *m.get_one("append")
+///     .expect("required");
 /// assert_eq!(port, true);
 /// ```
 ///
@@ -4510,16 +4428,16 @@
 /// # use clap_builder as clap;
 /// # use std::ffi::OsStr;
 /// # use clap::builder::TypedValueParser;
-/// # let cmd = clap::Command::new(&quot;test&quot;);
+/// # let cmd = clap::Command::new("test");
 /// # let arg = None;
 /// let value_parser = clap::builder::FalseyValueParser::new();
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;random&quot;)).unwrap(), true);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;100&quot;)).unwrap(), true);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;&quot;)).unwrap(), false);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;false&quot;)).unwrap(), false);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;No&quot;)).unwrap(), false);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;oFF&quot;)).unwrap(), false);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;0&quot;)).unwrap(), false);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("random")).unwrap(), true);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("100")).unwrap(), true);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("")).unwrap(), false);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("false")).unwrap(), false);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("No")).unwrap(), false);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("oFF")).unwrap(), false);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("0")).unwrap(), false);
 /// ```
 </span><span class="attr">#[derive(Copy, Clone, Debug)]
 #[non_exhaustive]
@@ -4536,7 +4454,7 @@
             .iter()
             .chain(<span class="kw">crate</span>::util::FALSE_LITERALS.iter())
             .copied()
-            .map(|l| <span class="kw">crate</span>::builder::PossibleValue::new(l).hide(l != <span class="string">&quot;true&quot; </span>&amp;&amp; l != <span class="string">&quot;false&quot;</span>))
+            .map(|l| <span class="kw">crate</span>::builder::PossibleValue::new(l).hide(l != <span class="string">"true" </span>&amp;&amp; l != <span class="string">"false"</span>))
     }
 }
 
@@ -4565,7 +4483,7 @@
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">'_</span>&gt;&gt; {
         <span class="prelude-val">Some</span>(Box::new(<span class="self">Self</span>::possible_values()))
     }
 }
@@ -4587,16 +4505,16 @@
 /// Usage:
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;append&quot;)
+///         clap::Arg::new("append")
 ///             .value_parser(clap::builder::BoolishValueParser::new())
 ///             .required(true)
 ///     );
 ///
-/// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;true&quot;]).unwrap();
-/// let port: bool = *m.get_one(&quot;append&quot;)
-///     .expect(&quot;required&quot;);
+/// let m = cmd.try_get_matches_from_mut(["cmd", "true"]).unwrap();
+/// let port: bool = *m.get_one("append")
+///     .expect("required");
 /// assert_eq!(port, true);
 /// ```
 ///
@@ -4605,27 +4523,27 @@
 /// # use clap_builder as clap;
 /// # use std::ffi::OsStr;
 /// # use clap::builder::TypedValueParser;
-/// # let cmd = clap::Command::new(&quot;test&quot;);
+/// # let cmd = clap::Command::new("test");
 /// # let arg = None;
 /// let value_parser = clap::builder::BoolishValueParser::new();
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;random&quot;)).is_err());
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;&quot;)).is_err());
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;100&quot;)).is_err());
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;true&quot;)).unwrap(), true);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;Yes&quot;)).unwrap(), true);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;oN&quot;)).unwrap(), true);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;1&quot;)).unwrap(), true);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;false&quot;)).unwrap(), false);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;No&quot;)).unwrap(), false);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;oFF&quot;)).unwrap(), false);
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;0&quot;)).unwrap(), false);
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("random")).is_err());
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("")).is_err());
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("100")).is_err());
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("true")).unwrap(), true);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("Yes")).unwrap(), true);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("oN")).unwrap(), true);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("1")).unwrap(), true);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("false")).unwrap(), false);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("No")).unwrap(), false);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("oFF")).unwrap(), false);
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("0")).unwrap(), false);
 /// ```
 </span><span class="attr">#[derive(Copy, Clone, Debug)]
 #[non_exhaustive]
 </span><span class="kw">pub struct </span>BoolishValueParser {}
 
 <span class="kw">impl </span>BoolishValueParser {
-    <span class="doccomment">/// Parse bool-like string values, everything else is `true`
+    <span class="doccomment">/// Parse bool-like string values, everything else is an error.
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{}
     }
@@ -4635,7 +4553,7 @@
             .iter()
             .chain(<span class="kw">crate</span>::util::FALSE_LITERALS.iter())
             .copied()
-            .map(|l| <span class="kw">crate</span>::builder::PossibleValue::new(l).hide(l != <span class="string">&quot;true&quot; </span>&amp;&amp; l != <span class="string">&quot;false&quot;</span>))
+            .map(|l| <span class="kw">crate</span>::builder::PossibleValue::new(l).hide(l != <span class="string">"true" </span>&amp;&amp; l != <span class="string">"false"</span>))
     }
 }
 
@@ -4657,8 +4575,8 @@
         <span class="kw">let </span>value = <span class="macro">ok!</span>(<span class="kw">crate</span>::util::str_to_bool(value).ok_or_else(|| {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
-                .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
-            <span class="kw">crate</span>::Error::value_validation(arg, value.to_owned(), <span class="string">&quot;value was not a boolean&quot;</span>.into())
+                .unwrap_or_else(|| <span class="string">"..."</span>.to_owned());
+            <span class="kw">crate</span>::Error::value_validation(arg, value.to_owned(), <span class="string">"value was not a boolean"</span>.into())
                 .with_cmd(cmd)
         }));
         <span class="prelude-val">Ok</span>(value)
@@ -4666,7 +4584,7 @@
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">'_</span>&gt;&gt; {
         <span class="prelude-val">Some</span>(Box::new(<span class="self">Self</span>::possible_values()))
     }
 }
@@ -4687,17 +4605,17 @@
 /// Usage:
 /// ```rust
 /// # use clap_builder as clap;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;append&quot;)
+///         clap::Arg::new("append")
 ///             .value_parser(clap::builder::NonEmptyStringValueParser::new())
 ///             .required(true)
 ///     );
 ///
-/// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;true&quot;]).unwrap();
-/// let port: &amp;String = m.get_one(&quot;append&quot;)
-///     .expect(&quot;required&quot;);
-/// assert_eq!(port, &quot;true&quot;);
+/// let m = cmd.try_get_matches_from_mut(["cmd", "true"]).unwrap();
+/// let port: &amp;String = m.get_one("append")
+///     .expect("required");
+/// assert_eq!(port, "true");
 /// ```
 ///
 /// Semantics:
@@ -4705,11 +4623,11 @@
 /// # use clap_builder as clap;
 /// # use std::ffi::OsStr;
 /// # use clap::builder::TypedValueParser;
-/// # let cmd = clap::Command::new(&quot;test&quot;);
+/// # let cmd = clap::Command::new("test");
 /// # let arg = None;
 /// let value_parser = clap::builder::NonEmptyStringValueParser::new();
-/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;random&quot;)).unwrap(), &quot;random&quot;);
-/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;&quot;)).is_err());
+/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("random")).unwrap(), "random");
+/// assert!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("")).is_err());
 /// ```
 </span><span class="attr">#[derive(Copy, Clone, Debug)]
 #[non_exhaustive]
@@ -4736,7 +4654,7 @@
                 cmd,
                 <span class="kw-2">&amp;</span>[],
                 arg.map(ToString::to_string)
-                    .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned()),
+                    .unwrap_or_else(|| <span class="string">"..."</span>.to_owned()),
             ));
         }
         <span class="kw">let </span>value = <span class="macro">ok!</span>(value.to_str().ok_or_else(|| {
@@ -4780,7 +4698,7 @@
 <span class="kw">where
     </span>P: TypedValueParser,
     P::Value: Send + Sync + Clone,
-    F: Fn(P::Value) -&gt; T + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    F: Fn(P::Value) -&gt; T + Clone + Send + Sync + <span class="lifetime">'static</span>,
     T: Send + Sync + Clone,
 {
     <span class="kw">type </span>Value = T;
@@ -4809,7 +4727,7 @@
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">'_</span>&gt;&gt; {
         <span class="self">self</span>.parser.possible_values()
     }
 }
@@ -4827,9 +4745,9 @@
 <span class="kw">where
     </span>P: TypedValueParser,
     P::Value: Send + Sync + Clone,
-    F: Fn(P::Value) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    F: Fn(P::Value) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + Clone + Send + Sync + <span class="lifetime">'static</span>,
     T: Send + Sync + Clone,
-    E: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
+    E: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
 {
     <span class="kw">fn </span>new(parser: P, func: F) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ parser, func }
@@ -4840,9 +4758,9 @@
 <span class="kw">where
     </span>P: TypedValueParser,
     P::Value: Send + Sync + Clone,
-    F: Fn(P::Value) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    F: Fn(P::Value) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt; + Clone + Send + Sync + <span class="lifetime">'static</span>,
     T: Send + Sync + Clone,
-    E: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
+    E: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
 {
     <span class="kw">type </span>Value = T;
 
@@ -4856,7 +4774,7 @@
         <span class="kw">let </span>value = <span class="macro">ok!</span>((<span class="self">self</span>.func)(mid_value).map_err(|e| {
             <span class="kw">let </span>arg = arg
                 .map(|a| a.to_string())
-                .unwrap_or_else(|| <span class="string">&quot;...&quot;</span>.to_owned());
+                .unwrap_or_else(|| <span class="string">"..."</span>.to_owned());
             <span class="kw">crate</span>::Error::value_validation(arg, value.to_string_lossy().into_owned(), e.into())
                 .with_cmd(cmd)
         }));
@@ -4865,12 +4783,12 @@
 
     <span class="kw">fn </span>possible_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">&#39;_</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">crate</span>::builder::PossibleValue&gt; + <span class="lifetime">'_</span>&gt;&gt; {
         <span class="self">self</span>.parser.possible_values()
     }
 }
 
-<span class="doccomment">/// When encountered, report [ErrorKind::UnknownArgument][crate::error::ErrorKind::UnknownArgument]
+<span class="doccomment">/// When encountered, report [`ErrorKind::UnknownArgument`][crate::error::ErrorKind::UnknownArgument]
 ///
 /// Useful to help users migrate, either from old versions or similar tools.
 ///
@@ -4880,27 +4798,27 @@
 /// # use clap_builder as clap;
 /// # use clap::Command;
 /// # use clap::Arg;
-/// let cmd = Command::new(&quot;mycmd&quot;)
+/// let cmd = Command::new("mycmd")
 ///     .args([
-///         Arg::new(&quot;current-dir&quot;)
-///             .short(&#39;C&#39;),
-///         Arg::new(&quot;current-dir-unknown&quot;)
-///             .long(&quot;cwd&quot;)
-///             .aliases([&quot;current-dir&quot;, &quot;directory&quot;, &quot;working-directory&quot;, &quot;root&quot;])
-///             .value_parser(clap::builder::UnknownArgumentValueParser::suggest_arg(&quot;-C&quot;))
+///         Arg::new("current-dir")
+///             .short('C'),
+///         Arg::new("current-dir-unknown")
+///             .long("cwd")
+///             .aliases(["current-dir", "directory", "working-directory", "root"])
+///             .value_parser(clap::builder::UnknownArgumentValueParser::suggest_arg("-C"))
 ///             .hide(true),
 ///     ]);
 ///
 /// // Use a supported version of the argument
-/// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;-C&quot;, &quot;..&quot;]).unwrap();
-/// assert!(matches.contains_id(&quot;current-dir&quot;));
+/// let matches = cmd.clone().try_get_matches_from(["mycmd", "-C", ".."]).unwrap();
+/// assert!(matches.contains_id("current-dir"));
 /// assert_eq!(
-///     matches.get_many::&lt;String&gt;(&quot;current-dir&quot;).unwrap_or_default().map(|v| v.as_str()).collect::&lt;Vec&lt;_&gt;&gt;(),
-///     vec![&quot;..&quot;]
+///     matches.get_many::&lt;String&gt;("current-dir").unwrap_or_default().map(|v| v.as_str()).collect::&lt;Vec&lt;_&gt;&gt;(),
+///     vec![".."]
 /// );
 ///
 /// // Use one of the invalid versions
-/// let err = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;--cwd&quot;, &quot;..&quot;]).unwrap_err();
+/// let err = cmd.try_get_matches_from(["mycmd", "--cwd", ".."]).unwrap_err();
 /// assert_eq!(err.kind(), clap::error::ErrorKind::UnknownArgument);
 /// ```
 </span><span class="attr">#[derive(Clone, Debug)]
@@ -4959,7 +4877,7 @@
             ValueSource::EnvVariable | ValueSource::CommandLine =&gt; {
                 <span class="kw">let </span>arg = <span class="kw">match </span>arg {
                     <span class="prelude-val">Some</span>(arg) =&gt; arg.to_string(),
-                    <span class="prelude-val">None </span>=&gt; <span class="string">&quot;..&quot;</span>.to_owned(),
+                    <span class="prelude-val">None </span>=&gt; <span class="string">".."</span>.to_owned(),
                 };
                 <span class="kw">let </span>err = <span class="kw">crate</span>::Error::unknown_argument(
                     cmd,
@@ -4968,12 +4886,12 @@
                     <span class="bool-val">false</span>,
                     <span class="kw">crate</span>::output::Usage::new(cmd).create_usage_with_title(<span class="kw-2">&amp;</span>[]),
                 );
-                <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
                 </span><span class="kw">let </span>err = {
                     <span class="macro">debug_assert_eq!</span>(
                         err.get(<span class="kw">crate</span>::error::ContextKind::Suggested),
                         <span class="prelude-val">None</span>,
-                        <span class="string">&quot;Assuming `Error::unknown_argument` doesn&#39;t apply any `Suggested` so we can without caution&quot;
+                        <span class="string">"Assuming `Error::unknown_argument` doesn't apply any `Suggested` so we can without caution"
                     </span>);
                     err.insert_context_unchecked(
                         <span class="kw">crate</span>::error::ContextKind::Suggested,
@@ -4986,7 +4904,7 @@
     }
 }
 
-<span class="doccomment">/// Register a type with [value_parser!][crate::value_parser!]
+<span class="doccomment">/// Register a type with [`value_parser!`][crate::value_parser!]
 ///
 /// # Example
 ///
@@ -5210,7 +5128,7 @@
 
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Output;
     }
-    <span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt; _ValueParserViaValueEnum
+    <span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">'static</span>&gt; _ValueParserViaValueEnum
         <span class="kw">for </span>&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;E&gt;
     {
         <span class="kw">type </span>Output = EnumValueParser&lt;E&gt;;
@@ -5226,7 +5144,7 @@
     }
     <span class="kw">impl</span>&lt;FromOsString&gt; _ValueParserViaFromOsString <span class="kw">for </span>&amp;&amp;&amp;&amp;_AutoValueParser&lt;FromOsString&gt;
     <span class="kw">where
-        </span>FromOsString: From&lt;std::ffi::OsString&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+        </span>FromOsString: From&lt;std::ffi::OsString&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
     {
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
             _AnonymousValueParser(
@@ -5244,7 +5162,7 @@
     <span class="kw">impl</span>&lt;FromOsStr&gt; _ValueParserViaFromOsStr <span class="kw">for </span>&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;FromOsStr&gt;
     <span class="kw">where
         </span>FromOsStr:
-            <span class="kw">for</span>&lt;<span class="lifetime">&#39;s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>std::ffi::OsStr&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+            <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>std::ffi::OsStr&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
     {
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
             _AnonymousValueParser(
@@ -5261,7 +5179,7 @@
     }
     <span class="kw">impl</span>&lt;FromString&gt; _ValueParserViaFromString <span class="kw">for </span>&amp;&amp;_AutoValueParser&lt;FromString&gt;
     <span class="kw">where
-        </span>FromString: From&lt;String&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+        </span>FromString: From&lt;String&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
     {
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
             _AnonymousValueParser(StringValueParser::new().map(|s| FromString::from(s)).into())
@@ -5274,7 +5192,7 @@
     }
     <span class="kw">impl</span>&lt;FromStr&gt; _ValueParserViaFromStr <span class="kw">for </span><span class="kw-2">&amp;</span>_AutoValueParser&lt;FromStr&gt;
     <span class="kw">where
-        </span>FromStr: <span class="kw">for</span>&lt;<span class="lifetime">&#39;s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+        </span>FromStr: <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
     {
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
             _AnonymousValueParser(StringValueParser::new().map(|s| FromStr::from(<span class="kw-2">&amp;</span>s)).into())
@@ -5287,8 +5205,8 @@
     }
     <span class="kw">impl</span>&lt;Parse&gt; _ValueParserViaParse <span class="kw">for </span>_AutoValueParser&lt;Parse&gt;
     <span class="kw">where
-        </span>Parse: std::str::FromStr + std::any::Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-        &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
+        </span>Parse: std::str::FromStr + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
+        &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
     {
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
             <span class="kw">let </span>func: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Parse, &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err&gt; =
@@ -5316,17 +5234,17 @@
 /// # use clap_builder as clap;
 /// # use std::path::PathBuf;
 /// # use std::path::Path;
-/// let mut cmd = clap::Command::new(&quot;raw&quot;)
+/// let mut cmd = clap::Command::new("raw")
 ///     .arg(
-///         clap::Arg::new(&quot;output&quot;)
+///         clap::Arg::new("output")
 ///             .value_parser(clap::value_parser!(PathBuf))
 ///             .required(true)
 ///     );
 ///
-/// let m = cmd.try_get_matches_from_mut([&quot;cmd&quot;, &quot;file.txt&quot;]).unwrap();
-/// let port: &amp;PathBuf = m.get_one(&quot;output&quot;)
-///     .expect(&quot;required&quot;);
-/// assert_eq!(port, Path::new(&quot;file.txt&quot;));
+/// let m = cmd.try_get_matches_from_mut(["cmd", "file.txt"]).unwrap();
+/// let port: &amp;PathBuf = m.get_one("output")
+///     .expect("required");
+/// assert_eq!(port, Path::new("file.txt"));
 /// ```
 ///
 /// Example mappings:
@@ -5335,17 +5253,17 @@
 /// # use clap::ColorChoice;
 /// // Built-in types
 /// let parser = clap::value_parser!(String);
-/// assert_eq!(format!(&quot;{parser:?}&quot;), &quot;ValueParser::string&quot;);
+/// assert_eq!(format!("{parser:?}"), "ValueParser::string");
 /// let parser = clap::value_parser!(std::ffi::OsString);
-/// assert_eq!(format!(&quot;{parser:?}&quot;), &quot;ValueParser::os_string&quot;);
+/// assert_eq!(format!("{parser:?}"), "ValueParser::os_string");
 /// let parser = clap::value_parser!(std::path::PathBuf);
-/// assert_eq!(format!(&quot;{parser:?}&quot;), &quot;ValueParser::path_buf&quot;);
+/// assert_eq!(format!("{parser:?}"), "ValueParser::path_buf");
 /// clap::value_parser!(u16).range(3000..);
 /// clap::value_parser!(u64).range(3000..);
 ///
 /// // FromStr types
 /// let parser = clap::value_parser!(usize);
-/// assert_eq!(format!(&quot;{parser:?}&quot;), &quot;_AnonymousValueParser(ValueParser::other(usize))&quot;);
+/// assert_eq!(format!("{parser:?}"), "_AnonymousValueParser(ValueParser::other(usize))");
 ///
 /// // ValueEnum types
 /// clap::value_parser!(ColorChoice);
@@ -5362,10 +5280,6 @@
 <span class="kw">mod </span>private {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="comment">// Prefer these so `clap_derive` defaults to optimized implementations
-    </span><span class="kw">pub trait </span>_ValueParserViaSelfSealed {}
-    <span class="kw">impl</span>&lt;P: Into&lt;ValueParser&gt;&gt; _ValueParserViaSelfSealed <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;P&gt; {}
-
     <span class="kw">pub trait </span>_ValueParserViaFactorySealed {}
     <span class="kw">impl</span>&lt;P: ValueParserFactory&gt; _ValueParserViaFactorySealed <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;_AutoValueParser&lt;P&gt; {}
 
@@ -5374,33 +5288,33 @@
 
     <span class="kw">pub trait </span>_ValueParserViaFromOsStringSealed {}
     <span class="kw">impl</span>&lt;FromOsString&gt; _ValueParserViaFromOsStringSealed <span class="kw">for </span>&amp;&amp;&amp;&amp;_AutoValueParser&lt;FromOsString&gt; <span class="kw">where
-        </span>FromOsString: From&lt;std::ffi::OsString&gt; + std::any::Any + Send + Sync + <span class="lifetime">&#39;static
+        </span>FromOsString: From&lt;std::ffi::OsString&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
     </span>{
     }
 
     <span class="kw">pub trait </span>_ValueParserViaFromOsStrSealed {}
     <span class="kw">impl</span>&lt;FromOsStr&gt; _ValueParserViaFromOsStrSealed <span class="kw">for </span>&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;FromOsStr&gt; <span class="kw">where
-        </span>FromOsStr: <span class="kw">for</span>&lt;<span class="lifetime">&#39;s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>std::ffi::OsStr&gt; + std::any::Any + Send + Sync + <span class="lifetime">&#39;static
+        </span>FromOsStr: <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>std::ffi::OsStr&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
     </span>{
     }
 
     <span class="kw">pub trait </span>_ValueParserViaFromStringSealed {}
     <span class="kw">impl</span>&lt;FromString&gt; _ValueParserViaFromStringSealed <span class="kw">for </span>&amp;&amp;_AutoValueParser&lt;FromString&gt; <span class="kw">where
-        </span>FromString: From&lt;String&gt; + std::any::Any + Send + Sync + <span class="lifetime">&#39;static
+        </span>FromString: From&lt;String&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
     </span>{
     }
 
     <span class="kw">pub trait </span>_ValueParserViaFromStrSealed {}
     <span class="kw">impl</span>&lt;FromStr&gt; _ValueParserViaFromStrSealed <span class="kw">for </span><span class="kw-2">&amp;</span>_AutoValueParser&lt;FromStr&gt; <span class="kw">where
-        </span>FromStr: <span class="kw">for</span>&lt;<span class="lifetime">&#39;s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str&gt; + std::any::Any + Send + Sync + <span class="lifetime">&#39;static
+        </span>FromStr: <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
     </span>{
     }
 
     <span class="kw">pub trait </span>_ValueParserViaParseSealed {}
     <span class="kw">impl</span>&lt;Parse&gt; _ValueParserViaParseSealed <span class="kw">for </span>_AutoValueParser&lt;Parse&gt;
     <span class="kw">where
-        </span>Parse: std::str::FromStr + std::any::Any + Send + Sync + <span class="lifetime">&#39;static</span>,
-        &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">&#39;static</span>&gt;&gt;,
+        </span>Parse: std::str::FromStr + std::any::Any + Send + Sync + <span class="lifetime">'static</span>,
+        &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
     {
     }
 }
@@ -5414,10 +5328,10 @@
         <span class="kw">fn </span>parse(<span class="kw">_</span>: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;usize, std::io::Error&gt; {
             <span class="prelude-val">Ok</span>(<span class="number">10</span>)
         }
-        <span class="kw">let </span>cmd = <span class="kw">crate</span>::Command::new(<span class="string">&quot;cmd&quot;</span>);
+        <span class="kw">let </span>cmd = <span class="kw">crate</span>::Command::new(<span class="string">"cmd"</span>);
         <span class="kw">let </span>arg = <span class="prelude-val">None</span>;
         <span class="macro">assert_eq!</span>(
-            TypedValueParser::parse_ref(<span class="kw-2">&amp;</span>parse, <span class="kw-2">&amp;</span>cmd, arg, std::ffi::OsStr::new(<span class="string">&quot;foo&quot;</span>)).unwrap(),
+            TypedValueParser::parse_ref(<span class="kw-2">&amp;</span>parse, <span class="kw-2">&amp;</span>cmd, arg, std::ffi::OsStr::new(<span class="string">"foo"</span>)).unwrap(),
             <span class="number">10
         </span>);
     }

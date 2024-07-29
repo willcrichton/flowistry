@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64-0.21.5/src/write/encoder.rs`."><title>encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../base64/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64-0.21.7/src/write/encoder.rs`."><title>encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../base64/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -414,14 +416,14 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BUF_SIZE: usize = <span class="number">1024</span>;
 <span class="doccomment">/// The most bytes whose encoding will fit in `BUF_SIZE`
 </span><span class="kw">const </span>MAX_INPUT_LEN: usize = BUF_SIZE / <span class="number">4 </span>* <span class="number">3</span>;
-<span class="comment">// 3 bytes of input = 4 bytes of base64, always (because we don&#39;t allow line wrapping)
+<span class="comment">// 3 bytes of input = 4 bytes of base64, always (because we don't allow line wrapping)
 </span><span class="kw">const </span>MIN_ENCODE_CHUNK_SIZE: usize = <span class="number">3</span>;
 
 <span class="doccomment">/// A `Write` implementation that base64 encodes data before delegating to the wrapped writer.
 ///
-/// Because base64 has special handling for the end of the input data (padding, etc), there&#39;s a
+/// Because base64 has special handling for the end of the input data (padding, etc), there's a
 /// `finish()` method on this type that encodes any leftover input bytes and adds padding if
-/// appropriate. It&#39;s called automatically when deallocated (see the `Drop` implementation), but
+/// appropriate. It's called automatically when deallocated (see the `Drop` implementation), but
 /// any error that occurs when invoking the underlying writer will be suppressed. If you want to
 /// handle such errors, call `finish()` yourself.
 ///
@@ -435,14 +437,14 @@
 /// let mut enc = base64::write::EncoderWriter::new(Vec::new(), &amp;general_purpose::STANDARD);
 ///
 /// // handle errors as you normally would
-/// enc.write_all(b&quot;asdf&quot;).unwrap();
+/// enc.write_all(b"asdf").unwrap();
 ///
-/// // could leave this out to be called by Drop, if you don&#39;t care
+/// // could leave this out to be called by Drop, if you don't care
 /// // about handling errors or getting the delegate writer back
 /// let delegate = enc.finish().unwrap();
 ///
 /// // base64 was written to the writer
-/// assert_eq!(b&quot;YXNkZg==&quot;, &amp;delegate[..]);
+/// assert_eq!(b"YXNkZg==", &amp;delegate[..]);
 ///
 /// ```
 ///
@@ -467,9 +469,9 @@
 /// implications for a buffering implementation, these methods may not behave as expected. In
 /// particular, calling `write_all` on this interface may fail with `io::ErrorKind::WriteZero`.
 /// See the documentation of the `Write` trait implementation for further details.
-</span><span class="kw">pub struct </span>EncoderWriter&lt;<span class="lifetime">&#39;e</span>, E: Engine, W: io::Write&gt; {
-    engine: <span class="kw-2">&amp;</span><span class="lifetime">&#39;e </span>E,
-    <span class="doccomment">/// Where encoded data is written to. It&#39;s an Option as it&#39;s None immediately before Drop is
+</span><span class="kw">pub struct </span>EncoderWriter&lt;<span class="lifetime">'e</span>, E: Engine, W: io::Write&gt; {
+    engine: <span class="kw-2">&amp;</span><span class="lifetime">'e </span>E,
+    <span class="doccomment">/// Where encoded data is written to. It's an Option as it's None immediately before Drop is
     /// called so that finish() can return the underlying writer. None implies that finish() has
     /// been called successfully.
     </span>delegate: <span class="prelude-ty">Option</span>&lt;W&gt;,
@@ -481,17 +483,17 @@
     <span class="doccomment">/// Buffer to encode into. May hold leftover encoded bytes from a previous write call that the underlying writer
     /// did not write last time.
     </span>output: [u8; BUF_SIZE],
-    <span class="doccomment">/// How much of `output` is occupied with encoded data that couldn&#39;t be written last time
+    <span class="doccomment">/// How much of `output` is occupied with encoded data that couldn't be written last time
     </span>output_occupied_len: usize,
-    <span class="doccomment">/// panic safety: don&#39;t write again in destructor if writer panicked while we were writing to it
+    <span class="doccomment">/// panic safety: don't write again in destructor if writer panicked while we were writing to it
     </span>panicked: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;e</span>, E: Engine, W: io::Write&gt; fmt::Debug <span class="kw">for </span>EncoderWriter&lt;<span class="lifetime">&#39;e</span>, E, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'e</span>, E: Engine, W: io::Write&gt; fmt::Debug <span class="kw">for </span>EncoderWriter&lt;<span class="lifetime">'e</span>, E, W&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot;extra_input: {:?} extra_input_occupied_len:{:?} output[..5]: {:?} output_occupied_len: {:?}&quot;</span>,
+            <span class="string">"extra_input: {:?} extra_input_occupied_len:{:?} output[..5]: {:?} output_occupied_len: {:?}"</span>,
             <span class="self">self</span>.extra_input,
             <span class="self">self</span>.extra_input_occupied_len,
             <span class="kw-2">&amp;</span><span class="self">self</span>.output[<span class="number">0</span>..<span class="number">5</span>],
@@ -500,9 +502,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;e</span>, E: Engine, W: io::Write&gt; EncoderWriter&lt;<span class="lifetime">&#39;e</span>, E, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'e</span>, E: Engine, W: io::Write&gt; EncoderWriter&lt;<span class="lifetime">'e</span>, E, W&gt; {
     <span class="doccomment">/// Create a new encoder that will write to the provided delegate writer.
-    </span><span class="kw">pub fn </span>new(delegate: W, engine: <span class="kw-2">&amp;</span><span class="lifetime">&#39;e </span>E) -&gt; EncoderWriter&lt;<span class="lifetime">&#39;e</span>, E, W&gt; {
+    </span><span class="kw">pub fn </span>new(delegate: W, engine: <span class="kw-2">&amp;</span><span class="lifetime">'e </span>E) -&gt; EncoderWriter&lt;<span class="lifetime">'e</span>, E, W&gt; {
         EncoderWriter {
             engine,
             delegate: <span class="prelude-val">Some</span>(delegate),
@@ -522,7 +524,7 @@
     /// This may write to the delegate writer multiple times if the delegate writer does not accept
     /// all input provided to its `write` each invocation.
     ///
-    /// If you don&#39;t care about error handling, it is not necessary to call this function, as the
+    /// If you don't care about error handling, it is not necessary to call this function, as the
     /// equivalent finalization is done by the Drop impl.
     ///
     /// Returns the writer that this was constructed around.
@@ -531,15 +533,15 @@
     ///
     /// The first error that is not of `ErrorKind::Interrupted` will be returned.
     </span><span class="kw">pub fn </span>finish(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;W&gt; {
-        <span class="comment">// If we could consume self in finish(), we wouldn&#39;t have to worry about this case, but
-        // finish() is retryable in the face of I/O errors, so we can&#39;t consume here.
+        <span class="comment">// If we could consume self in finish(), we wouldn't have to worry about this case, but
+        // finish() is retryable in the face of I/O errors, so we can't consume here.
         </span><span class="kw">if </span><span class="self">self</span>.delegate.is_none() {
-            <span class="macro">panic!</span>(<span class="string">&quot;Encoder has already had finish() called&quot;</span>);
+            <span class="macro">panic!</span>(<span class="string">"Encoder has already had finish() called"</span>);
         };
 
         <span class="self">self</span>.write_final_leftovers()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>writer = <span class="self">self</span>.delegate.take().expect(<span class="string">&quot;Writer must be present&quot;</span>);
+        <span class="kw">let </span>writer = <span class="self">self</span>.delegate.take().expect(<span class="string">"Writer must be present"</span>);
 
         <span class="prelude-val">Ok</span>(writer)
     }
@@ -561,7 +563,7 @@
                     <span class="kw-2">&amp;</span><span class="self">self</span>.extra_input[..<span class="self">self</span>.extra_input_occupied_len],
                     <span class="kw-2">&amp;mut </span><span class="self">self</span>.output[..],
                 )
-                .expect(<span class="string">&quot;buffer is large enough&quot;</span>);
+                .expect(<span class="string">"buffer is large enough"</span>);
 
             <span class="self">self</span>.output_occupied_len = encoded_len;
 
@@ -587,7 +589,7 @@
         <span class="kw">let </span>res = <span class="self">self
             </span>.delegate
             .as_mut()
-            .expect(<span class="string">&quot;Writer must be present&quot;</span>)
+            .expect(<span class="string">"Writer must be present"</span>)
             .write(<span class="kw-2">&amp;</span><span class="self">self</span>.output[..current_output_len]);
         <span class="self">self</span>.panicked = <span class="bool-val">false</span>;
 
@@ -596,7 +598,7 @@
 
             <span class="kw">if </span>consumed &lt; current_output_len {
                 <span class="self">self</span>.output_occupied_len = current_output_len.checked_sub(consumed).unwrap();
-                <span class="comment">// If we&#39;re blocking on I/O, the minor inefficiency of copying bytes to the
+                <span class="comment">// If we're blocking on I/O, the minor inefficiency of copying bytes to the
                 // start of the buffer is the least of our concerns...
                 // TODO Rotate moves more than we need to; copy_within now stable.
                 </span><span class="self">self</span>.output.rotate_left(consumed);
@@ -613,7 +615,7 @@
     ///
     /// # Errors
     ///
-    /// Any error emitted by the delegate writer abort the write loop and is returned, unless it&#39;s
+    /// Any error emitted by the delegate writer abort the write loop and is returned, unless it's
     /// `Interrupted`, in which case the error is ignored and writes will continue.
     </span><span class="kw">fn </span>write_all_encoded_output(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">while </span><span class="self">self</span>.output_occupied_len &gt; <span class="number">0 </span>{
@@ -648,11 +650,11 @@
     </span><span class="kw">pub fn </span>into_inner(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; W {
         <span class="self">self</span>.delegate
             .take()
-            .expect(<span class="string">&quot;Encoder has already had finish() called&quot;</span>)
+            .expect(<span class="string">"Encoder has already had finish() called"</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;e</span>, E: Engine, W: io::Write&gt; io::Write <span class="kw">for </span>EncoderWriter&lt;<span class="lifetime">&#39;e</span>, E, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'e</span>, E: Engine, W: io::Write&gt; io::Write <span class="kw">for </span>EncoderWriter&lt;<span class="lifetime">'e</span>, E, W&gt; {
     <span class="doccomment">/// Encode input and then write to the delegate writer.
     ///
     /// Under non-error circumstances, this returns `Ok` with the value being the number of bytes
@@ -671,7 +673,7 @@
     /// Any errors emitted by the delegate writer are returned.
     </span><span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
         <span class="kw">if </span><span class="self">self</span>.delegate.is_none() {
-            <span class="macro">panic!</span>(<span class="string">&quot;Cannot write more after calling finish()&quot;</span>);
+            <span class="macro">panic!</span>(<span class="string">"Cannot write more after calling finish()"</span>);
         }
 
         <span class="kw">if </span>input.is_empty() {
@@ -679,9 +681,9 @@
         }
 
         <span class="comment">// The contract of `Write::write` places some constraints on this implementation:
-        // - a call to `write()` represents at most one call to a wrapped `Write`, so we can&#39;t
+        // - a call to `write()` represents at most one call to a wrapped `Write`, so we can't
         // iterate over the input and encode multiple chunks.
-        // - Errors mean that &quot;no bytes were written to this writer&quot;, so we need to reset the
+        // - Errors mean that "no bytes were written to this writer", so we need to reset the
         // internal state to what it was before the error occurred
 
         // before reading any input, write any leftover encoded output from last time
@@ -711,12 +713,12 @@
             <span class="kw">if </span>input.len() + <span class="self">self</span>.extra_input_occupied_len &gt;= MIN_ENCODE_CHUNK_SIZE {
                 <span class="comment">// Fill up `extra`, encode that into `output`, and consume as much of the rest of
                 // `input` as possible.
-                // We could write just the encoding of `extra` by itself but then we&#39;d have to
+                // We could write just the encoding of `extra` by itself but then we'd have to
                 // return after writing only 4 bytes, which is inefficient if the underlying writer
                 // would make a syscall.
                 </span>extra_input_read_len = MIN_ENCODE_CHUNK_SIZE - <span class="self">self</span>.extra_input_occupied_len;
                 <span class="macro">debug_assert!</span>(extra_input_read_len &gt; <span class="number">0</span>);
-                <span class="comment">// overwrite only bytes that weren&#39;t already used. If we need to rollback extra_len
+                <span class="comment">// overwrite only bytes that weren't already used. If we need to rollback extra_len
                 // (when the subsequent write errors), the old leading bytes will still be there.
                 </span><span class="self">self</span>.extra_input[<span class="self">self</span>.extra_input_occupied_len..MIN_ENCODE_CHUNK_SIZE]
                     .copy_from_slice(<span class="kw-2">&amp;</span>input[<span class="number">0</span>..extra_input_read_len]);
@@ -731,9 +733,9 @@
 
                 <span class="comment">// consider extra to be used up, since we encoded it
                 </span><span class="self">self</span>.extra_input_occupied_len = <span class="number">0</span>;
-                <span class="comment">// don&#39;t clobber where we just encoded to
+                <span class="comment">// don't clobber where we just encoded to
                 </span>encoded_size = <span class="number">4</span>;
-                <span class="comment">// and don&#39;t read more than can be encoded
+                <span class="comment">// and don't read more than can be encoded
                 </span>max_input_len = MAX_INPUT_LEN - MIN_ENCODE_CHUNK_SIZE;
 
             <span class="comment">// fall through to normal encoding
@@ -757,7 +759,7 @@
         <span class="comment">// either 0 or 1 complete chunks encoded from extra
         </span><span class="macro">debug_assert!</span>(encoded_size == <span class="number">0 </span>|| encoded_size == <span class="number">4</span>);
         <span class="macro">debug_assert!</span>(
-            <span class="comment">// didn&#39;t encode extra input
+            <span class="comment">// didn't encode extra input
             </span>MAX_INPUT_LEN == max_input_len
                 <span class="comment">// encoded one triple
                 </span>|| MAX_INPUT_LEN == max_input_len + MIN_ENCODE_CHUNK_SIZE
@@ -775,7 +777,7 @@
         );
 
         <span class="comment">// not updating `self.output_occupied_len` here because if the below write fails, it should
-        // &quot;never take place&quot; -- the buffer contents we encoded are ignored and perhaps retried
+        // "never take place" -- the buffer contents we encoded are ignored and perhaps retried
         // later, if the consumer chooses.
 
         </span><span class="self">self</span>.write_to_delegate(encoded_size)
@@ -799,12 +801,12 @@
         <span class="self">self</span>.write_all_encoded_output()<span class="question-mark">?</span>;
         <span class="self">self</span>.delegate
             .as_mut()
-            .expect(<span class="string">&quot;Writer must be present&quot;</span>)
+            .expect(<span class="string">"Writer must be present"</span>)
             .flush()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;e</span>, E: Engine, W: io::Write&gt; Drop <span class="kw">for </span>EncoderWriter&lt;<span class="lifetime">&#39;e</span>, E, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'e</span>, E: Engine, W: io::Write&gt; Drop <span class="kw">for </span>EncoderWriter&lt;<span class="lifetime">'e</span>, E, W&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span>!<span class="self">self</span>.panicked {
             <span class="comment">// like `BufWriter`, ignore errors during drop

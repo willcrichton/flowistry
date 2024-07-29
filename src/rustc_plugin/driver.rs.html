@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc_plugin-0.7.3-nightly-2023-08-25/src/driver.rs`."><title>driver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustc_plugin" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rustc_plugin/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc_plugin-0.8.0-nightly-2024-01-06/src/driver.rs`."><title>driver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustc_plugin" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rustc_plugin/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -172,7 +174,7 @@
   process::{exit, Command},
 };
 
-<span class="kw">use </span>rustc_session::{config::ErrorOutputType, EarlyErrorHandler};
+<span class="kw">use </span>rustc_session::{config::ErrorOutputType, EarlyDiagCtxt};
 <span class="kw">use </span>rustc_tools_util::VersionInfo;
 
 <span class="kw">use </span><span class="kw">super</span>::plugin::{RustcPlugin, PLUGIN_ARGS};
@@ -180,14 +182,14 @@
 
 <span class="doccomment">/// If a command-line option matches `find_arg`, then apply the predicate `pred` on its value. If
 /// true, then return it. The parameter is assumed to be either `--arg=value` or `--arg value`.
-</span><span class="kw">fn </span>arg_value&lt;<span class="lifetime">&#39;a</span>, T: Deref&lt;Target = str&gt;&gt;(
-  args: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T],
+</span><span class="kw">fn </span>arg_value&lt;<span class="lifetime">'a</span>, T: Deref&lt;Target = str&gt;&gt;(
+  args: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[T],
   find_arg: <span class="kw-2">&amp;</span>str,
   pred: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>str) -&gt; bool,
-) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; {
   <span class="kw">let </span><span class="kw-2">mut </span>args = args.iter().map(Deref::deref);
   <span class="kw">while let </span><span class="prelude-val">Some</span>(arg) = args.next() {
-    <span class="kw">let </span><span class="kw-2">mut </span>arg = arg.splitn(<span class="number">2</span>, <span class="string">&#39;=&#39;</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>arg = arg.splitn(<span class="number">2</span>, <span class="string">'='</span>);
     <span class="kw">if </span>arg.next() != <span class="prelude-val">Some</span>(find_arg) {
       <span class="kw">continue</span>;
     }
@@ -204,7 +206,7 @@
   home.and_then(|home| {
     toolchain.map(|toolchain| {
       <span class="kw">let </span><span class="kw-2">mut </span>path = PathBuf::from(home);
-      path.push(<span class="string">&quot;toolchains&quot;</span>);
+      path.push(<span class="string">"toolchains"</span>);
       path.push(toolchain);
       path
     })
@@ -221,43 +223,43 @@
   // - compile-time environment
   //    - SYSROOT
   //    - RUSTUP_HOME, MULTIRUST_HOME, RUSTUP_TOOLCHAIN, MULTIRUST_TOOLCHAIN
-  </span><span class="kw">let </span>sys_root_arg = arg_value(orig_args, <span class="string">&quot;--sysroot&quot;</span>, |<span class="kw">_</span>| <span class="bool-val">true</span>);
+  </span><span class="kw">let </span>sys_root_arg = arg_value(orig_args, <span class="string">"--sysroot"</span>, |<span class="kw">_</span>| <span class="bool-val">true</span>);
   <span class="kw">let </span>have_sys_root_arg = sys_root_arg.is_some();
   <span class="kw">let </span>sys_root = sys_root_arg
     .map(PathBuf::from)
-    .or_else(|| std::env::var(<span class="string">&quot;MIRI_SYSROOT&quot;</span>).ok().map(PathBuf::from))
-    .or_else(|| std::env::var(<span class="string">&quot;SYSROOT&quot;</span>).ok().map(PathBuf::from))
+    .or_else(|| std::env::var(<span class="string">"MIRI_SYSROOT"</span>).ok().map(PathBuf::from))
+    .or_else(|| std::env::var(<span class="string">"SYSROOT"</span>).ok().map(PathBuf::from))
     .or_else(|| {
-      <span class="kw">let </span>home = std::env::var(<span class="string">&quot;RUSTUP_HOME&quot;</span>)
-        .or_else(|<span class="kw">_</span>| std::env::var(<span class="string">&quot;MULTIRUST_HOME&quot;</span>))
+      <span class="kw">let </span>home = std::env::var(<span class="string">"RUSTUP_HOME"</span>)
+        .or_else(|<span class="kw">_</span>| std::env::var(<span class="string">"MULTIRUST_HOME"</span>))
         .ok();
-      <span class="kw">let </span>toolchain = std::env::var(<span class="string">&quot;RUSTUP_TOOLCHAIN&quot;</span>)
-        .or_else(|<span class="kw">_</span>| std::env::var(<span class="string">&quot;MULTIRUST_TOOLCHAIN&quot;</span>))
+      <span class="kw">let </span>toolchain = std::env::var(<span class="string">"RUSTUP_TOOLCHAIN"</span>)
+        .or_else(|<span class="kw">_</span>| std::env::var(<span class="string">"MULTIRUST_TOOLCHAIN"</span>))
         .ok();
       toolchain_path(home, toolchain)
     })
     .or_else(|| {
-      Command::new(<span class="string">&quot;rustc&quot;</span>)
-        .arg(<span class="string">&quot;--print&quot;</span>)
-        .arg(<span class="string">&quot;sysroot&quot;</span>)
+      Command::new(<span class="string">"rustc"</span>)
+        .arg(<span class="string">"--print"</span>)
+        .arg(<span class="string">"sysroot"</span>)
         .output()
         .ok()
         .and_then(|out| String::from_utf8(out.stdout).ok())
         .map(|s| PathBuf::from(s.trim()))
     })
-    .or_else(|| <span class="macro">option_env!</span>(<span class="string">&quot;SYSROOT&quot;</span>).map(PathBuf::from))
+    .or_else(|| <span class="macro">option_env!</span>(<span class="string">"SYSROOT"</span>).map(PathBuf::from))
     .or_else(|| {
-      <span class="kw">let </span>home = <span class="macro">option_env!</span>(<span class="string">&quot;RUSTUP_HOME&quot;</span>)
-        .or(<span class="macro">option_env!</span>(<span class="string">&quot;MULTIRUST_HOME&quot;</span>))
+      <span class="kw">let </span>home = <span class="macro">option_env!</span>(<span class="string">"RUSTUP_HOME"</span>)
+        .or(<span class="macro">option_env!</span>(<span class="string">"MULTIRUST_HOME"</span>))
         .map(ToString::to_string);
-      <span class="kw">let </span>toolchain = <span class="macro">option_env!</span>(<span class="string">&quot;RUSTUP_TOOLCHAIN&quot;</span>)
-        .or(<span class="macro">option_env!</span>(<span class="string">&quot;MULTIRUST_TOOLCHAIN&quot;</span>))
+      <span class="kw">let </span>toolchain = <span class="macro">option_env!</span>(<span class="string">"RUSTUP_TOOLCHAIN"</span>)
+        .or(<span class="macro">option_env!</span>(<span class="string">"MULTIRUST_TOOLCHAIN"</span>))
         .map(ToString::to_string);
       toolchain_path(home, toolchain)
     })
     .map(|pb| pb.to_string_lossy().to_string())
     .expect(
-      <span class="string">&quot;need to specify SYSROOT env var during clippy compilation, or use rustup or multirust&quot;</span>,
+      <span class="string">"need to specify SYSROOT env var during clippy compilation, or use rustup or multirust"</span>,
     );
   (have_sys_root_arg, sys_root)
 }
@@ -267,24 +269,24 @@
 
 <span class="doccomment">/// The top-level function that should be called by your internal driver binary.
 </span><span class="kw">pub fn </span>driver_main&lt;T: RustcPlugin&gt;(plugin: T) {
-  <span class="kw">let </span>handler = EarlyErrorHandler::new(ErrorOutputType::default());
-  rustc_driver::init_rustc_env_logger(<span class="kw-2">&amp;</span>handler);
+  <span class="kw">let </span>early_dcx = EarlyDiagCtxt::new(ErrorOutputType::default());
+  rustc_driver::init_rustc_env_logger(<span class="kw-2">&amp;</span>early_dcx);
 
   exit(rustc_driver::catch_with_exit_code(<span class="kw">move </span>|| {
     <span class="kw">let </span><span class="kw-2">mut </span>orig_args: Vec&lt;String&gt; = env::args().collect();
 
     <span class="kw">let </span>(have_sys_root_arg, sys_root) = get_sysroot(<span class="kw-2">&amp;</span>orig_args);
 
-    <span class="kw">if </span>orig_args.iter().any(|a| a == <span class="string">&quot;--version&quot; </span>|| a == <span class="string">&quot;-V&quot;</span>) {
+    <span class="kw">if </span>orig_args.iter().any(|a| a == <span class="string">"--version" </span>|| a == <span class="string">"-V"</span>) {
       <span class="kw">let </span>version_info = <span class="macro">rustc_tools_util::get_version_info!</span>();
-      <span class="macro">println!</span>(<span class="string">&quot;{version_info}&quot;</span>);
+      <span class="macro">println!</span>(<span class="string">"{version_info}"</span>);
       exit(<span class="number">0</span>);
     }
 
-    <span class="comment">// Setting RUSTC_WRAPPER causes Cargo to pass &#39;rustc&#39; as the first argument.
-    // We&#39;re invoking the compiler programmatically, so we ignore this
+    <span class="comment">// Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
+    // We're invoking the compiler programmatically, so we ignore this
     </span><span class="kw">let </span>wrapper_mode =
-      orig_args.get(<span class="number">1</span>).map(Path::new).and_then(Path::file_stem) == <span class="prelude-val">Some</span>(<span class="string">&quot;rustc&quot;</span>.as_ref());
+      orig_args.get(<span class="number">1</span>).map(Path::new).and_then(Path::file_stem) == <span class="prelude-val">Some</span>(<span class="string">"rustc"</span>.as_ref());
 
     <span class="kw">if </span>wrapper_mode {
       <span class="comment">// we still want to be able to invoke it normally though
@@ -295,20 +297,20 @@
     // the driver directly without having to pass --sysroot or anything
     </span><span class="kw">let </span><span class="kw-2">mut </span>args: Vec&lt;String&gt; = orig_args.clone();
     <span class="kw">if </span>!have_sys_root_arg {
-      args.extend([<span class="string">&quot;--sysroot&quot;</span>.into(), sys_root]);
+      args.extend([<span class="string">"--sysroot"</span>.into(), sys_root]);
     };
 
     <span class="comment">// On a given invocation of rustc, we have to decide whether to act as rustc,
     // or actually execute the plugin. There are two conditions for executing the plugin:
-    // 1. Either we&#39;re supposed to run on all crates, or CARGO_PRIMARY_PACKAGE is set.
+    // 1. Either we're supposed to run on all crates, or CARGO_PRIMARY_PACKAGE is set.
     // 2. --print is NOT passed, since Cargo does that to get info about rustc.
-    </span><span class="kw">let </span>primary_package = env::var(<span class="string">&quot;CARGO_PRIMARY_PACKAGE&quot;</span>).is_ok();
+    </span><span class="kw">let </span>primary_package = env::var(<span class="string">"CARGO_PRIMARY_PACKAGE"</span>).is_ok();
     <span class="kw">let </span>run_on_all_crates = env::var(RUN_ON_ALL_CRATES).is_ok();
-    <span class="kw">let </span>normal_rustc = arg_value(<span class="kw-2">&amp;</span>args, <span class="string">&quot;--print&quot;</span>, |<span class="kw">_</span>| <span class="bool-val">true</span>).is_some();
+    <span class="kw">let </span>normal_rustc = arg_value(<span class="kw-2">&amp;</span>args, <span class="string">"--print"</span>, |<span class="kw">_</span>| <span class="bool-val">true</span>).is_some();
     <span class="kw">let </span>is_target_crate = <span class="kw">match </span>(env::var(SPECIFIC_CRATE), env::var(SPECIFIC_TARGET)) {
       (<span class="prelude-val">Ok</span>(krate), <span class="prelude-val">Ok</span>(target)) =&gt; {
-        arg_value(<span class="kw-2">&amp;</span>args, <span class="string">&quot;--crate-name&quot;</span>, |name| name == krate).is_some()
-          &amp;&amp; arg_value(<span class="kw-2">&amp;</span>args, <span class="string">&quot;--crate-type&quot;</span>, |name| name == target).is_some()
+        arg_value(<span class="kw-2">&amp;</span>args, <span class="string">"--crate-name"</span>, |name| name == krate).is_some()
+          &amp;&amp; arg_value(<span class="kw-2">&amp;</span>args, <span class="string">"--crate-type"</span>, |name| name == target).is_some()
       }
       <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
     };
@@ -316,17 +318,17 @@
       !normal_rustc &amp;&amp; (run_on_all_crates || primary_package) &amp;&amp; is_target_crate;
 
     <span class="kw">if </span>run_plugin {
-      <span class="macro">log::debug!</span>(<span class="string">&quot;Running plugin...&quot;</span>);
+      <span class="macro">log::debug!</span>(<span class="string">"Running plugin..."</span>);
       <span class="kw">let </span>plugin_args: T::Args =
         serde_json::from_str(<span class="kw-2">&amp;</span>env::var(PLUGIN_ARGS).unwrap()).unwrap();
       plugin.run(args, plugin_args)
     } <span class="kw">else </span>{
       <span class="macro">log::debug!</span>(
-        <span class="string">&quot;Running normal Rust. Relevant variables:\
+        <span class="string">"Running normal Rust. Relevant variables:\
 normal_rustc={normal_rustc}, \
 run_on_all_crates={run_on_all_crates}, \
 primary_package={primary_package}, \
-is_target_crate={is_target_crate}&quot;
+is_target_crate={is_target_crate}"
       </span>);
       rustc_driver::RunCompiler::new(<span class="kw-2">&amp;</span>args, <span class="kw-2">&amp;mut </span>DefaultCallbacks).run()
     }

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.7/src/builder/os_str.rs`."><title>os_str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.11/src/builder/os_str.rs`."><title>os_str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -324,16 +326,6 @@
 <a href="#324" id="324">324</a>
 <a href="#325" id="325">325</a>
 <a href="#326" id="326">326</a>
-<a href="#327" id="327">327</a>
-<a href="#328" id="328">328</a>
-<a href="#329" id="329">329</a>
-<a href="#330" id="330">330</a>
-<a href="#331" id="331">331</a>
-<a href="#332" id="332">332</a>
-<a href="#333" id="333">333</a>
-<a href="#334" id="334">334</a>
-<a href="#335" id="335">335</a>
-<a href="#336" id="336">336</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::builder::Str;
 
 <span class="doccomment">/// A UTF-8-encoded fixed string
@@ -346,21 +338,21 @@
 }
 
 <span class="kw">impl </span>OsStr {
-    <span class="attr">#[cfg(feature = <span class="string">&quot;string&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"string"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_string(name: std::ffi::OsString) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             name: Inner::from_string(name),
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;string&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"string"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_ref(name: <span class="kw-2">&amp;</span>std::ffi::OsStr) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             name: Inner::from_ref(name),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_static_ref(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>std::ffi::OsStr) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_static_ref(name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>std::ffi::OsStr) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             name: Inner::from_static_ref(name),
         }
@@ -377,13 +369,13 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>OsStr&gt; <span class="kw">for </span>OsStr {
-    <span class="kw">fn </span>from(id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>OsStr) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span>OsStr&gt; <span class="kw">for </span>OsStr {
+    <span class="kw">fn </span>from(id: <span class="kw-2">&amp;</span><span class="lifetime">'_ </span>OsStr) -&gt; <span class="self">Self </span>{
         id.clone()
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;string&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"string"</span>)]
 </span><span class="kw">impl </span>From&lt;Str&gt; <span class="kw">for </span>OsStr {
     <span class="kw">fn </span>from(id: Str) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>id.into_inner() {
@@ -393,77 +385,67 @@
     }
 }
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;string&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"string"</span>))]
 </span><span class="kw">impl </span>From&lt;Str&gt; <span class="kw">for </span>OsStr {
     <span class="kw">fn </span>from(id: Str) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_static_ref(std::ffi::OsStr::new(id.into_inner().<span class="number">0</span>))
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;perf&quot;</span>)]
-</span><span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Str&gt; <span class="kw">for </span>OsStr {
-    <span class="kw">fn </span>from(id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Str) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span>id.clone().into_inner() {
-            <span class="kw">crate</span>::builder::StrInner::Static(s) =&gt; <span class="self">Self</span>::from_static_ref(std::ffi::OsStr::new(s)),
-            <span class="kw">crate</span>::builder::StrInner::Owned(s) =&gt; <span class="self">Self</span>::from_ref(std::ffi::OsStr::new(s.as_ref())),
-        }
-    }
-}
-
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Str&gt; <span class="kw">for </span>OsStr {
-    <span class="kw">fn </span>from(id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>Str) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span>Str&gt; <span class="kw">for </span>OsStr {
+    <span class="kw">fn </span>from(id: <span class="kw-2">&amp;</span><span class="lifetime">'_ </span>Str) -&gt; <span class="self">Self </span>{
         id.clone().into()
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;string&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"string"</span>)]
 </span><span class="kw">impl </span>From&lt;std::ffi::OsString&gt; <span class="kw">for </span>OsStr {
     <span class="kw">fn </span>from(name: std::ffi::OsString) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_string(name)
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;string&quot;</span>)]
-</span><span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>std::ffi::OsString&gt; <span class="kw">for </span>OsStr {
-    <span class="kw">fn </span>from(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>std::ffi::OsString) -&gt; <span class="self">Self </span>{
+<span class="attr">#[cfg(feature = <span class="string">"string"</span>)]
+</span><span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span>std::ffi::OsString&gt; <span class="kw">for </span>OsStr {
+    <span class="kw">fn </span>from(name: <span class="kw-2">&amp;</span><span class="lifetime">'_ </span>std::ffi::OsString) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_ref(name.as_os_str())
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;string&quot;</span>)]
-</span><span class="kw">impl </span>From&lt;std::string::String&gt; <span class="kw">for </span>OsStr {
-    <span class="kw">fn </span>from(name: std::string::String) -&gt; <span class="self">Self </span>{
+<span class="attr">#[cfg(feature = <span class="string">"string"</span>)]
+</span><span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>OsStr {
+    <span class="kw">fn </span>from(name: String) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_string(name.into())
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;string&quot;</span>)]
-</span><span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>std::string::String&gt; <span class="kw">for </span>OsStr {
-    <span class="kw">fn </span>from(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>std::string::String) -&gt; <span class="self">Self </span>{
+<span class="attr">#[cfg(feature = <span class="string">"string"</span>)]
+</span><span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span>String&gt; <span class="kw">for </span>OsStr {
+    <span class="kw">fn </span>from(name: <span class="kw-2">&amp;</span><span class="lifetime">'_ </span>String) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_ref(name.as_str().as_ref())
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>std::ffi::OsStr&gt; <span class="kw">for </span>OsStr {
-    <span class="kw">fn </span>from(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>std::ffi::OsStr) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>std::ffi::OsStr&gt; <span class="kw">for </span>OsStr {
+    <span class="kw">fn </span>from(name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>std::ffi::OsStr) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_static_ref(name)
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>std::ffi::OsStr&gt; <span class="kw">for </span>OsStr {
-    <span class="kw">fn </span>from(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>std::ffi::OsStr) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span><span class="kw-2">&amp;</span><span class="lifetime">'static </span>std::ffi::OsStr&gt; <span class="kw">for </span>OsStr {
+    <span class="kw">fn </span>from(name: <span class="kw-2">&amp;</span><span class="lifetime">'_ </span><span class="kw-2">&amp;</span><span class="lifetime">'static </span>std::ffi::OsStr) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_static_ref(name)
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; <span class="kw">for </span>OsStr {
-    <span class="kw">fn </span>from(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; <span class="kw">for </span>OsStr {
+    <span class="kw">fn </span>from(name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_static_ref(name.as_ref())
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; <span class="kw">for </span>OsStr {
-    <span class="kw">fn </span>from(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span><span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; <span class="kw">for </span>OsStr {
+    <span class="kw">fn </span>from(name: <span class="kw-2">&amp;</span><span class="lifetime">'_ </span><span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_static_ref((<span class="kw-2">*</span>name).as_ref())
     }
 }
@@ -482,7 +464,7 @@
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>OsStr {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         std::fmt::Debug::fmt(<span class="self">self</span>.as_os_str(), f)
     }
 }
@@ -530,39 +512,39 @@
     }
 }
 
-<span class="kw">impl </span>PartialEq&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>str&gt; <span class="kw">for </span>OsStr {
+<span class="kw">impl </span>PartialEq&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span>str&gt; <span class="kw">for </span>OsStr {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: &amp;&amp;str) -&gt; bool {
         PartialEq::eq(<span class="self">self</span>.as_os_str(), <span class="kw-2">*</span>other)
     }
 }
-<span class="kw">impl </span>PartialEq&lt;OsStr&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>str {
+<span class="kw">impl </span>PartialEq&lt;OsStr&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'_ </span>str {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>OsStr) -&gt; bool {
         PartialEq::eq(<span class="kw-2">*</span><span class="self">self</span>, other.as_os_str())
     }
 }
 
-<span class="kw">impl </span>PartialEq&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>std::ffi::OsStr&gt; <span class="kw">for </span>OsStr {
+<span class="kw">impl </span>PartialEq&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span>std::ffi::OsStr&gt; <span class="kw">for </span>OsStr {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: &amp;&amp;std::ffi::OsStr) -&gt; bool {
         PartialEq::eq(<span class="self">self</span>.as_os_str(), <span class="kw-2">*</span>other)
     }
 }
-<span class="kw">impl </span>PartialEq&lt;OsStr&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>std::ffi::OsStr {
+<span class="kw">impl </span>PartialEq&lt;OsStr&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'_ </span>std::ffi::OsStr {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>OsStr) -&gt; bool {
         PartialEq::eq(<span class="kw-2">*</span><span class="self">self</span>, other.as_os_str())
     }
 }
 
-<span class="kw">impl </span>PartialEq&lt;std::string::String&gt; <span class="kw">for </span>OsStr {
+<span class="kw">impl </span>PartialEq&lt;String&gt; <span class="kw">for </span>OsStr {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>std::string::String) -&gt; bool {
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>String) -&gt; bool {
         PartialEq::eq(<span class="self">self</span>.as_os_str(), other.as_str())
     }
 }
-<span class="kw">impl </span>PartialEq&lt;OsStr&gt; <span class="kw">for </span>std::string::String {
+<span class="kw">impl </span>PartialEq&lt;OsStr&gt; <span class="kw">for </span>String {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>OsStr) -&gt; bool {
         PartialEq::eq(<span class="self">self</span>.as_str(), other.as_os_str())
@@ -582,11 +564,11 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;string&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"string"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>inner {
     <span class="attr">#[derive(Clone)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Inner {
-        Static(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>std::ffi::OsStr),
+        Static(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>std::ffi::OsStr),
         Owned(Box&lt;std::ffi::OsStr&gt;),
     }
 
@@ -599,7 +581,7 @@
             <span class="self">Self</span>::Owned(Box::from(name))
         }
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_static_ref(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>std::ffi::OsStr) -&gt; <span class="self">Self </span>{
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_static_ref(name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>std::ffi::OsStr) -&gt; <span class="self">Self </span>{
             <span class="self">Self</span>::Static(name)
         }
 
@@ -616,13 +598,13 @@
     }
 }
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;string&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"string"</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>inner {
     <span class="attr">#[derive(Clone)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Inner(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>std::ffi::OsStr);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Inner(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>std::ffi::OsStr);
 
     <span class="kw">impl </span>Inner {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_static_ref(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>std::ffi::OsStr) -&gt; <span class="self">Self </span>{
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_static_ref(name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>std::ffi::OsStr) -&gt; <span class="self">Self </span>{
             <span class="self">Self</span>(name)
         }
 
@@ -640,7 +622,7 @@
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Inner {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::from_static_ref(std::ffi::OsStr::new(<span class="string">&quot;&quot;</span>))
+        <span class="self">Self</span>::from_static_ref(std::ffi::OsStr::new(<span class="string">""</span>))
     }
 }
 

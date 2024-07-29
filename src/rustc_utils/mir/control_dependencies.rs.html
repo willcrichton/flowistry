@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc_utils-0.7.3-nightly-2023-08-25/src/mir/control_dependencies.rs`."><title>control_dependencies.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustc_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../rustc_utils/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc_utils-0.8.0-nightly-2024-01-06/src/mir/control_dependencies.rs`."><title>control_dependencies.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustc_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rustc_utils/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -292,75 +294,78 @@
 <a href="#292" id="292">292</a>
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An algorithm to compute control-dependencies between MIR blocks.
 //!
 //! In a function $f$, a block $Y$ is control-dependent on a block $X$ if the execution of $Y$
 //! is conditional on $X$, e.g. if $X$ is a conditional branch and $Y$ is one of the branches.
 //!
-//! See Section 3.1 of &quot;The Program Dependence Graph and Its Use in Optimization&quot; (Ferrante et al. 1987)
+//! See Section 3.1 of "The Program Dependence Graph and Its Use in Optimization" (Ferrante et al. 1987)
 //! for more on how to define and analyze control-dependence.
 
 </span><span class="kw">use </span>std::fmt;
 
-<span class="kw">use </span>rustc_data_structures::graph::{
-  dominators::{Dominators, Iter <span class="kw">as </span>DominatorsIter},
-  vec_graph::VecGraph,
-  <span class="kw-2">*</span>,
-};
+<span class="kw">use </span>rustc_data_structures::graph::{dominators::Dominators, vec_graph::VecGraph, <span class="kw-2">*</span>};
 <span class="kw">use </span>rustc_index::{
   bit_set::{BitSet, HybridBitSet, SparseBitMatrix},
   Idx,
 };
 <span class="kw">use </span>smallvec::SmallVec;
 
-<span class="kw">struct </span>ReversedGraph&lt;<span class="lifetime">&#39;a</span>, G: ControlFlowGraph&gt; {
-  graph: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>G,
+<span class="kw">struct </span>ReversedGraph&lt;<span class="lifetime">'a</span>, G: ControlFlowGraph&gt; {
+  graph: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>G,
   exit: G::Node,
   unreachable: BitSet&lt;G::Node&gt;,
 }
 
-<span class="kw">impl</span>&lt;G: ControlFlowGraph&gt; DirectedGraph <span class="kw">for </span>ReversedGraph&lt;<span class="lifetime">&#39;_</span>, G&gt; {
+<span class="kw">impl</span>&lt;G: ControlFlowGraph&gt; DirectedGraph <span class="kw">for </span>ReversedGraph&lt;<span class="lifetime">'_</span>, G&gt; {
   <span class="kw">type </span>Node = G::Node;
 }
 
-<span class="kw">impl</span>&lt;G: ControlFlowGraph&gt; WithStartNode <span class="kw">for </span>ReversedGraph&lt;<span class="lifetime">&#39;_</span>, G&gt; {
+<span class="kw">impl</span>&lt;G: ControlFlowGraph&gt; WithStartNode <span class="kw">for </span>ReversedGraph&lt;<span class="lifetime">'_</span>, G&gt; {
   <span class="kw">fn </span>start_node(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Node {
     <span class="self">self</span>.exit
   }
 }
 
-<span class="kw">impl</span>&lt;G: ControlFlowGraph&gt; WithNumNodes <span class="kw">for </span>ReversedGraph&lt;<span class="lifetime">&#39;_</span>, G&gt; {
+<span class="kw">impl</span>&lt;G: ControlFlowGraph&gt; WithNumNodes <span class="kw">for </span>ReversedGraph&lt;<span class="lifetime">'_</span>, G&gt; {
   <span class="kw">fn </span>num_nodes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
     <span class="self">self</span>.graph.num_nodes()
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;graph</span>, G: ControlFlowGraph&gt; GraphSuccessors&lt;<span class="lifetime">&#39;graph</span>&gt; <span class="kw">for </span>ReversedGraph&lt;<span class="lifetime">&#39;_</span>, G&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'graph</span>, G: ControlFlowGraph&gt; GraphSuccessors&lt;<span class="lifetime">'graph</span>&gt; <span class="kw">for </span>ReversedGraph&lt;<span class="lifetime">'_</span>, G&gt; {
   <span class="kw">type </span>Item = G::Node;
   <span class="kw">type </span>Iter = smallvec::IntoIter&lt;[<span class="self">Self</span>::Item; <span class="number">4</span>]&gt;;
 }
 
-<span class="kw">impl</span>&lt;G: ControlFlowGraph&gt; WithSuccessors <span class="kw">for </span>ReversedGraph&lt;<span class="lifetime">&#39;_</span>, G&gt; {
-  <span class="kw">fn </span>successors(<span class="kw-2">&amp;</span><span class="self">self</span>, node: <span class="self">Self</span>::Node) -&gt; &lt;<span class="self">Self </span><span class="kw">as </span>GraphSuccessors&lt;<span class="lifetime">&#39;_</span>&gt;&gt;::Iter {
+<span class="kw">impl</span>&lt;G: ControlFlowGraph&gt; WithSuccessors <span class="kw">for </span>ReversedGraph&lt;<span class="lifetime">'_</span>, G&gt; {
+  <span class="kw">fn </span>successors(<span class="kw-2">&amp;</span><span class="self">self</span>, node: <span class="self">Self</span>::Node) -&gt; &lt;<span class="self">Self </span><span class="kw">as </span>GraphSuccessors&lt;<span class="lifetime">'_</span>&gt;&gt;::Iter {
     <span class="self">self
       </span>.graph
       .predecessors(node)
       .filter(|bb| !<span class="self">self</span>.unreachable.contains(<span class="kw-2">*</span>bb))
       <span class="comment">// We have to collect -&gt; immediately into_iter because we need to return
-      // an iterator type that doesn&#39;t describe closures, which aren&#39;t nameable
+      // an iterator type that doesn't describe closures, which aren't nameable
       // in the GraphSuccessors trait implementation.
       </span>.collect::&lt;SmallVec&lt;[G::Node; <span class="number">4</span>]&gt;&gt;()
       .into_iter()
   }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;graph</span>, G: ControlFlowGraph&gt; GraphPredecessors&lt;<span class="lifetime">&#39;graph</span>&gt; <span class="kw">for </span>ReversedGraph&lt;<span class="lifetime">&#39;_</span>, G&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'graph</span>, G: ControlFlowGraph&gt; GraphPredecessors&lt;<span class="lifetime">'graph</span>&gt; <span class="kw">for </span>ReversedGraph&lt;<span class="lifetime">'_</span>, G&gt; {
   <span class="kw">type </span>Item = G::Node;
   <span class="kw">type </span>Iter = smallvec::IntoIter&lt;[<span class="self">Self</span>::Item; <span class="number">4</span>]&gt;;
 }
 
-<span class="kw">impl</span>&lt;G: ControlFlowGraph&gt; WithPredecessors <span class="kw">for </span>ReversedGraph&lt;<span class="lifetime">&#39;_</span>, G&gt; {
-  <span class="kw">fn </span>predecessors(<span class="kw-2">&amp;</span><span class="self">self</span>, node: <span class="self">Self</span>::Node) -&gt; &lt;<span class="self">Self </span><span class="kw">as </span>GraphPredecessors&lt;<span class="lifetime">&#39;_</span>&gt;&gt;::Iter {
+<span class="kw">impl</span>&lt;G: ControlFlowGraph&gt; WithPredecessors <span class="kw">for </span>ReversedGraph&lt;<span class="lifetime">'_</span>, G&gt; {
+  <span class="kw">fn </span>predecessors(<span class="kw-2">&amp;</span><span class="self">self</span>, node: <span class="self">Self</span>::Node) -&gt; &lt;<span class="self">Self </span><span class="kw">as </span>GraphPredecessors&lt;<span class="lifetime">'_</span>&gt;&gt;::Iter {
     <span class="self">self
       </span>.graph
       .successors(node)
@@ -370,16 +375,20 @@
   }
 }
 
-<span class="doccomment">/// Represents the post-dominators of a graph&#39;s nodes with respect to a particular exit.
-</span><span class="kw">pub struct </span>PostDominators&lt;Node: Idx&gt;(Dominators&lt;Node&gt;);
+<span class="doccomment">/// Represents the post-dominators of a graph's nodes with respect to a particular exit.
+</span><span class="kw">pub struct </span>PostDominators&lt;Node: Idx&gt; {
+  dominators: Dominators&lt;Node&gt;,
+  num_nodes: usize,
+}
 
 <span class="kw">impl</span>&lt;Node: Idx&gt; PostDominators&lt;Node&gt; {
   <span class="doccomment">/// Constructs the post-dominators by computing the dominators on a reversed graph.
   </span><span class="kw">pub fn </span>build&lt;G: ControlFlowGraph&lt;Node = Node&gt;&gt;(graph: <span class="kw-2">&amp;</span>G, exit: Node) -&gt; <span class="self">Self </span>{
+    <span class="kw">let </span>num_nodes = graph.num_nodes();
     <span class="kw">let </span><span class="kw-2">mut </span>reversed = ReversedGraph {
       graph,
       exit,
-      unreachable: BitSet::new_empty(graph.num_nodes()),
+      unreachable: BitSet::new_empty(num_nodes),
     };
 
     <span class="kw">let </span>reachable = iterate::post_order_from(<span class="kw-2">&amp;</span>reversed, exit);
@@ -389,18 +398,25 @@
     }
 
     <span class="kw">let </span>dominators = dominators::dominators(<span class="kw-2">&amp;</span>reversed);
-    PostDominators::&lt;Node&gt;(dominators)
+    PostDominators {
+      dominators,
+      num_nodes,
+    }
   }
 
   <span class="doccomment">/// Gets the node that immediately post-dominators `node`, if one exists.
   </span><span class="kw">pub fn </span>immediate_post_dominator(<span class="kw-2">&amp;</span><span class="self">self</span>, node: Node) -&gt; <span class="prelude-ty">Option</span>&lt;Node&gt; {
-    <span class="self">self</span>.<span class="number">0</span>.immediate_dominator(node)
+    <span class="self">self</span>.dominators.immediate_dominator(node)
   }
 
   <span class="doccomment">/// Gets all nodes that post-dominate `node`, if they exist.
-  </span><span class="kw">pub fn </span>post_dominators(<span class="kw-2">&amp;</span><span class="self">self</span>, node: Node) -&gt; <span class="prelude-ty">Option</span>&lt;DominatorsIter&lt;<span class="lifetime">&#39;_</span>, Node&gt;&gt; {
-    <span class="kw">let </span>reachable = <span class="self">self</span>.<span class="number">0</span>.is_reachable(node);
-    reachable.then(|| <span class="self">self</span>.<span class="number">0</span>.dominators(node))
+  </span><span class="kw">pub fn </span>post_dominators(<span class="kw-2">&amp;</span><span class="self">self</span>, node: Node) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Iterator&lt;Item = Node&gt; + <span class="lifetime">'_</span>&gt; {
+    <span class="kw">let </span>reachable = <span class="self">self</span>.dominators.is_reachable(node);
+    reachable.then(<span class="kw">move </span>|| {
+      (<span class="number">0 </span>.. <span class="self">self</span>.num_nodes)
+        .map(Node::new)
+        .filter(<span class="kw">move </span>|other| <span class="self">self</span>.dominators.dominates(<span class="kw-2">*</span>other, node))
+    })
   }
 }
 
@@ -408,7 +424,7 @@
 </span><span class="kw">pub struct </span>ControlDependencies&lt;Node: Idx&gt;(SparseBitMatrix&lt;Node, Node&gt;);
 
 <span class="kw">impl</span>&lt;Node: Idx&gt; fmt::Debug <span class="kw">for </span>ControlDependencies&lt;Node&gt; {
-  <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+  <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
     <span class="kw">for </span>(i, (bb, bbs)) <span class="kw">in </span><span class="self">self
       </span>.<span class="number">0
       </span>.rows()
@@ -416,16 +432,16 @@
       .filter_map(|(i, bb)| <span class="self">self</span>.<span class="number">0</span>.row(bb).map(<span class="kw">move </span>|bbs| (i, (bb, bbs))))
     {
       <span class="kw">if </span>i &gt; <span class="number">0 </span>{
-        <span class="macro">write!</span>(f, <span class="string">&quot;, &quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">", "</span>)<span class="question-mark">?</span>;
       }
-      <span class="macro">write!</span>(f, <span class="string">&quot;{bb:?}: {{&quot;</span>)<span class="question-mark">?</span>;
+      <span class="macro">write!</span>(f, <span class="string">"{bb:?}: {{"</span>)<span class="question-mark">?</span>;
       <span class="kw">for </span>(j, bb2) <span class="kw">in </span>bbs.iter().enumerate() {
         <span class="kw">if </span>j &gt; <span class="number">0 </span>{
-          <span class="macro">write!</span>(f, <span class="string">&quot;, &quot;</span>)<span class="question-mark">?</span>;
+          <span class="macro">write!</span>(f, <span class="string">", "</span>)<span class="question-mark">?</span>;
         }
-        <span class="macro">write!</span>(f, <span class="string">&quot;{bb2:?}&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"{bb2:?}"</span>)<span class="question-mark">?</span>;
       }
-      <span class="macro">write!</span>(f, <span class="string">&quot;}}&quot;</span>)<span class="question-mark">?</span>;
+      <span class="macro">write!</span>(f, <span class="string">"}}"</span>)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
   }
@@ -434,7 +450,7 @@
 <span class="kw">impl</span>&lt;Node: Idx + Ord&gt; ControlDependencies&lt;Node&gt; {
   <span class="doccomment">/// Compute control dependencies from post-dominator frontier.
   ///
-  /// Frontier algorithm from &quot;An Efficient Method of Computing Single Static Assignment Form&quot;, Cytron et al. 89
+  /// Frontier algorithm from "An Efficient Method of Computing Single Static Assignment Form", Cytron et al. 89
   </span><span class="kw">fn </span>build&lt;G: ControlFlowGraph&lt;Node = Node&gt;&gt;(graph: <span class="kw-2">&amp;</span>G, exit: Node) -&gt; <span class="self">Self </span>{
     <span class="kw">let </span>post_dominators = PostDominators::build(graph, exit);
     <span class="kw">let </span>idom = |node| post_dominators.immediate_post_dominator(node);
@@ -450,7 +466,7 @@
 
     <span class="kw">let </span>traversal = iterate::post_order_from(<span class="kw-2">&amp;</span>dominator_tree, exit);
 
-    <span class="comment">// Only use size = n b/c exit node shouldn&#39;t ever have a dominance frontier
+    <span class="comment">// Only use size = n b/c exit node shouldn't ever have a dominance frontier
     </span><span class="kw">let </span><span class="kw-2">mut </span>df = SparseBitMatrix::new(n);
     <span class="kw">for </span>x <span class="kw">in </span>traversal {
       <span class="kw">let </span>local = graph.predecessors(x);
@@ -505,14 +521,14 @@
 
   <span class="attr">#[test]
   </span><span class="kw">fn </span>test_control_dependencies() {
-    <span class="kw">let </span>input = <span class="string">r#&quot;
+    <span class="kw">let </span>input = <span class="string">r#"
     fn main() {
       let mut x = 1;
       x = 2;
       if true { x = 3; }
       for _ in 0 .. 1 { x = 4; }
       x = 5;
-    }&quot;#</span>;
+    }"#</span>;
     test_utils::compile_body(input, <span class="kw">move </span>|tcx, <span class="kw">_</span>, body_with_facts| {
       <span class="kw">let </span>body = <span class="kw-2">&amp;</span>body_with_facts.body;
       <span class="kw">let </span>control_deps = body.control_dependencies();
@@ -526,16 +542,16 @@
           .unwrap();
         snippet_to_loc.entry(snippet).or_default().push(loc);
       }
-      <span class="macro">debug!</span>(<span class="string">&quot;snippet_to_loc: {snippet_to_loc:#?}&quot;</span>);
+      <span class="macro">debug!</span>(<span class="string">"snippet_to_loc: {snippet_to_loc:#?}"</span>);
       <span class="kw">let </span>pair = |s| (s, <span class="kw-2">&amp;</span>snippet_to_loc[s]);
 
-      <span class="kw">let </span>x_eq_1 = pair(<span class="string">&quot;mut x&quot;</span>);
-      <span class="kw">let </span>x_eq_2 = pair(<span class="string">&quot;x = 2&quot;</span>);
-      <span class="kw">let </span>if_true = pair(<span class="string">&quot;true&quot;</span>);
-      <span class="kw">let </span>x_eq_3 = pair(<span class="string">&quot;x = 3&quot;</span>);
-      <span class="kw">let </span>for_in = pair(<span class="string">&quot;0 .. 1&quot;</span>);
-      <span class="kw">let </span>x_eq_4 = pair(<span class="string">&quot;x = 4&quot;</span>);
-      <span class="kw">let </span>x_eq_5 = pair(<span class="string">&quot;x = 5&quot;</span>);
+      <span class="kw">let </span>x_eq_1 = pair(<span class="string">"mut x"</span>);
+      <span class="kw">let </span>x_eq_2 = pair(<span class="string">"x = 2"</span>);
+      <span class="kw">let </span>if_true = pair(<span class="string">"true"</span>);
+      <span class="kw">let </span>x_eq_3 = pair(<span class="string">"x = 3"</span>);
+      <span class="kw">let </span>for_in = pair(<span class="string">"0 .. 1"</span>);
+      <span class="kw">let </span>x_eq_4 = pair(<span class="string">"x = 4"</span>);
+      <span class="kw">let </span>x_eq_5 = pair(<span class="string">"x = 5"</span>);
 
       <span class="kw">let </span>is_dep_loc = |l1: Location, l2: Location| {
         <span class="kw">let </span>is_terminator = body.stmt_at(l2).is_right();
@@ -567,7 +583,7 @@
         <span class="kw">for </span>(child_name, child_locs) <span class="kw">in </span><span class="kw-2">&amp;</span>desired {
           <span class="macro">assert!</span>(
             is_dep(child_locs, parent_locs),
-            <span class="string">&quot;{child_name} was not dependent on {parent_name}, but should be&quot;
+            <span class="string">"{child_name} was not dependent on {parent_name}, but should be"
           </span>);
         }
 
@@ -579,7 +595,7 @@
 
           <span class="macro">assert!</span>(
             !is_dep(child_locs, parent_locs),
-            <span class="string">&quot;{child_name} was dependent on {parent_name}, but should not be&quot;
+            <span class="string">"{child_name} was dependent on {parent_name}, but should not be"
           </span>);
         }
       }

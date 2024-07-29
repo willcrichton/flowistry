@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64-0.21.5/src/engine/general_purpose/decode.rs`."><title>decode.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../base64/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64-0.21.7/src/engine/general_purpose/decode.rs`."><title>decode.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../base64/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -395,7 +397,7 @@
 // slice).
 </span><span class="kw">const </span>DECODED_CHUNK_SUFFIX: usize = <span class="number">2</span>;
 
-<span class="comment">// how many u64&#39;s of input to handle at a time
+<span class="comment">// how many u64's of input to handle at a time
 </span><span class="kw">const </span>CHUNKS_PER_FAST_LOOP_BLOCK: usize = <span class="number">4</span>;
 
 <span class="kw">const </span>INPUT_BLOCK_LEN: usize = CHUNKS_PER_FAST_LOOP_BLOCK * INPUT_CHUNK_LEN;
@@ -413,7 +415,7 @@
 
 <span class="kw">impl </span>GeneralPurposeEstimate {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(encoded_len: usize) -&gt; <span class="self">Self </span>{
-        <span class="comment">// Formulas that won&#39;t overflow
+        <span class="comment">// Formulas that won't overflow
         </span><span class="self">Self </span>{
             num_chunks: encoded_len / INPUT_CHUNK_LEN
                 + (encoded_len % INPUT_CHUNK_LEN &gt; <span class="number">0</span>) <span class="kw">as </span>usize,
@@ -430,8 +432,8 @@
 
 <span class="doccomment">/// Helper to avoid duplicating num_chunks calculation, which is costly on short inputs.
 /// Returns the decode metadata, or an error.
-</span><span class="comment">// We&#39;re on the fragile edge of compiler heuristics here. If this is not inlined, slow. If this is
-// inlined(always), a different slow. plain ol&#39; inline makes the benchmarks happiest at the moment,
+</span><span class="comment">// We're on the fragile edge of compiler heuristics here. If this is not inlined, slow. If this is
+// inlined(always), a different slow. plain ol' inline makes the benchmarks happiest at the moment,
 // but this is fragile and the best setting changes with only minor code modifications.
 </span><span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decode_helper(
@@ -452,9 +454,9 @@
         <span class="comment">// if input is a multiple of the chunk size, ignore the last chunk as it may have padding,
         // and the fast decode logic cannot handle padding
         </span><span class="number">0 </span>=&gt; INPUT_CHUNK_LEN,
-        <span class="comment">// 1 and 5 trailing bytes are illegal: can&#39;t decode 6 bits of input into a byte
+        <span class="comment">// 1 and 5 trailing bytes are illegal: can't decode 6 bits of input into a byte
         </span><span class="number">1 </span>| <span class="number">5 </span>=&gt; {
-            <span class="comment">// trailing whitespace is so common that it&#39;s worth it to check the last byte to
+            <span class="comment">// trailing whitespace is so common that it's worth it to check the last byte to
             // possibly return a better error message
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(b) = input.last() {
                 <span class="kw">if </span><span class="kw-2">*</span>b != PAD_BYTE &amp;&amp; decode_table[<span class="kw-2">*</span>b <span class="kw">as </span>usize] == INVALID_VALUE {
@@ -464,7 +466,7 @@
 
             <span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::InvalidLength);
         }
-        <span class="comment">// This will decode to one output byte, which isn&#39;t enough to overwrite the 2 extra bytes
+        <span class="comment">// This will decode to one output byte, which isn't enough to overwrite the 2 extra bytes
         // written by the fast decode loop. So, we have to ignore both these 2 bytes and the
         // previous chunk.
         </span><span class="number">2 </span>=&gt; INPUT_CHUNK_LEN + <span class="number">2</span>,
@@ -476,7 +478,7 @@
         <span class="comment">// This can also decode to one output byte because it may be 2 input chars + 2 padding
         // chars, which would decode to 1 byte.
         </span><span class="number">4 </span>=&gt; INPUT_CHUNK_LEN + <span class="number">4</span>,
-        <span class="comment">// Everything else is a legal decode len (given that we don&#39;t require padding), and will
+        <span class="comment">// Everything else is a legal decode len (given that we don't require padding), and will
         // decode to at least 2 bytes of output.
         </span><span class="kw">_ </span>=&gt; remainder_len,
     };
@@ -529,7 +531,7 @@
         }
 
         <span class="comment">// Fast loop, stage 2 (aka still pretty fast loop)
-        // 8 bytes at a time for whatever we didn&#39;t do in stage 1.
+        // 8 bytes at a time for whatever we didn't do in stage 1.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_start_index) = length_of_fast_decode_chunks.checked_sub(INPUT_CHUNK_LEN) {
             <span class="kw">while </span>input_index &lt; max_start_index {
                 decode_chunk(
@@ -549,8 +551,8 @@
 
     <span class="comment">// Stage 3
     // If input length was such that a chunk had to be deferred until after the fast loop
-    // because decoding it would have produced 2 trailing bytes that wouldn&#39;t then be
-    // overwritten, we decode that chunk here. This way is slower but doesn&#39;t write the 2
+    // because decoding it would have produced 2 trailing bytes that wouldn't then be
+    // overwritten, we decode that chunk here. This way is slower but doesn't write the 2
     // trailing bytes.
     // However, we still need to avoid the last chunk (partial or complete) because it could
     // have padding, so we always do 1 fewer to avoid the last chunk.
@@ -708,20 +710,20 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>decode_chunk_precise_writes_only_6_bytes() {
-        <span class="kw">let </span>input = <span class="string">b&quot;Zm9vYmFy&quot;</span>; <span class="comment">// &quot;foobar&quot;
+        <span class="kw">let </span>input = <span class="string">b"Zm9vYmFy"</span>; <span class="comment">// "foobar"
         </span><span class="kw">let </span><span class="kw-2">mut </span>output = [<span class="number">0_u8</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>];
 
         decode_chunk_precise(<span class="kw-2">&amp;</span>input[..], <span class="number">0</span>, <span class="kw-2">&amp;</span>STANDARD.decode_table, <span class="kw-2">&amp;mut </span>output).unwrap();
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">vec!</span>[<span class="string">b&#39;f&#39;</span>, <span class="string">b&#39;o&#39;</span>, <span class="string">b&#39;o&#39;</span>, <span class="string">b&#39;b&#39;</span>, <span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;r&#39;</span>, <span class="number">6</span>, <span class="number">7</span>], <span class="kw-2">&amp;</span>output);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">vec!</span>[<span class="string">b'f'</span>, <span class="string">b'o'</span>, <span class="string">b'o'</span>, <span class="string">b'b'</span>, <span class="string">b'a'</span>, <span class="string">b'r'</span>, <span class="number">6</span>, <span class="number">7</span>], <span class="kw-2">&amp;</span>output);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>decode_chunk_writes_8_bytes() {
-        <span class="kw">let </span>input = <span class="string">b&quot;Zm9vYmFy&quot;</span>; <span class="comment">// &quot;foobar&quot;
+        <span class="kw">let </span>input = <span class="string">b"Zm9vYmFy"</span>; <span class="comment">// "foobar"
         </span><span class="kw">let </span><span class="kw-2">mut </span>output = [<span class="number">0_u8</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>];
 
         decode_chunk(<span class="kw-2">&amp;</span>input[..], <span class="number">0</span>, <span class="kw-2">&amp;</span>STANDARD.decode_table, <span class="kw-2">&amp;mut </span>output).unwrap();
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">vec!</span>[<span class="string">b&#39;f&#39;</span>, <span class="string">b&#39;o&#39;</span>, <span class="string">b&#39;o&#39;</span>, <span class="string">b&#39;b&#39;</span>, <span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;r&#39;</span>, <span class="number">0</span>, <span class="number">0</span>], <span class="kw-2">&amp;</span>output);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">vec!</span>[<span class="string">b'f'</span>, <span class="string">b'o'</span>, <span class="string">b'o'</span>, <span class="string">b'b'</span>, <span class="string">b'a'</span>, <span class="string">b'r'</span>, <span class="number">0</span>, <span class="number">0</span>], <span class="kw-2">&amp;</span>output);
     }
 
     <span class="attr">#[test]

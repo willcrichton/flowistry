@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.7/src/error/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.11/src/error/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -921,13 +923,41 @@
 <a href="#921" id="921">921</a>
 <a href="#922" id="922">922</a>
 <a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Error reporting
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;error-context&quot;</span>), allow(dead_code))]
-#![cfg_attr(not(feature = <span class="string">&quot;error-context&quot;</span>), allow(unused_imports))]
-#![cfg_attr(not(feature = <span class="string">&quot;error-context&quot;</span>), allow(unused_variables))]
-#![cfg_attr(not(feature = <span class="string">&quot;error-context&quot;</span>), allow(unused_mut))]
-#![cfg_attr(not(feature = <span class="string">&quot;error-context&quot;</span>), allow(clippy::let_and_return))]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"error-context"</span>), allow(dead_code))]
+#![cfg_attr(not(feature = <span class="string">"error-context"</span>), allow(unused_imports))]
+#![cfg_attr(not(feature = <span class="string">"error-context"</span>), allow(unused_variables))]
+#![cfg_attr(not(feature = <span class="string">"error-context"</span>), allow(unused_mut))]
+#![cfg_attr(not(feature = <span class="string">"error-context"</span>), allow(clippy::let_and_return))]
 
 </span><span class="comment">// Std
 </span><span class="kw">use </span>std::{
@@ -935,7 +965,7 @@
     convert::From,
     error,
     fmt::{<span class="self">self</span>, Debug, Display, Formatter},
-    io::{<span class="self">self</span>},
+    io,
     result::Result <span class="kw">as </span>StdResult,
 };
 
@@ -946,10 +976,10 @@
 <span class="kw">use </span><span class="kw">crate</span>::output::fmt::Stream;
 <span class="kw">use </span><span class="kw">crate</span>::parser::features::suggestions;
 <span class="kw">use </span><span class="kw">crate</span>::util::FlatMap;
-<span class="kw">use </span><span class="kw">crate</span>::util::{color::ColorChoice, safe_exit, SUCCESS_CODE, USAGE_CODE};
+<span class="kw">use </span><span class="kw">crate</span>::util::{color::ColorChoice, SUCCESS_CODE, USAGE_CODE};
 <span class="kw">use </span><span class="kw">crate</span>::Command;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
 </span><span class="kw">mod </span>context;
 <span class="kw">mod </span>format;
 <span class="kw">mod </span>kind;
@@ -958,16 +988,16 @@
 <span class="kw">pub use </span>format::KindFormatter;
 <span class="kw">pub use </span>kind::ErrorKind;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
 </span><span class="kw">pub use </span>context::ContextKind;
-<span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
 </span><span class="kw">pub use </span>context::ContextValue;
-<span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
 </span><span class="kw">pub use </span>format::RichFormatter;
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;error-context&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"error-context"</span>))]
 </span><span class="kw">pub use </span>KindFormatter <span class="kw">as </span>DefaultFormatter;
-<span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
 </span><span class="kw">pub use </span>RichFormatter <span class="kw">as </span>DefaultFormatter;
 
 <span class="doccomment">/// Short hand for [`Result`] type
@@ -988,11 +1018,11 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>ErrorInner {
     kind: ErrorKind,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
     </span>context: FlatMap&lt;ContextKind, ContextValue&gt;,
     message: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     source: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>error::Error + Send + Sync&gt;&gt;,
-    help_flag: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
+    help_flag: <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;,
     styles: Styles,
     color_when: ColorChoice,
     color_help_when: ColorChoice,
@@ -1008,11 +1038,11 @@
     /// Prefer [`Command::error`] for generating errors.
     ///
     /// [`Command::error`]: crate::Command::error
-    </span><span class="kw">pub fn </span>raw(kind: ErrorKind, message: <span class="kw">impl </span>std::fmt::Display) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>raw(kind: ErrorKind, message: <span class="kw">impl </span>Display) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(kind).set_message(message.to_string())
     }
 
-    <span class="doccomment">/// Format the existing message with the Command&#39;s context
+    <span class="doccomment">/// Format the existing message with the Command's context
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>format(<span class="kw-2">mut </span><span class="self">self</span>, cmd: <span class="kw-2">&amp;mut </span>Command) -&gt; <span class="self">Self </span>{
         cmd._build_self(<span class="bool-val">false</span>);
@@ -1032,18 +1062,18 @@
     /// # Example
     ///
     /// ```rust
-    /// # #[cfg(feature = &quot;error-context&quot;)] {
+    /// # #[cfg(feature = "error-context")] {
     /// # use clap_builder as clap;
     /// # use clap::error::ErrorKind;
     /// # use clap::error::ContextKind;
     /// # use clap::error::ContextValue;
     ///
-    /// let cmd = clap::Command::new(&quot;prog&quot;);
+    /// let cmd = clap::Command::new("prog");
     ///
     /// let mut err = clap::Error::new(ErrorKind::ValueValidation)
     ///     .with_cmd(&amp;cmd);
-    /// err.insert(ContextKind::InvalidArg, ContextValue::String(&quot;--foo&quot;.to_owned()));
-    /// err.insert(ContextKind::InvalidValue, ContextValue::String(&quot;bar&quot;.to_owned()));
+    /// err.insert(ContextKind::InvalidArg, ContextValue::String("--foo".to_owned()));
+    /// err.insert(ContextKind::InvalidValue, ContextValue::String("bar".to_owned()));
     ///
     /// err.print();
     /// # }
@@ -1052,7 +1082,7 @@
         <span class="self">Self </span>{
             inner: Box::new(ErrorInner {
                 kind,
-                <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
                 </span>context: FlatMap::new(),
                 message: <span class="prelude-val">None</span>,
                 source: <span class="prelude-val">None</span>,
@@ -1066,7 +1096,7 @@
         }
     }
 
-    <span class="doccomment">/// Apply [`Command`]&#39;s formatting to the error
+    <span class="doccomment">/// Apply [`Command`]'s formatting to the error
     ///
     /// Generally, this is used with [`Error::new`]
     </span><span class="kw">pub fn </span>with_cmd(<span class="self">self</span>, cmd: <span class="kw-2">&amp;</span>Command) -&gt; <span class="self">Self </span>{
@@ -1085,10 +1115,10 @@
     /// # use clap::Command;
     /// # use clap::Arg;
     /// # use clap::error::KindFormatter;
-    /// let cmd = Command::new(&quot;foo&quot;)
-    ///     .arg(Arg::new(&quot;input&quot;).required(true));
+    /// let cmd = Command::new("foo")
+    ///     .arg(Arg::new("input").required(true));
     /// let matches = cmd
-    ///     .try_get_matches_from([&quot;foo&quot;, &quot;input.txt&quot;])
+    ///     .try_get_matches_from(["foo", "input.txt"])
     ///     .map_err(|e| e.apply::&lt;KindFormatter&gt;())
     ///     .unwrap_or_else(|e| e.exit());
     /// ```
@@ -1105,21 +1135,21 @@
     }
 
     <span class="doccomment">/// Additional information to further qualify the error
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
     </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (ContextKind, <span class="kw-2">&amp;</span>ContextValue)&gt; {
         <span class="self">self</span>.inner.context.iter().map(|(k, v)| (<span class="kw-2">*</span>k, v))
     }
 
     <span class="doccomment">/// Lookup a piece of context
     </span><span class="attr">#[inline(never)]
-    #[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+    #[cfg(feature = <span class="string">"error-context"</span>)]
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: ContextKind) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ContextValue&gt; {
         <span class="self">self</span>.inner.context.get(<span class="kw-2">&amp;</span>kind)
     }
 
     <span class="doccomment">/// Insert a piece of context
     </span><span class="attr">#[inline(never)]
-    #[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+    #[cfg(feature = <span class="string">"error-context"</span>)]
     </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: ContextKind, value: ContextValue) -&gt; <span class="prelude-ty">Option</span>&lt;ContextValue&gt; {
         <span class="self">self</span>.inner.context.insert(kind, value)
     }
@@ -1139,7 +1169,7 @@
 
     <span class="doccomment">/// Returns the exit code that `.exit` will exit the process with.
     ///
-    /// When the error&#39;s kind would print to `stderr` this returns `2`,
+    /// When the error's kind would print to `stderr` this returns `2`,
     /// else it returns `0`.
     </span><span class="kw">pub fn </span>exit_code(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i32 {
         <span class="kw">if </span><span class="self">self</span>.use_stderr() {
@@ -1156,7 +1186,7 @@
     </span><span class="kw">pub fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ! {
         <span class="comment">// Swallow broken pipe errors
         </span><span class="kw">let _ </span>= <span class="self">self</span>.print();
-        safe_exit(<span class="self">self</span>.exit_code())
+        std::process::exit(<span class="self">self</span>.exit_code());
     }
 
     <span class="doccomment">/// Prints formatted and colored error to `stdout` or `stderr` according to its error kind
@@ -1166,12 +1196,12 @@
     /// # use clap_builder as clap;
     /// use clap::Command;
     ///
-    /// match Command::new(&quot;Command&quot;).try_get_matches() {
+    /// match Command::new("Command").try_get_matches() {
     ///     Ok(matches) =&gt; {
     ///         // do_something
     ///     },
     ///     Err(err) =&gt; {
-    ///         err.print().expect(&quot;Error writing Error&quot;);
+    ///         err.print().expect("Error writing Error");
     ///         // do_something
     ///     },
     /// };
@@ -1197,13 +1227,13 @@
     /// # use clap_builder as clap;
     /// use clap::Command;
     ///
-    /// match Command::new(&quot;Command&quot;).try_get_matches() {
+    /// match Command::new("Command").try_get_matches() {
     ///     Ok(matches) =&gt; {
     ///         // do_something
     ///     },
     ///     Err(err) =&gt; {
     ///         let err = err.render();
-    ///         println!(&quot;{err}&quot;);
+    ///         println!("{err}");
     ///         // do_something
     ///     },
     /// };
@@ -1242,14 +1272,14 @@
         <span class="self">self
     </span>}
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_help_flag(<span class="kw-2">mut </span><span class="self">self</span>, help_flag: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_help_flag(<span class="kw-2">mut </span><span class="self">self</span>, help_flag: <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.inner.help_flag = help_flag;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Does not verify if `ContextKind` is already present
     </span><span class="attr">#[inline(never)]
-    #[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+    #[cfg(feature = <span class="string">"error-context"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>insert_context_unchecked(
         <span class="kw-2">mut </span><span class="self">self</span>,
         kind: ContextKind,
@@ -1261,7 +1291,7 @@
 
     <span class="doccomment">/// Does not verify if `ContextKind` is already present
     </span><span class="attr">#[inline(never)]
-    #[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+    #[cfg(feature = <span class="string">"error-context"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>extend_context_unchecked&lt;<span class="kw">const </span>N: usize&gt;(
         <span class="kw-2">mut </span><span class="self">self</span>,
         context: [(ContextKind, ContextValue); N],
@@ -1294,7 +1324,7 @@
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::ArgumentConflict).with_cmd(cmd);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
         </span>{
             <span class="kw">let </span>others = <span class="kw">match </span>others.len() {
                 <span class="number">0 </span>=&gt; ContextValue::None,
@@ -1314,14 +1344,42 @@
         err
     }
 
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>subcommand_conflict(
+        cmd: <span class="kw-2">&amp;</span>Command,
+        sub: String,
+        <span class="kw-2">mut </span>others: Vec&lt;String&gt;,
+        usage: <span class="prelude-ty">Option</span>&lt;StyledStr&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::ArgumentConflict).with_cmd(cmd);
+
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
+        </span>{
+            <span class="kw">let </span>others = <span class="kw">match </span>others.len() {
+                <span class="number">0 </span>=&gt; ContextValue::None,
+                <span class="number">1 </span>=&gt; ContextValue::String(others.pop().unwrap()),
+                <span class="kw">_ </span>=&gt; ContextValue::Strings(others),
+            };
+            err = err.extend_context_unchecked([
+                (ContextKind::InvalidSubcommand, ContextValue::String(sub)),
+                (ContextKind::PriorArg, others),
+            ]);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(usage) = usage {
+                err = err
+                    .insert_context_unchecked(ContextKind::Usage, ContextValue::StyledStr(usage));
+            }
+        }
+
+        err
+    }
+
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>empty_value(cmd: <span class="kw-2">&amp;</span>Command, good_vals: <span class="kw-2">&amp;</span>[String], arg: String) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::invalid_value(cmd, <span class="string">&quot;&quot;</span>.to_owned(), good_vals, arg)
+        <span class="self">Self</span>::invalid_value(cmd, <span class="string">""</span>.to_owned(), good_vals, arg)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>no_equals(cmd: <span class="kw-2">&amp;</span>Command, arg: String, usage: <span class="prelude-ty">Option</span>&lt;StyledStr&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::NoEquals).with_cmd(cmd);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
         </span>{
             err = err
                 .extend_context_unchecked([(ContextKind::InvalidArg, ContextValue::String(arg))]);
@@ -1343,14 +1401,14 @@
         <span class="kw">let </span>suggestion = suggestions::did_you_mean(<span class="kw-2">&amp;</span>bad_val, good_vals.iter()).pop();
         <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::InvalidValue).with_cmd(cmd);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
         </span>{
             err = err.extend_context_unchecked([
                 (ContextKind::InvalidArg, ContextValue::String(arg)),
                 (ContextKind::InvalidValue, ContextValue::String(bad_val)),
                 (
                     ContextKind::ValidValue,
-                    ContextValue::Strings(good_vals.iter().map(|s| (<span class="kw-2">*</span>s).to_owned()).collect()),
+                    ContextValue::Strings(good_vals.iter().map(|s| (<span class="kw-2">*</span>s).clone()).collect()),
                 ),
             ]);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(suggestion) = suggestion {
@@ -1378,14 +1436,14 @@
         <span class="kw">let </span>valid = <span class="kw-2">&amp;</span>styles.get_valid();
         <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::InvalidSubcommand).with_cmd(cmd);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
         </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>suggestions = <span class="macro">vec!</span>[];
             <span class="kw">if </span>suggested_trailing_arg {
                 <span class="kw">let </span><span class="kw-2">mut </span>styled_suggestion = StyledStr::new();
                 <span class="kw">let _ </span>= <span class="macro">write!</span>(
                     styled_suggestion,
-                    <span class="string">&quot;to pass &#39;{}{subcmd}{}&#39; as a value, use &#39;{}{name} -- {subcmd}{}&#39;&quot;</span>,
+                    <span class="string">"to pass '{}{subcmd}{}' as a value, use '{}{name} -- {subcmd}{}'"</span>,
                     invalid.render(),
                     invalid.render_reset(),
                     valid.render(),
@@ -1421,7 +1479,7 @@
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::InvalidSubcommand).with_cmd(cmd);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
         </span>{
             err = err.extend_context_unchecked([(
                 ContextKind::InvalidSubcommand,
@@ -1443,7 +1501,7 @@
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::MissingRequiredArgument).with_cmd(cmd);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
         </span>{
             err = err.extend_context_unchecked([(
                 ContextKind::InvalidArg,
@@ -1466,7 +1524,7 @@
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::MissingSubcommand).with_cmd(cmd);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
         </span>{
             err = err.extend_context_unchecked([
                 (ContextKind::InvalidSubcommand, ContextValue::String(parent)),
@@ -1487,7 +1545,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invalid_utf8(cmd: <span class="kw-2">&amp;</span>Command, usage: <span class="prelude-ty">Option</span>&lt;StyledStr&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::InvalidUtf8).with_cmd(cmd);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
         </span>{
             <span class="kw">if let </span><span class="prelude-val">Some</span>(usage) = usage {
                 err = err
@@ -1506,7 +1564,7 @@
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::TooManyValues).with_cmd(cmd);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
         </span>{
             err = err.extend_context_unchecked([
                 (ContextKind::InvalidArg, ContextValue::String(arg)),
@@ -1530,7 +1588,7 @@
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::TooFewValues).with_cmd(cmd);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
         </span>{
             err = err.extend_context_unchecked([
                 (ContextKind::InvalidArg, ContextValue::String(arg)),
@@ -1559,7 +1617,7 @@
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::ValueValidation).set_source(err);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
         </span>{
             err = err.extend_context_unchecked([
                 (ContextKind::InvalidArg, ContextValue::String(arg)),
@@ -1579,7 +1637,7 @@
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::WrongNumberOfValues).with_cmd(cmd);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
         </span>{
             err = err.extend_context_unchecked([
                 (ContextKind::InvalidArg, ContextValue::String(arg)),
@@ -1614,14 +1672,14 @@
         <span class="kw">let </span>valid = <span class="kw-2">&amp;</span>styles.get_valid();
         <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::UnknownArgument).with_cmd(cmd);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
         </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>suggestions = <span class="macro">vec!</span>[];
             <span class="kw">if </span>suggested_trailing_arg {
                 <span class="kw">let </span><span class="kw-2">mut </span>styled_suggestion = StyledStr::new();
                 <span class="kw">let _ </span>= <span class="macro">write!</span>(
                     styled_suggestion,
-                    <span class="string">&quot;to pass &#39;{}{arg}{}&#39; as a value, use &#39;{}-- {arg}{}&#39;&quot;</span>,
+                    <span class="string">"to pass '{}{arg}{}' as a value, use '{}-- {arg}{}'"</span>,
                     invalid.render(),
                     invalid.render_reset(),
                     valid.render(),
@@ -1641,7 +1699,7 @@
                     <span class="kw">let </span><span class="kw-2">mut </span>styled_suggestion = StyledStr::new();
                     <span class="kw">let _ </span>= <span class="macro">write!</span>(
                         styled_suggestion,
-                        <span class="string">&quot;&#39;{}{sub} {flag}{}&#39; exists&quot;</span>,
+                        <span class="string">"'{}{sub} {flag}{}' exists"</span>,
                         valid.render(),
                         valid.render_reset()
                     );
@@ -1677,12 +1735,12 @@
         <span class="kw">let </span>valid = <span class="kw-2">&amp;</span>styles.get_valid();
         <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="self">Self</span>::new(ErrorKind::UnknownArgument).with_cmd(cmd);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;error-context&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
         </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>styled_suggestion = StyledStr::new();
             <span class="kw">let _ </span>= <span class="macro">write!</span>(
                 styled_suggestion,
-                <span class="string">&quot;subcommand &#39;{}{arg}{}&#39; exists; to use it, remove the &#39;{}--{}&#39; before it&quot;</span>,
+                <span class="string">"subcommand '{}{arg}{}' exists; to use it, remove the '{}--{}' before it"</span>,
                 valid.render(),
                 valid.render_reset(),
                 invalid.render(),
@@ -1705,7 +1763,7 @@
         err
     }
 
-    <span class="kw">fn </span>formatted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, StyledStr&gt; {
+    <span class="kw">fn </span>formatted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">'_</span>, StyledStr&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = <span class="self">self</span>.inner.message.as_ref() {
             message.formatted(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.styles)
         } <span class="kw">else </span>{
@@ -1727,27 +1785,27 @@
     }
 }
 
-<span class="kw">impl</span>&lt;F: ErrorFormatter&gt; std::fmt::Debug <span class="kw">for </span>Error&lt;F&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), std::fmt::Error&gt; {
+<span class="kw">impl</span>&lt;F: ErrorFormatter&gt; Debug <span class="kw">for </span>Error&lt;F&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), fmt::Error&gt; {
         <span class="self">self</span>.inner.fmt(f)
     }
 }
 
 <span class="kw">impl</span>&lt;F: ErrorFormatter&gt; error::Error <span class="kw">for </span>Error&lt;F&gt; {
     <span class="attr">#[allow(trivial_casts)]
-    </span><span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">&#39;static</span>)&gt; {
+    </span><span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">'static</span>)&gt; {
         <span class="self">self</span>.inner.source.as_ref().map(|e| e.as_ref() <span class="kw">as _</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;F: ErrorFormatter&gt; Display <span class="kw">for </span>Error&lt;F&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="comment">// Assuming `self.message` already has a trailing newline, from `try_help` or similar
-        </span><span class="macro">ok!</span>(<span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.formatted()));
+        </span><span class="macro">ok!</span>(<span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.formatted()));
         <span class="kw">if let </span><span class="prelude-val">Some</span>(backtrace) = <span class="self">self</span>.inner.backtrace.as_ref() {
             <span class="macro">ok!</span>(<span class="macro">writeln!</span>(f));
-            <span class="macro">ok!</span>(<span class="macro">writeln!</span>(f, <span class="string">&quot;Backtrace:&quot;</span>));
-            <span class="macro">ok!</span>(<span class="macro">writeln!</span>(f, <span class="string">&quot;{backtrace}&quot;</span>));
+            <span class="macro">ok!</span>(<span class="macro">writeln!</span>(f, <span class="string">"Backtrace:"</span>));
+            <span class="macro">ok!</span>(<span class="macro">writeln!</span>(f, <span class="string">"{backtrace}"</span>));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -1779,7 +1837,7 @@
         }
     }
 
-    <span class="kw">fn </span>formatted(<span class="kw-2">&amp;</span><span class="self">self</span>, styles: <span class="kw-2">&amp;</span>Styles) -&gt; Cow&lt;StyledStr&gt; {
+    <span class="kw">fn </span>formatted(<span class="kw-2">&amp;</span><span class="self">self</span>, styles: <span class="kw-2">&amp;</span>Styles) -&gt; Cow&lt;<span class="lifetime">'_</span>, StyledStr&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Message::Raw(s) =&gt; {
                 <span class="kw">let </span>styled = format::format_error_message(s, styles, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
@@ -1803,39 +1861,39 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;debug&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"debug"</span>)]
 #[derive(Debug)]
 </span><span class="kw">struct </span>Backtrace(backtrace::Backtrace);
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;debug&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"debug"</span>)]
 </span><span class="kw">impl </span>Backtrace {
     <span class="kw">fn </span>new() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Some</span>(<span class="self">Self</span>(backtrace::Backtrace::new()))
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;debug&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"debug"</span>)]
 </span><span class="kw">impl </span>Display <span class="kw">for </span>Backtrace {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="comment">// `backtrace::Backtrace` uses `Debug` instead of `Display`
-        </span><span class="macro">write!</span>(f, <span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+        </span><span class="macro">write!</span>(f, <span class="string">"{:?}"</span>, <span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;debug&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"debug"</span>))]
 #[derive(Debug)]
 </span><span class="kw">struct </span>Backtrace;
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;debug&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"debug"</span>))]
 </span><span class="kw">impl </span>Backtrace {
     <span class="kw">fn </span>new() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">None
     </span>}
 }
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;debug&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"debug"</span>))]
 </span><span class="kw">impl </span>Display <span class="kw">for </span>Backtrace {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Formatter) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="prelude-val">Ok</span>(())
     }
 }

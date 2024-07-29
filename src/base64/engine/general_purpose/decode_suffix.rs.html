@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64-0.21.5/src/engine/general_purpose/decode_suffix.rs`."><title>decode_suffix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../base64/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64-0.21.7/src/engine/general_purpose/decode_suffix.rs`."><title>decode_suffix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../base64/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -185,7 +187,7 @@
     decode_allow_trailing_bits: bool,
     padding_mode: DecodePaddingMode,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;DecodeMetadata, DecodeError&gt; {
-    <span class="comment">// Decode any leftovers that aren&#39;t a complete input block of 8 bytes.
+    <span class="comment">// Decode any leftovers that aren't a complete input block of 8 bytes.
     // Use a u64 as a stack-resident 8 byte buffer.
     </span><span class="kw">let </span><span class="kw-2">mut </span>leftover_bits: u64 = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>morsels_in_leftover = <span class="number">0</span>;
@@ -195,7 +197,7 @@
     <span class="kw">let </span>start_of_leftovers = input_index;
 
     <span class="kw">for </span>(i, <span class="kw-2">&amp;</span>b) <span class="kw">in </span>input[start_of_leftovers..].iter().enumerate() {
-        <span class="comment">// &#39;=&#39; padding
+        <span class="comment">// '=' padding
         </span><span class="kw">if </span>b == PAD_BYTE {
             <span class="comment">// There can be bad padding bytes in a few ways:
             // 1 - Padding with non-padding characters after it
@@ -213,16 +215,16 @@
                 <span class="comment">// Check for case #2.
                 </span><span class="kw">let </span>bad_padding_index = start_of_leftovers
                     + <span class="kw">if </span>padding_bytes &gt; <span class="number">0 </span>{
-                        <span class="comment">// If we&#39;ve already seen padding, report the first padding index.
+                        <span class="comment">// If we've already seen padding, report the first padding index.
                         // This is to be consistent with the normal decode logic: it will report an
-                        // error on the first padding character (since it doesn&#39;t expect to see
+                        // error on the first padding character (since it doesn't expect to see
                         // anything but actual encoded data).
                         // This could only happen if the padding started in the previous quad since
                         // otherwise this case would have been hit at i % 4 == 0 if it was the same
                         // quad.
                         </span>first_padding_index
                     } <span class="kw">else </span>{
-                        <span class="comment">// haven&#39;t seen padding before, just use where we are now
+                        <span class="comment">// haven't seen padding before, just use where we are now
                         </span>i
                     };
                 <span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::InvalidByte(bad_padding_index, b));
@@ -237,8 +239,8 @@
         }
 
         <span class="comment">// Check for case #1.
-        // To make &#39;=&#39; handling consistent with the main loop, don&#39;t allow
-        // non-suffix &#39;=&#39; in trailing chunk either. Report error as first
+        // To make '=' handling consistent with the main loop, don't allow
+        // non-suffix '=' in trailing chunk either. Report error as first
         // erroneous padding.
         </span><span class="kw">if </span>padding_bytes &gt; <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(DecodeError::InvalidByte(
@@ -277,7 +279,7 @@
         }
     }
 
-    <span class="comment">// When encoding 1 trailing byte (e.g. 0xFF), 2 base64 bytes (&quot;/w&quot;) are needed.
+    <span class="comment">// When encoding 1 trailing byte (e.g. 0xFF), 2 base64 bytes ("/w") are needed.
     // / is the symbol for 63 (0x3F, bottom 6 bits all set) and w is 48 (0x30, top 2 bits
     // of bottom 6 bits set).
     // When decoding two symbols back to one trailing byte, any final symbol higher than
@@ -299,7 +301,7 @@
         <span class="number">8 </span>=&gt; <span class="number">48</span>,
         <span class="comment">// can also be detected as case #2 bad padding above
         </span><span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(
-            <span class="string">&quot;Impossible: must only have 0 to 8 input bytes in last chunk, with no invalid lengths&quot;
+            <span class="string">"Impossible: must only have 0 to 8 input bytes in last chunk, with no invalid lengths"
         </span>),
     };
 

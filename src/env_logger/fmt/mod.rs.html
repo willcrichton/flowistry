@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/env_logger-0.9.3/src/fmt/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="env_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../env_logger/index.html"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/env_logger-0.9.3/src/fmt/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="env_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../env_logger/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -653,7 +655,7 @@
 </pre></div><pre class="rust"><code><span class="doccomment">//! Formatting for log records.
 //!
 //! This module contains a [`Formatter`] that can be used to format log records
-//! into without needing temporary allocations. Usually you won&#39;t need to worry
+//! into without needing temporary allocations. Usually you won't need to worry
 //! about the contents of this module and can use the `Formatter` like an ordinary
 //! [`Write`].
 //!
@@ -670,7 +672,7 @@
 //! let mut builder = env_logger::Builder::new();
 //!
 //! builder.format(|buf, record| {
-//!     writeln!(buf, &quot;{}: {}&quot;,
+//!     writeln!(buf, "{}: {}",
 //!         record.level(),
 //!         record.args())
 //! });
@@ -740,7 +742,7 @@
 ///
 /// let mut builder = env_logger::Builder::new();
 ///
-/// builder.format(|buf, record| writeln!(buf, &quot;{}: {}&quot;, record.level(), record.args()));
+/// builder.format(|buf, record| writeln!(buf, "{}: {}", record.level(), record.args()));
 /// ```
 ///
 /// [`Write`]: https://doc.rust-lang.org/stable/std/io/trait.Write.html
@@ -784,7 +786,7 @@
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Formatter {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Formatter&quot;</span>).finish()
+        f.debug_struct(<span class="string">"Formatter"</span>).finish()
     }
 }
 
@@ -797,7 +799,7 @@
     <span class="kw">pub </span>format_level: bool,
     <span class="kw">pub </span>format_indent: <span class="prelude-ty">Option</span>&lt;usize&gt;,
     <span class="kw">pub </span>custom_format: <span class="prelude-ty">Option</span>&lt;FormatFn&gt;,
-    <span class="kw">pub </span>format_suffix: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    <span class="kw">pub </span>format_suffix: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     built: bool,
 }
 
@@ -810,7 +812,7 @@
             format_level: <span class="bool-val">true</span>,
             format_indent: <span class="prelude-val">Some</span>(<span class="number">4</span>),
             custom_format: <span class="prelude-val">None</span>,
-            format_suffix: <span class="string">&quot;\n&quot;</span>,
+            format_suffix: <span class="string">"\n"</span>,
             built: <span class="bool-val">false</span>,
         }
     }
@@ -821,9 +823,9 @@
     ///
     /// If the `custom_format` is `Some`, then any `default_format` switches are ignored.
     /// If the `custom_format` is `None`, then a default format is returned.
-    /// Any `default_format` switches set to `false` won&#39;t be written by the format.
+    /// Any `default_format` switches set to `false` won't be written by the format.
     </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; FormatFn {
-        <span class="macro">assert!</span>(!<span class="self">self</span>.built, <span class="string">&quot;attempt to re-use consumed builder&quot;</span>);
+        <span class="macro">assert!</span>(!<span class="self">self</span>.built, <span class="string">"attempt to re-use consumed builder"</span>);
 
         <span class="kw">let </span>built = mem::replace(
             <span class="self">self</span>,
@@ -854,26 +856,26 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;termcolor&quot;</span>)]
-</span><span class="kw">type </span>SubtleStyle = StyledValue&lt;<span class="lifetime">&#39;static</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;;
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;termcolor&quot;</span>))]
-</span><span class="kw">type </span>SubtleStyle = <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
+<span class="attr">#[cfg(feature = <span class="string">"termcolor"</span>)]
+</span><span class="kw">type </span>SubtleStyle = StyledValue&lt;<span class="lifetime">'static</span>, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;;
+<span class="attr">#[cfg(not(feature = <span class="string">"termcolor"</span>))]
+</span><span class="kw">type </span>SubtleStyle = <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str;
 
 <span class="doccomment">/// The default format.
 ///
 /// This format needs to work with any combination of crate features.
-</span><span class="kw">struct </span>DefaultFormat&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">struct </span>DefaultFormat&lt;<span class="lifetime">'a</span>&gt; {
     timestamp: <span class="prelude-ty">Option</span>&lt;TimestampPrecision&gt;,
     module_path: bool,
     target: bool,
     level: bool,
     written_header_value: bool,
     indent: <span class="prelude-ty">Option</span>&lt;usize&gt;,
-    buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Formatter,
-    suffix: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+    buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Formatter,
+    suffix: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DefaultFormat&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DefaultFormat&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>write(<span class="kw-2">mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
         <span class="self">self</span>.write_timestamp()<span class="question-mark">?</span>;
         <span class="self">self</span>.write_level(record)<span class="question-mark">?</span>;
@@ -884,8 +886,8 @@
         <span class="self">self</span>.write_args(record)
     }
 
-    <span class="kw">fn </span>subtle_style(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; SubtleStyle {
-        <span class="attr">#[cfg(feature = <span class="string">&quot;termcolor&quot;</span>)]
+    <span class="kw">fn </span>subtle_style(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; SubtleStyle {
+        <span class="attr">#[cfg(feature = <span class="string">"termcolor"</span>)]
         </span>{
             <span class="self">self</span>.buf
                 .style()
@@ -894,7 +896,7 @@
                 .clone()
                 .into_value(text)
         }
-        <span class="attr">#[cfg(not(feature = <span class="string">&quot;termcolor&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">"termcolor"</span>))]
         </span>{
             text
         }
@@ -907,10 +909,10 @@
         <span class="kw">if </span>!<span class="self">self</span>.written_header_value {
             <span class="self">self</span>.written_header_value = <span class="bool-val">true</span>;
 
-            <span class="kw">let </span>open_brace = <span class="self">self</span>.subtle_style(<span class="string">&quot;[&quot;</span>);
-            <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">&quot;{}{}&quot;</span>, open_brace, value)
+            <span class="kw">let </span>open_brace = <span class="self">self</span>.subtle_style(<span class="string">"["</span>);
+            <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">"{}{}"</span>, open_brace, value)
         } <span class="kw">else </span>{
-            <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">&quot; {}&quot;</span>, value)
+            <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">" {}"</span>, value)
         }
     }
 
@@ -920,21 +922,21 @@
         }
 
         <span class="kw">let </span>level = {
-            <span class="attr">#[cfg(feature = <span class="string">&quot;termcolor&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"termcolor"</span>)]
             </span>{
                 <span class="self">self</span>.buf.default_styled_level(record.level())
             }
-            <span class="attr">#[cfg(not(feature = <span class="string">&quot;termcolor&quot;</span>))]
+            <span class="attr">#[cfg(not(feature = <span class="string">"termcolor"</span>))]
             </span>{
                 record.level()
             }
         };
 
-        <span class="self">self</span>.write_header_value(<span class="macro">format_args!</span>(<span class="string">&quot;{:&lt;5}&quot;</span>, level))
+        <span class="self">self</span>.write_header_value(<span class="macro">format_args!</span>(<span class="string">"{:&lt;5}"</span>, level))
     }
 
     <span class="kw">fn </span>write_timestamp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <span class="attr">#[cfg(feature = <span class="string">&quot;humantime&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"humantime"</span>)]
         </span>{
             <span class="kw">use </span><span class="self">self</span>::TimestampPrecision::<span class="kw-2">*</span>;
             <span class="kw">let </span>ts = <span class="kw">match </span><span class="self">self</span>.timestamp {
@@ -947,10 +949,10 @@
 
             <span class="self">self</span>.write_header_value(ts)
         }
-        <span class="attr">#[cfg(not(feature = <span class="string">&quot;humantime&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">"humantime"</span>))]
         </span>{
             <span class="comment">// Trick the compiler to think we have used self.timestamp
-            // Workaround for &quot;field is never used: `timestamp`&quot; compiler nag.
+            // Workaround for "field is never used: `timestamp`" compiler nag.
             </span><span class="kw">let _ </span>= <span class="self">self</span>.timestamp;
             <span class="prelude-val">Ok</span>(())
         }
@@ -974,15 +976,15 @@
         }
 
         <span class="kw">match </span>record.target() {
-            <span class="string">&quot;&quot; </span>=&gt; <span class="prelude-val">Ok</span>(()),
+            <span class="string">"" </span>=&gt; <span class="prelude-val">Ok</span>(()),
             target =&gt; <span class="self">self</span>.write_header_value(target),
         }
     }
 
     <span class="kw">fn </span>finish_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">if </span><span class="self">self</span>.written_header_value {
-            <span class="kw">let </span>close_brace = <span class="self">self</span>.subtle_style(<span class="string">&quot;]&quot;</span>);
-            <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">&quot;{} &quot;</span>, close_brace)
+            <span class="kw">let </span>close_brace = <span class="self">self</span>.subtle_style(<span class="string">"]"</span>);
+            <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">"{} "</span>, close_brace)
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
         }
@@ -991,26 +993,26 @@
     <span class="kw">fn </span>write_args(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
         <span class="kw">match </span><span class="self">self</span>.indent {
             <span class="comment">// Fast path for no indentation
-            </span><span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">&quot;{}{}&quot;</span>, record.args(), <span class="self">self</span>.suffix),
+            </span><span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">"{}{}"</span>, record.args(), <span class="self">self</span>.suffix),
 
             <span class="prelude-val">Some</span>(indent_count) =&gt; {
                 <span class="comment">// Create a wrapper around the buffer only if we have to actually indent the message
 
-                </span><span class="kw">struct </span>IndentWrapper&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>&gt; {
-                    fmt: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>DefaultFormat&lt;<span class="lifetime">&#39;b</span>&gt;,
+                </span><span class="kw">struct </span>IndentWrapper&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>: <span class="lifetime">'a</span>&gt; {
+                    fmt: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>DefaultFormat&lt;<span class="lifetime">'b</span>&gt;,
                     indent_count: usize,
                 }
 
-                <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; Write <span class="kw">for </span>IndentWrapper&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+                <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; Write <span class="kw">for </span>IndentWrapper&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
                     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
                         <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
-                        <span class="kw">for </span>chunk <span class="kw">in </span>buf.split(|<span class="kw-2">&amp;</span>x| x == <span class="string">b&#39;\n&#39;</span>) {
+                        <span class="kw">for </span>chunk <span class="kw">in </span>buf.split(|<span class="kw-2">&amp;</span>x| x == <span class="string">b'\n'</span>) {
                             <span class="kw">if </span>!first {
                                 <span class="macro">write!</span>(
                                     <span class="self">self</span>.fmt.buf,
-                                    <span class="string">&quot;{}{:width$}&quot;</span>,
+                                    <span class="string">"{}{:width$}"</span>,
                                     <span class="self">self</span>.fmt.suffix,
-                                    <span class="string">&quot;&quot;</span>,
+                                    <span class="string">""</span>,
                                     width = <span class="self">self</span>.indent_count
                                 )<span class="question-mark">?</span>;
                             }
@@ -1032,10 +1034,10 @@
                         fmt: <span class="self">self</span>,
                         indent_count,
                     };
-                    <span class="macro">write!</span>(wrapper, <span class="string">&quot;{}&quot;</span>, record.args())<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(wrapper, <span class="string">"{}"</span>, record.args())<span class="question-mark">?</span>;
                 }
 
-                <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.suffix)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">"{}"</span>, <span class="self">self</span>.suffix)<span class="question-mark">?</span>;
 
                 <span class="prelude-val">Ok</span>(())
             }
@@ -1052,20 +1054,20 @@
     <span class="kw">fn </span>write_record(record: Record, fmt: DefaultFormat) -&gt; String {
         <span class="kw">let </span>buf = fmt.buf.buf.clone();
 
-        fmt.write(<span class="kw-2">&amp;</span>record).expect(<span class="string">&quot;failed to write record&quot;</span>);
+        fmt.write(<span class="kw-2">&amp;</span>record).expect(<span class="string">"failed to write record"</span>);
 
         <span class="kw">let </span>buf = buf.borrow();
-        String::from_utf8(buf.bytes().to_vec()).expect(<span class="string">&quot;failed to read record&quot;</span>)
+        String::from_utf8(buf.bytes().to_vec()).expect(<span class="string">"failed to read record"</span>)
     }
 
     <span class="kw">fn </span>write_target(target: <span class="kw-2">&amp;</span>str, fmt: DefaultFormat) -&gt; String {
         write_record(
             Record::builder()
-                .args(<span class="macro">format_args!</span>(<span class="string">&quot;log\nmessage&quot;</span>))
+                .args(<span class="macro">format_args!</span>(<span class="string">"log\nmessage"</span>))
                 .level(Level::Info)
-                .file(<span class="prelude-val">Some</span>(<span class="string">&quot;test.rs&quot;</span>))
+                .file(<span class="prelude-val">Some</span>(<span class="string">"test.rs"</span>))
                 .line(<span class="prelude-val">Some</span>(<span class="number">144</span>))
-                .module_path(<span class="prelude-val">Some</span>(<span class="string">&quot;test::path&quot;</span>))
+                .module_path(<span class="prelude-val">Some</span>(<span class="string">"test::path"</span>))
                 .target(target)
                 .build(),
             fmt,
@@ -1073,7 +1075,7 @@
     }
 
     <span class="kw">fn </span>write(fmt: DefaultFormat) -&gt; String {
-        write_target(<span class="string">&quot;&quot;</span>, fmt)
+        write_target(<span class="string">""</span>, fmt)
     }
 
     <span class="attr">#[test]
@@ -1091,11 +1093,11 @@
             level: <span class="bool-val">true</span>,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">None</span>,
-            suffix: <span class="string">&quot;\n&quot;</span>,
+            suffix: <span class="string">"\n"</span>,
             buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\nmessage\n&quot;</span>, written);
+        <span class="macro">assert_eq!</span>(<span class="string">"[INFO  test::path] log\nmessage\n"</span>, written);
     }
 
     <span class="attr">#[test]
@@ -1113,11 +1115,11 @@
             level: <span class="bool-val">false</span>,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">None</span>,
-            suffix: <span class="string">&quot;\n&quot;</span>,
+            suffix: <span class="string">"\n"</span>,
             buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;log\nmessage\n&quot;</span>, written);
+        <span class="macro">assert_eq!</span>(<span class="string">"log\nmessage\n"</span>, written);
     }
 
     <span class="attr">#[test]
@@ -1135,11 +1137,11 @@
             level: <span class="bool-val">true</span>,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">Some</span>(<span class="number">4</span>),
-            suffix: <span class="string">&quot;\n&quot;</span>,
+            suffix: <span class="string">"\n"</span>,
             buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\n    message\n&quot;</span>, written);
+        <span class="macro">assert_eq!</span>(<span class="string">"[INFO  test::path] log\n    message\n"</span>, written);
     }
 
     <span class="attr">#[test]
@@ -1157,11 +1159,11 @@
             level: <span class="bool-val">true</span>,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">Some</span>(<span class="number">0</span>),
-            suffix: <span class="string">&quot;\n&quot;</span>,
+            suffix: <span class="string">"\n"</span>,
             buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\nmessage\n&quot;</span>, written);
+        <span class="macro">assert_eq!</span>(<span class="string">"[INFO  test::path] log\nmessage\n"</span>, written);
     }
 
     <span class="attr">#[test]
@@ -1179,11 +1181,11 @@
             level: <span class="bool-val">false</span>,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">Some</span>(<span class="number">4</span>),
-            suffix: <span class="string">&quot;\n&quot;</span>,
+            suffix: <span class="string">"\n"</span>,
             buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;log\n    message\n&quot;</span>, written);
+        <span class="macro">assert_eq!</span>(<span class="string">"log\n    message\n"</span>, written);
     }
 
     <span class="attr">#[test]
@@ -1201,11 +1203,11 @@
             level: <span class="bool-val">false</span>,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">None</span>,
-            suffix: <span class="string">&quot;\n\n&quot;</span>,
+            suffix: <span class="string">"\n\n"</span>,
             buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;log\nmessage\n\n&quot;</span>, written);
+        <span class="macro">assert_eq!</span>(<span class="string">"log\nmessage\n\n"</span>, written);
     }
 
     <span class="attr">#[test]
@@ -1223,11 +1225,11 @@
             level: <span class="bool-val">false</span>,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">Some</span>(<span class="number">4</span>),
-            suffix: <span class="string">&quot;\n\n&quot;</span>,
+            suffix: <span class="string">"\n\n"</span>,
             buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;log\n\n    message\n\n&quot;</span>, written);
+        <span class="macro">assert_eq!</span>(<span class="string">"log\n\n    message\n\n"</span>, written);
     }
 
     <span class="attr">#[test]
@@ -1239,7 +1241,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
 
         <span class="kw">let </span>written = write_target(
-            <span class="string">&quot;target&quot;</span>,
+            <span class="string">"target"</span>,
             DefaultFormat {
                 timestamp: <span class="prelude-val">None</span>,
                 module_path: <span class="bool-val">true</span>,
@@ -1247,12 +1249,12 @@
                 level: <span class="bool-val">true</span>,
                 written_header_value: <span class="bool-val">false</span>,
                 indent: <span class="prelude-val">None</span>,
-                suffix: <span class="string">&quot;\n&quot;</span>,
+                suffix: <span class="string">"\n"</span>,
                 buf: <span class="kw-2">&amp;mut </span>f,
             },
         );
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path target] log\nmessage\n&quot;</span>, written);
+        <span class="macro">assert_eq!</span>(<span class="string">"[INFO  test::path target] log\nmessage\n"</span>, written);
     }
 
     <span class="attr">#[test]
@@ -1270,11 +1272,11 @@
             level: <span class="bool-val">true</span>,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">None</span>,
-            suffix: <span class="string">&quot;\n&quot;</span>,
+            suffix: <span class="string">"\n"</span>,
             buf: <span class="kw-2">&amp;mut </span>f,
         });
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\nmessage\n&quot;</span>, written);
+        <span class="macro">assert_eq!</span>(<span class="string">"[INFO  test::path] log\nmessage\n"</span>, written);
     }
 
     <span class="attr">#[test]
@@ -1286,7 +1288,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
 
         <span class="kw">let </span>written = write_target(
-            <span class="string">&quot;target&quot;</span>,
+            <span class="string">"target"</span>,
             DefaultFormat {
                 timestamp: <span class="prelude-val">None</span>,
                 module_path: <span class="bool-val">true</span>,
@@ -1294,12 +1296,12 @@
                 level: <span class="bool-val">true</span>,
                 written_header_value: <span class="bool-val">false</span>,
                 indent: <span class="prelude-val">None</span>,
-                suffix: <span class="string">&quot;\n&quot;</span>,
+                suffix: <span class="string">"\n"</span>,
                 buf: <span class="kw-2">&amp;mut </span>f,
             },
         );
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[INFO  test::path] log\nmessage\n&quot;</span>, written);
+        <span class="macro">assert_eq!</span>(<span class="string">"[INFO  test::path] log\nmessage\n"</span>, written);
     }
 }
 </code></pre></div></section></main></body></html>

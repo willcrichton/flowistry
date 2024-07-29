@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64-0.21.5/src/chunked_encoder.rs`."><title>chunked_encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../base64/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64-0.21.7/src/chunked_encoder.rs`."><title>chunked_encoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="base64" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../base64/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -174,12 +176,12 @@
     encode::add_padding,
     engine::{Config, Engine},
 };
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, test))]
+<span class="attr">#[cfg(any(feature = <span class="string">"alloc"</span>, test))]
 </span><span class="kw">use </span>alloc::string::String;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, test))]
+<span class="attr">#[cfg(any(feature = <span class="string">"alloc"</span>, test))]
 </span><span class="kw">use </span>core::str;
 
-<span class="doccomment">/// The output mechanism for ChunkedEncoder&#39;s encoded bytes.
+<span class="doccomment">/// The output mechanism for ChunkedEncoder's encoded bytes.
 </span><span class="kw">pub trait </span>Sink {
     <span class="kw">type </span>Error;
 
@@ -188,12 +190,12 @@
 }
 
 <span class="doccomment">/// A base64 encoder that emits encoded bytes in chunks without heap allocation.
-</span><span class="kw">pub struct </span>ChunkedEncoder&lt;<span class="lifetime">&#39;e</span>, E: Engine + <span class="question-mark">?</span>Sized&gt; {
-    engine: <span class="kw-2">&amp;</span><span class="lifetime">&#39;e </span>E,
+</span><span class="kw">pub struct </span>ChunkedEncoder&lt;<span class="lifetime">'e</span>, E: Engine + <span class="question-mark">?</span>Sized&gt; {
+    engine: <span class="kw-2">&amp;</span><span class="lifetime">'e </span>E,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;e</span>, E: Engine + <span class="question-mark">?</span>Sized&gt; ChunkedEncoder&lt;<span class="lifetime">&#39;e</span>, E&gt; {
-    <span class="kw">pub fn </span>new(engine: <span class="kw-2">&amp;</span><span class="lifetime">&#39;e </span>E) -&gt; ChunkedEncoder&lt;<span class="lifetime">&#39;e</span>, E&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'e</span>, E: Engine + <span class="question-mark">?</span>Sized&gt; ChunkedEncoder&lt;<span class="lifetime">'e</span>, E&gt; {
+    <span class="kw">pub fn </span>new(engine: <span class="kw-2">&amp;</span><span class="lifetime">'e </span>E) -&gt; ChunkedEncoder&lt;<span class="lifetime">'e</span>, E&gt; {
         ChunkedEncoder { engine }
     }
 
@@ -207,7 +209,7 @@
             <span class="kw">if </span>chunk.len() != CHUNK_SIZE &amp;&amp; <span class="self">self</span>.engine.config().encode_padding() {
                 <span class="comment">// Final, potentially partial, chunk.
                 // Only need to consider if padding is needed on a partial chunk since full chunk
-                // is a multiple of 3, which therefore won&#39;t be padded.
+                // is a multiple of 3, which therefore won't be padded.
                 // Pad output to multiple of four bytes if required by config.
                 </span>len += add_padding(len, <span class="kw-2">&amp;mut </span>buf[len..]);
             }
@@ -219,20 +221,20 @@
 }
 
 <span class="comment">// A really simple sink that just appends to a string
-</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, test))]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>StringSink&lt;<span class="lifetime">&#39;a</span>&gt; {
-    string: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>String,
+</span><span class="attr">#[cfg(any(feature = <span class="string">"alloc"</span>, test))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>StringSink&lt;<span class="lifetime">'a</span>&gt; {
+    string: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>String,
 }
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, test))]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; StringSink&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="attr">#[cfg(any(feature = <span class="string">"alloc"</span>, test))]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; StringSink&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(s: <span class="kw-2">&amp;mut </span>String) -&gt; StringSink {
         StringSink { string: s }
     }
 }
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, test))]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Sink <span class="kw">for </span>StringSink&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="attr">#[cfg(any(feature = <span class="string">"alloc"</span>, test))]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Sink <span class="kw">for </span>StringSink&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">type </span>Error = ();
 
     <span class="kw">fn </span>write_encoded_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
@@ -259,28 +261,28 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>chunked_encode_empty() {
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;&quot;</span>, chunked_encode_str(<span class="kw-2">&amp;</span>[], PAD));
+        <span class="macro">assert_eq!</span>(<span class="string">""</span>, chunked_encode_str(<span class="kw-2">&amp;</span>[], PAD));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>chunked_encode_intermediate_fast_loop() {
         <span class="comment">// &gt; 8 bytes input, will enter the pretty fast loop
-        </span><span class="macro">assert_eq!</span>(<span class="string">&quot;Zm9vYmFyYmF6cXV4&quot;</span>, chunked_encode_str(<span class="string">b&quot;foobarbazqux&quot;</span>, PAD));
+        </span><span class="macro">assert_eq!</span>(<span class="string">"Zm9vYmFyYmF6cXV4"</span>, chunked_encode_str(<span class="string">b"foobarbazqux"</span>, PAD));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>chunked_encode_fast_loop() {
         <span class="comment">// &gt; 32 bytes input, will enter the uber fast loop
         </span><span class="macro">assert_eq!</span>(
-            <span class="string">&quot;Zm9vYmFyYmF6cXV4cXV1eGNvcmdlZ3JhdWx0Z2FycGx5eg==&quot;</span>,
-            chunked_encode_str(<span class="string">b&quot;foobarbazquxquuxcorgegraultgarplyz&quot;</span>, PAD)
+            <span class="string">"Zm9vYmFyYmF6cXV4cXV1eGNvcmdlZ3JhdWx0Z2FycGx5eg=="</span>,
+            chunked_encode_str(<span class="string">b"foobarbazquxquuxcorgegraultgarplyz"</span>, PAD)
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>chunked_encode_slow_loop_only() {
         <span class="comment">// &lt; 8 bytes input, slow loop only
-        </span><span class="macro">assert_eq!</span>(<span class="string">&quot;Zm9vYmFy&quot;</span>, chunked_encode_str(<span class="string">b&quot;foobar&quot;</span>, PAD));
+        </span><span class="macro">assert_eq!</span>(<span class="string">"Zm9vYmFy"</span>, chunked_encode_str(<span class="string">b"foobar"</span>, PAD));
     }
 
     <span class="attr">#[test]
@@ -309,7 +311,7 @@
             <span class="kw">let </span>chunk_encoded_string = sink_test_helper.encode_to_string(<span class="kw-2">&amp;</span>engine, <span class="kw-2">&amp;</span>input_buf);
             engine.encode_string(<span class="kw-2">&amp;</span>input_buf, <span class="kw-2">&amp;mut </span>output_buf);
 
-            <span class="macro">assert_eq!</span>(output_buf, chunk_encoded_string, <span class="string">&quot;input len={}&quot;</span>, buf_len);
+            <span class="macro">assert_eq!</span>(output_buf, chunk_encoded_string, <span class="string">"input len={}"</span>, buf_len);
         }
     }
 

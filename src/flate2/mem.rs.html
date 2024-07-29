@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/flate2-1.0.28/src/mem.rs`."><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="flate2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../flate2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/flate2-1.0.30/src/mem.rs`."><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="flate2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../flate2/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -770,6 +772,16 @@
 <a href="#770" id="770">770</a>
 <a href="#771" id="771">771</a>
 <a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::error::Error;
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::io;
@@ -784,7 +796,7 @@
 /// maximally flexible in terms of accepting input from any source and being
 /// able to produce output to any memory location.
 ///
-/// It is recommended to use the I/O stream adaptors over this type as they&#39;re
+/// It is recommended to use the I/O stream adaptors over this type as they're
 /// easier to use.
 ///
 /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
@@ -801,7 +813,7 @@
 /// maximally flexible in terms of accepting input from any source and being
 /// able to produce output to any memory location.
 ///
-/// It is recommended to use the I/O stream adaptors over this type as they&#39;re
+/// It is recommended to use the I/O stream adaptors over this type as they're
 /// easier to use.
 ///
 /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
@@ -935,8 +947,8 @@
 </span><span class="kw">pub enum </span>Status {
     <span class="doccomment">/// Indicates success.
     ///
-    /// Means that more input may be needed but isn&#39;t available
-    /// and/or there&#39;s more output to be written but the output buffer is full.
+    /// Means that more input may be needed but isn't available
+    /// and/or there's more output to be written but the output buffer is full.
     </span><span class="prelude-val">Ok</span>,
 
     <span class="doccomment">/// Indicates that forward progress is not possible due to input or output
@@ -946,7 +958,7 @@
     /// output buffer needs to be freed up before trying again.
     ///
     /// For decompression this means that more input is needed to continue or
-    /// the output buffer isn&#39;t large enough to contain the result. The function
+    /// the output buffer isn't large enough to contain the result. The function
     /// can be called again after fixing both.
     </span>BufError,
 
@@ -959,7 +971,7 @@
 }
 
 <span class="kw">impl </span>Compress {
-    <span class="doccomment">/// Creates a new object ready for compressing data that it&#39;s given.
+    <span class="doccomment">/// Creates a new object ready for compressing data that it's given.
     ///
     /// The `level` argument here indicates what level of compression is going
     /// to be performed, and the `zlib_header` argument indicates whether the
@@ -970,7 +982,7 @@
         }
     }
 
-    <span class="doccomment">/// Creates a new object ready for compressing data that it&#39;s given.
+    <span class="doccomment">/// Creates a new object ready for compressing data that it's given.
     ///
     /// The `level` argument here indicates what level of compression is going
     /// to be performed, and the `zlib_header` argument indicates whether the
@@ -982,7 +994,7 @@
     ///
     /// If `window_bits` does not fall into the range 9 ..= 15,
     /// `new_with_window_bits` will panic.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"any_zlib"</span>)]
     </span><span class="kw">pub fn </span>new_with_window_bits(
         level: Compression,
         zlib_header: bool,
@@ -990,14 +1002,14 @@
     ) -&gt; Compress {
         <span class="macro">assert!</span>(
             window_bits &gt; <span class="number">8 </span>&amp;&amp; window_bits &lt; <span class="number">16</span>,
-            <span class="string">&quot;window_bits must be within 9 ..= 15&quot;
+            <span class="string">"window_bits must be within 9 ..= 15"
         </span>);
         Compress {
             inner: Deflate::make(level, zlib_header, window_bits),
         }
     }
 
-    <span class="doccomment">/// Creates a new object ready for compressing data that it&#39;s given.
+    <span class="doccomment">/// Creates a new object ready for compressing data that it's given.
     ///
     /// The `level` argument here indicates what level of compression is going
     /// to be performed.
@@ -1009,11 +1021,11 @@
     ///
     /// If `window_bits` does not fall into the range 9 ..= 15,
     /// `new_with_window_bits` will panic.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"any_zlib"</span>)]
     </span><span class="kw">pub fn </span>new_gzip(level: Compression, window_bits: u8) -&gt; Compress {
         <span class="macro">assert!</span>(
             window_bits &gt; <span class="number">8 </span>&amp;&amp; window_bits &lt; <span class="number">16</span>,
-            <span class="string">&quot;window_bits must be within 9 ..= 15&quot;
+            <span class="string">"window_bits must be within 9 ..= 15"
         </span>);
         Compress {
             inner: Deflate::make(level, <span class="bool-val">true</span>, window_bits + <span class="number">16</span>),
@@ -1035,19 +1047,22 @@
     <span class="doccomment">/// Specifies the compression dictionary to use.
     ///
     /// Returns the Adler-32 checksum of the dictionary.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"any_zlib"</span>)]
     </span><span class="kw">pub fn </span>set_dictionary(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dictionary: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;u32, CompressError&gt; {
-        <span class="kw">let </span>stream = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.inner.inner.stream_wrapper;
-        stream.msg = std::ptr::null_mut();
+        <span class="comment">// SAFETY: The field `inner` must always be accessed as a raw pointer,
+        // since it points to a cyclic structure. No copies of `inner` can be
+        // retained for longer than the lifetime of `self.inner.inner.stream_wrapper`.
+        </span><span class="kw">let </span>stream = <span class="self">self</span>.inner.inner.stream_wrapper.inner;
         <span class="kw">let </span>rc = <span class="kw">unsafe </span>{
+            (<span class="kw-2">*</span>stream).msg = std::ptr::null_mut();
             <span class="macro">assert!</span>(dictionary.len() &lt; ffi::uInt::MAX <span class="kw">as </span>usize);
             ffi::deflateSetDictionary(stream, dictionary.as_ptr(), dictionary.len() <span class="kw">as </span>ffi::uInt)
         };
 
         <span class="kw">match </span>rc {
             ffi::MZ_STREAM_ERROR =&gt; compress_failed(<span class="self">self</span>.inner.inner.msg()),
-            ffi::MZ_OK =&gt; <span class="prelude-val">Ok</span>(stream.adler <span class="kw">as </span>u32),
-            c =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown return code: {}&quot;</span>, c),
+            ffi::MZ_OK =&gt; <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ (<span class="kw-2">*</span>stream).adler } <span class="kw">as </span>u32),
+            c =&gt; <span class="macro">panic!</span>(<span class="string">"unknown return code: {}"</span>, c),
         }
     }
 
@@ -1064,22 +1079,26 @@
     /// kinds of data, or it can be used in conjunction with a call to reset
     /// to reuse the compressor.
     ///
-    /// This may return an error if there wasn&#39;t enough output space to complete
+    /// This may return an error if there wasn't enough output space to complete
     /// the compression of the available input data before changing the
     /// compression level. Flushing the stream before calling this method
     /// ensures that the function will succeed on the first call.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"any_zlib"</span>)]
     </span><span class="kw">pub fn </span>set_level(<span class="kw-2">&amp;mut </span><span class="self">self</span>, level: Compression) -&gt; <span class="prelude-ty">Result</span>&lt;(), CompressError&gt; {
         <span class="kw">use </span>std::os::raw::c_int;
-        <span class="kw">let </span>stream = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.inner.inner.stream_wrapper;
-        stream.msg = std::ptr::null_mut();
-
+        <span class="comment">// SAFETY: The field `inner` must always be accessed as a raw pointer,
+        // since it points to a cyclic structure. No copies of `inner` can be
+        // retained for longer than the lifetime of `self.inner.inner.stream_wrapper`.
+        </span><span class="kw">let </span>stream = <span class="self">self</span>.inner.inner.stream_wrapper.inner;
+        <span class="kw">unsafe </span>{
+            (<span class="kw-2">*</span>stream).msg = std::ptr::null_mut();
+        }
         <span class="kw">let </span>rc = <span class="kw">unsafe </span>{ ffi::deflateParams(stream, level.<span class="number">0 </span><span class="kw">as </span>c_int, ffi::MZ_DEFAULT_STRATEGY) };
 
         <span class="kw">match </span>rc {
             ffi::MZ_OK =&gt; <span class="prelude-val">Ok</span>(()),
             ffi::MZ_BUF_ERROR =&gt; compress_failed(<span class="self">self</span>.inner.inner.msg()),
-            c =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown return code: {}&quot;</span>, c),
+            c =&gt; <span class="macro">panic!</span>(<span class="string">"unknown return code: {}"</span>, c),
         }
     }
 
@@ -1123,7 +1142,7 @@
 }
 
 <span class="kw">impl </span>Decompress {
-    <span class="doccomment">/// Creates a new object ready for decompressing data that it&#39;s given.
+    <span class="doccomment">/// Creates a new object ready for decompressing data that it's given.
     ///
     /// The `zlib_header` argument indicates whether the input data is expected
     /// to have a zlib header or not.
@@ -1133,7 +1152,7 @@
         }
     }
 
-    <span class="doccomment">/// Creates a new object ready for decompressing data that it&#39;s given.
+    <span class="doccomment">/// Creates a new object ready for decompressing data that it's given.
     ///
     /// The `zlib_header` argument indicates whether the input data is expected
     /// to have a zlib header or not. The `window_bits` parameter indicates the
@@ -1143,18 +1162,18 @@
     ///
     /// If `window_bits` does not fall into the range 9 ..= 15,
     /// `new_with_window_bits` will panic.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"any_zlib"</span>)]
     </span><span class="kw">pub fn </span>new_with_window_bits(zlib_header: bool, window_bits: u8) -&gt; Decompress {
         <span class="macro">assert!</span>(
             window_bits &gt; <span class="number">8 </span>&amp;&amp; window_bits &lt; <span class="number">16</span>,
-            <span class="string">&quot;window_bits must be within 9 ..= 15&quot;
+            <span class="string">"window_bits must be within 9 ..= 15"
         </span>);
         Decompress {
             inner: Inflate::make(zlib_header, window_bits),
         }
     }
 
-    <span class="doccomment">/// Creates a new object ready for decompressing data that it&#39;s given.
+    <span class="doccomment">/// Creates a new object ready for decompressing data that it's given.
     ///
     /// The Decompress object produced by this constructor expects gzip headers
     /// for the compressed data.
@@ -1163,11 +1182,11 @@
     ///
     /// If `window_bits` does not fall into the range 9 ..= 15,
     /// `new_with_window_bits` will panic.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"any_zlib"</span>)]
     </span><span class="kw">pub fn </span>new_gzip(window_bits: u8) -&gt; Decompress {
         <span class="macro">assert!</span>(
             window_bits &gt; <span class="number">8 </span>&amp;&amp; window_bits &lt; <span class="number">16</span>,
-            <span class="string">&quot;window_bits must be within 9 ..= 15&quot;
+            <span class="string">"window_bits must be within 9 ..= 15"
         </span>);
         Decompress {
             inner: Inflate::make(<span class="bool-val">true</span>, window_bits + <span class="number">16</span>),
@@ -1196,7 +1215,7 @@
     /// the entire stream in a single call.
     ///
     /// A flush value of `FlushDecompress::Finish` indicates that there are no
-    /// more source bytes available beside what&#39;s already in the input buffer,
+    /// more source bytes available beside what's already in the input buffer,
     /// and the output buffer is large enough to hold the rest of the
     /// decompressed data.
     ///
@@ -1246,20 +1265,23 @@
     }
 
     <span class="doccomment">/// Specifies the decompression dictionary to use.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"any_zlib"</span>)]
     </span><span class="kw">pub fn </span>set_dictionary(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dictionary: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;u32, DecompressError&gt; {
-        <span class="kw">let </span>stream = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.inner.inner.stream_wrapper;
-        stream.msg = std::ptr::null_mut();
+        <span class="comment">// SAFETY: The field `inner` must always be accessed as a raw pointer,
+        // since it points to a cyclic structure. No copies of `inner` can be
+        // retained for longer than the lifetime of `self.inner.inner.stream_wrapper`.
+        </span><span class="kw">let </span>stream = <span class="self">self</span>.inner.inner.stream_wrapper.inner;
         <span class="kw">let </span>rc = <span class="kw">unsafe </span>{
+            (<span class="kw-2">*</span>stream).msg = std::ptr::null_mut();
             <span class="macro">assert!</span>(dictionary.len() &lt; ffi::uInt::MAX <span class="kw">as </span>usize);
             ffi::inflateSetDictionary(stream, dictionary.as_ptr(), dictionary.len() <span class="kw">as </span>ffi::uInt)
         };
 
         <span class="kw">match </span>rc {
             ffi::MZ_STREAM_ERROR =&gt; decompress_failed(<span class="self">self</span>.inner.inner.msg()),
-            ffi::MZ_DATA_ERROR =&gt; decompress_need_dict(stream.adler <span class="kw">as </span>u32),
-            ffi::MZ_OK =&gt; <span class="prelude-val">Ok</span>(stream.adler <span class="kw">as </span>u32),
-            c =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown return code: {}&quot;</span>, c),
+            ffi::MZ_DATA_ERROR =&gt; decompress_need_dict(<span class="kw">unsafe </span>{ (<span class="kw-2">*</span>stream).adler } <span class="kw">as </span>u32),
+            ffi::MZ_OK =&gt; <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ (<span class="kw-2">*</span>stream).adler } <span class="kw">as </span>u32),
+            c =&gt; <span class="macro">panic!</span>(<span class="string">"unknown return code: {}"</span>, c),
         }
     }
 
@@ -1279,7 +1301,7 @@
 <span class="kw">impl </span>Error <span class="kw">for </span>DecompressError {}
 
 <span class="kw">impl </span>DecompressError {
-    <span class="doccomment">/// Retrieve the implementation&#39;s message about why the operation failed, if one exists.
+    <span class="doccomment">/// Retrieve the implementation's message about why the operation failed, if one exists.
     </span><span class="kw">pub fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
             DecompressErrorInner::General { msg } =&gt; msg.get(),
@@ -1298,11 +1320,11 @@
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">let </span>msg = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
             DecompressErrorInner::General { msg } =&gt; msg.get(),
-            DecompressErrorInner::NeedsDictionary { .. } =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;requires a dictionary&quot;</span>),
+            DecompressErrorInner::NeedsDictionary { .. } =&gt; <span class="prelude-val">Some</span>(<span class="string">"requires a dictionary"</span>),
         };
         <span class="kw">match </span>msg {
-            <span class="prelude-val">Some</span>(msg) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;deflate decompression error: {}&quot;</span>, msg),
-            <span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(f, <span class="string">&quot;deflate decompression error&quot;</span>),
+            <span class="prelude-val">Some</span>(msg) =&gt; <span class="macro">write!</span>(f, <span class="string">"deflate decompression error: {}"</span>, msg),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(f, <span class="string">"deflate decompression error"</span>),
         }
     }
 }
@@ -1310,7 +1332,7 @@
 <span class="kw">impl </span>Error <span class="kw">for </span>CompressError {}
 
 <span class="kw">impl </span>CompressError {
-    <span class="doccomment">/// Retrieve the implementation&#39;s message about why the operation failed, if one exists.
+    <span class="doccomment">/// Retrieve the implementation's message about why the operation failed, if one exists.
     </span><span class="kw">pub fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.msg.get()
     }
@@ -1325,8 +1347,8 @@
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>CompressError {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self</span>.msg.get() {
-            <span class="prelude-val">Some</span>(msg) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;deflate compression error: {}&quot;</span>, msg),
-            <span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(f, <span class="string">&quot;deflate compression error&quot;</span>),
+            <span class="prelude-val">Some</span>(msg) =&gt; <span class="macro">write!</span>(f, <span class="string">"deflate compression error: {}"</span>, msg),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(f, <span class="string">"deflate compression error"</span>),
         }
     }
 }
@@ -1361,7 +1383,7 @@
     <span class="kw">use </span><span class="kw">crate</span>::write;
     <span class="kw">use crate</span>::{Compression, Decompress, FlushDecompress};
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"any_zlib"</span>)]
     </span><span class="kw">use crate</span>::{Compress, FlushCompress};
 
     <span class="attr">#[test]
@@ -1394,7 +1416,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>reset() {
-        <span class="kw">let </span>string = <span class="string">&quot;hello world&quot;</span>.as_bytes();
+        <span class="kw">let </span>string = <span class="string">"hello world"</span>.as_bytes();
         <span class="kw">let </span><span class="kw-2">mut </span>zlib = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>deflate = Vec::new();
 
@@ -1422,11 +1444,11 @@
         <span class="macro">assert!</span>(dst.starts_with(string));
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"any_zlib"</span>)]
     #[test]
     </span><span class="kw">fn </span>set_dictionary_with_zlib_header() {
-        <span class="kw">let </span>string = <span class="string">&quot;hello, hello!&quot;</span>.as_bytes();
-        <span class="kw">let </span>dictionary = <span class="string">&quot;hello&quot;</span>.as_bytes();
+        <span class="kw">let </span>string = <span class="string">"hello, hello!"</span>.as_bytes();
+        <span class="kw">let </span>dictionary = <span class="string">"hello"</span>.as_bytes();
 
         <span class="kw">let </span><span class="kw-2">mut </span>encoded = Vec::with_capacity(<span class="number">1024</span>);
 
@@ -1445,13 +1467,13 @@
         <span class="kw">let </span><span class="kw-2">mut </span>decoded = [<span class="number">0</span>; <span class="number">1024</span>];
         <span class="kw">let </span>decompress_error = decoder
             .decompress(<span class="kw-2">&amp;</span>encoded, <span class="kw-2">&amp;mut </span>decoded, FlushDecompress::Finish)
-            .expect_err(<span class="string">&quot;decompression should fail due to requiring a dictionary&quot;</span>);
+            .expect_err(<span class="string">"decompression should fail due to requiring a dictionary"</span>);
 
         <span class="kw">let </span>required_adler = decompress_error.needs_dictionary()
-            .expect(<span class="string">&quot;the first call to decompress should indicate a dictionary is required along with the required Adler-32 checksum&quot;</span>);
+            .expect(<span class="string">"the first call to decompress should indicate a dictionary is required along with the required Adler-32 checksum"</span>);
 
         <span class="macro">assert_eq!</span>(required_adler, dictionary_adler,
-            <span class="string">&quot;the Adler-32 checksum should match the value when the dictionary was set on the compressor&quot;</span>);
+            <span class="string">"the Adler-32 checksum should match the value when the dictionary was set on the compressor"</span>);
 
         <span class="kw">let </span>actual_adler = decoder.set_dictionary(<span class="kw-2">&amp;</span>dictionary).unwrap();
 
@@ -1471,11 +1493,11 @@
         <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>decoded[..decoder.total_out() <span class="kw">as </span>usize], string);
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"any_zlib"</span>)]
     #[test]
     </span><span class="kw">fn </span>set_dictionary_raw() {
-        <span class="kw">let </span>string = <span class="string">&quot;hello, hello!&quot;</span>.as_bytes();
-        <span class="kw">let </span>dictionary = <span class="string">&quot;hello&quot;</span>.as_bytes();
+        <span class="kw">let </span>string = <span class="string">"hello, hello!"</span>.as_bytes();
+        <span class="kw">let </span>dictionary = <span class="string">"hello"</span>.as_bytes();
 
         <span class="kw">let </span><span class="kw-2">mut </span>encoded = Vec::with_capacity(<span class="number">1024</span>);
 
@@ -1502,10 +1524,10 @@
         <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>decoded[..decoder.total_out() <span class="kw">as </span>usize], string);
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"any_zlib"</span>)]
     #[test]
     </span><span class="kw">fn </span>test_gzip_flate() {
-        <span class="kw">let </span>string = <span class="string">&quot;hello, hello!&quot;</span>.as_bytes();
+        <span class="kw">let </span>string = <span class="string">"hello, hello!"</span>.as_bytes();
 
         <span class="kw">let </span><span class="kw-2">mut </span>encoded = Vec::with_capacity(<span class="number">1024</span>);
 
@@ -1528,18 +1550,18 @@
         <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>decoded[..decoder.total_out() <span class="kw">as </span>usize], string);
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;any_zlib&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"any_zlib"</span>)]
     #[test]
     </span><span class="kw">fn </span>test_error_message() {
         <span class="kw">let </span><span class="kw-2">mut </span>decoder = Decompress::new(<span class="bool-val">false</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>decoded = [<span class="number">0</span>; <span class="number">128</span>];
-        <span class="kw">let </span>garbage = <span class="string">b&quot;xbvxzi&quot;</span>;
+        <span class="kw">let </span>garbage = <span class="string">b"xbvxzi"</span>;
 
         <span class="kw">let </span>err = decoder
             .decompress(<span class="kw-2">&amp;*</span>garbage, <span class="kw-2">&amp;mut </span>decoded, FlushDecompress::Finish)
             .unwrap_err();
 
-        <span class="macro">assert_eq!</span>(err.message(), <span class="prelude-val">Some</span>(<span class="string">&quot;invalid stored block lengths&quot;</span>));
+        <span class="macro">assert_eq!</span>(err.message(), <span class="prelude-val">Some</span>(<span class="string">"invalid stored block lengths"</span>));
     }
 }
 </code></pre></div></section></main></body></html>

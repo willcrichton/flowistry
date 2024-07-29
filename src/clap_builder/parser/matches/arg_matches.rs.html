@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.7/src/parser/matches/arg_matches.rs`."><title>arg_matches.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-47e7ab555ef2818a.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0-nightly (58eefc33a 2023-08-24)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-b2d31d2efc7e9b67.css" data-theme-dark-css="dark-3388a2fb2ef8066b.css" data-theme-ayu-css="ayu-8c3c66a6cf12cb2f.css" ><script src="../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-ef3a2de404864b0b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-b2d31d2efc7e9b67.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-3388a2fb2ef8066b.css"><link rel="stylesheet" href="../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.11/src/parser/matches/arg_matches.rs`."><title>arg_matches.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2059,36 +2061,36 @@
 /// # use clap_builder as clap;
 /// # use clap::{Command, Arg, ArgAction};
 /// # use clap::parser::ValueSource;
-/// let matches = Command::new(&quot;MyApp&quot;)
-///     .arg(Arg::new(&quot;out&quot;)
-///         .long(&quot;output&quot;)
+/// let matches = Command::new("MyApp")
+///     .arg(Arg::new("out")
+///         .long("output")
 ///         .required(true)
 ///         .action(ArgAction::Set)
-///         .default_value(&quot;-&quot;))
-///     .arg(Arg::new(&quot;cfg&quot;)
-///         .short(&#39;c&#39;)
+///         .default_value("-"))
+///     .arg(Arg::new("cfg")
+///         .short('c')
 ///         .action(ArgAction::Set))
 ///     .get_matches(); // builds the instance of ArgMatches
 ///
-/// // to get information about the &quot;cfg&quot; argument we created, such as the value supplied we use
+/// // to get information about the "cfg" argument we created, such as the value supplied we use
 /// // various ArgMatches methods, such as [ArgMatches::get_one]
-/// if let Some(c) = matches.get_one::&lt;String&gt;(&quot;cfg&quot;) {
-///     println!(&quot;Value for -c: {c}&quot;);
+/// if let Some(c) = matches.get_one::&lt;String&gt;("cfg") {
+///     println!("Value for -c: {c}");
 /// }
 ///
 /// // The ArgMatches::get_one method returns an Option because the user may not have supplied
-/// // that argument at runtime. But if we specified that the argument was &quot;required&quot; as we did
-/// // with the &quot;out&quot; argument, we can safely unwrap because `clap` verifies that was actually
+/// // that argument at runtime. But if we specified that the argument was "required" as we did
+/// // with the "out" argument, we can safely unwrap because `clap` verifies that was actually
 /// // used at runtime.
-/// println!(&quot;Value for --output: {}&quot;, matches.get_one::&lt;String&gt;(&quot;out&quot;).unwrap());
+/// println!("Value for --output: {}", matches.get_one::&lt;String&gt;("out").unwrap());
 ///
-/// // You can check the presence of an argument&#39;s values
-/// if matches.contains_id(&quot;out&quot;) {
+/// // You can check the presence of an argument's values
+/// if matches.contains_id("out") {
 ///     // However, if you want to know where the value came from
-///     if matches.value_source(&quot;out&quot;).expect(&quot;checked contains_id&quot;) == ValueSource::CommandLine {
-///         println!(&quot;`out` set by user&quot;);
+///     if matches.value_source("out").expect("checked contains_id") == ValueSource::CommandLine {
+///         println!("`out` set by user");
 ///     } else {
-///         println!(&quot;`out` is defaulted&quot;);
+///         println!("`out` is defaulted");
 ///     }
 /// }
 /// ```
@@ -2111,7 +2113,7 @@
     ///
     /// Returns an error if the wrong type was used.
     ///
-    /// Returns `None` if the option wasn&#39;t present.
+    /// Returns `None` if the option wasn't present.
     ///
     /// *NOTE:* This will always return `Some(value)` if [`default_value`] has been set.
     /// [`ArgMatches::value_source`] can be used to check if a value is present at runtime.
@@ -2126,22 +2128,22 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, value_parser, ArgAction};
-    /// let m = Command::new(&quot;myapp&quot;)
-    ///     .arg(Arg::new(&quot;port&quot;)
+    /// let m = Command::new("myapp")
+    ///     .arg(Arg::new("port")
     ///         .value_parser(value_parser!(usize))
     ///         .action(ArgAction::Set)
     ///         .required(true))
-    ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;2020&quot;]);
+    ///     .get_matches_from(vec!["myapp", "2020"]);
     ///
     /// let port: usize = *m
-    ///     .get_one(&quot;port&quot;)
-    ///     .expect(&quot;`port`is required&quot;);
+    ///     .get_one("port")
+    ///     .expect("`port`is required");
     /// assert_eq!(port, 2020);
     /// ```
     /// [positional]: crate::Arg::index()
     /// [`default_value`]: crate::Arg::default_value()
     </span><span class="attr">#[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>get_one&lt;T: Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+    </span><span class="kw">pub fn </span>get_one&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
         MatchesError::unwrap(id, <span class="self">self</span>.try_get_one(id))
     }
 
@@ -2149,7 +2151,7 @@
     ///
     /// # Panic
     ///
-    /// If the argument&#39;s action is not [`ArgAction::Count`][crate::ArgAction::Count]
+    /// If the argument's action is not [`ArgAction::Count`][crate::ArgAction::Count]
     ///
     /// # Examples
     ///
@@ -2157,23 +2159,23 @@
     /// # use clap_builder as clap;
     /// # use clap::Command;
     /// # use clap::Arg;
-    /// let cmd = Command::new(&quot;mycmd&quot;)
+    /// let cmd = Command::new("mycmd")
     ///     .arg(
-    ///         Arg::new(&quot;flag&quot;)
-    ///             .long(&quot;flag&quot;)
+    ///         Arg::new("flag")
+    ///             .long("flag")
     ///             .action(clap::ArgAction::Count)
     ///     );
     ///
-    /// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;--flag&quot;]).unwrap();
+    /// let matches = cmd.clone().try_get_matches_from(["mycmd", "--flag", "--flag"]).unwrap();
     /// assert_eq!(
-    ///     matches.get_count(&quot;flag&quot;),
+    ///     matches.get_count("flag"),
     ///     2
     /// );
     /// ```
     </span><span class="attr">#[cfg_attr(debug_assertions, track_caller)]
     </span><span class="kw">pub fn </span>get_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; u8 {
         <span class="kw-2">*</span><span class="self">self</span>.get_one::&lt;u8&gt;(id).unwrap_or_else(|| {
-            <span class="macro">panic!</span>(<span class="string">&quot;arg `{id}`&#39;s `ArgAction` should be `Count` which should provide a default&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">"arg `{id}`'s `ArgAction` should be `Count` which should provide a default"</span>)
         })
     }
 
@@ -2181,7 +2183,7 @@
     ///
     /// # Panic
     ///
-    /// If the argument&#39;s action is not [`ArgAction::SetTrue`][crate::ArgAction::SetTrue] or [`ArgAction::SetFalse`][crate::ArgAction::SetFalse]
+    /// If the argument's action is not [`ArgAction::SetTrue`][crate::ArgAction::SetTrue] or [`ArgAction::SetFalse`][crate::ArgAction::SetFalse]
     ///
     /// # Examples
     ///
@@ -2189,17 +2191,17 @@
     /// # use clap_builder as clap;
     /// # use clap::Command;
     /// # use clap::Arg;
-    /// let cmd = Command::new(&quot;mycmd&quot;)
+    /// let cmd = Command::new("mycmd")
     ///     .arg(
-    ///         Arg::new(&quot;flag&quot;)
-    ///             .long(&quot;flag&quot;)
+    ///         Arg::new("flag")
+    ///             .long("flag")
     ///             .action(clap::ArgAction::SetTrue)
     ///     );
     ///
-    /// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;]).unwrap();
-    /// assert!(matches.contains_id(&quot;flag&quot;));
+    /// let matches = cmd.clone().try_get_matches_from(["mycmd", "--flag"]).unwrap();
+    /// assert!(matches.contains_id("flag"));
     /// assert_eq!(
-    ///     matches.get_flag(&quot;flag&quot;),
+    ///     matches.get_flag("flag"),
     ///     true
     /// );
     /// ```
@@ -2209,7 +2211,7 @@
             </span>.get_one::&lt;bool&gt;(id)
             .unwrap_or_else(|| {
                 <span class="macro">panic!</span>(
-                    <span class="string">&quot;arg `{id}`&#39;s `ArgAction` should be one of `SetTrue`, `SetFalse` which should provide a default&quot;
+                    <span class="string">"arg `{id}`'s `ArgAction` should be one of `SetTrue`, `SetFalse` which should provide a default"
                 </span>)
             })
     }
@@ -2220,7 +2222,7 @@
     ///
     /// Returns an error if the wrong type was used.
     ///
-    /// Returns `None` if the option wasn&#39;t present.
+    /// Returns `None` if the option wasn't present.
     ///
     /// # Panic
     ///
@@ -2232,26 +2234,26 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, value_parser, ArgAction};
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///     .arg(Arg::new(&quot;ports&quot;)
+    /// let m = Command::new("myprog")
+    ///     .arg(Arg::new("ports")
     ///         .action(ArgAction::Append)
     ///         .value_parser(value_parser!(usize))
-    ///         .short(&#39;p&#39;)
+    ///         .short('p')
     ///         .required(true))
     ///     .get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;-p&quot;, &quot;22&quot;, &quot;-p&quot;, &quot;80&quot;, &quot;-p&quot;, &quot;2020&quot;
+    ///         "myprog", "-p", "22", "-p", "80", "-p", "2020"
     ///     ]);
-    /// let vals: Vec&lt;usize&gt; = m.get_many(&quot;ports&quot;)
-    ///     .expect(&quot;`port`is required&quot;)
+    /// let vals: Vec&lt;usize&gt; = m.get_many("ports")
+    ///     .expect("`port`is required")
     ///     .copied()
     ///     .collect();
     /// assert_eq!(vals, [22, 80, 2020]);
     /// ```
     </span><span class="attr">#[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>get_many&lt;T: Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+    </span><span class="kw">pub fn </span>get_many&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;ValuesRef&lt;T&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;ValuesRef&lt;<span class="lifetime">'_</span>, T&gt;&gt; {
         MatchesError::unwrap(id, <span class="self">self</span>.try_get_many(id))
     }
 
@@ -2260,10 +2262,10 @@
     /// Each item is itself an iterator containing the arguments passed to a single occurrence
     /// of the option.
     ///
-    /// If the option doesn&#39;t support multiple occurrences, or there was only a single occurrence,
+    /// If the option doesn't support multiple occurrences, or there was only a single occurrence,
     /// the iterator will only contain a single item.
     ///
-    /// Returns `None` if the option wasn&#39;t present.
+    /// Returns `None` if the option wasn't present.
     ///
     /// # Panics
     ///
@@ -2274,22 +2276,22 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command,Arg, ArgAction, value_parser};
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///     .arg(Arg::new(&quot;x&quot;)
-    ///         .short(&#39;x&#39;)
+    /// let m = Command::new("myprog")
+    ///     .arg(Arg::new("x")
+    ///         .short('x')
     ///         .num_args(2)
     ///         .action(ArgAction::Append)
     ///         .value_parser(value_parser!(String)))
     ///     .get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;-x&quot;, &quot;a&quot;, &quot;b&quot;, &quot;-x&quot;, &quot;c&quot;, &quot;d&quot;]);
-    /// let vals: Vec&lt;Vec&lt;&amp;String&gt;&gt; = m.get_occurrences(&quot;x&quot;).unwrap().map(Iterator::collect).collect();
-    /// assert_eq!(vals, [[&quot;a&quot;, &quot;b&quot;], [&quot;c&quot;, &quot;d&quot;]]);
+    ///         "myprog", "-x", "a", "b", "-x", "c", "d"]);
+    /// let vals: Vec&lt;Vec&lt;&amp;String&gt;&gt; = m.get_occurrences("x").unwrap().map(Iterator::collect).collect();
+    /// assert_eq!(vals, [["a", "b"], ["c", "d"]]);
     /// ```
     </span><span class="attr">#[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>get_occurrences&lt;T: Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+    </span><span class="kw">pub fn </span>get_occurrences&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;OccurrencesRef&lt;T&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;OccurrencesRef&lt;<span class="lifetime">'_</span>, T&gt;&gt; {
         MatchesError::unwrap(id, <span class="self">self</span>.try_get_occurrences(id))
     }
 
@@ -2299,7 +2301,7 @@
     /// contain valid UTF-8. Since [`String`]s in Rust are guaranteed to be valid UTF-8, a valid
     /// filename on a Unix system as an argument value may contain invalid UTF-8.
     ///
-    /// Returns `None` if the option wasn&#39;t present.
+    /// Returns `None` if the option wasn't present.
     ///
     /// # Panic
     ///
@@ -2316,19 +2318,19 @@
     /// # use std::os::unix::ffi::{OsStrExt,OsStringExt};
     /// use std::path::PathBuf;
     ///
-    /// let m = Command::new(&quot;utf8&quot;)
-    ///     .arg(arg!(&lt;arg&gt; ... &quot;some arg&quot;).value_parser(value_parser!(PathBuf)))
-    ///     .get_matches_from(vec![OsString::from(&quot;myprog&quot;),
-    ///                                 // &quot;Hi&quot;
-    ///                                 OsString::from_vec(vec![b&#39;H&#39;, b&#39;i&#39;]),
-    ///                                 // &quot;{0xe9}!&quot;
-    ///                                 OsString::from_vec(vec![0xe9, b&#39;!&#39;])]);
+    /// let m = Command::new("utf8")
+    ///     .arg(arg!(&lt;arg&gt; ... "some arg").value_parser(value_parser!(PathBuf)))
+    ///     .get_matches_from(vec![OsString::from("myprog"),
+    ///                                 // "Hi"
+    ///                                 OsString::from_vec(vec![b'H', b'i']),
+    ///                                 // "{0xe9}!"
+    ///                                 OsString::from_vec(vec![0xe9, b'!'])]);
     ///
-    /// let mut itr = m.get_raw(&quot;arg&quot;)
-    ///     .expect(&quot;`port`is required&quot;)
+    /// let mut itr = m.get_raw("arg")
+    ///     .expect("`port`is required")
     ///     .into_iter();
-    /// assert_eq!(itr.next(), Some(OsStr::new(&quot;Hi&quot;)));
-    /// assert_eq!(itr.next(), Some(OsStr::from_bytes(&amp;[0xe9, b&#39;!&#39;])));
+    /// assert_eq!(itr.next(), Some(OsStr::new("Hi")));
+    /// assert_eq!(itr.next(), Some(OsStr::from_bytes(&amp;[0xe9, b'!'])));
     /// assert_eq!(itr.next(), None);
     /// # }
     /// ```
@@ -2337,7 +2339,7 @@
     /// [values]: OsValues
     /// [`String`]: std::string::String
     </span><span class="attr">#[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>get_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;RawValues&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;RawValues&lt;<span class="lifetime">'_</span>&gt;&gt; {
         MatchesError::unwrap(id, <span class="self">self</span>.try_get_raw(id))
     }
 
@@ -2349,7 +2351,7 @@
     /// contain valid UTF-8. Since [`String`]s in Rust are guaranteed to be valid UTF-8, a valid
     /// filename on a Unix system as an argument value may contain invalid UTF-8.
     ///
-    /// Returns `None` if the option wasn&#39;t present.
+    /// Returns `None` if the option wasn't present.
     ///
     /// # Panic
     ///
@@ -2366,24 +2368,24 @@
     /// # use std::os::unix::ffi::{OsStrExt,OsStringExt};
     /// use std::path::PathBuf;
     ///
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///     .arg(Arg::new(&quot;x&quot;)
-    ///         .short(&#39;x&#39;)
+    /// let m = Command::new("myprog")
+    ///     .arg(Arg::new("x")
+    ///         .short('x')
     ///         .num_args(2)
     ///         .action(ArgAction::Append)
     ///         .value_parser(value_parser!(PathBuf)))
-    ///     .get_matches_from(vec![OsString::from(&quot;myprog&quot;),
-    ///                             OsString::from(&quot;-x&quot;),
-    ///                             OsString::from(&quot;a&quot;), OsString::from(&quot;b&quot;),
-    ///                             OsString::from(&quot;-x&quot;),
-    ///                             OsString::from(&quot;c&quot;),
-    ///                             // &quot;{0xe9}!&quot;
-    ///                             OsString::from_vec(vec![0xe9, b&#39;!&#39;])]);
-    /// let mut itr = m.get_raw_occurrences(&quot;x&quot;)
-    ///     .expect(&quot;`-x`is required&quot;)
+    ///     .get_matches_from(vec![OsString::from("myprog"),
+    ///                             OsString::from("-x"),
+    ///                             OsString::from("a"), OsString::from("b"),
+    ///                             OsString::from("-x"),
+    ///                             OsString::from("c"),
+    ///                             // "{0xe9}!"
+    ///                             OsString::from_vec(vec![0xe9, b'!'])]);
+    /// let mut itr = m.get_raw_occurrences("x")
+    ///     .expect("`-x`is required")
     ///     .map(Iterator::collect::&lt;Vec&lt;_&gt;&gt;);
-    /// assert_eq!(itr.next(), Some(vec![OsStr::new(&quot;a&quot;), OsStr::new(&quot;b&quot;)]));
-    /// assert_eq!(itr.next(), Some(vec![OsStr::new(&quot;c&quot;), OsStr::from_bytes(&amp;[0xe9, b&#39;!&#39;])]));
+    /// assert_eq!(itr.next(), Some(vec![OsStr::new("a"), OsStr::new("b")]));
+    /// assert_eq!(itr.next(), Some(vec![OsStr::new("c"), OsStr::from_bytes(&amp;[0xe9, b'!'])]));
     /// assert_eq!(itr.next(), None);
     /// # }
     /// ```
@@ -2392,7 +2394,7 @@
     /// [values]: OsValues
     /// [`String`]: std::string::String
     </span><span class="attr">#[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>get_raw_occurrences(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;RawOccurrences&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_raw_occurrences(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;RawOccurrences&lt;<span class="lifetime">'_</span>&gt;&gt; {
         MatchesError::unwrap(id, <span class="self">self</span>.try_get_raw_occurrences(id))
     }
 
@@ -2402,7 +2404,7 @@
     ///
     /// Returns an error if the wrong type was used.  No item will have been removed.
     ///
-    /// Returns `None` if the option wasn&#39;t present.
+    /// Returns `None` if the option wasn't present.
     ///
     /// *NOTE:* This will always return `Some(value)` if [`default_value`] has been set.
     /// [`ArgMatches::value_source`] can be used to check if a value is present at runtime.
@@ -2417,21 +2419,21 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, value_parser, ArgAction};
-    /// let mut m = Command::new(&quot;myprog&quot;)
-    ///     .arg(Arg::new(&quot;file&quot;)
+    /// let mut m = Command::new("myprog")
+    ///     .arg(Arg::new("file")
     ///         .required(true)
     ///         .action(ArgAction::Set))
     ///     .get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;file.txt&quot;,
+    ///         "myprog", "file.txt",
     ///     ]);
-    /// let vals: String = m.remove_one(&quot;file&quot;)
-    ///     .expect(&quot;`file`is required&quot;);
-    /// assert_eq!(vals, &quot;file.txt&quot;);
+    /// let vals: String = m.remove_one("file")
+    ///     .expect("`file`is required");
+    /// assert_eq!(vals, "file.txt");
     /// ```
     /// [positional]: crate::Arg::index()
     /// [`default_value`]: crate::Arg::default_value()
     </span><span class="attr">#[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>remove_one&lt;T: Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+    </span><span class="kw">pub fn </span>remove_one&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         MatchesError::unwrap(id, <span class="self">self</span>.try_remove_one(id))
     }
 
@@ -2441,7 +2443,7 @@
     ///
     /// Returns an error if the wrong type was used.  No item will have been removed.
     ///
-    /// Returns `None` if the option wasn&#39;t present.
+    /// Returns `None` if the option wasn't present.
     ///
     /// # Panic
     ///
@@ -2453,21 +2455,21 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, value_parser, ArgAction};
-    /// let mut m = Command::new(&quot;myprog&quot;)
-    ///     .arg(Arg::new(&quot;file&quot;)
+    /// let mut m = Command::new("myprog")
+    ///     .arg(Arg::new("file")
     ///         .action(ArgAction::Append)
     ///         .num_args(1..)
     ///         .required(true))
     ///     .get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;file1.txt&quot;, &quot;file2.txt&quot;, &quot;file3.txt&quot;, &quot;file4.txt&quot;,
+    ///         "myprog", "file1.txt", "file2.txt", "file3.txt", "file4.txt",
     ///     ]);
-    /// let vals: Vec&lt;String&gt; = m.remove_many(&quot;file&quot;)
-    ///     .expect(&quot;`file`is required&quot;)
+    /// let vals: Vec&lt;String&gt; = m.remove_many("file")
+    ///     .expect("`file`is required")
     ///     .collect();
-    /// assert_eq!(vals, [&quot;file1.txt&quot;, &quot;file2.txt&quot;, &quot;file3.txt&quot;, &quot;file4.txt&quot;]);
+    /// assert_eq!(vals, ["file1.txt", "file2.txt", "file3.txt", "file4.txt"]);
     /// ```
     </span><span class="attr">#[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>remove_many&lt;T: Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+    </span><span class="kw">pub fn </span>remove_many&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;Values&lt;T&gt;&gt; {
@@ -2479,10 +2481,10 @@
     /// Each item is itself an iterator containing the arguments passed to a single occurrence of
     /// the option.
     ///
-    /// If the option doesn&#39;t support multiple occurrences, or there was only a single occurrence,
+    /// If the option doesn't support multiple occurrences, or there was only a single occurrence,
     /// the iterator will only contain a single item.
     ///
-    /// Returns `None` if the option wasn&#39;t present.
+    /// Returns `None` if the option wasn't present.
     ///
     /// # Panic
     ///
@@ -2494,19 +2496,19 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, value_parser, ArgAction};
-    /// let mut m = Command::new(&quot;myprog&quot;)
-    ///     .arg(Arg::new(&quot;x&quot;)
-    ///         .short(&#39;x&#39;)
+    /// let mut m = Command::new("myprog")
+    ///     .arg(Arg::new("x")
+    ///         .short('x')
     ///         .num_args(2)
     ///         .action(ArgAction::Append)
     ///         .value_parser(value_parser!(String)))
     ///     .get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;-x&quot;, &quot;a&quot;, &quot;b&quot;, &quot;-x&quot;, &quot;c&quot;, &quot;d&quot;]);
-    /// let vals: Vec&lt;Vec&lt;String&gt;&gt; = m.remove_occurrences(&quot;x&quot;).unwrap().map(Iterator::collect).collect();
-    /// assert_eq!(vals, [[&quot;a&quot;, &quot;b&quot;], [&quot;c&quot;, &quot;d&quot;]]);
+    ///         "myprog", "-x", "a", "b", "-x", "c", "d"]);
+    /// let vals: Vec&lt;Vec&lt;String&gt;&gt; = m.remove_occurrences("x").unwrap().map(Iterator::collect).collect();
+    /// assert_eq!(vals, [["a", "b"], ["c", "d"]]);
     /// ```
     </span><span class="attr">#[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>remove_occurrences&lt;T: Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+    </span><span class="kw">pub fn </span>remove_occurrences&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;Occurrences&lt;T&gt;&gt; {
@@ -2528,15 +2530,15 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///     .arg(Arg::new(&quot;debug&quot;)
-    ///         .short(&#39;d&#39;)
+    /// let m = Command::new("myprog")
+    ///     .arg(Arg::new("debug")
+    ///         .short('d')
     ///         .action(ArgAction::SetTrue))
     ///     .get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;-d&quot;
+    ///         "myprog", "-d"
     ///     ]);
     ///
-    /// assert!(m.contains_id(&quot;debug&quot;));
+    /// assert!(m.contains_id("debug"));
     /// ```
     ///
     /// [`default_value`]: crate::Arg::default_value()
@@ -2544,7 +2546,7 @@
         MatchesError::unwrap(id, <span class="self">self</span>.try_contains_id(id))
     }
 
-    <span class="doccomment">/// Iterate over [`Arg`][crate::Arg] and [`ArgGroup`][crate::ArgGroup] [`Id`][crate::Id]s via [`ArgMatches::ids`].
+    <span class="doccomment">/// Iterate over [`Arg`][crate::Arg] and [`ArgGroup`][crate::ArgGroup] [`Id`]s via [`ArgMatches::ids`].
     ///
     /// # Examples
     ///
@@ -2552,21 +2554,21 @@
     /// # use clap_builder as clap;
     /// # use clap::{Command, arg, value_parser};
     ///
-    /// let m = Command::new(&quot;myprog&quot;)
+    /// let m = Command::new("myprog")
     ///     .arg(arg!(--color &lt;when&gt;)
-    ///         .value_parser([&quot;auto&quot;, &quot;always&quot;, &quot;never&quot;]))
+    ///         .value_parser(["auto", "always", "never"]))
     ///     .arg(arg!(--config &lt;path&gt;)
     ///         .value_parser(value_parser!(std::path::PathBuf)))
-    ///     .get_matches_from([&quot;myprog&quot;, &quot;--config=config.toml&quot;, &quot;--color=auto&quot;]);
+    ///     .get_matches_from(["myprog", "--config=config.toml", "--color=auto"]);
     /// assert_eq!(m.ids().len(), 2);
     /// assert_eq!(
     ///     m.ids()
     ///         .map(|id| id.as_str())
     ///         .collect::&lt;Vec&lt;_&gt;&gt;(),
-    ///     [&quot;config&quot;, &quot;color&quot;]
+    ///     ["config", "color"]
     /// );
     /// ```
-    </span><span class="kw">pub fn </span>ids(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IdsRef&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>ids(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IdsRef&lt;<span class="lifetime">'_</span>&gt; {
         IdsRef {
             iter: <span class="self">self</span>.args.keys(),
         }
@@ -2579,17 +2581,17 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
-    /// let mut cmd = Command::new(&quot;myapp&quot;)
-    ///     .arg(Arg::new(&quot;output&quot;)
+    /// let mut cmd = Command::new("myapp")
+    ///     .arg(Arg::new("output")
     ///         .action(ArgAction::Set));
     ///
     /// let m = cmd
-    ///     .try_get_matches_from_mut(vec![&quot;myapp&quot;, &quot;something&quot;])
+    ///     .try_get_matches_from_mut(vec!["myapp", "something"])
     ///     .unwrap();
     /// assert!(m.args_present());
     ///
     /// let m = cmd
-    ///     .try_get_matches_from_mut(vec![&quot;myapp&quot;])
+    ///     .try_get_matches_from_mut(vec!["myapp"])
     ///     .unwrap();
     /// assert!(! m.args_present());
     </span><span class="kw">pub fn </span>args_present(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -2608,15 +2610,15 @@
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
     /// # use clap::parser::ValueSource;
-    /// let m = Command::new(&quot;myprog&quot;)
-    ///     .arg(Arg::new(&quot;debug&quot;)
-    ///         .short(&#39;d&#39;)
+    /// let m = Command::new("myprog")
+    ///     .arg(Arg::new("debug")
+    ///         .short('d')
     ///         .action(ArgAction::SetTrue))
     ///     .get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;-d&quot;
+    ///         "myprog", "-d"
     ///     ]);
     ///
-    /// assert_eq!(m.value_source(&quot;debug&quot;), Some(ValueSource::CommandLine));
+    /// assert_eq!(m.value_source("debug"), Some(ValueSource::CommandLine));
     /// ```
     ///
     /// [`default_value`]: crate::Arg::default_value()
@@ -2631,7 +2633,7 @@
     ///
     /// Indices are similar to argv indices, but are not exactly 1:1.
     ///
-    /// For flags (i.e. those arguments which don&#39;t have an associated value), indices refer
+    /// For flags (i.e. those arguments which don't have an associated value), indices refer
     /// to occurrence of the switch, such as `-f`, or `--flag`. However, for options the indices
     /// refer to the *values* `-o val` would therefore not represent two distinct indices, only the
     /// index for `val` would be recorded. This is by design.
@@ -2652,25 +2654,25 @@
     /// # Examples
     ///
     /// The argv indices are listed in the comments below. See how they correspond to the clap
-    /// indices. Note that if it&#39;s not listed in a clap index, this is because it&#39;s not saved in
+    /// indices. Note that if it's not listed in a clap index, this is because it's not saved in
     /// in an `ArgMatches` struct for querying.
     ///
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
-    /// let m = Command::new(&quot;myapp&quot;)
-    ///     .arg(Arg::new(&quot;flag&quot;)
-    ///         .short(&#39;f&#39;)
+    /// let m = Command::new("myapp")
+    ///     .arg(Arg::new("flag")
+    ///         .short('f')
     ///         .action(ArgAction::SetTrue))
-    ///     .arg(Arg::new(&quot;option&quot;)
-    ///         .short(&#39;o&#39;)
+    ///     .arg(Arg::new("option")
+    ///         .short('o')
     ///         .action(ArgAction::Set))
-    ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-f&quot;, &quot;-o&quot;, &quot;val&quot;]);
+    ///     .get_matches_from(vec!["myapp", "-f", "-o", "val"]);
     ///            // ARGV indices: ^0       ^1    ^2    ^3
     ///            // clap indices:          ^1          ^3
     ///
-    /// assert_eq!(m.index_of(&quot;flag&quot;), Some(1));
-    /// assert_eq!(m.index_of(&quot;option&quot;), Some(3));
+    /// assert_eq!(m.index_of("flag"), Some(1));
+    /// assert_eq!(m.index_of("option"), Some(3));
     /// ```
     ///
     /// Now notice, if we use one of the other styles of options:
@@ -2678,50 +2680,50 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
-    /// let m = Command::new(&quot;myapp&quot;)
-    ///     .arg(Arg::new(&quot;flag&quot;)
-    ///         .short(&#39;f&#39;)
+    /// let m = Command::new("myapp")
+    ///     .arg(Arg::new("flag")
+    ///         .short('f')
     ///         .action(ArgAction::SetTrue))
-    ///     .arg(Arg::new(&quot;option&quot;)
-    ///         .short(&#39;o&#39;)
+    ///     .arg(Arg::new("option")
+    ///         .short('o')
     ///         .action(ArgAction::Set))
-    ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-f&quot;, &quot;-o=val&quot;]);
+    ///     .get_matches_from(vec!["myapp", "-f", "-o=val"]);
     ///            // ARGV indices: ^0       ^1    ^2
     ///            // clap indices:          ^1       ^3
     ///
-    /// assert_eq!(m.index_of(&quot;flag&quot;), Some(1));
-    /// assert_eq!(m.index_of(&quot;option&quot;), Some(3));
+    /// assert_eq!(m.index_of("flag"), Some(1));
+    /// assert_eq!(m.index_of("option"), Some(3));
     /// ```
     ///
     /// Things become much more complicated, or clear if we look at a more complex combination of
-    /// flags. Let&#39;s also throw in the final option style for good measure.
+    /// flags. Let's also throw in the final option style for good measure.
     ///
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
-    /// let m = Command::new(&quot;myapp&quot;)
-    ///     .arg(Arg::new(&quot;flag&quot;)
-    ///         .short(&#39;f&#39;)
+    /// let m = Command::new("myapp")
+    ///     .arg(Arg::new("flag")
+    ///         .short('f')
     ///         .action(ArgAction::SetTrue))
-    ///     .arg(Arg::new(&quot;flag2&quot;)
-    ///         .short(&#39;F&#39;)
+    ///     .arg(Arg::new("flag2")
+    ///         .short('F')
     ///         .action(ArgAction::SetTrue))
-    ///     .arg(Arg::new(&quot;flag3&quot;)
-    ///         .short(&#39;z&#39;)
+    ///     .arg(Arg::new("flag3")
+    ///         .short('z')
     ///         .action(ArgAction::SetTrue))
-    ///     .arg(Arg::new(&quot;option&quot;)
-    ///         .short(&#39;o&#39;)
+    ///     .arg(Arg::new("option")
+    ///         .short('o')
     ///         .action(ArgAction::Set))
-    ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-fzF&quot;, &quot;-oval&quot;]);
+    ///     .get_matches_from(vec!["myapp", "-fzF", "-oval"]);
     ///            // ARGV indices: ^0      ^1       ^2
     ///            // clap indices:         ^1,2,3    ^5
     ///            //
-    ///            // clap sees the above as &#39;myapp -f -z -F -o val&#39;
+    ///            // clap sees the above as 'myapp -f -z -F -o val'
     ///            //                         ^0    ^1 ^2 ^3 ^4 ^5
-    /// assert_eq!(m.index_of(&quot;flag&quot;), Some(1));
-    /// assert_eq!(m.index_of(&quot;flag2&quot;), Some(3));
-    /// assert_eq!(m.index_of(&quot;flag3&quot;), Some(2));
-    /// assert_eq!(m.index_of(&quot;option&quot;), Some(5));
+    /// assert_eq!(m.index_of("flag"), Some(1));
+    /// assert_eq!(m.index_of("flag2"), Some(3));
+    /// assert_eq!(m.index_of("flag3"), Some(2));
+    /// assert_eq!(m.index_of("option"), Some(5));
     /// ```
     ///
     /// One final combination of flags/options to see how they combine:
@@ -2729,29 +2731,29 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
-    /// let m = Command::new(&quot;myapp&quot;)
-    ///     .arg(Arg::new(&quot;flag&quot;)
-    ///         .short(&#39;f&#39;)
+    /// let m = Command::new("myapp")
+    ///     .arg(Arg::new("flag")
+    ///         .short('f')
     ///         .action(ArgAction::SetTrue))
-    ///     .arg(Arg::new(&quot;flag2&quot;)
-    ///         .short(&#39;F&#39;)
+    ///     .arg(Arg::new("flag2")
+    ///         .short('F')
     ///         .action(ArgAction::SetTrue))
-    ///     .arg(Arg::new(&quot;flag3&quot;)
-    ///         .short(&#39;z&#39;)
+    ///     .arg(Arg::new("flag3")
+    ///         .short('z')
     ///         .action(ArgAction::SetTrue))
-    ///     .arg(Arg::new(&quot;option&quot;)
-    ///         .short(&#39;o&#39;)
+    ///     .arg(Arg::new("option")
+    ///         .short('o')
     ///         .action(ArgAction::Set))
-    ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-fzFoval&quot;]);
+    ///     .get_matches_from(vec!["myapp", "-fzFoval"]);
     ///            // ARGV indices: ^0       ^1
     ///            // clap indices:          ^1,2,3^5
     ///            //
-    ///            // clap sees the above as &#39;myapp -f -z -F -o val&#39;
+    ///            // clap sees the above as 'myapp -f -z -F -o val'
     ///            //                         ^0    ^1 ^2 ^3 ^4 ^5
-    /// assert_eq!(m.index_of(&quot;flag&quot;), Some(1));
-    /// assert_eq!(m.index_of(&quot;flag2&quot;), Some(3));
-    /// assert_eq!(m.index_of(&quot;flag3&quot;), Some(2));
-    /// assert_eq!(m.index_of(&quot;option&quot;), Some(5));
+    /// assert_eq!(m.index_of("flag"), Some(1));
+    /// assert_eq!(m.index_of("flag2"), Some(3));
+    /// assert_eq!(m.index_of("flag3"), Some(2));
+    /// assert_eq!(m.index_of("option"), Some(5));
     /// ```
     ///
     /// The last part to mention is when values are sent in multiple groups with a [delimiter].
@@ -2759,19 +2761,19 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// let m = Command::new(&quot;myapp&quot;)
-    ///     .arg(Arg::new(&quot;option&quot;)
-    ///         .short(&#39;o&#39;)
-    ///         .value_delimiter(&#39;,&#39;)
+    /// let m = Command::new("myapp")
+    ///     .arg(Arg::new("option")
+    ///         .short('o')
+    ///         .value_delimiter(',')
     ///         .num_args(1..))
-    ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-o=val1,val2,val3&quot;]);
+    ///     .get_matches_from(vec!["myapp", "-o=val1,val2,val3"]);
     ///            // ARGV indices: ^0       ^1
     ///            // clap indices:             ^2   ^3   ^4
     ///            //
-    ///            // clap sees the above as &#39;myapp -o val1 val2 val3&#39;
+    ///            // clap sees the above as 'myapp -o val1 val2 val3'
     ///            //                         ^0    ^1 ^2   ^3   ^4
-    /// assert_eq!(m.index_of(&quot;option&quot;), Some(2));
-    /// assert_eq!(m.indices_of(&quot;option&quot;).unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;[2, 3, 4]);
+    /// assert_eq!(m.index_of("option"), Some(2));
+    /// assert_eq!(m.indices_of("option").unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;[2, 3, 4]);
     /// ```
     /// [delimiter]: crate::Arg::value_delimiter()
     </span><span class="attr">#[cfg_attr(debug_assertions, track_caller)]
@@ -2785,7 +2787,7 @@
     ///
     /// Indices are similar to argv indices, but are not exactly 1:1.
     ///
-    /// For flags (i.e. those arguments which don&#39;t have an associated value), indices refer
+    /// For flags (i.e. those arguments which don't have an associated value), indices refer
     /// to occurrence of the switch, such as `-f`, or `--flag`. However, for options the indices
     /// refer to the *values* `-o val` would therefore not represent two distinct indices, only the
     /// index for `val` would be recorded. This is by design.
@@ -2802,17 +2804,17 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg};
-    /// let m = Command::new(&quot;myapp&quot;)
-    ///     .arg(Arg::new(&quot;option&quot;)
-    ///         .short(&#39;o&#39;)
-    ///         .value_delimiter(&#39;,&#39;))
-    ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-o=val1,val2,val3&quot;]);
+    /// let m = Command::new("myapp")
+    ///     .arg(Arg::new("option")
+    ///         .short('o')
+    ///         .value_delimiter(','))
+    ///     .get_matches_from(vec!["myapp", "-o=val1,val2,val3"]);
     ///            // ARGV indices: ^0       ^1
     ///            // clap indices:             ^2   ^3   ^4
     ///            //
-    ///            // clap sees the above as &#39;myapp -o val1 val2 val3&#39;
+    ///            // clap sees the above as 'myapp -o val1 val2 val3'
     ///            //                         ^0    ^1 ^2   ^3   ^4
-    /// assert_eq!(m.indices_of(&quot;option&quot;).unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;[2, 3, 4]);
+    /// assert_eq!(m.indices_of("option").unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;[2, 3, 4]);
     /// ```
     ///
     /// Another quick example is when flags and options are used together
@@ -2820,47 +2822,47 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
-    /// let m = Command::new(&quot;myapp&quot;)
-    ///     .arg(Arg::new(&quot;option&quot;)
-    ///         .short(&#39;o&#39;)
+    /// let m = Command::new("myapp")
+    ///     .arg(Arg::new("option")
+    ///         .short('o')
     ///         .action(ArgAction::Set)
     ///         .action(ArgAction::Append))
-    ///     .arg(Arg::new(&quot;flag&quot;)
-    ///         .short(&#39;f&#39;)
+    ///     .arg(Arg::new("flag")
+    ///         .short('f')
     ///         .action(ArgAction::Count))
-    ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-o&quot;, &quot;val1&quot;, &quot;-f&quot;, &quot;-o&quot;, &quot;val2&quot;, &quot;-f&quot;]);
+    ///     .get_matches_from(vec!["myapp", "-o", "val1", "-f", "-o", "val2", "-f"]);
     ///            // ARGV indices: ^0       ^1    ^2      ^3    ^4    ^5      ^6
     ///            // clap indices:                ^2      ^3          ^5      ^6
     ///
-    /// assert_eq!(m.indices_of(&quot;option&quot;).unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;[2, 5]);
-    /// assert_eq!(m.indices_of(&quot;flag&quot;).unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;[6]);
+    /// assert_eq!(m.indices_of("option").unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;[2, 5]);
+    /// assert_eq!(m.indices_of("flag").unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;[6]);
     /// ```
     ///
-    /// One final example, which is an odd case; if we *don&#39;t* use  value delimiter as we did with
+    /// One final example, which is an odd case; if we *don't* use  value delimiter as we did with
     /// the first example above instead of `val1`, `val2` and `val3` all being distinc values, they
-    /// would all be a single value of `val1,val2,val3`, in which case they&#39;d only receive a single
+    /// would all be a single value of `val1,val2,val3`, in which case they'd only receive a single
     /// index.
     ///
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
-    /// let m = Command::new(&quot;myapp&quot;)
-    ///     .arg(Arg::new(&quot;option&quot;)
-    ///         .short(&#39;o&#39;)
+    /// let m = Command::new("myapp")
+    ///     .arg(Arg::new("option")
+    ///         .short('o')
     ///         .action(ArgAction::Set)
     ///         .num_args(1..))
-    ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-o=val1,val2,val3&quot;]);
+    ///     .get_matches_from(vec!["myapp", "-o=val1,val2,val3"]);
     ///            // ARGV indices: ^0       ^1
     ///            // clap indices:             ^2
     ///            //
-    ///            // clap sees the above as &#39;myapp -o &quot;val1,val2,val3&quot;&#39;
+    ///            // clap sees the above as 'myapp -o "val1,val2,val3"'
     ///            //                         ^0    ^1  ^2
-    /// assert_eq!(m.indices_of(&quot;option&quot;).unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;[2]);
+    /// assert_eq!(m.indices_of("option").unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;[2]);
     /// ```
     /// [`ArgMatches::index_of`]: ArgMatches::index_of()
     /// [delimiter]: Arg::value_delimiter()
     </span><span class="attr">#[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>indices_of(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Indices&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>indices_of(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Indices&lt;<span class="lifetime">'_</span>&gt;&gt; {
         <span class="kw">let </span>arg = <span class="macro">some!</span>(<span class="self">self</span>.get_arg(id));
         <span class="kw">let </span>i = Indices {
             iter: arg.indices(),
@@ -2876,29 +2878,29 @@
     ///
     /// Subcommand values are put in a child [`ArgMatches`]
     ///
-    /// Returns `None` if the subcommand wasn&#39;t present at runtime,
+    /// Returns `None` if the subcommand wasn't present at runtime,
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, };
-    ///  let app_m = Command::new(&quot;git&quot;)
-    ///      .subcommand(Command::new(&quot;clone&quot;))
-    ///      .subcommand(Command::new(&quot;push&quot;))
-    ///      .subcommand(Command::new(&quot;commit&quot;))
+    ///  let app_m = Command::new("git")
+    ///      .subcommand(Command::new("clone"))
+    ///      .subcommand(Command::new("push"))
+    ///      .subcommand(Command::new("commit"))
     ///      .get_matches();
     ///
     /// match app_m.subcommand() {
-    ///     Some((&quot;clone&quot;,  sub_m)) =&gt; {}, // clone was used
-    ///     Some((&quot;push&quot;,   sub_m)) =&gt; {}, // push was used
-    ///     Some((&quot;commit&quot;, sub_m)) =&gt; {}, // commit was used
+    ///     Some(("clone",  sub_m)) =&gt; {}, // clone was used
+    ///     Some(("push",   sub_m)) =&gt; {}, // push was used
+    ///     Some(("commit", sub_m)) =&gt; {}, // commit was used
     ///     _                       =&gt; {}, // Either no subcommand or one not tested for...
     /// }
     /// ```
     ///
     /// Another useful scenario is when you want to support third party, or external, subcommands.
-    /// In these cases you can&#39;t know the subcommand name ahead of time, so use a variable instead
+    /// In these cases you can't know the subcommand name ahead of time, so use a variable instead
     /// with pattern matching!
     ///
     /// ```rust
@@ -2906,21 +2908,21 @@
     /// # use std::ffi::OsString;
     /// # use std::ffi::OsStr;
     /// # use clap::Command;
-    /// // Assume there is an external subcommand named &quot;subcmd&quot;
-    /// let app_m = Command::new(&quot;myprog&quot;)
+    /// // Assume there is an external subcommand named "subcmd"
+    /// let app_m = Command::new("myprog")
     ///     .allow_external_subcommands(true)
     ///     .get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;subcmd&quot;, &quot;--option&quot;, &quot;value&quot;, &quot;-fff&quot;, &quot;--flag&quot;
+    ///         "myprog", "subcmd", "--option", "value", "-fff", "--flag"
     ///     ]);
     ///
-    /// // All trailing arguments will be stored under the subcommand&#39;s sub-matches using an empty
+    /// // All trailing arguments will be stored under the subcommand's sub-matches using an empty
     /// // string argument name
     /// match app_m.subcommand() {
     ///     Some((external, sub_m)) =&gt; {
-    ///          let ext_args: Vec&lt;&amp;OsStr&gt; = sub_m.get_many::&lt;OsString&gt;(&quot;&quot;)
+    ///          let ext_args: Vec&lt;&amp;OsStr&gt; = sub_m.get_many::&lt;OsString&gt;("")
     ///             .unwrap().map(|s| s.as_os_str()).collect();
-    ///          assert_eq!(external, &quot;subcmd&quot;);
-    ///          assert_eq!(ext_args, [&quot;--option&quot;, &quot;value&quot;, &quot;-fff&quot;, &quot;--flag&quot;]);
+    ///          assert_eq!(external, "subcmd");
+    ///          assert_eq!(ext_args, ["--option", "value", "-fff", "--flag"]);
     ///     },
     ///     _ =&gt; {},
     /// }
@@ -2935,53 +2937,53 @@
     ///
     /// Subcommand values are put in a child [`ArgMatches`]
     ///
-    /// Returns `None` if the subcommand wasn&#39;t present at runtime,
+    /// Returns `None` if the subcommand wasn't present at runtime,
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, };
-    ///  let mut app_m = Command::new(&quot;git&quot;)
-    ///      .subcommand(Command::new(&quot;clone&quot;))
-    ///      .subcommand(Command::new(&quot;push&quot;))
-    ///      .subcommand(Command::new(&quot;commit&quot;))
+    ///  let mut app_m = Command::new("git")
+    ///      .subcommand(Command::new("clone"))
+    ///      .subcommand(Command::new("push"))
+    ///      .subcommand(Command::new("commit"))
     ///      .subcommand_required(true)
     ///      .get_matches();
     ///
-    /// let (name, sub_m) = app_m.remove_subcommand().expect(&quot;required&quot;);
+    /// let (name, sub_m) = app_m.remove_subcommand().expect("required");
     /// match (name.as_str(), sub_m) {
-    ///     (&quot;clone&quot;,  sub_m) =&gt; {}, // clone was used
-    ///     (&quot;push&quot;,   sub_m) =&gt; {}, // push was used
-    ///     (&quot;commit&quot;, sub_m) =&gt; {}, // commit was used
-    ///     (name, _)         =&gt; unimplemented!(&quot;{name}&quot;),
+    ///     ("clone",  sub_m) =&gt; {}, // clone was used
+    ///     ("push",   sub_m) =&gt; {}, // push was used
+    ///     ("commit", sub_m) =&gt; {}, // commit was used
+    ///     (name, _)         =&gt; unimplemented!("{name}"),
     /// }
     /// ```
     ///
     /// Another useful scenario is when you want to support third party, or external, subcommands.
-    /// In these cases you can&#39;t know the subcommand name ahead of time, so use a variable instead
+    /// In these cases you can't know the subcommand name ahead of time, so use a variable instead
     /// with pattern matching!
     ///
     /// ```rust
     /// # use clap_builder as clap;
     /// # use std::ffi::OsString;
     /// # use clap::Command;
-    /// // Assume there is an external subcommand named &quot;subcmd&quot;
-    /// let mut app_m = Command::new(&quot;myprog&quot;)
+    /// // Assume there is an external subcommand named "subcmd"
+    /// let mut app_m = Command::new("myprog")
     ///     .allow_external_subcommands(true)
     ///     .get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;subcmd&quot;, &quot;--option&quot;, &quot;value&quot;, &quot;-fff&quot;, &quot;--flag&quot;
+    ///         "myprog", "subcmd", "--option", "value", "-fff", "--flag"
     ///     ]);
     ///
-    /// // All trailing arguments will be stored under the subcommand&#39;s sub-matches using an empty
+    /// // All trailing arguments will be stored under the subcommand's sub-matches using an empty
     /// // string argument name
     /// match app_m.remove_subcommand() {
     ///     Some((external, mut sub_m)) =&gt; {
-    ///          let ext_args: Vec&lt;OsString&gt; = sub_m.remove_many(&quot;&quot;)
-    ///             .expect(&quot;`file`is required&quot;)
+    ///          let ext_args: Vec&lt;OsString&gt; = sub_m.remove_many("")
+    ///             .expect("`file`is required")
     ///             .collect();
-    ///          assert_eq!(external, &quot;subcmd&quot;);
-    ///          assert_eq!(ext_args, [&quot;--option&quot;, &quot;value&quot;, &quot;-fff&quot;, &quot;--flag&quot;]);
+    ///          assert_eq!(external, "subcmd");
+    ///          assert_eq!(ext_args, ["--option", "value", "-fff", "--flag"]);
     ///     },
     ///     _ =&gt; {},
     /// }
@@ -2995,7 +2997,7 @@
     ///
     /// Subcommand values are put in a child [`ArgMatches`]
     ///
-    /// Returns `None` if the subcommand wasn&#39;t present at runtime,
+    /// Returns `None` if the subcommand wasn't present at runtime,
     ///
     /// # Panics
     ///
@@ -3006,26 +3008,26 @@
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, ArgAction};
-    /// let app_m = Command::new(&quot;myprog&quot;)
-    ///     .arg(Arg::new(&quot;debug&quot;)
-    ///         .short(&#39;d&#39;)
+    /// let app_m = Command::new("myprog")
+    ///     .arg(Arg::new("debug")
+    ///         .short('d')
     ///         .action(ArgAction::SetTrue)
     ///     )
-    ///     .subcommand(Command::new(&quot;test&quot;)
-    ///         .arg(Arg::new(&quot;opt&quot;)
-    ///             .long(&quot;option&quot;)
+    ///     .subcommand(Command::new("test")
+    ///         .arg(Arg::new("opt")
+    ///             .long("option")
     ///             .action(ArgAction::Set)))
     ///     .get_matches_from(vec![
-    ///         &quot;myprog&quot;, &quot;-d&quot;, &quot;test&quot;, &quot;--option&quot;, &quot;val&quot;
+    ///         "myprog", "-d", "test", "--option", "val"
     ///     ]);
     ///
     /// // Both parent commands, and child subcommands can have arguments present at the same times
-    /// assert!(app_m.get_flag(&quot;debug&quot;));
+    /// assert!(app_m.get_flag("debug"));
     ///
-    /// // Get the subcommand&#39;s ArgMatches instance
-    /// if let Some(sub_m) = app_m.subcommand_matches(&quot;test&quot;) {
+    /// // Get the subcommand's ArgMatches instance
+    /// if let Some(sub_m) = app_m.subcommand_matches("test") {
     ///     // Use the struct like normal
-    ///     assert_eq!(sub_m.get_one::&lt;String&gt;(&quot;opt&quot;).map(|s| s.as_str()), Some(&quot;val&quot;));
+    ///     assert_eq!(sub_m.get_one::&lt;String&gt;("opt").map(|s| s.as_str()), Some("val"));
     /// }
     /// ```
     ///
@@ -3037,23 +3039,23 @@
 
     <span class="doccomment">/// The name of the current [subcommand].
     ///
-    /// Returns `None` if the subcommand wasn&#39;t present at runtime,
+    /// Returns `None` if the subcommand wasn't present at runtime,
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, };
-    ///  let app_m = Command::new(&quot;git&quot;)
-    ///      .subcommand(Command::new(&quot;clone&quot;))
-    ///      .subcommand(Command::new(&quot;push&quot;))
-    ///      .subcommand(Command::new(&quot;commit&quot;))
+    ///  let app_m = Command::new("git")
+    ///      .subcommand(Command::new("clone"))
+    ///      .subcommand(Command::new("push"))
+    ///      .subcommand(Command::new("commit"))
     ///      .get_matches();
     ///
     /// match app_m.subcommand_name() {
-    ///     Some(&quot;clone&quot;)  =&gt; {}, // clone was used
-    ///     Some(&quot;push&quot;)   =&gt; {}, // push was used
-    ///     Some(&quot;commit&quot;) =&gt; {}, // commit was used
+    ///     Some("clone")  =&gt; {}, // clone was used
+    ///     Some("push")   =&gt; {}, // push was used
+    ///     Some("commit") =&gt; {}, // commit was used
     ///     _              =&gt; {}, // Either no subcommand or one not tested for...
     /// }
     /// ```
@@ -3067,7 +3069,7 @@
     <span class="doccomment">/// Check if a subcommand can be queried
     ///
     /// By default, `ArgMatches` functions assert on undefined `Id`s to help catch programmer
-    /// mistakes.  In some context, this doesn&#39;t work, so users can use this function to check
+    /// mistakes.  In some context, this doesn't work, so users can use this function to check
     /// before they do a query on `ArgMatches`.
     </span><span class="attr">#[inline]
     #[doc(hidden)]
@@ -3086,7 +3088,7 @@
 <span class="doccomment">/// # Advanced
 </span><span class="kw">impl </span>ArgMatches {
     <span class="doccomment">/// Non-panicking version of [`ArgMatches::get_one`]
-    </span><span class="kw">pub fn </span>try_get_one&lt;T: Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+    </span><span class="kw">pub fn </span>try_get_one&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;, MatchesError&gt; {
@@ -3104,10 +3106,10 @@
     </span>}
 
     <span class="doccomment">/// Non-panicking version of [`ArgMatches::get_many`]
-    </span><span class="kw">pub fn </span>try_get_many&lt;T: Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+    </span><span class="kw">pub fn </span>try_get_many&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ValuesRef&lt;T&gt;&gt;, MatchesError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ValuesRef&lt;<span class="lifetime">'_</span>, T&gt;&gt;, MatchesError&gt; {
         <span class="kw">let </span>arg = <span class="kw">match </span><span class="macro">ok!</span>(<span class="self">self</span>.try_get_arg_t::&lt;T&gt;(id)) {
             <span class="prelude-val">Some</span>(arg) =&gt; arg,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
@@ -3123,10 +3125,10 @@
     }
 
     <span class="doccomment">/// Non-panicking version of [`ArgMatches::get_occurrences`]
-    </span><span class="kw">pub fn </span>try_get_occurrences&lt;T: Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+    </span><span class="kw">pub fn </span>try_get_occurrences&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;OccurrencesRef&lt;T&gt;&gt;, MatchesError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;OccurrencesRef&lt;<span class="lifetime">'_</span>, T&gt;&gt;, MatchesError&gt; {
         <span class="kw">let </span>arg = <span class="kw">match </span><span class="macro">ok!</span>(<span class="self">self</span>.try_get_arg_t::&lt;T&gt;(id)) {
             <span class="prelude-val">Some</span>(arg) =&gt; arg,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
@@ -3140,7 +3142,7 @@
     }
 
     <span class="doccomment">/// Non-panicking version of [`ArgMatches::get_raw`]
-    </span><span class="kw">pub fn </span>try_get_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;RawValues&lt;<span class="lifetime">&#39;_</span>&gt;&gt;, MatchesError&gt; {
+    </span><span class="kw">pub fn </span>try_get_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;RawValues&lt;<span class="lifetime">'_</span>&gt;&gt;, MatchesError&gt; {
         <span class="kw">let </span>arg = <span class="kw">match </span><span class="macro">ok!</span>(<span class="self">self</span>.try_get_arg(id)) {
             <span class="prelude-val">Some</span>(arg) =&gt; arg,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
@@ -3158,7 +3160,7 @@
     </span><span class="kw">pub fn </span>try_get_raw_occurrences(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;RawOccurrences&lt;<span class="lifetime">&#39;_</span>&gt;&gt;, MatchesError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;RawOccurrences&lt;<span class="lifetime">'_</span>&gt;&gt;, MatchesError&gt; {
         <span class="kw">let </span>arg = <span class="kw">match </span><span class="macro">ok!</span>(<span class="self">self</span>.try_get_arg(id)) {
             <span class="prelude-val">Some</span>(arg) =&gt; arg,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
@@ -3173,7 +3175,7 @@
     }
 
     <span class="doccomment">/// Non-panicking version of [`ArgMatches::remove_one`]
-    </span><span class="kw">pub fn </span>try_remove_one&lt;T: Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+    </span><span class="kw">pub fn </span>try_remove_one&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T&gt;, MatchesError&gt; {
@@ -3188,7 +3190,7 @@
     }
 
     <span class="doccomment">/// Non-panicking version of [`ArgMatches::remove_many`]
-    </span><span class="kw">pub fn </span>try_remove_many&lt;T: Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+    </span><span class="kw">pub fn </span>try_remove_many&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Values&lt;T&gt;&gt;, MatchesError&gt; {
@@ -3207,7 +3209,7 @@
     }
 
     <span class="doccomment">/// Non-panicking version of [`ArgMatches::remove_occurrences`]
-    </span><span class="kw">pub fn </span>try_remove_occurrences&lt;T: Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+    </span><span class="kw">pub fn </span>try_remove_occurrences&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Occurrences&lt;T&gt;&gt;, MatchesError&gt; {
@@ -3242,7 +3244,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>try_get_arg_t&lt;T: Any + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+    </span><span class="kw">fn </span>try_get_arg_t&lt;T: Any + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         arg: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MatchedArg&gt;, MatchesError&gt; {
@@ -3257,7 +3259,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>try_remove_arg_t&lt;T: Any + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+    </span><span class="kw">fn </span>try_remove_arg_t&lt;T: Any + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         arg: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;MatchedArg&gt;, MatchesError&gt; {
@@ -3279,7 +3281,7 @@
         }
     }
 
-    <span class="kw">fn </span>verify_arg_t&lt;T: Any + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+    <span class="kw">fn </span>verify_arg_t&lt;T: Any + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         arg: <span class="kw-2">&amp;</span>MatchedArg,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), MatchesError&gt; {
@@ -3299,9 +3301,9 @@
             <span class="kw">if </span>_arg == Id::EXTERNAL || <span class="self">self</span>.valid_args.iter().any(|s| <span class="kw-2">*</span>s == _arg) {
             } <span class="kw">else </span>{
                 <span class="macro">debug!</span>(
-                    <span class="string">&quot;`{:?}` is not an id of an argument or a group.\n\
-                     Make sure you&#39;re using the name of the argument itself \
-                     and not the name of short or long flags.&quot;</span>,
+                    <span class="string">"`{:?}` is not an id of an argument or a group.\n\
+                     Make sure you're using the name of the argument itself \
+                     and not the name of short or long flags."</span>,
                     _arg
                 );
                 <span class="kw">return </span><span class="prelude-val">Err</span>(MatchesError::UnknownArgument {});
@@ -3312,15 +3314,15 @@
 
     <span class="attr">#[inline]
     #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">fn </span>get_arg&lt;<span class="lifetime">&#39;s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>MatchedArg&gt; {
+    </span><span class="kw">fn </span>get_arg&lt;<span class="lifetime">'s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>MatchedArg&gt; {
         <span class="attr">#[cfg(debug_assertions)]
         </span>{
             <span class="kw">if </span>arg == Id::EXTERNAL || <span class="self">self</span>.valid_args.iter().any(|s| <span class="kw-2">*</span>s == arg) {
             } <span class="kw">else </span>{
                 <span class="macro">panic!</span>(
-                    <span class="string">&quot;`{arg:?}` is not an id of an argument or a group.\n\
-                     Make sure you&#39;re using the name of the argument itself \
-                     and not the name of short or long flags.&quot;
+                    <span class="string">"`{arg:?}` is not an id of an argument or a group.\n\
+                     Make sure you're using the name of the argument itself \
+                     and not the name of short or long flags."
                 </span>);
             }
         }
@@ -3335,7 +3337,7 @@
         </span>{
             <span class="kw">if </span>name.is_empty() || <span class="self">self</span>.valid_subcommands.iter().any(|s| <span class="kw-2">*</span>s == name) {
             } <span class="kw">else </span>{
-                <span class="macro">panic!</span>(<span class="string">&quot;`{name}` is not a name of a subcommand.&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">"`{name}` is not a name of a subcommand."</span>);
             }
         }
 
@@ -3355,7 +3357,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) matches: ArgMatches,
 }
 
-<span class="doccomment">/// Iterate over [`Arg`][crate::Arg] and [`ArgGroup`][crate::ArgGroup] [`Id`][crate::Id]s via [`ArgMatches::ids`].
+<span class="doccomment">/// Iterate over [`Arg`][crate::Arg] and [`ArgGroup`][crate::ArgGroup] [`Id`]s via [`ArgMatches::ids`].
 ///
 /// # Examples
 ///
@@ -3363,28 +3365,28 @@
 /// # use clap_builder as clap;
 /// # use clap::{Command, arg, value_parser};
 ///
-/// let m = Command::new(&quot;myprog&quot;)
+/// let m = Command::new("myprog")
 ///     .arg(arg!(--color &lt;when&gt;)
-///         .value_parser([&quot;auto&quot;, &quot;always&quot;, &quot;never&quot;]))
+///         .value_parser(["auto", "always", "never"]))
 ///     .arg(arg!(--config &lt;path&gt;)
 ///         .value_parser(value_parser!(std::path::PathBuf)))
-///     .get_matches_from([&quot;myprog&quot;, &quot;--config=config.toml&quot;, &quot;--color=auto&quot;]);
+///     .get_matches_from(["myprog", "--config=config.toml", "--color=auto"]);
 /// assert_eq!(
 ///     m.ids()
 ///         .map(|id| id.as_str())
 ///         .collect::&lt;Vec&lt;_&gt;&gt;(),
-///     [&quot;config&quot;, &quot;color&quot;]
+///     ["config", "color"]
 /// );
 /// ```
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>IdsRef&lt;<span class="lifetime">&#39;a</span>&gt; {
-    iter: std::slice::Iter&lt;<span class="lifetime">&#39;a</span>, Id&gt;,
+</span><span class="kw">pub struct </span>IdsRef&lt;<span class="lifetime">'a</span>&gt; {
+    iter: Iter&lt;<span class="lifetime">'a</span>, Id&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>IdsRef&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Id;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Iterator <span class="kw">for </span>IdsRef&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Id;
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Id&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Id&gt; {
         <span class="self">self</span>.iter.next()
     }
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
@@ -3392,13 +3394,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DoubleEndedIterator <span class="kw">for </span>IdsRef&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Id&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DoubleEndedIterator <span class="kw">for </span>IdsRef&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Id&gt; {
         <span class="self">self</span>.iter.next_back()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ExactSizeIterator <span class="kw">for </span>IdsRef&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ExactSizeIterator <span class="kw">for </span>IdsRef&lt;<span class="lifetime">'a</span>&gt; {}
 
 <span class="doccomment">/// Iterate over multiple values for an argument via [`ArgMatches::remove_many`].
 ///
@@ -3407,17 +3409,17 @@
 /// ```rust
 /// # use clap_builder as clap;
 /// # use clap::{Command, Arg, ArgAction};
-/// let mut m = Command::new(&quot;myapp&quot;)
-///     .arg(Arg::new(&quot;output&quot;)
-///         .short(&#39;o&#39;)
+/// let mut m = Command::new("myapp")
+///     .arg(Arg::new("output")
+///         .short('o')
 ///         .action(ArgAction::Append))
-///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-o&quot;, &quot;val1&quot;, &quot;-o&quot;, &quot;val2&quot;]);
+///     .get_matches_from(vec!["myapp", "-o", "val1", "-o", "val2"]);
 ///
-/// let mut values = m.remove_many::&lt;String&gt;(&quot;output&quot;)
+/// let mut values = m.remove_many::&lt;String&gt;("output")
 ///     .unwrap();
 ///
-/// assert_eq!(values.next(), Some(String::from(&quot;val1&quot;)));
-/// assert_eq!(values.next(), Some(String::from(&quot;val2&quot;)));
+/// assert_eq!(values.next(), Some(String::from("val1")));
+/// assert_eq!(values.next(), Some(String::from("val2")));
 /// assert_eq!(values.next(), None);
 /// ```
 </span><span class="attr">#[derive(Clone, Debug)]
@@ -3474,29 +3476,29 @@
 /// ```rust
 /// # use clap_builder as clap;
 /// # use clap::{Command, Arg, ArgAction};
-/// let m = Command::new(&quot;myapp&quot;)
-///     .arg(Arg::new(&quot;output&quot;)
-///         .short(&#39;o&#39;)
+/// let m = Command::new("myapp")
+///     .arg(Arg::new("output")
+///         .short('o')
 ///         .action(ArgAction::Append))
-///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-o&quot;, &quot;val1&quot;, &quot;-o&quot;, &quot;val2&quot;]);
+///     .get_matches_from(vec!["myapp", "-o", "val1", "-o", "val2"]);
 ///
-/// let mut values = m.get_many::&lt;String&gt;(&quot;output&quot;)
+/// let mut values = m.get_many::&lt;String&gt;("output")
 ///     .unwrap()
 ///     .map(|s| s.as_str());
 ///
-/// assert_eq!(values.next(), Some(&quot;val1&quot;));
-/// assert_eq!(values.next(), Some(&quot;val2&quot;));
+/// assert_eq!(values.next(), Some("val1"));
+/// assert_eq!(values.next(), Some("val2"));
 /// assert_eq!(values.next(), None);
 /// ```
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>ValuesRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+</span><span class="kw">pub struct </span>ValuesRef&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="attr">#[allow(clippy::type_complexity)]
-    </span>iter: Map&lt;Flatten&lt;Iter&lt;<span class="lifetime">&#39;a</span>, Vec&lt;AnyValue&gt;&gt;&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>AnyValue) -&gt; <span class="kw-2">&amp;</span>T&gt;,
+    </span>iter: Map&lt;Flatten&lt;Iter&lt;<span class="lifetime">'a</span>, Vec&lt;AnyValue&gt;&gt;&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>AnyValue) -&gt; <span class="kw-2">&amp;</span>T&gt;,
     len: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>ValuesRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>&gt; Iterator <span class="kw">for </span>ValuesRef&lt;<span class="lifetime">'a</span>, T&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.iter.next() {
@@ -3511,7 +3513,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;a</span>&gt; DoubleEndedIterator <span class="kw">for </span>ValuesRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>&gt; DoubleEndedIterator <span class="kw">for </span>ValuesRef&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.iter.next_back() {
             <span class="self">self</span>.len -= <span class="number">1</span>;
@@ -3522,10 +3524,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;a</span>&gt; ExactSizeIterator <span class="kw">for </span>ValuesRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>&gt; ExactSizeIterator <span class="kw">for </span>ValuesRef&lt;<span class="lifetime">'a</span>, T&gt; {}
 
 <span class="doccomment">/// Creates an empty iterator.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;a</span>&gt; Default <span class="kw">for </span>ValuesRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>&gt; Default <span class="kw">for </span>ValuesRef&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">static </span>EMPTY: [Vec&lt;AnyValue&gt;; <span class="number">0</span>] = [];
         ValuesRef {
@@ -3546,32 +3548,32 @@
 /// use std::ffi::OsString;
 /// use std::os::unix::ffi::{OsStrExt,OsStringExt};
 ///
-/// let m = Command::new(&quot;utf8&quot;)
-///     .arg(arg!(&lt;arg&gt; &quot;some arg&quot;)
+/// let m = Command::new("utf8")
+///     .arg(arg!(&lt;arg&gt; "some arg")
 ///         .value_parser(value_parser!(OsString)))
-///     .get_matches_from(vec![OsString::from(&quot;myprog&quot;),
-///                             // &quot;Hi {0xe9}!&quot;
-///                             OsString::from_vec(vec![b&#39;H&#39;, b&#39;i&#39;, b&#39; &#39;, 0xe9, b&#39;!&#39;])]);
+///     .get_matches_from(vec![OsString::from("myprog"),
+///                             // "Hi {0xe9}!"
+///                             OsString::from_vec(vec![b'H', b'i', b' ', 0xe9, b'!'])]);
 /// assert_eq!(
-///     &amp;*m.get_raw(&quot;arg&quot;)
+///     &amp;*m.get_raw("arg")
 ///         .unwrap()
 ///         .next().unwrap()
 ///         .as_bytes(),
-///     [b&#39;H&#39;, b&#39;i&#39;, b&#39; &#39;, 0xe9, b&#39;!&#39;]
+///     [b'H', b'i', b' ', 0xe9, b'!']
 /// );
 /// # }
 /// ```
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>RawValues&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>RawValues&lt;<span class="lifetime">'a</span>&gt; {
     <span class="attr">#[allow(clippy::type_complexity)]
-    </span>iter: Map&lt;Flatten&lt;Iter&lt;<span class="lifetime">&#39;a</span>, Vec&lt;OsString&gt;&gt;&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>OsString) -&gt; <span class="kw-2">&amp;</span>OsStr&gt;,
+    </span>iter: Map&lt;Flatten&lt;Iter&lt;<span class="lifetime">'a</span>, Vec&lt;OsString&gt;&gt;&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>OsString) -&gt; <span class="kw-2">&amp;</span>OsStr&gt;,
     len: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>RawValues&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Iterator <span class="kw">for </span>RawValues&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>OsStr;
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>OsStr&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.iter.next() {
             <span class="self">self</span>.len -= <span class="number">1</span>;
             <span class="prelude-val">Some</span>(next)
@@ -3584,8 +3586,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DoubleEndedIterator <span class="kw">for </span>RawValues&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DoubleEndedIterator <span class="kw">for </span>RawValues&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>OsStr&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.iter.next_back() {
             <span class="self">self</span>.len -= <span class="number">1</span>;
             <span class="prelude-val">Some</span>(next)
@@ -3595,10 +3597,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ExactSizeIterator <span class="kw">for </span>RawValues&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ExactSizeIterator <span class="kw">for </span>RawValues&lt;<span class="lifetime">'a</span>&gt; {}
 
 <span class="doccomment">/// Creates an empty iterator.
-</span><span class="kw">impl </span>Default <span class="kw">for </span>RawValues&lt;<span class="lifetime">&#39;_</span>&gt; {
+</span><span class="kw">impl </span>Default <span class="kw">for </span>RawValues&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">static </span>EMPTY: [Vec&lt;OsString&gt;; <span class="number">0</span>] = [];
         RawValues {
@@ -3614,16 +3616,16 @@
 // license: MIT - Copyright (c) 2015 The Rust Project Developers
 
 </span><span class="attr">#[derive(Clone, Debug)]
-#[deprecated(since = <span class="string">&quot;4.1.0&quot;</span>, note = <span class="string">&quot;Use Occurrences instead&quot;</span>)]
-</span><span class="kw">pub struct </span>GroupedValues&lt;<span class="lifetime">&#39;a</span>&gt; {
+#[deprecated(since = <span class="string">"4.1.0"</span>, note = <span class="string">"Use Occurrences instead"</span>)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GroupedValues&lt;<span class="lifetime">'a</span>&gt; {
     <span class="attr">#[allow(clippy::type_complexity)]
-    </span>iter: Map&lt;Iter&lt;<span class="lifetime">&#39;a</span>, Vec&lt;AnyValue&gt;&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Vec&lt;AnyValue&gt;) -&gt; Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;,
+    </span>iter: Map&lt;Iter&lt;<span class="lifetime">'a</span>, Vec&lt;AnyValue&gt;&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Vec&lt;AnyValue&gt;) -&gt; Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;,
     len: usize,
 }
 
 <span class="attr">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;;
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Iterator <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">type </span>Item = Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.iter.next() {
@@ -3639,7 +3641,7 @@
 }
 
 <span class="attr">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DoubleEndedIterator <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DoubleEndedIterator <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.iter.next_back() {
             <span class="self">self</span>.len -= <span class="number">1</span>;
@@ -3651,11 +3653,11 @@
 }
 
 <span class="attr">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ExactSizeIterator <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">&#39;a</span>&gt; {}
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ExactSizeIterator <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">'a</span>&gt; {}
 
 <span class="doccomment">/// Creates an empty iterator. Used for `unwrap_or_default()`.
 </span><span class="attr">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Default <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Default <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">static </span>EMPTY: [Vec&lt;AnyValue&gt;; <span class="number">0</span>] = [];
         GroupedValues {
@@ -3727,16 +3729,16 @@
 <span class="kw">impl</span>&lt;T&gt; ExactSizeIterator <span class="kw">for </span>OccurrenceValues&lt;T&gt; {}
 
 <span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>OccurrencesRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+</span><span class="kw">pub struct </span>OccurrencesRef&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="attr">#[allow(clippy::type_complexity)]
-    </span>iter: Map&lt;Iter&lt;<span class="lifetime">&#39;a</span>, Vec&lt;AnyValue&gt;&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Vec&lt;AnyValue&gt;) -&gt; OccurrenceValuesRef&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt;,
+    </span>iter: Map&lt;Iter&lt;<span class="lifetime">'a</span>, Vec&lt;AnyValue&gt;&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Vec&lt;AnyValue&gt;) -&gt; OccurrenceValuesRef&lt;<span class="lifetime">'_</span>, T&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Iterator <span class="kw">for </span>OccurrencesRef&lt;<span class="lifetime">&#39;a</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Iterator <span class="kw">for </span>OccurrencesRef&lt;<span class="lifetime">'a</span>, T&gt;
 <span class="kw">where
-    </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>,
+    </span><span class="self">Self</span>: <span class="lifetime">'a</span>,
 {
-    <span class="kw">type </span>Item = OccurrenceValuesRef&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+    <span class="kw">type </span>Item = OccurrenceValuesRef&lt;<span class="lifetime">'a</span>, T&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="self">self</span>.iter.next()
@@ -3747,17 +3749,17 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; DoubleEndedIterator <span class="kw">for </span>OccurrencesRef&lt;<span class="lifetime">&#39;a</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; DoubleEndedIterator <span class="kw">for </span>OccurrencesRef&lt;<span class="lifetime">'a</span>, T&gt;
 <span class="kw">where
-    </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>,
+    </span><span class="self">Self</span>: <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="self">self</span>.iter.next_back()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; ExactSizeIterator <span class="kw">for </span>OccurrencesRef&lt;<span class="lifetime">&#39;a</span>, T&gt; <span class="kw">where </span><span class="self">Self</span>: <span class="lifetime">&#39;a </span>{}
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Default <span class="kw">for </span>OccurrencesRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; ExactSizeIterator <span class="kw">for </span>OccurrencesRef&lt;<span class="lifetime">'a</span>, T&gt; <span class="kw">where </span><span class="self">Self</span>: <span class="lifetime">'a </span>{}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Default <span class="kw">for </span>OccurrencesRef&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">static </span>EMPTY: [Vec&lt;AnyValue&gt;; <span class="number">0</span>] = [];
         OccurrencesRef {
@@ -3767,16 +3769,16 @@
 }
 
 <span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>OccurrenceValuesRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+</span><span class="kw">pub struct </span>OccurrenceValuesRef&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="attr">#[allow(clippy::type_complexity)]
-    </span>iter: Map&lt;Iter&lt;<span class="lifetime">&#39;a</span>, AnyValue&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>AnyValue) -&gt; <span class="kw-2">&amp;</span>T&gt;,
+    </span>iter: Map&lt;Iter&lt;<span class="lifetime">'a</span>, AnyValue&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>AnyValue) -&gt; <span class="kw-2">&amp;</span>T&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Iterator <span class="kw">for </span>OccurrenceValuesRef&lt;<span class="lifetime">&#39;a</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Iterator <span class="kw">for </span>OccurrenceValuesRef&lt;<span class="lifetime">'a</span>, T&gt;
 <span class="kw">where
-    </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>,
+    </span><span class="self">Self</span>: <span class="lifetime">'a</span>,
 {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="self">self</span>.iter.next()
@@ -3787,25 +3789,25 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; DoubleEndedIterator <span class="kw">for </span>OccurrenceValuesRef&lt;<span class="lifetime">&#39;a</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; DoubleEndedIterator <span class="kw">for </span>OccurrenceValuesRef&lt;<span class="lifetime">'a</span>, T&gt;
 <span class="kw">where
-    </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>,
+    </span><span class="self">Self</span>: <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="self">self</span>.iter.next_back()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; ExactSizeIterator <span class="kw">for </span>OccurrenceValuesRef&lt;<span class="lifetime">&#39;a</span>, T&gt; <span class="kw">where </span><span class="self">Self</span>: <span class="lifetime">&#39;a </span>{}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; ExactSizeIterator <span class="kw">for </span>OccurrenceValuesRef&lt;<span class="lifetime">'a</span>, T&gt; <span class="kw">where </span><span class="self">Self</span>: <span class="lifetime">'a </span>{}
 
 <span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>RawOccurrences&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>RawOccurrences&lt;<span class="lifetime">'a</span>&gt; {
     <span class="attr">#[allow(clippy::type_complexity)]
-    </span>iter: Map&lt;Iter&lt;<span class="lifetime">&#39;a</span>, Vec&lt;OsString&gt;&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Vec&lt;OsString&gt;) -&gt; RawOccurrenceValues&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
+    </span>iter: Map&lt;Iter&lt;<span class="lifetime">'a</span>, Vec&lt;OsString&gt;&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Vec&lt;OsString&gt;) -&gt; RawOccurrenceValues&lt;<span class="lifetime">'_</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>RawOccurrences&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = RawOccurrenceValues&lt;<span class="lifetime">&#39;a</span>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Iterator <span class="kw">for </span>RawOccurrences&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">type </span>Item = RawOccurrenceValues&lt;<span class="lifetime">'a</span>&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="self">self</span>.iter.next()
@@ -3816,15 +3818,15 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DoubleEndedIterator <span class="kw">for </span>RawOccurrences&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DoubleEndedIterator <span class="kw">for </span>RawOccurrences&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="self">self</span>.iter.next_back()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ExactSizeIterator <span class="kw">for </span>RawOccurrences&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ExactSizeIterator <span class="kw">for </span>RawOccurrences&lt;<span class="lifetime">'a</span>&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Default <span class="kw">for </span>RawOccurrences&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Default <span class="kw">for </span>RawOccurrences&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">static </span>EMPTY: [Vec&lt;OsString&gt;; <span class="number">0</span>] = [];
         RawOccurrences {
@@ -3834,16 +3836,16 @@
 }
 
 <span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>RawOccurrenceValues&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>RawOccurrenceValues&lt;<span class="lifetime">'a</span>&gt; {
     <span class="attr">#[allow(clippy::type_complexity)]
-    </span>iter: Map&lt;Iter&lt;<span class="lifetime">&#39;a</span>, OsString&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>OsString) -&gt; <span class="kw-2">&amp;</span>OsStr&gt;,
+    </span>iter: Map&lt;Iter&lt;<span class="lifetime">'a</span>, OsString&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>OsString) -&gt; <span class="kw-2">&amp;</span>OsStr&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>RawOccurrenceValues&lt;<span class="lifetime">&#39;a</span>&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Iterator <span class="kw">for </span>RawOccurrenceValues&lt;<span class="lifetime">'a</span>&gt;
 <span class="kw">where
-    </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>,
+    </span><span class="self">Self</span>: <span class="lifetime">'a</span>,
 {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr;
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>OsStr;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="self">self</span>.iter.next()
@@ -3854,16 +3856,16 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DoubleEndedIterator <span class="kw">for </span>RawOccurrenceValues&lt;<span class="lifetime">&#39;a</span>&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DoubleEndedIterator <span class="kw">for </span>RawOccurrenceValues&lt;<span class="lifetime">'a</span>&gt;
 <span class="kw">where
-    </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>,
+    </span><span class="self">Self</span>: <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="self">self</span>.iter.next_back()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ExactSizeIterator <span class="kw">for </span>RawOccurrenceValues&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ExactSizeIterator <span class="kw">for </span>RawOccurrenceValues&lt;<span class="lifetime">'a</span>&gt; {}
 
 <span class="doccomment">/// Iterate over indices for where an argument appeared when parsing, via [`ArgMatches::indices_of`]
 ///
@@ -3872,14 +3874,14 @@
 /// ```rust
 /// # use clap_builder as clap;
 /// # use clap::{Command, Arg, ArgAction};
-/// let m = Command::new(&quot;myapp&quot;)
-///     .arg(Arg::new(&quot;output&quot;)
-///         .short(&#39;o&#39;)
+/// let m = Command::new("myapp")
+///     .arg(Arg::new("output")
+///         .short('o')
 ///         .num_args(1..)
 ///         .action(ArgAction::Set))
-///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-o&quot;, &quot;val1&quot;, &quot;val2&quot;]);
+///     .get_matches_from(vec!["myapp", "-o", "val1", "val2"]);
 ///
-/// let mut indices = m.indices_of(&quot;output&quot;).unwrap();
+/// let mut indices = m.indices_of("output").unwrap();
 ///
 /// assert_eq!(indices.next(), Some(2));
 /// assert_eq!(indices.next(), Some(3));
@@ -3887,12 +3889,12 @@
 /// ```
 /// [`ArgMatches::indices_of`]: ArgMatches::indices_of()
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>Indices&lt;<span class="lifetime">&#39;a</span>&gt; {
-    iter: Cloned&lt;Iter&lt;<span class="lifetime">&#39;a</span>, usize&gt;&gt;,
+</span><span class="kw">pub struct </span>Indices&lt;<span class="lifetime">'a</span>&gt; {
+    iter: Cloned&lt;Iter&lt;<span class="lifetime">'a</span>, usize&gt;&gt;,
     len: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Indices&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Iterator <span class="kw">for </span>Indices&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">type </span>Item = usize;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
@@ -3908,7 +3910,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DoubleEndedIterator <span class="kw">for </span>Indices&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DoubleEndedIterator <span class="kw">for </span>Indices&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.iter.next_back() {
             <span class="self">self</span>.len -= <span class="number">1</span>;
@@ -3919,10 +3921,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ExactSizeIterator <span class="kw">for </span>Indices&lt;<span class="lifetime">&#39;a</span>&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ExactSizeIterator <span class="kw">for </span>Indices&lt;<span class="lifetime">'a</span>&gt; {}
 
 <span class="doccomment">/// Creates an empty iterator.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Default <span class="kw">for </span>Indices&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Default <span class="kw">for </span>Indices&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">static </span>EMPTY: [usize; <span class="number">0</span>] = [];
         <span class="comment">// This is never called because the iterator is empty:
@@ -3934,12 +3936,12 @@
 }
 
 <span class="attr">#[track_caller]
-</span><span class="kw">fn </span>unwrap_downcast_ref&lt;T: Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(value: <span class="kw-2">&amp;</span>AnyValue) -&gt; <span class="kw-2">&amp;</span>T {
+</span><span class="kw">fn </span>unwrap_downcast_ref&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(value: <span class="kw-2">&amp;</span>AnyValue) -&gt; <span class="kw-2">&amp;</span>T {
     value.downcast_ref().expect(INTERNAL_ERROR_MSG)
 }
 
 <span class="attr">#[track_caller]
-</span><span class="kw">fn </span>unwrap_downcast_into&lt;T: Any + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(value: AnyValue) -&gt; T {
+</span><span class="kw">fn </span>unwrap_downcast_into&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(value: AnyValue) -&gt; T {
     value.downcast_into().expect(INTERNAL_ERROR_MSG)
 }
 
@@ -3956,103 +3958,103 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_default_raw_values() {
-        <span class="kw">let </span><span class="kw-2">mut </span>values: RawValues = Default::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>values: RawValues&lt;<span class="lifetime">'_</span>&gt; = Default::default();
         <span class="macro">assert_eq!</span>(values.next(), <span class="prelude-val">None</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_default_indices() {
-        <span class="kw">let </span><span class="kw-2">mut </span>indices: Indices = Indices::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>indices: Indices&lt;<span class="lifetime">'_</span>&gt; = Indices::default();
         <span class="macro">assert_eq!</span>(indices.next(), <span class="prelude-val">None</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_default_indices_with_shorter_lifetime() {
         <span class="kw">let </span>matches = ArgMatches::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>indices = matches.indices_of(<span class="string">&quot;&quot;</span>).unwrap_or_default();
+        <span class="kw">let </span><span class="kw-2">mut </span>indices = matches.indices_of(<span class="string">""</span>).unwrap_or_default();
         <span class="macro">assert_eq!</span>(indices.next(), <span class="prelude-val">None</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>values_exact_size() {
-        <span class="kw">let </span>l = <span class="kw">crate</span>::Command::new(<span class="string">&quot;test&quot;</span>)
+        <span class="kw">let </span>l = <span class="kw">crate</span>::Command::new(<span class="string">"test"</span>)
             .arg(
-                <span class="kw">crate</span>::Arg::new(<span class="string">&quot;POTATO&quot;</span>)
+                <span class="kw">crate</span>::Arg::new(<span class="string">"POTATO"</span>)
                     .action(ArgAction::Set)
                     .num_args(<span class="number">1</span>..)
                     .required(<span class="bool-val">true</span>),
             )
-            .try_get_matches_from([<span class="string">&quot;test&quot;</span>, <span class="string">&quot;one&quot;</span>])
+            .try_get_matches_from([<span class="string">"test"</span>, <span class="string">"one"</span>])
             .unwrap()
-            .get_many::&lt;String&gt;(<span class="string">&quot;POTATO&quot;</span>)
-            .expect(<span class="string">&quot;present&quot;</span>)
+            .get_many::&lt;String&gt;(<span class="string">"POTATO"</span>)
+            .expect(<span class="string">"present"</span>)
             .count();
         <span class="macro">assert_eq!</span>(l, <span class="number">1</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>os_values_exact_size() {
-        <span class="kw">let </span>l = <span class="kw">crate</span>::Command::new(<span class="string">&quot;test&quot;</span>)
+        <span class="kw">let </span>l = <span class="kw">crate</span>::Command::new(<span class="string">"test"</span>)
             .arg(
-                <span class="kw">crate</span>::Arg::new(<span class="string">&quot;POTATO&quot;</span>)
+                <span class="kw">crate</span>::Arg::new(<span class="string">"POTATO"</span>)
                     .action(ArgAction::Set)
                     .num_args(<span class="number">1</span>..)
                     .value_parser(<span class="kw">crate</span>::builder::ValueParser::os_string())
                     .required(<span class="bool-val">true</span>),
             )
-            .try_get_matches_from([<span class="string">&quot;test&quot;</span>, <span class="string">&quot;one&quot;</span>])
+            .try_get_matches_from([<span class="string">"test"</span>, <span class="string">"one"</span>])
             .unwrap()
-            .get_many::&lt;std::ffi::OsString&gt;(<span class="string">&quot;POTATO&quot;</span>)
-            .expect(<span class="string">&quot;present&quot;</span>)
+            .get_many::&lt;OsString&gt;(<span class="string">"POTATO"</span>)
+            .expect(<span class="string">"present"</span>)
             .count();
         <span class="macro">assert_eq!</span>(l, <span class="number">1</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>indices_exact_size() {
-        <span class="kw">let </span>l = <span class="kw">crate</span>::Command::new(<span class="string">&quot;test&quot;</span>)
+        <span class="kw">let </span>l = <span class="kw">crate</span>::Command::new(<span class="string">"test"</span>)
             .arg(
-                <span class="kw">crate</span>::Arg::new(<span class="string">&quot;POTATO&quot;</span>)
+                <span class="kw">crate</span>::Arg::new(<span class="string">"POTATO"</span>)
                     .action(ArgAction::Set)
                     .num_args(<span class="number">1</span>..)
                     .required(<span class="bool-val">true</span>),
             )
-            .try_get_matches_from([<span class="string">&quot;test&quot;</span>, <span class="string">&quot;one&quot;</span>])
+            .try_get_matches_from([<span class="string">"test"</span>, <span class="string">"one"</span>])
             .unwrap()
-            .indices_of(<span class="string">&quot;POTATO&quot;</span>)
-            .expect(<span class="string">&quot;present&quot;</span>)
+            .indices_of(<span class="string">"POTATO"</span>)
+            .expect(<span class="string">"present"</span>)
             .len();
         <span class="macro">assert_eq!</span>(l, <span class="number">1</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>rev_iter() {
-        <span class="kw">let </span><span class="kw-2">mut </span>matches = <span class="kw">crate</span>::Command::new(<span class="string">&quot;myprog&quot;</span>)
-            .arg(<span class="kw">crate</span>::Arg::new(<span class="string">&quot;a&quot;</span>).short(<span class="string">&#39;a&#39;</span>).action(ArgAction::Append))
-            .arg(<span class="kw">crate</span>::Arg::new(<span class="string">&quot;b&quot;</span>).short(<span class="string">&#39;b&#39;</span>).action(ArgAction::Append))
-            .try_get_matches_from(<span class="macro">vec!</span>[<span class="string">&quot;myprog&quot;</span>, <span class="string">&quot;-a1&quot;</span>, <span class="string">&quot;-b1&quot;</span>, <span class="string">&quot;-b3&quot;</span>])
+        <span class="kw">let </span><span class="kw-2">mut </span>matches = <span class="kw">crate</span>::Command::new(<span class="string">"myprog"</span>)
+            .arg(<span class="kw">crate</span>::Arg::new(<span class="string">"a"</span>).short(<span class="string">'a'</span>).action(ArgAction::Append))
+            .arg(<span class="kw">crate</span>::Arg::new(<span class="string">"b"</span>).short(<span class="string">'b'</span>).action(ArgAction::Append))
+            .try_get_matches_from(<span class="macro">vec!</span>[<span class="string">"myprog"</span>, <span class="string">"-a1"</span>, <span class="string">"-b1"</span>, <span class="string">"-b3"</span>])
             .unwrap();
 
         <span class="kw">let </span>a_index = matches
-            .indices_of(<span class="string">&quot;a&quot;</span>)
-            .expect(<span class="string">&quot;missing aopt indices&quot;</span>)
+            .indices_of(<span class="string">"a"</span>)
+            .expect(<span class="string">"missing aopt indices"</span>)
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="macro">dbg!</span>(<span class="kw-2">&amp;</span>a_index);
         <span class="kw">let </span>a_value = matches
-            .remove_many::&lt;String&gt;(<span class="string">&quot;a&quot;</span>)
-            .expect(<span class="string">&quot;missing aopt values&quot;</span>);
+            .remove_many::&lt;String&gt;(<span class="string">"a"</span>)
+            .expect(<span class="string">"missing aopt values"</span>);
         <span class="macro">dbg!</span>(<span class="kw-2">&amp;</span>a_value);
         <span class="kw">let </span>a = a_index.into_iter().zip(a_value).rev().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="macro">dbg!</span>(a);
 
         <span class="kw">let </span>b_index = matches
-            .indices_of(<span class="string">&quot;b&quot;</span>)
-            .expect(<span class="string">&quot;missing aopt indices&quot;</span>)
+            .indices_of(<span class="string">"b"</span>)
+            .expect(<span class="string">"missing aopt indices"</span>)
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="macro">dbg!</span>(<span class="kw-2">&amp;</span>b_index);
         <span class="kw">let </span>b_value = matches
-            .remove_many::&lt;String&gt;(<span class="string">&quot;b&quot;</span>)
-            .expect(<span class="string">&quot;missing aopt values&quot;</span>);
+            .remove_many::&lt;String&gt;(<span class="string">"b"</span>)
+            .expect(<span class="string">"missing aopt values"</span>);
         <span class="macro">dbg!</span>(<span class="kw-2">&amp;</span>b_value);
         <span class="kw">let </span>b = b_index.into_iter().zip(b_value).rev().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="macro">dbg!</span>(b);
