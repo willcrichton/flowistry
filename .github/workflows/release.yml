@@ -80,11 +80,17 @@ jobs:
   publish-extension:
     needs: publish-release
     runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: ./ide
     steps:
       - uses: actions/checkout@v1
-      - run: cd ide && npm install
-      - run: cd ide && npm install -g vsce && vsce publish -p ${{ secrets.VSCODE_TOKEN }}
-      - run: cd ide && npm install -g ovsx && npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts
+      - run: npm install
+      - run: npm install -g vsce && vsce publish -p ${{ secrets.VSCODE_TOKEN }}
+      - run: npm install -g ovsx && npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
 
   publish-crate:
     needs: publish-extension
