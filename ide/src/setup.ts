@@ -243,6 +243,7 @@ export async function setup(
           "--version",
           VERSION,
           "--force",
+          "--locked"
         ],
         "Flowistry binaries not available, instead installing Flowistry crate from source... (this may take a minute)"
       );

@@ -23,9 +23,10 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
+          args: --locked
       - run: zip x86_64-unknown-linux-gnu.zip cargo-flowistry* flowistry-driver*
         working-directory: target/debug
-      - run: cargo test --all-targets
+      - run: cargo test --locked --all-targets
       - run: npm ci
         working-directory: ide
       - run: xvfb-run -a npm test -- install --zip=../target/debug/x86_64-unknown-linux-gnu.zip
