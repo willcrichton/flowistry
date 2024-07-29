@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/miniz_oxide-0.7.4/src/deflate/core.rs`."><title>core.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="miniz_oxide" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/miniz_oxide-0.7.1/src/deflate/core.rs`."><title>core.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="miniz_oxide" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../miniz_oxide/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -2462,13 +2462,6 @@
 <a href="#2460" id="2460">2460</a>
 <a href="#2461" id="2461">2461</a>
 <a href="#2462" id="2462">2462</a>
-<a href="#2463" id="2463">2463</a>
-<a href="#2464" id="2464">2464</a>
-<a href="#2465" id="2465">2465</a>
-<a href="#2466" id="2466">2466</a>
-<a href="#2467" id="2467">2467</a>
-<a href="#2468" id="2468">2468</a>
-<a href="#2469" id="2469">2469</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Streaming compression functionality.
 
 </span><span class="kw">use </span>alloc::boxed::Box;
@@ -2812,7 +2805,7 @@
     /// dictionary.
     </span><span class="kw">fn </span>header_from_level(level: u8) -&gt; [u8; <span class="number">2</span>] {
         <span class="kw">let </span>cmf = DEFAULT_CMF;
-        [cmf, add_fcheck(cmf, level &lt;&lt; <span class="number">6</span>)]
+        [cmf, add_fcheck(cmf, (level <span class="kw">as </span>u8) &lt;&lt; <span class="number">6</span>)]
     }
 
     <span class="doccomment">/// Create a zlib header from the given compression flags.
@@ -2885,9 +2878,7 @@
 </span><span class="kw">pub struct </span>CompressorOxide {
     lz: LZOxide,
     params: ParamsOxide,
-    <span class="doccomment">/// Put HuffmanOxide on the heap with default trick to avoid
-    /// excessive stack copies.
-    </span>huff: Box&lt;HuffmanOxide&gt;,
+    huff: Box&lt;HuffmanOxide&gt;,
     dict: DictOxide,
 }
 
@@ -2900,7 +2891,9 @@
         CompressorOxide {
             lz: LZOxide::new(),
             params: ParamsOxide::new(flags),
-            huff: Box::default(),
+            <span class="doccomment">/// Put HuffmanOxide on the heap with default trick to avoid
+            /// excessive stack copies.
+            </span>huff: Box::default(),
             dict: DictOxide::new(flags),
         }
     }
@@ -2992,7 +2985,9 @@
         CompressorOxide {
             lz: LZOxide::new(),
             params: ParamsOxide::new(DEFAULT_FLAGS),
-            huff: Box::default(),
+            <span class="doccomment">/// Put HuffmanOxide on the heap with default trick to avoid
+            /// excessive stack copies.
+            </span>huff: Box::default(),
             dict: DictOxide::new(DEFAULT_FLAGS),
         }
     }
@@ -3012,7 +3007,7 @@
         <span class="comment">// TODO: As this could be unsafe since
         // we can't verify the function pointer
         // this whole function should maybe be unsafe as well.
-        </span><span class="kw">let </span>call_success = (<span class="self">self</span>.put_buf_func)(<span class="kw-2">&amp;</span>params.local_buf.b[<span class="number">0</span>..saved_output.pos]);
+        </span><span class="kw">let </span>call_success = (<span class="self">self</span>.put_buf_func)(<span class="kw-2">&amp;</span>params.local_buf.b[<span class="number">0</span>..saved_output.pos <span class="kw">as </span>usize]);
 
         <span class="kw">if </span>!call_success {
             params.prev_return_status = TDEFLStatus::PutBufFailed;
@@ -3034,8 +3029,11 @@
         params: <span class="kw-2">&amp;mut </span>ParamsOxide,
     ) -&gt; i32 {
         <span class="kw">if </span>saved_output.local {
-            <span class="kw">let </span>n = cmp::min(saved_output.pos, <span class="self">self</span>.out_buf.len() - params.out_buf_ofs);
-            (<span class="self">self</span>.out_buf[params.out_buf_ofs..params.out_buf_ofs + n])
+            <span class="kw">let </span>n = cmp::min(
+                saved_output.pos <span class="kw">as </span>usize,
+                <span class="self">self</span>.out_buf.len() - params.out_buf_ofs,
+            );
+            (<span class="kw-2">&amp;mut </span><span class="self">self</span>.out_buf[params.out_buf_ofs..params.out_buf_ofs + n])
                 .copy_from_slice(<span class="kw-2">&amp;</span>params.local_buf.b[..n]);
 
             params.out_buf_ofs += n;
@@ -3149,12 +3147,9 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; OutputBufferOxide&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>put_bits(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bits: u32, len: u32) {
-        <span class="comment">// TODO: Removing this assertion worsens performance
-        // Need to figure out why
-        </span><span class="macro">assert!</span>(bits &lt;= ((<span class="number">1u32 </span>&lt;&lt; len) - <span class="number">1u32</span>));
+        <span class="macro">assert!</span>(bits &lt;= ((<span class="number">1u32 </span>&lt;&lt; len) - <span class="number">1u32</span>));
         <span class="self">self</span>.bit_buffer |= bits &lt;&lt; <span class="self">self</span>.bits_in;
         <span class="self">self</span>.bits_in += len;
-
         <span class="kw">while </span><span class="self">self</span>.bits_in &gt;= <span class="number">8 </span>{
             <span class="self">self</span>.inner[<span class="self">self</span>.inner_pos] = <span class="self">self</span>.bit_buffer <span class="kw">as </span>u8;
             <span class="self">self</span>.inner_pos += <span class="number">1</span>;
@@ -3713,11 +3708,9 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>read_unaligned_u32(<span class="kw-2">&amp;</span><span class="self">self</span>, pos: usize) -&gt; u32 {
         <span class="comment">// Masking the value here helps avoid bounds checks.
-        </span><span class="kw">let </span>pos = pos &amp; LZ_DICT_SIZE_MASK;
+        </span><span class="kw">let </span>pos = (pos &amp; LZ_DICT_SIZE_MASK) <span class="kw">as </span>usize;
         <span class="kw">let </span>end = pos + <span class="number">4</span>;
         <span class="comment">// Somehow this assertion makes things faster.
-        // TODO: as of may 2024 this does not seem to make any difference
-        // so consider removing.
         </span><span class="macro">assert!</span>(end &lt; LZ_DICT_FULL_SIZE);
 
         <span class="kw">let </span>bytes: [u8; <span class="number">4</span>] = <span class="self">self</span>.b.dict[pos..end].try_into().unwrap();
@@ -3728,10 +3721,7 @@
     /// type T.
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>read_unaligned_u64(<span class="kw-2">&amp;</span><span class="self">self</span>, pos: usize) -&gt; u64 {
-        <span class="comment">// Help evade bounds/panic code check by masking the position value
-        // This provides a small speedup at the cost of an instruction or two instead of
-        // having to use unsafe.
-        </span><span class="kw">let </span>pos = pos &amp; LZ_DICT_SIZE_MASK;
+        <span class="kw">let </span>pos = pos <span class="kw">as </span>usize;
         <span class="kw">let </span>bytes: [u8; <span class="number">8</span>] = <span class="self">self</span>.b.dict[pos..pos + <span class="number">8</span>].try_into().unwrap();
         u64::from_le_bytes(bytes)
     }
@@ -3763,7 +3753,7 @@
         </span><span class="kw">let </span>max_match_len = cmp::min(MAX_MATCH_LEN <span class="kw">as </span>u32, max_match_len);
         match_len = cmp::max(match_len, <span class="number">1</span>);
 
-        <span class="kw">let </span>pos = lookahead_pos &amp; LZ_DICT_SIZE_MASK;
+        <span class="kw">let </span>pos = lookahead_pos <span class="kw">as </span>usize &amp; LZ_DICT_SIZE_MASK;
         <span class="kw">let </span><span class="kw-2">mut </span>probe_pos = pos;
         <span class="comment">// Number of probes into the hash chains.
         </span><span class="kw">let </span><span class="kw-2">mut </span>num_probes_left = <span class="self">self</span>.max_probes[(match_len &gt;= <span class="number">32</span>) <span class="kw">as </span>usize];
@@ -3774,9 +3764,9 @@
         }
 
         <span class="comment">// Read the last byte of the current match, and the next one, used to compare matches.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>c01: u16 = <span class="self">self</span>.read_as_u16(pos + match_len <span class="kw">as </span>usize - <span class="number">1</span>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>c01: u16 = <span class="self">self</span>.read_as_u16(pos <span class="kw">as </span>usize + match_len <span class="kw">as </span>usize - <span class="number">1</span>);
         <span class="comment">// Read the two bytes at the end position of the current match.
-        </span><span class="kw">let </span>s01: u16 = <span class="self">self</span>.read_as_u16(pos);
+        </span><span class="kw">let </span>s01: u16 = <span class="self">self</span>.read_as_u16(pos <span class="kw">as </span>usize);
 
         <span class="lifetime">'outer</span>: <span class="kw">loop </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>dist;
@@ -3789,7 +3779,7 @@
                 }
 
                 <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">3 </span>{
-                    <span class="kw">let </span>next_probe_pos = <span class="self">self</span>.b.next[probe_pos] <span class="kw">as </span>usize;
+                    <span class="kw">let </span>next_probe_pos = <span class="self">self</span>.b.next[probe_pos <span class="kw">as </span>usize] <span class="kw">as </span>usize;
 
                     dist = (lookahead_pos - next_probe_pos) &amp; <span class="number">0xFFFF</span>;
                     <span class="kw">if </span>next_probe_pos == <span class="number">0 </span>|| dist &gt; max_dist {
@@ -3803,7 +3793,7 @@
                     // position to match against.
                     </span>probe_pos = next_probe_pos &amp; LZ_DICT_SIZE_MASK;
 
-                    <span class="kw">if </span><span class="self">self</span>.read_as_u16(probe_pos + match_len <span class="kw">as </span>usize - <span class="number">1</span>) == c01 {
+                    <span class="kw">if </span><span class="self">self</span>.read_as_u16((probe_pos + match_len <span class="kw">as </span>usize - <span class="number">1</span>) <span class="kw">as </span>usize) == c01 {
                         <span class="kw">break </span><span class="lifetime">'found</span>;
                     }
                 }
@@ -3816,7 +3806,7 @@
             }
 
             <span class="comment">// Check if the two first bytes match.
-            </span><span class="kw">if </span><span class="self">self</span>.read_as_u16(probe_pos) != s01 {
+            </span><span class="kw">if </span><span class="self">self</span>.read_as_u16(probe_pos <span class="kw">as </span>usize) != s01 {
                 <span class="kw">continue</span>;
             }
 
@@ -3938,6 +3928,7 @@
     <span class="kw">pub </span>flag_position: usize,
 
     <span class="comment">// The total number of bytes in the current block.
+    // (Could maybe use usize, but it's not possible to exceed a block size of )
     </span><span class="kw">pub </span>total_bytes: u32,
     <span class="kw">pub </span>num_flags_left: u32,
 }
@@ -3954,9 +3945,7 @@
     }
 
     <span class="kw">fn </span>write_code(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: u8) {
-        <span class="comment">// Perf - go via u16 to help evade bounds check
-        // TODO: see if we can use u16 for flag_position in general.
-        </span><span class="self">self</span>.codes[usize::from(<span class="self">self</span>.code_position <span class="kw">as </span>u16)] = val;
+        <span class="self">self</span>.codes[<span class="self">self</span>.code_position] = val;
         <span class="self">self</span>.code_position += <span class="number">1</span>;
     }
 
@@ -3970,9 +3959,7 @@
     }
 
     <span class="kw">fn </span>get_flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>u8 {
-        <span class="comment">// Perf - go via u16 to help evade bounds check
-        // TODO: see if we can use u16 for flag_position in general.
-        </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.codes[usize::from(<span class="self">self</span>.flag_position <span class="kw">as </span>u16)]
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.codes[<span class="self">self</span>.flag_position]
     }
 
     <span class="kw">fn </span>plant_flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
@@ -4044,7 +4031,7 @@
                 u32::from(huff.code_sizes[<span class="number">1</span>][sym]),
             );
             bb.put_fast(
-                u64::from(match_dist) &amp; u64::from(BITMASKS[num_extra_bits]),
+                u64::from(match_dist) &amp; u64::from(BITMASKS[num_extra_bits <span class="kw">as </span>usize]),
                 num_extra_bits <span class="kw">as </span>u32,
             );
         } <span class="kw">else </span>{
@@ -4126,7 +4113,7 @@
 
         <span class="comment">// If we are at the start of the stream, write the zlib header if requested.
         </span><span class="kw">if </span>d.params.flags &amp; TDEFL_WRITE_ZLIB_HEADER != <span class="number">0 </span>&amp;&amp; d.params.block_index == <span class="number">0 </span>{
-            <span class="kw">let </span>header = zlib::header_from_flags(d.params.flags);
+            <span class="kw">let </span>header = zlib::header_from_flags(d.params.flags <span class="kw">as </span>u32);
             output.put_bits(header[<span class="number">0</span>].into(), <span class="number">8</span>);
             output.put_bits(header[<span class="number">1</span>].into(), <span class="number">8</span>);
         }
@@ -4173,7 +4160,7 @@
             <span class="comment">// Write the actual bytes.
             </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..d.lz.total_bytes {
                 <span class="kw">let </span>pos = (d.dict.code_buf_dict_pos + i <span class="kw">as </span>usize) &amp; LZ_DICT_SIZE_MASK;
-                output.put_bits(u32::from(d.dict.b.dict[pos]), <span class="number">8</span>);
+                output.put_bits(u32::from(d.dict.b.dict[pos <span class="kw">as </span>usize]), <span class="number">8</span>);
             }
         } <span class="kw">else if </span>!comp_success {
             output.load(saved_buffer);
@@ -4230,9 +4217,9 @@
 }
 
 <span class="kw">fn </span>record_match(h: <span class="kw-2">&amp;mut </span>HuffmanOxide, lz: <span class="kw-2">&amp;mut </span>LZOxide, <span class="kw-2">mut </span>match_len: u32, <span class="kw-2">mut </span>match_dist: u32) {
-    <span class="macro">debug_assert!</span>(match_len &gt;= MIN_MATCH_LEN.into());
-    <span class="macro">debug_assert!</span>(match_dist &gt;= <span class="number">1</span>);
-    <span class="macro">debug_assert!</span>(match_dist <span class="kw">as </span>usize &lt;= LZ_DICT_SIZE);
+    <span class="macro">assert!</span>(match_len &gt;= MIN_MATCH_LEN.into());
+    <span class="macro">assert!</span>(match_dist &gt;= <span class="number">1</span>);
+    <span class="macro">assert!</span>(match_dist <span class="kw">as </span>usize &lt;= LZ_DICT_SIZE);
 
     lz.total_bytes += match_len;
     match_dist -= <span class="number">1</span>;
@@ -4251,8 +4238,7 @@
         LARGE_DIST_SYM[((match_dist &gt;&gt; <span class="number">8</span>) &amp; <span class="number">127</span>) <span class="kw">as </span>usize]
     } <span class="kw">as </span>usize;
     h.count[<span class="number">1</span>][symbol] += <span class="number">1</span>;
-    <span class="comment">// Perf - go via u8 to help optimize out bounds check.
-    </span>h.count[<span class="number">0</span>][LEN_SYM[usize::from(match_len <span class="kw">as </span>u8)] <span class="kw">as </span>usize] += <span class="number">1</span>;
+    h.count[<span class="number">0</span>][LEN_SYM[match_len <span class="kw">as </span>usize] <span class="kw">as </span>usize] += <span class="number">1</span>;
 }
 
 <span class="kw">fn </span>compress_normal(d: <span class="kw-2">&amp;mut </span>CompressorOxide, callback: <span class="kw-2">&amp;mut </span>CallbackOxide) -&gt; bool {
@@ -4270,33 +4256,33 @@
 
     <span class="kw">while </span>src_pos &lt; in_buf.len() || (d.params.flush != TDEFLFlush::None &amp;&amp; lookahead_size != <span class="number">0</span>) {
         <span class="kw">let </span>src_buf_left = in_buf.len() - src_pos;
-        <span class="kw">let </span>num_bytes_to_process = cmp::min(src_buf_left, MAX_MATCH_LEN - lookahead_size);
+        <span class="kw">let </span>num_bytes_to_process = cmp::min(src_buf_left, MAX_MATCH_LEN - lookahead_size <span class="kw">as </span>usize);
 
         <span class="kw">if </span>lookahead_size + d.dict.size &gt;= usize::from(MIN_MATCH_LEN) - <span class="number">1
             </span>&amp;&amp; num_bytes_to_process &gt; <span class="number">0
         </span>{
             <span class="kw">let </span>dictb = <span class="kw-2">&amp;mut </span>d.dict.b;
 
-            <span class="kw">let </span><span class="kw-2">mut </span>dst_pos = (lookahead_pos + lookahead_size) &amp; LZ_DICT_SIZE_MASK;
-            <span class="kw">let </span><span class="kw-2">mut </span>ins_pos = lookahead_pos + lookahead_size - <span class="number">2</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>dst_pos = (lookahead_pos + lookahead_size <span class="kw">as </span>usize) &amp; LZ_DICT_SIZE_MASK;
+            <span class="kw">let </span><span class="kw-2">mut </span>ins_pos = lookahead_pos + lookahead_size <span class="kw">as </span>usize - <span class="number">2</span>;
             <span class="comment">// Start the hash value from the first two bytes
             </span><span class="kw">let </span><span class="kw-2">mut </span>hash = update_hash(
-                u16::from(dictb.dict[ins_pos &amp; LZ_DICT_SIZE_MASK]),
-                dictb.dict[(ins_pos + <span class="number">1</span>) &amp; LZ_DICT_SIZE_MASK],
+                u16::from(dictb.dict[(ins_pos &amp; LZ_DICT_SIZE_MASK) <span class="kw">as </span>usize]),
+                dictb.dict[((ins_pos + <span class="number">1</span>) &amp; LZ_DICT_SIZE_MASK) <span class="kw">as </span>usize],
             );
 
             lookahead_size += num_bytes_to_process;
 
             <span class="kw">for </span><span class="kw-2">&amp;</span>c <span class="kw">in </span><span class="kw-2">&amp;</span>in_buf[src_pos..src_pos + num_bytes_to_process] {
                 <span class="comment">// Add byte to input buffer.
-                </span>dictb.dict[dst_pos] = c;
-                <span class="kw">if </span>dst_pos &lt; MAX_MATCH_LEN - <span class="number">1 </span>{
-                    dictb.dict[LZ_DICT_SIZE + dst_pos] = c;
+                </span>dictb.dict[dst_pos <span class="kw">as </span>usize] = c;
+                <span class="kw">if </span>(dst_pos <span class="kw">as </span>usize) &lt; MAX_MATCH_LEN - <span class="number">1 </span>{
+                    dictb.dict[LZ_DICT_SIZE + dst_pos <span class="kw">as </span>usize] = c;
                 }
 
                 <span class="comment">// Generate hash from the current byte,
                 </span>hash = update_hash(hash, c);
-                dictb.next[ins_pos &amp; LZ_DICT_SIZE_MASK] = dictb.hash[hash <span class="kw">as </span>usize];
+                dictb.next[(ins_pos &amp; LZ_DICT_SIZE_MASK) <span class="kw">as </span>usize] = dictb.hash[hash <span class="kw">as </span>usize];
                 <span class="comment">// and insert it into the hash chain.
                 </span>dictb.hash[hash <span class="kw">as </span>usize] = ins_pos <span class="kw">as </span>u16;
                 dst_pos = (dst_pos + <span class="number">1</span>) &amp; LZ_DICT_SIZE_MASK;
@@ -4307,22 +4293,22 @@
             <span class="kw">let </span>dictb = <span class="kw-2">&amp;mut </span>d.dict.b;
             <span class="kw">for </span><span class="kw-2">&amp;</span>c <span class="kw">in </span><span class="kw-2">&amp;</span>in_buf[src_pos..src_pos + num_bytes_to_process] {
                 <span class="kw">let </span>dst_pos = (lookahead_pos + lookahead_size) &amp; LZ_DICT_SIZE_MASK;
-                dictb.dict[dst_pos] = c;
-                <span class="kw">if </span>dst_pos &lt; MAX_MATCH_LEN - <span class="number">1 </span>{
-                    dictb.dict[LZ_DICT_SIZE + dst_pos] = c;
+                dictb.dict[dst_pos <span class="kw">as </span>usize] = c;
+                <span class="kw">if </span>(dst_pos <span class="kw">as </span>usize) &lt; MAX_MATCH_LEN - <span class="number">1 </span>{
+                    dictb.dict[LZ_DICT_SIZE + dst_pos <span class="kw">as </span>usize] = c;
                 }
 
                 lookahead_size += <span class="number">1</span>;
                 <span class="kw">if </span>lookahead_size + d.dict.size &gt;= MIN_MATCH_LEN.into() {
                     <span class="kw">let </span>ins_pos = lookahead_pos + lookahead_size - <span class="number">3</span>;
-                    <span class="kw">let </span>hash = ((u32::from(dictb.dict[ins_pos &amp; LZ_DICT_SIZE_MASK])
+                    <span class="kw">let </span>hash = ((u32::from(dictb.dict[(ins_pos &amp; LZ_DICT_SIZE_MASK) <span class="kw">as </span>usize])
                         &lt;&lt; (LZ_HASH_SHIFT * <span class="number">2</span>))
-                        ^ ((u32::from(dictb.dict[(ins_pos + <span class="number">1</span>) &amp; LZ_DICT_SIZE_MASK])
+                        ^ ((u32::from(dictb.dict[((ins_pos + <span class="number">1</span>) &amp; LZ_DICT_SIZE_MASK) <span class="kw">as </span>usize])
                             &lt;&lt; LZ_HASH_SHIFT)
                             ^ u32::from(c)))
                         &amp; (LZ_HASH_SIZE <span class="kw">as </span>u32 - <span class="number">1</span>);
 
-                    dictb.next[ins_pos &amp; LZ_DICT_SIZE_MASK] = dictb.hash[hash <span class="kw">as </span>usize];
+                    dictb.next[(ins_pos &amp; LZ_DICT_SIZE_MASK) <span class="kw">as </span>usize] = dictb.hash[hash <span class="kw">as </span>usize];
                     dictb.hash[hash <span class="kw">as </span>usize] = ins_pos <span class="kw">as </span>u16;
                 }
             }
@@ -4331,7 +4317,7 @@
         }
 
         d.dict.size = cmp::min(LZ_DICT_SIZE - lookahead_size, d.dict.size);
-        <span class="kw">if </span>d.params.flush == TDEFLFlush::None &amp;&amp; lookahead_size &lt; MAX_MATCH_LEN {
+        <span class="kw">if </span>d.params.flush == TDEFLFlush::None &amp;&amp; (lookahead_size <span class="kw">as </span>usize) &lt; MAX_MATCH_LEN {
             <span class="kw">break</span>;
         }
 
@@ -4346,8 +4332,8 @@
         <span class="kw">if </span>d.params.flags &amp; (TDEFL_RLE_MATCHES | TDEFL_FORCE_ALL_RAW_BLOCKS) != <span class="number">0 </span>{
             <span class="comment">// If TDEFL_RLE_MATCHES is set, we only look for repeating sequences of the current byte.
             </span><span class="kw">if </span>d.dict.size != <span class="number">0 </span>&amp;&amp; d.params.flags &amp; TDEFL_FORCE_ALL_RAW_BLOCKS == <span class="number">0 </span>{
-                <span class="kw">let </span>c = d.dict.b.dict[(cur_pos.wrapping_sub(<span class="number">1</span>)) &amp; LZ_DICT_SIZE_MASK];
-                cur_match_len = d.dict.b.dict[cur_pos..(cur_pos + lookahead_size)]
+                <span class="kw">let </span>c = d.dict.b.dict[((cur_pos.wrapping_sub(<span class="number">1</span>)) &amp; LZ_DICT_SIZE_MASK) <span class="kw">as </span>usize];
+                cur_match_len = d.dict.b.dict[cur_pos <span class="kw">as </span>usize..(cur_pos + lookahead_size) <span class="kw">as </span>usize]
                     .iter()
                     .take_while(|<span class="kw-2">&amp;</span>x| <span class="kw-2">*</span>x == c)
                     .count() <span class="kw">as </span>u32;
@@ -4385,7 +4371,7 @@
                     saved_match_len = <span class="number">0</span>;
                     len_to_move = cur_match_len <span class="kw">as </span>usize;
                 } <span class="kw">else </span>{
-                    saved_lit = d.dict.b.dict[cur_pos];
+                    saved_lit = d.dict.b.dict[cur_pos <span class="kw">as </span>usize];
                     saved_match_dist = cur_match_dist;
                     saved_match_len = cur_match_len;
                 }
@@ -4398,7 +4384,7 @@
             record_literal(
                 <span class="kw-2">&amp;mut </span>d.huff,
                 <span class="kw-2">&amp;mut </span>d.lz,
-                d.dict.b.dict[cmp::min(cur_pos, d.dict.b.dict.len() - <span class="number">1</span>)],
+                d.dict.b.dict[cmp::min(cur_pos <span class="kw">as </span>usize, d.dict.b.dict.len() - <span class="number">1</span>)],
             );
         } <span class="kw">else if </span>d.params.greedy_parsing
             || (d.params.flags &amp; TDEFL_RLE_MATCHES != <span class="number">0</span>)
@@ -4409,7 +4395,7 @@
             </span>record_match(<span class="kw-2">&amp;mut </span>d.huff, <span class="kw-2">&amp;mut </span>d.lz, cur_match_len, cur_match_dist);
             len_to_move = cur_match_len <span class="kw">as </span>usize;
         } <span class="kw">else </span>{
-            saved_lit = d.dict.b.dict[cmp::min(cur_pos, d.dict.b.dict.len() - <span class="number">1</span>)];
+            saved_lit = d.dict.b.dict[cmp::min(cur_pos <span class="kw">as </span>usize, d.dict.b.dict.len() - <span class="number">1</span>)];
             saved_match_dist = cur_match_dist;
             saved_match_len = cur_match_len;
         }
@@ -4466,10 +4452,10 @@
     <span class="macro">debug_assert!</span>(d.lz.code_position &lt; LZ_CODE_BUF_SIZE - <span class="number">2</span>);
 
     <span class="kw">while </span>src_pos &lt; in_buf.len() || (d.params.flush != TDEFLFlush::None &amp;&amp; lookahead_size &gt; <span class="number">0</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>dst_pos = (lookahead_pos + lookahead_size) &amp; LZ_DICT_SIZE_MASK;
+        <span class="kw">let </span><span class="kw-2">mut </span>dst_pos = ((lookahead_pos + lookahead_size) &amp; LZ_DICT_SIZE_MASK) <span class="kw">as </span>usize;
         <span class="kw">let </span><span class="kw-2">mut </span>num_bytes_to_process = cmp::min(
             in_buf.len() - src_pos,
-            COMP_FAST_LOOKAHEAD_SIZE - lookahead_size,
+            (COMP_FAST_LOOKAHEAD_SIZE - lookahead_size) <span class="kw">as </span>usize,
         );
         lookahead_size += num_bytes_to_process;
 
@@ -4484,7 +4470,7 @@
             }
 
             src_pos += n;
-            dst_pos = (dst_pos + n) &amp; LZ_DICT_SIZE_MASK;
+            dst_pos = (dst_pos + n) &amp; LZ_DICT_SIZE_MASK <span class="kw">as </span>usize;
             num_bytes_to_process -= n;
         }
 
@@ -4504,7 +4490,7 @@
             <span class="kw">let </span><span class="kw-2">mut </span>probe_pos = usize::from(d.dict.b.hash[hash <span class="kw">as </span>usize]);
             d.dict.b.hash[hash <span class="kw">as </span>usize] = lookahead_pos <span class="kw">as </span>u16;
 
-            <span class="kw">let </span><span class="kw-2">mut </span>cur_match_dist = (lookahead_pos - probe_pos) <span class="kw">as </span>u16;
+            <span class="kw">let </span><span class="kw-2">mut </span>cur_match_dist = (lookahead_pos - probe_pos <span class="kw">as </span>usize) <span class="kw">as </span>u16;
             <span class="kw">if </span>cur_match_dist <span class="kw">as </span>usize &lt;= d.dict.size {
                 probe_pos &amp;= LZ_DICT_SIZE_MASK;
 
@@ -4607,7 +4593,7 @@
         }
 
         <span class="kw">while </span>lookahead_size != <span class="number">0 </span>{
-            <span class="kw">let </span>lit = d.dict.b.dict[cur_pos];
+            <span class="kw">let </span>lit = d.dict.b.dict[cur_pos <span class="kw">as </span>usize];
             d.lz.total_bytes += <span class="number">1</span>;
             d.lz.write_code(lit);
             <span class="kw-2">*</span>d.lz.get_flag() &gt;&gt;= <span class="number">1</span>;
@@ -4654,7 +4640,7 @@
     <span class="kw">if let </span>CallbackOut::Buf(<span class="kw-2">ref mut </span>cb) = c.out {
         <span class="kw">let </span>n = cmp::min(cb.out_buf.len() - p.out_buf_ofs, p.flush_remaining <span class="kw">as </span>usize);
         <span class="kw">if </span>n != <span class="number">0 </span>{
-            cb.out_buf[p.out_buf_ofs..p.out_buf_ofs + n]
+            (<span class="kw-2">&amp;mut </span>cb.out_buf[p.out_buf_ofs..p.out_buf_ofs + n])
                 .copy_from_slice(<span class="kw-2">&amp;</span>p.local_buf.b[p.flush_ofs <span class="kw">as </span>usize..p.flush_ofs <span class="kw">as </span>usize + n]);
         }
         p.flush_ofs += n <span class="kw">as </span>u32;
@@ -4876,8 +4862,8 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>u16_from_slice() {
-        <span class="kw">let </span>slice = [<span class="number">208</span>, <span class="number">7</span>];
-        <span class="macro">assert_eq!</span>(read_u16_le(<span class="kw-2">&amp;</span>slice, <span class="number">0</span>), <span class="number">2000</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>slice = [<span class="number">208</span>, <span class="number">7</span>];
+        <span class="macro">assert_eq!</span>(read_u16_le(<span class="kw-2">&amp;mut </span>slice, <span class="number">0</span>), <span class="number">2000</span>);
     }
 
     <span class="attr">#[test]

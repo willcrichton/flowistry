@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.11/src/builder/command.rs`."><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.8/src/builder/command.rs`."><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -4877,67 +4877,6 @@
 <a href="#4875" id="4875">4875</a>
 <a href="#4876" id="4876">4876</a>
 <a href="#4877" id="4877">4877</a>
-<a href="#4878" id="4878">4878</a>
-<a href="#4879" id="4879">4879</a>
-<a href="#4880" id="4880">4880</a>
-<a href="#4881" id="4881">4881</a>
-<a href="#4882" id="4882">4882</a>
-<a href="#4883" id="4883">4883</a>
-<a href="#4884" id="4884">4884</a>
-<a href="#4885" id="4885">4885</a>
-<a href="#4886" id="4886">4886</a>
-<a href="#4887" id="4887">4887</a>
-<a href="#4888" id="4888">4888</a>
-<a href="#4889" id="4889">4889</a>
-<a href="#4890" id="4890">4890</a>
-<a href="#4891" id="4891">4891</a>
-<a href="#4892" id="4892">4892</a>
-<a href="#4893" id="4893">4893</a>
-<a href="#4894" id="4894">4894</a>
-<a href="#4895" id="4895">4895</a>
-<a href="#4896" id="4896">4896</a>
-<a href="#4897" id="4897">4897</a>
-<a href="#4898" id="4898">4898</a>
-<a href="#4899" id="4899">4899</a>
-<a href="#4900" id="4900">4900</a>
-<a href="#4901" id="4901">4901</a>
-<a href="#4902" id="4902">4902</a>
-<a href="#4903" id="4903">4903</a>
-<a href="#4904" id="4904">4904</a>
-<a href="#4905" id="4905">4905</a>
-<a href="#4906" id="4906">4906</a>
-<a href="#4907" id="4907">4907</a>
-<a href="#4908" id="4908">4908</a>
-<a href="#4909" id="4909">4909</a>
-<a href="#4910" id="4910">4910</a>
-<a href="#4911" id="4911">4911</a>
-<a href="#4912" id="4912">4912</a>
-<a href="#4913" id="4913">4913</a>
-<a href="#4914" id="4914">4914</a>
-<a href="#4915" id="4915">4915</a>
-<a href="#4916" id="4916">4916</a>
-<a href="#4917" id="4917">4917</a>
-<a href="#4918" id="4918">4918</a>
-<a href="#4919" id="4919">4919</a>
-<a href="#4920" id="4920">4920</a>
-<a href="#4921" id="4921">4921</a>
-<a href="#4922" id="4922">4922</a>
-<a href="#4923" id="4923">4923</a>
-<a href="#4924" id="4924">4924</a>
-<a href="#4925" id="4925">4925</a>
-<a href="#4926" id="4926">4926</a>
-<a href="#4927" id="4927">4927</a>
-<a href="#4928" id="4928">4928</a>
-<a href="#4929" id="4929">4929</a>
-<a href="#4930" id="4930">4930</a>
-<a href="#4931" id="4931">4931</a>
-<a href="#4932" id="4932">4932</a>
-<a href="#4933" id="4933">4933</a>
-<a href="#4934" id="4934">4934</a>
-<a href="#4935" id="4935">4935</a>
-<a href="#4936" id="4936">4936</a>
-<a href="#4937" id="4937">4937</a>
-<a href="#4938" id="4938">4938</a>
 </pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(not(feature = <span class="string">"usage"</span>), allow(unused_mut))]
 
 </span><span class="comment">// Std
@@ -5238,45 +5177,6 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Allows one to mutate an [`ArgGroup`] after it's been added to a [`Command`].
-    ///
-    /// # Panics
-    ///
-    /// If the argument is undefined
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// # use clap_builder as clap;
-    /// # use clap::{Command, arg, ArgGroup};
-    ///
-    /// Command::new("foo")
-    ///     .arg(arg!(--"set-ver" &lt;ver&gt; "set the version manually").required(false))
-    ///     .arg(arg!(--major "auto increase major"))
-    ///     .arg(arg!(--minor "auto increase minor"))
-    ///     .arg(arg!(--patch "auto increase patch"))
-    ///     .group(ArgGroup::new("vers")
-    ///          .args(["set-ver", "major", "minor","patch"])
-    ///          .required(true))
-    ///     .mut_group("vers", |a| a.required(false));
-    /// ```
-    </span><span class="attr">#[must_use]
-    #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>mut_group&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, arg_id: <span class="kw">impl </span>AsRef&lt;str&gt;, f: F) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>F: FnOnce(ArgGroup) -&gt; ArgGroup,
-    {
-        <span class="kw">let </span>id = arg_id.as_ref();
-        <span class="kw">let </span>index = <span class="self">self
-            </span>.groups
-            .iter()
-            .position(|g| g.get_id() == id)
-            .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">"Group `{id}` is undefined"</span>));
-        <span class="kw">let </span>a = <span class="self">self</span>.groups.remove(index);
-
-        <span class="self">self</span>.groups.push(f(a));
-        <span class="self">self
-    </span>}
     <span class="doccomment">/// Allows one to mutate a [`Command`] after it's been added as a subcommand.
     ///
     /// This can be useful for modifying auto-generated arguments of nested subcommands with
@@ -5387,7 +5287,7 @@
     /// ```
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>groups(<span class="kw-2">mut </span><span class="self">self</span>, groups: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;ArgGroup&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">for </span>g <span class="kw">in </span>groups {
+        <span class="kw">for </span>g <span class="kw">in </span>groups.into_iter() {
             <span class="self">self </span>= <span class="self">self</span>.group(g.into());
         }
         <span class="self">self
@@ -5485,7 +5385,7 @@
     /// that exhaustively test your CLI to ensure the asserts are evaluated, this will run those
     /// asserts in a way convenient for running as a test.
     ///
-    /// **Note:** This will not help with asserts in [`ArgMatches`], those will need exhaustive
+    /// **Note::** This will not help with asserts in [`ArgMatches`], those will need exhaustive
     /// testing of your CLI.
     ///
     /// # Examples
@@ -5524,11 +5424,11 @@
     /// let mut cmd = Command::new("myprog");
     /// let err = cmd.error(ErrorKind::InvalidValue, "Some failure case");
     /// ```
-    </span><span class="kw">pub fn </span>error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: ErrorKind, message: <span class="kw">impl </span>fmt::Display) -&gt; Error {
+    </span><span class="kw">pub fn </span>error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: ErrorKind, message: <span class="kw">impl </span>std::fmt::Display) -&gt; Error {
         Error::raw(kind, message).format(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Parse [`env::args_os`], [exiting][Error::exit] on failure.
+    <span class="doccomment">/// Parse [`env::args_os`], exiting on failure.
     ///
     /// # Panics
     ///
@@ -5550,7 +5450,7 @@
         <span class="self">self</span>.get_matches_from(env::args_os())
     }
 
-    <span class="doccomment">/// Parse [`env::args_os`], [exiting][Error::exit] on failure.
+    <span class="doccomment">/// Parse [`env::args_os`], exiting on failure.
     ///
     /// Like [`Command::get_matches`] but doesn't consume the `Command`.
     ///
@@ -5610,7 +5510,7 @@
         </span><span class="self">self</span>.try_get_matches_from(env::args_os())
     }
 
-    <span class="doccomment">/// Parse the specified arguments, [exiting][Error::exit] on failure.
+    <span class="doccomment">/// Parse the specified arguments, exiting on failure.
     ///
     /// **NOTE:** The first argument will be parsed as the binary name unless
     /// [`Command::no_binary_name`] is used.
@@ -6066,7 +5966,7 @@
         }
     }
 
-    <span class="doccomment">/// Disables the automatic delimiting of values after `--` or when [`Arg::trailing_var_arg`]
+    <span class="doccomment">/// Disables the automatic delimiting of values after `--` or when [`Command::trailing_var_arg`]
     /// was used.
     ///
     /// **NOTE:** The same thing can be done manually by setting the final positional argument to
@@ -6338,7 +6238,7 @@
     /// assert_eq!(res.unwrap_err().kind(), ErrorKind::UnknownArgument);
     /// ```
     ///
-    /// You can create a custom help flag with [`ArgAction::Help`], [`ArgAction::HelpShort`], or
+    /// You can create a custom version flag with [`ArgAction::Help`], [`ArgAction::HelpShort`], or
     /// [`ArgAction::HelpLong`]
     /// ```rust
     /// # use clap_builder as clap;
@@ -6680,8 +6580,7 @@
 
     <span class="doccomment">/// Sets the program's description for the long help (`--help`).
     ///
-    /// If not set, [`Command::about`] will be used for long help in addition to short help
-    /// (`-h`).
+    /// If [`Command::about`] is not specified, this message will be displayed for `-h`.
     ///
     /// **NOTE:** Only [`Command::about`] (short format) is used in completion
     /// script generation in order to be concise.
@@ -6733,8 +6632,7 @@
     /// This is often used to describe how to use the arguments, caveats to be noted, or license
     /// and contact information.
     ///
-    /// If not set, [`Command::after_help`] will be used for long help in addition to short help
-    /// (`-h`).
+    /// If [`Command::after_help`] is not specified, this message will be displayed for `-h`.
     ///
     /// # Examples
     ///
@@ -6777,8 +6675,7 @@
     ///
     /// This is often used for header, copyright, or license information.
     ///
-    /// If not set, [`Command::before_help`] will be used for long help in addition to short help
-    /// (`-h`).
+    /// If [`Command::before_help`] is not specified, this message will be displayed for `-h`.
     ///
     /// # Examples
     ///
@@ -7160,7 +7057,7 @@
     /// For example, imagine a CLI which has three positional arguments `[foo] [bar] [baz]...` where
     /// `baz` accepts multiple values (similar to man `ARGS...` style training arguments).
     ///
-    /// With this setting the following invocations are possible:
+    /// With this setting the following invocations are posisble:
     ///
     /// * `$ prog foo bar baz1 baz2 baz3`
     /// * `$ prog foo -- baz1 baz2 baz3`
@@ -7510,7 +7407,7 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>long_flag_aliases(<span class="kw-2">mut </span><span class="self">self</span>, names: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;Str&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">for </span>s <span class="kw">in </span>names {
-            <span class="self">self </span>= <span class="self">self</span>.long_flag_alias(s);
+            <span class="self">self </span>= <span class="self">self</span>.long_flag_alias(s)
         }
         <span class="self">self
     </span>}
@@ -8381,13 +8278,6 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.name
     }
 
-    <span class="doccomment">/// Get all known names of the cmd (i.e. primary name and visible aliases).
-    </span><span class="kw">pub fn </span>get_name_and_visible_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span>str&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>names = <span class="macro">vec!</span>[<span class="self">self</span>.name.as_str()];
-        names.extend(<span class="self">self</span>.get_visible_aliases());
-        names
-    }
-
     <span class="doccomment">/// Get the version of the cmd.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
@@ -8491,15 +8381,6 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_all_long_flag_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + <span class="lifetime">'_ </span>{
         <span class="self">self</span>.long_flag_aliases.iter().map(|a| a.<span class="number">0</span>.as_str())
-    }
-
-    <span class="doccomment">/// Iterate through the *hidden* aliases for this subcommand.
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + <span class="lifetime">'_ </span>{
-        <span class="self">self</span>.aliases
-            .iter()
-            .filter(|(<span class="kw">_</span>, vis)| !<span class="kw-2">*</span>vis)
-            .map(|a| a.<span class="number">0</span>.as_str())
     }
 
     <span class="attr">#[inline]
@@ -8709,7 +8590,7 @@
     //       Subcommand_1.1.1 (contains Arg)
     //
     </span><span class="kw">fn </span>get_subcommands_containing(<span class="kw-2">&amp;</span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span>Arg) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>vec = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>vec = std::vec::Vec::new();
         <span class="kw">for </span>idx <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.subcommands.len() {
             <span class="kw">if </span><span class="self">self</span>.subcommands[idx]
                 .args
@@ -9551,7 +9432,7 @@
 
     <span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: AppSettings) {
-        <span class="self">self</span>.settings.set(s);
+        <span class="self">self</span>.settings.set(s)
     }
 
     <span class="attr">#[inline]
@@ -9615,7 +9496,7 @@
 
     <span class="doccomment">/// Iterate through all the names of all subcommands (not recursively), including aliases.
     /// Used for suggestions.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>all_subcommand_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + Captures&lt;<span class="lifetime">'_</span>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>all_subcommand_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>str&gt; + Captures {
         <span class="self">self</span>.get_subcommands().flat_map(|sc| {
             <span class="kw">let </span>name = sc.get_name();
             <span class="kw">let </span>aliases = sc.get_all_aliases();
@@ -9658,7 +9539,7 @@
                 <span class="kw">if </span>!args.contains(n) {
                     <span class="kw">if </span><span class="self">self</span>.find(n).is_some() {
                         <span class="macro">debug!</span>(<span class="string">"Command::unroll_args_in_group:iter: this is an arg"</span>);
-                        args.push(n.clone());
+                        args.push(n.clone())
                     } <span class="kw">else </span>{
                         <span class="macro">debug!</span>(<span class="string">"Command::unroll_args_in_group:iter: this is a group"</span>);
                         g_vec.push(n);
@@ -9689,7 +9570,7 @@
                 <span class="kw">for </span>r <span class="kw">in </span>arg.requires.iter().filter_map(<span class="kw-2">&amp;</span>func) {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(req) = <span class="self">self</span>.find(<span class="kw-2">&amp;</span>r) {
                         <span class="kw">if </span>!req.requires.is_empty() {
-                            r_vec.push(req.get_id());
+                            r_vec.push(req.get_id())
                         }
                     }
                     args.push(r);
@@ -9839,22 +9720,19 @@
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>Command {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.name)
     }
 }
 
-<span class="attr">#[allow(dead_code)] </span><span class="comment">// atm dependent on features enabled
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>AppTag: <span class="kw">crate</span>::builder::ext::Extension {}
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>AppTag: <span class="kw">crate</span>::builder::ext::Extension {}
 
-<span class="attr">#[allow(dead_code)] </span><span class="comment">// atm dependent on features enabled
-</span><span class="attr">#[derive(Default, Copy, Clone, Debug)]
+<span class="attr">#[derive(Default, Copy, Clone, Debug)]
 </span><span class="kw">struct </span>TermWidth(usize);
 
 <span class="kw">impl </span>AppTag <span class="kw">for </span>TermWidth {}
 
-<span class="attr">#[allow(dead_code)] </span><span class="comment">// atm dependent on features enabled
-</span><span class="attr">#[derive(Default, Copy, Clone, Debug)]
+<span class="attr">#[derive(Default, Copy, Clone, Debug)]
 </span><span class="kw">struct </span>MaxTermWidth(usize);
 
 <span class="kw">impl </span>AppTag <span class="kw">for </span>MaxTermWidth {}

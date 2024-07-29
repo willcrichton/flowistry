@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.204/src/ser/impls.rs`."><title>impls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.193/src/ser/impls.rs`."><title>impls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../serde/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -1077,41 +1077,6 @@
 <a href="#1075" id="1075">1075</a>
 <a href="#1076" id="1076">1076</a>
 <a href="#1077" id="1077">1077</a>
-<a href="#1078" id="1078">1078</a>
-<a href="#1079" id="1079">1079</a>
-<a href="#1080" id="1080">1080</a>
-<a href="#1081" id="1081">1081</a>
-<a href="#1082" id="1082">1082</a>
-<a href="#1083" id="1083">1083</a>
-<a href="#1084" id="1084">1084</a>
-<a href="#1085" id="1085">1085</a>
-<a href="#1086" id="1086">1086</a>
-<a href="#1087" id="1087">1087</a>
-<a href="#1088" id="1088">1088</a>
-<a href="#1089" id="1089">1089</a>
-<a href="#1090" id="1090">1090</a>
-<a href="#1091" id="1091">1091</a>
-<a href="#1092" id="1092">1092</a>
-<a href="#1093" id="1093">1093</a>
-<a href="#1094" id="1094">1094</a>
-<a href="#1095" id="1095">1095</a>
-<a href="#1096" id="1096">1096</a>
-<a href="#1097" id="1097">1097</a>
-<a href="#1098" id="1098">1098</a>
-<a href="#1099" id="1099">1099</a>
-<a href="#1100" id="1100">1100</a>
-<a href="#1101" id="1101">1101</a>
-<a href="#1102" id="1102">1102</a>
-<a href="#1103" id="1103">1103</a>
-<a href="#1104" id="1104">1104</a>
-<a href="#1105" id="1105">1105</a>
-<a href="#1106" id="1106">1106</a>
-<a href="#1107" id="1107">1107</a>
-<a href="#1108" id="1108">1108</a>
-<a href="#1109" id="1109">1109</a>
-<a href="#1110" id="1110">1110</a>
-<a href="#1111" id="1111">1111</a>
-<a href="#1112" id="1112">1112</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::lib::<span class="kw-2">*</span>;
 
 <span class="kw">use </span><span class="kw">crate</span>::ser::{Error, Serialize, SerializeTuple, Serializer};
@@ -1162,7 +1127,7 @@
 }
 
 <span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))]
-#[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
+#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>String {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
@@ -1185,7 +1150,7 @@
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
 
 </span><span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, not(no_core_cstr)))]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>CStr {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
@@ -1197,7 +1162,7 @@
 }
 
 <span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, all(not(no_core_cstr), feature = <span class="string">"alloc"</span>)))]
-#[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
+#[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>CString {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
@@ -1228,10 +1193,7 @@
 
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
 
-</span><span class="kw">impl</span>&lt;T&gt; Serialize <span class="kw">for </span>PhantomData&lt;T&gt;
-<span class="kw">where
-    </span>T: <span class="question-mark">?</span>Sized,
-{
+</span><span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Serialize <span class="kw">for </span>PhantomData&lt;T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -1346,37 +1308,37 @@
 
 <span class="macro">seq_impl! </span>{
     <span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
+    #[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
     </span>BinaryHeap&lt;T: Ord&gt;
 }
 
 <span class="macro">seq_impl! </span>{
     <span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
+    #[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
     </span>BTreeSet&lt;T: Ord&gt;
 }
 
 <span class="macro">seq_impl! </span>{
     <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
     </span>HashSet&lt;T: Eq + Hash, H: BuildHasher&gt;
 }
 
 <span class="macro">seq_impl! </span>{
     <span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
+    #[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
     </span>LinkedList&lt;T&gt;
 }
 
 <span class="macro">seq_impl! </span>{
     <span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
+    #[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
     </span>Vec&lt;T&gt;
 }
 
 <span class="macro">seq_impl! </span>{
     <span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
+    #[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
     </span>VecDeque&lt;T&gt;
 }
 
@@ -1485,7 +1447,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable"</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"unstable"</span>)))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"unstable"</span>)))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>! {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -1500,46 +1462,28 @@
 </span><span class="macro">macro_rules! </span>tuple_impls {
     ($(<span class="macro-nonterminal">$len</span>:expr =&gt; ($(<span class="macro-nonterminal">$n</span>:tt <span class="macro-nonterminal">$name</span>:ident)+))+) =&gt; {
         $(
-            <span class="attr">#[cfg_attr(docsrs, doc(hidden))]
-            </span><span class="kw">impl</span>&lt;$(<span class="macro-nonterminal">$name</span>),+&gt; Serialize <span class="kw">for </span>($(<span class="macro-nonterminal">$name</span>,)+)
+            <span class="kw">impl</span>&lt;$(<span class="macro-nonterminal">$name</span>),+&gt; Serialize <span class="kw">for </span>($(<span class="macro-nonterminal">$name</span>,)+)
             <span class="kw">where
                 </span>$(<span class="macro-nonterminal">$name</span>: Serialize,)+
             {
-                <span class="macro">tuple_impl_body!</span>(<span class="macro-nonterminal">$len </span>=&gt; ($(<span class="macro-nonterminal">$n</span>)+));
+                <span class="attr">#[inline]
+                </span><span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
+                <span class="kw">where
+                    </span>S: Serializer,
+                {
+                    <span class="kw">let </span><span class="kw-2">mut </span>tuple = <span class="macro">tri!</span>(serializer.serialize_tuple(<span class="macro-nonterminal">$len</span>));
+                    $(
+                        <span class="macro">tri!</span>(tuple.serialize_element(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="macro-nonterminal">$n</span>));
+                    )+
+                    tuple.end()
+                }
             }
         )+
-    };
-}
-
-<span class="macro">macro_rules! </span>tuple_impl_body {
-    (<span class="macro-nonterminal">$len</span>:expr =&gt; ($(<span class="macro-nonterminal">$n</span>:tt)+)) =&gt; {
-        <span class="attr">#[inline]
-        </span><span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
-        <span class="kw">where
-            </span>S: Serializer,
-        {
-            <span class="kw">let </span><span class="kw-2">mut </span>tuple = <span class="macro">tri!</span>(serializer.serialize_tuple(<span class="macro-nonterminal">$len</span>));
-            $(
-                <span class="macro">tri!</span>(tuple.serialize_element(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="macro-nonterminal">$n</span>));
-            )+
-            tuple.end()
-        }
-    };
-}
-
-<span class="attr">#[cfg_attr(docsrs, doc(fake_variadic))]
-#[cfg_attr(
-    docsrs,
-    doc = <span class="string">"This trait is implemented for tuples up to 16 items long."
-</span>)]
-</span><span class="kw">impl</span>&lt;T&gt; Serialize <span class="kw">for </span>(T,)
-<span class="kw">where
-    </span>T: Serialize,
-{
-    <span class="macro">tuple_impl_body!</span>(<span class="number">1 </span>=&gt; (<span class="number">0</span>));
+    }
 }
 
 <span class="macro">tuple_impls! </span>{
+    <span class="number">1 </span>=&gt; (<span class="number">0 </span>T0)
     <span class="number">2 </span>=&gt; (<span class="number">0 </span>T0 <span class="number">1 </span>T1)
     <span class="number">3 </span>=&gt; (<span class="number">0 </span>T0 <span class="number">1 </span>T1 <span class="number">2 </span>T2)
     <span class="number">4 </span>=&gt; (<span class="number">0 </span>T0 <span class="number">1 </span>T1 <span class="number">2 </span>T2 <span class="number">3 </span>T3)
@@ -1608,13 +1552,13 @@
 
 <span class="macro">map_impl! </span>{
     <span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
+    #[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
     </span>BTreeMap&lt;K: Ord, V&gt;
 }
 
 <span class="macro">map_impl! </span>{
     <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
     </span>HashMap&lt;K: Eq + Hash, V, H: BuildHasher&gt;
 }
 
@@ -1639,17 +1583,17 @@
 }
 
 <span class="macro">deref_impl! </span>{
-    &lt;<span class="lifetime">'a</span>, T&gt; Serialize <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>T <span class="kw">where </span>T: <span class="question-mark">?</span>Sized + Serialize
+    &lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; Serialize <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>T <span class="kw">where </span>T: Serialize
 }
 
 <span class="macro">deref_impl! </span>{
-    &lt;<span class="lifetime">'a</span>, T&gt; Serialize <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T <span class="kw">where </span>T: <span class="question-mark">?</span>Sized + Serialize
+    &lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; Serialize <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T <span class="kw">where </span>T: Serialize
 }
 
 <span class="macro">deref_impl! </span>{
     <span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
-    </span>&lt;T&gt; Serialize <span class="kw">for </span>Box&lt;T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span>Sized + Serialize
+    #[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
+    </span>&lt;T: <span class="question-mark">?</span>Sized&gt; Serialize <span class="kw">for </span>Box&lt;T&gt; <span class="kw">where </span>T: Serialize
 }
 
 <span class="macro">deref_impl! </span>{
@@ -1662,8 +1606,8 @@
     ///
     /// [`"rc"`]: https://serde.rs/feature-flags.html#-features-rc
     </span><span class="attr">#[cfg(all(feature = <span class="string">"rc"</span>, any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>)))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">"rc"</span>, any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>)))))]
-    </span>&lt;T&gt; Serialize <span class="kw">for </span>Rc&lt;T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span>Sized + Serialize
+    #[cfg_attr(doc_cfg, doc(cfg(all(feature = <span class="string">"rc"</span>, any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>)))))]
+    </span>&lt;T: <span class="question-mark">?</span>Sized&gt; Serialize <span class="kw">for </span>Rc&lt;T&gt; <span class="kw">where </span>T: Serialize
 }
 
 <span class="macro">deref_impl! </span>{
@@ -1676,14 +1620,14 @@
     ///
     /// [`"rc"`]: https://serde.rs/feature-flags.html#-features-rc
     </span><span class="attr">#[cfg(all(feature = <span class="string">"rc"</span>, any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>)))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">"rc"</span>, any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>)))))]
-    </span>&lt;T&gt; Serialize <span class="kw">for </span>Arc&lt;T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span>Sized + Serialize
+    #[cfg_attr(doc_cfg, doc(cfg(all(feature = <span class="string">"rc"</span>, any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>)))))]
+    </span>&lt;T: <span class="question-mark">?</span>Sized&gt; Serialize <span class="kw">for </span>Arc&lt;T&gt; <span class="kw">where </span>T: Serialize
 }
 
 <span class="macro">deref_impl! </span>{
     <span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
-    </span>&lt;<span class="lifetime">'a</span>, T&gt; Serialize <span class="kw">for </span>Cow&lt;<span class="lifetime">'a</span>, T&gt; <span class="kw">where </span>T: <span class="question-mark">?</span>Sized + Serialize + ToOwned
+    #[cfg_attr(doc_cfg, doc(cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))]
+    </span>&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; Serialize <span class="kw">for </span>Cow&lt;<span class="lifetime">'a</span>, T&gt; <span class="kw">where </span>T: Serialize + ToOwned
 }
 
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
@@ -1693,12 +1637,12 @@
 /// [`"rc"`]: https://serde.rs/feature-flags.html#-features-rc
 </span><span class="attr">#[cfg(all(feature = <span class="string">"rc"</span>, any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>)))]
 #[cfg_attr(
-    docsrs,
+    doc_cfg,
     doc(cfg(all(feature = <span class="string">"rc"</span>, any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))
 )]
-</span><span class="kw">impl</span>&lt;T&gt; Serialize <span class="kw">for </span>RcWeak&lt;T&gt;
+</span><span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Serialize <span class="kw">for </span>RcWeak&lt;T&gt;
 <span class="kw">where
-    </span>T: <span class="question-mark">?</span>Sized + Serialize,
+    </span>T: Serialize,
 {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -1713,12 +1657,12 @@
 /// [`"rc"`]: https://serde.rs/feature-flags.html#-features-rc
 </span><span class="attr">#[cfg(all(feature = <span class="string">"rc"</span>, any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>)))]
 #[cfg_attr(
-    docsrs,
+    doc_cfg,
     doc(cfg(all(feature = <span class="string">"rc"</span>, any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))))
 )]
-</span><span class="kw">impl</span>&lt;T&gt; Serialize <span class="kw">for </span>ArcWeak&lt;T&gt;
+</span><span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Serialize <span class="kw">for </span>ArcWeak&lt;T&gt;
 <span class="kw">where
-    </span>T: <span class="question-mark">?</span>Sized + Serialize,
+    </span>T: Serialize,
 {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -1776,9 +1720,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; Serialize <span class="kw">for </span>RefCell&lt;T&gt;
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Serialize <span class="kw">for </span>RefCell&lt;T&gt;
 <span class="kw">where
-    </span>T: <span class="question-mark">?</span>Sized + Serialize,
+    </span>T: Serialize,
 {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -1792,10 +1736,10 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
-</span><span class="kw">impl</span>&lt;T&gt; Serialize <span class="kw">for </span>Mutex&lt;T&gt;
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
+</span><span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Serialize <span class="kw">for </span>Mutex&lt;T&gt;
 <span class="kw">where
-    </span>T: <span class="question-mark">?</span>Sized + Serialize,
+    </span>T: Serialize,
 {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -1809,10 +1753,10 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
-</span><span class="kw">impl</span>&lt;T&gt; Serialize <span class="kw">for </span>RwLock&lt;T&gt;
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
+</span><span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Serialize <span class="kw">for </span>RwLock&lt;T&gt;
 <span class="kw">where
-    </span>T: <span class="question-mark">?</span>Sized + Serialize,
+    </span>T: Serialize,
 {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -1863,7 +1807,7 @@
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
 
 </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>SystemTime {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -1908,7 +1852,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>net::IpAddr {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -1979,7 +1923,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>net::Ipv4Addr {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -2004,7 +1948,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>net::Ipv6Addr {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -2021,7 +1965,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>net::SocketAddr {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -2046,7 +1990,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>net::SocketAddrV4 {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -2063,7 +2007,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>net::SocketAddrV6 {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -2085,7 +2029,7 @@
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
 
 </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>Path {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -2099,7 +2043,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"std"</span>)))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>PathBuf {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -2110,7 +2054,7 @@
 }
 
 <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, any(unix, windows)))]
-#[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">"std"</span>, any(unix, windows)))))]
+#[cfg_attr(doc_cfg, doc(cfg(all(feature = <span class="string">"std"</span>, any(unix, windows)))))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>OsStr {
     <span class="attr">#[cfg(unix)]
     </span><span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
@@ -2133,7 +2077,7 @@
 }
 
 <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, any(unix, windows)))]
-#[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">"std"</span>, any(unix, windows)))))]
+#[cfg_attr(doc_cfg, doc(cfg(all(feature = <span class="string">"std"</span>, any(unix, windows)))))]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>OsString {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -2146,20 +2090,6 @@
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
 
 </span><span class="kw">impl</span>&lt;T&gt; Serialize <span class="kw">for </span>Wrapping&lt;T&gt;
-<span class="kw">where
-    </span>T: Serialize,
-{
-    <span class="attr">#[inline]
-    </span><span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
-    <span class="kw">where
-        </span>S: Serializer,
-    {
-        <span class="self">self</span>.<span class="number">0</span>.serialize(serializer)
-    }
-}
-
-<span class="attr">#[cfg(not(no_core_num_saturating))]
-</span><span class="kw">impl</span>&lt;T&gt; Serialize <span class="kw">for </span>Saturating&lt;T&gt;
 <span class="kw">where
     </span>T: Serialize,
 {
@@ -2192,7 +2122,7 @@
     ($(<span class="macro-nonterminal">$ty</span>:ident <span class="macro-nonterminal">$size</span>:expr)<span class="kw-2">*</span>) =&gt; {
         $(
             <span class="attr">#[cfg(any(no_target_has_atomic, target_has_atomic = <span class="macro-nonterminal">$size</span>))]
-            #[cfg_attr(docsrs, doc(cfg(all(feature = <span class="string">"std"</span>, target_has_atomic = <span class="macro-nonterminal">$size</span>))))]
+            #[cfg_attr(doc_cfg, doc(cfg(all(feature = <span class="string">"std"</span>, target_has_atomic = <span class="macro-nonterminal">$size</span>))))]
             </span><span class="kw">impl </span>Serialize <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
                 <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
                 <span class="kw">where

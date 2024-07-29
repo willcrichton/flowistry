@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.11/src/builder/debug_asserts.rs`."><title>debug_asserts.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.8/src/builder/debug_asserts.rs`."><title>debug_asserts.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -814,6 +814,32 @@
 <a href="#812" id="812">812</a>
 <a href="#813" id="813">813</a>
 <a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::cmp::Ordering;
 
 <span class="kw">use </span><span class="kw">crate</span>::builder::ValueRange;
@@ -1214,24 +1240,26 @@
 }
 
 <span class="kw">impl </span>PartialEq <span class="kw">for </span>Flag&lt;<span class="lifetime">'_</span>&gt; {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Flag&lt;<span class="lifetime">'_</span>&gt;) -&gt; bool {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Flag) -&gt; bool {
         <span class="self">self</span>.cmp(other) == Ordering::Equal
     }
 }
 
 <span class="kw">impl </span>PartialOrd <span class="kw">for </span>Flag&lt;<span class="lifetime">'_</span>&gt; {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Flag&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Flag) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
         <span class="prelude-val">Some</span>(<span class="self">self</span>.cmp(other))
     }
 }
 
 <span class="kw">impl </span>Ord <span class="kw">for </span>Flag&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Ordering {
+        <span class="kw">use </span>Flag::<span class="kw-2">*</span>;
+
         <span class="kw">match </span>(<span class="self">self</span>, other) {
-            (Flag::Command(s1, <span class="kw">_</span>), Flag::Command(s2, <span class="kw">_</span>))
-            | (Flag::Arg(s1, <span class="kw">_</span>), Flag::Arg(s2, <span class="kw">_</span>))
-            | (Flag::Command(s1, <span class="kw">_</span>), Flag::Arg(s2, <span class="kw">_</span>))
-            | (Flag::Arg(s1, <span class="kw">_</span>), Flag::Command(s2, <span class="kw">_</span>)) =&gt; {
+            (Command(s1, <span class="kw">_</span>), Command(s2, <span class="kw">_</span>))
+            | (Arg(s1, <span class="kw">_</span>), Arg(s2, <span class="kw">_</span>))
+            | (Command(s1, <span class="kw">_</span>), Arg(s2, <span class="kw">_</span>))
+            | (Arg(s1, <span class="kw">_</span>), Command(s2, <span class="kw">_</span>)) =&gt; {
                 <span class="kw">if </span>s1 == s2 {
                     Ordering::Equal
                 } <span class="kw">else </span>{
@@ -1242,18 +1270,20 @@
     }
 }
 
-<span class="kw">fn </span>detect_duplicate_flags(flags: <span class="kw-2">&amp;</span>[Flag&lt;<span class="lifetime">'_</span>&gt;], short_or_long: <span class="kw-2">&amp;</span>str) {
+<span class="kw">fn </span>detect_duplicate_flags(flags: <span class="kw-2">&amp;</span>[Flag], short_or_long: <span class="kw-2">&amp;</span>str) {
+    <span class="kw">use </span>Flag::<span class="kw-2">*</span>;
+
     <span class="kw">for </span>(one, two) <span class="kw">in </span>find_duplicates(flags) {
         <span class="kw">match </span>(one, two) {
-            (Flag::Command(flag, one), Flag::Command(<span class="kw">_</span>, another)) <span class="kw">if </span>one != another =&gt; <span class="macro">panic!</span>(
+            (Command(flag, one), Command(<span class="kw">_</span>, another)) <span class="kw">if </span>one != another =&gt; <span class="macro">panic!</span>(
                 <span class="string">"the '{flag}' {short_or_long} flag is specified for both '{one}' and '{another}' subcommands"
             </span>),
 
-            (Flag::Arg(flag, one), Flag::Arg(<span class="kw">_</span>, another)) <span class="kw">if </span>one != another =&gt; <span class="macro">panic!</span>(
+            (Arg(flag, one), Arg(<span class="kw">_</span>, another)) <span class="kw">if </span>one != another =&gt; <span class="macro">panic!</span>(
                 <span class="string">"{short_or_long} option names must be unique, but '{flag}' is in use by both '{one}' and '{another}'"
             </span>),
 
-            (Flag::Arg(flag, arg), Flag::Command(<span class="kw">_</span>, sub)) | (Flag::Command(flag, sub), Flag::Arg(<span class="kw">_</span>, arg)) =&gt; <span class="macro">panic!</span>(
+            (Arg(flag, arg), Command(<span class="kw">_</span>, sub)) | (Command(flag, sub), Arg(<span class="kw">_</span>, arg)) =&gt; <span class="macro">panic!</span>(
                 <span class="string">"the '{flag}' {short_or_long} flag for the '{arg}' argument conflicts with the short flag \
                      for '{sub}' subcommand"
             </span>),
@@ -1279,6 +1309,22 @@
 
 <span class="kw">fn </span>assert_app_flags(cmd: <span class="kw-2">&amp;</span>Command) {
     <span class="macro">macro_rules! </span>checker {
+        (<span class="macro-nonterminal">$a</span>:ident requires $(<span class="macro-nonterminal">$b</span>:ident)|+) =&gt; {
+            <span class="kw">if </span>cmd.<span class="macro-nonterminal">$a</span>() {
+                <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
+
+                $(
+                    <span class="kw">if </span>!cmd.<span class="macro-nonterminal">$b</span>() {
+                        <span class="kw">use </span>std::fmt::Write;
+                        <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>s, <span class="string">"  AppSettings::{} is required when AppSettings::{} is set.\n"</span>, <span class="macro">std::stringify!</span>(<span class="macro-nonterminal">$b</span>), <span class="macro">std::stringify!</span>(<span class="macro-nonterminal">$a</span>)).unwrap();
+                    }
+                )+
+
+                <span class="kw">if </span>!s.is_empty() {
+                    <span class="macro">panic!</span>(<span class="string">"{s}"</span>)
+                }
+            }
+        };
         (<span class="macro-nonterminal">$a</span>:ident conflicts $(<span class="macro-nonterminal">$b</span>:ident)|+) =&gt; {
             <span class="kw">if </span>cmd.<span class="macro-nonterminal">$a</span>() {
                 <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
@@ -1500,14 +1546,13 @@
         arg.get_id(),
     );
 
-    <span class="kw">if </span>arg.is_takes_value_set() {
-        <span class="macro">assert!</span>(
-            arg.get_action().takes_values(),
-            <span class="string">"Argument `{}`'s selected action {:?} contradicts `takes_value`"</span>,
-            arg.get_id(),
-            arg.get_action()
-        );
-    }
+    <span class="macro">assert_eq!</span>(
+        arg.get_action().takes_values(),
+        arg.is_takes_value_set(),
+        <span class="string">"Argument `{}`'s selected action {:?} contradicts `takes_value`"</span>,
+        arg.get_id(),
+        arg.get_action()
+    );
     <span class="kw">if let </span><span class="prelude-val">Some</span>(action_type_id) = arg.get_action().value_type_id() {
         <span class="macro">assert_eq!</span>(
             action_type_id,
@@ -1531,7 +1576,7 @@
                 arg.is_multiple_values_set(),
                 <span class="string">"Argument '{}' uses hint CommandWithArguments and must accept multiple values"</span>,
                 arg.get_id()
-            );
+            )
         }
     }
 
@@ -1571,6 +1616,13 @@
         }
     }
 
+    <span class="macro">assert_eq!</span>(
+        num_vals.takes_values(),
+        arg.is_takes_value_set(),
+        <span class="string">"Argument {}: mismatch between `num_args` ({}) and `takes_value`"</span>,
+        arg.get_id(),
+        num_vals,
+    );
     <span class="macro">assert_eq!</span>(
         num_vals.is_multiple(),
         arg.is_multiple_values_set(),

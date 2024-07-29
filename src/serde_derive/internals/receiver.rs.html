@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_derive-1.0.204/src/internals/receiver.rs`."><title>receiver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_derive-1.0.193/src/internals/receiver.rs`."><title>receiver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../serde_derive/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -378,7 +378,7 @@
             <span class="self">self</span>.visit_type_mut_impl(ty);
             <span class="kw">return</span>;
         };
-        <span class="kw-2">*</span>ty = Type::Path(<span class="self">self</span>.self_ty(span));
+        <span class="kw-2">*</span>ty = <span class="self">self</span>.self_ty(span).into();
     }
 
     <span class="comment">// `Self::Assoc` -&gt; `&lt;Receiver&gt;::Assoc`
@@ -401,8 +401,7 @@
 
     </span><span class="kw">fn </span>visit_type_mut_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;mut </span>Type) {
         <span class="kw">match </span>ty {
-            <span class="attr">#![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
-            </span>Type::Array(ty) =&gt; {
+            Type::Array(ty) =&gt; {
                 <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>ty.elem);
                 <span class="self">self</span>.visit_expr_mut(<span class="kw-2">&amp;mut </span>ty.len);
             }
@@ -442,7 +441,8 @@
 
             Type::Infer(<span class="kw">_</span>) | Type::Never(<span class="kw">_</span>) | Type::Verbatim(<span class="kw">_</span>) =&gt; {}
 
-            <span class="kw">_ </span>=&gt; {}
+            <span class="attr">#[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+            </span><span class="kw">_ </span>=&gt; {}
         }
     }
 
@@ -472,14 +472,14 @@
             PathArguments::AngleBracketed(arguments) =&gt; {
                 <span class="kw">for </span>arg <span class="kw">in </span><span class="kw-2">&amp;mut </span>arguments.args {
                     <span class="kw">match </span>arg {
-                        <span class="attr">#![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
-                        </span>GenericArgument::Type(arg) =&gt; <span class="self">self</span>.visit_type_mut(arg),
+                        GenericArgument::Type(arg) =&gt; <span class="self">self</span>.visit_type_mut(arg),
                         GenericArgument::AssocType(arg) =&gt; <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>arg.ty),
                         GenericArgument::Lifetime(<span class="kw">_</span>)
                         | GenericArgument::Const(<span class="kw">_</span>)
                         | GenericArgument::AssocConst(<span class="kw">_</span>)
                         | GenericArgument::Constraint(<span class="kw">_</span>) =&gt; {}
-                        <span class="kw">_ </span>=&gt; {}
+                        <span class="attr">#[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+                        </span><span class="kw">_ </span>=&gt; {}
                     }
                 }
             }
@@ -501,10 +501,10 @@
 
     <span class="kw">fn </span>visit_type_param_bound_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bound: <span class="kw-2">&amp;mut </span>TypeParamBound) {
         <span class="kw">match </span>bound {
-            <span class="attr">#![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
-            </span>TypeParamBound::Trait(bound) =&gt; <span class="self">self</span>.visit_path_mut(<span class="kw-2">&amp;mut </span>bound.path),
+            TypeParamBound::Trait(bound) =&gt; <span class="self">self</span>.visit_path_mut(<span class="kw-2">&amp;mut </span>bound.path),
             TypeParamBound::Lifetime(<span class="kw">_</span>) | TypeParamBound::Verbatim(<span class="kw">_</span>) =&gt; {}
-            <span class="kw">_ </span>=&gt; {}
+            <span class="attr">#[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+            </span><span class="kw">_ </span>=&gt; {}
         }
     }
 
@@ -522,15 +522,15 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(where_clause) = <span class="kw-2">&amp;mut </span>generics.where_clause {
             <span class="kw">for </span>predicate <span class="kw">in </span><span class="kw-2">&amp;mut </span>where_clause.predicates {
                 <span class="kw">match </span>predicate {
-                    <span class="attr">#![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
-                    </span>WherePredicate::Type(predicate) =&gt; {
+                    WherePredicate::Type(predicate) =&gt; {
                         <span class="self">self</span>.visit_type_mut(<span class="kw-2">&amp;mut </span>predicate.bounded_ty);
                         <span class="kw">for </span>bound <span class="kw">in </span><span class="kw-2">&amp;mut </span>predicate.bounds {
                             <span class="self">self</span>.visit_type_param_bound_mut(bound);
                         }
                     }
                     WherePredicate::Lifetime(<span class="kw">_</span>) =&gt; {}
-                    <span class="kw">_ </span>=&gt; {}
+                    <span class="attr">#[cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+                    </span><span class="kw">_ </span>=&gt; {}
                 }
             }
         }

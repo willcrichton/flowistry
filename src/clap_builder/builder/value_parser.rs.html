@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.11/src/builder/value_parser.rs`."><title>value_parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.8/src/builder/value_parser.rs`."><title>value_parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -2668,6 +2668,50 @@
 <a href="#2666" id="2666">2666</a>
 <a href="#2667" id="2667">2667</a>
 <a href="#2668" id="2668">2668</a>
+<a href="#2669" id="2669">2669</a>
+<a href="#2670" id="2670">2670</a>
+<a href="#2671" id="2671">2671</a>
+<a href="#2672" id="2672">2672</a>
+<a href="#2673" id="2673">2673</a>
+<a href="#2674" id="2674">2674</a>
+<a href="#2675" id="2675">2675</a>
+<a href="#2676" id="2676">2676</a>
+<a href="#2677" id="2677">2677</a>
+<a href="#2678" id="2678">2678</a>
+<a href="#2679" id="2679">2679</a>
+<a href="#2680" id="2680">2680</a>
+<a href="#2681" id="2681">2681</a>
+<a href="#2682" id="2682">2682</a>
+<a href="#2683" id="2683">2683</a>
+<a href="#2684" id="2684">2684</a>
+<a href="#2685" id="2685">2685</a>
+<a href="#2686" id="2686">2686</a>
+<a href="#2687" id="2687">2687</a>
+<a href="#2688" id="2688">2688</a>
+<a href="#2689" id="2689">2689</a>
+<a href="#2690" id="2690">2690</a>
+<a href="#2691" id="2691">2691</a>
+<a href="#2692" id="2692">2692</a>
+<a href="#2693" id="2693">2693</a>
+<a href="#2694" id="2694">2694</a>
+<a href="#2695" id="2695">2695</a>
+<a href="#2696" id="2696">2696</a>
+<a href="#2697" id="2697">2697</a>
+<a href="#2698" id="2698">2698</a>
+<a href="#2699" id="2699">2699</a>
+<a href="#2700" id="2700">2700</a>
+<a href="#2701" id="2701">2701</a>
+<a href="#2702" id="2702">2702</a>
+<a href="#2703" id="2703">2703</a>
+<a href="#2704" id="2704">2704</a>
+<a href="#2705" id="2705">2705</a>
+<a href="#2706" id="2706">2706</a>
+<a href="#2707" id="2707">2707</a>
+<a href="#2708" id="2708">2708</a>
+<a href="#2709" id="2709">2709</a>
+<a href="#2710" id="2710">2710</a>
+<a href="#2711" id="2711">2711</a>
+<a href="#2712" id="2712">2712</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::convert::TryInto;
 <span class="kw">use </span>std::ops::RangeBounds;
 
@@ -3234,7 +3278,7 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>ValueParser {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), std::fmt::Error&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; <span class="prelude-ty">Result</span>&lt;(), std::fmt::Error&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
             ValueParserInner::Bool =&gt; f.debug_struct(<span class="string">"ValueParser::bool"</span>).finish(),
             ValueParserInner::String =&gt; f.debug_struct(<span class="string">"ValueParser::string"</span>).finish(),
@@ -3276,6 +3320,23 @@
         <span class="self">self</span>.parse_ref(cmd, arg, value)
     }
 
+    <span class="kw">fn </span>parse(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: std::ffi::OsString,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;AnyValue, <span class="kw">crate</span>::Error&gt;;
+
+    <span class="kw">fn </span>parse_(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: std::ffi::OsString,
+        _source: ValueSource,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;AnyValue, <span class="kw">crate</span>::Error&gt; {
+        <span class="self">self</span>.parse(cmd, arg, value)
+    }
+
     <span class="doccomment">/// Describes the content of `AnyValue`
     </span><span class="kw">fn </span>type_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AnyValueId;
 
@@ -3309,6 +3370,27 @@
         source: ValueSource,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;AnyValue, <span class="kw">crate</span>::Error&gt; {
         <span class="kw">let </span>value = <span class="macro">ok!</span>(TypedValueParser::parse_ref_(<span class="self">self</span>, cmd, arg, value, source));
+        <span class="prelude-val">Ok</span>(AnyValue::new(value))
+    }
+
+    <span class="kw">fn </span>parse(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: std::ffi::OsString,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;AnyValue, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(TypedValueParser::parse(<span class="self">self</span>, cmd, arg, value));
+        <span class="prelude-val">Ok</span>(AnyValue::new(value))
+    }
+
+    <span class="kw">fn </span>parse_(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        cmd: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Command,
+        arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">crate</span>::Arg&gt;,
+        value: std::ffi::OsString,
+        source: ValueSource,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;AnyValue, <span class="kw">crate</span>::Error&gt; {
+        <span class="kw">let </span>value = <span class="macro">ok!</span>(TypedValueParser::parse_(<span class="self">self</span>, cmd, arg, value, source));
         <span class="prelude-val">Ok</span>(AnyValue::new(value))
     }
 
@@ -3978,12 +4060,12 @@
 /// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("50")).unwrap(), 50);
 /// ```
 </span><span class="attr">#[derive(Copy, Clone, Debug)]
-</span><span class="kw">pub struct </span>RangedI64ValueParser&lt;T: TryFrom&lt;i64&gt; + Clone + Send + Sync = i64&gt; {
+</span><span class="kw">pub struct </span>RangedI64ValueParser&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync = i64&gt; {
     bounds: (std::ops::Bound&lt;i64&gt;, std::ops::Bound&lt;i64&gt;),
     target: std::marker::PhantomData&lt;T&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: TryFrom&lt;i64&gt; + Clone + Send + Sync&gt; RangedI64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync&gt; RangedI64ValueParser&lt;T&gt; {
     <span class="doccomment">/// Select full range of `i64`
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from(..)
@@ -4063,9 +4145,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: TryFrom&lt;i64&gt; + Clone + Send + Sync + <span class="lifetime">'static</span>&gt; TypedValueParser <span class="kw">for </span>RangedI64ValueParser&lt;T&gt;
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync + <span class="lifetime">'static</span>&gt; TypedValueParser
+    <span class="kw">for </span>RangedI64ValueParser&lt;T&gt;
 <span class="kw">where
-    </span>&lt;T <span class="kw">as </span>TryFrom&lt;i64&gt;&gt;::Error: Send + Sync + <span class="lifetime">'static </span>+ std::error::Error + ToString,
+    </span>&lt;T <span class="kw">as </span>std::convert::TryFrom&lt;i64&gt;&gt;::Error: Send + Sync + <span class="lifetime">'static </span>+ std::error::Error + ToString,
 {
     <span class="kw">type </span>Value = T;
 
@@ -4121,7 +4204,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: TryFrom&lt;i64&gt; + Clone + Send + Sync, B: RangeBounds&lt;i64&gt;&gt; From&lt;B&gt;
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync, B: RangeBounds&lt;i64&gt;&gt; From&lt;B&gt;
     <span class="kw">for </span>RangedI64ValueParser&lt;T&gt;
 {
     <span class="kw">fn </span>from(range: B) -&gt; <span class="self">Self </span>{
@@ -4132,7 +4215,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: TryFrom&lt;i64&gt; + Clone + Send + Sync&gt; Default <span class="kw">for </span>RangedI64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;i64&gt; + Clone + Send + Sync&gt; Default <span class="kw">for </span>RangedI64ValueParser&lt;T&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -4177,12 +4260,12 @@
 /// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new("50")).unwrap(), 50);
 /// ```
 </span><span class="attr">#[derive(Copy, Clone, Debug)]
-</span><span class="kw">pub struct </span>RangedU64ValueParser&lt;T: TryFrom&lt;u64&gt; = u64&gt; {
+</span><span class="kw">pub struct </span>RangedU64ValueParser&lt;T: std::convert::TryFrom&lt;u64&gt; = u64&gt; {
     bounds: (std::ops::Bound&lt;u64&gt;, std::ops::Bound&lt;u64&gt;),
     target: std::marker::PhantomData&lt;T&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: TryFrom&lt;u64&gt;&gt; RangedU64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;u64&gt;&gt; RangedU64ValueParser&lt;T&gt; {
     <span class="doccomment">/// Select full range of `u64`
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from(..)
@@ -4262,9 +4345,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: TryFrom&lt;u64&gt; + Clone + Send + Sync + <span class="lifetime">'static</span>&gt; TypedValueParser <span class="kw">for </span>RangedU64ValueParser&lt;T&gt;
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;u64&gt; + Clone + Send + Sync + <span class="lifetime">'static</span>&gt; TypedValueParser
+    <span class="kw">for </span>RangedU64ValueParser&lt;T&gt;
 <span class="kw">where
-    </span>&lt;T <span class="kw">as </span>TryFrom&lt;u64&gt;&gt;::Error: Send + Sync + <span class="lifetime">'static </span>+ std::error::Error + ToString,
+    </span>&lt;T <span class="kw">as </span>std::convert::TryFrom&lt;u64&gt;&gt;::Error: Send + Sync + <span class="lifetime">'static </span>+ std::error::Error + ToString,
 {
     <span class="kw">type </span>Value = T;
 
@@ -4320,7 +4404,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: TryFrom&lt;u64&gt;, B: RangeBounds&lt;u64&gt;&gt; From&lt;B&gt; <span class="kw">for </span>RangedU64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;u64&gt;, B: RangeBounds&lt;u64&gt;&gt; From&lt;B&gt; <span class="kw">for </span>RangedU64ValueParser&lt;T&gt; {
     <span class="kw">fn </span>from(range: B) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             bounds: (range.start_bound().cloned(), range.end_bound().cloned()),
@@ -4329,7 +4413,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: TryFrom&lt;u64&gt;&gt; Default <span class="kw">for </span>RangedU64ValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: std::convert::TryFrom&lt;u64&gt;&gt; Default <span class="kw">for </span>RangedU64ValueParser&lt;T&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -4543,7 +4627,7 @@
 </span><span class="kw">pub struct </span>BoolishValueParser {}
 
 <span class="kw">impl </span>BoolishValueParser {
-    <span class="doccomment">/// Parse bool-like string values, everything else is an error.
+    <span class="doccomment">/// Parse bool-like string values, everything else is `true`
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{}
     }
@@ -4788,7 +4872,7 @@
     }
 }
 
-<span class="doccomment">/// When encountered, report [`ErrorKind::UnknownArgument`][crate::error::ErrorKind::UnknownArgument]
+<span class="doccomment">/// When encountered, report [ErrorKind::UnknownArgument][crate::error::ErrorKind::UnknownArgument]
 ///
 /// Useful to help users migrate, either from old versions or similar tools.
 ///
@@ -4904,7 +4988,7 @@
     }
 }
 
-<span class="doccomment">/// Register a type with [`value_parser!`][crate::value_parser!]
+<span class="doccomment">/// Register a type with [value_parser!][crate::value_parser!]
 ///
 /// # Example
 ///
@@ -5279,6 +5363,10 @@
 
 <span class="kw">mod </span>private {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
+
+    <span class="comment">// Prefer these so `clap_derive` defaults to optimized implementations
+    </span><span class="kw">pub trait </span>_ValueParserViaSelfSealed {}
+    <span class="kw">impl</span>&lt;P: Into&lt;ValueParser&gt;&gt; _ValueParserViaSelfSealed <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;P&gt; {}
 
     <span class="kw">pub trait </span>_ValueParserViaFactorySealed {}
     <span class="kw">impl</span>&lt;P: ValueParserFactory&gt; _ValueParserViaFactorySealed <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;_AutoValueParser&lt;P&gt; {}

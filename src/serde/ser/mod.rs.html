@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.204/src/ser/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.193/src/ser/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../serde/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -1952,8 +1952,6 @@
 <a href="#1950" id="1950">1950</a>
 <a href="#1951" id="1951">1951</a>
 <a href="#1952" id="1952">1952</a>
-<a href="#1953" id="1953">1953</a>
-<a href="#1954" id="1954">1954</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Generic data structure serialization framework.
 //!
 //! The two most important traits in this module are [`Serialize`] and
@@ -2017,8 +2015,8 @@
 //!    - RefCell\&lt;T\&gt;
 //!    - Mutex\&lt;T\&gt;
 //!    - RwLock\&lt;T\&gt;
-//!    - Rc\&lt;T\&gt;&amp;emsp;*(if* features = \["rc"\] *is enabled)*
-//!    - Arc\&lt;T\&gt;&amp;emsp;*(if* features = \["rc"\] *is enabled)*
+//!    - Rc\&lt;T\&gt;&amp;emsp;*(if* features = ["rc"] *is enabled)*
+//!    - Arc\&lt;T\&gt;&amp;emsp;*(if* features = ["rc"] *is enabled)*
 //!  - **Collection types**:
 //!    - BTreeMap\&lt;K, V\&gt;
 //!    - BTreeSet\&lt;T\&gt;
@@ -2171,13 +2169,6 @@
 /// [`linked-hash-map`]: https://crates.io/crates/linked-hash-map
 /// [`serde_derive`]: https://crates.io/crates/serde_derive
 /// [derive section of the manual]: https://serde.rs/derive.html
-</span><span class="attr">#[cfg_attr(
-    not(no_diagnostic_namespace),
-    diagnostic::on_unimplemented(
-        note = <span class="string">"for local types consider adding `#[derive(serde::Serialize)]` to your `{Self}` type"</span>,
-        note = <span class="string">"for types from other crates check whether the crate offers a `serde` feature flag"</span>,
-    )
-)]
 </span><span class="kw">pub trait </span>Serialize {
     <span class="doccomment">/// Serialize this value into the given Serde serializer.
     ///
@@ -2759,9 +2750,9 @@
     /// ```
     ///
     /// [`Some(T)`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.Some
-    </span><span class="kw">fn </span>serialize_some&lt;T&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_some&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span>Sized + Serialize;
+        </span>T: Serialize;
 
     <span class="doccomment">/// Serialize a `()` value.
     ///
@@ -2854,13 +2845,13 @@
     ///     }
     /// }
     /// ```
-    </span><span class="kw">fn </span>serialize_newtype_struct&lt;T&gt;(
+    </span><span class="kw">fn </span>serialize_newtype_struct&lt;T: <span class="question-mark">?</span>Sized&gt;(
         <span class="self">self</span>,
         name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span>Sized + Serialize;
+        </span>T: Serialize;
 
     <span class="doccomment">/// Serialize a newtype variant like `E::N` in `enum E { N(u8) }`.
     ///
@@ -2888,7 +2879,7 @@
     ///     }
     /// }
     /// ```
-    </span><span class="kw">fn </span>serialize_newtype_variant&lt;T&gt;(
+    </span><span class="kw">fn </span>serialize_newtype_variant&lt;T: <span class="question-mark">?</span>Sized&gt;(
         <span class="self">self</span>,
         name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         variant_index: u32,
@@ -2896,7 +2887,7 @@
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span>Sized + Serialize;
+        </span>T: Serialize;
 
     <span class="doccomment">/// Begin to serialize a variably sized sequence. This call must be
     /// followed by zero or more calls to `serialize_element`, then a call to
@@ -3133,8 +3124,7 @@
     /// then a call to `end`.
     ///
     /// The `name` is the name of the struct and the `len` is the number of
-    /// data fields that will be serialized. `len` does not include fields
-    /// which are skipped with [`SerializeStruct::skip_field`].
+    /// data fields that will be serialized.
     ///
     /// ```edition2021
     /// use serde::ser::{Serialize, SerializeStruct, Serializer};
@@ -3171,8 +3161,6 @@
     /// The `name` is the name of the enum, the `variant_index` is the index of
     /// this variant within the enum, the `variant` is the name of the variant,
     /// and the `len` is the number of data fields that will be serialized.
-    /// `len` does not include fields which are skipped with
-    /// [`SerializeStructVariant::skip_field`].
     ///
     /// ```edition2021
     /// use serde::ser::{Serialize, SerializeStructVariant, Serializer};
@@ -3312,9 +3300,9 @@
     /// [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
     /// [`serialize_str`]: #tymethod.serialize_str
     </span><span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>))]
-    </span><span class="kw">fn </span>collect_str&lt;T&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>collect_str&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span>Sized + Display,
+        </span>T: Display,
     {
         <span class="self">self</span>.serialize_str(<span class="kw-2">&amp;</span>value.to_string())
     }
@@ -3345,9 +3333,9 @@
     /// }
     /// ```
     </span><span class="attr">#[cfg(not(any(feature = <span class="string">"std"</span>, feature = <span class="string">"alloc"</span>)))]
-    </span><span class="kw">fn </span>collect_str&lt;T&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>collect_str&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span>Sized + Display;
+        </span>T: Display;
 
     <span class="doccomment">/// Determine whether `Serialize` implementations should serialize in
     /// human-readable form.
@@ -3459,9 +3447,9 @@
     </span><span class="kw">type </span>Error: Error;
 
     <span class="doccomment">/// Serialize a sequence element.
-    </span><span class="kw">fn </span>serialize_element&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_element&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span>Sized + Serialize;
+        </span>T: Serialize;
 
     <span class="doccomment">/// Finish serializing a sequence.
     </span><span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
@@ -3559,9 +3547,9 @@
     </span><span class="kw">type </span>Error: Error;
 
     <span class="doccomment">/// Serialize a tuple element.
-    </span><span class="kw">fn </span>serialize_element&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_element&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span>Sized + Serialize;
+        </span>T: Serialize;
 
     <span class="doccomment">/// Finish serializing a tuple.
     </span><span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
@@ -3604,9 +3592,9 @@
     </span><span class="kw">type </span>Error: Error;
 
     <span class="doccomment">/// Serialize a tuple struct field.
-    </span><span class="kw">fn </span>serialize_field&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span>Sized + Serialize;
+        </span>T: Serialize;
 
     <span class="doccomment">/// Finish serializing a tuple struct.
     </span><span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
@@ -3662,9 +3650,9 @@
     </span><span class="kw">type </span>Error: Error;
 
     <span class="doccomment">/// Serialize a tuple variant field.
-    </span><span class="kw">fn </span>serialize_field&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span>Sized + Serialize;
+        </span>T: Serialize;
 
     <span class="doccomment">/// Finish serializing a tuple variant.
     </span><span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
@@ -3733,9 +3721,9 @@
     /// `serialize_entry` instead as it may be implemented more efficiently in
     /// some formats compared to a pair of calls to `serialize_key` and
     /// `serialize_value`.
-    </span><span class="kw">fn </span>serialize_key&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_key&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span>Sized + Serialize;
+        </span>T: Serialize;
 
     <span class="doccomment">/// Serialize a map value.
     ///
@@ -3743,9 +3731,9 @@
     ///
     /// Calling `serialize_value` before `serialize_key` is incorrect and is
     /// allowed to panic or produce bogus results.
-    </span><span class="kw">fn </span>serialize_value&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_value&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span>Sized + Serialize;
+        </span>T: Serialize;
 
     <span class="doccomment">/// Serialize a map entry consisting of a key and a value.
     ///
@@ -3764,10 +3752,14 @@
     /// [`Serialize`]: ../trait.Serialize.html
     /// [`serialize_key`]: #tymethod.serialize_key
     /// [`serialize_value`]: #tymethod.serialize_value
-    </span><span class="kw">fn </span>serialize_entry&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>K, value: <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_entry&lt;K: <span class="question-mark">?</span>Sized, V: <span class="question-mark">?</span>Sized&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        key: <span class="kw-2">&amp;</span>K,
+        value: <span class="kw-2">&amp;</span>V,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>K: <span class="question-mark">?</span>Sized + Serialize,
-        V: <span class="question-mark">?</span>Sized + Serialize,
+        </span>K: Serialize,
+        V: Serialize,
     {
         <span class="macro">tri!</span>(<span class="self">self</span>.serialize_key(key));
         <span class="self">self</span>.serialize_value(value)
@@ -3818,13 +3810,15 @@
     </span><span class="kw">type </span>Error: Error;
 
     <span class="doccomment">/// Serialize a struct field.
-    </span><span class="kw">fn </span>serialize_field&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        value: <span class="kw-2">&amp;</span>T,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span>Sized + Serialize;
+        </span>T: Serialize;
 
     <span class="doccomment">/// Indicate that a struct field has been skipped.
-    ///
-    /// The default implementation does nothing.
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>skip_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="kw">let _ </span>= key;
@@ -3882,13 +3876,15 @@
     </span><span class="kw">type </span>Error: Error;
 
     <span class="doccomment">/// Serialize a struct variant field.
-    </span><span class="kw">fn </span>serialize_field&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    </span><span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        value: <span class="kw-2">&amp;</span>T,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: <span class="question-mark">?</span>Sized + Serialize;
+        </span>T: Serialize;
 
     <span class="doccomment">/// Indicate that a struct variant field has been skipped.
-    ///
-    /// The default implementation does nothing.
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>skip_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="kw">let _ </span>= key;

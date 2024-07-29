@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.11/src/builder/arg.rs`."><title>arg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.8/src/builder/arg.rs`."><title>arg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -4800,23 +4800,6 @@
 <a href="#4798" id="4798">4798</a>
 <a href="#4799" id="4799">4799</a>
 <a href="#4800" id="4800">4800</a>
-<a href="#4801" id="4801">4801</a>
-<a href="#4802" id="4802">4802</a>
-<a href="#4803" id="4803">4803</a>
-<a href="#4804" id="4804">4804</a>
-<a href="#4805" id="4805">4805</a>
-<a href="#4806" id="4806">4806</a>
-<a href="#4807" id="4807">4807</a>
-<a href="#4808" id="4808">4808</a>
-<a href="#4809" id="4809">4809</a>
-<a href="#4810" id="4810">4810</a>
-<a href="#4811" id="4811">4811</a>
-<a href="#4812" id="4812">4812</a>
-<a href="#4813" id="4813">4813</a>
-<a href="#4814" id="4814">4814</a>
-<a href="#4815" id="4815">4815</a>
-<a href="#4816" id="4816">4816</a>
-<a href="#4817" id="4817">4817</a>
 </pre></div><pre class="rust"><code><span class="comment">// Std
 </span><span class="attr">#[cfg(feature = <span class="string">"env"</span>)]
 </span><span class="kw">use </span>std::env;
@@ -5329,10 +5312,10 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// This is a "var arg" and everything that follows should be captured by it, as if the user had
+    <span class="doccomment">/// This is a "VarArg" and everything that follows should be captured by it, as if the user had
     /// used a `--`.
     ///
-    /// **NOTE:** To start the trailing "var arg" on unknown flags (and not just a positional
+    /// **NOTE:** To start the trailing "VarArg" on unknown flags (and not just a positional
     /// value), set [`allow_hyphen_values`][Arg::allow_hyphen_values].  Either way, users still
     /// have the option to explicitly escape ambiguous arguments with `--`.
     ///
@@ -5694,7 +5677,7 @@
 </span><span class="kw">impl </span>Arg {
     <span class="doccomment">/// Specify how to react to an argument when parsing it.
     ///
-    /// [`ArgAction`] controls things like
+    /// [ArgAction] controls things like
     /// - Overwriting previous values with new ones
     /// - Appending new values to all previous ones
     /// - Counting how many times a flag occurs
@@ -5816,7 +5799,7 @@
     /// - It reaches the [`Arg::value_terminator`] if set
     ///
     /// Alternatively,
-    /// - Use a delimiter between values with [`Arg::value_delimiter`]
+    /// - Use a delimiter between values with [Arg::value_delimiter]
     /// - Require a flag occurrence per value with [`ArgAction::Append`]
     /// - Require positional arguments to appear after `--` with [`Arg::last`]
     ///
@@ -5837,7 +5820,7 @@
     /// assert_eq!(m.get_one::&lt;String&gt;("mode").unwrap(), "fast");
     /// ```
     ///
-    /// Flag/option hybrid (see also [`default_missing_value`][Arg::default_missing_value])
+    /// Flag/option hybrid (see also [default_missing_value][Arg::default_missing_value])
     /// ```rust
     /// # use clap_builder as clap;
     /// # use clap::{Command, Arg, error::ErrorKind, ArgAction};
@@ -6560,7 +6543,7 @@
     ///
     /// This configuration option is often used to give the user a shortcut and allow them to
     /// efficiently specify an option argument without requiring an explicitly value. The `--color`
-    /// argument is a common example. By supplying a default, such as `default_missing_value("always")`,
+    /// argument is a common example. By, supplying an default, such as `default_missing_value("always")`,
     /// the user can quickly just add `--color` to the command line to produce the desired color output.
     ///
     /// **NOTE:** using this configuration option requires the use of the
@@ -8460,8 +8443,8 @@
     /// only need to be set for one of the two arguments, they do not need to be set for each.
     ///
     /// **NOTE:** Defining a conflict is two-way, but does *not* need to defined for both arguments
-    /// (i.e. if A conflicts with B, defining `A.conflicts_with(B)` is sufficient. You do not
-    /// need to also do `B.conflicts_with(A)`)
+    /// (i.e. if A conflicts with B, defining A.conflicts_with(B) is sufficient. You do not
+    /// need to also do B.conflicts_with(A))
     ///
     /// **NOTE:** [`Arg::conflicts_with_all(names)`] allows specifying an argument which conflicts with more than one argument.
     ///
@@ -8520,8 +8503,8 @@
     /// only need to be set for one of the two arguments, they do not need to be set for each.
     ///
     /// **NOTE:** Defining a conflict is two-way, but does *not* need to defined for both arguments
-    /// (i.e. if A conflicts with B, defining `A.conflicts_with(B)` is sufficient. You do not need
-    /// need to also do `B.conflicts_with(A)`)
+    /// (i.e. if A conflicts with B, defining A.conflicts_with(B) is sufficient. You do not need
+    /// need to also do B.conflicts_with(A))
     ///
     /// **NOTE:** [`Arg::exclusive(true)`] allows specifying an argument which conflicts with every other argument.
     ///
@@ -8771,21 +8754,6 @@
         <span class="prelude-val">Some</span>(longs)
     }
 
-    <span class="doccomment">/// Get hidden aliases for this argument, if any
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_aliases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
-        <span class="kw">if </span><span class="self">self</span>.aliases.is_empty() {
-            <span class="prelude-val">None
-        </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(
-                <span class="self">self</span>.aliases
-                    .iter()
-                    .filter_map(|(s, v)| <span class="kw">if </span>!<span class="kw-2">*</span>v { <span class="prelude-val">Some</span>(s.as_str()) } <span class="kw">else </span>{ <span class="prelude-val">None </span>})
-                    .collect(),
-            )
-        }
-    }
-
     <span class="doccomment">/// Get the names of possible values for this argument. Only useful for user
     /// facing applications, such as building help messages or man files
     </span><span class="kw">pub fn </span>get_possible_values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;PossibleValue&gt; {
@@ -8826,7 +8794,7 @@
         <span class="self">self</span>.val_delim
     }
 
-    <span class="doccomment">/// Get the value terminator for this argument. The `value_terminator` is a value
+    <span class="doccomment">/// Get the value terminator for this argument. The value_terminator is a value
     /// that terminates parsing of multi-valued arguments.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_value_terminator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Str&gt; {
@@ -8912,9 +8880,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_takes_value_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.get_num_args()
-            .unwrap_or_else(|| <span class="number">1</span>.into())
-            .takes_values()
+        <span class="self">self</span>.get_action().takes_values()
     }
 
     <span class="doccomment">/// Report whether [`Arg::allow_hyphen_values`] is set
@@ -8928,8 +8894,8 @@
     }
 
     <span class="doccomment">/// Behavior when parsing the argument
-    </span><span class="kw">pub fn </span>get_action(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ArgAction {
-        <span class="kw">const </span>DEFAULT: ArgAction = ArgAction::Set;
+    </span><span class="kw">pub fn </span>get_action(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">super</span>::ArgAction {
+        <span class="kw">const </span>DEFAULT: <span class="kw">super</span>::ArgAction = <span class="kw">super</span>::ArgAction::Set;
         <span class="self">self</span>.action.as_ref().unwrap_or(<span class="kw-2">&amp;</span>DEFAULT)
     }
 
@@ -9036,7 +9002,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.action.is_none() {
             <span class="kw">if </span><span class="self">self</span>.num_vals == <span class="prelude-val">Some</span>(ValueRange::EMPTY) {
-                <span class="kw">let </span>action = ArgAction::SetTrue;
+                <span class="kw">let </span>action = <span class="kw">super</span>::ArgAction::SetTrue;
                 <span class="self">self</span>.action = <span class="prelude-val">Some</span>(action);
             } <span class="kw">else </span>{
                 <span class="kw">let </span>action =
@@ -9045,9 +9011,9 @@
                         //
                         // Bounded values are probably a group and the user should explicitly opt-in to
                         // Append
-                        </span>ArgAction::Append
+                        </span><span class="kw">super</span>::ArgAction::Append
                     } <span class="kw">else </span>{
-                        ArgAction::Set
+                        <span class="kw">super</span>::ArgAction::Set
                     };
                 <span class="self">self</span>.action = <span class="prelude-val">Some</span>(action);
             }
@@ -9266,14 +9232,14 @@
 <span class="kw">impl </span>Eq <span class="kw">for </span>Arg {}
 
 <span class="kw">impl </span>Display <span class="kw">for </span>Arg {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; fmt::Result {
         <span class="kw">let </span>plain = Styles::plain();
         <span class="self">self</span>.stylized(<span class="kw-2">&amp;</span>plain, <span class="prelude-val">None</span>).fmt(f)
     }
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Arg {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), fmt::Error&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; <span class="prelude-ty">Result</span>&lt;(), fmt::Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ds = f.debug_struct(<span class="string">"Arg"</span>);
 
         <span class="attr">#[allow(unused_mut)]
@@ -9353,7 +9319,7 @@
             .action(ArgAction::SetTrue);
         f._build();
 
-        <span class="macro">assert_eq!</span>(f.to_string(), <span class="string">"--flag"</span>);
+        <span class="macro">assert_eq!</span>(f.to_string(), <span class="string">"--flag"</span>)
     }
 
     <span class="attr">#[test]
@@ -9376,7 +9342,7 @@
         f.short_aliases = <span class="macro">vec!</span>[(<span class="string">'b'</span>, <span class="bool-val">true</span>)];
         f._build();
 
-        <span class="macro">assert_eq!</span>(f.to_string(), <span class="string">"-a"</span>);
+        <span class="macro">assert_eq!</span>(f.to_string(), <span class="string">"-a"</span>)
     }
 
     <span class="attr">#[test]

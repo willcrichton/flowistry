@@ -16,7 +16,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["clap_derive",["",[["derives",[],["args.rs","into_app.rs","mod.rs","parser.rs","subcommand.rs","value_enum.rs"]],["utils",[],["doc_comments.rs","error.rs","mod.rs","spanned.rs","ty.rs"]]],["attr.rs","dummies.rs","item.rs","lib.rs","macros.rs"]]],\
 ["clap_lex",["",[],["ext.rs","lib.rs"]]],\
 ["crc32fast",["",[["specialized",[],["mod.rs","pclmulqdq.rs"]]],["baseline.rs","combine.rs","lib.rs","table.rs"]]],\
-["either",["",[],["into_either.rs","iterator.rs","lib.rs"]]],\
+["either",["",[],["lib.rs"]]],\
 ["env_logger",["",[["filter",[],["mod.rs","regex.rs"]],["fmt",[["humantime",[],["extern_impl.rs","mod.rs"]],["writer",[["termcolor",[],["extern_impl.rs","mod.rs"]]],["atty.rs","mod.rs"]]],["mod.rs"]]],["lib.rs"]]],\
 ["flate2",["",[["deflate",[],["bufread.rs","mod.rs","read.rs","write.rs"]],["ffi",[],["mod.rs","rust.rs"]],["gz",[],["bufread.rs","mod.rs","read.rs","write.rs"]],["zlib",[],["bufread.rs","mod.rs","read.rs","write.rs"]]],["bufreader.rs","crc.rs","lib.rs","mem.rs","zio.rs"]]],\
 ["flowistry",["",[["infoflow",[],["analysis.rs","dependencies.rs","mod.rs","mutation.rs","recursive.rs"]],["mir",[],["aliases.rs","engine.rs","mod.rs","placeinfo.rs","utils.rs"]]],["extensions.rs","lib.rs"]]],\
@@ -49,7 +49,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["semver",["",[],["backport.rs","display.rs","error.rs","eval.rs","identifier.rs","impls.rs","lib.rs","parse.rs","serde.rs"]]],\
 ["serde",["",[["de",[],["format.rs","ignored_any.rs","impls.rs","mod.rs","seed.rs","size_hint.rs","value.rs"]],["private",[],["de.rs","doc.rs","mod.rs","ser.rs"]],["ser",[],["fmt.rs","impls.rs","impossible.rs","mod.rs"]]],["integer128.rs","lib.rs","macros.rs"]]],\
 ["serde_derive",["",[["internals",[],["ast.rs","attr.rs","case.rs","check.rs","ctxt.rs","mod.rs","receiver.rs","respan.rs","symbol.rs"]]],["bound.rs","de.rs","dummy.rs","fragment.rs","lib.rs","pretend.rs","ser.rs","this.rs"]]],\
-["serde_json",["",[["io",[],["mod.rs"]],["value",[],["de.rs","from.rs","index.rs","mod.rs","partial_eq.rs","ser.rs"]]],["de.rs","error.rs","iter.rs","lib.rs","macros.rs","map.rs","number.rs","read.rs","ser.rs"]]],\
+["serde_json",["",[["features_check",[],["mod.rs"]],["io",[],["mod.rs"]],["value",[],["de.rs","from.rs","index.rs","mod.rs","partial_eq.rs","ser.rs"]]],["de.rs","error.rs","iter.rs","lib.rs","macros.rs","map.rs","number.rs","read.rs","ser.rs"]]],\
 ["smallvec",["",[],["lib.rs"]]],\
 ["splitmut",["",[],["lib.rs"]]],\
 ["termcolor",["",[],["lib.rs"]]],\

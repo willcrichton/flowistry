@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/miniz_oxide-0.7.4/src/inflate/core.rs`."><title>core.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="miniz_oxide" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/miniz_oxide-0.7.1/src/inflate/core.rs`."><title>core.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="miniz_oxide" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../miniz_oxide/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -1992,71 +1992,10 @@
 <a href="#1990" id="1990">1990</a>
 <a href="#1991" id="1991">1991</a>
 <a href="#1992" id="1992">1992</a>
-<a href="#1993" id="1993">1993</a>
-<a href="#1994" id="1994">1994</a>
-<a href="#1995" id="1995">1995</a>
-<a href="#1996" id="1996">1996</a>
-<a href="#1997" id="1997">1997</a>
-<a href="#1998" id="1998">1998</a>
-<a href="#1999" id="1999">1999</a>
-<a href="#2000" id="2000">2000</a>
-<a href="#2001" id="2001">2001</a>
-<a href="#2002" id="2002">2002</a>
-<a href="#2003" id="2003">2003</a>
-<a href="#2004" id="2004">2004</a>
-<a href="#2005" id="2005">2005</a>
-<a href="#2006" id="2006">2006</a>
-<a href="#2007" id="2007">2007</a>
-<a href="#2008" id="2008">2008</a>
-<a href="#2009" id="2009">2009</a>
-<a href="#2010" id="2010">2010</a>
-<a href="#2011" id="2011">2011</a>
-<a href="#2012" id="2012">2012</a>
-<a href="#2013" id="2013">2013</a>
-<a href="#2014" id="2014">2014</a>
-<a href="#2015" id="2015">2015</a>
-<a href="#2016" id="2016">2016</a>
-<a href="#2017" id="2017">2017</a>
-<a href="#2018" id="2018">2018</a>
-<a href="#2019" id="2019">2019</a>
-<a href="#2020" id="2020">2020</a>
-<a href="#2021" id="2021">2021</a>
-<a href="#2022" id="2022">2022</a>
-<a href="#2023" id="2023">2023</a>
-<a href="#2024" id="2024">2024</a>
-<a href="#2025" id="2025">2025</a>
-<a href="#2026" id="2026">2026</a>
-<a href="#2027" id="2027">2027</a>
-<a href="#2028" id="2028">2028</a>
-<a href="#2029" id="2029">2029</a>
-<a href="#2030" id="2030">2030</a>
-<a href="#2031" id="2031">2031</a>
-<a href="#2032" id="2032">2032</a>
-<a href="#2033" id="2033">2033</a>
-<a href="#2034" id="2034">2034</a>
-<a href="#2035" id="2035">2035</a>
-<a href="#2036" id="2036">2036</a>
-<a href="#2037" id="2037">2037</a>
-<a href="#2038" id="2038">2038</a>
-<a href="#2039" id="2039">2039</a>
-<a href="#2040" id="2040">2040</a>
-<a href="#2041" id="2041">2041</a>
-<a href="#2042" id="2042">2042</a>
-<a href="#2043" id="2043">2043</a>
-<a href="#2044" id="2044">2044</a>
-<a href="#2045" id="2045">2045</a>
-<a href="#2046" id="2046">2046</a>
-<a href="#2047" id="2047">2047</a>
-<a href="#2048" id="2048">2048</a>
-<a href="#2049" id="2049">2049</a>
-<a href="#2050" id="2050">2050</a>
-<a href="#2051" id="2051">2051</a>
-<a href="#2052" id="2052">2052</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Streaming decompression functionality.
 
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::shared::{update_adler32, HUFFMAN_LENGTH_ORDER};
-<span class="kw">use </span>::core::cell::Cell;
 
 <span class="kw">use </span>::core::convert::TryInto;
 <span class="kw">use </span>::core::{cmp, slice};
@@ -2107,12 +2046,7 @@
         </span><span class="kw">loop </span>{
             <span class="comment">// symbol here indicates the position of the left (0) node, if the next bit is 1
             // we add 1 to the lookup position to get the right node.
-            </span><span class="kw">let </span>tree_index = (!symbol + ((bit_buf &gt;&gt; code_len) &amp; <span class="number">1</span>) <span class="kw">as </span>i32) <span class="kw">as </span>usize;
-            <span class="macro">debug_assert!</span>(tree_index &lt; <span class="self">self</span>.tree.len());
-            <span class="kw">if </span>tree_index &gt;= <span class="self">self</span>.tree.len() {
-                <span class="kw">break</span>;
-            }
-            symbol = i32::from(<span class="self">self</span>.tree[tree_index]);
+            </span>symbol = i32::from(<span class="self">self</span>.tree[(!symbol + ((bit_buf &gt;&gt; code_len) &amp; <span class="number">1</span>) <span class="kw">as </span>i32) <span class="kw">as </span>usize]);
             code_len += <span class="number">1</span>;
             <span class="kw">if </span>symbol &gt;= <span class="number">0 </span>{
                 <span class="kw">break</span>;
@@ -2366,19 +2300,19 @@
 
 <span class="kw">impl </span>State {
     <span class="kw">fn </span>is_failure(<span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(
-            <span class="self">self</span>,
-            BlockTypeUnexpected
-                | BadCodeSizeSum
-                | BadDistOrLiteralTableLength
-                | BadTotalSymbols
-                | BadZlibHeader
-                | DistanceOutOfBounds
-                | BadRawLength
-                | BadCodeSizeDistPrevLookup
-                | InvalidLitlen
-                | InvalidDist
-        )
+        <span class="kw">match </span><span class="self">self </span>{
+            BlockTypeUnexpected =&gt; <span class="bool-val">true</span>,
+            BadCodeSizeSum =&gt; <span class="bool-val">true</span>,
+            BadDistOrLiteralTableLength =&gt; <span class="bool-val">true</span>,
+            BadTotalSymbols =&gt; <span class="bool-val">true</span>,
+            BadZlibHeader =&gt; <span class="bool-val">true</span>,
+            DistanceOutOfBounds =&gt; <span class="bool-val">true</span>,
+            BadRawLength =&gt; <span class="bool-val">true</span>,
+            BadCodeSizeDistPrevLookup =&gt; <span class="bool-val">true</span>,
+            InvalidLitlen =&gt; <span class="bool-val">true</span>,
+            InvalidDist =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+        }
     }
 
     <span class="attr">#[inline]
@@ -2634,14 +2568,14 @@
     } <span class="kw">else </span>{
         <span class="kw">let </span>res = r.tables[table].tree_lookup(symbol, l.bit_buf, u32::from(FAST_LOOKUP_BITS));
         symbol = res.<span class="number">0</span>;
-        code_len = res.<span class="number">1</span>;
+        code_len = res.<span class="number">1 </span><span class="kw">as </span>u32;
     };
 
     <span class="kw">if </span>code_len == <span class="number">0 </span>{
         <span class="kw">return </span>Action::Jump(InvalidCodeLen);
     }
 
-    l.bit_buf &gt;&gt;= code_len;
+    l.bit_buf &gt;&gt;= code_len <span class="kw">as </span>u32;
     l.num_bits -= code_len;
     f(r, l, symbol)
 }
@@ -2679,15 +2613,15 @@
     <span class="comment">// Clippy gives a false positive warning here due to the closure.
     // Read enough bytes from the input iterator to cover the number of bits we want.
     </span><span class="kw">while </span>l.num_bits &lt; amount {
-        <span class="kw">let </span>action = read_byte(in_iter, flags, |byte| {
+        <span class="kw">match </span>read_byte(in_iter, flags, |byte| {
             l.bit_buf |= BitBuffer::from(byte) &lt;&lt; l.num_bits;
             l.num_bits += <span class="number">8</span>;
             Action::None
-        });
-
-        <span class="comment">// If there are not enough bytes in the input iterator, return and signal that we need more.
-        </span><span class="kw">if </span>!<span class="macro">matches!</span>(action, Action::None) {
-            <span class="kw">return </span>action;
+        }) {
+            Action::None =&gt; (),
+            <span class="comment">// If there are not enough bytes in the input iterator, return and signal that we need
+            // more.
+            </span>action =&gt; <span class="kw">return </span>action,
         }
     }
 
@@ -2732,96 +2666,66 @@
     memset(<span class="kw-2">&amp;mut </span>r.tables[DIST_TABLE].code_size[<span class="number">0</span>..<span class="number">32</span>], <span class="number">5</span>);
 }
 
-<span class="attr">#[cfg(feature = <span class="string">"rustc-dep-of-std"</span>)]
-</span><span class="kw">fn </span>reverse_bits(n: u32) -&gt; u32 {
-    <span class="comment">// Lookup is not used when building as part of std to avoid wasting space
-    // for lookup table in every rust binary
-    // as it's only used for backtraces in the cold path
-    // - see #152
-    </span>n.reverse_bits()
-}
+<span class="kw">static </span>REVERSED_BITS_LOOKUP: [u32; <span class="number">1024</span>] = {
+    <span class="kw">let </span><span class="kw-2">mut </span>table = [<span class="number">0</span>; <span class="number">1024</span>];
 
-<span class="attr">#[cfg(not(feature = <span class="string">"rustc-dep-of-std"</span>))]
-</span><span class="kw">fn </span>reverse_bits(n: u32) -&gt; u32 {
-    <span class="kw">static </span>REVERSED_BITS_LOOKUP: [u32; <span class="number">512</span>] = {
-        <span class="kw">let </span><span class="kw-2">mut </span>table = [<span class="number">0</span>; <span class="number">512</span>];
+    <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
+    <span class="kw">while </span>i &lt; <span class="number">1024 </span>{
+        table[i] = (i <span class="kw">as </span>u32).reverse_bits();
+        i += <span class="number">1</span>;
+    }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
-        <span class="kw">while </span>i &lt; <span class="number">512 </span>{
-            table[i] = (i <span class="kw">as </span>u32).reverse_bits();
-            i += <span class="number">1</span>;
-        }
+    table
+};
 
-        table
-    };
-
-    REVERSED_BITS_LOOKUP[n <span class="kw">as </span>usize]
-}
-
-<span class="kw">fn </span>init_tree(r: <span class="kw-2">&amp;mut </span>DecompressorOxide, l: <span class="kw-2">&amp;mut </span>LocalVars) -&gt; <span class="prelude-ty">Option</span>&lt;Action&gt; {
+<span class="kw">fn </span>init_tree(r: <span class="kw-2">&amp;mut </span>DecompressorOxide, l: <span class="kw-2">&amp;mut </span>LocalVars) -&gt; Action {
     <span class="kw">loop </span>{
-        <span class="kw">let </span>bt = r.block_type <span class="kw">as </span>usize;
-        <span class="kw">if </span>bt &gt;= r.tables.len() {
-            <span class="kw">return </span><span class="prelude-val">None</span>;
-        }
-        <span class="kw">let </span>table = <span class="kw-2">&amp;mut </span>r.tables[bt];
-        <span class="kw">let </span>table_size = r.table_sizes[bt] <span class="kw">as </span>usize;
-        <span class="kw">if </span>table_size &gt; table.code_size.len() {
-            <span class="kw">return </span><span class="prelude-val">None</span>;
-        }
+        <span class="kw">let </span>table = <span class="kw-2">&amp;mut </span>r.tables[r.block_type <span class="kw">as </span>usize];
+        <span class="kw">let </span>table_size = r.table_sizes[r.block_type <span class="kw">as </span>usize] <span class="kw">as </span>usize;
         <span class="kw">let </span><span class="kw-2">mut </span>total_symbols = [<span class="number">0u32</span>; <span class="number">16</span>];
         <span class="kw">let </span><span class="kw-2">mut </span>next_code = [<span class="number">0u32</span>; <span class="number">17</span>];
         memset(<span class="kw-2">&amp;mut </span>table.look_up[..], <span class="number">0</span>);
         memset(<span class="kw-2">&amp;mut </span>table.tree[..], <span class="number">0</span>);
 
         <span class="kw">for </span><span class="kw-2">&amp;</span>code_size <span class="kw">in </span><span class="kw-2">&amp;</span>table.code_size[..table_size] {
-            <span class="kw">let </span>cs = code_size <span class="kw">as </span>usize;
-            <span class="kw">if </span>cs &gt;= total_symbols.len() {
-                <span class="kw">return </span><span class="prelude-val">None</span>;
-            }
-            total_symbols[cs] += <span class="number">1</span>;
+            total_symbols[code_size <span class="kw">as </span>usize] += <span class="number">1</span>;
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>used_symbols = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>total = <span class="number">0</span>;
-        <span class="kw">for </span>(ts, next) <span class="kw">in </span>total_symbols
-            .iter()
-            .copied()
-            .zip(next_code.iter_mut().skip(<span class="number">1</span>))
-            .skip(<span class="number">1</span>)
-        {
-            used_symbols += ts;
-            total += ts;
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..<span class="number">16 </span>{
+            used_symbols += total_symbols[i];
+            total += total_symbols[i];
             total &lt;&lt;= <span class="number">1</span>;
-            <span class="kw-2">*</span>next = total;
+            next_code[i + <span class="number">1</span>] = total;
         }
 
         <span class="kw">if </span>total != <span class="number">65_536 </span>&amp;&amp; used_symbols &gt; <span class="number">1 </span>{
-            <span class="kw">return </span><span class="prelude-val">Some</span>(Action::Jump(BadTotalSymbols));
+            <span class="kw">return </span>Action::Jump(BadTotalSymbols);
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>tree_next = -<span class="number">1</span>;
         <span class="kw">for </span>symbol_index <span class="kw">in </span><span class="number">0</span>..table_size {
+            <span class="kw">let </span><span class="kw-2">mut </span>rev_code = <span class="number">0</span>;
             <span class="kw">let </span>code_size = table.code_size[symbol_index];
-            <span class="kw">if </span>code_size == <span class="number">0 </span>|| usize::from(code_size) &gt;= next_code.len() {
+            <span class="kw">if </span>code_size == <span class="number">0 </span>{
                 <span class="kw">continue</span>;
             }
 
-            <span class="kw">let </span>cur_code = next_code[code_size <span class="kw">as </span>usize];
+            <span class="kw">let </span><span class="kw-2">mut </span>cur_code = next_code[code_size <span class="kw">as </span>usize];
             next_code[code_size <span class="kw">as </span>usize] += <span class="number">1</span>;
 
             <span class="kw">let </span>n = cur_code &amp; (u32::MAX &gt;&gt; (<span class="number">32 </span>- code_size));
 
-            <span class="kw">let </span><span class="kw-2">mut </span>rev_code = <span class="kw">if </span>n &lt; <span class="number">512 </span>{
-                <span class="comment">// Using a lookup table
-                // for a small speedup here,
-                // Seems to only really make a difference on very short
-                // inputs however.
-                // 512 seems to be around a sweet spot.
-                </span>reverse_bits(n)
+            <span class="kw">let </span><span class="kw-2">mut </span>rev_code = <span class="kw">if </span>n &lt; <span class="number">1024 </span>{
+                REVERSED_BITS_LOOKUP[n <span class="kw">as </span>usize] &gt;&gt; (<span class="number">32 </span>- code_size)
             } <span class="kw">else </span>{
-                n.reverse_bits()
-            } &gt;&gt; (<span class="number">32 </span>- code_size);
+                <span class="kw">for _ in </span><span class="number">0</span>..code_size {
+                    rev_code = (rev_code &lt;&lt; <span class="number">1</span>) | (cur_code &amp; <span class="number">1</span>);
+                    cur_code &gt;&gt;= <span class="number">1</span>;
+                }
+                rev_code
+            };
 
             <span class="kw">if </span>code_size &lt;= FAST_LOOKUP_BITS {
                 <span class="kw">let </span>k = (i16::from(code_size) &lt;&lt; <span class="number">9</span>) | symbol_index <span class="kw">as </span>i16;
@@ -2834,7 +2738,7 @@
 
             <span class="kw">let </span><span class="kw-2">mut </span>tree_cur = table.look_up[(rev_code &amp; (FAST_LOOKUP_SIZE - <span class="number">1</span>)) <span class="kw">as </span>usize];
             <span class="kw">if </span>tree_cur == <span class="number">0 </span>{
-                table.look_up[(rev_code &amp; (FAST_LOOKUP_SIZE - <span class="number">1</span>)) <span class="kw">as </span>usize] = tree_next;
+                table.look_up[(rev_code &amp; (FAST_LOOKUP_SIZE - <span class="number">1</span>)) <span class="kw">as </span>usize] = tree_next <span class="kw">as </span>i16;
                 tree_cur = tree_next;
                 tree_next -= <span class="number">2</span>;
             }
@@ -2843,31 +2747,23 @@
             <span class="kw">for _ in </span>FAST_LOOKUP_BITS + <span class="number">1</span>..code_size {
                 rev_code &gt;&gt;= <span class="number">1</span>;
                 tree_cur -= (rev_code &amp; <span class="number">1</span>) <span class="kw">as </span>i16;
-                <span class="kw">let </span>tree_index = (-tree_cur - <span class="number">1</span>) <span class="kw">as </span>usize;
-                <span class="kw">if </span>tree_index &gt;= table.tree.len() {
-                    <span class="kw">return </span><span class="prelude-val">None</span>;
-                }
-                <span class="kw">if </span>table.tree[tree_index] == <span class="number">0 </span>{
-                    table.tree[tree_index] = tree_next;
+                <span class="kw">if </span>table.tree[(-tree_cur - <span class="number">1</span>) <span class="kw">as </span>usize] == <span class="number">0 </span>{
+                    table.tree[(-tree_cur - <span class="number">1</span>) <span class="kw">as </span>usize] = tree_next <span class="kw">as </span>i16;
                     tree_cur = tree_next;
                     tree_next -= <span class="number">2</span>;
                 } <span class="kw">else </span>{
-                    tree_cur = table.tree[tree_index];
+                    tree_cur = table.tree[(-tree_cur - <span class="number">1</span>) <span class="kw">as </span>usize];
                 }
             }
 
             rev_code &gt;&gt;= <span class="number">1</span>;
             tree_cur -= (rev_code &amp; <span class="number">1</span>) <span class="kw">as </span>i16;
-            <span class="kw">let </span>tree_index = (-tree_cur - <span class="number">1</span>) <span class="kw">as </span>usize;
-            <span class="kw">if </span>tree_index &gt;= table.tree.len() {
-                <span class="kw">return </span><span class="prelude-val">None</span>;
-            }
-            table.tree[tree_index] = symbol_index <span class="kw">as </span>i16;
+            table.tree[(-tree_cur - <span class="number">1</span>) <span class="kw">as </span>usize] = symbol_index <span class="kw">as </span>i16;
         }
 
         <span class="kw">if </span>r.block_type == <span class="number">2 </span>{
             l.counter = <span class="number">0</span>;
-            <span class="kw">return </span><span class="prelude-val">Some</span>(Action::Jump(ReadLitlenDistTablesCodeSize));
+            <span class="kw">return </span>Action::Jump(ReadLitlenDistTablesCodeSize);
         }
 
         <span class="kw">if </span>r.block_type == <span class="number">0 </span>{
@@ -2877,7 +2773,7 @@
     }
 
     l.counter = <span class="number">0</span>;
-    <span class="prelude-val">Some</span>(Action::Jump(DecodeLitlen))
+    Action::Jump(DecodeLitlen)
 }
 
 <span class="comment">// A helper macro for generating the state machine.
@@ -2975,27 +2871,15 @@
     match_len: usize,
     out_buf_size_mask: usize,
 ) {
-    <span class="macro">debug_assert!</span>(out_pos.checked_add(match_len).unwrap() &lt;= out_slice.len());
+    <span class="macro">debug_assert!</span>(out_pos + match_len &lt;= out_slice.len());
 
     <span class="kw">let </span>source_pos = out_pos.wrapping_sub(dist) &amp; out_buf_size_mask;
 
     <span class="kw">if </span>match_len == <span class="number">3 </span>{
-        <span class="kw">let </span>out_slice = Cell::from_mut(out_slice).as_slice_of_cells();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(dst) = out_slice.get(out_pos..out_pos + <span class="number">3</span>) {
-            <span class="comment">// Moving bounds checks before any memory mutation allows the optimizer
-            // combine them together.
-            </span><span class="kw">let </span>src = out_slice
-                .get(source_pos)
-                .zip(out_slice.get((source_pos + <span class="number">1</span>) &amp; out_buf_size_mask))
-                .zip(out_slice.get((source_pos + <span class="number">2</span>) &amp; out_buf_size_mask));
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(((a, b), c)) = src {
-                <span class="comment">// For correctness, the memory reads and writes have to be interleaved.
-                // Cells make it possible for read and write references to overlap.
-                </span>dst[<span class="number">0</span>].set(a.get());
-                dst[<span class="number">1</span>].set(b.get());
-                dst[<span class="number">2</span>].set(c.get());
-            }
-        }
+        <span class="comment">// Fast path for match len 3.
+        </span>out_slice[out_pos] = out_slice[source_pos];
+        out_slice[out_pos + <span class="number">1</span>] = out_slice[(source_pos + <span class="number">1</span>) &amp; out_buf_size_mask];
+        out_slice[out_pos + <span class="number">2</span>] = out_slice[(source_pos + <span class="number">2</span>) &amp; out_buf_size_mask];
         <span class="kw">return</span>;
     }
 
@@ -3302,7 +3186,7 @@
                         <span class="number">0 </span>=&gt; Action::Jump(BlockTypeNoCompression),
                         <span class="number">1 </span>=&gt; {
                             start_static_table(r);
-                            init_tree(r, l).unwrap_or(Action::End(TINFLStatus::Failed))
+                            init_tree(r, l)
                         },
                         <span class="number">2 </span>=&gt; {
                             l.counter = <span class="number">0</span>;
@@ -3415,7 +3299,7 @@
 
                     out_buf.write_slice(<span class="kw-2">&amp;</span>in_iter.as_slice()[..bytes_to_copy]);
 
-                    in_iter.nth(bytes_to_copy - <span class="number">1</span>);
+                    (<span class="kw-2">&amp;mut </span>in_iter).nth(bytes_to_copy - <span class="number">1</span>);
                     l.counter -= bytes_to_copy <span class="kw">as </span>u32;
                     Action::Jump(RawMemcpy1)
                 } <span class="kw">else </span>{
@@ -3467,7 +3351,7 @@
                     })
                 } <span class="kw">else </span>{
                     r.table_sizes[HUFFLEN_TABLE] = <span class="number">19</span>;
-                    init_tree(r, <span class="kw-2">&amp;mut </span>l).unwrap_or(Action::End(TINFLStatus::Failed))
+                    init_tree(r, <span class="kw-2">&amp;mut </span>l)
                 }
             }),
 
@@ -3502,7 +3386,7 @@
                         .copy_from_slice(<span class="kw-2">&amp;</span>r.len_codes[dist_table_start..dist_table_end]);
 
                     r.block_type -= <span class="number">1</span>;
-                    init_tree(r, <span class="kw-2">&amp;mut </span>l).unwrap_or(Action::End(TINFLStatus::Failed))
+                    init_tree(r, <span class="kw-2">&amp;mut </span>l)
                 }
             }),
 
@@ -3701,7 +3585,7 @@
                     <span class="kw">let </span>source_pos = out_buf.position()
                         .wrapping_sub(l.dist <span class="kw">as </span>usize) &amp; out_buf_size_mask;
 
-                    <span class="kw">let </span>out_len = out_buf.get_ref().len();
+                    <span class="kw">let </span>out_len = out_buf.get_ref().len() <span class="kw">as </span>usize;
                     <span class="kw">let </span>match_end_pos = out_buf.position() + l.counter <span class="kw">as </span>usize;
 
                     <span class="kw">if </span>match_end_pos &gt; out_len ||
@@ -3894,10 +3778,10 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>b = DecompressorOxide::new();
         <span class="kw">const </span>LEN: usize = <span class="number">32</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>b_buf = [<span class="number">0</span>; LEN];
+        <span class="kw">let </span><span class="kw-2">mut </span>b_buf = <span class="macro">vec!</span>[<span class="number">0</span>; LEN];
 
         <span class="comment">// This should fail with the out buffer being to small.
-        </span><span class="kw">let </span>b_status = tinfl_decompress_oxide(<span class="kw-2">&amp;mut </span>b, <span class="kw-2">&amp;</span>encoded[..], <span class="kw-2">&amp;mut </span>b_buf, flags);
+        </span><span class="kw">let </span>b_status = tinfl_decompress_oxide(<span class="kw-2">&amp;mut </span>b, <span class="kw-2">&amp;</span>encoded[..], b_buf.as_mut_slice(), flags);
 
         <span class="macro">assert_eq!</span>(b_status.<span class="number">0</span>, TINFLStatus::Failed);
 
@@ -3906,14 +3790,13 @@
         b = DecompressorOxide::new();
 
         <span class="comment">// With TINFL_FLAG_USING_NON_WRAPPING_OUTPUT_BUF set this should no longer fail.
-        </span><span class="kw">let </span>b_status = tinfl_decompress_oxide(<span class="kw-2">&amp;mut </span>b, <span class="kw-2">&amp;</span>encoded[..], <span class="kw-2">&amp;mut </span>b_buf, flags);
+        </span><span class="kw">let </span>b_status = tinfl_decompress_oxide(<span class="kw-2">&amp;mut </span>b, <span class="kw-2">&amp;</span>encoded[..], b_buf.as_mut_slice(), flags);
 
         <span class="macro">assert_eq!</span>(b_buf[..b_status.<span class="number">2</span>], <span class="string">b"Hello, zlib!"</span>[..]);
         <span class="macro">assert_eq!</span>(b_status.<span class="number">0</span>, TINFLStatus::Done);
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">"with-alloc"</span>)]
-    #[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>raw_block() {
         <span class="kw">const </span>LEN: usize = <span class="number">64</span>;
 
@@ -3937,9 +3820,9 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>b = DecompressorOxide::new();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>b_buf = [<span class="number">0</span>; LEN];
+        <span class="kw">let </span><span class="kw-2">mut </span>b_buf = <span class="macro">vec!</span>[<span class="number">0</span>; LEN];
 
-        <span class="kw">let </span>b_status = tinfl_decompress_oxide(<span class="kw-2">&amp;mut </span>b, <span class="kw-2">&amp;</span>encoded[..], <span class="kw-2">&amp;mut </span>b_buf, flags);
+        <span class="kw">let </span>b_status = tinfl_decompress_oxide(<span class="kw-2">&amp;mut </span>b, <span class="kw-2">&amp;</span>encoded[..], b_buf.as_mut_slice(), flags);
         <span class="macro">assert_eq!</span>(b_buf[..b_status.<span class="number">2</span>], text[..]);
         <span class="macro">assert_eq!</span>(b_status.<span class="number">0</span>, TINFLStatus::Done);
     }
@@ -3961,7 +3844,7 @@
             counter: d.counter,
             num_extra: d.num_extra,
         };
-        init_tree(<span class="kw-2">&amp;mut </span>d, <span class="kw-2">&amp;mut </span>l).unwrap();
+        init_tree(<span class="kw-2">&amp;mut </span>d, <span class="kw-2">&amp;mut </span>l);
         <span class="kw">let </span>llt = <span class="kw-2">&amp;</span>d.tables[LITLEN_TABLE];
         <span class="kw">let </span>dt = <span class="kw-2">&amp;</span>d.tables[DIST_TABLE];
         <span class="macro">assert_eq!</span>(masked_lookup(llt, <span class="number">0b00001100</span>), (<span class="number">0</span>, <span class="number">8</span>));
@@ -3979,9 +3862,7 @@
         <span class="macro">assert_eq!</span>(masked_lookup(dt, <span class="number">20</span>), (<span class="number">5</span>, <span class="number">5</span>));
     }
 
-    <span class="comment">// Only run this test with alloc enabled as it uses a larger buffer.
-    </span><span class="attr">#[cfg(feature = <span class="string">"with-alloc"</span>)]
-    </span><span class="kw">fn </span>check_result(input: <span class="kw-2">&amp;</span>[u8], expected_status: TINFLStatus, expected_state: State, zlib: bool) {
+    <span class="kw">fn </span>check_result(input: <span class="kw-2">&amp;</span>[u8], expected_status: TINFLStatus, expected_state: State, zlib: bool) {
         <span class="kw">let </span><span class="kw-2">mut </span>r = DecompressorOxide::default();
         <span class="kw">let </span><span class="kw-2">mut </span>output_buf = <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">1024 </span>* <span class="number">32</span>];
         <span class="kw">let </span>flags = <span class="kw">if </span>zlib {
@@ -3996,8 +3877,7 @@
         <span class="macro">assert_eq!</span>(expected_state, r.state);
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">"with-alloc"</span>)]
-    #[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>bogus_input() {
         <span class="kw">use </span><span class="self">self</span>::check_result <span class="kw">as </span>cr;
         <span class="kw">const </span>F: TINFLStatus = TINFLStatus::Failed;
@@ -4083,7 +3963,7 @@
             | TINFL_FLAG_PARSE_ZLIB_HEADER
             | TINFL_FLAG_USING_NON_WRAPPING_OUTPUT_BUF;
         <span class="kw">let </span><span class="kw-2">mut </span>r = DecompressorOxide::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>output_buf: [u8; <span class="number">0</span>] = [];
+        <span class="kw">let </span><span class="kw-2">mut </span>output_buf = <span class="macro">vec!</span>[];
         <span class="comment">// Check that we handle an empty buffer properly and not panicking.
         // https://github.com/Frommi/miniz_oxide/issues/23
         </span><span class="kw">let </span>res = decompress(<span class="kw-2">&amp;mut </span>r, <span class="kw-2">&amp;</span>encoded, <span class="kw-2">&amp;mut </span>output_buf, <span class="number">0</span>, flags);
@@ -4097,7 +3977,7 @@
         ];
         <span class="kw">let </span>flags = TINFL_FLAG_COMPUTE_ADLER32;
         <span class="kw">let </span><span class="kw-2">mut </span>r = DecompressorOxide::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>output_buf: [u8; <span class="number">0</span>] = [];
+        <span class="kw">let </span><span class="kw-2">mut </span>output_buf = <span class="macro">vec!</span>[];
         <span class="comment">// Check that we handle an empty buffer properly and not panicking.
         // https://github.com/Frommi/miniz_oxide/issues/23
         </span><span class="kw">let </span>res = decompress(<span class="kw-2">&amp;mut </span>r, <span class="kw-2">&amp;</span>encoded, <span class="kw-2">&amp;mut </span>output_buf, <span class="number">0</span>, flags);

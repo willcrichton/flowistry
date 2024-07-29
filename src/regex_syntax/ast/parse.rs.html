@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-syntax-0.8.4/src/ast/parse.rs`."><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-syntax-0.8.2/src/ast/parse.rs`."><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../regex_syntax/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -6326,57 +6326,6 @@
 <a href="#6324" id="6324">6324</a>
 <a href="#6325" id="6325">6325</a>
 <a href="#6326" id="6326">6326</a>
-<a href="#6327" id="6327">6327</a>
-<a href="#6328" id="6328">6328</a>
-<a href="#6329" id="6329">6329</a>
-<a href="#6330" id="6330">6330</a>
-<a href="#6331" id="6331">6331</a>
-<a href="#6332" id="6332">6332</a>
-<a href="#6333" id="6333">6333</a>
-<a href="#6334" id="6334">6334</a>
-<a href="#6335" id="6335">6335</a>
-<a href="#6336" id="6336">6336</a>
-<a href="#6337" id="6337">6337</a>
-<a href="#6338" id="6338">6338</a>
-<a href="#6339" id="6339">6339</a>
-<a href="#6340" id="6340">6340</a>
-<a href="#6341" id="6341">6341</a>
-<a href="#6342" id="6342">6342</a>
-<a href="#6343" id="6343">6343</a>
-<a href="#6344" id="6344">6344</a>
-<a href="#6345" id="6345">6345</a>
-<a href="#6346" id="6346">6346</a>
-<a href="#6347" id="6347">6347</a>
-<a href="#6348" id="6348">6348</a>
-<a href="#6349" id="6349">6349</a>
-<a href="#6350" id="6350">6350</a>
-<a href="#6351" id="6351">6351</a>
-<a href="#6352" id="6352">6352</a>
-<a href="#6353" id="6353">6353</a>
-<a href="#6354" id="6354">6354</a>
-<a href="#6355" id="6355">6355</a>
-<a href="#6356" id="6356">6356</a>
-<a href="#6357" id="6357">6357</a>
-<a href="#6358" id="6358">6358</a>
-<a href="#6359" id="6359">6359</a>
-<a href="#6360" id="6360">6360</a>
-<a href="#6361" id="6361">6361</a>
-<a href="#6362" id="6362">6362</a>
-<a href="#6363" id="6363">6363</a>
-<a href="#6364" id="6364">6364</a>
-<a href="#6365" id="6365">6365</a>
-<a href="#6366" id="6366">6366</a>
-<a href="#6367" id="6367">6367</a>
-<a href="#6368" id="6368">6368</a>
-<a href="#6369" id="6369">6369</a>
-<a href="#6370" id="6370">6370</a>
-<a href="#6371" id="6371">6371</a>
-<a href="#6372" id="6372">6372</a>
-<a href="#6373" id="6373">6373</a>
-<a href="#6374" id="6374">6374</a>
-<a href="#6375" id="6375">6375</a>
-<a href="#6376" id="6376">6376</a>
-<a href="#6377" id="6377">6377</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/*!
 This module provides a regular expression parser.
 */
@@ -6503,7 +6452,6 @@ This module provides a regular expression parser.
     ignore_whitespace: bool,
     nest_limit: u32,
     octal: bool,
-    empty_min_range: bool,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>ParserBuilder {
@@ -6519,7 +6467,6 @@ This module provides a regular expression parser.
             ignore_whitespace: <span class="bool-val">false</span>,
             nest_limit: <span class="number">250</span>,
             octal: <span class="bool-val">false</span>,
-            empty_min_range: <span class="bool-val">false</span>,
         }
     }
 
@@ -6530,7 +6477,6 @@ This module provides a regular expression parser.
             capture_index: Cell::new(<span class="number">0</span>),
             nest_limit: <span class="self">self</span>.nest_limit,
             octal: <span class="self">self</span>.octal,
-            empty_min_range: <span class="self">self</span>.empty_min_range,
             initial_ignore_whitespace: <span class="self">self</span>.ignore_whitespace,
             ignore_whitespace: Cell::new(<span class="self">self</span>.ignore_whitespace),
             comments: RefCell::new(<span class="macro">vec!</span>[]),
@@ -6603,18 +6549,6 @@ This module provides a regular expression parser.
         <span class="self">self</span>.ignore_whitespace = yes;
         <span class="self">self
     </span>}
-
-    <span class="doccomment">/// Allow using `{,n}` as an equivalent to `{0,n}`.
-    ///
-    /// When enabled, the parser accepts `{,n}` as valid syntax for `{0,n}`.
-    /// Most regular expression engines don't support the `{,n}` syntax, but
-    /// some others do it, namely Python's `re` library.
-    ///
-    /// This is disabled by default.
-    </span><span class="kw">pub fn </span>empty_min_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>ParserBuilder {
-        <span class="self">self</span>.empty_min_range = yes;
-        <span class="self">self
-    </span>}
 }
 
 <span class="doccomment">/// A regular expression parser.
@@ -6640,9 +6574,6 @@ This module provides a regular expression parser.
     <span class="doccomment">/// The initial setting for `ignore_whitespace` as provided by
     /// `ParserBuilder`. It is used when resetting the parser's state.
     </span>initial_ignore_whitespace: bool,
-    <span class="doccomment">/// Whether the parser supports `{,n}` repetitions as an equivalent to
-    /// `{0,n}.`
-    </span>empty_min_range: bool,
     <span class="doccomment">/// Whether whitespace should be ignored. When enabled, comments are
     /// also permitted.
     </span>ignore_whitespace: Cell&lt;bool&gt;,
@@ -7511,14 +7442,15 @@ This module provides a regular expression parser.
             <span class="self">self</span>.parse_decimal(),
             ast::ErrorKind::DecimalEmpty,
             ast::ErrorKind::RepetitionCountDecimalEmpty,
-        );
+        )<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>range = ast::RepetitionRange::Exactly(count_start);
         <span class="kw">if </span><span class="self">self</span>.is_eof() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(
                 Span::new(start, <span class="self">self</span>.pos()),
                 ast::ErrorKind::RepetitionCountUnclosed,
             ));
         }
-        <span class="kw">let </span>range = <span class="kw">if </span><span class="self">self</span>.char() == <span class="string">',' </span>{
+        <span class="kw">if </span><span class="self">self</span>.char() == <span class="string">',' </span>{
             <span class="kw">if </span>!<span class="self">self</span>.bump_and_bump_space() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(
                     Span::new(start, <span class="self">self</span>.pos()),
@@ -7526,33 +7458,16 @@ This module provides a regular expression parser.
                 ));
             }
             <span class="kw">if </span><span class="self">self</span>.char() != <span class="string">'}' </span>{
-                <span class="kw">let </span>count_start = <span class="kw">match </span>count_start {
-                    <span class="prelude-val">Ok</span>(c) =&gt; c,
-                    <span class="prelude-val">Err</span>(err)
-                        <span class="kw">if </span>err.kind
-                            == ast::ErrorKind::RepetitionCountDecimalEmpty =&gt;
-                    {
-                        <span class="kw">if </span><span class="self">self</span>.parser().empty_min_range {
-                            <span class="number">0
-                        </span>} <span class="kw">else </span>{
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(err);
-                        }
-                    }
-                    err =&gt; err<span class="question-mark">?</span>,
-                };
                 <span class="kw">let </span>count_end = specialize_err(
                     <span class="self">self</span>.parse_decimal(),
                     ast::ErrorKind::DecimalEmpty,
                     ast::ErrorKind::RepetitionCountDecimalEmpty,
                 )<span class="question-mark">?</span>;
-                ast::RepetitionRange::Bounded(count_start, count_end)
+                range = ast::RepetitionRange::Bounded(count_start, count_end);
             } <span class="kw">else </span>{
-                ast::RepetitionRange::AtLeast(count_start<span class="question-mark">?</span>)
+                range = ast::RepetitionRange::AtLeast(count_start);
             }
-        } <span class="kw">else </span>{
-            ast::RepetitionRange::Exactly(count_start<span class="question-mark">?</span>)
-        };
-
+        }
         <span class="kw">if </span><span class="self">self</span>.is_eof() || <span class="self">self</span>.char() != <span class="string">'}' </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(
                 Span::new(start, <span class="self">self</span>.pos()),
@@ -8818,6 +8733,8 @@ This module provides a regular expression parser.
 
     <span class="kw">use </span>alloc::format;
 
+    <span class="kw">use </span><span class="kw">crate</span>::ast::{<span class="self">self</span>, Ast, Position, Span};
+
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="comment">// Our own assert_eq, which has slightly better formatting (but honestly
@@ -8869,11 +8786,6 @@ This module provides a regular expression parser.
 
     <span class="kw">fn </span>parser_octal(pattern: <span class="kw-2">&amp;</span>str) -&gt; ParserI&lt;<span class="lifetime">'_</span>, Parser&gt; {
         <span class="kw">let </span>parser = ParserBuilder::new().octal(<span class="bool-val">true</span>).build();
-        ParserI::new(parser, pattern)
-    }
-
-    <span class="kw">fn </span>parser_empty_min_range(pattern: <span class="kw-2">&amp;</span>str) -&gt; ParserI&lt;<span class="lifetime">'_</span>, Parser&gt; {
-        <span class="kw">let </span>parser = ParserBuilder::new().empty_min_range(<span class="bool-val">true</span>).build();
         ParserI::new(parser, pattern)
     }
 
@@ -9788,20 +9700,6 @@ bar
                     span: span(<span class="number">1</span>..<span class="number">10</span>),
                     kind: ast::RepetitionKind::Range(
                         ast::RepetitionRange::Bounded(<span class="number">5</span>, <span class="number">9</span>)
-                    ),
-                },
-                greedy: <span class="bool-val">true</span>,
-                ast: Box::new(lit(<span class="string">'a'</span>, <span class="number">0</span>)),
-            }))
-        );
-        <span class="macro">assert_eq!</span>(
-            parser_empty_min_range(<span class="string">r"a{,9}"</span>).parse(),
-            <span class="prelude-val">Ok</span>(Ast::repetition(ast::Repetition {
-                span: span(<span class="number">0</span>..<span class="number">5</span>),
-                op: ast::RepetitionOp {
-                    span: span(<span class="number">1</span>..<span class="number">5</span>),
-                    kind: ast::RepetitionKind::Range(
-                        ast::RepetitionRange::Bounded(<span class="number">0</span>, <span class="number">9</span>)
                     ),
                 },
                 greedy: <span class="bool-val">true</span>,
@@ -11028,8 +10926,8 @@ bar
         </span><span class="macro">assert_eq!</span>(
             parser(<span class="string">r"\b{ "</span>).parse().unwrap_err(),
             TestError {
-                span: span(<span class="number">2</span>..<span class="number">4</span>),
-                kind: ast::ErrorKind::RepetitionCountUnclosed,
+                span: span(<span class="number">4</span>..<span class="number">4</span>),
+                kind: ast::ErrorKind::RepetitionCountDecimalEmpty,
             }
         );
         <span class="comment">// In this case, we got some valid chars that makes it look like the

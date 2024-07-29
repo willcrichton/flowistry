@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-automata-0.4.7/src/nfa/thompson/compiler.rs`."><title>compiler.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="regex_automata" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-automata-0.4.3/src/nfa/thompson/compiler.rs`."><title>compiler.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="regex_automata" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../regex_automata/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -2265,87 +2265,6 @@
 <a href="#2263" id="2263">2263</a>
 <a href="#2264" id="2264">2264</a>
 <a href="#2265" id="2265">2265</a>
-<a href="#2266" id="2266">2266</a>
-<a href="#2267" id="2267">2267</a>
-<a href="#2268" id="2268">2268</a>
-<a href="#2269" id="2269">2269</a>
-<a href="#2270" id="2270">2270</a>
-<a href="#2271" id="2271">2271</a>
-<a href="#2272" id="2272">2272</a>
-<a href="#2273" id="2273">2273</a>
-<a href="#2274" id="2274">2274</a>
-<a href="#2275" id="2275">2275</a>
-<a href="#2276" id="2276">2276</a>
-<a href="#2277" id="2277">2277</a>
-<a href="#2278" id="2278">2278</a>
-<a href="#2279" id="2279">2279</a>
-<a href="#2280" id="2280">2280</a>
-<a href="#2281" id="2281">2281</a>
-<a href="#2282" id="2282">2282</a>
-<a href="#2283" id="2283">2283</a>
-<a href="#2284" id="2284">2284</a>
-<a href="#2285" id="2285">2285</a>
-<a href="#2286" id="2286">2286</a>
-<a href="#2287" id="2287">2287</a>
-<a href="#2288" id="2288">2288</a>
-<a href="#2289" id="2289">2289</a>
-<a href="#2290" id="2290">2290</a>
-<a href="#2291" id="2291">2291</a>
-<a href="#2292" id="2292">2292</a>
-<a href="#2293" id="2293">2293</a>
-<a href="#2294" id="2294">2294</a>
-<a href="#2295" id="2295">2295</a>
-<a href="#2296" id="2296">2296</a>
-<a href="#2297" id="2297">2297</a>
-<a href="#2298" id="2298">2298</a>
-<a href="#2299" id="2299">2299</a>
-<a href="#2300" id="2300">2300</a>
-<a href="#2301" id="2301">2301</a>
-<a href="#2302" id="2302">2302</a>
-<a href="#2303" id="2303">2303</a>
-<a href="#2304" id="2304">2304</a>
-<a href="#2305" id="2305">2305</a>
-<a href="#2306" id="2306">2306</a>
-<a href="#2307" id="2307">2307</a>
-<a href="#2308" id="2308">2308</a>
-<a href="#2309" id="2309">2309</a>
-<a href="#2310" id="2310">2310</a>
-<a href="#2311" id="2311">2311</a>
-<a href="#2312" id="2312">2312</a>
-<a href="#2313" id="2313">2313</a>
-<a href="#2314" id="2314">2314</a>
-<a href="#2315" id="2315">2315</a>
-<a href="#2316" id="2316">2316</a>
-<a href="#2317" id="2317">2317</a>
-<a href="#2318" id="2318">2318</a>
-<a href="#2319" id="2319">2319</a>
-<a href="#2320" id="2320">2320</a>
-<a href="#2321" id="2321">2321</a>
-<a href="#2322" id="2322">2322</a>
-<a href="#2323" id="2323">2323</a>
-<a href="#2324" id="2324">2324</a>
-<a href="#2325" id="2325">2325</a>
-<a href="#2326" id="2326">2326</a>
-<a href="#2327" id="2327">2327</a>
-<a href="#2328" id="2328">2328</a>
-<a href="#2329" id="2329">2329</a>
-<a href="#2330" id="2330">2330</a>
-<a href="#2331" id="2331">2331</a>
-<a href="#2332" id="2332">2332</a>
-<a href="#2333" id="2333">2333</a>
-<a href="#2334" id="2334">2334</a>
-<a href="#2335" id="2335">2335</a>
-<a href="#2336" id="2336">2336</a>
-<a href="#2337" id="2337">2337</a>
-<a href="#2338" id="2338">2338</a>
-<a href="#2339" id="2339">2339</a>
-<a href="#2340" id="2340">2340</a>
-<a href="#2341" id="2341">2341</a>
-<a href="#2342" id="2342">2342</a>
-<a href="#2343" id="2343">2343</a>
-<a href="#2344" id="2344">2344</a>
-<a href="#2345" id="2345">2345</a>
-<a href="#2346" id="2346">2346</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>core::{borrow::Borrow, cell::RefCell};
 
 <span class="kw">use </span>alloc::{sync::Arc, vec, vec::Vec};
@@ -3309,12 +3228,10 @@ mutably both inside and outside the closure at the same time.
         // for all matches. When an unanchored prefix is not added, then the
         // NFA's anchored and unanchored start states are equivalent.
         </span><span class="kw">let </span>all_anchored = exprs.iter().all(|e| {
-            <span class="kw">let </span>props = e.borrow().properties();
-            <span class="kw">if </span><span class="self">self</span>.config.get_reverse() {
-                props.look_set_suffix().contains(hir::Look::End)
-            } <span class="kw">else </span>{
-                props.look_set_prefix().contains(hir::Look::Start)
-            }
+            e.borrow()
+                .properties()
+                .look_set_prefix()
+                .contains(hir::Look::Start)
         });
         <span class="kw">let </span>anchored = !<span class="self">self</span>.config.get_unanchored_prefix() || all_anchored;
         <span class="kw">let </span>unanchored_prefix = <span class="kw">if </span>anchored {
@@ -4226,11 +4143,11 @@ mutably both inside and outside the closure at the same time.
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use </span>alloc::vec;
+    <span class="kw">use </span>alloc::{vec, vec::Vec};
 
     <span class="kw">use crate</span>::{
-        nfa::thompson::{SparseTransitions, State},
-        util::primitives::SmallIndex,
+        nfa::thompson::{SparseTransitions, State, Transition, NFA},
+        util::primitives::{PatternID, SmallIndex, StateID},
     };
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
@@ -4276,11 +4193,6 @@ mutably both inside and outside the closure at the same time.
             })
             .collect();
         State::Sparse(SparseTransitions { transitions })
-    }
-
-    <span class="kw">fn </span>s_look(look: Look, next: usize) -&gt; State {
-        <span class="kw">let </span>next = sid(next);
-        State::Look { look, next }
     }
 
     <span class="kw">fn </span>s_bin_union(alt1: usize, alt2: usize) -&gt; State {
@@ -4330,80 +4242,6 @@ mutably both inside and outside the closure at the same time.
                 s_byte(<span class="string">b'a'</span>, <span class="number">3</span>),
                 s_match(<span class="number">0</span>),
             ]
-        );
-    }
-
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>compile_no_unanchored_prefix_with_start_anchor() {
-        <span class="kw">let </span>nfa = NFA::compiler()
-            .configure(NFA::config().which_captures(WhichCaptures::None))
-            .build(<span class="string">r"^a"</span>)
-            .unwrap();
-        <span class="macro">assert_eq!</span>(
-            nfa.states(),
-            <span class="kw-2">&amp;</span>[s_look(Look::Start, <span class="number">1</span>), s_byte(<span class="string">b'a'</span>, <span class="number">2</span>), s_match(<span class="number">0</span>)]
-        );
-    }
-
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>compile_yes_unanchored_prefix_with_end_anchor() {
-        <span class="kw">let </span>nfa = NFA::compiler()
-            .configure(NFA::config().which_captures(WhichCaptures::None))
-            .build(<span class="string">r"a$"</span>)
-            .unwrap();
-        <span class="macro">assert_eq!</span>(
-            nfa.states(),
-            <span class="kw-2">&amp;</span>[
-                s_bin_union(<span class="number">2</span>, <span class="number">1</span>),
-                s_range(<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>),
-                s_byte(<span class="string">b'a'</span>, <span class="number">3</span>),
-                s_look(Look::End, <span class="number">4</span>),
-                s_match(<span class="number">0</span>),
-            ]
-        );
-    }
-
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>compile_yes_reverse_unanchored_prefix_with_start_anchor() {
-        <span class="kw">let </span>nfa = NFA::compiler()
-            .configure(
-                NFA::config()
-                    .reverse(<span class="bool-val">true</span>)
-                    .which_captures(WhichCaptures::None),
-            )
-            .build(<span class="string">r"^a"</span>)
-            .unwrap();
-        <span class="macro">assert_eq!</span>(
-            nfa.states(),
-            <span class="kw-2">&amp;</span>[
-                s_bin_union(<span class="number">2</span>, <span class="number">1</span>),
-                s_range(<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>),
-                s_byte(<span class="string">b'a'</span>, <span class="number">3</span>),
-                <span class="comment">// Anchors get flipped in a reverse automaton.
-                </span>s_look(Look::End, <span class="number">4</span>),
-                s_match(<span class="number">0</span>),
-            ],
-        );
-    }
-
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>compile_no_reverse_unanchored_prefix_with_end_anchor() {
-        <span class="kw">let </span>nfa = NFA::compiler()
-            .configure(
-                NFA::config()
-                    .reverse(<span class="bool-val">true</span>)
-                    .which_captures(WhichCaptures::None),
-            )
-            .build(<span class="string">r"a$"</span>)
-            .unwrap();
-        <span class="macro">assert_eq!</span>(
-            nfa.states(),
-            <span class="kw-2">&amp;</span>[
-                <span class="comment">// Anchors get flipped in a reverse automaton.
-                </span>s_look(Look::Start, <span class="number">1</span>),
-                s_byte(<span class="string">b'a'</span>, <span class="number">2</span>),
-                s_match(<span class="number">0</span>),
-            ],
         );
     }
 

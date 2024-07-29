@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.11/src/parser/matches/arg_matches.rs`."><title>arg_matches.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.8/src/parser/matches/arg_matches.rs`."><title>arg_matches.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -2253,7 +2253,7 @@
     </span><span class="kw">pub fn </span>get_many&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;ValuesRef&lt;<span class="lifetime">'_</span>, T&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;ValuesRef&lt;T&gt;&gt; {
         MatchesError::unwrap(id, <span class="self">self</span>.try_get_many(id))
     }
 
@@ -2291,7 +2291,7 @@
     </span><span class="kw">pub fn </span>get_occurrences&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;OccurrencesRef&lt;<span class="lifetime">'_</span>, T&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;OccurrencesRef&lt;T&gt;&gt; {
         MatchesError::unwrap(id, <span class="self">self</span>.try_get_occurrences(id))
     }
 
@@ -3109,7 +3109,7 @@
     </span><span class="kw">pub fn </span>try_get_many&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ValuesRef&lt;<span class="lifetime">'_</span>, T&gt;&gt;, MatchesError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ValuesRef&lt;T&gt;&gt;, MatchesError&gt; {
         <span class="kw">let </span>arg = <span class="kw">match </span><span class="macro">ok!</span>(<span class="self">self</span>.try_get_arg_t::&lt;T&gt;(id)) {
             <span class="prelude-val">Some</span>(arg) =&gt; arg,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
@@ -3128,7 +3128,7 @@
     </span><span class="kw">pub fn </span>try_get_occurrences&lt;T: Any + Clone + Send + Sync + <span class="lifetime">'static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;OccurrencesRef&lt;<span class="lifetime">'_</span>, T&gt;&gt;, MatchesError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;OccurrencesRef&lt;T&gt;&gt;, MatchesError&gt; {
         <span class="kw">let </span>arg = <span class="kw">match </span><span class="macro">ok!</span>(<span class="self">self</span>.try_get_arg_t::&lt;T&gt;(id)) {
             <span class="prelude-val">Some</span>(arg) =&gt; arg,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
@@ -3380,7 +3380,7 @@
 /// ```
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>IdsRef&lt;<span class="lifetime">'a</span>&gt; {
-    iter: Iter&lt;<span class="lifetime">'a</span>, Id&gt;,
+    iter: std::slice::Iter&lt;<span class="lifetime">'a</span>, Id&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Iterator <span class="kw">for </span>IdsRef&lt;<span class="lifetime">'a</span>&gt; {
@@ -3617,7 +3617,7 @@
 
 </span><span class="attr">#[derive(Clone, Debug)]
 #[deprecated(since = <span class="string">"4.1.0"</span>, note = <span class="string">"Use Occurrences instead"</span>)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GroupedValues&lt;<span class="lifetime">'a</span>&gt; {
+</span><span class="kw">pub struct </span>GroupedValues&lt;<span class="lifetime">'a</span>&gt; {
     <span class="attr">#[allow(clippy::type_complexity)]
     </span>iter: Map&lt;Iter&lt;<span class="lifetime">'a</span>, Vec&lt;AnyValue&gt;&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Vec&lt;AnyValue&gt;) -&gt; Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;,
     len: usize,
@@ -3958,13 +3958,13 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_default_raw_values() {
-        <span class="kw">let </span><span class="kw-2">mut </span>values: RawValues&lt;<span class="lifetime">'_</span>&gt; = Default::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>values: RawValues = Default::default();
         <span class="macro">assert_eq!</span>(values.next(), <span class="prelude-val">None</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_default_indices() {
-        <span class="kw">let </span><span class="kw-2">mut </span>indices: Indices&lt;<span class="lifetime">'_</span>&gt; = Indices::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>indices: Indices = Indices::default();
         <span class="macro">assert_eq!</span>(indices.next(), <span class="prelude-val">None</span>);
     }
 
@@ -4004,7 +4004,7 @@
             )
             .try_get_matches_from([<span class="string">"test"</span>, <span class="string">"one"</span>])
             .unwrap()
-            .get_many::&lt;OsString&gt;(<span class="string">"POTATO"</span>)
+            .get_many::&lt;std::ffi::OsString&gt;(<span class="string">"POTATO"</span>)
             .expect(<span class="string">"present"</span>)
             .count();
         <span class="macro">assert_eq!</span>(l, <span class="number">1</span>);

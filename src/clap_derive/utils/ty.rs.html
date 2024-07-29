@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_derive-4.5.11/src/utils/ty.rs`."><title>ty.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_derive-4.4.7/src/utils/ty.rs`."><title>ty.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../clap_derive/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -175,7 +175,7 @@
 };
 
 <span class="attr">#[derive(Copy, Clone, PartialEq, Eq, Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Ty {
+</span><span class="kw">pub enum </span>Ty {
     Unit,
     Vec,
     VecVec,
@@ -187,8 +187,8 @@
 }
 
 <span class="kw">impl </span>Ty {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_syn_ty(ty: <span class="kw-2">&amp;</span>Type) -&gt; Sp&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">use </span><span class="self">self</span>::Ty::{<span class="prelude-ty">Option</span>, OptionOption, OptionVec, OptionVecVec, Other, Unit, Vec, VecVec};
+    <span class="kw">pub fn </span>from_syn_ty(ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; Sp&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">use </span><span class="self">self</span>::Ty::<span class="kw-2">*</span>;
         <span class="kw">let </span>t = |kind| Sp::new(kind, ty.span());
 
         <span class="kw">if </span>is_unit_ty(ty) {
@@ -208,7 +208,7 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+    <span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unit =&gt; <span class="string">"()"</span>,
             <span class="self">Self</span>::Vec =&gt; <span class="string">"Vec&lt;T&gt;"</span>,
@@ -222,7 +222,7 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner_type(field_ty: <span class="kw-2">&amp;</span>Type) -&gt; <span class="kw-2">&amp;</span>Type {
+<span class="kw">pub fn </span>inner_type(field_ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; <span class="kw-2">&amp;</span>syn::Type {
     <span class="kw">let </span>ty = Ty::from_syn_ty(field_ty);
     <span class="kw">match </span><span class="kw-2">*</span>ty {
         Ty::Vec | Ty::Option =&gt; sub_type(field_ty).unwrap_or(field_ty),
@@ -237,12 +237,12 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sub_type(ty: <span class="kw-2">&amp;</span>Type) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Type&gt; {
+<span class="kw">pub fn </span>sub_type(ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::Type&gt; {
     subty_if(ty, |<span class="kw">_</span>| <span class="bool-val">true</span>)
 }
 
-<span class="kw">fn </span>only_last_segment(<span class="kw-2">mut </span>ty: <span class="kw-2">&amp;</span>Type) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PathSegment&gt; {
-    <span class="kw">while let </span>Type::Group(syn::TypeGroup { elem, .. }) = ty {
+<span class="kw">fn </span>only_last_segment(<span class="kw-2">mut </span>ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PathSegment&gt; {
+    <span class="kw">while let </span>syn::Type::Group(syn::TypeGroup { elem, .. }) = ty {
         ty = elem;
     }
     <span class="kw">match </span>ty {
@@ -259,7 +259,7 @@
     }
 }
 
-<span class="kw">fn </span>subty_if&lt;F&gt;(ty: <span class="kw-2">&amp;</span>Type, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Type&gt;
+<span class="kw">fn </span>subty_if&lt;F&gt;(ty: <span class="kw-2">&amp;</span>syn::Type, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>syn::Type&gt;
 <span class="kw">where
     </span>F: FnOnce(<span class="kw-2">&amp;</span>PathSegment) -&gt; bool,
 {
@@ -280,11 +280,11 @@
         })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>subty_if_name&lt;<span class="lifetime">'a</span>&gt;(ty: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Type, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Type&gt; {
+<span class="kw">pub fn </span>subty_if_name&lt;<span class="lifetime">'a</span>&gt;(ty: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>syn::Type, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>syn::Type&gt; {
     subty_if(ty, |seg| seg.ident == name)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_simple_ty(ty: <span class="kw-2">&amp;</span>Type, name: <span class="kw-2">&amp;</span>str) -&gt; bool {
+<span class="kw">pub fn </span>is_simple_ty(ty: <span class="kw-2">&amp;</span>syn::Type, name: <span class="kw-2">&amp;</span>str) -&gt; bool {
     only_last_segment(ty)
         .map(|segment| {
             <span class="kw">if let </span>PathArguments::None = segment.arguments {
@@ -296,12 +296,12 @@
         .unwrap_or(<span class="bool-val">false</span>)
 }
 
-<span class="kw">fn </span>is_generic_ty(ty: <span class="kw-2">&amp;</span>Type, name: <span class="kw-2">&amp;</span>str) -&gt; bool {
+<span class="kw">fn </span>is_generic_ty(ty: <span class="kw-2">&amp;</span>syn::Type, name: <span class="kw-2">&amp;</span>str) -&gt; bool {
     subty_if_name(ty, name).is_some()
 }
 
-<span class="kw">fn </span>is_unit_ty(ty: <span class="kw-2">&amp;</span>Type) -&gt; bool {
-    <span class="kw">if let </span>Type::Tuple(tuple) = ty {
+<span class="kw">fn </span>is_unit_ty(ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; bool {
+    <span class="kw">if let </span>syn::Type::Tuple(tuple) = ty {
         tuple.elems.is_empty()
     } <span class="kw">else </span>{
         <span class="bool-val">false

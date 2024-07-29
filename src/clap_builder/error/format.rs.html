@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.11/src/error/format.rs`."><title>format.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.8/src/error/format.rs`."><title>format.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -545,45 +545,12 @@
 <a href="#543" id="543">543</a>
 <a href="#544" id="544">544</a>
 <a href="#545" id="545">545</a>
-<a href="#546" id="546">546</a>
-<a href="#547" id="547">547</a>
-<a href="#548" id="548">548</a>
-<a href="#549" id="549">549</a>
-<a href="#550" id="550">550</a>
-<a href="#551" id="551">551</a>
-<a href="#552" id="552">552</a>
-<a href="#553" id="553">553</a>
-<a href="#554" id="554">554</a>
-<a href="#555" id="555">555</a>
-<a href="#556" id="556">556</a>
-<a href="#557" id="557">557</a>
-<a href="#558" id="558">558</a>
-<a href="#559" id="559">559</a>
-<a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
-<a href="#565" id="565">565</a>
-<a href="#566" id="566">566</a>
-<a href="#567" id="567">567</a>
-<a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
-<a href="#570" id="570">570</a>
-<a href="#571" id="571">571</a>
-<a href="#572" id="572">572</a>
-<a href="#573" id="573">573</a>
-<a href="#574" id="574">574</a>
-<a href="#575" id="575">575</a>
-<a href="#576" id="576">576</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(missing_copy_implementations)]
 #![allow(missing_debug_implementations)]
 #![cfg_attr(not(feature = <span class="string">"error-context"</span>), allow(dead_code))]
 #![cfg_attr(not(feature = <span class="string">"error-context"</span>), allow(unused_imports))]
 
-</span><span class="kw">use </span>std::borrow::Cow;
-
-<span class="kw">use </span><span class="kw">crate</span>::builder::Command;
+</span><span class="kw">use </span><span class="kw">crate</span>::builder::Command;
 <span class="kw">use </span><span class="kw">crate</span>::builder::StyledStr;
 <span class="kw">use </span><span class="kw">crate</span>::builder::Styles;
 <span class="attr">#[cfg(feature = <span class="string">"error-context"</span>)]
@@ -592,7 +559,6 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::error::ContextValue;
 <span class="kw">use </span><span class="kw">crate</span>::error::ErrorKind;
 <span class="kw">use </span><span class="kw">crate</span>::output::TAB;
-<span class="kw">use </span><span class="kw">crate</span>::ArgAction;
 
 <span class="doccomment">/// Defines how to format an error for displaying to the user
 </span><span class="kw">pub trait </span>ErrorFormatter: Sized {
@@ -701,7 +667,7 @@
             put_usage(<span class="kw-2">&amp;mut </span>styled, usage);
         }
 
-        try_help(<span class="kw-2">&amp;mut </span>styled, styles, error.inner.help_flag.as_deref());
+        try_help(<span class="kw-2">&amp;mut </span>styled, styles, error.inner.help_flag);
 
         styled
     }
@@ -727,10 +693,12 @@
 
     <span class="kw">match </span>error.kind() {
         ErrorKind::ArgumentConflict =&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>prior_arg = error.get(ContextKind::PriorArg);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)) = error.get(ContextKind::InvalidArg) {
-                <span class="kw">if </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>ContextValue::String(invalid_arg.clone())) == prior_arg {
-                    prior_arg = <span class="prelude-val">None</span>;
+            <span class="kw">let </span>invalid_arg = error.get(ContextKind::InvalidArg);
+            <span class="kw">let </span>prior_arg = error.get(ContextKind::PriorArg);
+            <span class="kw">if let </span>(<span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)), <span class="prelude-val">Some</span>(prior_arg)) =
+                (invalid_arg, prior_arg)
+            {
+                <span class="kw">if </span>ContextValue::String(invalid_arg.clone()) == <span class="kw-2">*</span>prior_arg {
                     <span class="kw">let _ </span>= <span class="macro">write!</span>(
                         styled,
                         <span class="string">"the argument '{}{invalid_arg}{}' cannot be used multiple times"</span>,
@@ -744,49 +712,37 @@
                         invalid.render(),
                         invalid.render_reset()
                     );
-                }
-            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)) =
-                error.get(ContextKind::InvalidSubcommand)
-            {
-                <span class="kw">let _ </span>= <span class="macro">write!</span>(
-                    styled,
-                    <span class="string">"the subcommand '{}{invalid_arg}{}' cannot be used with"</span>,
-                    invalid.render(),
-                    invalid.render_reset()
-                );
-            } <span class="kw">else </span>{
-                styled.push_str(error.kind().as_str().unwrap());
-            }
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(prior_arg) = prior_arg {
-                <span class="kw">match </span>prior_arg {
-                    ContextValue::Strings(values) =&gt; {
-                        styled.push_str(<span class="string">":"</span>);
-                        <span class="kw">for </span>v <span class="kw">in </span>values {
+                    <span class="kw">match </span>prior_arg {
+                        ContextValue::Strings(values) =&gt; {
+                            styled.push_str(<span class="string">":"</span>);
+                            <span class="kw">for </span>v <span class="kw">in </span>values {
+                                <span class="kw">let _ </span>= <span class="macro">write!</span>(
+                                    styled,
+                                    <span class="string">"\n{TAB}{}{v}{}"</span>,
+                                    invalid.render(),
+                                    invalid.render_reset()
+                                );
+                            }
+                        }
+                        ContextValue::String(value) =&gt; {
                             <span class="kw">let _ </span>= <span class="macro">write!</span>(
                                 styled,
-                                <span class="string">"\n{TAB}{}{v}{}"</span>,
+                                <span class="string">" '{}{value}{}'"</span>,
                                 invalid.render(),
                                 invalid.render_reset()
                             );
                         }
-                    }
-                    ContextValue::String(value) =&gt; {
-                        <span class="kw">let _ </span>= <span class="macro">write!</span>(
-                            styled,
-                            <span class="string">" '{}{value}{}'"</span>,
-                            invalid.render(),
-                            invalid.render_reset()
-                        );
-                    }
-                    <span class="kw">_ </span>=&gt; {
-                        styled.push_str(<span class="string">" one or more of the other specified arguments"</span>);
+                        <span class="kw">_ </span>=&gt; {
+                            styled.push_str(<span class="string">" one or more of the other specified arguments"</span>);
+                        }
                     }
                 }
-            }
-
-            <span class="bool-val">true
-        </span>}
+                <span class="bool-val">true
+            </span>} <span class="kw">else </span>{
+                <span class="bool-val">false
+            </span>}
+        }
         ErrorKind::NoEquals =&gt; {
             <span class="kw">let </span>invalid_arg = error.get(ContextKind::InvalidArg);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(ContextValue::String(invalid_arg)) = invalid_arg {
@@ -918,7 +874,7 @@
                 <span class="kw">let </span>were_provided = singular_or_plural(<span class="kw-2">*</span>actual_num_values <span class="kw">as </span>usize);
                 <span class="kw">let _ </span>= <span class="macro">write!</span>(
                     styled,
-                    <span class="string">"{}{min_values}{} values required by '{}{invalid_arg}{}'; only {}{actual_num_values}{}{were_provided}"</span>,
+                    <span class="string">"{}{min_values}{} more values required by '{}{invalid_arg}{}'; only {}{actual_num_values}{}{were_provided}"</span>,
                     valid.render(),
                     valid.render_reset(),
                     literal.render(),
@@ -1042,7 +998,7 @@
         put_usage(<span class="kw-2">&amp;mut </span>styled, usage);
     }
     <span class="kw">if let </span><span class="prelude-val">Some</span>(cmd) = cmd {
-        try_help(<span class="kw-2">&amp;mut </span>styled, styles, get_help_flag(cmd).as_deref());
+        try_help(<span class="kw-2">&amp;mut </span>styled, styles, get_help_flag(cmd));
     }
     styled
 }
@@ -1061,32 +1017,14 @@
     styled.push_styled(usage);
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_help_flag(cmd: <span class="kw-2">&amp;</span>Command) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_help_flag(cmd: <span class="kw-2">&amp;</span>Command) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
     <span class="kw">if </span>!cmd.is_disable_help_flag_set() {
-        <span class="prelude-val">Some</span>(Cow::Borrowed(<span class="string">"--help"</span>))
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(flag) = get_user_help_flag(cmd) {
-        <span class="prelude-val">Some</span>(Cow::Owned(flag))
+        <span class="prelude-val">Some</span>(<span class="string">"--help"</span>)
     } <span class="kw">else if </span>cmd.has_subcommands() &amp;&amp; !cmd.is_disable_help_subcommand_set() {
-        <span class="prelude-val">Some</span>(Cow::Borrowed(<span class="string">"help"</span>))
+        <span class="prelude-val">Some</span>(<span class="string">"help"</span>)
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>}
-}
-
-<span class="kw">fn </span>get_user_help_flag(cmd: <span class="kw-2">&amp;</span>Command) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
-    <span class="kw">let </span>arg = cmd.get_arguments().find(|arg| <span class="kw">match </span>arg.get_action() {
-        ArgAction::Help | ArgAction::HelpShort | ArgAction::HelpLong =&gt; <span class="bool-val">true</span>,
-        ArgAction::Append
-        | ArgAction::Count
-        | ArgAction::SetTrue
-        | ArgAction::SetFalse
-        | ArgAction::Set
-        | ArgAction::Version =&gt; <span class="bool-val">false</span>,
-    })<span class="question-mark">?</span>;
-
-    arg.get_long()
-        .map(|long| <span class="macro">format!</span>(<span class="string">"--{long}"</span>))
-        .or_else(|| arg.get_short().map(|short| <span class="macro">format!</span>(<span class="string">"-{short}"</span>)))
 }
 
 <span class="kw">fn </span>try_help(styled: <span class="kw-2">&amp;mut </span>StyledStr, styles: <span class="kw-2">&amp;</span>Styles, help: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) {
@@ -1144,7 +1082,7 @@
 <span class="kw">struct </span>Escape&lt;<span class="lifetime">'s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str);
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; std::fmt::Display <span class="kw">for </span>Escape&lt;<span class="lifetime">'s</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
         <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.contains(char::is_whitespace) {
             std::fmt::Debug::fmt(<span class="self">self</span>.<span class="number">0</span>, f)
         } <span class="kw">else </span>{
