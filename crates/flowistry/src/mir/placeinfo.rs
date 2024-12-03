@@ -82,7 +82,7 @@ impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
   pub fn normalize(&self, place: Place<'tcx>) -> Place<'tcx> {
     self
       .normalized_cache
-      .get(place, |place| place.normalize(self.tcx, self.def_id))
+      .get(&place, |place| place.normalize(self.tcx, self.def_id))
   }
 
   /// Computes the aliases of a place (cached).
@@ -94,7 +94,7 @@ impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
     // which contains region information
     self
       .aliases_cache
-      .get(self.normalize(place), move |_| self.aliases.aliases(place))
+      .get(&self.normalize(place), move |_| self.aliases.aliases(place))
   }
 
   /// Returns all reachable fields of `place` without going through references.
@@ -104,16 +104,31 @@ impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
     PlaceSet::from_iter(place.interior_places(self.tcx, self.body, self.def_id))
   }
 
-  /// Returns all places that conflict with `place`, i.e. that a mutation to `place`
+  /// Returns all places that *directly* conflict with `place`, i.e. that a mutation to `place`
   /// would also be a mutation to the conflicting place.
   ///
   /// For example, if `x = ((0, 1), 2)` then `conflicts(x.0) = {x, x.0, x.0.0, x.0.1}`, but not `x.1`.
+  ///
+  /// For indirect places, this function follows conflicting parents up until a reference point.
+  /// So if `x = (0, &(box 1, 2))` then conflicts(*(*(x.1).0)) = {*(*(x.1).0), *(x.1).0, *(x.1)}
   pub fn conflicts(&self, place: Place<'tcx>) -> &PlaceSet<'tcx> {
-    self.conflicts_cache.get(place, |place| {
+    self.conflicts_cache.get(&place, |place| {
       let children = self.children(place);
       let parents = place
-        .iter_projections()
-        .take_while(|(_, elem)| !matches!(elem, PlaceElem::Deref))
+        .projection
+        .iter()
+        .enumerate()
+        .map(|(i, elem)| {
+          let place = PlaceRef {
+            local: place.local,
+            projection: &place.projection[.. i],
+          };
+          (place, elem)
+        })
+        .take_while(|(place, elem)| {
+          place.ty(self.body.local_decls(), self.tcx).ty.is_box()
+            || !matches!(elem, PlaceElem::Deref)
+        })
         .map(|(place_ref, _)| Place::from_ref(place_ref, self.tcx));
       children.into_iter().chain(parents).collect()
     })
@@ -129,20 +144,20 @@ impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
     place: Place<'tcx>,
     mutability: Mutability,
   ) -> &PlaceSet<'tcx> {
-    self.reachable_cache.get((place, mutability), |_| {
+    self.reachable_cache.get(&(place, mutability), |_| {
       let ty = place.ty(self.body.local_decls(), self.tcx).ty;
       let loans = self.collect_loans(ty, mutability);
       loans
         .into_iter()
         .chain([place])
         .filter(|place| {
-          if let Some((place, _)) = place.refs_in_projection().last() {
+          if let Some((place, _)) = place.refs_in_projection(self.body, self.tcx).last() {
             let ty = place.ty(self.body.local_decls(), self.tcx).ty;
             if ty.is_box() || ty.is_unsafe_ptr() {
               return true;
             }
           }
-          place.is_direct(self.body)
+          place.is_direct(self.body, self.tcx)
         })
         .collect()
     })
@@ -201,9 +216,9 @@ struct LoanCollector<'a, 'tcx> {
 }
 
 impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for LoanCollector<'_, 'tcx> {
-  type BreakTy = ();
+  type Result = ControlFlow<()>;
 
-  fn visit_ty(&mut self, ty: Ty<'tcx>) -> ControlFlow<Self::BreakTy> {
+  fn visit_ty(&mut self, ty: Ty<'tcx>) -> Self::Result {
     match ty.kind() {
       TyKind::Ref(_, _, mutability) => {
         self.stack.push(*mutability);
@@ -221,7 +236,7 @@ impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for LoanCollector<'_, 'tcx> {
     ControlFlow::Continue(())
   }
 
-  fn visit_region(&mut self, region: Region<'tcx>) -> ControlFlow<Self::BreakTy> {
+  fn visit_region(&mut self, region: Region<'tcx>) -> Self::Result {
     let region = match region.kind() {
       RegionKind::ReVar(region) => region,
       RegionKind::ReStatic => RegionVid::from_usize(0),

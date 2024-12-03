@@ -11,12 +11,12 @@ use rustc_data_structures::{
 };
 use rustc_hir::def_id::DefId;
 use rustc_index::{
-  bit_set::{HybridBitSet, SparseBitMatrix},
+  bit_set::{ChunkedBitSet, SparseBitMatrix},
   IndexVec,
 };
 use rustc_middle::{
   mir::{visit::Visitor, *},
-  ty::{Region, RegionKind, RegionVid, Ty, TyCtxt, TyKind, TypeAndMut},
+  ty::{Region, RegionKind, RegionVid, Ty, TyCtxt, TyKind},
 };
 use rustc_utils::{mir::place::UNKNOWN_REGION, timer::elapsed, PlaceExt};
 
@@ -109,13 +109,12 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     let start = Instant::now();
     let body = &body_with_facts.body;
     let static_region = RegionVid::from_usize(0);
-    let subset_base = &body_with_facts
-      .input_facts
-      .as_ref()
-      .unwrap()
+    let input_facts = &body_with_facts.input_facts.as_ref().unwrap();
+    let subset_base = input_facts
       .subset_base
       .iter()
       .cloned()
+      .map(|(r1, r2, i)| (RegionVid::from(r1), RegionVid::from(r2), i))
       .filter(|(r1, r2, i)| constraint_selector(*r1, *r2, *i))
       .collect::<Vec<_>>();
 
@@ -143,10 +142,10 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
 
     // subset('a, 'b) :- subset_base('a, 'b, _).
     for (a, b, _) in subset_base {
-      if ignore_regions.contains(a) || ignore_regions.contains(b) {
+      if ignore_regions.contains(&a) || ignore_regions.contains(&b) {
         continue;
       }
-      subset.insert(*a, *b);
+      subset.insert(a, b);
     }
 
     // subset('static, 'a).
@@ -186,19 +185,19 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     //   If p = p^[* p2]: definite('a, ty(p2), p2^[])
     //   Else:            definite('a, ty(p),  p^[]).
     let mut gather_borrows = GatherBorrows::default();
-    gather_borrows.visit_body(&body_with_facts.body);
+    gather_borrows.visit_body(body);
     for (region, kind, place) in gather_borrows.borrows {
-      if place.is_direct(body) {
+      if place.is_direct(body, tcx) {
         contains
           .entry(region)
           .or_default()
           .insert((place, kind.to_mutbl_lossy()));
       }
 
-      let def = match place.refs_in_projection().next() {
+      let def = match place.refs_in_projection(body, tcx).next() {
         Some((ptr, proj)) => {
           let ptr_ty = ptr.ty(body.local_decls(), tcx).ty;
-          (ptr_ty.builtin_deref(true).unwrap().ty, proj.to_vec())
+          (ptr_ty.builtin_deref(true).unwrap(), proj.to_vec())
         }
         None => (
           body.local_decls()[place.local].ty,
@@ -251,10 +250,12 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
       .rows()
       .flat_map(|r1| subset.iter(r1).map(move |r2| (r1, r2)))
       .collect::<Vec<_>>();
-    let subset_graph = VecGraph::new(num_regions, edge_pairs);
+    let subset_graph = VecGraph::<_, false>::new(num_regions, edge_pairs);
     let subset_sccs = Sccs::<RegionVid, RegionSccIndex>::new(&subset_graph);
-    let mut scc_to_regions =
-      IndexVec::from_elem_n(HybridBitSet::new_empty(num_regions), subset_sccs.num_sccs());
+    let mut scc_to_regions = IndexVec::from_elem_n(
+      ChunkedBitSet::new_empty(num_regions),
+      subset_sccs.num_sccs(),
+    );
     for r in all_regions.clone() {
       let scc = subset_sccs.scc(r);
       scc_to_regions[scc].insert(r);
@@ -344,6 +345,9 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
       "Final places in loan set: {}",
       contains.values().map(|set| set.len()).sum::<usize>()
     );
+
+    log::trace!("contains: {contains:#?}");
+
     contains
   }
 
@@ -368,24 +372,28 @@ impl<'a, 'tcx> Aliases<'a, 'tcx> {
     aliases.insert(place);
 
     // Places with no derefs, or derefs from arguments, have no aliases
-    if place.is_direct(self.body) {
+    if place.is_direct(self.body, self.tcx) {
       return aliases;
     }
 
     // place = after[*ptr]
-    let (ptr, after) = place.refs_in_projection().last().unwrap();
+    let (ptr, after) = place
+      .refs_in_projection(self.body, self.tcx)
+      .last()
+      .unwrap();
 
     // ptr : &'region orig_ty
     let ptr_ty = ptr.ty(self.body.local_decls(), self.tcx).ty;
     let (region, orig_ty) = match ptr_ty.kind() {
-      _ if ptr_ty.is_box() => (UNKNOWN_REGION, ptr_ty.boxed_ty()),
-      TyKind::RawPtr(TypeAndMut { ty, .. }) => (UNKNOWN_REGION, *ty),
+      _ if ptr_ty.is_box() => (
+        UNKNOWN_REGION,
+        ptr_ty.boxed_ty().expect("Could not unbox boxed type??"),
+      ),
+      TyKind::RawPtr(ty, _) => (UNKNOWN_REGION, *ty),
       TyKind::Ref(Region(Interned(RegionKind::ReVar(region), _)), ty, _) => {
         (*region, *ty)
       }
-      _ => {
-        return aliases;
-      }
+      _ => return aliases,
     };
 
     // For each p ∈ loans('region),

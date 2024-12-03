@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-#![allow(dead_code)]
 
 use std::io::Write;
 
@@ -10,7 +9,7 @@ use rustc_hir::{def::Res, def_id::DefId, BodyId};
 use rustc_infer::traits::EvaluationResult;
 use rustc_middle::{
   mir::*,
-  ty::{ParamEnv, Ty, TyCtxt},
+  ty::{ParamEnv, Ty, TyCtxt, TypingMode},
 };
 use rustc_mir_dataflow::JoinSemiLattice;
 use rustc_span::FileName;
@@ -24,7 +23,7 @@ fn implements_trait<'tcx>(
   ty: Ty<'tcx>,
   trait_def_id: DefId,
 ) -> bool {
-  let infcx = tcx.infer_ctxt().build();
+  let infcx = tcx.infer_ctxt().build(TypingMode::non_body_analysis());
   let ty = tcx.erase_regions(ty);
   let result = infcx.type_implements_trait(trait_def_id, [ty], param_env);
   matches!(
