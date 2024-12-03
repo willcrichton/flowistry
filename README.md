@@ -22,6 +22,8 @@ Flowistry can be helpful when you're reading a function with a lot of code. For 
 </kbd>
 <br /><br />
 
+The algorithm that powers Flowistry was published in the paper ["Modular Information Flow through Ownership"](https://cel.cs.brown.edu/paper/modular-information-flow-ownership/) at PLDI 2022.
+
 **Table of contents**
 * [Installation](#installation)
     * [IDE plugin](#ide-plugin)
