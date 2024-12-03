@@ -2,7 +2,7 @@
 
 #![allow(missing_docs)]
 
-use std::{fs, io, panic, path::Path};
+use std::{cell::RefCell, fs, io, panic, path::Path};
 
 use anyhow::Result;
 use fluid_let::fluid_set;
@@ -19,7 +19,7 @@ use rustc_utils::{
     range::{ByteRange, CharPos, ToSpan},
     spanner::Spanner,
   },
-  test_utils,
+  test_utils::{self, CompileBuilder},
 };
 
 use crate::{
@@ -30,11 +30,16 @@ use crate::{
 pub fn compile_body_with_range(
   input: impl Into<String>,
   compute_target: impl FnOnce() -> ByteRange + Send,
-  callback: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &BodyWithBorrowckFacts<'tcx>, ByteRange)
+  callback: impl for<'tcx> FnOnce(TyCtxt<'tcx>, BodyId, &'tcx BodyWithBorrowckFacts<'tcx>, ByteRange)
     + Send,
 ) {
   borrowck_facts::enable_mir_simplification();
-  test_utils::compile_body_with_range(input, compute_target, callback)
+  CompileBuilder::new(input).compile(|result| {
+    let target = compute_target();
+    let tcx = result.tcx;
+    let (body_id, body_with_facts) = result.as_body_with_range(target);
+    callback(tcx, body_id, body_with_facts, target)
+  })
 }
 
 pub fn compile_body(
@@ -61,19 +66,30 @@ pub fn bless(
     .collect::<Vec<_>>();
   delims.sort_by_key(|(_, i)| (i.line, i.column));
 
-  let mut output = String::new();
+  let output = RefCell::new(String::new());
+  let mut flush = |pos: CharPos| {
+    while !delims.is_empty() && delims[0].1 == pos {
+      let (delim, _) = delims.remove(0);
+      output.borrow_mut().push_str(delim);
+    }
+  };
+
+  let line_count = contents.lines().count();
   for (line, line_str) in contents.lines().enumerate() {
     for (column, chr) in line_str.chars().enumerate() {
-      while delims.len() > 0 && delims[0].1 == (CharPos { line, column }) {
-        let (delim, _) = delims.remove(0);
-        output.push_str(delim);
-      }
-      output.push(chr);
+      flush(CharPos { line, column });
+      output.borrow_mut().push(chr);
     }
-    output.push('\n');
+    flush(CharPos {
+      line,
+      column: line_str.chars().count(),
+    });
+    if line != line_count - 1 {
+      output.borrow_mut().push('\n');
+    }
   }
 
-  fs::write(path.with_extension("txt.expected"), output)?;
+  fs::write(path.with_extension("txt.expected"), output.into_inner())?;
 
   Ok(())
 }
@@ -140,7 +156,7 @@ pub fn test_command_output(
                   None => HashSet::default(),
                 };
 
-                compare_ranges(expected, actual, &input_clean);
+                compare_ranges(&expected, &actual, &input_clean);
               }
               Err(err) if matches!(err.kind(), io::ErrorKind::NotFound) => {
                 println!("{}", fmt_ranges(&input_clean, &actual));

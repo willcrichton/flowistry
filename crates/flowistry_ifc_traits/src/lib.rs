@@ -5,7 +5,7 @@ pub trait Insecure {}
 
 impl<T: Secure> Secure for &T {}
 
-impl<'a> Insecure for fmt::Arguments<'a> {}
+impl Insecure for fmt::Arguments<'_> {}
 
 pub struct InsecureString(pub String);
 impl Insecure for InsecureString {}

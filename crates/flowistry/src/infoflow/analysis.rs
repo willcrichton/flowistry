@@ -8,7 +8,7 @@ use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::TyCtxt,
 };
-use rustc_mir_dataflow::{Analysis, AnalysisDomain};
+use rustc_mir_dataflow::Analysis;
 use rustc_utils::{
   mir::{
     control_dependencies::ControlDependencies,
@@ -107,12 +107,15 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
       .aliases(place)
       .iter()
       .flat_map(|alias| self.place_info.conflicts(*alias));
-    let provenance = place.refs_in_projection().flat_map(|(place_ref, _)| {
-      self
-        .place_info
-        .aliases(Place::from_ref(place_ref, self.tcx))
-        .iter()
-    });
+    let provenance =
+      place
+        .refs_in_projection(self.body, self.tcx)
+        .flat_map(|(place_ref, _)| {
+          self
+            .place_info
+            .aliases(Place::from_ref(place_ref, self.tcx))
+            .iter()
+        });
     conflicts.chain(provenance).copied().collect()
   }
 
@@ -231,7 +234,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
   }
 }
 
-impl<'a, 'tcx> AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
+impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
   type Domain = FlowDomain<'tcx>;
 
   const NAME: &'static str = "FlowAnalysis";
@@ -251,9 +254,7 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for FlowAnalysis<'a, 'tcx> {
       }
     }
   }
-}
 
-impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
   fn apply_statement_effect(
     &mut self,
     state: &mut Self::Domain,

@@ -86,26 +86,24 @@ impl rustc_driver::Callbacks for Callbacks {
     config.override_queries = Some(borrowck_facts::override_queries);
   }
 
-  fn after_crate_root_parsing<'tcx>(
+  fn after_analysis(
     &mut self,
     _compiler: &rustc_interface::interface::Compiler,
-    queries: &'tcx rustc_interface::Queries<'tcx>,
+    tcx: TyCtxt,
   ) -> rustc_driver::Compilation {
-    queries.global_ctxt().unwrap().enter(|tcx| {
-      let mut visitor = IfcVisitor {
-        tcx,
-        issue_found: IssueFound::No,
-      };
-      tcx.hir().visit_all_item_likes_in_crate(&mut visitor);
+    let mut visitor = IfcVisitor {
+      tcx,
+      issue_found: IssueFound::No,
+    };
+    tcx.hir().visit_all_item_likes_in_crate(&mut visitor);
 
-      if let IssueFound::No = visitor.issue_found {
-        let mut stdout = StandardStream::stderr(ColorChoice::Auto);
-        let mut green_spec = ColorSpec::new();
-        green_spec.set_fg(Some(Color::Green));
-        stdout.set_color(&green_spec).unwrap();
-        writeln!(stdout, "No security issues found!",).unwrap();
-      }
-    });
+    if let IssueFound::No = visitor.issue_found {
+      let mut stdout = StandardStream::stderr(ColorChoice::Auto);
+      let mut green_spec = ColorSpec::new();
+      green_spec.set_fg(Some(Color::Green));
+      stdout.set_color(&green_spec).unwrap();
+      writeln!(stdout, "No security issues found!",).unwrap();
+    }
 
     rustc_driver::Compilation::Stop
   }

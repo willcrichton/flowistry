@@ -1,3 +1,4 @@
+use rustc_middle::ty::TyCtxt;
 use rustc_utils::source_map::{
   filename::Filename, find_bodies::find_bodies, range::CharRange,
 };
@@ -18,30 +19,27 @@ struct Callbacks {
 }
 
 impl rustc_driver::Callbacks for Callbacks {
-  fn after_crate_root_parsing<'tcx>(
+  fn after_analysis<'tcx>(
     &mut self,
     _compiler: &rustc_interface::interface::Compiler,
-    queries: &'tcx rustc_interface::Queries<'tcx>,
+    tcx: TyCtxt<'tcx>,
   ) -> rustc_driver::Compilation {
-    queries.global_ctxt().unwrap().enter(|tcx| {
-      let spans = find_bodies(tcx).into_iter().map(|(span, _)| span);
+    let spans = find_bodies(tcx).into_iter().map(|(span, _)| span);
 
-      self.output = Some((|| {
-        let source_map = tcx.sess.source_map();
-        let source_file = Filename::intern(&self.filename)
-          .find_source_file(source_map)
-          .map_err(|_| FlowistryError::FileNotFound)?;
+    self.output = Some((|| {
+      let source_map = tcx.sess.source_map();
+      let source_file = Filename::intern(&self.filename)
+        .find_source_file(source_map)
+        .map_err(|_| FlowistryError::FileNotFound)?;
 
-        let spans = spans
-          .into_iter()
-          .filter(|span| {
-            source_map.lookup_source_file(span.lo()).name == source_file.name
-          })
-          .filter_map(|span| CharRange::from_span(span, source_map).ok())
-          .collect::<Vec<_>>();
-        Ok(SpansOutput { spans })
-      })());
-    });
+      let spans = spans
+        .into_iter()
+        .filter(|span| source_map.lookup_source_file(span.lo()).name == source_file.name)
+        .filter_map(|span| CharRange::from_span(span, source_map).ok())
+        .collect::<Vec<_>>();
+      Ok(SpansOutput { spans })
+    })());
+
     rustc_driver::Compilation::Stop
   }
 }
