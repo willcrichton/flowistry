@@ -6,6 +6,7 @@ use rustc_middle::{
   mir::*,
   ty::{GenericArgKind, RegionKind, RegionVid, Ty, TyCtxt},
 };
+use rustc_span::source_map::Spanned;
 use rustc_utils::{BodyExt, OperandExt, PlaceExt};
 
 use crate::extensions::{is_extension_active, MutabilityMode};
@@ -46,11 +47,11 @@ pub fn arg_mut_ptrs<'tcx>(
 }
 
 /// Given the arguments to a function, returns all places in the arguments.
-pub fn arg_places<'tcx>(args: &[Operand<'tcx>]) -> Vec<(usize, Place<'tcx>)> {
+pub fn arg_places<'tcx>(args: &[Spanned<Operand<'tcx>>]) -> Vec<(usize, Place<'tcx>)> {
   args
     .iter()
     .enumerate()
-    .filter_map(|(i, arg)| arg.as_place().map(move |place| (i, place)))
+    .filter_map(|(i, arg)| arg.node.as_place().map(move |place| (i, place)))
     .collect::<Vec<_>>()
 }
 

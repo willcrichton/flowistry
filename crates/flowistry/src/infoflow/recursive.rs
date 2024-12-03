@@ -80,11 +80,12 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
       }
     };
 
-    let unsafety = tcx.mir_unsafety_check_result(def_id.expect_local());
-    if !unsafety.used_unsafe_blocks.is_empty() {
-      debug!("  Func contains unsafe blocks");
-      return false;
-    }
+    // TODO(wcrichto, 2024-12-02): mir_unsafety_check_result got removed, need to find a replacement
+    // let unsafety = tcx.mir_unsafety_check_result(def_id.expect_local());
+    // if !unsafety.used_unsafe_blocks.is_empty() {
+    //   debug!("  Func contains unsafe blocks");
+    //   return false;
+    // }
 
     let parent_arg_places = utils::arg_places(parent_args);
     let any_closure_inputs = parent_arg_places.iter().any(|(_, place)| {
@@ -168,7 +169,6 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
 
       let mut projection = parent_toplevel_arg.projection.to_vec();
       let mut ty = parent_toplevel_arg.ty(self.body.local_decls(), tcx);
-      let parent_param_env = tcx.param_env(self.def_id);
       log::debug!("Adding child {child:?} to parent {parent_toplevel_arg:?}");
       for elem in child.projection.iter() {
         // Don't continue if we reach a private field
@@ -183,7 +183,6 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
 
         ty = ty.projection_ty_core(
           tcx,
-          parent_param_env,
           &elem,
           |_, field, _| ty.field_ty(tcx, field),
           |_, ty| ty,

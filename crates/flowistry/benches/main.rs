@@ -79,36 +79,35 @@ impl rustc_driver::Callbacks for Callbacks {
     config.override_queries = Some(borrowck_facts::override_queries);
   }
 
-  fn after_crate_root_parsing<'tcx>(
+  fn after_analysis<'tcx>(
     &mut self,
     _compiler: &rustc_interface::interface::Compiler,
-    queries: &'tcx rustc_interface::Queries<'tcx>,
+    tcx: TyCtxt<'tcx>,
   ) -> rustc_driver::Compilation {
-    queries.global_ctxt().unwrap().enter(|tcx| {
-      let hir = tcx.hir();
-      let body_id = hir
-        .items()
-        .filter_map(|id| match hir.item(id).kind {
-          ItemKind::Fn(_, _, body) => Some(body),
-          _ => None,
-        })
-        .next()
-        .unwrap();
+    let hir = tcx.hir();
+    let body_id = hir
+      .items()
+      .filter_map(|id| match hir.item(id).kind {
+        ItemKind::Fn(_, _, body) => Some(body),
+        _ => None,
+      })
+      .next()
+      .unwrap();
 
-      let def_id = hir.body_owner_def_id(body_id);
-      let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
+    let def_id = hir.body_owner_def_id(body_id);
+    let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
 
-      for analysis_ty in [AnalysisType::FlowOnly, AnalysisType::FlowAndDeps] {
-        let bench_id = match analysis_ty {
-          AnalysisType::FlowOnly => "Flow",
-          AnalysisType::FlowAndDeps => "Flow + Deps",
-        };
+    for analysis_ty in [AnalysisType::FlowOnly, AnalysisType::FlowAndDeps] {
+      let bench_id = match analysis_ty {
+        AnalysisType::FlowOnly => "Flow",
+        AnalysisType::FlowAndDeps => "Flow + Deps",
+      };
 
-        self.group.0.bench_function(bench_id, |b| {
-          b.iter(|| analysis(tcx, body_id, body_with_facts, analysis_ty))
-        });
-      }
-    });
+      self.group.0.bench_function(bench_id, |b| {
+        b.iter(|| analysis(tcx, body_id, body_with_facts, analysis_ty))
+      });
+    }
+
     rustc_driver::Compilation::Stop
   }
 }

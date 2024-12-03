@@ -63,7 +63,7 @@ pub type FlowResults<'a, 'tcx> = engine::AnalysisResults<'tcx, FlowAnalysis<'a, 
 
 thread_local! {
   pub(super) static BODY_STACK: RefCell<Vec<BodyId>> =
-    RefCell::new(Vec::new());
+    const { RefCell::new(Vec::new()) };
 }
 
 /// Computes information flow for a MIR body.
