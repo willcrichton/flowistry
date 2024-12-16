@@ -255,7 +255,7 @@ impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
     }
   }
 
-  fn apply_statement_effect(
+  fn apply_primary_statement_effect(
     &mut self,
     state: &mut Self::Domain,
     statement: &Statement<'tcx>,
@@ -267,7 +267,7 @@ impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
     .visit_statement(statement, location);
   }
 
-  fn apply_terminator_effect<'mir>(
+  fn apply_primary_terminator_effect<'mir>(
     &mut self,
     state: &mut Self::Domain,
     terminator: &'mir Terminator<'tcx>,
