@@ -85,11 +85,19 @@ pub fn iterate_to_fixpoint<'tcx, A: Analysis<'tcx>>(
     };
     let next_locs = match body.stmt_at(location) {
       Either::Left(statement) => {
-        analysis.apply_statement_effect(&mut state[loc_index], statement, location);
+        analysis.apply_primary_statement_effect(
+          &mut state[loc_index],
+          statement,
+          location,
+        );
         vec![location.successor_within_block()]
       }
       Either::Right(terminator) => {
-        analysis.apply_terminator_effect(&mut state[loc_index], terminator, location);
+        analysis.apply_primary_terminator_effect(
+          &mut state[loc_index],
+          terminator,
+          location,
+        );
         body
           .basic_blocks
           .successors(location.block)
