@@ -139,9 +139,7 @@ fn main() {
   // Run rustc with the given arguments
   let mut callbacks = Callbacks;
   rustc_driver::catch_fatal_errors(|| {
-    rustc_driver::RunCompiler::new(&args, &mut callbacks)
-      .run()
-      .unwrap()
+    rustc_driver::RunCompiler::new(&args, &mut callbacks).run();
   })
   .unwrap();
 }

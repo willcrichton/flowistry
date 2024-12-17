@@ -174,9 +174,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 
         let mut callbacks = Callbacks { group };
         rustc_driver::catch_fatal_errors(|| {
-          rustc_driver::RunCompiler::new(&args, &mut callbacks)
-            .run()
-            .unwrap()
+          rustc_driver::RunCompiler::new(&args, &mut callbacks).run();
         })
         .unwrap();
       }
