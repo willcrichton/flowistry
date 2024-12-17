@@ -50,7 +50,8 @@ impl RustcPlugin for IfcPlugin {
     compiler_args: Vec<String>,
     _plugin_args: Self::Args,
   ) -> rustc_interface::interface::Result<()> {
-    rustc_driver::RunCompiler::new(&compiler_args, &mut Callbacks).run()
+    rustc_driver::RunCompiler::new(&compiler_args, &mut Callbacks).run();
+    Ok(())
   }
 }
 

@@ -219,7 +219,11 @@ fn postprocess<T: Serialize>(result: FlowistryResult<T>) -> RustcResult<()> {
   let result = match result {
     Ok(output) => Ok(output),
     Err(e) => match e {
-      FlowistryError::BuildError(e) => return Err(e),
+      FlowistryError::BuildError =>
+      {
+        #[allow(deprecated)]
+        return Err(ErrorGuaranteed::unchecked_error_guaranteed())
+      }
       e => Err(e),
     },
   };
@@ -248,7 +252,11 @@ pub fn run_with_callbacks(
   );
 
   let compiler = rustc_driver::RunCompiler::new(&args, callbacks);
-  compiler.run().map_err(FlowistryError::BuildError)
+
+  rustc_driver::catch_fatal_errors(move || {
+    compiler.run();
+  })
+  .map_err(|_| FlowistryError::BuildError)
 }
 
 fn run<A: FlowistryAnalysis, T: ToSpan>(
@@ -280,7 +288,7 @@ fn run<A: FlowistryAnalysis, T: ToSpan>(
 #[derive(Debug, Serialize)]
 #[serde(tag = "type")]
 pub enum FlowistryError {
-  BuildError(#[serde(skip_serializing)] ErrorGuaranteed),
+  BuildError,
   AnalysisError { error: String },
   FileNotFound,
 }
@@ -321,26 +329,22 @@ impl<A: FlowistryAnalysis, T: ToSpan, F: FnOnce() -> T> rustc_driver::Callbacks
     config.override_queries = Some(borrowck_facts::override_queries);
   }
 
-  fn after_expansion<'tcx>(
+  fn after_analysis<'tcx>(
     &mut self,
     _compiler: &rustc_interface::interface::Compiler,
-    queries: &'tcx rustc_interface::Queries<'tcx>,
+    tcx: TyCtxt<'tcx>,
   ) -> rustc_driver::Compilation {
     elapsed("rustc", self.rustc_start);
     fluid_set!(EVAL_MODE, self.eval_mode.unwrap_or_default());
 
-    let start = Instant::now();
-    queries.global_ctxt().unwrap().enter(|tcx| {
-      elapsed("global_ctxt", start);
-      let mut analysis = self.analysis.take().unwrap();
-      self.output = Some((|| {
-        let target = (self.compute_target.take().unwrap())().to_span(tcx)?;
-        debug!("target span: {target:?}");
-        let mut bodies = find_enclosing_bodies(tcx, target);
-        let body = bodies.next().context("Selection did not map to a body")?;
-        analysis.analyze(tcx, body)
-      })());
-    });
+    let mut analysis = self.analysis.take().unwrap();
+    self.output = Some((|| {
+      let target = (self.compute_target.take().unwrap())().to_span(tcx)?;
+      debug!("target span: {target:?}");
+      let mut bodies = find_enclosing_bodies(tcx, target);
+      let body = bodies.next().context("Selection did not map to a body")?;
+      analysis.analyze(tcx, body)
+    })());
 
     rustc_driver::Compilation::Stop
   }
