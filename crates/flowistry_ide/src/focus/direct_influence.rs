@@ -2,13 +2,15 @@ use flowistry::{
   infoflow::mutation::{ModularMutationVisitor, Mutation},
   mir::placeinfo::PlaceInfo,
 };
-use indexical::impls::RustcIndexMatrix;
+use indexical::{bitset::rustc::RustcBitSet, pointer::RcFamily, IndexMatrix};
 use rustc_middle::mir::{visit::Visitor, Body, Mutability, Place};
 use rustc_utils::mir::location_or_arg::LocationOrArg;
 
+pub type RustcIndexMatrix<'tcx, R, C> = IndexMatrix<'tcx, R, C, RustcBitSet, RcFamily>;
+
 pub struct DirectInfluence<'a, 'tcx> {
   place_info: &'a PlaceInfo<'a, 'tcx>,
-  influence: RustcIndexMatrix<Place<'tcx>, LocationOrArg>,
+  influence: RustcIndexMatrix<'tcx, Place<'tcx>, LocationOrArg>,
 }
 
 impl<'a, 'tcx> DirectInfluence<'a, 'tcx> {

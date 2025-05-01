@@ -29,6 +29,7 @@ use rustc_utils::{
   timer::elapsed,
 };
 use serde::{Deserialize, Serialize};
+use tracing_log::log::info;
 
 #[derive(Parser, Serialize, Deserialize)]
 pub struct FlowistryPluginArgs {
@@ -60,7 +61,8 @@ enum FlowistryCommand {
 
   Decompose {
     file: String,
-    pos: usize,
+    pos_line: usize,
+    pos_column: usize,
   },
 
   Playground {
@@ -185,24 +187,36 @@ impl RustcPlugin for FlowistryPlugin {
             end: cpos,
             filename: Filename::intern(&file),
           };
-          debug!("eyo WTF {range:?} {file}");
+          debug!("eyo WTF focus {range:?} {file}");
           FunctionIdentifier::Range(range)
         };
         postprocess(run(crate::focus::focus, compute_target, &compiler_args))
       }
       Decompose {
-        file: _file,
-        pos: _pos,
+        file,
+        pos_line,
+        pos_column,
         ..
       } => {
         cfg_if::cfg_if! {
           if #[cfg(feature = "decompose")] {
-            let indices = GraphemeIndices::from_path(&_file).unwrap();
-            let id =
-              FunctionIdentifier::Range(ByteRange::from_char_range(_pos, _pos, &_file, &indices));
+            info!("decompose feature is under development");
+            let compute_target = || {
+            let cpos = CharPos {
+              line: pos_line,
+              column: pos_column,
+            };
+            let range = CharRange {
+              start: cpos,
+              end: cpos,
+              filename: Filename::intern(&file),
+            };
+            debug!("eyo WTF decompose {range:?} {file}");
+            FunctionIdentifier::Range(range)
+          };
             postprocess(run(
               crate::decompose::decompose,
-              id,
+              compute_target,
               &compiler_args,
             ))
           } else {
@@ -251,10 +265,8 @@ pub fn run_with_callbacks(
       .map(|s| s.to_owned()),
   );
 
-  let compiler = rustc_driver::RunCompiler::new(&args, callbacks);
-
   rustc_driver::catch_fatal_errors(move || {
-    compiler.run();
+    rustc_driver::run_compiler(&args, callbacks);
   })
   .map_err(|_| FlowistryError::BuildError)
 }

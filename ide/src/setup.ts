@@ -62,6 +62,7 @@ let exec_notify_binary = async (
   opts?: any
 ): Promise<Buffer> => {
   log("Running command: ", [cmd, ...args].join(" "));
+  log("opts: ", JSON.stringify(opts));
 
   let proc = cp.spawn(cmd, args, opts);
 

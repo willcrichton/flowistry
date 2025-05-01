@@ -50,7 +50,8 @@ export let decompose = async () => {
   let cmd = [
     "decompose",
     doc.fileName,
-    doc.offsetAt(selection.anchor).toString(),
+    selection.anchor.line.toString(),
+    selection.anchor.character.toString(),
   ];
   let decomp_res = await globals.call_flowistry<Decomposition>(cmd);
   if (!is_ok(decomp_res)) {
