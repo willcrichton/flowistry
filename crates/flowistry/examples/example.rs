@@ -8,6 +8,7 @@
 //!  let mut y = 1;
 //!  if x > 0 { y = 2; }
 //!  let z = 3;
+//! fn main () { example(1); }
 //! }" > test.rs
 //! cargo run --example example -- test.rs
 //! ```
@@ -104,16 +105,21 @@ impl rustc_driver::Callbacks for Callbacks {
     let hir = tcx.hir();
 
     // Get the first body we can find
-    let body_id = hir
-      .items()
-      .filter_map(|id| match hir.item(id).kind {
-        ItemKind::Fn(_, _, body) => Some(body),
+    let body_id = tcx
+      .hir_body_owners()
+      .filter_map(|id| match hir.expect_item(id).kind {
+        ItemKind::Fn {
+          sig: _sig,
+          generics: _generics,
+          body,
+          has_body: _has_body,
+        } => Some(body),
         _ => None,
       })
       .next()
       .unwrap();
 
-    let def_id = hir.body_owner_def_id(body_id);
+    let def_id = tcx.hir_body_owner_def_id(body_id);
     let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
 
     compute_dependencies(tcx, body_id, body_with_facts);
@@ -139,7 +145,7 @@ fn main() {
   // Run rustc with the given arguments
   let mut callbacks = Callbacks;
   rustc_driver::catch_fatal_errors(|| {
-    rustc_driver::RunCompiler::new(&args, &mut callbacks).run();
+    rustc_driver::run_compiler(&args, &mut callbacks);
   })
   .unwrap();
 }

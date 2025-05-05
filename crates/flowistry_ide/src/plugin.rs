@@ -29,7 +29,6 @@ use rustc_utils::{
   timer::elapsed,
 };
 use serde::{Deserialize, Serialize};
-use tracing_log::log::info;
 
 #[derive(Parser, Serialize, Deserialize)]
 pub struct FlowistryPluginArgs {
