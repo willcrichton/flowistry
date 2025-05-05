@@ -40,7 +40,7 @@ pub enum IssueFound {
 pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<IssueFound> {
   let tcx = results.analysis.tcx;
   let body = results.analysis.body;
-  let def_id = tcx.hir().body_owner_def_id(*body_id).to_def_id();
+  let def_id = tcx.hir_body_owner_def_id(*body_id).to_def_id();
 
   log::debug!(
     "Crates: {:?}",

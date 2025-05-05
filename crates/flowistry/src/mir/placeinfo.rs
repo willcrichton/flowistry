@@ -153,7 +153,7 @@ impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
         .filter(|place| {
           if let Some((place, _)) = place.refs_in_projection(self.body, self.tcx).last() {
             let ty = place.ty(self.body.local_decls(), self.tcx).ty;
-            if ty.is_box() || ty.is_unsafe_ptr() {
+            if ty.is_box() || ty.is_raw_ptr() {
               return true;
             }
           }
@@ -226,7 +226,7 @@ impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for LoanCollector<'_, 'tcx> {
         self.stack.pop();
         return ControlFlow::Break(());
       }
-      _ if ty.is_box() || ty.is_unsafe_ptr() => {
+      _ if ty.is_box() || ty.is_raw_ptr() => {
         self.visit_region(self.unknown_region);
       }
       _ => {}
@@ -289,7 +289,7 @@ mod test {
   ) {
     test_utils::compile_body(input, |tcx, body_id, body_with_facts| {
       let body = &body_with_facts.body;
-      let def_id = tcx.hir().body_owner_def_id(body_id);
+      let def_id = tcx.hir_body_owner_def_id(body_id);
       let place_info = PlaceInfo::build(tcx, def_id.to_def_id(), body_with_facts);
 
       f(tcx, body, place_info)

@@ -1,11 +1,8 @@
 #![allow(warnings)]
 
 use either::Either;
-use flowistry::{
-  indexed::{impls::PlaceSet, IndexMatrix, IndexedDomain},
-  infoflow::{mutation::ModularMutationVisitor, FlowResults},
-  mir::utils::PlaceCollector,
-};
+use flowistry::infoflow::{mutation::ModularMutationVisitor, FlowResults};
+use indexical::{bitset::rustc::RustcBitSet, pointer::RcFamily};
 use petgraph::{algo, graph::DiGraph};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_middle::{
@@ -13,21 +10,28 @@ use rustc_middle::{
   ty::TyCtxt,
 };
 use rustc_span::def_id::DefId;
-use rustc_utils::{BodyExt, PlaceExt};
+use rustc_utils::{mir::location_or_arg::LocationOrArg, BodyExt, PlaceExt};
 
 use super::algo::GraphExt;
 
-pub fn compute_adjacency_matrix(
-  results: &FlowResults,
-) -> IndexMatrix<Location, Location> {
+pub type IndexMatrix<'tcx, R, C> =
+  indexical::IndexMatrix<'tcx, R, C, RustcBitSet, RcFamily>;
+
+pub fn compute_adjacency_matrix<'a, 'tcx>(
+  results: &'a FlowResults<'a, 'tcx>,
+) -> IndexMatrix<'tcx, LocationOrArg, LocationOrArg> {
   let analysis = &results.analysis;
   let location_domain = analysis.location_domain();
-  let mut adj_mtx = IndexMatrix::new(location_domain);
+  let mut adj_mtx: indexical::IndexMatrix<'tcx, _, _, _, _> =
+    IndexMatrix::new(location_domain);
 
-  ModularMutationVisitor::new(&results.analysis.aliases, |_, inputs, location, _| {
+  ModularMutationVisitor::new(&results.analysis.place_info, |location, inputs| {
     let state = results.state_at(location);
-    for (place, _) in inputs {
-      adj_mtx.union_into_row(location, &state.row_set(*place));
+    for mutation in inputs {
+      adj_mtx.union_into_row(
+        LocationOrArg::Location(location),
+        &state.row_set(&mutation.mutated),
+      );
     }
   })
   .visit_body(results.analysis.body);
@@ -35,13 +39,13 @@ pub fn compute_adjacency_matrix(
   adj_mtx
 }
 
-type LocGraph = DiGraph<Vec<Location>, ()>;
+type LocGraph = DiGraph<Vec<LocationOrArg>, ()>;
 
-fn compute_graph(
-  adj_mtx: IndexMatrix<Location, Location>,
+fn compute_graph<'tcx>(
+  adj_mtx: IndexMatrix<'tcx, LocationOrArg, LocationOrArg>,
   results: &FlowResults,
 ) -> LocGraph {
-  let mut g = DiGraph::<Location, ()>::default();
+  let mut g = DiGraph::<LocationOrArg, ()>::default();
   let location_domain = results.analysis.location_domain();
   let loc_idx_to_pg_idx = location_domain
     .as_vec()
@@ -83,11 +87,11 @@ fn compute_graph(
   g
 }
 
-pub fn build<'tcx>(
+pub fn build<'a, 'tcx>(
   body: &Body<'tcx>,
   tcx: TyCtxt<'tcx>,
   def_id: DefId,
-  results: &FlowResults<'_, 'tcx>,
+  results: &'a FlowResults<'a, 'tcx>,
 ) -> LocGraph {
   let adj_mtx = compute_adjacency_matrix(results);
   compute_graph(adj_mtx, results)

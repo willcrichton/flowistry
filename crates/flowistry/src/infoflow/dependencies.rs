@@ -28,12 +28,12 @@ pub enum Direction {
 }
 
 #[derive(Debug, Clone)]
-struct TargetDeps {
-  all_forward: Vec<LocationOrArgSet>,
+struct TargetDeps<'tcx> {
+  all_forward: Vec<LocationOrArgSet<'tcx>>,
 }
 
-impl TargetDeps {
-  pub fn new<'tcx>(
+impl<'tcx> TargetDeps<'tcx> {
+  pub fn new(
     targets: &[(Place<'tcx>, LocationOrArg)],
     results: &FlowResults<'_, 'tcx>,
   ) -> Self {
@@ -48,7 +48,7 @@ impl TargetDeps {
         .map(move |reachable| (*reachable, *location))
     });
 
-    let all_forward = expanded_targets
+    let all_forward: Vec<indexical::IndexSet<'tcx, _, _, _>> = expanded_targets
       .map(|(place, location)| {
         let state_location = match location {
           LocationOrArg::Arg(..) => Location::START,
@@ -83,7 +83,7 @@ pub fn deps<'a, 'tcx>(
   state: &'a FlowDomain<'tcx>,
   place_info: &'a PlaceInfo<'a, 'tcx>,
   place: Place<'tcx>,
-) -> &'a LocationOrArgSet {
+) -> &'a LocationOrArgSet<'tcx> {
   state.row_set(&place_info.normalize(place))
 }
 
@@ -100,7 +100,7 @@ pub fn compute_dependencies<'tcx>(
   results: &FlowResults<'_, 'tcx>,
   all_targets: Vec<Vec<(Place<'tcx>, LocationOrArg)>>,
   direction: Direction,
-) -> Vec<LocationOrArgSet> {
+) -> Vec<LocationOrArgSet<'tcx>> {
   block_timer!("compute_dependencies");
   log::info!("Computing dependencies for {} targets", all_targets.len());
   debug!("all_targets={all_targets:#?}");

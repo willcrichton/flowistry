@@ -1,14 +1,13 @@
 import _ from "lodash";
 import * as vscode from "vscode";
 
-import { highlight_ranges } from "./decorations";
+import { highlight_ranges, highlight_simple_ranges } from "./decorations";
 import { is_ok, show_error } from "./errors";
 import { globals } from "./extension";
-import { Range } from "./range";
+import { SimpleRange } from "./range";
 
 interface Decomposition {
-  chunks: [number, Range[][]][];
-  // chunks: Range[][];
+  chunks: [number, SimpleRange[][]][];
 }
 
 /*
@@ -50,7 +49,8 @@ export let decompose = async () => {
   let cmd = [
     "decompose",
     doc.fileName,
-    doc.offsetAt(selection.anchor).toString(),
+    selection.anchor.line.toString(),
+    selection.anchor.character.toString(),
   ];
   let decomp_res = await globals.call_flowistry<Decomposition>(cmd);
   if (!is_ok(decomp_res)) {
@@ -83,14 +83,14 @@ export let decompose = async () => {
 </html>        
 `;
 
-  let show_chunks = (chunks: Range[][]) => {
+  let show_chunks = (chunks: SimpleRange[][]) => {
     let editor = active_editor!;
     palette.forEach((type) => {
       editor.setDecorations(type, []);
     });
 
     chunks.forEach((chunk, i) => {
-      highlight_ranges(chunk, editor, palette[i]);
+      highlight_simple_ranges(chunk, editor, palette[i]);
     });
   };
 

@@ -5,7 +5,7 @@ use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::{AdtKind, TyKind},
 };
-use rustc_target::abi::FieldIdx;
+use rustc_abi::FieldIdx;
 use rustc_utils::{mir::place::PlaceCollector, AdtDefExt, OperandExt};
 
 use crate::mir::{

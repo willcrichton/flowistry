@@ -472,7 +472,7 @@ mod test {
   ) {
     test_utils::compile_body(input, |tcx, body_id, body_with_facts| {
       let body = &body_with_facts.body;
-      let def_id = tcx.hir().body_owner_def_id(body_id);
+      let def_id = tcx.hir_body_owner_def_id(body_id);
       let aliases = Aliases::build(tcx, def_id.to_def_id(), body_with_facts);
 
       f(tcx, body, aliases)

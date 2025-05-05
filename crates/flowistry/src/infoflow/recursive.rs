@@ -59,7 +59,7 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
       return false;
     }
 
-    let node = match tcx.hir().get_if_local(*def_id) {
+    let node = match tcx.hir_get_if_local(*def_id) {
       Some(node) => node,
       None => {
         debug!("  Func is not in local crate");

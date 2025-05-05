@@ -9,7 +9,8 @@ use petgraph::{
   EdgeDirection, EdgeType, Graph,
 };
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
-use rustc_index::bit_set::{HybridBitSet, SparseBitMatrix};
+// https://github.com/rust-lang/rust/pull/133431
+use rustc_index::bit_set::{DenseBitSet, SparseBitMatrix};
 
 pub trait GraphExt<E, Ix> {
   fn successors<'a>(&'a self, n: NodeIndex<Ix>) -> Neighbors<'a, E, Ix>;
@@ -194,7 +195,7 @@ fn pick2_mut<T>(v: &mut [T], i: usize, j: usize) -> (&mut T, &mut T) {
 fn make_modularity<'a, N, E, Ix>(
   g: &'a DiGraph<N, E, Ix>,
   resolution: f64,
-) -> impl Fn(&[HybridBitSet<usize>]) -> f64 + 'a
+) -> impl Fn(&[DenseBitSet<usize>]) -> f64 + 'a
 where
   Ix: IndexType,
 {
@@ -215,7 +216,7 @@ where
 
   let m = g.edge_count() as f64;
 
-  let contribution = move |community: &HybridBitSet<usize>| {
+  let contribution = move |community: &DenseBitSet<usize>| {
     let mut l_c = 0;
     for u in community.iter() {
       if let Some(set) = adj_mtx.row(u) {
@@ -245,7 +246,7 @@ where
 
   let mut communities = (0 .. size)
     .map(|i| {
-      let mut set = HybridBitSet::new_empty(size);
+      let mut set = DenseBitSet::new_empty(size);
       set.insert(i);
       set
     })
