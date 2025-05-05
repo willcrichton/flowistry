@@ -13,6 +13,12 @@ export interface Range {
   filename: string;
 }
 
+export interface SimpleRange {
+  start: number;
+  end: number;
+  filename: string;
+}
+
 export let to_vsc_range = (range: Range): vscode.Range =>
   new vscode.Range(
     range.start.line,

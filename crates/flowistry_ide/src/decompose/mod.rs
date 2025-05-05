@@ -3,20 +3,20 @@
 use std::path::Path;
 
 use anyhow::Result;
-use flowistry::{
-  infoflow,
-  mir::{
-    borrowck_facts::get_body_with_borrowck_facts,
-    utils::{run_dot, SpanExt},
-  },
-  source_map::{self, EnclosingHirSpans, Range},
-};
+use flowistry::infoflow;
 use petgraph::dot::{Config as DotConfig, Dot};
 use rayon::prelude::*;
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
+use rustc_utils::{
+  mir::{body::run_dot, borrowck_facts::get_body_with_borrowck_facts},
+  source_map::{
+    self, range::ByteRange, spanner::{EnclosingHirSpans, Spanner}
+  },
+  SpanExt,
+};
 use serde::Serialize;
 
 mod algo;
@@ -24,17 +24,17 @@ mod construct;
 
 #[derive(Debug, Clone, Serialize, Default)]
 pub struct DecomposeOutput {
-  chunks: Vec<(f64, Vec<Vec<Range>>)>,
+  chunks: Vec<(f64, Vec<Vec<ByteRange>>)>,
 }
 
 pub fn decompose(tcx: TyCtxt, body_id: BodyId) -> Result<DecomposeOutput> {
-  let def_id = tcx.hir().body_owner_def_id(body_id);
+  let def_id = tcx.hir_body_owner_def_id(body_id);
   let body_with_facts = get_body_with_borrowck_facts(tcx, def_id);
   let body = &body_with_facts.body;
   let results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
 
   let source_map = tcx.sess.source_map();
-  let spanner = source_map::Spanner::new(tcx, body_id, body);
+  let spanner = Spanner::new(tcx, body_id, body);
 
   let graph = construct::build(body, tcx, def_id.to_def_id(), results);
 
@@ -96,7 +96,7 @@ pub fn decompose(tcx: TyCtxt, body_id: BodyId) -> Result<DecomposeOutput> {
         );
         run_dot(
           Path::new(&format!("figures/{fn_name}_{r:.2}.pdf")),
-          format!("{dot:?}").into_bytes(),
+          format!("{dot:?}").as_bytes(),
         )
         .unwrap();
       }
@@ -112,8 +112,7 @@ pub fn decompose(tcx: TyCtxt, body_id: BodyId) -> Result<DecomposeOutput> {
             c.into_iter()
               .flat_map(|location| {
                 spanner.location_to_spans(
-                  *location,
-                  results.analysis.location_domain(),
+                  (*location).into(),
                   body,
                   EnclosingHirSpans::OuterOnly,
                 )
@@ -121,9 +120,10 @@ pub fn decompose(tcx: TyCtxt, body_id: BodyId) -> Result<DecomposeOutput> {
               .collect::<Vec<_>>(),
           );
 
+          // TODO: byterange or charrange
           spans
             .into_iter()
-            .filter_map(|span| Range::from_span(span, source_map).ok())
+            .filter_map(|span| ByteRange::from_span(span, source_map).ok())
             .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();

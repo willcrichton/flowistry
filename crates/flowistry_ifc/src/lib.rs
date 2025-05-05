@@ -50,7 +50,7 @@ impl RustcPlugin for IfcPlugin {
     compiler_args: Vec<String>,
     _plugin_args: Self::Args,
   ) -> rustc_interface::interface::Result<()> {
-    rustc_driver::RunCompiler::new(&compiler_args, &mut Callbacks).run();
+    rustc_driver::run_compiler(&compiler_args, &mut Callbacks);
     Ok(())
   }
 }
@@ -63,15 +63,11 @@ pub struct IfcVisitor<'tcx> {
 impl<'tcx> Visitor<'tcx> for IfcVisitor<'tcx> {
   type NestedFilter = OnlyBodies;
 
-  fn nested_visit_map(&mut self) -> Self::Map {
-    self.tcx.hir()
-  }
-
   fn visit_nested_body(&mut self, body_id: BodyId) {
-    intravisit::walk_body(self, self.tcx.hir().body(body_id));
+    intravisit::walk_body(self, self.tcx.hir_body(body_id));
 
     let tcx = self.tcx;
-    let local_def_id = tcx.hir().body_owner_def_id(body_id);
+    let local_def_id = tcx.hir_body_owner_def_id(body_id);
     let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, local_def_id);
     let flow = &infoflow::compute_flow(tcx, body_id, body_with_facts);
     if let IssueFound::Yes = analysis::analyze(&body_id, flow).unwrap() {
@@ -96,7 +92,7 @@ impl rustc_driver::Callbacks for Callbacks {
       tcx,
       issue_found: IssueFound::No,
     };
-    tcx.hir().visit_all_item_likes_in_crate(&mut visitor);
+    tcx.hir_visit_all_item_likes_in_crate(&mut visitor);
 
     if let IssueFound::No = visitor.issue_found {
       let mut stdout = StandardStream::stderr(ColorChoice::Auto);

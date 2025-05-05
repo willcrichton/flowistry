@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 import {
   Interval,
   Range,
+  SimpleRange,
   interval_to_range,
   range_to_interval,
   to_vsc_range,
@@ -95,6 +96,22 @@ export function highlight_ranges(
   editor.setDecorations(
     type,
     ranges.map((range) => to_vsc_range(range))
+  );
+}
+
+export function highlight_simple_ranges(
+  ranges: SimpleRange[],
+  editor: vscode.TextEditor,
+  type: vscode.TextEditorDecorationType
+) {
+  editor.setDecorations(
+    type,
+    ranges.map((range) => {
+      let doc = editor.document;
+      let start = doc.positionAt(range.start);
+      let end = doc.positionAt(range.end);
+      return new vscode.Range(start.line, start.character, end.line, end.character);
+    })
   );
 }
 

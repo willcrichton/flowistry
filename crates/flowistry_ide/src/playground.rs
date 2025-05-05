@@ -12,7 +12,7 @@ pub struct PlaygroundOutput {
 }
 
 pub fn playground(tcx: TyCtxt, body_id: BodyId) -> Result<PlaygroundOutput> {
-  let def_id = tcx.hir().body_owner_def_id(body_id);
+  let def_id = tcx.hir_body_owner_def_id(body_id);
   let body_with_facts = get_body_with_borrowck_facts(tcx, def_id);
   let body = &body_with_facts.body;
   debug!("{}", body.to_string(tcx).unwrap());

@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use indexical::impls::RustcIndexMatrix as IndexMatrix;
+use indexical::{bitset::rustc::RustcBitSet, pointer::RcFamily, IndexMatrix};
 use log::{debug, trace};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_hir::{def_id::DefId, BodyId};
@@ -55,7 +55,8 @@ use crate::{
 /// information flow analysis: an instruction `bb[0]: _2 = _1` (where `_1` is an argument) would set $\Theta(\verb|_2|) = \Theta(\verb|_1|) \cup \\{\verb|bb0\[0\]|\\}\$.
 /// However, $\Theta(\verb|_1|)$ would be empty, so it would be imposible to determine that `_2` depends on `_1`. To solve this issue, we
 /// enrich the domain of locations with arguments, using the [`LocationOrArg`] type. Any dependency can be on *either* a location or an argument.
-pub type FlowDomain<'tcx> = IndexMatrix<Place<'tcx>, LocationOrArg>;
+pub type FlowDomain<'tcx> =
+  IndexMatrix<'tcx, Place<'tcx>, LocationOrArg, RustcBitSet, RcFamily>;
 
 /// Data structure that holds context for performing the information flow analysis.
 pub struct FlowAnalysis<'a, 'tcx> {
@@ -127,7 +128,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     &self,
     state: &FlowDomain<'tcx>,
     place: Place<'tcx>,
-  ) -> LocationOrArgSet {
+  ) -> LocationOrArgSet<'tcx> {
     let mut deps = LocationOrArgSet::new(self.location_domain());
     for subplace in self
       .place_info
@@ -160,7 +161,7 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
     // Add every influence on `input` to `deps`.
     let add_deps = |state: &FlowDomain<'tcx>,
                     input,
-                    target_deps: &mut LocationOrArgSet| {
+                    target_deps: &mut LocationOrArgSet<'tcx>| {
       for relevant in self.influences(input) {
         let relevant_deps = state.row_set(&self.place_info.normalize(relevant));
         trace!("    For relevant {relevant:?} for input {input:?} adding deps {relevant_deps:?}");
