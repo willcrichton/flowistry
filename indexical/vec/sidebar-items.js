@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["IndexVec"],"type":["ArcIndexVec","RcIndexVec","RefIndexVec"]};

@@ -1,67 +1,32 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustc_utils-0.8.0-nightly-2024-01-06/src/mir/mutability.rs`."><title>mutability.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustc_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rustc_utils/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
-<a href="#2" id="2">2</a>
-<a href="#3" id="3">3</a>
-<a href="#4" id="4">4</a>
-<a href="#5" id="5">5</a>
-<a href="#6" id="6">6</a>
-<a href="#7" id="7">7</a>
-<a href="#8" id="8">8</a>
-<a href="#9" id="9">9</a>
-<a href="#10" id="10">10</a>
-<a href="#11" id="11">11</a>
-<a href="#12" id="12">12</a>
-<a href="#13" id="13">13</a>
-<a href="#14" id="14">14</a>
-<a href="#15" id="15">15</a>
-<a href="#16" id="16">16</a>
-<a href="#17" id="17">17</a>
-<a href="#18" id="18">18</a>
-<a href="#19" id="19">19</a>
-<a href="#20" id="20">20</a>
-<a href="#21" id="21">21</a>
-<a href="#22" id="22">22</a>
-<a href="#23" id="23">23</a>
-<a href="#24" id="24">24</a>
-<a href="#25" id="25">25</a>
-<a href="#26" id="26">26</a>
-<a href="#27" id="27">27</a>
-<a href="#28" id="28">28</a>
-<a href="#29" id="29">29</a>
-<a href="#30" id="30">30</a>
-<a href="#31" id="31">31</a>
-<a href="#32" id="32">32</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Utilities for [`Mutability`].
-
-</span><span class="kw">use </span>rustc_middle::mir::Mutability;
-
-<span class="kw">pub trait </span>MutabilityExt {
-  <span class="doccomment">/// Returns true if `self` is equally or more permissive than `other`,
-  /// i.e. where `Not` is more permissive than `Mut`.
-  ///
-  /// This corresponds to the relation $\omega_1 \lesssim \omega_2$ in the Flowistry paper.
-  </span><span class="attr">#[allow(clippy::wrong_self_convention)]
-  </span><span class="kw">fn </span>is_permissive_as(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; bool;
-}
-
-<span class="kw">impl </span>MutabilityExt <span class="kw">for </span>Mutability {
-  <span class="kw">fn </span>is_permissive_as(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; bool {
-    !<span class="macro">matches!</span>((<span class="self">self</span>, other), (Mutability::Mut, Mutability::Not))
-  }
-}
-
-<span class="attr">#[test]
-</span><span class="kw">fn </span>test_mutability() {
-  <span class="kw">use </span>Mutability::<span class="kw-2">*</span>;
-  <span class="kw">let </span>truth_table = [
-    (Not, Not, <span class="bool-val">true</span>),
-    (Not, Mut, <span class="bool-val">true</span>),
-    (Mut, Not, <span class="bool-val">false</span>),
-    (Mut, Mut, <span class="bool-val">true</span>),
-  ];
-  <span class="kw">for </span>(l, r, v) <span class="kw">in </span>truth_table {
-    <span class="macro">assert_eq!</span>(l.is_permissive_as(r), v);
-  }
-}
-</code></pre></div></section></main></body></html>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustc_utils-0.14.2-nightly-2025-08-20/src/mir/mutability.rs`."><title>mutability.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-528d32ef.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustc_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (05f5a58e8 2025-08-19)" data-channel="nightly" data-search-js="search-5f24b69e.js" data-stringdex-js="stringdex-0e748618.js" data-settings-js="settings-c38705f0.js" ><script src="../../../static.files/storage-1b37d467.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-b6a35c53.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">rustc_utils/mir/</div>mutability.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-2"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Utilities for [`Mutability`].
+<a href=#2 id=2 data-nosnippet>2</a>
+<a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span>rustc_middle::mir::Mutability;
+<a href=#4 id=4 data-nosnippet>4</a>
+<a href=#5 id=5 data-nosnippet>5</a><span class="kw">pub trait </span>MutabilityExt {
+<a href=#6 id=6 data-nosnippet>6</a>  <span class="doccomment">/// Returns true if `self` is equally or more permissive than `other`,
+<a href=#7 id=7 data-nosnippet>7</a>  /// i.e. where `Not` is more permissive than `Mut`.
+<a href=#8 id=8 data-nosnippet>8</a>  ///
+<a href=#9 id=9 data-nosnippet>9</a>  /// This corresponds to the relation $\omega_1 \lesssim \omega_2$ in the Flowistry paper.
+<a href=#10 id=10 data-nosnippet>10</a>  </span><span class="attr">#[allow(clippy::wrong_self_convention)]
+<a href=#11 id=11 data-nosnippet>11</a>  </span><span class="kw">fn </span>is_permissive_as(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; bool;
+<a href=#12 id=12 data-nosnippet>12</a>}
+<a href=#13 id=13 data-nosnippet>13</a>
+<a href=#14 id=14 data-nosnippet>14</a><span class="kw">impl </span>MutabilityExt <span class="kw">for </span>Mutability {
+<a href=#15 id=15 data-nosnippet>15</a>  <span class="kw">fn </span>is_permissive_as(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; bool {
+<a href=#16 id=16 data-nosnippet>16</a>    !<span class="macro">matches!</span>((<span class="self">self</span>, other), (Mutability::Mut, Mutability::Not))
+<a href=#17 id=17 data-nosnippet>17</a>  }
+<a href=#18 id=18 data-nosnippet>18</a>}
+<a href=#19 id=19 data-nosnippet>19</a>
+<a href=#20 id=20 data-nosnippet>20</a><span class="attr">#[test]
+<a href=#21 id=21 data-nosnippet>21</a></span><span class="kw">fn </span>test_mutability() {
+<a href=#22 id=22 data-nosnippet>22</a>  <span class="kw">use </span>Mutability::<span class="kw-2">*</span>;
+<a href=#23 id=23 data-nosnippet>23</a>  <span class="kw">let </span>truth_table = [
+<a href=#24 id=24 data-nosnippet>24</a>    (Not, Not, <span class="bool-val">true</span>),
+<a href=#25 id=25 data-nosnippet>25</a>    (Not, Mut, <span class="bool-val">true</span>),
+<a href=#26 id=26 data-nosnippet>26</a>    (Mut, Not, <span class="bool-val">false</span>),
+<a href=#27 id=27 data-nosnippet>27</a>    (Mut, Mut, <span class="bool-val">true</span>),
+<a href=#28 id=28 data-nosnippet>28</a>  ];
+<a href=#29 id=29 data-nosnippet>29</a>  <span class="kw">for </span>(l, r, v) <span class="kw">in </span>truth_table {
+<a href=#30 id=30 data-nosnippet>30</a>    <span class="macro">assert_eq!</span>(l.is_permissive_as(r), v);
+<a href=#31 id=31 data-nosnippet>31</a>  }
+<a href=#32 id=32 data-nosnippet>32</a>}</code></pre></div></section></main></body></html>

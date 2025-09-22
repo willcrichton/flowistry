@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["DenseIndexMap","SparseIndexMap"],"type":["DenseArcIndexMap","DenseRcIndexMap","DenseRefIndexMap","SparseArcIndexMap","SparseRcIndexMap","SparseRefIndexMap"]};
