@@ -7,7 +7,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - uses: actions-rs/cargo@v1
@@ -26,11 +26,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-          - os: macos-12
+          - os: macos-latest
             target: x86_64-apple-darwin
-          - os: windows-2022
+          - os: windows-latest
             target: x86_64-pc-windows-msvc
           ## TODO: rustc_private is inserting incorrect dylib/so paths on ARM
           ## targets b/c the Github Actions runner is x86, see issue #25.
@@ -67,7 +67,7 @@ jobs:
 
   publish-release:
     needs: build-artifacts
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v2
       - uses: softprops/action-gh-release@v1
@@ -79,7 +79,7 @@ jobs:
 
   publish-extension:
     needs: publish-release
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./ide
@@ -94,7 +94,7 @@ jobs:
 
   publish-crate:
     needs: publish-extension
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - run: cargo login ${{ secrets.CRATES_IO_TOKEN }} && cargo install cargo-workspaces
@@ -105,7 +105,7 @@ jobs:
 
   publish-docs:
     needs: test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - run: cargo doc --lib
