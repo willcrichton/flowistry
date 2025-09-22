@@ -84,17 +84,16 @@ impl rustc_driver::Callbacks for Callbacks {
     _compiler: &rustc_interface::interface::Compiler,
     tcx: TyCtxt<'tcx>,
   ) -> rustc_driver::Compilation {
-    let hir = tcx.hir();
-    let body_id = hir
-      .items()
-      .filter_map(|id| match hir.item(id).kind {
-        ItemKind::Fn(_, _, body) => Some(body),
+    let body_id = tcx
+      .hir_free_items()
+      .filter_map(|id| match tcx.hir_item(id).kind {
+        ItemKind::Fn { body, .. } => Some(body),
         _ => None,
       })
       .next()
       .unwrap();
 
-    let def_id = hir.body_owner_def_id(body_id);
+    let def_id = tcx.hir_body_owner_def_id(body_id);
     let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
 
     for analysis_ty in [AnalysisType::FlowOnly, AnalysisType::FlowAndDeps] {
@@ -174,7 +173,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 
         let mut callbacks = Callbacks { group };
         rustc_driver::catch_fatal_errors(|| {
-          rustc_driver::RunCompiler::new(&args, &mut callbacks).run();
+          rustc_driver::run_compiler(&args, &mut callbacks)
         })
         .unwrap();
       }
