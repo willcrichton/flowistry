@@ -3,10 +3,10 @@
 use itertools::Itertools;
 use log::trace;
 use petgraph::{
+  EdgeDirection, EdgeType, Graph,
   graph::{DiGraph, IndexType, Neighbors, NodeIndex},
   unionfind::UnionFind,
-  visit::{depth_first_search, Control, DfsEvent, EdgeRef, NodeIndexable},
-  EdgeDirection, EdgeType, Graph,
+  visit::{Control, DfsEvent, EdgeRef, NodeIndexable, depth_first_search},
 };
 use rustc_data_structures::fx::{FxHashMap as HashMap, FxHashSet as HashSet};
 use rustc_index::bit_set::{HybridBitSet, SparseBitMatrix};

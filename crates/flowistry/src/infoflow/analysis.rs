@@ -1,32 +1,33 @@
 use std::{cell::RefCell, rc::Rc};
 
-use indexical::impls::RustcIndexMatrix as IndexMatrix;
+// use indexical::impls::RustcIndexMatrix as IndexMatrix;
+use indexical::bitset::rustc::IndexMatrix;
 use log::{debug, trace};
 use rustc_data_structures::fx::FxHashMap as HashMap;
-use rustc_hir::{def_id::DefId, BodyId};
+use rustc_hir::{BodyId, def_id::DefId};
 use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::TyCtxt,
 };
 use rustc_mir_dataflow::Analysis;
 use rustc_utils::{
+  BodyExt, OperandExt, PlaceExt,
   mir::{
     control_dependencies::ControlDependencies,
     location_or_arg::{
-      index::{LocationOrArgDomain, LocationOrArgSet},
       LocationOrArg,
+      index::{LocationOrArgDomain, LocationOrArgSet},
     },
   },
-  BodyExt, OperandExt, PlaceExt,
 };
 use smallvec::SmallVec;
 
 use super::{
-  mutation::{ModularMutationVisitor, Mutation, MutationStatus},
   FlowResults,
+  mutation::{ModularMutationVisitor, Mutation, MutationStatus},
 };
 use crate::{
-  extensions::{is_extension_active, ContextMode, MutabilityMode},
+  extensions::{ContextMode, MutabilityMode, is_extension_active},
   mir::placeinfo::PlaceInfo,
 };
 
@@ -163,7 +164,9 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
                     target_deps: &mut LocationOrArgSet| {
       for relevant in self.influences(input) {
         let relevant_deps = state.row_set(&self.place_info.normalize(relevant));
-        trace!("    For relevant {relevant:?} for input {input:?} adding deps {relevant_deps:?}");
+        trace!(
+          "    For relevant {relevant:?} for input {input:?} adding deps {relevant_deps:?}"
+        );
         target_deps.union(relevant_deps);
       }
     };
@@ -185,11 +188,11 @@ impl<'a, 'tcx> FlowAnalysis<'a, 'tcx> {
 
       // Include dependencies of the switch's operand.
       let terminator = body.basic_blocks[block].terminator();
-      if let TerminatorKind::SwitchInt { discr, .. } = &terminator.kind {
-        if let Some(discr_place) = discr.as_place() {
-          for deps in &mut all_deps {
-            add_deps(state, discr_place, deps);
-          }
+      if let TerminatorKind::SwitchInt { discr, .. } = &terminator.kind
+        && let Some(discr_place) = discr.as_place()
+      {
+        for deps in &mut all_deps {
+          add_deps(state, discr_place, deps);
         }
       }
     }

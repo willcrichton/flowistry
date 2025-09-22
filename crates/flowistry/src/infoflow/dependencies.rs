@@ -5,13 +5,12 @@ use log::{debug, trace};
 use rustc_middle::mir::{visit::Visitor, *};
 use rustc_span::Span;
 use rustc_utils::{
-  block_timer,
-  mir::location_or_arg::{index::LocationOrArgSet, LocationOrArg},
+  BodyExt, OperandExt, SpanExt, block_timer,
+  mir::location_or_arg::{LocationOrArg, index::LocationOrArgSet},
   source_map::spanner::{EnclosingHirSpans, Spanner},
-  BodyExt, OperandExt, SpanExt,
 };
 
-use super::{mutation::ModularMutationVisitor, FlowDomain, FlowResults};
+use super::{FlowDomain, FlowResults, mutation::ModularMutationVisitor};
 use crate::{infoflow::mutation::Mutation, mir::placeinfo::PlaceInfo};
 
 /// Which way to look for dependencies

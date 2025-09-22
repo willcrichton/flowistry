@@ -1,17 +1,19 @@
+#![allow(unused)]
+
 use log::{debug, info};
 use rustc_middle::{
   mir::*,
   ty::{ClosureKind, GenericArgKind, TyKind},
 };
 use rustc_mir_dataflow::JoinSemiLattice;
-use rustc_utils::{mir::borrowck_facts::get_body_with_borrowck_facts, PlaceExt};
+use rustc_utils::{PlaceExt, mir::borrowck_facts::get_body_with_borrowck_facts};
 
-use super::{analysis::FlowAnalysis, BODY_STACK};
+use super::{BODY_STACK, analysis::FlowAnalysis};
 use crate::{
   extensions::REACHED_LIBRARY,
   infoflow::{
-    mutation::{Mutation, MutationStatus},
     FlowDomain,
+    mutation::{Mutation, MutationStatus},
   },
   mir::utils,
 };
@@ -59,7 +61,7 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
       return false;
     }
 
-    let node = match tcx.hir().get_if_local(*def_id) {
+    let node = match tcx.hir_get_if_local(*def_id) {
       Some(node) => node,
       None => {
         debug!("  Func is not in local crate");
@@ -90,7 +92,7 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
     let parent_arg_places = utils::arg_places(parent_args);
     let any_closure_inputs = parent_arg_places.iter().any(|(_, place)| {
       let ty = place.ty(self.body.local_decls(), tcx).ty;
-      ty.walk().any(|arg| match arg.unpack() {
+      ty.walk().any(|arg| match arg.kind() {
         GenericArgKind::Type(ty) => match ty.kind() {
           TyKind::Closure(_, substs) => matches!(
             substs.as_closure().kind(),
@@ -108,7 +110,7 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
 
     let recursive = BODY_STACK.with(|body_stack| {
       let body_stack = body_stack.borrow();
-      body_stack.iter().any(|visited_id| *visited_id == body_id)
+      body_stack.contains(&body_id)
     });
     if recursive {
       debug!("  Func is a recursive call");
@@ -172,21 +174,22 @@ impl<'tcx> FlowAnalysis<'_, 'tcx> {
       log::debug!("Adding child {child:?} to parent {parent_toplevel_arg:?}");
       for elem in child.projection.iter() {
         // Don't continue if we reach a private field
-        if let ProjectionElem::Field(field, _) = elem {
-          if let Some(adt_def) = ty.ty.ty_adt_def() {
-            let field = adt_def.all_fields().nth(field.as_usize()).unwrap();
-            if !field.vis.is_accessible_from(self.def_id, self.tcx) {
-              break;
-            }
-          }
+        if let ProjectionElem::Field(field, _) = elem
+          && let Some(adt_def) = ty.ty.ty_adt_def()
+          && let field = adt_def.all_fields().nth(field.as_usize()).unwrap()
+          && !field.vis.is_accessible_from(self.def_id, self.tcx)
+        {
+          break;
         }
 
-        ty = ty.projection_ty_core(
-          tcx,
-          &elem,
-          |_, field, _| ty.field_ty(tcx, field),
-          |_, ty| ty,
-        );
+        // ty = ty.projection_ty_core(tcx, elem, structurally_normalize, handle_field, handle_opaque_cast_and_subtype)
+        ty = ty.projection_ty(tcx, elem);
+        // ty = ty.projection_ty_core(
+        //   tcx,
+        //   &elem,
+        //   |_, field, _| ty.field_ty(tcx, field),
+        //   |_, ty| ty,
+        // );
         let elem = match elem {
           ProjectionElem::Field(field, _) => ProjectionElem::Field(field, ty.ty),
           elem => elem,

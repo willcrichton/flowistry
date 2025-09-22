@@ -18,16 +18,16 @@ use indexical::ToIndex;
 use rustc_data_structures::{graph::Successors, work_queue::WorkQueue};
 use rustc_index::IndexVec;
 use rustc_middle::{
-  mir::{traversal, Body, Location},
+  mir::{Body, Location, traversal},
   ty::TyCtxt,
 };
 use rustc_mir_dataflow::{Analysis, Direction, JoinSemiLattice};
 use rustc_utils::{
-  mir::location_or_arg::{
-    index::{LocationOrArgDomain, LocationOrArgIndex},
-    LocationOrArg,
-  },
   BodyExt,
+  mir::location_or_arg::{
+    LocationOrArg,
+    index::{LocationOrArgDomain, LocationOrArgIndex},
+  },
 };
 
 /// An alternative implementation of

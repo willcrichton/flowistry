@@ -9,11 +9,11 @@ use log::debug;
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
-use rustc_utils::{block_timer, BodyExt};
+use rustc_utils::{BodyExt, block_timer};
 
 pub use self::{
   analysis::{FlowAnalysis, FlowDomain},
-  dependencies::{compute_dependencies, compute_dependency_spans, Direction},
+  dependencies::{Direction, compute_dependencies, compute_dependency_spans},
 };
 use crate::mir::{engine, placeinfo::PlaceInfo};
 
@@ -85,7 +85,7 @@ pub fn compute_flow<'a, 'tcx>(
     body_stack.borrow_mut().push(body_id);
     debug!("{}", body_with_facts.body.to_string(tcx).unwrap());
 
-    let def_id = tcx.hir().body_owner_def_id(body_id).to_def_id();
+    let def_id = tcx.hir_body_owner_def_id(body_id).to_def_id();
     let place_info = PlaceInfo::build(tcx, def_id, body_with_facts);
     let location_domain = place_info.location_domain().clone();
 

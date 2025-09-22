@@ -2,7 +2,7 @@ use std::{
   borrow::Cow,
   env,
   path::PathBuf,
-  process::{exit, Command},
+  process::{Command, exit},
   time::Instant,
 };
 
@@ -10,7 +10,7 @@ use anyhow::Context;
 use base64::Engine;
 use clap::{Parser, Subcommand};
 use flowistry::extensions::{
-  ContextMode, EvalMode, MutabilityMode, PointerMode, EVAL_MODE,
+  ContextMode, EVAL_MODE, EvalMode, MutabilityMode, PointerMode,
 };
 use fluid_let::fluid_set;
 use log::{debug, info};
@@ -219,10 +219,9 @@ fn postprocess<T: Serialize>(result: FlowistryResult<T>) -> RustcResult<()> {
   let result = match result {
     Ok(output) => Ok(output),
     Err(e) => match e {
-      FlowistryError::BuildError =>
-      {
+      FlowistryError::BuildError => {
         #[allow(deprecated)]
-        return Err(ErrorGuaranteed::unchecked_error_guaranteed())
+        return Err(ErrorGuaranteed::unchecked_error_guaranteed());
       }
       e => Err(e),
     },
@@ -251,12 +250,8 @@ pub fn run_with_callbacks(
       .map(|s| s.to_owned()),
   );
 
-  let compiler = rustc_driver::RunCompiler::new(&args, callbacks);
-
-  rustc_driver::catch_fatal_errors(move || {
-    compiler.run();
-  })
-  .map_err(|_| FlowistryError::BuildError)
+  rustc_driver::catch_fatal_errors(move || rustc_driver::run_compiler(&args, callbacks))
+    .map_err(|_| FlowistryError::BuildError)
 }
 
 fn run<A: FlowistryAnalysis, T: ToSpan>(

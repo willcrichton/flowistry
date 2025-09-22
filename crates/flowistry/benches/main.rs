@@ -9,7 +9,7 @@ use std::{env::consts::DLL_SUFFIX, process::Command};
 
 use anyhow::{Context, Result};
 use criterion::{
-  criterion_group, criterion_main, measurement::WallTime, BenchmarkGroup, Criterion,
+  BenchmarkGroup, Criterion, criterion_group, criterion_main, measurement::WallTime,
 };
 use flowistry::infoflow::Direction;
 use glob::glob;
@@ -19,7 +19,7 @@ use rustc_middle::{
   mir::{Location, Place},
   ty::TyCtxt,
 };
-use rustc_utils::{mir::borrowck_facts, PlaceExt};
+use rustc_utils::{PlaceExt, mir::borrowck_facts};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum AnalysisType {

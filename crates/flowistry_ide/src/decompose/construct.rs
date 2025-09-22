@@ -2,14 +2,14 @@
 
 use either::Either;
 use flowistry::{
-  indexed::{impls::PlaceSet, IndexMatrix, IndexedDomain},
-  infoflow::{mutation::ModularMutationVisitor, FlowResults},
+  indexed::{IndexMatrix, IndexedDomain, impls::PlaceSet},
+  infoflow::{FlowResults, mutation::ModularMutationVisitor},
   mir::utils::PlaceCollector,
 };
 use petgraph::{algo, graph::DiGraph};
 use rustc_data_structures::fx::FxHashMap as HashMap;
 use rustc_middle::{
-  mir::{traversal, visit::Visitor, Body, Location, StatementKind, TerminatorKind},
+  mir::{Body, Location, StatementKind, TerminatorKind, traversal, visit::Visitor},
   ty::TyCtxt,
 };
 use rustc_span::def_id::DefId;

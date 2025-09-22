@@ -5,7 +5,7 @@ use std::io::Write;
 use anyhow::Result;
 use flowistry::{infoflow::FlowResults, mir::utils::PlaceSet};
 use rustc_data_structures::fx::FxHashMap as HashMap;
-use rustc_hir::{def::Res, def_id::DefId, BodyId};
+use rustc_hir::{BodyId, def::Res, def_id::DefId};
 use rustc_infer::traits::EvaluationResult;
 use rustc_middle::{
   mir::*,
@@ -40,7 +40,7 @@ pub enum IssueFound {
 pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<IssueFound> {
   let tcx = results.analysis.tcx;
   let body = results.analysis.body;
-  let def_id = tcx.hir().body_owner_def_id(*body_id).to_def_id();
+  let def_id = tcx.hir_body_owner_def_id(*body_id).to_def_id();
 
   log::debug!(
     "Crates: {:?}",
@@ -130,7 +130,7 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<IssueFound> {
   };
   let has_errors = !errors.is_empty();
   for (src, dst) in errors {
-    let body_span = tcx.hir().span_with_body(body_id.hir_id);
+    let body_span = tcx.hir_span_with_body(body_id.hir_id);
     let src_span = decls[src.local].source_info.span.as_local(body_span);
     let dst_span = decls[dst.local].source_info.span.as_local(body_span);
 
