@@ -33,9 +33,9 @@ use rustc_middle::{
 };
 use rustc_span::Span;
 use rustc_utils::{
+  BodyExt, PlaceExt, SpanExt,
   mir::{borrowck_facts, location_or_arg::LocationOrArg},
   source_map::spanner::{EnclosingHirSpans, Spanner},
-  BodyExt, PlaceExt, SpanExt,
 };
 
 // This is the core analysis. Everything below this function is plumbing to
@@ -101,19 +101,17 @@ impl rustc_driver::Callbacks for Callbacks {
     _compiler: &rustc_interface::interface::Compiler,
     tcx: TyCtxt<'tcx>,
   ) -> rustc_driver::Compilation {
-    let hir = tcx.hir();
-
     // Get the first body we can find
-    let body_id = hir
-      .items()
-      .filter_map(|id| match hir.item(id).kind {
-        ItemKind::Fn(_, _, body) => Some(body),
+    let body_id = tcx
+      .hir_free_items()
+      .filter_map(|id| match tcx.hir_item(id).kind {
+        ItemKind::Fn { body, .. } => Some(body),
         _ => None,
       })
       .next()
       .unwrap();
 
-    let def_id = hir.body_owner_def_id(body_id);
+    let def_id = tcx.hir_body_owner_def_id(body_id);
     let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
 
     compute_dependencies(tcx, body_id, body_with_facts);
@@ -138,8 +136,6 @@ fn main() {
 
   // Run rustc with the given arguments
   let mut callbacks = Callbacks;
-  rustc_driver::catch_fatal_errors(|| {
-    rustc_driver::RunCompiler::new(&args, &mut callbacks).run();
-  })
-  .unwrap();
+  rustc_driver::catch_fatal_errors(|| rustc_driver::run_compiler(&args, &mut callbacks))
+    .unwrap();
 }

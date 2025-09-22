@@ -1,12 +1,12 @@
 //! Identifies the mutated places in a MIR instruction via modular approximation based on types.
 
 use log::debug;
+use rustc_abi::FieldIdx;
 use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::{AdtKind, TyKind},
 };
-use rustc_target::abi::FieldIdx;
-use rustc_utils::{mir::place::PlaceCollector, AdtDefExt, OperandExt};
+use rustc_utils::{AdtDefExt, OperandExt, mir::place::PlaceCollector};
 
 use crate::mir::{
   placeinfo::PlaceInfo,
@@ -102,29 +102,29 @@ where
           _ => None,
         };
 
-        if let Some((mutated, tys)) = info {
-          if tys.len() > 0 {
-            let fields =
-              tys
-                .into_iter()
-                .enumerate()
-                .zip(ops.iter())
-                .map(|((i, ty), input_op)| {
-                  let field = PlaceElem::Field(FieldIdx::from_usize(i), ty);
-                  let input_place = input_op.as_place();
-                  (mutated.project_deeper(&[field], tcx), input_place)
-                });
+        if let Some((mutated, tys)) = info
+          && tys.len() > 0
+        {
+          let fields =
+            tys
+              .into_iter()
+              .enumerate()
+              .zip(ops.iter())
+              .map(|((i, ty), input_op)| {
+                let field = PlaceElem::Field(FieldIdx::from_usize(i), ty);
+                let input_place = input_op.as_place();
+                (mutated.project_deeper(&[field], tcx), input_place)
+              });
 
-            let mutations = fields
-              .map(|(mutated, input)| Mutation {
-                mutated,
-                inputs: input.into_iter().collect::<Vec<_>>(),
-                status: MutationStatus::Definitely,
-              })
-              .collect::<Vec<_>>();
-            (self.f)(location, mutations);
-            return;
-          }
+          let mutations = fields
+            .map(|(mutated, input)| Mutation {
+              mutated,
+              inputs: input.into_iter().collect::<Vec<_>>(),
+              status: MutationStatus::Definitely,
+            })
+            .collect::<Vec<_>>();
+          (self.f)(location, mutations);
+          return;
         }
       }
 
@@ -133,36 +133,36 @@ where
       // _1.x = _2.x, _1.y = _2.y, and so on.
       Rvalue::Use(Operand::Move(place) | Operand::Copy(place)) => {
         let place_ty = place.ty(&body.local_decls, tcx).ty;
-        if let TyKind::Adt(adt_def, substs) = place_ty.kind() {
-          if adt_def.is_struct() {
-            let fields = adt_def
-              .all_visible_fields(self.place_info.def_id, self.place_info.tcx)
-              .enumerate()
-              .map(|(i, field_def)| {
-                PlaceElem::Field(FieldIdx::from_usize(i), field_def.ty(tcx, substs))
-              });
-            let mut mutations = fields
-              .map(|field| {
-                let mutated_field = mutated.project_deeper(&[field], tcx);
-                let input_field = place.project_deeper(&[field], tcx);
-                Mutation {
-                  mutated: mutated_field,
-                  inputs: vec![input_field],
-                  status: MutationStatus::Definitely,
-                }
-              })
-              .collect::<Vec<_>>();
-
-            if mutations.is_empty() {
-              mutations.push(Mutation {
-                mutated: *mutated,
-                inputs: vec![*place],
+        if let TyKind::Adt(adt_def, substs) = place_ty.kind()
+          && adt_def.is_struct()
+        {
+          let fields = adt_def
+            .all_visible_fields(self.place_info.def_id, self.place_info.tcx)
+            .enumerate()
+            .map(|(i, field_def)| {
+              PlaceElem::Field(FieldIdx::from_usize(i), field_def.ty(tcx, substs))
+            });
+          let mut mutations = fields
+            .map(|field| {
+              let mutated_field = mutated.project_deeper(&[field], tcx);
+              let input_field = place.project_deeper(&[field], tcx);
+              Mutation {
+                mutated: mutated_field,
+                inputs: vec![input_field],
                 status: MutationStatus::Definitely,
-              });
-            }
-            (self.f)(location, mutations);
-            return;
+              }
+            })
+            .collect::<Vec<_>>();
+
+          if mutations.is_empty() {
+            mutations.push(Mutation {
+              mutated: *mutated,
+              inputs: vec![*place],
+              status: MutationStatus::Definitely,
+            });
           }
+          (self.f)(location, mutations);
+          return;
         }
       }
 

@@ -7,7 +7,7 @@ use flowistry::{
   infoflow,
   mir::{
     borrowck_facts::get_body_with_borrowck_facts,
-    utils::{run_dot, SpanExt},
+    utils::{SpanExt, run_dot},
   },
   source_map::{self, EnclosingHirSpans, Range},
 };

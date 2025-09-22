@@ -3,7 +3,7 @@ use log::debug;
 use rustc_data_structures::fx::FxHashSet as HashSet;
 use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
-use rustc_utils::{mir::borrowck_facts::get_body_with_borrowck_facts, BodyExt};
+use rustc_utils::{BodyExt, mir::borrowck_facts::get_body_with_borrowck_facts};
 use serde::Serialize;
 
 #[derive(Debug, Clone, Serialize, Default)]
@@ -12,7 +12,7 @@ pub struct PlaygroundOutput {
 }
 
 pub fn playground(tcx: TyCtxt, body_id: BodyId) -> Result<PlaygroundOutput> {
-  let def_id = tcx.hir().body_owner_def_id(body_id);
+  let def_id = tcx.hir_body_owner_def_id(body_id);
   let body_with_facts = get_body_with_borrowck_facts(tcx, def_id);
   let body = &body_with_facts.body;
   debug!("{}", body.to_string(tcx).unwrap());

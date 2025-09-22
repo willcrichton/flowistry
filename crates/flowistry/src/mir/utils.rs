@@ -9,7 +9,7 @@ use rustc_middle::{
 use rustc_span::source_map::Spanned;
 use rustc_utils::{BodyExt, OperandExt, PlaceExt};
 
-use crate::extensions::{is_extension_active, MutabilityMode};
+use crate::extensions::{MutabilityMode, is_extension_active};
 
 /// An unordered collections of MIR [`Place`]s.
 ///
@@ -84,7 +84,7 @@ impl<'a, 'tcx> AsyncHack<'a, 'tcx> {
     match self.context_ty {
       Some(context_ty) => context_ty
         .walk()
-        .filter_map(|part| match part.unpack() {
+        .filter_map(|part| match part.kind() {
           GenericArgKind::Lifetime(r) => match r.kind() {
             RegionKind::ReVar(rv) => Some(rv),
             _ => None,

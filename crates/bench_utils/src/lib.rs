@@ -5,7 +5,7 @@ use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span};
 use quote::quote;
 use utils::{
-  parse_arr_assign, parse_struct_assign, ArrayAssign, StructAssign, TreeLevel,
+  ArrayAssign, StructAssign, TreeLevel, parse_arr_assign, parse_struct_assign,
 };
 
 /// Repeatedly assigns to a variable to increase the number of locations
@@ -23,7 +23,7 @@ pub fn generate_locations(input: TokenStream) -> TokenStream {
     num_locations,
   } = parse_arr_assign(input);
 
-  let var_iter = std::iter::repeat(&var_name).take(num_locations);
+  let var_iter = std::iter::repeat_n(&var_name, num_locations);
 
   quote! {
     let mut #var_name = #var_val;

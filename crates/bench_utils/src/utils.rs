@@ -3,7 +3,7 @@ use std::str::FromStr;
 use if_chain::if_chain;
 use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 
 pub fn parse_expr<T: FromStr>(expr: syn::Expr) -> T {
   expr.to_token_stream().to_string().parse().ok().unwrap()

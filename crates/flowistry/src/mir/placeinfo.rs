@@ -12,20 +12,19 @@ use rustc_middle::{
   },
 };
 use rustc_utils::{
-  block_timer,
+  BodyExt, MutabilityExt, PlaceExt, block_timer,
   cache::{Cache, CopyCache},
   mir::{
     location_or_arg::{
-      index::{LocationOrArgDomain, LocationOrArgIndex},
       LocationOrArg,
+      index::{LocationOrArgDomain, LocationOrArgIndex},
     },
     place::UNKNOWN_REGION,
   },
-  BodyExt, MutabilityExt, PlaceExt,
 };
 
 use super::{aliases::Aliases, utils::PlaceSet};
-use crate::extensions::{is_extension_active, MutabilityMode};
+use crate::extensions::{MutabilityMode, is_extension_active};
 
 /// Utilities for analyzing places: children, aliases, etc.
 pub struct PlaceInfo<'a, 'tcx> {
@@ -48,8 +47,8 @@ impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
   fn build_location_arg_domain(body: &Body) -> Rc<LocationOrArgDomain> {
     let all_locations = body.all_locations().map(LocationOrArg::Location);
     let all_locals = body.args_iter().map(LocationOrArg::Arg);
-    let domain = all_locations.chain(all_locals).collect();
-    Rc::new(LocationOrArgDomain::new(domain))
+    let domain = all_locations.chain(all_locals).collect::<Vec<_>>();
+    Rc::new(LocationOrArgDomain::from_iter(domain))
   }
 
   /// Computes all the metadata about places used within the infoflow analysis.
@@ -153,7 +152,7 @@ impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
         .filter(|place| {
           if let Some((place, _)) = place.refs_in_projection(self.body, self.tcx).last() {
             let ty = place.ty(self.body.local_decls(), self.tcx).ty;
-            if ty.is_box() || ty.is_unsafe_ptr() {
+            if ty.is_box() || ty.is_raw_ptr() {
               return true;
             }
           }
@@ -171,7 +170,7 @@ impl<'a, 'tcx> PlaceInfo<'a, 'tcx> {
       stack: vec![],
       loans: PlaceSet::default(),
     };
-    collector.visit_ty(ty);
+    let _ = collector.visit_ty(ty);
     collector.loans
   }
 
@@ -222,17 +221,16 @@ impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for LoanCollector<'_, 'tcx> {
     match ty.kind() {
       TyKind::Ref(_, _, mutability) => {
         self.stack.push(*mutability);
-        ty.super_visit_with(self);
+        ty.super_visit_with(self)?;
         self.stack.pop();
-        return ControlFlow::Break(());
       }
-      _ if ty.is_box() || ty.is_unsafe_ptr() => {
-        self.visit_region(self.unknown_region);
+      _ if ty.is_box() || ty.is_raw_ptr() => {
+        self.visit_region(self.unknown_region)?;
+        ty.super_visit_with(self)?;
       }
-      _ => {}
+      _ => ty.super_visit_with(self)?,
     };
 
-    ty.super_visit_with(self);
     ControlFlow::Continue(())
   }
 
@@ -248,7 +246,7 @@ impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for LoanCollector<'_, 'tcx> {
       _ => unreachable!("{region:?}"),
     };
     if let Some(loans) = self.aliases.loans.get(&region) {
-      let under_immut_ref = self.stack.iter().any(|m| *m == Mutability::Not);
+      let under_immut_ref = self.stack.contains(&Mutability::Not);
       let ignore_mut =
         is_extension_active(|mode| mode.mutability_mode == MutabilityMode::IgnoreMut);
       self
@@ -277,7 +275,7 @@ impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for LoanCollector<'_, 'tcx> {
 mod test {
   use rustc_utils::{
     hashset,
-    test_utils::{compare_sets, Placer},
+    test_utils::{Placer, compare_sets},
   };
 
   use super::*;
@@ -289,7 +287,7 @@ mod test {
   ) {
     test_utils::compile_body(input, |tcx, body_id, body_with_facts| {
       let body = &body_with_facts.body;
-      let def_id = tcx.hir().body_owner_def_id(body_id);
+      let def_id = tcx.hir_body_owner_def_id(body_id);
       let place_info = PlaceInfo::build(tcx, def_id.to_def_id(), body_with_facts);
 
       f(tcx, body, place_info)

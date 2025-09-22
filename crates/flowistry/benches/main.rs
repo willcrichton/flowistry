@@ -9,7 +9,7 @@ use std::{env::consts::DLL_SUFFIX, process::Command};
 
 use anyhow::{Context, Result};
 use criterion::{
-  criterion_group, criterion_main, measurement::WallTime, BenchmarkGroup, Criterion,
+  BenchmarkGroup, Criterion, criterion_group, criterion_main, measurement::WallTime,
 };
 use flowistry::infoflow::Direction;
 use glob::glob;
@@ -19,7 +19,7 @@ use rustc_middle::{
   mir::{Location, Place},
   ty::TyCtxt,
 };
-use rustc_utils::{mir::borrowck_facts, PlaceExt};
+use rustc_utils::{PlaceExt, mir::borrowck_facts};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum AnalysisType {
@@ -84,17 +84,16 @@ impl rustc_driver::Callbacks for Callbacks {
     _compiler: &rustc_interface::interface::Compiler,
     tcx: TyCtxt<'tcx>,
   ) -> rustc_driver::Compilation {
-    let hir = tcx.hir();
-    let body_id = hir
-      .items()
-      .filter_map(|id| match hir.item(id).kind {
-        ItemKind::Fn(_, _, body) => Some(body),
+    let body_id = tcx
+      .hir_free_items()
+      .filter_map(|id| match tcx.hir_item(id).kind {
+        ItemKind::Fn { body, .. } => Some(body),
         _ => None,
       })
       .next()
       .unwrap();
 
-    let def_id = hir.body_owner_def_id(body_id);
+    let def_id = tcx.hir_body_owner_def_id(body_id);
     let body_with_facts = borrowck_facts::get_body_with_borrowck_facts(tcx, def_id);
 
     for analysis_ty in [AnalysisType::FlowOnly, AnalysisType::FlowAndDeps] {
@@ -174,7 +173,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 
         let mut callbacks = Callbacks { group };
         rustc_driver::catch_fatal_errors(|| {
-          rustc_driver::RunCompiler::new(&args, &mut callbacks).run();
+          rustc_driver::run_compiler(&args, &mut callbacks)
         })
         .unwrap();
       }

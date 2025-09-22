@@ -5,12 +5,12 @@ use rustc_hir::BodyId;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
 use rustc_utils::{
+  SpanExt,
   mir::borrowck_facts::get_body_with_borrowck_facts,
   source_map::{
     range::CharRange,
     spanner::{EnclosingHirSpans, Spanner},
   },
-  SpanExt,
 };
 use serde::Serialize;
 
@@ -31,7 +31,7 @@ pub struct FocusOutput {
 }
 
 pub fn focus(tcx: TyCtxt, body_id: BodyId) -> Result<FocusOutput> {
-  let def_id = tcx.hir().body_owner_def_id(body_id);
+  let def_id = tcx.hir_body_owner_def_id(body_id);
   let body_with_facts = get_body_with_borrowck_facts(tcx, def_id);
   let body = &body_with_facts.body;
   let results = &infoflow::compute_flow(tcx, body_id, body_with_facts);
@@ -108,7 +108,7 @@ pub fn focus(tcx: TyCtxt, body_id: BodyId) -> Result<FocusOutput> {
   let ret_range = CharRange::from_span(spanner.ret_span, source_map)?;
   let mut containers = vec![body_range, ret_range];
 
-  let hir_body = tcx.hir().body(body_id);
+  let hir_body = tcx.hir_body(body_id);
   let arg_span = hir_body
     .params
     .iter()

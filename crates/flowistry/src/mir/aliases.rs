@@ -11,17 +11,17 @@ use rustc_data_structures::{
 };
 use rustc_hir::def_id::DefId;
 use rustc_index::{
-  bit_set::{ChunkedBitSet, SparseBitMatrix},
   IndexVec,
+  bit_set::{ChunkedBitSet, SparseBitMatrix},
 };
 use rustc_middle::{
   mir::{visit::Visitor, *},
   ty::{Region, RegionKind, RegionVid, Ty, TyCtxt, TyKind},
 };
-use rustc_utils::{mir::place::UNKNOWN_REGION, timer::elapsed, PlaceExt};
+use rustc_utils::{PlaceExt, mir::place::UNKNOWN_REGION, timer::elapsed};
 
 use crate::{
-  extensions::{is_extension_active, PointerMode},
+  extensions::{PointerMode, is_extension_active},
   mir::utils::{AsyncHack, PlaceSet},
 };
 
@@ -460,7 +460,7 @@ fn generate_conservative_constraints<'tcx>(
 mod test {
   use rustc_utils::{
     hashset,
-    test_utils::{compare_sets, Placer},
+    test_utils::{Placer, compare_sets},
   };
 
   use super::*;
@@ -472,7 +472,7 @@ mod test {
   ) {
     test_utils::compile_body(input, |tcx, body_id, body_with_facts| {
       let body = &body_with_facts.body;
-      let def_id = tcx.hir().body_owner_def_id(body_id);
+      let def_id = tcx.hir_body_owner_def_id(body_id);
       let aliases = Aliases::build(tcx, def_id.to_def_id(), body_with_facts);
 
       f(tcx, body, aliases)
