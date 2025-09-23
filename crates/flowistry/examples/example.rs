@@ -123,18 +123,7 @@ impl rustc_driver::Callbacks for Callbacks {
 fn main() {
   env_logger::init();
 
-  // Get the sysroot so rustc can find libstd
-  let print_sysroot = Command::new("rustc")
-    .args(&["--print", "sysroot"])
-    .output()
-    .unwrap()
-    .stdout;
-  let sysroot = String::from_utf8(print_sysroot).unwrap().trim().to_owned();
-
-  let mut args = std::env::args().collect::<Vec<_>>();
-  args.extend(["--sysroot".into(), sysroot]);
-
-  // Run rustc with the given arguments
+  let args = std::env::args().collect::<Vec<_>>();
   let mut callbacks = Callbacks;
   rustc_driver::catch_fatal_errors(|| rustc_driver::run_compiler(&args, &mut callbacks))
     .unwrap();
