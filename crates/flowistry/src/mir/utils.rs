@@ -6,7 +6,7 @@ use rustc_middle::{
   mir::*,
   ty::{GenericArgKind, RegionKind, RegionVid, Ty, TyCtxt},
 };
-use rustc_span::source_map::Spanned;
+use rustc_span::Spanned;
 use rustc_utils::{BodyExt, OperandExt, PlaceExt};
 
 use crate::extensions::{MutabilityMode, is_extension_active};
@@ -32,8 +32,8 @@ pub fn arg_mut_ptrs<'tcx>(
     .flat_map(|(i, place)| {
       place
         .interior_pointers(tcx, body, def_id)
-        .into_iter()
-        .flat_map(|(_, places)| {
+        .into_values()
+        .flat_map(|places| {
           places
             .into_iter()
             .filter_map(|(place, mutability)| match mutability {
@@ -101,8 +101,8 @@ impl<'a, 'tcx> AsyncHack<'a, 'tcx> {
       Some(context_ty) => {
         self
           .tcx
-          .erase_regions(place.ty(&self.body.local_decls, self.tcx).ty)
-          == self.tcx.erase_regions(context_ty)
+          .erase_and_anonymize_regions(place.ty(&self.body.local_decls, self.tcx).ty)
+          == self.tcx.erase_and_anonymize_regions(context_ty)
       }
       None => false,
     }

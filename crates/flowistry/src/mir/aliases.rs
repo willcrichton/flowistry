@@ -1,6 +1,6 @@
 //! Alias analysis to determine the points-to set of a reference.
 
-use std::{hash::Hash, time::Instant};
+use std::time::Instant;
 
 use log::{debug, info};
 use rustc_borrowck::consumers::BodyWithBorrowckFacts;

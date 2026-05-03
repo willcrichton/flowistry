@@ -1,4 +1,4 @@
-#![feature(rustc_private, unboxed_closures, box_patterns, trait_alias)]
+#![feature(rustc_private, unboxed_closures)]
 #![allow(
   clippy::single_match,
   clippy::needless_lifetimes,

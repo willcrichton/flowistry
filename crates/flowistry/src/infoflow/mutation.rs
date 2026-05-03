@@ -184,7 +184,7 @@ where
 
     match &terminator.kind {
       TerminatorKind::Call {
-        /*func,*/ // TODO: deal with func
+        func,
         args,
         destination,
         ..
@@ -210,6 +210,12 @@ where
         } else {
           arg_inputs.clone()
         };
+
+        if let Some((def_id, _)) = func.const_fn_def()
+          && tcx.def_path_str(def_id) == "std::boxed::box_assume_init_into_vec_unsafe"
+        {
+          // TODO: we need to fix this case to fix vec_read...
+        }
 
         let mut mutations = vec![Mutation {
           mutated: *destination,
