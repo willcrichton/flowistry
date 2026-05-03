@@ -54,7 +54,7 @@ pub fn iterate_to_fixpoint<'tcx, A: Analysis<'tcx>>(
   _tcx: TyCtxt<'tcx>,
   body: &Body<'tcx>,
   location_domain: Rc<LocationOrArgDomain>,
-  mut analysis: A,
+  analysis: A,
 ) -> AnalysisResults<'tcx, A> {
   let bottom_value = analysis.bottom_value(body);
 

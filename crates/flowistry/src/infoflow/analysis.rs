@@ -259,7 +259,7 @@ impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
   }
 
   fn apply_primary_statement_effect(
-    &mut self,
+    &self,
     state: &mut Self::Domain,
     statement: &Statement<'tcx>,
     location: Location,
@@ -271,7 +271,7 @@ impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
   }
 
   fn apply_primary_terminator_effect<'mir>(
-    &mut self,
+    &self,
     state: &mut Self::Domain,
     terminator: &'mir Terminator<'tcx>,
     location: Location,
@@ -292,7 +292,7 @@ impl<'a, 'tcx> Analysis<'tcx> for FlowAnalysis<'a, 'tcx> {
   }
 
   fn apply_call_return_effect(
-    &mut self,
+    &self,
     _state: &mut Self::Domain,
     _block: BasicBlock,
     _return_places: CallReturnPlaces<'_, 'tcx>,

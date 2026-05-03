@@ -12,7 +12,7 @@ use rustc_middle::{
   ty::{ParamEnv, Ty, TyCtxt, TypingMode},
 };
 use rustc_mir_dataflow::JoinSemiLattice;
-use rustc_span::FileName;
+use rustc_span::{FileName, RemapPathScopeComponents};
 use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
 use rustc_utils::{BodyExt, PlaceExt, SpanExt};
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
@@ -24,7 +24,7 @@ fn implements_trait<'tcx>(
   trait_def_id: DefId,
 ) -> bool {
   let infcx = tcx.infer_ctxt().build(TypingMode::non_body_analysis());
-  let ty = tcx.erase_regions(ty);
+  let ty = tcx.erase_and_anonymize_regions(ty);
   let result = infcx.type_implements_trait(trait_def_id, [ty], param_env);
   matches!(
     result,
@@ -160,7 +160,7 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<IssueFound> {
       stdout,
       "ERROR: insecure flow in {filename} from data at {src_span}:",
       filename = filename
-        .local_path_if_available()
+        .path(RemapPathScopeComponents::DIAGNOSTICS)        
         .file_name()
         .unwrap()
         .to_string_lossy(),
