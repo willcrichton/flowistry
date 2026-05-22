@@ -160,7 +160,7 @@ pub fn analyze(body_id: &BodyId, results: &FlowResults) -> Result<IssueFound> {
       stdout,
       "ERROR: insecure flow in {filename} from data at {src_span}:",
       filename = filename
-        .path(RemapPathScopeComponents::DIAGNOSTICS)        
+        .path(RemapPathScopeComponents::DIAGNOSTICS)
         .file_name()
         .unwrap()
         .to_string_lossy(),
